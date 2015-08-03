@@ -16,13 +16,23 @@ import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.IOException
+import org.specs2.specification.AfterAll
+
+import akka.actor.ActorSystem
 import akka.pattern.after
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.Sink
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
 object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
-trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient with AfterAll {
+
+  implicit val materializer = ActorMaterializer()(ActorSystem("ws-spec"))
+
+  def afterAll(): Unit = materializer.shutdown()
 
   "Web service client" title
 
@@ -44,6 +54,12 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with 
     }))) {
       block(port)
     }
+  }
+
+  implicit def source2enumerator[T](source: Source[T, Unit]): Enumerator[T] = {
+    import play.api.libs.streams.Streams
+    val publisher = source.runWith(Sink.publisher)
+    Streams.publisherToEnumerator(publisher)
   }
 
   "WS@java" should {
