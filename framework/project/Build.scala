@@ -330,7 +330,8 @@ object PlayBuild extends Build {
   lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
     .settings(
       libraryDependencies ++= testDependencies,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters += ProblemFilters.exclude[MissingMethodProblem]("play.test.Helpers.invokeWithContext")
     ).dependsOn(PlayNettyServerProject)
 
   lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
