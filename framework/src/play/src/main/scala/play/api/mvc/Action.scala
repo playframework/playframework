@@ -393,7 +393,8 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+  final def apply(block: => Result): Action[AnyContent] =
+    apply(BodyParsers.parse.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content, and no request parameter.
@@ -410,7 +411,8 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def async(block: => Future[Result]): Action[AnyContent] = async(_ => block)
+  final def async(block: => Future[Result]): Action[AnyContent] =
+    async(BodyParsers.parse.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.

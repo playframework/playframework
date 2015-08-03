@@ -12,7 +12,7 @@ import java.net.InetSocketAddress
 import akka.util.ByteString
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
-import play.api.libs.streams.Accumulator
+import play.api.libs.streams.{ MaterializeOnDemandPublisher, Accumulator }
 import play.api.mvc._
 import play.core.ApplicationProvider
 import play.core.server._
@@ -169,7 +169,7 @@ class AkkaHttpServer(
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      Source(new MaterialiseOnDemandPublisher(requestBodySource))
+      Source(new MaterializeOnDemandPublisher(requestBodySource))
     } else {
       requestBodySource
     }

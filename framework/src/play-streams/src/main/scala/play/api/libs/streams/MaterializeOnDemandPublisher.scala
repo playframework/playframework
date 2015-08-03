@@ -1,11 +1,11 @@
-package play.core.server.akkahttp
+package play.api.libs.streams
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import org.reactivestreams.{ Subscriber, Publisher, Subscription }
+import org.reactivestreams.{ Publisher, Subscriber, Subscription }
 import play.api.libs.concurrent.StateMachine
 
-private[akkahttp] object MaterialiseOnDemandPublisher {
+private[play] object MaterializeOnDemandPublisher {
   sealed trait State
 
   /**
@@ -16,7 +16,7 @@ private[akkahttp] object MaterialiseOnDemandPublisher {
   /**
    * The publisher is caching demand from the subscriber.
    *
-   * At this point, the source has been materialised with a forwarding subscriber, but it has not
+   * At this point, the source has been materialized with a forwarding subscriber, but it has not
    * yet invoked the onSubscribe method on that subscriber.
    */
   case class CachingDemand(demand: Long) extends State
@@ -32,16 +32,16 @@ private[akkahttp] object MaterialiseOnDemandPublisher {
   case class ForwardingDemand(subscription: Subscription) extends State
 }
 
-import MaterialiseOnDemandPublisher._
+import MaterializeOnDemandPublisher._
 
 /**
- * A publisher that only materialises a flow to the given source when its subscriber signals demand.
+ * A publisher that only materializes a flow to the given source when its subscriber signals demand.
  *
- * If the subscriber never signals demand (ie, it just cancels), the source will never be materialised.
+ * If the subscriber never signals demand (ie, it just cancels), the source will never be materialized.
  *
- * This is used to work around https://github.com/akka/akka/issues/17782.
+ * This is used to work around https://github.com/akka/akka/issues/18013.
  */
-private[akkahttp] class MaterialiseOnDemandPublisher[T](source: Source[T, _])(implicit mat: Materializer) extends StateMachine[State](AwaitingDemand) with Publisher[T] {
+private[play] class MaterializeOnDemandPublisher[T](source: Source[T, _])(implicit mat: Materializer) extends StateMachine[State](AwaitingDemand) with Publisher[T] {
 
   def subscribe(subscriber: Subscriber[_ >: T]) = {
     subscriber.onSubscribe(new ForwardingSubscription(subscriber))
@@ -53,7 +53,7 @@ private[akkahttp] class MaterialiseOnDemandPublisher[T](source: Source[T, _])(im
         state = Cancelled
         subscription.cancel()
       case _ =>
-        // If we're still awaiting demand, we go cancelled, and the source is never materialised.
+        // If we're still awaiting demand, we go cancelled, and the source is never materialized.
         // If we're already cancelled, we stay cancelled.
         // If we're caching demand, we short circuit that, and just cancel.
         state = Cancelled

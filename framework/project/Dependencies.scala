@@ -136,8 +136,7 @@ object Dependencies {
     javaTestDeps
 
   val netty = Seq(
-    "io.netty"           % "netty"                 % "3.10.4.Final",
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.4"
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.0-M2"
   ) ++ specsBuild.map(_ % Test)
 
   val nettyUtilsDependencies = slf4j

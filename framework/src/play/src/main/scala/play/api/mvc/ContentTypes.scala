@@ -463,8 +463,8 @@ trait BodyParsers {
      */
     def empty: BodyParser[Unit] = ignore(Unit)
 
-    def ignore[A](body: A): BodyParser[A] = BodyParser.iteratee("ignore") { request =>
-      Done(Right(body), Empty)
+    def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
+      Accumulator.done(Right(body))
     }
 
     // -- XML parser
