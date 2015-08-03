@@ -13,7 +13,7 @@ The Play Framework combines productivity and performance making it easy to build
 - [Build from source](http://www.playframework.com/documentation/latest/BuildingFromSource)
 - [Search or create issues](https://github.com/playframework/playframework/issues)
 - [Get help](http://stackoverflow.com/questions/tagged/playframework)
-- [Contribute](http://www.playframework.com/documentation/latest/Guidelines)
+- [Contribute](https://www.playframework.com/contributing)
 
 ### License
 
