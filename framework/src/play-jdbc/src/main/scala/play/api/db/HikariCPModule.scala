@@ -131,6 +131,7 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
     hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))
     hikariConfig.setReadOnly(config.get[Boolean]("readOnly"))
     hikariConfig.setRegisterMbeans(config.get[Boolean]("registerMbeans"))
+    config.getOptional[String]("connectionInitSql").foreach(hikariConfig.setConnectionInitSql)
     config.getOptional[String]("catalog").foreach(hikariConfig.setCatalog)
     config.getOptional[String]("transactionIsolation").foreach(hikariConfig.setTransactionIsolation)
     hikariConfig.setValidationTimeout(config.get[FiniteDuration]("validationTimeout").toMillis)
