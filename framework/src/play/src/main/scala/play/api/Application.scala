@@ -282,4 +282,13 @@ trait BuiltInComponents {
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)
+
+  // TODO: Logger should be application specific, and available via dependency injection.
+  //       Creating multiple applications will stomp on the global logger configuration.
+  Logger.configure(environment)
+
+  if (configuration.underlying.hasPath("logger")) {
+    Logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")
+  }
+
 }
