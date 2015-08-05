@@ -4,11 +4,11 @@
 package play.api.inject
 package guice
 
-import akka.actor.ActorSystem
-import com.google.inject.AbstractModule
-import javax.inject.{ Inject, Provider }
+import javax.inject.{ Inject, Provider, Singleton }
+
+import com.google.inject.{ ProvisionException, CreationException }
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment, GlobalSettings }
+import play.api.{ Configuration, Environment }
 
 object GuiceApplicationBuilderSpec extends Specification {
 
@@ -73,6 +73,21 @@ object GuiceApplicationBuilderSpec extends Specification {
       injector.instanceOf[A] must beAnInstanceOf[A1]
     }
 
+    "eagerly load singletons" in {
+      new GuiceApplicationBuilder()
+        .load(new BuiltinModule, bind[C].to[C1])
+        .eagerlyLoaded()
+        .injector() must throwAn[CreationException]
+    }
+
+    "set lazy load singletons" in {
+      val builder = new GuiceApplicationBuilder()
+        .load(new BuiltinModule, bind[C].to[C1])
+
+      builder.injector() must throwAn[CreationException].not
+      builder.injector().instanceOf[C] must throwAn[ProvisionException]
+    }
+
   }
 
   trait A
@@ -96,5 +111,14 @@ object GuiceApplicationBuilderSpec extends Specification {
       current ++ Configuration.from(conf.toMap)
     }
   }
+
+  trait C
+
+  @Singleton
+  class C1 extends C {
+    throw new EagerlyLoadedException
+  }
+
+  class EagerlyLoadedException extends RuntimeException
 
 }

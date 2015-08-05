@@ -5,7 +5,7 @@ package play.api.inject
 package guice
 
 import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
-import com.google.inject.{ CreationException, Guice, Module => GuiceModule }
+import com.google.inject.{ Module => GuiceModule, Stage, CreationException, Guice }
 import java.io.File
 import javax.inject.Inject
 import play.api.inject.{ Binding => PlayBinding, BindingKey, Injector => PlayInjector, Module => PlayModule }
@@ -22,7 +22,8 @@ abstract class GuiceBuilder[Self] protected (
     configuration: Configuration,
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
-    disabled: Seq[Class[_]]) {
+    disabled: Seq[Class[_]],
+    eagerly: Boolean) {
 
   /**
    * Set the environment.
@@ -47,6 +48,12 @@ abstract class GuiceBuilder[Self] protected (
    */
   final def in(classLoader: ClassLoader): Self =
     copyBuilder(environment = environment.copy(classLoader = classLoader))
+
+  /**
+   * Set the dependency initialization to eager.
+   */
+  final def eagerlyLoaded(): Self =
+    copyBuilder(eagerly = true)
 
   /**
    * Add additional configuration.
@@ -123,7 +130,12 @@ abstract class GuiceBuilder[Self] protected (
    */
   def injector(): PlayInjector = {
     try {
-      val guiceInjector = Guice.createInjector(applicationModule())
+      val stage = environment.mode match {
+        case Mode.Prod => Stage.PRODUCTION
+        case _ if eagerly => Stage.PRODUCTION
+        case _ => Stage.DEVELOPMENT
+      }
+      val guiceInjector = Guice.createInjector(stage, applicationModule())
       guiceInjector.getInstance(classOf[PlayInjector])
     } catch {
       case e: CreationException => e.getCause match {
@@ -141,8 +153,9 @@ abstract class GuiceBuilder[Self] protected (
     configuration: Configuration = configuration,
     modules: Seq[GuiceableModule] = modules,
     overrides: Seq[GuiceableModule] = overrides,
-    disabled: Seq[Class[_]] = disabled): Self =
-    newBuilder(environment, configuration, modules, overrides, disabled)
+    disabled: Seq[Class[_]] = disabled,
+    eagerly: Boolean = eagerly): Self =
+    newBuilder(environment, configuration, modules, overrides, disabled, eagerly)
 
   /**
    * Create a new Self for this immutable builder.
@@ -153,7 +166,8 @@ abstract class GuiceBuilder[Self] protected (
     configuration: Configuration,
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
-    disabled: Seq[Class[_]]): Self
+    disabled: Seq[Class[_]],
+    eagerly: Boolean): Self
 
 }
 
@@ -165,8 +179,9 @@ final class GuiceInjectorBuilder(
   configuration: Configuration = Configuration.empty,
   modules: Seq[GuiceableModule] = Seq.empty,
   overrides: Seq[GuiceableModule] = Seq.empty,
-  disabled: Seq[Class[_]] = Seq.empty) extends GuiceBuilder[GuiceInjectorBuilder](
-  environment, configuration, modules, overrides, disabled
+  disabled: Seq[Class[_]] = Seq.empty,
+  eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
+  environment, configuration, modules, overrides, disabled, eagerly
 ) {
 
   // extra constructor for creating from Java
@@ -182,8 +197,9 @@ final class GuiceInjectorBuilder(
     configuration: Configuration,
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
-    disabled: Seq[Class[_]]): GuiceInjectorBuilder =
-    new GuiceInjectorBuilder(environment, configuration, modules, overrides, disabled)
+    disabled: Seq[Class[_]],
+    eagerly: Boolean): GuiceInjectorBuilder =
+    new GuiceInjectorBuilder(environment, configuration, modules, overrides, disabled, eagerly)
 }
 
 /**
