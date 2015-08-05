@@ -9,6 +9,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.reactivestreams.Publisher
 import play.api.i18n.{ MessagesApi, Lang }
 import play.api.libs.iteratee._
 import play.api.http._
@@ -371,23 +372,13 @@ trait Results {
       )
     }
 
-    /**
-     * Send a file.
-     *
-     * @param content The file to send.
-     * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name (only used for Content-Disposition attachment).
-     */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      val name = fileName(content)
+    private def streamFile(publisher: Publisher[Array[Byte]], name: String, length: Long, inline: Boolean): Result = {
       Result(
         ResponseHeader(status,
-          if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + name + "\""))
-        ),
+          Map(CONTENT_DISPOSITION -> s"""${if (inline) "inline" else "attachment"}; filename="$name"""")),
         HttpEntity.Streamed(
-          Source(Streams.enumeratorToPublisher(Enumerator.fromFile(content) &>
-            Enumeratee.onIterateeDone(onClose)(defaultContext))).map(ByteString.apply),
-          Some(content.length),
+          Source(publisher).map(ByteString.apply),
+          Some(length),
           play.api.libs.MimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
       )
@@ -398,21 +389,25 @@ trait Results {
      *
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name (only used for Content-Disposition attachment).
+     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     */
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
+      val publisher = Streams.enumeratorToPublisher(Enumerator.fromFile(content) &>
+        Enumeratee.onIterateeDone(onClose)(defaultContext))
+      streamFile(publisher, fileName(content), content.length, inline)
+    }
+
+    /**
+     * Send a file.
+     *
+     * @param content The file to send.
+     * @param inline Use Content-Disposition inline or attachment.
+     * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      val name = fileName(content)
-      Result(
-        ResponseHeader(status,
-          if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + name + "\""))
-        ),
-        HttpEntity.Streamed(
-          Source(Streams.enumeratorToPublisher(Enumerator.fromPath(content) &>
-            Enumeratee.onIterateeDone(onClose)(defaultContext))).map(ByteString.apply),
-          Some(Files.size(content)),
-          play.api.libs.MimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
-        )
-      )
+      val publisher = Streams.enumeratorToPublisher(Enumerator.fromPath(content) &>
+        Enumeratee.onIterateeDone(onClose)(defaultContext))
+      streamFile(publisher, fileName(content), Files.size(content), inline)
     }
 
     /**
@@ -426,16 +421,8 @@ trait Results {
       inline: Boolean = true): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
-      Result(
-        ResponseHeader(status,
-          if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + fileName + "\""))
-        ),
-        HttpEntity.Streamed(
-          Source(Streams.enumeratorToPublisher(Enumerator.fromStream(stream))).map(ByteString.apply),
-          Some(stream.available()),
-          play.api.libs.MimeTypes.forFileName(fileName).orElse(Some(play.api.http.ContentTypes.BINARY))
-        )
-      )
+      val publisher = Streams.enumeratorToPublisher(Enumerator.fromStream(stream))
+      streamFile(publisher, fileName, stream.available(), inline)
     }
 
     /**

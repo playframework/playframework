@@ -159,7 +159,7 @@ object ResultsSpec extends Specification {
       file.delete()
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
     }
 
     "support sending a file with PaymentRequired status" in {
@@ -179,7 +179,7 @@ object ResultsSpec extends Specification {
       file.delete()
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
     }
 
     "support sending a path with Ok status" in {
@@ -209,7 +209,7 @@ object ResultsSpec extends Specification {
       Files.delete(file)
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
     }
 
     "support redirects for reverse routed calls" in {
