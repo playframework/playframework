@@ -151,7 +151,7 @@ trait HeadActionSpec extends PlaySpecification
         requestTags must not be empty
         requestTags.get(Router.Tags.RoutePattern) must beSome("/get")
         requestTags.get(Router.Tags.RouteVerb) must beSome(HttpVerbs.HEAD)
-      }.pendingUntilAkkaHttpFixed // waiting for https://github.com/playframework/playframework/issues/4907
+      }
     }
 
     "respect deliberately set Content-Length headers" in withServer {
