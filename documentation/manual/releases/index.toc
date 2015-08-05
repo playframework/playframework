@@ -1,7 +1,9 @@
+Highlights25:What's new in Play 2.5?
 Highlights24:What's new in Play 2.4?
 Highlights23:What's new in Play 2.3?
 Highlights22:What's new in Play 2.2?
 Highlights21:What's new in Play 2.1?
+Migration25:Play 2.5 migration guide
 migration24:Play 2.4 migration guide
 Migration23:Play 2.3 migration guide
 Migration22:Play 2.2 migration guide
