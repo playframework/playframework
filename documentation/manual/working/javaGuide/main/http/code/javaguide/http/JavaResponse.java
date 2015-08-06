@@ -28,7 +28,7 @@ public class JavaResponse extends WithApplication {
         Result textResult = ok("Hello World!");
         //#text-content-type
 
-        assertThat(textResult.header("Content-Type"), containsString("text/plain"));
+        assertThat(textResult.contentType().get(), containsString("text/plain"));
     }
 
     @Test
@@ -39,7 +39,7 @@ public class JavaResponse extends WithApplication {
         Result jsonResult = ok(json);
         //#json-content-type
 
-        assertThat(jsonResult.header("Content-Type"), containsString("application/json"));
+        assertThat(jsonResult.contentType().get(), containsString("application/json"));
     }
 
     @Test
@@ -48,19 +48,7 @@ public class JavaResponse extends WithApplication {
         Result htmlResult = ok("<h1>Hello World!</h1>").as("text/html");
         //#custom-content-type
 
-        assertThat(htmlResult.header("Content-Type"), containsString("text/html"));
-    }
-
-    @Test
-    public void contextContentType() {
-        assertThat(call(new MockJavaAction() {
-            //#context-content-type
-            public Result index() {
-                response().setContentType("text/html");
-                return ok("<h1>Hello World!</h1>");
-            }
-            //#context-content-type
-        }, fakeRequest()).header("Content-Type"), containsString("text/html"));
+        assertThat(htmlResult.contentType().get(), containsString("text/html"));
     }
 
     @Test
@@ -133,12 +121,11 @@ public class JavaResponse extends WithApplication {
         assertThat(call(new MockJavaAction() {
                     //#charset
                     public Result index() {
-                        response().setContentType("text/html; charset=iso-8859-1");
-                        return ok("<h1>Hello World!</h1>", "iso-8859-1");
+                        return ok("<h1>Hello World!</h1>", "iso-8859-1").as("text/html; charset=iso-8859-1");
                     }
                     //#charset
-                }, fakeRequest()).header("Content-Type"),
-                equalTo("text/html; charset=iso-8859-1"));
+                }, fakeRequest()).charset().get(),
+                equalTo("iso-8859-1"));
     }
 
 }

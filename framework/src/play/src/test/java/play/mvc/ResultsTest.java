@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
+import play.mvc.Http.HeaderNames;
+
+import static org.junit.Assert.*;
 
 public class ResultsTest {
 
@@ -20,59 +22,43 @@ public class ResultsTest {
   public void sendPathWithOKStatus() throws IOException {
     Path file = Paths.get("test.tmp");
     Files.createFile(file);
-    Results.Status status = Results.ok().sendPath(file);
+    Result result = Results.ok().sendPath(file);
     Files.delete(file);
 
-    assertEquals(status.status(), Http.Status.OK);
-    assertEquals(status.header(Result.CONTENT_DISPOSITION), "attachment; filename=\"test.tmp\"");
+    assertEquals(result.status(), Http.Status.OK);
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathWithUnauthorizedStatus() throws IOException {
     Path file = Paths.get("test.tmp");
     Files.createFile(file);
-    Results.Status status = Results.unauthorized().sendPath(file);
+    Result result = Results.unauthorized().sendPath(file);
     Files.delete(file);
 
-    assertEquals(status.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(status.header(Result.CONTENT_DISPOSITION), "attachment; filename=\"test.tmp\"");
+    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
   }
 
   @Test
   public void sendPathInlineWithUnauthorizedStatus() throws IOException {
     Path file = Paths.get("test.tmp");
     Files.createFile(file);
-    Results.Status status = Results.unauthorized().sendPath(file, true);
+    Result result = Results.unauthorized().sendPath(file, true);
     Files.delete(file);
 
-    assertEquals(status.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(status.header(Result.CONTENT_DISPOSITION), null);
+    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertFalse(result.header(HeaderNames.CONTENT_DISPOSITION).isPresent());
   }
 
   @Test
   public void sendPathWithFileName() throws IOException {
     Path file = Paths.get("test.tmp");
     Files.createFile(file);
-    Results.Status status = Results.unauthorized().sendPath(file, false, "foo.bar");
+    Result result = Results.unauthorized().sendPath(file, false, "foo.bar");
     Files.delete(file);
 
-    assertEquals(status.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(status.header(Result.CONTENT_DISPOSITION), "attachment; filename=\"foo.bar\"");
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void shouldThrowNullPointerExceptionIfPathIsNullForChunkedTransferEncoding() throws IOException {
-    Results.unauthorized().sendPath(null, 100);
-  }
-
-  @Test
-  public void sendPathWithChunkedTransferEncoding() throws IOException {
-    Path file = Paths.get("test.tmp");
-    Files.createFile(file);
-    Results.Status status = Results.unauthorized().sendPath(file, 100);
-    Files.delete(file);
-
-    assertEquals(status.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(status.header(Result.TRANSFER_ENCODING), "chunked");
+    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"foo.bar\"");
   }
 }

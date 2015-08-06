@@ -90,7 +90,9 @@ class CachedSpec extends PlaySpecification {
 
     "cache values using Application's Cached" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action = Cached(_ => "foo") {
+        (Action(Results.Ok("" + invoked.incrementAndGet())))
+      }
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1

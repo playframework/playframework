@@ -287,7 +287,7 @@ trait BuiltInComponents {
     configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer, Plugins.empty)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
-  lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
+  implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)

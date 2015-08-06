@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException
 import java.nio.charset.{ Charset, StandardCharsets }
 import javax.inject.{ Inject, Provider, Singleton }
 
+import akka.util.ByteString
 import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
@@ -167,7 +168,7 @@ case class NingWSRequest(client: NingWSClient,
   /**
    * Returns the body as an array of bytes.
    */
-  def getBody: Option[Array[Byte]] = {
+  def getBody: Option[ByteString] = {
     body match {
       case InMemoryBody(bytes) => Some(bytes)
       case _ => None
@@ -257,17 +258,16 @@ case class NingWSRequest(client: NingWSClient,
         try {
           if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
             // extract the content type and the charset
-            val charset = Charset.forName(
+            val charset =
               Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
                 // NingWSRequest modifies headers to include the charset, but this fails tests in Scala.
                 //val contentTypeList = Seq(ct + "; charset=utf-8")
                 //possiblyModifiedHeaders = this.headers.updated(HttpHeaders.Names.CONTENT_TYPE, contentTypeList)
                 "utf-8"
               }
-            )
 
             // Get the string body given the given charset...
-            val stringBody = new String(bytes, charset)
+            val stringBody = bytes.decodeString(charset)
             // The Ning signature calculator uses request.getFormParams() for calculation,
             // so we have to parse it out and add it rather than using setBody.
 
@@ -277,7 +277,7 @@ case class NingWSRequest(client: NingWSClient,
             } yield new Param(key, value)
             builder.setFormParams(params.asJava)
           } else {
-            builder.setBody(bytes)
+            builder.setBody(bytes.toArray)
           }
         } catch {
           case e: UnsupportedEncodingException =>

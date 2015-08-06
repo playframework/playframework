@@ -19,10 +19,6 @@ This is pretty useful, but sometimes you want to change it. Just use the `as(new
 
 @[custom-content-type](code/javaguide/http/JavaResponse.java)
 
-You can also set the content type on the HTTP response context:
-
-@[context-content-type](code/javaguide/http/JavaResponse.java)
-
 ## Setting HTTP response headers
 
 @[response-headers](code/javaguide/http/JavaResponse.java)

@@ -13,6 +13,7 @@ import play.mvc.Results.Chunks;
 import play.test.WithApplication;
 
 import java.io.*;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -41,8 +42,8 @@ public class JavaStream extends WithApplication {
             IOUtils.write("hi", os);
         }
         Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
-        assertThat(contentAsString(result), equalTo("hi"));
-        assertThat(header(CONTENT_LENGTH, result), equalTo("2"));
+        assertThat(contentAsString(result, mat), equalTo("hi"));
+        assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
         file.delete();
     }
 
@@ -56,7 +57,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void inputStream() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()), mat);
         // Wait until results refactoring is merged, then this will work
         // assertThat(content, containsString("hello"));
     }
@@ -76,16 +77,8 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void chunked() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest()));
-        assertThat(content, equalTo(
-                "4\r\n" +
-                        "kiki\r\n" +
-                        "3\r\n" +
-                        "foo\r\n" +
-                        "3\r\n" +
-                        "bar\r\n" +
-                        "0\r\n\r\n"
-        ));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest()), mat);
+        assertThat(content, equalTo("kikifoobar"));
     }
 
     public static class Controller4 extends MockJavaAction {

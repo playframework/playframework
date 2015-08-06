@@ -39,17 +39,11 @@ object MockJavaActionHelper {
   import Helpers.defaultAwaitTimeout
 
   def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder): Result = {
-    val result = Helpers.await(action.apply(requestBuilder.build()._underlyingRequest))
-    new Result {
-      def toScala = result
-    }
+    Helpers.await(action.apply(requestBuilder.build()._underlyingRequest)).asJava
   }
 
   def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String)(implicit mat: Materializer): Result = {
-    val result = Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body))
-    new Result {
-      def toScala = result
-    }
+    Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body)).asJava
   }
 
   def setContext(request: play.mvc.Http.RequestBuilder): Unit = {

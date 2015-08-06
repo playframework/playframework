@@ -3,6 +3,8 @@
  */
 package play.test;
 
+import akka.stream.Materializer;
+import akka.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
@@ -11,6 +13,7 @@ import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaResultExtractor;
+import play.http.HttpEntity;
 import play.mvc.*;
 import play.api.test.Helpers$;
 import play.libs.*;
@@ -23,7 +26,9 @@ import org.openqa.selenium.htmlunit.*;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static play.mvc.Http.*;
 
@@ -71,7 +76,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return null;
         } else {
             final play.api.mvc.Result scalaResult = Promise.wrap(result).get(timeout);
-            return () -> scalaResult;
+            return scalaResult.asJava();
         }
     }
 
@@ -198,149 +203,104 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#status()} instead.
+     * Extracts the content as a {@link akka.util.ByteString}.
+     *
+     * This method is only capable of extracting the content of results with strict entities. To extract the content of
+     * results with streamed entities, use {@link #contentAsBytes(Result, Materializer)}.
+     *
+     * @param result The result to extract the content from.
+     * @return The content of the result as a ByteString.
+     * @throws UnsupportedOperationException if the result does not have a strict entity.
      */
-    @Deprecated
-    public static int status(Result result) {
-        return result.toScala().header().status();
-    }
-
-    /**
-     * @deprecated use {@link Result#redirectLocation()} instead.
-     */
-    @Deprecated
-    public static String redirectLocation(Result result) {
-        return header(LOCATION, result);
-    }
-
-    /**
-     * @deprecated use {@link Result#flash()} instead.
-     */
-    @Deprecated
-    public static Flash flash(Result result) {
-        return JavaResultExtractor.getFlash(result);
-    }
-
-    /**
-     * @deprecated use {@link Result#session()} instead.
-     */
-    @Deprecated
-    public static Session session(Result result) {
-        return JavaResultExtractor.getSession(result);
-    }
-
-    /**
-     * @deprecated use {@link Result#cookie(String)} instead.
-     */
-    @Deprecated
-    public static Cookie cookie(String name, Result result) {
-        return JavaResultExtractor.getCookies(result).get(name);
-    }
-
-    /**
-     * @deprecated use {@link Result#cookies()} instead.
-     */
-    @Deprecated
-    public static Cookies cookies(Result result) {
-        return play.core.j.JavaResultExtractor.getCookies(result);
-    }
-
-    /**
-     * @deprecated use {@link Result#header(String)} instead.
-     */
-    @Deprecated
-    public static String header(String header, Result result) {
-        return JavaResultExtractor.getHeaders(result).get(header);
-    }
-
-    /**
-     * @deprecated use {@link Result#headers()} instead.
-     */
-    @Deprecated
-    public static Map<String, String> headers(Result result) {
-        return JavaResultExtractor.getHeaders(result);
-    }
-
-    /**
-     * @deprecated use {@link Result#contentType()} instead.
-     */
-    @Deprecated
-    public static String contentType(Content content) {
-        return content.contentType();
-    }
-
-    /**
-     * @deprecated use {@link Result#contentType()} instead.
-     */
-    @Deprecated
-    public static String contentType(Result result) {
-        String h = header(CONTENT_TYPE, result);
-        if(h == null) return null;
-        if(h.contains(";")) {
-            return h.substring(0, h.indexOf(";")).trim();
+    public static ByteString contentAsBytes(Result result) {
+        if (result.body() instanceof HttpEntity.Strict) {
+            return ((HttpEntity.Strict) result.body()).data();
         } else {
-            return h.trim();
+            throw new UnsupportedOperationException("Tried to extract body from a non strict HTTP entity without a materializer, use the version of this method that accepts a materializer instead");
         }
     }
 
     /**
-     * @deprecated use {@link Result#charset()} instead.
+     * Extracts the content as a {@link akka.util.ByteString}.
+     *
+     * @param result The result to extract the content from.
+     * @param mat The materialiser to use to extract the body from the result stream.
+     * @return The content of the result as a ByteString.
      */
-    @Deprecated
-    public static String charset(Result result) {
-        String h = header(CONTENT_TYPE, result);
-        if(h == null) return null;
-        if(h.contains("; charset=")) {
-            return h.substring(h.indexOf("; charset=") + 10, h.length()).trim();
-        } else {
-            return null;
+    public static ByteString contentAsBytes(Result result, Materializer mat) {
+        return contentAsBytes(result, mat, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Extracts the content as a {@link akka.util.ByteString}.
+     *
+     * @param result The result to extract the content from.
+     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return The content of the result as a ByteString.
+     */
+    public static ByteString contentAsBytes(Result result, Materializer mat, long timeout) {
+        try {
+            return result.body().consumeData(mat).thenApply(Function.identity()).toCompletableFuture().get(timeout, TimeUnit.MILLISECONDS);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * Extracts the content as bytes.
      */
-    public static byte[] contentAsBytes(Result result) {
-        return contentAsBytes(result, DEFAULT_TIMEOUT);
-    }
-
-    public static byte[] contentAsBytes(Result result, long timeout) {
-        return JavaResultExtractor.getBody(result, timeout);
+    public static ByteString contentAsBytes(Content content) {
+        return ByteString.fromString(content.body());
     }
 
     /**
-     * Extracts the content as bytes.
-     */
-    public static byte[] contentAsBytes(Content content) {
-        return content.body().getBytes();
-    }
-
-    /**
-     * Extracts the content as String.
+     * Extracts the content as a String.
      */
     public static String contentAsString(Content content) {
         return content.body();
     }
 
     /**
-     * Extracts the content as String.
+     * Extracts the content as a String.
+     *
+     * This method is only capable of extracting the content of results with strict entities. To extract the content of
+     * results with streamed entities, use {@link #contentAsString(Result, Materializer)}.
+     *
+     * @param result The result to extract the content from.
+     * @return The content of the result as a String.
+     * @throws UnsupportedOperationException if the result does not have a strict entity.
      */
     public static String contentAsString(Result result) {
-        return contentAsString(result, DEFAULT_TIMEOUT);
+        return contentAsBytes(result)
+                .decodeString(result.charset().orElse("utf-8"));
     }
 
-    public static String contentAsString(Result result, long timeout) {
-        try {
-            String charset = charset(result);
-            if(charset == null) {
-                charset = "utf-8";
-            }
-            return new String(contentAsBytes(result, timeout), charset);
-        } catch(RuntimeException e) {
-            throw e;
-        } catch(Throwable t) {
-            throw new RuntimeException(t);
-        }
+    /**
+     * Extracts the content as a String.
+     *
+     * @param result The result to extract the content from.
+     * @param mat The materialiser to use to extract the body from the result stream.
+     * @return The content of the result as a String.
+     */
+    public static String contentAsString(Result result, Materializer mat) {
+        return contentAsBytes(result, mat, DEFAULT_TIMEOUT)
+            .decodeString(result.charset().orElse("utf-8"));
+    }
+
+    /**
+     * Extracts the content as a String.
+     *
+     * @param result The result to extract the content from.
+     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return The content of the result as a String.
+     */
+    public static String contentAsString(Result result, Materializer mat, long timeout) {
+        return contentAsBytes(result, mat, timeout)
+                .decodeString(result.charset().orElse("utf-8"));
     }
 
     @SuppressWarnings(value = "unchecked")

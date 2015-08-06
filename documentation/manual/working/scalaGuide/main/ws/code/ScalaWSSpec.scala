@@ -3,6 +3,8 @@
  */
 package scalaguide.ws.scalaws
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import play.api.test._
 
 import java.io._
@@ -34,8 +36,6 @@ case class Person(name: String, age: Int)
  */
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results {
-
-  import scala.concurrent.ExecutionContext.global
 
   val url = s"http://localhost:$testServerPort/"
 
@@ -324,6 +324,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
       } { ws =>
         val file = File.createTempFile("stream-to-file-", ".txt")
+        implicit val actorSystem = ActorSystem()
+        implicit val mat = ActorMaterializer()
         try {
           //#stream-to-result
           def downloadFile = Action.async {
@@ -352,14 +354,14 @@ class ScalaWSSpec extends PlaySpecification with Results {
             }
           }
           //#stream-to-result
-          import play.api.libs.iteratee._
           await(
             downloadFile(FakeRequest())
-              .flatMap(_.body &> Results.dechunk |>>> Iteratee.fold(0l)((t, b) => t + b.length))
+              .flatMap(_.body.dataStream.runFold(0l)((t, b) => t + b.length))
           ) must_== 10000l
 
         } finally {
           file.delete()
+          actorSystem.shutdown()
         }
       }
 

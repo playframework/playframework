@@ -42,7 +42,7 @@ class AkkaHttpServer(
   implicit val system = actorSystem
   implicit val mat = materializer
 
-  val address: InetSocketAddress = {
+  private val serverBinding: Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
     // TODO: pass in Inet.SocketOption, ServerSettings and LoggerAdapter params?
@@ -56,7 +56,7 @@ class AkkaHttpServer(
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
 
     val bindTimeout = PlayConfig(config.configuration).get[Duration]("play.akka.http-bind-timeout")
-    Await.result(bindingFuture, bindTimeout).localAddress
+    Await.result(bindingFuture, bindTimeout)
   }
 
   // Each request needs an id
@@ -153,7 +153,7 @@ class AkkaHttpServer(
     }
 
     val resultFuture: Future[Result] = actionAccumulator.run(source)
-    val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
+    val responseFuture: Future[HttpResponse] = resultFuture.map { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
       modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol)
     }
@@ -168,6 +168,8 @@ class AkkaHttpServer(
 
   override def stop() {
 
+    // First, stop listening
+    Await.result(serverBinding.unbind(), Duration.Inf)
     applicationProvider.current.foreach(Play.stop)
 
     try {
@@ -192,10 +194,10 @@ class AkkaHttpServer(
 
   override lazy val mainAddress = {
     // TODO: Handle HTTPS here, like in NettyServer
-    address
+    serverBinding.localAddress
   }
 
-  def httpPort = Some(address.getPort)
+  def httpPort = Some(serverBinding.localAddress.getPort)
 
   def httpsPort = None
 }

@@ -1388,12 +1388,10 @@ public class Http {
         }
 
         /**
-         * Sets the content-type of the response.
-         *
-         * @param contentType The content type, must not be null
+         * @deprecated noop. Use {@link Result#as(String)} instead.
          */
+        @Deprecated
         public void setContentType(String contentType) {
-            setHeader(CONTENT_TYPE, contentType);
         }
 
         /**
@@ -1692,9 +1690,9 @@ public class Http {
 
         /**
          * @param name Name of the cookie to retrieve
-         * @return the cookie that is associated with the given name, or null if there is no such cookie
+         * @return the cookie that is associated with the given name
          */
-        public Cookie get(String name);
+        Cookie get(String name);
 
     }
 
