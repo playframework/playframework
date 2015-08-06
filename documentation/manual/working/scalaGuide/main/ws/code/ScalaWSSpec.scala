@@ -11,6 +11,7 @@ import java.io._
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.AfterAll
 
 //#dependency
 import javax.inject.Inject
@@ -19,6 +20,10 @@ import scala.concurrent.duration._
 
 import play.api.mvc._
 import play.api.libs.ws._
+
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl._
 
 class Application @Inject() (ws: WSClient) extends Controller {
 
@@ -35,13 +40,26 @@ case class Person(name: String, age: Int)
  * JVM implementation issue.
  */
 @RunWith(classOf[JUnitRunner])
-class ScalaWSSpec extends PlaySpecification with Results {
+class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
+
+  // This needs to be removed when https://github.com/playframework/playframework/issues/4688 is fixed.
+  import play.api.libs.iteratee._
+  implicit def source2enumerator[T](source: Source[T, _]): Enumerator[T] = {
+    import play.api.libs.streams.Streams
+    val publisher = source.runWith(Sink.publisher)
+    Streams.publisherToEnumerator(publisher)
+  }
 
   val url = s"http://localhost:$testServerPort/"
 
   // #scalaws-context
   implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
   // #scalaws-context
+
+  val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()(system)
+
+  def afterAll(): Unit = system.shutdown()
 
   def withSimpleServer[T](block: WSClient => T): T = withServer {
     case _ => Action(Ok)
@@ -265,18 +283,16 @@ class ScalaWSSpec extends PlaySpecification with Results {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
       } { ws =>
         //#stream-count-bytes
-        import play.api.libs.iteratee._
-
         // Make the request
-        val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
+        val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
           ws.url(url).getStream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           case (headers, body) =>
             // Count the number of bytes returned
-            body |>>> Iteratee.fold(0l) { (total, bytes) =>
+            body.runWith(Sink.fold[Long, Array[Byte]](0L){ (total, bytes) =>
               total + bytes.length
-            }
+            })
         }
         //#stream-count-bytes
         await(bytesReturned) must_== 10000l
@@ -288,23 +304,21 @@ class ScalaWSSpec extends PlaySpecification with Results {
         val file = File.createTempFile("stream-to-file-", ".txt")
         try {
           //#stream-to-file
-          import play.api.libs.iteratee._
-
           // Make the request
-          val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
+          val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
             ws.url(url).getStream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
             case (headers, body) =>
               val outputStream = new FileOutputStream(file)
 
-              // The iteratee that writes to the output stream
-              val iteratee = Iteratee.foreach[Array[Byte]] { bytes =>
+              // The sink that writes to the output stream
+              val sink = Sink.foreach[Array[Byte]] { bytes =>
                 outputStream.write(bytes)
               }
 
               // Feed the body into the iteratee
-              (body |>>> iteratee).andThen {
+              body.runWith(sink).andThen {
                 case result =>
                   // Close the output stream whether there was an error or not
                   outputStream.close()
@@ -324,8 +338,6 @@ class ScalaWSSpec extends PlaySpecification with Results {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
       } { ws =>
         val file = File.createTempFile("stream-to-file-", ".txt")
-        implicit val actorSystem = ActorSystem()
-        implicit val mat = ActorMaterializer()
         try {
           //#stream-to-result
           def downloadFile = Action.async {
@@ -361,7 +373,6 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
         } finally {
           file.delete()
-          actorSystem.shutdown()
         }
       }
 
@@ -371,15 +382,15 @@ class ScalaWSSpec extends PlaySpecification with Results {
         import play.api.libs.iteratee._
 
         //#stream-put
-        val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
+        val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           case (headers, body) =>
-            body |>>> Iteratee.fold(0l) { (total, bytes) =>
+            body.runWith(Sink.fold[Long, Array[Byte]](0L){ (total, bytes) =>
               total + bytes.length
-            }
+            })
         }
         //#stream-count-bytes
         await(bytesReturned) must_== 10000l
