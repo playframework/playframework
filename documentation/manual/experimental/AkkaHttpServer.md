@@ -15,7 +15,6 @@ In future versions of Play we may implement a production quality Akka HTTP backe
 ## Known issues
 
 * Slow. There is a lot more copying in the Akka HTTP backend because the Play and Akka HTTP APIs are not naturally compatible. A lot of extra copying is needed to translate the objects.
-* WebSockets are not supported, due to missing support in Akka HTTP.
 * No HTTPS support, again due to missing support in Akka HTTP.
 * Server shutdown is a bit rough. HTTP server actors are just killed.
 * The implementation contains code duplicated from the Netty backend.
