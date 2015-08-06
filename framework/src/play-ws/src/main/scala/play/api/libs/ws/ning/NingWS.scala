@@ -132,7 +132,7 @@ case class NingWSRequest(client: NingWSClient,
 
   def execute(): Future[WSResponse] = execute(buildRequest())
 
-  def stream(): Future[(WSResponseHeaders, Source[Array[Byte], Unit])] = executeStream(buildRequest())
+  def stream(): Future[(WSResponseHeaders, Source[ByteString, Unit])] = executeStream(buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
@@ -320,19 +320,19 @@ case class NingWSRequest(client: NingWSClient,
     result.future
   }
 
-  private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Source[Array[Byte], Unit])] = {
+  private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Source[ByteString, Unit])] = {
 
     import com.ning.http.client.AsyncHandler
 
-    val result = Promise[(WSResponseHeaders, Enumerator[Array[Byte]])]()
+    val result = Promise[(WSResponseHeaders, Enumerator[ByteString])]()
 
     val errorInStream = Promise[Unit]()
 
-    val promisedIteratee = Promise[Iteratee[Array[Byte], Unit]]()
+    val promisedIteratee = Promise[Iteratee[ByteString, Unit]]()
 
     @volatile var doneOrError = false
     @volatile var statusCode = 0
-    @volatile var current: Iteratee[Array[Byte], Unit] = Iteratee.flatten(promisedIteratee.future)
+    @volatile var current: Iteratee[ByteString, Unit] = Iteratee.flatten(promisedIteratee.future)
 
     client.executeRequest(request, new AsyncHandler[Unit]() {
 
@@ -349,10 +349,10 @@ case class NingWSRequest(client: NingWSClient,
         val headers = h.getHeaders
 
         val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
-        val enumerator = new Enumerator[Array[Byte]]() {
-          def apply[A](i: Iteratee[Array[Byte], A]) = {
+        val enumerator = new Enumerator[ByteString]() {
+          def apply[A](i: Iteratee[ByteString, A]) = {
 
-            val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
+            val doneIteratee = Promise[Iteratee[ByteString, A]]()
 
             import play.api.libs.iteratee.Execution.Implicits.trampoline
 
@@ -394,7 +394,7 @@ case class NingWSRequest(client: NingWSClient,
               Done(a, e)
 
             case Step.Cont(k) =>
-              k(El(bodyPart.getBodyPartBytes))
+              k(El(ByteString(bodyPart.getBodyPartBytes)))
 
             case Step.Error(e, input) =>
               doneOrError = true
@@ -632,10 +632,10 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
   lazy val json: JsValue = Json.parse(ahcResponse.getResponseBodyAsBytes)
 
   /**
-   * The response body as a byte array.
+   * The response body as a byte string.
    */
   @throws(classOf[IOException])
-  def bodyAsBytes: Array[Byte] = ahcResponse.getResponseBodyAsBytes
+  def bodyAsBytes: ByteString = ByteString(ahcResponse.getResponseBodyAsBytes)
 
   override def toString: String = {
     s"NingWSResponse($status, $statusText)"

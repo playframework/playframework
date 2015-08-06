@@ -24,6 +24,7 @@ import play.api.libs.ws._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
+import akka.util.ByteString
 
 class Application @Inject() (ws: WSClient) extends Controller {
 
@@ -44,9 +45,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   // This needs to be removed when https://github.com/playframework/playframework/issues/4688 is fixed.
   import play.api.libs.iteratee._
-  implicit def source2enumerator[T](source: Source[T, _]): Enumerator[T] = {
+  implicit def source2enumerator(source: Source[ByteString, _]): Enumerator[Array[Byte]] = {
     import play.api.libs.streams.Streams
-    val publisher = source.runWith(Sink.publisher)
+    val publisher = source.map(_.toArray).runWith(Sink.publisher)
     Streams.publisherToEnumerator(publisher)
   }
 
@@ -284,13 +285,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         //#stream-count-bytes
         // Make the request
-        val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
+        val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
           ws.url(url).getStream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           case (headers, body) =>
             // Count the number of bytes returned
-            body.runWith(Sink.fold[Long, Array[Byte]](0L){ (total, bytes) =>
+            body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }
@@ -305,7 +306,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         try {
           //#stream-to-file
           // Make the request
-          val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
+          val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
             ws.url(url).getStream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
@@ -313,8 +314,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
               val outputStream = new FileOutputStream(file)
 
               // The sink that writes to the output stream
-              val sink = Sink.foreach[Array[Byte]] { bytes =>
-                outputStream.write(bytes)
+              val sink = Sink.foreach[ByteString] { bytes =>
+                outputStream.write(bytes.toArray)
               }
 
               // Feed the body into the iteratee
@@ -382,13 +383,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         import play.api.libs.iteratee._
 
         //#stream-put
-        val futureResponse: Future[(WSResponseHeaders, Source[Array[Byte], _])] =
+        val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           case (headers, body) =>
-            body.runWith(Sink.fold[Long, Array[Byte]](0L){ (total, bytes) =>
+            body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }

@@ -229,9 +229,9 @@ trait WSResponse {
   def json: JsValue
 
   /**
-   * The response body as a byte array.
+   * The response body as a byte string.
    */
-  def bodyAsBytes: Array[Byte]
+  def bodyAsBytes: ByteString
 }
 
 /**
@@ -251,7 +251,7 @@ case class InMemoryBody(bytes: ByteString) extends WSBody
  *
  * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Source[Array[Byte], Unit]) extends WSBody {
+case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody {
   throw new NotImplementedError("A streaming request body is not yet implemented")
 }
 
@@ -417,7 +417,7 @@ trait WSRequest {
    * @param consumer that's handling the response
    */
   @deprecated("2.5.0", "Use `WS.get()` or `WS.getStream()`")
-  def get[A](consumer: WSResponseHeaders => Sink[Array[Byte], A])(implicit mat: Materializer): Future[A] = {
+  def get[A](consumer: WSResponseHeaders => Sink[ByteString, A])(implicit mat: Materializer): Future[A] = {
     getStream().map {
       case (response, source) =>
         source.runWith(consumer(response))
@@ -427,7 +427,7 @@ trait WSRequest {
   /**
    * performs a get
    */
-  def getStream(): Future[(WSResponseHeaders, Source[Array[Byte], Unit])] = {
+  def getStream(): Future[(WSResponseHeaders, Source[ByteString, Unit])] = {
     withMethod("GET").stream()
   }
 
@@ -448,7 +448,7 @@ trait WSRequest {
    * @param consumer that's handling the response
    */
   @deprecated("2.5.0", "Use `WS.patch(body)`.")
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[Array[Byte], A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
     withMethod("PATCH").withBody(body).stream().map {
       case (response, source) =>
         source.runWith(consumer(response))
@@ -472,7 +472,7 @@ trait WSRequest {
    * @param consumer that's handling the response
    */
   @deprecated("2.5.0", "Use `WS.post(body)`.")
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[Array[Byte], A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
     withMethod("POST").withBody(body).stream().map {
       case (response, source) =>
         source.runWith(consumer(response))
@@ -496,7 +496,7 @@ trait WSRequest {
    * @param consumer that's handling the response
    */
   @deprecated("2.5.0", "Use `WS.put(body)`.")
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[Array[Byte], A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
     withMethod("PUT").withBody(body).stream().map {
       case (response, source) =>
         source.runWith(consumer(response))
@@ -528,7 +528,7 @@ trait WSRequest {
   /**
    * Execute this request and stream the response body.
    */
-  def stream(): Future[(WSResponseHeaders, Source[Array[Byte], Unit])]
+  def stream(): Future[(WSResponseHeaders, Source[ByteString, Unit])]
 }
 
 /**

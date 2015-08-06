@@ -21,6 +21,7 @@ import java.io.IOException
 
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
+import akka.util.ByteString
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
@@ -177,7 +178,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         val res = ws.url("/get").stream()
         val (_, body) = await(res)
 
-        new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8").
+        await(body |>>> Iteratee.consume[ByteString]()).decodeString("utf-8").
           aka("streamed response") must_== "abc"
       }
 
