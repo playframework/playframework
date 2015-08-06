@@ -108,10 +108,7 @@ public final class Accumulator<E, A> {
      * @return A new accumulator with the given flow in its graph.
      */
     public <D> Accumulator<D, A> through(Flow<D, E, ?> flow) {
-    	// This should be written: new Accumulator<>(flow.to(sink, Keep.right()));
-    	// However, that doesn't compile anymore, and it seems there is an issue with the `Flow.to` (overloaded) method.
-    	// The solution I used here is to inline the implementation of `Flow.to` until the overloading issue is fixed.
-        return new Accumulator<>(new Sink(flow.asScala().toMat(sink, akka.stream.javadsl.package$.MODULE$.combinerToScala(Keep.right()))));
+        return new Accumulator<>(flow.toMat(sink, Keep.right()));
     }
 
     /**
