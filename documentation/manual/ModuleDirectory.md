@@ -378,6 +378,10 @@
 * **Website:** <https://github.com/mumoshu/play2-typescript>
 * **Short description:** Asset handling for [TypeScript](http://www.typescriptlang.org/) files
 
+## Vaadin Plugin
+* **Wensite:** <https://github.com/henrikerola/play-vaadin-integration>
+* **Short description:** Integration of Vaadin Framework [Vaadin](https://vaadin.com/)  
+
 ## WAR Module
 
 * **Website:** <https://github.com/dlecan/play2-war-plugin>
