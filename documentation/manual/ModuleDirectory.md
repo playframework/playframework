@@ -379,7 +379,7 @@
 * **Short description:** Asset handling for [TypeScript](http://www.typescriptlang.org/) files
 
 ## Vaadin Plugin
-* **Wensite:** <https://github.com/henrikerola/play-vaadin-integration>
+* **Website:** <https://github.com/henrikerola/play-vaadin-integration>
 * **Short description:** Integration of Vaadin Framework [Vaadin](https://vaadin.com/)  
 
 ## WAR Module
