@@ -130,15 +130,28 @@ object WebSocketClient {
         case _ => throw new WebSocketException("Unexpected event: " + e)
       }
     }
+
+    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      disconnected.tryFailure(e.getCause)
+      ctx.getChannel.close()
+      ctx.sendDownstream(e)
+    }
   }
 
   private class WebSocketClientHandler(out: Channel, disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
 
+    @volatile var clientInitiatedClose = false
     val (enumerator, in) = Concurrent.broadcast[WebSocketFrame]
 
     val iteratee: Iteratee[WebSocketFrame, _] = Cont {
-      case Input.El(wsf) => Iteratee.flatten(out.write(wsf).toScala.map(_ => iteratee))
-      case Input.EOF => Iteratee.flatten(out.close().toScala.map(_ => Done((), Input.EOF)))
+      case Input.El(wsf) =>
+        if (wsf.isInstanceOf[CloseWebSocketFrame]) {
+          clientInitiatedClose = true
+        }
+        Iteratee.flatten(out.write(wsf).toScala.map(_ => iteratee))
+      case Input.EOF =>
+        disconnected.trySuccess(())
+        Iteratee.flatten(out.close().toScala.map(_ => Done((), Input.EOF)))
       case Input.Empty => iteratee
     }
 
@@ -146,8 +159,9 @@ object WebSocketClient {
       e.getMessage match {
         case close: CloseWebSocketFrame =>
           in.push(close)
-          in.end()
-          out.close()
+          if (!clientInitiatedClose) {
+            out.write(close)
+          }
         case wsf: WebSocketFrame =>
           in.push(wsf)
         case _ => throw new WebSocketException("Unexpected event: " + e)

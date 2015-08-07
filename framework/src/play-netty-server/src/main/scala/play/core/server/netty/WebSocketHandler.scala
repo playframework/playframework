@@ -3,16 +3,20 @@
  */
 package play.core.server.netty
 
+import java.io.IOException
+
+import akka.util.ByteString
+import play.api.http.websocket.Message
+
 import scala.language.reflectiveCalls
 
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
 import play.core._
-import play.core.websocket._
 import play.core.server.websocket.WebSocketHandshake
 import play.api._
-import play.api.mvc.WebSocket.FrameFormatter
+import play.api.http.websocket._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.concurrent.{ Future, Promise }
@@ -37,26 +41,22 @@ private[server] trait WebSocketHandler {
    */
   private val MaxInFlight = 3
 
-  def newWebSocketInHandler[A](frameFormatter: FrameFormatter[A], bufferLimit: Long): (Enumerator[A], ChannelHandler) = {
+  def newWebSocketInHandler(bufferLimit: Long): (Enumerator[Message], ChannelHandler) = {
 
-    val basicFrameFormatter = frameFormatter.asInstanceOf[BasicFrameFormatter[A]]
-
-    def fromNettyFrame(nettyFrame: WebSocketFrame): A = nettyFrame match {
+    def fromNettyFrame(nettyFrame: WebSocketFrame): Message = nettyFrame match {
       case nettyTextFrame: TextWebSocketFrame =>
-        val basicFrame = TextFrame(nettyTextFrame.getText)
-        basicFrameFormatter.fromFrame(basicFrame)
+        TextMessage(nettyTextFrame.getText)
       case nettyBinaryFrame: BinaryWebSocketFrame =>
-        val bytes = channelBufferToArray(nettyBinaryFrame.getBinaryData)
-        val basicFrame = BinaryFrame(bytes)
-        basicFrameFormatter.fromFrame(basicFrame)
-    }
-    def definedForNettyFrame(nettyFrame: WebSocketFrame): Boolean = nettyFrame match {
-      case _: TextWebSocketFrame => basicFrameFormatter.fromFrameDefined(classOf[TextFrame])
-      case _: BinaryWebSocketFrame => basicFrameFormatter.fromFrameDefined(classOf[BinaryFrame])
-      case _ => false
+        BinaryMessage(ByteString(nettyBinaryFrame.getBinaryData.toByteBuffer))
+      case nettyPingFrame: PingWebSocketFrame =>
+        PingMessage(ByteString(nettyPingFrame.getBinaryData.toByteBuffer))
+      case nettyPongFrame: PongWebSocketFrame =>
+        PongMessage(ByteString(nettyPongFrame.getBinaryData.toByteBuffer))
+      case nettyCloseFrame: CloseWebSocketFrame =>
+        CloseMessage(Some(nettyCloseFrame.getStatusCode).filter(_ > 0), nettyCloseFrame.getReasonText)
     }
 
-    val enumerator = new WebSocketEnumerator[A]
+    val enumerator = new WebSocketEnumerator
 
     (enumerator,
       new SimpleChannelUpstreamHandler {
@@ -64,6 +64,7 @@ private[server] trait WebSocketHandler {
         type FrameCreator = ChannelBuffer => WebSocketFrame
 
         private var continuationBuffer: Option[(FrameCreator, ChannelBuffer)] = None
+        private var sentClose = false
 
         override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
 
@@ -83,35 +84,26 @@ private[server] trait WebSocketHandler {
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = None
               val finalFrame = creator(buffer)
-              val basicFrame = finalFrame
               enumerator.frameReceived(ctx, El(fromNettyFrame(finalFrame)))
 
             // fragmented text
-            case (frame: TextWebSocketFrame, None) if !frame.isFinalFragment && definedForNettyFrame(frame) =>
+            case (frame: TextWebSocketFrame, None) if !frame.isFinalFragment =>
               val buffer = ChannelBuffers.dynamicBuffer(Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = Some((b => new TextWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
             // fragmented binary
-            case (frame: BinaryWebSocketFrame, None) if !frame.isFinalFragment && definedForNettyFrame(frame) =>
+            case (frame: BinaryWebSocketFrame, None) if !frame.isFinalFragment =>
               val buffer = ChannelBuffers.dynamicBuffer(Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = Some((b => new BinaryWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
+            case (close: CloseWebSocketFrame, None) if sentClose =>
+              e.getChannel.close()
+
             // full handleable frame
-            case (frame: WebSocketFrame, None) if definedForNettyFrame(frame) =>
+            case (frame: WebSocketFrame, None) =>
               enumerator.frameReceived(ctx, El(fromNettyFrame(frame)))
-
-            // client initiated close
-            case (frame: CloseWebSocketFrame, _) =>
-              closeWebSocket(ctx, frame.getStatusCode, "")
-
-            // ping!
-            case (frame: PingWebSocketFrame, _) =>
-              ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
-
-            // pong!
-            case (frame: PongWebSocketFrame, _) => // ignore
 
             // unacceptable frame
             case (frame: WebSocketFrame, _) =>
@@ -122,11 +114,16 @@ private[server] trait WebSocketHandler {
         }
 
         override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-          e.getCause.printStackTrace()
+          e.getCause match {
+            case e: IOException =>
+              logger.trace("IO exception in WebSocket", e)
+            case other =>
+              logger.error("Exception caught while processing WebSocket", other)
+          }
           e.getChannel.close()
         }
 
-        override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+        override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
           enumerator.frameReceived(ctx, EOF)
           logger.trace("disconnected socket")
         }
@@ -138,7 +135,6 @@ private[server] trait WebSocketHandler {
           if (ctx.getChannel.isOpen) {
             for {
               _ <- ctx.getChannel.write(new CloseWebSocketFrame(status, reason)).toScala
-              _ <- ctx.getChannel.close().toScala
             } yield {
               enumerator.frameReceived(ctx, EOF)
             }
@@ -149,13 +145,13 @@ private[server] trait WebSocketHandler {
 
   }
 
-  private class WebSocketEnumerator[A] extends Enumerator[A] {
+  private class WebSocketEnumerator extends Enumerator[Message] {
 
-    val eventuallyIteratee = Promise[Iteratee[A, Any]]()
+    val eventuallyIteratee = Promise[Iteratee[Message, Any]]()
 
-    val iterateeRef = Ref[Iteratee[A, Any]](Iteratee.flatten(eventuallyIteratee.future))
+    val iterateeRef = Ref[Iteratee[Message, Any]](Iteratee.flatten(eventuallyIteratee.future))
 
-    private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
+    private val promise: scala.concurrent.Promise[Iteratee[Message, Any]] = Promise[Iteratee[Message, Any]]()
 
     /**
      * The number of in flight messages.  Incremented every time we receive a message, decremented every time a
@@ -163,9 +159,9 @@ private[server] trait WebSocketHandler {
      */
     private val inFlight = new AtomicInteger(0)
 
-    def apply[R](i: Iteratee[A, R]) = {
+    def apply[R](i: Iteratee[Message, R]) = {
       eventuallyIteratee.success(i)
-      promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
+      promise.asInstanceOf[scala.concurrent.Promise[Iteratee[Message, R]]].future
     }
 
     def setReadable(channel: Channel, readable: Boolean) {
@@ -174,14 +170,14 @@ private[server] trait WebSocketHandler {
       }
     }
 
-    def frameReceived(ctx: ChannelHandlerContext, input: Input[A]) {
+    def frameReceived(ctx: ChannelHandlerContext, input: Input[Message]) {
       val channel = ctx.getChannel
 
       if (inFlight.incrementAndGet() >= MaxInFlight) {
         setReadable(channel, false)
       }
 
-      val eventuallyNext = Promise[Iteratee[A, Any]]()
+      val eventuallyNext = Promise[Iteratee[Message, Any]]()
       val current = iterateeRef.single.swap(Iteratee.flatten(eventuallyNext.future))
       val next = current.flatFold(
         (a, e) => {
@@ -198,7 +194,6 @@ private[server] trait WebSocketHandler {
               promise.success(next)
               if (channel.isOpen) {
                 for {
-                  _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
                   _ <- channel.close().toScala
                 } yield next
               } else {
@@ -233,9 +228,9 @@ private[server] trait WebSocketHandler {
     }
   }
 
-  def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent, bufferLimit: Long)(frameFormatter: FrameFormatter[A]): Enumerator[A] = {
+  def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent, bufferLimit: Long): Enumerator[Message] = {
 
-    val (enumerator, handler) = newWebSocketInHandler(frameFormatter, bufferLimit)
+    val (enumerator, handler) = newWebSocketInHandler(bufferLimit)
     val p: ChannelPipeline = ctx.getChannel.getPipeline
     p.replace("handler", "handler", handler)
 
