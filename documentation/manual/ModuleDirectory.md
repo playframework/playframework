@@ -380,7 +380,7 @@
 
 ## Vaadin Plugin
 * **Website:** <https://github.com/henrikerola/play-vaadin-integration>
-* **Short description:** Integration of Vaadin Framework [Vaadin](https://vaadin.com/)  
+* **Short description:** Integration of  [Vaadin Framework ](https://vaadin.com/)  
 
 ## WAR Module
 
