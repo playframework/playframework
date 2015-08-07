@@ -98,7 +98,7 @@ object Modules {
     val includes = configuration.getStringSeq("play.modules.enabled").getOrElse(Seq.empty)
     val excludes = configuration.getStringSeq("play.modules.disabled").getOrElse(Seq.empty)
 
-    val moduleClassNames = includes.toSet -- excludes
+    val moduleClassNames = includes.distinct.filterNot(excludes.contains)
 
     moduleClassNames.map { className =>
       try {
@@ -133,6 +133,6 @@ object Modules {
           "Module [" + className + "] cannot be instantiated.",
           e)
       }
-    }.toSeq
+    }
   }
 }
