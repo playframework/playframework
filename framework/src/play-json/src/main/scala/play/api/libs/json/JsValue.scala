@@ -154,3 +154,24 @@ object JsObject {
    */
   def apply(fields: Seq[(String, JsValue)]): JsObject = new JsObject(mutable.LinkedHashMap(fields: _*))
 }
+
+/**
+ * Represents literal Json text.
+ * The content is assumed to be valid Json and is serialized as is.
+ */
+case class JsLiteral(content: String) extends JsValue {
+
+  lazy val parsed: JsValue = Json.parse(content)
+
+  override def validate[A](implicit rds: Reads[A]) = parsed.validate(rds)
+
+  override def validateOpt[T](implicit rds: Reads[A]) = parsed.validate(rds)
+
+  override def toString = content
+
+}
+
+object JsLiteral {
+  import scala.language.implicitConversions
+  implicit def jsLiteralToJsLookup(value: JsLiteral): JsLookup = JsLookup(JsDefined(value.parsed))
+}
