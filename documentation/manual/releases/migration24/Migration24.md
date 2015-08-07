@@ -56,6 +56,8 @@ libraryDependencies += evolutions
 
 While, if you are not using evolutions, you can now safely remove `evolutionplugin=disabled` from your `application.conf`.
 
+The configuration keys have changed, so instead of `evolutionplugin=disabled` you now need to use `play.evolutions.enabled=false` (See [[Evolutions configuration|Evolutions#Evolutions-configuration]])
+
 If you are using Play Slick module (with or without evolutions), things have changed quite a bit, so make sure to read the [[Play Slick migration guide|PlaySlickMigrationGuide]].
 
 ### IDEs: Eclipse and IntelliJ IDEA
