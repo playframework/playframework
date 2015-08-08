@@ -3,6 +3,8 @@
  */
 package play.api.libs.json
 
+import play.api.libs.json.Json.JsValueWrapper
+
 import scala.collection._
 
 import play.api.data.validation.ValidationError
@@ -48,7 +50,7 @@ case class JsString(value: String) extends JsValue
 /**
  * Represent a Json array value.
  */
-case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
+case class JsArray(value: Seq[JsValue] = Seq()) extends JsValue {
 
   /**
    * Concatenates this array with the elements of an other array.
@@ -59,14 +61,14 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
   /**
    * Append an element to this array.
    */
-  def :+(el: JsValue): JsArray = JsArray(value :+ el)
-  def append(el: JsValue): JsArray = this.:+(el)
+  def :+(el: JsValueWrapper): JsArray = JsArray(value :+ el.value)
+  def append(el: JsValueWrapper): JsArray = this.:+(el)
 
   /**
    * Prepend an element to this array.
    */
-  def +:(el: JsValue): JsArray = JsArray(el +: value)
-  def prepend(el: JsValue): JsArray = this.+:(el)
+  def +:(el: JsValueWrapper): JsArray = JsArray(el.value +: value)
+  def prepend(el: JsValueWrapper): JsArray = this.+:(el)
 
 }
 
@@ -111,12 +113,26 @@ case class JsObject(private val underlying: Map[String, JsValue]) extends JsValu
   /**
    * Removes one field from the JsObject
    */
-  def -(otherField: String): JsObject = JsObject(underlying - otherField)
+  def -(field: String): JsObject = JsObject(underlying - field)
+
+  /**
+   * Removes two or more fields from the JsObject
+   */
+  def -(f1: String, f2: String, fs: String*) = JsObject(underlying - f1 - f2 -- fs)
 
   /**
    * Adds one field to the JsObject
    */
-  def +(otherField: (String, JsValue)): JsObject = JsObject(underlying + otherField)
+  def +(field: (String, JsValueWrapper)): JsObject = {
+    val (k, v) = field
+    JsObject(underlying + (k -> v.value))
+  }
+
+  /**
+   * Adds two or more fields to the JsObject
+   */
+  def +(f1: (String, JsValueWrapper), f2: (String, JsValueWrapper), fs: (String, JsValueWrapper)*): JsObject =
+    JsObject(underlying ++ (f1 +: f2 +: fs).map { case (k, v) => k -> v.value })
 
   /**
    * merges everything in depth and doesn't stop at first level, as ++ does
