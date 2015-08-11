@@ -48,7 +48,7 @@ public class ResultsTest {
     Files.delete(file);
 
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertFalse(result.header(HeaderNames.CONTENT_DISPOSITION).isPresent());
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
   }
 
   @Test

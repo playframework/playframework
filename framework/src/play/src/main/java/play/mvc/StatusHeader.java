@@ -189,13 +189,10 @@ public class StatusHeader extends Result {
 
     private Result doSendResource(Source<ByteString, ?> data, Optional<Long> contentLength,
                                   Optional<String> resourceName, boolean inline) {
-        Map<String, String> headers;
-        if (inline || !resourceName.isPresent()) {
-            headers = Collections.emptyMap();
-        } else {
-            headers = Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + resourceName.get() + "\"");
-        }
+        Map<String, String> headers = Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION,
+            (inline ? "inline" : "attachment") +
+                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"" : ""));
+
         return new Result(status(), headers, new HttpEntity.Streamed(
                 data, contentLength, resourceName.map(name ->
                         OptionConverters.toJava(play.api.libs.MimeTypes.forFileName(name))
