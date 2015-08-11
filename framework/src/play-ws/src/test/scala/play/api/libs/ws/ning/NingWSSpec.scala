@@ -15,6 +15,7 @@ import play.api.mvc._
 import java.util
 import play.api.libs.ws._
 import play.api.test._
+import akka.util.ByteString
 
 object NingWSSpec extends PlaySpecification with Mockito {
 
@@ -325,8 +326,8 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "get the body as bytes from the AHC response" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val bytes = Array[Byte](-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
-      ahcResponse.getResponseBodyAsBytes returns bytes
+      val bytes = ByteString(-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
+      ahcResponse.getResponseBodyAsBytes returns bytes.toArray
       val response = NingWSResponse(ahcResponse)
       response.bodyAsBytes must_== bytes
     }

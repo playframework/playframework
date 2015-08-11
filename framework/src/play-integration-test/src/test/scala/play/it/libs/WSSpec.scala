@@ -19,6 +19,10 @@ import scala.concurrent.duration._
 import play.api.libs.iteratee._
 import java.io.IOException
 
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.Sink
+import akka.util.ByteString
+
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
 object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
@@ -134,6 +138,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
   "WS@scala" should {
     import play.api.libs.ws.WSSignatureCalculator
 
+    implicit val materializer = app.materializer
+
+    implicit def source2enumerator[T](source: Source[T, Unit]): Enumerator[T] = {
+      import play.api.libs.streams.Streams
+      val publisher = source.runWith(Sink.publisher)
+      Streams.publisherToEnumerator(publisher)
+    }
+
     def withServer[T](block: play.api.libs.ws.WSClient => T) = {
       Server.withApplication(app) { implicit port =>
         WsTestClient.withClient(block)
@@ -166,7 +178,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         val res = ws.url("/get").stream()
         val (_, body) = await(res)
 
-        new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8").
+        await(body |>>> Iteratee.consume[ByteString]()).decodeString("utf-8").
           aka("streamed response") must_== "abc"
       }
 

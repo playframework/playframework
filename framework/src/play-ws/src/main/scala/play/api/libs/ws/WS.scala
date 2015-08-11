@@ -3,20 +3,21 @@
  */
 package play.api.libs.ws
 
+import java.io.File
 import java.net.URI
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.xml.Elem
+
+import akka.stream.Materializer
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
-import scala.concurrent.{ Future, ExecutionContext }
-import scala.concurrent.duration.Duration
-
-import java.io.File
-
+import play.api.Application
 import play.api.http.Writeable
-import play.api.libs.iteratee._
-
-import play.api._
-import scala.xml.Elem
 import play.api.libs.json.JsValue
 
 /**
@@ -228,9 +229,9 @@ trait WSResponse {
   def json: JsValue
 
   /**
-   * The response body as a byte array.
+   * The response body as a byte string.
    */
-  def bodyAsBytes: Array[Byte]
+  def bodyAsBytes: ByteString
 }
 
 /**
@@ -248,9 +249,9 @@ case class InMemoryBody(bytes: ByteString) extends WSBody
 /**
  * A streamed body
  *
- * @param bytes An enumerator of the bytes of the body
+ * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Enumerator[Array[Byte]]) extends WSBody {
+case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody {
   throw new NotImplementedError("A streaming request body is not yet implemented")
 }
 
@@ -409,109 +410,113 @@ trait WSRequest {
   /**
    * performs a get
    */
-  def get() = withMethod("GET").execute()
+  def get(): Future[WSResponse] = withMethod("GET").execute()
 
   /**
    * performs a get
    * @param consumer that's handling the response
    */
-  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    getStream().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
+  @deprecated("2.5.0", "Use `WS.get()` or `WS.getStream()`")
+  def get[A](consumer: WSResponseHeaders => Sink[ByteString, A])(implicit mat: Materializer): Future[A] = {
+    getStream().map {
+      case (response, source) =>
+        source.runWith(consumer(response))
+    }(mat.executionContext)
   }
 
   /**
    * performs a get
    */
-  def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+  def getStream(): Future[(WSResponseHeaders, Source[ByteString, Unit])] = {
     withMethod("GET").stream()
   }
 
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  def patch[T](body: T)(implicit wrt: Writeable[T]) =
+  def patch[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("PATCH").withBody(body).execute()
 
   /**
    * Perform a PATCH on the request asynchronously.
    * Request body won't be chunked
    */
-  def patch(body: File) = withMethod("PATCH").withBody(FileBody(body)).execute()
+  def patch(body: File): Future[WSResponse] = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PATCH").withBody(body).stream().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
+  @deprecated("2.5.0", "Use `WS.patch(body)`.")
+  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+    withMethod("PATCH").withBody(body).stream().map {
+      case (response, source) =>
+        source.runWith(consumer(response))
+    }(mat.executionContext)
   }
 
   /**
    * Perform a POST on the request asynchronously.
    */
-  def post[T](body: T)(implicit wrt: Writeable[T]) =
+  def post[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("POST").withBody(body).execute()
 
   /**
    * Perform a POST on the request asynchronously.
    * Request body won't be chunked
    */
-  def post(body: File) = withMethod("POST").withBody(FileBody(body)).execute()
+  def post(body: File): Future[WSResponse] = withMethod("POST").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("POST").withBody(body).stream().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
+  @deprecated("2.5.0", "Use `WS.post(body)`.")
+  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+    withMethod("POST").withBody(body).stream().map {
+      case (response, source) =>
+        source.runWith(consumer(response))
+    }(mat.executionContext)
   }
 
   /**
    * Perform a PUT on the request asynchronously.
    */
-  def put[T](body: T)(implicit wrt: Writeable[T]) =
+  def put[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("PUT").withBody(body).execute()
 
   /**
    * Perform a PUT on the request asynchronously.
    * Request body won't be chunked
    */
-  def put(body: File) = withMethod("PUT").withBody(FileBody(body)).execute()
+  def put(body: File): Future[WSResponse] = withMethod("PUT").withBody(FileBody(body)).execute()
 
   /**
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PUT").withBody(body).stream().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
+  @deprecated("2.5.0", "Use `WS.put(body)`.")
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
+    withMethod("PUT").withBody(body).stream().map {
+      case (response, source) =>
+        source.runWith(consumer(response))
+    }(mat.executionContext)
   }
 
   /**
    * Perform a DELETE on the request asynchronously.
    */
-  def delete() = withMethod("DELETE").execute()
+  def delete(): Future[WSResponse] = withMethod("DELETE").execute()
 
   /**
    * Perform a HEAD on the request asynchronously.
    */
-  def head() = withMethod("HEAD").execute()
+  def head(): Future[WSResponse] = withMethod("HEAD").execute()
 
   /**
    * Perform a OPTIONS on the request asynchronously.
    */
-  def options() = withMethod("OPTIONS").execute()
+  def options(): Future[WSResponse] = withMethod("OPTIONS").execute()
 
   def execute(method: String): Future[WSResponse] = withMethod(method).execute()
 
@@ -521,9 +526,9 @@ trait WSRequest {
   def execute(): Future[WSResponse]
 
   /**
-   * Execute this request and stream the response body in an enumerator
+   * Execute this request and stream the response body.
    */
-  def stream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
+  def stream(): Future[(WSResponseHeaders, Source[ByteString, Unit])]
 }
 
 /**
