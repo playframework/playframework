@@ -3,9 +3,10 @@
  */
 package play.api.db.evolutions
 
-import java.sql.{ SQLException, ResultSet }
+import java.sql.{ ResultSet, SQLException }
+
 import org.specs2.mutable.{ After, Specification }
-import play.api.db.Databases
+import play.api.db.{ Database, Databases }
 
 // TODO: fuctional test with InvalidDatabaseRevision exception
 
@@ -17,7 +18,7 @@ object EvolutionsSpec extends Specification {
 
   "Evolutions" should {
 
-    "apply up scripts" in new WithEvolutions {
+    trait UpScripts { this: WithEvolutions =>
       val scripts = evolutions.scripts(Seq(a1, a2, a3))
 
       scripts must have length (3)
@@ -33,7 +34,7 @@ object EvolutionsSpec extends Specification {
       resultSet.next must beFalse
     }
 
-    "apply down scripts" in new WithEvolutions {
+    trait DownScripts { this: WithEvolutions =>
       val original = evolutions.scripts(Seq(a1, a2, a3))
       evolutions.evolve(original, autocommit = true)
 
@@ -52,7 +53,7 @@ object EvolutionsSpec extends Specification {
       resultSet.next must beFalse
     }
 
-    "report inconsistent state and resolve" in new WithEvolutions {
+    trait ReportInconsistentStateAndResolve { this: WithEvolutions =>
       val broken = evolutions.scripts(Seq(c1, a2, a3))
       val fixed = evolutions.scripts(Seq(a1, a2, a3))
 
@@ -66,7 +67,7 @@ object EvolutionsSpec extends Specification {
       evolutions.evolve(fixed, autocommit = true)
     }
 
-    "reset the database" in new WithEvolutions {
+    trait ResetDatabase { this: WithEvolutions =>
       val scripts = evolutions.scripts(Seq(a1, a2, a3))
       evolutions.evolve(scripts, autocommit = true)
       // Check that there's data in the database
@@ -81,7 +82,7 @@ object EvolutionsSpec extends Specification {
       executeQuery("select * from test") must throwA[SQLException]
     }
 
-    "provide a helper for testing" in new WithEvolutions {
+    trait ProvideHelperForTesting { this: WithEvolutions =>
       Evolutions.withEvolutions(database, SimpleEvolutionsReader.forDefault(a1, a2, a3)) {
         // Check that there's data in the database
         val resultSet = executeQuery("select * from test")
@@ -93,6 +94,20 @@ object EvolutionsSpec extends Specification {
       executeQuery("select * from test") must throwA[SQLException]
     }
 
+    "apply up scripts" in new UpScripts with WithEvolutions
+    "apply up scripts derby" in new UpScripts with WithDerbyEvolutions
+
+    "apply down scripts" in new DownScripts with WithEvolutions
+    "apply down scripts derby" in new DownScripts with WithDerbyEvolutions
+
+    "report inconsistent state and resolve" in new ReportInconsistentStateAndResolve with WithEvolutions
+    "report inconsistent state and resolve derby" in new ReportInconsistentStateAndResolve with WithDerbyEvolutions
+
+    "reset the database" in new ResetDatabase with WithEvolutions
+    "reset the database derby" in new ResetDatabase with WithDerbyEvolutions
+
+    "provide a helper for testing" in new ProvideHelperForTesting with WithEvolutions
+    "provide a helper for testing derby" in new ProvideHelperForTesting with WithDerbyEvolutions
   }
 
   trait WithEvolutions extends After {
@@ -110,17 +125,24 @@ object EvolutionsSpec extends Specification {
     }
   }
 
+  trait WithDerbyEvolutions extends WithEvolutions {
+    override lazy val database: Database = Databases(
+      driver = "org.apache.derby.jdbc.EmbeddedDriver",
+      url = "jdbc:derby:memory:default;create=true"
+    )
+  }
+
   object TestEvolutions {
     val a1 = Evolution(
       1,
       "create table test (id bigint not null, name varchar(255));",
-      "drop table if exists test;"
+      "drop table test;"
     )
 
     val a2 = Evolution(
       2,
-      "alter table test add (age int);",
-      "alter table test drop if exists age;"
+      "alter table test add column age int;",
+      "alter table test drop age;"
     )
 
     val a3 = Evolution(
@@ -132,7 +154,7 @@ object EvolutionsSpec extends Specification {
     val b1 = Evolution(
       1,
       "create table test (id bigint not null, content varchar(255));",
-      "drop table if exists test;"
+      "drop table test;"
     )
 
     val b3 = Evolution(
@@ -143,8 +165,8 @@ object EvolutionsSpec extends Specification {
 
     val c1 = Evolution(
       1,
-      "creaTYPOe table test (id bigint not null, name varchar(255));",
-      "drop table if exists test;"
+      "creaTYPOe table test (id bigint not null, name varchar(255));"
     )
   }
+
 }
