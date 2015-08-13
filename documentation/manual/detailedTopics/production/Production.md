@@ -123,6 +123,12 @@ Play manages its own PID, which is described in the [[Production configuration|P
 # Add all other startup settings here, too
 ```
 
+To prevent Play from creating a PID just set the property to `/dev/null`:
+
+```bash
+-Dpidfile.path=/dev/null
+```
+
 For a full list of replacements take a closer look at the [customize java server documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/customize.html) and [customize java app documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
@@ -198,4 +204,3 @@ $ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar -Dplay.cr
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.
-
