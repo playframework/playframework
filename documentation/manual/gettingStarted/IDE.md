@@ -84,6 +84,8 @@ To create a Play application:
 
 IntelliJ IDEA creates an empty application using SBT.
 
+Currently, for Play 2.4.x, instead of using the IntelliJ wizard to create a new project, we suggest that you create it using Activator and then Import it to IntelliJ.
+
 You can also import an existing Play project.
 
 To import a Play project:
