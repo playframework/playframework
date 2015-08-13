@@ -119,7 +119,7 @@ class EnumeratorPublisherSpec extends Specification {
 
     "be done enumerating after being cancelled" in {
       val testEnv = new TestEnv[Int]
-      var enumDone = Promise[Boolean]()
+      val enumDone = Promise[Boolean]()
       val (broadcastEnum, channel) = Concurrent.broadcast[Int]
       val enum = broadcastEnum.onDoneEnumerating {
         enumDone.success(true)
@@ -136,9 +136,16 @@ class EnumeratorPublisherSpec extends Specification {
       // However it is necessary to have an event so that the publisher's
       // Cont is satisfied. We want to advance the iteratee to pick up the
       // Done iteratee caused by the cancel.
-      channel.push(0)
-      testEnv.isEmptyAfterDelay() must beTrue
-      Await.result(enumDone.future, Duration(5, SECONDS)) must beTrue
+      try {
+        channel.push(0)
+        Await.result(enumDone.future, Duration(5, SECONDS)) must beTrue
+      } catch {
+        case t: Throwable =>
+          // If it didn't work the first time, try again, since cancel only guarantees that the publisher will
+          // eventually finish
+          channel.push(0)
+          Await.result(enumDone.future, Duration(5, SECONDS)) must beTrue
+      }
     }
     "enumerate eof only" in {
       val testEnv = new TestEnv[Int]

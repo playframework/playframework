@@ -5,6 +5,8 @@
  */
 package play.it.http.websocket
 
+import java.io.IOException
+
 import org.jboss.netty.bootstrap.ClientBootstrap
 import org.jboss.netty.channel._
 import socket.nio.NioClientSocketChannelFactory
@@ -158,7 +160,7 @@ object WebSocketClient {
         case close: CloseWebSocketFrame =>
           in.push(close)
           in.end()
-          ctx.getChannel.disconnect()
+          out.close()
         case wsf: WebSocketFrame =>
           in.push(wsf)
         case _ => throw new WebSocketException("Unexpected event: " + e)
@@ -166,10 +168,20 @@ object WebSocketClient {
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
-      disconnected.tryFailure(exception)
-      in.end(exception)
-      ctx.getChannel.close()
+      e.getCause match {
+        case io: IOException =>
+          // We're talking to loopback, an IO exception is probably fine to ignore, if there's a problem, the tests
+          // should catch it.
+          println("IO exception caught in WebSocket client: " + io)
+          disconnected.success(())
+          in.end()
+          out.close()
+        case other =>
+          val exception = new RuntimeException("Exception caught in web socket handler", other)
+          disconnected.tryFailure(exception)
+          in.end(exception)
+          out.close()
+      }
     }
 
     override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
