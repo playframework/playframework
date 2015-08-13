@@ -30,19 +30,18 @@ import Json._
   "No Json serializer found for type ${A}. Try to implement an implicit Writes or Format for this type."
 )
 trait Writes[-A] {
-
   /**
    * Convert the object into a JsValue
    */
   def writes(o: A): JsValue
 
   /**
-   * transforms the resulting JsValue using transformer function
+   * Transforms the resulting [[JsValue]] using transformer function
    */
   def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A] { a => transformer(this.writes(a)) }
 
   /**
-   * transforms resulting JsValue using Writes[JsValue]
+   * Transforms resulting [[JsValue]] using Writes[JsValue]
    */
   def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A] { a => transformer.writes(this.writes(a)) }
 
@@ -52,8 +51,19 @@ trait Writes[-A] {
   "No Json serializer as JsObject found for type ${A}. Try to implement an implicit OWrites or OFormat for this type."
 )
 trait OWrites[-A] extends Writes[A] {
-
   def writes(o: A): JsObject
+
+  /**
+   * Transforms the resulting [[JsValue]] using transformer function
+   */
+  def transform(transformer: JsObject => JsObject): OWrites[A] =
+    OWrites[A] { a => transformer(this.writes(a)) }
+
+  /**
+   * Transforms resulting [[JsValue]] using Writes[JsValue]
+   */
+  def transform(transformer: OWrites[JsObject]): OWrites[A] =
+    OWrites[A] { a => transformer.writes(this.writes(a)) }
 
 }
 
@@ -75,7 +85,6 @@ object OWrites extends PathWrites with ConstraintWrites {
   def apply[A](f: A => JsObject): OWrites[A] = new OWrites[A] {
     def writes(a: A): JsObject = f(a)
   }
-
 }
 
 /**
@@ -93,11 +102,8 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
   }*/
 
   def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
-
     def writes(a: A): JsValue = f(a)
-
   }
-
 }
 
 /**
