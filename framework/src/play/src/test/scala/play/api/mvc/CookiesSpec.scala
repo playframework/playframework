@@ -69,7 +69,6 @@ object CookiesSpec extends Specification {
 
     "contain elements for some cookies" in withApplication {
       val headerString = Cookies.encodeCookieHeader(Seq(cookie1, cookie2))
-      println(headerString)
       val c: Cookies = Cookies.fromCookieHeader(Some(headerString))
       c must contain(allOf(cookie1, cookie2))
     }

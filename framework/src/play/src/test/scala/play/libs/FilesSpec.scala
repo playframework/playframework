@@ -62,14 +62,14 @@ object FilesSpec extends Specification with After {
       val file = new File(parentDirectory, "file.txt")
       writeFile(file, "file content")
 
-      new String(PlayIO.readFile(file), utf8) must beEqualTo("file content")
+      retry(new String(PlayIO.readFile(file), utf8) must beEqualTo("file content"))
     }
 
     "read file content as a String" in {
       val file = new File(parentDirectory, "file.txt")
       writeFile(file, "file content")
 
-      PlayIO.readFileAsString(file) must beEqualTo("file content")
+      retry(PlayIO.readFileAsString(file) must beEqualTo("file content"))
     }
 
     "read url content as a String" in {
@@ -78,7 +78,7 @@ object FilesSpec extends Specification with After {
 
       val url = file.toURI.toURL
 
-      PlayIO.readUrlAsString(url) must beEqualTo("file content")
+      retry(PlayIO.readUrlAsString(url) must beEqualTo("file content"))
     }
   }
 
@@ -89,4 +89,16 @@ object FilesSpec extends Specification with After {
     java.nio.file.Files.write(file.toPath, content.getBytes(utf8))
   }
 
+  private def retry[T](block: => T): T = {
+    def step(attempt: Int): T = {
+      try {
+        block
+      } catch {
+        case t if attempt < 10 =>
+          Thread.sleep(10)
+          step(attempt + 1)
+      }
+    }
+    step(0)
+  }
 }
