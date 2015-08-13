@@ -87,6 +87,12 @@ Using this file, you can stop your application using the `kill` command, for exa
 $ kill $(cat /var/run/play.pid)
 ```
 
+To prevent Play from creating it's own PID, you can set the path to `/dev/null` in your `application.conf` file:
+
+```
+pidfile.path = "/dev/null"
+```
+
 ### Using environment variables
 
 You can also reference environment variables from your `application.conf` file:
