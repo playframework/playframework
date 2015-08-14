@@ -142,7 +142,7 @@ trait QueryStringBindable[A] {
  *         } yield user
  *       }
  *       override def unbind(key: String, user: User): String = {
- *         intBinder.unbind(user.id)
+ *         intBinder.unbind(key, user.id)
  *       }
  *     }
  *   }
