@@ -62,7 +62,7 @@ Next we'll define the `Action`.
 This `Action` is more complicated than our list case. Some things to note:
 
 - This `Action` expects a request with a `Content-Type` header of `text/json` or `application/json` and a body containing a JSON representation of the entity to create.
-- It uses a JSON specific `BodyParser` will parse the request and provide `request.body` as a `JsValue`. 
+- It uses a JSON specific `BodyParser` which will parse the request and provide `request.body` as a `JsValue`. 
 - We used the `validate` method for conversion which will rely on our implicit `Reads[Place]`.
 - To process the validation result, we used a `fold` with error and success flows. This pattern may be familiar as it is also used for [[form submission|ScalaForms]].
 - The `Action` also sends JSON responses.
