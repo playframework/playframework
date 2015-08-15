@@ -191,7 +191,7 @@ object PlaySettings {
     },
     scriptClasspath := {
       if (externalizeResources.value) {
-        "../conf" +: scriptClasspath.value
+        "../conf/" +: scriptClasspath.value
       } else scriptClasspath.value
     },
     // taskDyn ensures we only build the sans externalised jar if we need to
