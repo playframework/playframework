@@ -184,7 +184,7 @@ public class DatabaseTest {
         db.getConnection().close();
         db.shutdown();
         exception.expect(SQLException.class);
-        exception.expectMessage(startsWith("Pool has been shutdown"));
+        exception.expectMessage(endsWith("has been closed."));
         db.getConnection().close();
     }
 }
