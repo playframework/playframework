@@ -79,7 +79,7 @@ class HikariCPConfigSpec extends Specification {
       }
 
       "readOnly to false" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.isReadOnly must beFalse
+        (new HikariCPConfig(dbConfig, reference).toHikariConfig.isReadOnly: Boolean) must beFalse
       }
 
       "registerMBeans to false" in new Configs {
@@ -147,7 +147,7 @@ class HikariCPConfigSpec extends Specification {
 
       "readOnly" in new Configs {
         val config = from("hikaricp.readOnly" -> "true")
-        new HikariCPConfig(dbConfig, config).toHikariConfig.isReadOnly must beTrue
+        (new HikariCPConfig(dbConfig, config).toHikariConfig.isReadOnly: Boolean) must beTrue
       }
 
       "leakDetectionThreshold" in new Configs {

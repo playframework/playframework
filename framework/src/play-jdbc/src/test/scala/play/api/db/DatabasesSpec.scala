@@ -127,7 +127,7 @@ object DatabasesSpec extends Specification {
       db.getConnection.close()
       db.shutdown()
       db.getConnection.close() must throwA[SQLException].like {
-        case e => e.getMessage must startWith("Pool has been shutdown")
+        case e => e.getMessage must endWith("has been shutdown")
       }
     }
 
