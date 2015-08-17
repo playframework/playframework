@@ -35,6 +35,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   def app = HttpBinApplication.app
 
+  val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+
   "WS@java" should {
 
     def withServer[T](block: play.libs.ws.WSClient => T) = {
@@ -114,6 +116,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         bar.asJson.path("args").path("foo").textValue() must_== "bar")
     }
 
+    "get a streamed response" in withResult(
+      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
+        val res = ws.url("/get").stream().toCompletableFuture.get()
+
+        await(res.getBody().runWith(foldingSink, app.materializer)).decodeString("utf-8").
+          aka("streamed response") must_== "abc"
+      }
+
     class CustomSigner extends WSSignatureCalculator with com.ning.http.client.SignatureCalculator {
       def calculateAndAddSignature(request: com.ning.http.client.Request, requestBuilder: com.ning.http.client.RequestBuilderBase[_]) = {
         // do nothing
@@ -138,12 +148,6 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     import play.api.libs.ws.WSSignatureCalculator
 
     implicit val materializer = app.materializer
-
-    implicit def source2enumerator[T](source: Source[T, Unit]): Enumerator[T] = {
-      import play.api.libs.streams.Streams
-      val publisher = source.runWith(Sink.publisher)
-      Streams.publisherToEnumerator(publisher)
-    }
 
     def withServer[T](block: play.api.libs.ws.WSClient => T) = {
       Server.withApplication(app) { implicit port =>
@@ -172,12 +176,12 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     "get a streamed response" in withResult(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))) { ws =>
+      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
 
         val res = ws.url("/get").stream()
-        val (_, body) = await(res)
+        val body = await(res).body
 
-        await(body |>>> Iteratee.consume[ByteString]()).decodeString("utf-8").
+        await(body.runWith(foldingSink)).decodeString("utf-8").
           aka("streamed response") must_== "abc"
       }
 

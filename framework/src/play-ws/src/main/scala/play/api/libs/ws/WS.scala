@@ -3,6 +3,8 @@
  */
 package play.api.libs.ws
 
+import java.io.Closeable
+
 import java.io.File
 import java.net.URI
 
@@ -15,15 +17,15 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-
 import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json.JsValue
+import play.api.libs.iteratee._
 
 /**
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
  */
-trait WSClient {
+trait WSClient extends Closeable {
 
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
@@ -266,6 +268,11 @@ case class FileBody(file: File) extends WSBody
 case object EmptyBody extends WSBody
 
 /**
+ * A streamed response containing a response header and a streamable body.
+ */
+case class StreamedResponse(headers: WSResponseHeaders, body: Source[ByteString, _])
+
+/**
  * A WS Request builder.
  */
 trait WSRequest {
@@ -416,19 +423,20 @@ trait WSRequest {
    * performs a get
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", "Use `WS.get()` or `WS.getStream()`")
-  def get[A](consumer: WSResponseHeaders => Sink[ByteString, A])(implicit mat: Materializer): Future[A] = {
-    getStream().map {
-      case (response, source) =>
-        source.runWith(consumer(response))
-    }(mat.executionContext)
+  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    getStream().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
   }
 
   /**
    * performs a get
    */
-  def getStream(): Future[(WSResponseHeaders, Source[ByteString, Unit])] = {
-    withMethod("GET").stream()
+  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+    withMethod("GET").streamWithEnumerator()
   }
 
   /**
@@ -447,12 +455,12 @@ trait WSRequest {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", "Use `WS.patch(body)`.")
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
-    withMethod("PATCH").withBody(body).stream().map {
-      case (response, source) =>
-        source.runWith(consumer(response))
-    }(mat.executionContext)
+  @deprecated("2.5.0", """Use WS.withMethod("PATCH").stream()""")
+  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("PATCH").withBody(body).streamWithEnumerator().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
   }
 
   /**
@@ -471,12 +479,12 @@ trait WSRequest {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", "Use `WS.post(body)`.")
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
-    withMethod("POST").withBody(body).stream().map {
-      case (response, source) =>
-        source.runWith(consumer(response))
-    }(mat.executionContext)
+  @deprecated("2.5.0", """Use WS.withMethod("POST").stream()""")
+  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("POST").withBody(body).streamWithEnumerator().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
   }
 
   /**
@@ -495,12 +503,12 @@ trait WSRequest {
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", "Use `WS.put(body)`.")
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Sink[ByteString, A])(implicit wrt: Writeable[T], mat: Materializer): Future[A] = {
-    withMethod("PUT").withBody(body).stream().map {
-      case (response, source) =>
-        source.runWith(consumer(response))
-    }(mat.executionContext)
+  @deprecated("2.5.0", """Use WS.withMethod("PUT").stream()""")
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("PUT").withBody(body).streamWithEnumerator().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
   }
 
   /**
@@ -528,7 +536,15 @@ trait WSRequest {
   /**
    * Execute this request and stream the response body.
    */
-  def stream(): Future[(WSResponseHeaders, Source[ByteString, Unit])]
+  def stream(): Future[StreamedResponse]
+
+  /**
+   * Execute this request and stream the response body.
+   * @note This method used to be named `stream`, but it was renamed because the method's signature was
+   *       changed and the JVM doesn't allow overloading on the return type.
+   */
+  @deprecated("2.5.0", "Use `WS.stream()` instead.")
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 
 /**

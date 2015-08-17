@@ -3,31 +3,35 @@
  */
 package play.api.libs.ws.ning
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+
+import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
+import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
+import com.ning.http.client.cookie.{ Cookie => AHCCookie }
+import com.ning.http.util.AsyncHttpProviderUtils
+
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.nio.charset.{ Charset, StandardCharsets }
+
 import javax.inject.{ Inject, Provider, Singleton }
-import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
-import com.ning.http.client.cookie.{ Cookie => AHCCookie }
-import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
-import com.ning.http.util.AsyncHttpProviderUtils
+
 import org.jboss.netty.handler.codec.http.HttpHeaders
+
+import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
-import play.core.parsers.FormUrlEncodedParser
-import collection.immutable.TreeMap
-import scala.concurrent.{ Future, Promise }
-import scala.concurrent.duration.Duration
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
-import play.api.libs.iteratee._
-import play.api._
-import play.core.utils.CaseInsensitiveOrdered
-import play.api.libs.ws.DefaultWSResponseHeaders
-import play.api.libs.iteratee.Input.El
 import play.api.libs.ws.ssl.debug._
+import play.core.parsers.FormUrlEncodedParser
+import play.core.utils.CaseInsensitiveOrdered
+
 import scala.collection.JavaConverters._
-import akka.stream.scaladsl.Source
-import java.io.IOException
-import akka.util.ByteString
+import scala.collection.immutable.TreeMap
+import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration.Duration
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -40,11 +44,11 @@ case class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
 
   private val asyncHttpClient = new AsyncHttpClient(config)
 
-  def underlying[T] = asyncHttpClient.asInstanceOf[T]
+  def underlying[T]: T = asyncHttpClient.asInstanceOf[T]
 
   private[libs] def executeRequest[T](request: Request, handler: AsyncHandler[T]): ListenableFuture[T] = asyncHttpClient.executeRequest(request, handler)
 
-  def close() = asyncHttpClient.close()
+  def close(): Unit = asyncHttpClient.close()
 
   def url(url: String): WSRequest = NingWSRequest(this, url, "GET", EmptyBody, Map(), Map(), None, None, None, None, None, None, None)
 }
@@ -70,6 +74,14 @@ object NingWSClient {
     val client = new NingWSClient(new NingAsyncHttpClientConfigBuilder(config).build())
     new SystemConfiguration().configure(config.wsClientConfig)
     client
+  }
+}
+
+case object NingWSRequest {
+  private[libs] def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap): TreeMap[String, Seq[String]] = {
+    val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+    //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
+    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
 }
 
@@ -132,13 +144,16 @@ case class NingWSRequest(client: NingWSClient,
 
   def execute(): Future[WSResponse] = execute(buildRequest())
 
-  def stream(): Future[(WSResponseHeaders, Source[ByteString, Unit])] = executeStream(buildRequest())
+  def stream(): Future[StreamedResponse] = StreamedRequest.execute(client.underlying, buildRequest())
+
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
+    StreamedRequest.executeAndReturnEnumerator(client.underlying, buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
    * so may return extra headers that were not directly input.
    */
-  def requestHeaders: Map[String, Seq[String]] = ningHeadersToMap(buildRequest().getHeaders)
+  def requestHeaders: Map[String, Seq[String]] = NingWSRequest.ningHeadersToMap(buildRequest().getHeaders)
 
   /**
    * Returns the HTTP header given by name, using the request builder.  This may be signed,
@@ -191,12 +206,6 @@ case class NingWSRequest(client: NingWSClient,
       .setPassword(password)
       .setUsePreemptiveAuth(true)
       .build()
-  }
-
-  private[libs] def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) = {
-    val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-    //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
-    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
 
   def contentType: Option[String] = {
@@ -318,115 +327,6 @@ case class NingWSRequest(client: NingWSClient,
       }
     })
     result.future
-  }
-
-  private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Source[ByteString, Unit])] = {
-
-    import com.ning.http.client.AsyncHandler
-
-    val result = Promise[(WSResponseHeaders, Enumerator[ByteString])]()
-
-    val errorInStream = Promise[Unit]()
-
-    val promisedIteratee = Promise[Iteratee[ByteString, Unit]]()
-
-    @volatile var doneOrError = false
-    @volatile var statusCode = 0
-    @volatile var current: Iteratee[ByteString, Unit] = Iteratee.flatten(promisedIteratee.future)
-
-    client.executeRequest(request, new AsyncHandler[Unit]() {
-
-      import com.ning.http.client.AsyncHandler.STATE
-
-      @throws(classOf[Exception])
-      override def onStatusReceived(status: HttpResponseStatus): STATE = {
-        statusCode = status.getStatusCode
-        STATE.CONTINUE
-      }
-
-      @throws(classOf[Exception])
-      override def onHeadersReceived(h: HttpResponseHeaders): STATE = {
-        val headers = h.getHeaders
-
-        val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
-        val enumerator = new Enumerator[ByteString]() {
-          def apply[A](i: Iteratee[ByteString, A]) = {
-
-            val doneIteratee = Promise[Iteratee[ByteString, A]]()
-
-            import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-            // Map it so that we can complete the iteratee when it returns
-            val mapped = i.map {
-              a =>
-                doneIteratee.trySuccess(Done(a))
-                ()
-            }.recover {
-              // but if an error happens, we want to propogate that
-              case e =>
-                doneIteratee.tryFailure(e)
-                throw e
-            }
-
-            // Redeem the iteratee that we promised to the AsyncHandler
-            promisedIteratee.trySuccess(mapped)
-
-            // If there's an error in the stream from upstream, then fail this returned future with that
-            errorInStream.future.onFailure {
-              case e => doneIteratee.tryFailure(e)
-            }
-
-            doneIteratee.future
-          }
-        }
-
-        result.trySuccess((responseHeader, enumerator))
-        STATE.CONTINUE
-      }
-
-      @throws(classOf[Exception])
-      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): STATE = {
-        if (!doneOrError) {
-          import play.api.libs.concurrent.Execution.Implicits.defaultContext
-          current = current.pureFlatFold {
-            case Step.Done(a, e) =>
-              doneOrError = true
-              Done(a, e)
-
-            case Step.Cont(k) =>
-              k(El(ByteString(bodyPart.getBodyPartBytes)))
-
-            case Step.Error(e, input) =>
-              doneOrError = true
-              Error(e, input)
-
-          }
-          STATE.CONTINUE
-        } else {
-          current = null
-          // Must close underlying connection, otherwise async http client will drain the stream
-          bodyPart.markUnderlyingConnectionAsToBeClosed()
-          STATE.ABORT
-        }
-      }
-
-      @throws(classOf[Exception])
-      override def onCompleted(): Unit = {
-        Option(current).foreach(_.run)
-      }
-
-      override def onThrowable(t: Throwable): Unit = {
-        result.tryFailure(t)
-        errorInStream.tryFailure(t)
-      }
-    })
-    import play.core.Execution.Implicits.internalContext
-    result.future.map {
-      case (response, enumerator) =>
-        import play.api.libs.streams.Streams
-        val publisher = Streams.enumeratorToPublisher(enumerator)
-        (response, Source(publisher))
-    }
   }
 
   private[libs] def createProxy(wsProxyServer: WSProxyServer): AHCProxyServer = {
