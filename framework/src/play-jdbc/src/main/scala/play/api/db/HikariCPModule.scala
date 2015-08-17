@@ -78,7 +78,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
   override def close(dataSource: DataSource) = {
     Logger.info("Shutting down connection pool.")
     dataSource match {
-      case ds: HikariDataSource => ds.shutdown()
+      case ds: HikariDataSource => ds.close()
       case _ => sys.error("Unable to close data source: not a HikariDataSource")
     }
   }
