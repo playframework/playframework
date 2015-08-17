@@ -6,7 +6,7 @@ env:
   # Define scripts here so they run concurrently
   - SCRIPT=checkCodeStyle
   - SCRIPT=test
-  - SCRIPT=test +++2.11.6
+  - SCRIPT=compile211
   - SCRIPT=testSbtPlugins
   - SCRIPT=testDocumentation
   - SCRIPT=testTemplates

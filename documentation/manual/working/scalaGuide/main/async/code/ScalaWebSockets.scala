@@ -3,6 +3,7 @@
  */
 package scalaguide.async.websockets
 
+import org.specs2.execute.{EventuallyResults, AsResult}
 import play.api.test._
 import scala.concurrent.Promise
 
@@ -102,46 +103,36 @@ object ScalaWebSockets extends PlaySpecification {
 
     "support iteratees" in {
 
-      def runWebSocket[In, Out](webSocket: WebSocket[In, Out], in: Enumerator[In]): Either[Result, List[Out]] = {
+      def runWebSocket[In, Out, T: AsResult](webSocket: WebSocket[In, Out], in: Enumerator[In])(checkConsumed: Seq[Out] => T): Either[Result, Seq[Out]] = {
         await(webSocket.f(FakeRequest())).right.map { f =>
-          val consumed = Promise[List[Out]]()
-          @volatile var chunks = List.empty[Out]
+          @volatile var chunks = Seq.empty[Out]
           def getChunks: Iteratee[Out, Unit] = Cont {
             case Input.El(out) =>
-              chunks = out :: chunks
+              chunks = chunks :+ out
               getChunks
-            case Input.EOF => Done(consumed.trySuccess(chunks.reverse))
+            case Input.EOF => Done(())
             case Input.Empty => getChunks
           }
 
-          import scala.concurrent.ExecutionContext.Implicits.global
+          f(in, getChunks)
+
           import scala.concurrent.duration._
-          f(in.onDoneEnumerating {
-            // Yeah, ugly, but it makes a race condition unlikely.
-            play.api.libs.concurrent.Promise.timeout((), 100.milliseconds).onSuccess {
-              case _ => consumed.trySuccess(chunks)
-            }
-          }, getChunks)
-          await(consumed.future)
+          EventuallyResults.eventually(20, 100.milliseconds)(checkConsumed(chunks))
+
+          chunks
         }
       }
 
       "iteratee1" in new WithApplication() {
-        runWebSocket(Samples.Controller6.socket, Enumerator.eof) must beRight.which { out =>
-          out must_== List("Hello!")
-        }
+        runWebSocket(Samples.Controller6.socket, Enumerator.eof)(_ must_== Seq("Hello!")) must beRight
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Enumerator.empty) must beRight.which { out =>
-          out must_== List("Hello!")
-        }
+        runWebSocket(Samples.Controller7.socket, Enumerator.empty)(_ must_== Seq("Hello!")) must beRight
       }
 
       "iteratee3" in new WithApplication() {
-        runWebSocket(Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.which { out =>
-          out must_== List("I received your message: foo")
-        }
+        runWebSocket(Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof)(_ must_== Seq("I received your message: foo")) must beRight
       }
 
     }
@@ -324,7 +315,8 @@ object Samples {
 
       // log the message to stdout and send response back to client
       val in = Iteratee.foreach[String] {
-        msg => println(msg)
+        msg =>
+          println(msg)
           // the Enumerator returned by Concurrent.broadcast subscribes to the channel and will
           // receive the pushed messages
           channel push("I received your message: " + msg)

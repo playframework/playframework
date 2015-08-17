@@ -17,14 +17,14 @@ public class CachedAction extends Action<Cached> {
             final String key = configuration.key();
             final Integer duration = configuration.duration();
             Result result = (Result) Cache.get(key);
-            F.Promise<Result> promise;
             if(result == null) {
-                promise = delegate.call(ctx);
-                promise.onRedeem(result1 -> Cache.set(key, result1, duration));
+                return delegate.call(ctx).map(result1 -> {
+                    Cache.set(key, result1, duration);
+                    return result1;
+                });
             } else {
-                promise = F.Promise.pure(result);
+                return F.Promise.pure(result);
             }
-            return promise;
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {

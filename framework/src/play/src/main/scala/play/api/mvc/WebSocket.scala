@@ -112,7 +112,7 @@ object WebSocket {
   def tryAccept[A](f: RequestHeader => Future[Either[Result, (Iteratee[A, _], Enumerator[A])]])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
     WebSocket[A, A](f.andThen(_.map { resultOrSocket =>
       resultOrSocket.right.map {
-        case (readIn, writeOut) => (e, i) => { e |>> readIn; writeOut |>> i }
+        case (readIn, writeOut) => (e, i) => { writeOut |>> i; e |>> readIn }
       }
     }))
   }
