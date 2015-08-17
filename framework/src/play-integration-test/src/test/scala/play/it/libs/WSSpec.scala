@@ -80,7 +80,6 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     "use user:password in url" in Server.withApplication(app) { implicit port =>
       withClient { ws =>
         val rep = ws.url(s"http://user:password@localhost:$port/basic-auth/user/password").get().get(1000)
-        println(rep.getBody)
 
         rep.getStatus aka "status" must_== 200 and (
           rep.asJson().path("authenticated").booleanValue() must beTrue)

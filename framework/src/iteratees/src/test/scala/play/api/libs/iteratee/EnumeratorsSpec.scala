@@ -25,7 +25,6 @@ object EnumeratorsSpec extends Specification
         val e = e1 interleave e2
         val kk = e |>>> Iteratee.fold(List.empty[Int])((r, e: List[Int]) => r ++ e)(foldEC)
         val result = Await.result(kk, Duration.Inf)
-        println("interleaved enumerators result is: " + result)
         result.diff(Seq(1, 2, 3, 4, 5, 6, 7, 8)) must equalTo(Seq())
       }
     }

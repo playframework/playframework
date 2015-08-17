@@ -59,7 +59,7 @@ object BuildSettings {
     fork in Test := true,
     parallelExecution in Test := false,
     testListeners in (Test,test) := Nil,
-    javaOptions in Test += maxMetaspace,
+    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     bintrayPackage := "play-sbt-plugin"
   )

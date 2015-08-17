@@ -15,4 +15,3 @@ generated.truststore
 .settings
 .cache-main
 .cache-tests
-bin
