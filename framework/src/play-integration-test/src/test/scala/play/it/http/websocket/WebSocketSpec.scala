@@ -7,6 +7,7 @@ import java.nio.charset.Charset
 import play.api.test._
 import play.api.Application
 import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration._
 import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.libs.iteratee._
 import play.it._
@@ -27,6 +28,8 @@ object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpeci
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   sequential
+
+  override implicit def defaultAwaitTimeout = 5.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: => A): A = {
     val currentApp = new AtomicReference[FakeApplication]

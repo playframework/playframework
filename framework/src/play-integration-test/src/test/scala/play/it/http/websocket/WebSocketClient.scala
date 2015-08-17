@@ -123,27 +123,16 @@ object WebSocketClient {
             ", content=" + resp.getContent.toString(CharsetUtil.UTF_8) + ")")
         case resp: HttpResponse =>
           handshaker.finishHandshake(ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
-          ctx.getPipeline.addLast("websocket", new WebSocketClientHandler(ctx.getChannel, onConnected, disconnected))
+          val handler = new WebSocketClientHandler(ctx.getChannel, disconnected)
+          ctx.getPipeline.addLast("websocket", handler)
+          onConnected(handler.enumerator, handler.iteratee)
         case _: WebSocketFrame => ctx.sendUpstream(e)
         case _ => throw new WebSocketException("Unexpected event: " + e)
       }
     }
-
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-      disconnected.trySuccess(())
-      ctx.sendDownstream(e)
-    }
-
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
-      disconnected.tryFailure(exception)
-      ctx.getChannel.close()
-      ctx.sendDownstream(e)
-    }
   }
 
-  private class WebSocketClientHandler(out: Channel, onConnected: Handler,
-      disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
+  private class WebSocketClientHandler(out: Channel, disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
 
     val (enumerator, in) = Concurrent.broadcast[WebSocketFrame]
 
@@ -152,8 +141,6 @@ object WebSocketClient {
       case Input.EOF => Iteratee.flatten(out.close().toScala.map(_ => Done((), Input.EOF)))
       case Input.Empty => iteratee
     }
-
-    onConnected(enumerator, iteratee)
 
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
@@ -184,7 +171,7 @@ object WebSocketClient {
       }
     }
 
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
+    override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
       disconnected.trySuccess(())
       in.end()
     }
