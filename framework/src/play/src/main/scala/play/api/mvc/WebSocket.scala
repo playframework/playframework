@@ -40,7 +40,33 @@ case class WebSocket[In, Out](f: RequestHeader => Future[Either[Result, (Enumera
 /**
  * Helper utilities to generate WebSocket results.
  */
+@Deprecated
 object WebSocket {
+
+  private def builder(implicit app: Application): WebSocketBuilder =
+    new DefaultWebSocketBuilder(Akka.system)
+
+  /**
+   * Accepts a WebSocket using the given inbound/outbound channels.
+   */
+  def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
+    WebSocketBuilder.using(f)
+  }
+
+  /**
+   * Creates a WebSocket that will adapt the incoming stream and send it back out.
+   */
+  def adapter[A](f: RequestHeader => Enumeratee[A, A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
+    WebSocketBuilder.adapter(f)
+  }
+
+  /**
+   * Creates an action that will either reject the websocket with the given result, or will be handled by the given
+   * inbound and outbound channels, asynchronously
+   */
+  def tryAccept[A](f: RequestHeader => Future[Either[Result, (Iteratee[A, _], Enumerator[A])]])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
+    WebSocketBuilder.tryAccept(f)
+  }
 
   /**
    * Typeclass to handle WebSocket frames format.
@@ -92,32 +118,6 @@ object WebSocket {
   }
 
   /**
-   * Accepts a WebSocket using the given inbound/outbound channels.
-   */
-  def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
-    tryAccept[A](f.andThen(handler => Future.successful(Right(handler))))
-  }
-
-  /**
-   * Creates a WebSocket that will adapt the incoming stream and send it back out.
-   */
-  def adapter[A](f: RequestHeader => Enumeratee[A, A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
-    WebSocket[A, A](h => Future.successful(Right((in, out) => { in &> f(h) |>> out })))
-  }
-
-  /**
-   * Creates an action that will either reject the websocket with the given result, or will be handled by the given
-   * inbound and outbound channels, asynchronously
-   */
-  def tryAccept[A](f: RequestHeader => Future[Either[Result, (Iteratee[A, _], Enumerator[A])]])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
-    WebSocket[A, A](f.andThen(_.map { resultOrSocket =>
-      resultOrSocket.right.map {
-        case (readIn, writeOut) => (e, i) => { e |>> readIn; writeOut |>> i }
-      }
-    }))
-  }
-
-  /**
    * A function that, given an actor to send upstream messages to, returns actor props to create an actor to handle
    * the WebSocket
    */
@@ -139,9 +139,7 @@ object WebSocket {
    */
   def acceptWithActor[In, Out](f: RequestHeader => HandlerProps)(implicit in: FrameFormatter[In],
     out: FrameFormatter[Out], app: Application, outMessageType: ClassTag[Out]): WebSocket[In, Out] = {
-    tryAcceptWithActor { req =>
-      Future.successful(Right((actorRef) => f(req)(actorRef)))
-    }
+    builder.acceptWithActor[In, Out](f)
   }
 
   /**
@@ -167,15 +165,7 @@ object WebSocket {
    */
   def tryAcceptWithActor[In, Out](f: RequestHeader => Future[Either[Result, HandlerProps]])(implicit in: FrameFormatter[In],
     out: FrameFormatter[Out], app: Application, outMessageType: ClassTag[Out]): WebSocket[In, Out] = {
-    WebSocket[In, Out] { request =>
-      f(request).map { resultOrProps =>
-        resultOrProps.right.map { props =>
-          (enumerator, iteratee) =>
-            WebSocketsExtension(Akka.system).actor !
-              WebSocketsActor.Connect(request.id, enumerator, iteratee, props)
-        }
-      }
-    }
+    builder.tryAcceptWithActor[In, Out](f)
   }
 
 }
