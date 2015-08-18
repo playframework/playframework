@@ -165,20 +165,22 @@ private[streams] class IterateeSubscriber[T, R, S](iter0: Iteratee[T, R])
    * Called when the iteratee folds to a Cont step. We may want to feed
    * an Input to the Iteratee.
    */
-  private def onContStep(cont: Step.Cont[T, R]): Unit = exclusive {
-    case NotSubscribedNoStep(result) =>
-      state = NotSubscribedWithCont(cont, result)
-    case SubscribedNoStep(subs, result) =>
-      subs.request(1)
-      state = SubscribedWithCont(subs, cont, result)
-    case NotSubscribedWithCont(cont, result) =>
-      throw new IllegalStateException("Can't get cont twice")
-    case SubscribedWithCont(subs, cont, result) =>
-      throw new IllegalStateException("Can't get cont twice")
-    case CompletedNoStep(result) =>
-      finishWithCompletedCont(cont, result)
-    case Finished(resultIteratee) =>
-      ()
+  private def onContStep(cont: Step.Cont[T, R]): Unit = {
+    exclusive {
+      case NotSubscribedNoStep(result) =>
+        state = NotSubscribedWithCont(cont, result)
+      case SubscribedNoStep(subs, result) =>
+        subs.request(1)
+        state = SubscribedWithCont(subs, cont, result)
+      case NotSubscribedWithCont(cont, result) =>
+        throw new IllegalStateException("Can't get cont twice")
+      case SubscribedWithCont(subs, cont, result) =>
+        throw new IllegalStateException("Can't get cont twice")
+      case CompletedNoStep(result) =>
+        finishWithCompletedCont(cont, result)
+      case Finished(resultIteratee) =>
+        ()
+    }
   }
 
   /**

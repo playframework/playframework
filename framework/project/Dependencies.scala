@@ -253,7 +253,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.12.4"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.12.2"     % Test
   )
 
   val playServerDependencies = Seq(

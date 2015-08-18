@@ -37,8 +37,8 @@ private class TaggingInvoker[A](underlyingInvoker: HandlerInvoker[A], handlerDef
         def apply(rh: RequestHeader) = action(rh)
         def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
       }
-      case ws @ WebSocket(f) =>
-        WebSocket[ws.FramesIn, ws.FramesOut](rh => ws.f(taggedRequest(rh, cachedHandlerTags)))(ws.inFormatter, ws.outFormatter)
+      case ws: WebSocket =>
+        WebSocket(rh => ws(taggedRequest(rh, cachedHandlerTags)))
       case other => other
     }
   }
@@ -143,10 +143,10 @@ object HandlerInvokerFactory {
    * Create a `HandlerInvokerFactory` for a Java WebSocket.
    */
   private abstract class JavaWebSocketInvokerFactory[A, B] extends HandlerInvokerFactory[A] {
-    def webSocketCall(call: => A): WebSocket[B, B]
+    def webSocketCall(call: => A): WebSocket
     def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
       val cachedHandlerTags = handlerTags(handlerDef)
-      def call(call: => A): WebSocket[B, B] = webSocketCall(call)
+      def call(call: => A): WebSocket = webSocketCall(call)
     }
   }
 

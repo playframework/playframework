@@ -1,9 +1,11 @@
 package play.core.server.akkahttp
 
 import akka.actor.ActorSystem
+import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Expect
+import akka.http.scaladsl.model.ws.UpgradeToWebsocket
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
@@ -111,17 +113,37 @@ class AkkaHttpServer(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Source[ByteString, _],
-    handler: Handler): Future[HttpResponse] = handler match {
-    //execute normal action
-    case action: EssentialAction =>
-      val actionWithErrorHandling = EssentialAction { rh =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
-        action(rh).recoverWith {
-          case error => handleHandlerError(tryApp, taggedRequestHeader, error)
+    handler: Handler): Future[HttpResponse] = {
+
+    val upgradeToWebSocket = request.header[UpgradeToWebsocket]
+
+    (handler, upgradeToWebSocket) match {
+      //execute normal action
+      case (action: EssentialAction, _) =>
+        val actionWithErrorHandling = EssentialAction { rh =>
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          action(rh).recoverWith {
+            case error => handleHandlerError(tryApp, taggedRequestHeader, error)
+          }
         }
-      }
-      executeAction(tryApp, request, taggedRequestHeader, requestBodySource, actionWithErrorHandling)
-    case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
+        executeAction(tryApp, request, taggedRequestHeader, requestBodySource, actionWithErrorHandling)
+
+      case (websocket: WebSocket, Some(upgrade)) =>
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+        websocket(taggedRequestHeader).map {
+          case Left(result) =>
+            modelConversion.convertResult(taggedRequestHeader, result, request.protocol)
+          case Right(flow) =>
+            WebSocketHandler.handleWebSocket(upgrade, flow, 16384)
+        }
+
+      case (websocket: WebSocket, None) =>
+        // WebSocket handler for non WebSocket request
+        sys.error(s"WebSocket returned for non WebSocket request")
+      case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
+
+    }
   }
 
   /** Error handling to use during execution of a handler (e.g. an action) */

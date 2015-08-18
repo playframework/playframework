@@ -3,6 +3,7 @@
  */
 package play.api
 
+import akka.stream.Materializer
 import play.api.i18n.MessagesApi
 import play.utils.Threads
 
@@ -236,4 +237,9 @@ object Play {
    */
   def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
     messagesApi.langCookieHttpOnly
+
+  /**
+   * A convenient function for getting an implicit materializer from the current application
+   */
+  implicit def materializer(implicit app: Application): Materializer = app.materializer
 }
