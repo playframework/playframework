@@ -285,13 +285,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         //#stream-count-bytes
         // Make the request
-        val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
-          ws.url(url).getStream()
+        val futureResponse: Future[StreamedResponse] =
+          ws.url(url).withMethod("GET").stream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
-          case (headers, body) =>
+          res =>
             // Count the number of bytes returned
-            body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
+            res.body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }
@@ -306,11 +306,11 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         try {
           //#stream-to-file
           // Make the request
-          val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
-            ws.url(url).getStream()
+          val futureResponse: Future[StreamedResponse] =
+            ws.url(url).withMethod("GET").stream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
-            case (headers, body) =>
+            res =>
               val outputStream = new FileOutputStream(file)
 
               // The sink that writes to the output stream
@@ -319,7 +319,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
               }
 
               // Feed the body into the iteratee
-              body.runWith(sink).andThen {
+              res.body.runWith(sink).andThen {
                 case result =>
                   // Close the output stream whether there was an error or not
                   outputStream.close()
@@ -344,8 +344,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           def downloadFile = Action.async {
 
             // Make the request
-            ws.url(url).getStream().map {
-              case (response, body) =>
+            ws.url(url).withMethod("GET").stream().map {
+              case StreamedResponse(response, body) =>
 
                 // Check that the response was successful
                 if (response.status == 200) {
@@ -383,13 +383,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         import play.api.libs.iteratee._
 
         //#stream-put
-        val futureResponse: Future[(WSResponseHeaders, Source[ByteString, _])] =
+        val futureResponse: Future[StreamedResponse] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
-          case (headers, body) =>
-            body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
+          res =>
+            res.body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }

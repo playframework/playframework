@@ -6,8 +6,8 @@ package play.libs.ws;
 
 public interface WSAPI {
 
-    public WSClient client();
+    WSClient client();
 
-    public WSRequest url(String url);
+    WSRequest url(String url);
 
 }

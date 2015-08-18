@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the main interface to building a WS request in Java.
@@ -156,6 +157,11 @@ public interface WSRequest {
      * Execute an arbitrary method on the request asynchronously.  Should be used with setMethod().
      */
     F.Promise<WSResponse> execute();
+
+    /**
+     * Execute this request and stream the response body.
+     */
+    CompletionStage<StreamedResponse> stream(); 
 
     //-------------------------------------------------------------------------
     // Setters

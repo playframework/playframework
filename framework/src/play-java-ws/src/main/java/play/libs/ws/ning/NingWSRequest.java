@@ -4,13 +4,17 @@
 
 package play.libs.ws.ning;
 
+import akka.stream.javadsl.*;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.*;
 import com.ning.http.client.generators.FileBodyGenerator;
 import com.ning.http.client.generators.InputStreamBodyGenerator;
 import com.ning.http.client.oauth.OAuthSignatureCalculator;
 import com.ning.http.util.AsyncHttpProviderUtils;
+
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import play.api.libs.ws.ning.*;
 import play.core.parsers.FormUrlEncodedParser;
 import play.libs.F;
 import play.libs.Json;
@@ -23,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 
 /**
  * provides the User facing API for building WS request.
@@ -395,6 +400,13 @@ public class NingWSRequest implements WSRequest {
         return execute(request);
     }
 
+    @Override
+    public CompletionStage<StreamedResponse> stream() {
+    	AsyncHttpClient asyncClient = (AsyncHttpClient) client.getUnderlying();
+    	Request request = buildRequest();
+    	return StreamedResponse.from(StreamedRequest.execute(asyncClient, request));
+    }
+
     Request buildRequest() {
         RequestBuilder builder = new RequestBuilder(method);
 
@@ -534,6 +546,4 @@ public class NingWSRequest implements WSRequest {
                 .setUsePreemptiveAuth(true)
                 .build();
     }
-
-
 }
