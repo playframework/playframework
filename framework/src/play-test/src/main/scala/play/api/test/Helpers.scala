@@ -366,6 +366,7 @@ trait ResultExtractors {
 object Helpers extends PlayRunners
   with HeaderNames
   with Status
+  with MimeTypes
   with HttpProtocol
   with DefaultAwaitTimeout
   with ResultExtractors
