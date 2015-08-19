@@ -58,7 +58,7 @@ object PlayScala extends AutoPlugin {
 }
 
 /**
- * This plugin enables the Play akka http server
+ * This plugin enables the Play netty http server
  */
 object PlayNettyServer extends AutoPlugin {
   override def requires = Play
