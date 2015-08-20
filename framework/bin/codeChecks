@@ -1,11 +1,13 @@
 #! /bin/bash
 
-# This script checks that the code is formatted correctly
+# This script does code checks, including checking code style, as well as binary compatibility.
+
+set -e
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 BASEDIR=$DIR/../..
 FRAMEWORK=$BASEDIR/framework
-BUILD=$FRAMEWORK/build
+BUILD="$FRAMEWORK/build --warn"
 
 export FILTER_LOGGING=true
 
@@ -18,3 +20,9 @@ git diff --exit-code || (
   echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
   false
 )
+
+echo "[info]"
+echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+echo "[info]"
+
+$BUILD mimaReportBinaryIssues
