@@ -1,0 +1,31 @@
+language: scala
+sudo: false
+jdk:
+  - oraclejdk8
+env:
+  # Define scripts here so they run concurrently
+  - SCRIPT=codeChecks
+  - SCRIPT=test
+  - SCRIPT=compile211
+  - SCRIPT=testSbtPlugins
+  - SCRIPT=testDocumentation
+  - SCRIPT=testTemplates
+  - SCRIPT=integrationTest
+script:
+  # Force sbt to run on a single CPU, this limits the resources Play uses
+  - framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+before_cache:
+  # Ensure changes to the cache aren't persisted
+  - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+  # Delete all ivydata files since ivy touches them on each build
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/d2c8a242a2615f659595
+    on_success: always
+    on_failure: always

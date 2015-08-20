@@ -1,0 +1,23 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=$DIR/../..
+FRAMEWORK=$BASEDIR/framework
+BUILD="$FRAMEWORK/build --warn"
+
+export FILTER_LOGGING=true
+
+cd $FRAMEWORK
+
+echo "[info]"
+echo "[info] ---- BUILDING PLAY"
+echo "[info]"
+$BUILD "$@" -Dscala.version=2.11.1 compile
+
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"
