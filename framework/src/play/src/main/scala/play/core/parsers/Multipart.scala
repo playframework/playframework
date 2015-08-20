@@ -256,7 +256,7 @@ object Multipart {
         map(a => FilePart(partName, safeFileName, contentType, a))
   }
 
-  private object PartInfoMatcher {
+  private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
