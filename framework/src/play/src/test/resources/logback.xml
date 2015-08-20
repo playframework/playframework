@@ -5,7 +5,9 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%level %logger{15} - %message%n%xException</pattern>
+            <!-- We use short exception stack trace logging to limit output for travis. -->
+            <!-- Change to full if you need to do further debugging, but never commit that. -->
+            <pattern>%level %logger{15} - %message%n%ex{short}</pattern>
         </encoder>
     </appender>
 

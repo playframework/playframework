@@ -315,7 +315,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
     df.setLenient(false)
     try { Some(df.parse(input)) } catch {
       case x: java.text.ParseException =>
-        println(s"=> $pattern -> ${x.getMessage}")
         None
     }
   }

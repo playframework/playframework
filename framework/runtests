@@ -2,6 +2,8 @@
 
 # Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
 
+# Legacy test script
+
 set -e
 export CURRENT=`pwd`
 export SCRIPT=`dirname "$0"`

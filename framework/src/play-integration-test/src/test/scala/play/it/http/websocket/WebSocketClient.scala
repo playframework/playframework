@@ -5,6 +5,8 @@
  */
 package play.it.http.websocket
 
+import java.io.IOException
+
 import org.jboss.netty.bootstrap.ClientBootstrap
 import org.jboss.netty.channel._
 import socket.nio.NioClientSocketChannelFactory
@@ -121,27 +123,16 @@ object WebSocketClient {
             ", content=" + resp.getContent.toString(CharsetUtil.UTF_8) + ")")
         case resp: HttpResponse =>
           handshaker.finishHandshake(ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
-          ctx.getPipeline.addLast("websocket", new WebSocketClientHandler(ctx.getChannel, onConnected, disconnected))
+          val handler = new WebSocketClientHandler(ctx.getChannel, disconnected)
+          ctx.getPipeline.addLast("websocket", handler)
+          onConnected(handler.enumerator, handler.iteratee)
         case _: WebSocketFrame => ctx.sendUpstream(e)
         case _ => throw new WebSocketException("Unexpected event: " + e)
       }
     }
-
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-      disconnected.trySuccess(())
-      ctx.sendDownstream(e)
-    }
-
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
-      disconnected.tryFailure(exception)
-      ctx.getChannel.close()
-      ctx.sendDownstream(e)
-    }
   }
 
-  private class WebSocketClientHandler(out: Channel, onConnected: Handler,
-      disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
+  private class WebSocketClientHandler(out: Channel, disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
 
     val (enumerator, in) = Concurrent.broadcast[WebSocketFrame]
 
@@ -151,14 +142,12 @@ object WebSocketClient {
       case Input.Empty => iteratee
     }
 
-    onConnected(enumerator, iteratee)
-
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
         case close: CloseWebSocketFrame =>
           in.push(close)
           in.end()
-          ctx.getChannel.disconnect()
+          out.close()
         case wsf: WebSocketFrame =>
           in.push(wsf)
         case _ => throw new WebSocketException("Unexpected event: " + e)
@@ -166,13 +155,23 @@ object WebSocketClient {
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
-      disconnected.tryFailure(exception)
-      in.end(exception)
-      ctx.getChannel.close()
+      e.getCause match {
+        case io: IOException =>
+          // We're talking to loopback, an IO exception is probably fine to ignore, if there's a problem, the tests
+          // should catch it.
+          println("IO exception caught in WebSocket client: " + io)
+          disconnected.success(())
+          in.end()
+          out.close()
+        case other =>
+          val exception = new RuntimeException("Exception caught in web socket handler", other)
+          disconnected.tryFailure(exception)
+          in.end(exception)
+          out.close()
+      }
     }
 
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
+    override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
       disconnected.trySuccess(())
       in.end()
     }
