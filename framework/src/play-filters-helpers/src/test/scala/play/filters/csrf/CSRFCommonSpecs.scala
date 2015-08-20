@@ -20,6 +20,20 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   val TokenName = "csrfToken"
   val HeaderName = "Csrf-Token"
 
+  val Boundary = "83ff53821b7c"
+  def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
+    s"""--$Boundary
+      |Content-Disposition: form-data; name="foo"; filename="foo.txt"
+      |Content-Type: application/octet-stream
+      |
+      |hello foo
+      |--$Boundary
+      |Content-Disposition: form-data; name="$tokenName"
+      |
+      |$tokenValue
+      |--$Boundary--""".stripMargin.replaceAll("\n", "\r\n")
+  }
+
   // This extracts the tests out into different configurations
   def sharedTests(csrfCheckRequest: CsrfTester, csrfAddToken: CsrfTester, generate: => String,
     addToken: (WSRequest, String) => WSRequest,
@@ -38,14 +52,13 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         .post(Map("foo" -> "bar", TokenName -> token))
       )(_.status must_== OK)
     }
-    /* TODO: write multipart/form-data Writable
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
-      makeRequest(_.withSession(TokenName -> token)
-        .post(Map("foo" -> "bar", TokenName -> token))
-      ).status must_== OK
+      csrfCheckRequest(req => addToken(req, token)
+        .withHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
+        .post(multiPartFormDataBody(TokenName, token))
+      )(_.status must_== OK)
     }
-    */
     "accept requests with token in header" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
