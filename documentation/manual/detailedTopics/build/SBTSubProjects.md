@@ -178,10 +178,7 @@ GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 `modules/admin/controllers/Assets.scala`:
 
-```scala
-package controllers.admin
-object Assets extends controllers.AssetsBuilder
-```
+@[assets-builder](code/SubProjectsAssetsBuilder.scala)
 
 > **Note:** Java users can do something very similar i.e.:
 
