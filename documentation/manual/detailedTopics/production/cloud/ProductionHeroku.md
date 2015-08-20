@@ -68,7 +68,7 @@ To https://git.heroku.com/warm-frost-1289.git
 * [new branch]      master -> master
 ```
 
-Heroku will run `sbt clean stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but they will be cached for future deployments).
+Heroku will run `sbt stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but they will be cached for future deployments).
 
 If you are using RequireJS and you find that your application hangs at this step:
 
@@ -131,10 +131,10 @@ The Heroku sbt plugin utilizes an API to provide direct deployment of prepackage
 To include the plugin in your project, add the following to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.heroku" % "sbt-heroku" % "0.4.4")
+addSbtPlugin("com.heroku" % "sbt-heroku" % "0.5.1")
 ```
 
-Next, we must configure the name of the Heroku application the plugin will deploy to. But first, create a new app. Install the Heroku Toolbelt and run the create command with the `-n` flag, which will prevent it from adding a Git remote.
+Next, we must configure the name of the Heroku application the plugin will deploy to. But first, create a new app. Install the Heroku Toolbelt and run the create command.
 
 ```bash
 $ heroku create
@@ -168,7 +168,7 @@ $  sbt stage deployHeroku
 [info] -----> Deploying...
 [info] remote:
 [info] remote: -----> Fetching custom tar buildpack... done
-[info] remote: -----> JVM Common app detected
+[info] remote: -----> sbt-heroku app detected
 [info] remote: -----> Installing OpenJDK 1.8... done
 [info] remote: -----> Discovering process types
 [info] remote:        Procfile declares types -> console, web
@@ -208,16 +208,34 @@ libraryDependencies += "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
 Then create a new file in your project's root directory named `Procfile` (with a capital "P") that contains the following (substituting the `myapp` with your project's name):
 
 ```txt
-web: target/universal/stage/bin/myapp -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
+web: target/universal/stage/bin/myapp -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true -Ddb.default.url=${DATABASE_URL}
 ```
 
 This instructs Heroku that for the process named `web` it will run Play and override the `play.evolutions.db.default.autoApply`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.
 
-Note that the creation of a Procfile is not actually required by Heroku, as Heroku will look in your play application's conf directory for an `application.conf` file in order to determine that it is a play application.
+Also, be aware the the `DATABASE_URL` is in the platform independent format:
+
+```text
+vendor://username:password@host:port/db
+```
+
+Play will automatically convert this into a JDBC URL for you if you are using one
+of the built in database connection pools. But other database libraries and
+frameworks, such as Slick or Hibernate, may not support this format natively.
+If that's the case, you may try using the experimental `JDBC_DATABASE_URL` in
+place of `DATABASE_URL` in the configuration like this:
+
+```text
+db.default.url=${?JDBC_DATABASE_URL}
+db.default.username=${?JDBC_DATABASE_USERNAME}
+db.default.password=${?JDBC_DATABASE_PASSWORD}
+```
+
+Note that the creation of a Procfile is not actually required by Heroku, as Heroku will look in your Play application's conf directory for an `application.conf` file in order to determine that it is a Play application.
 
 ## Further learning resources
 
-* [Getting Started with Play on Heroku](https://devcenter.heroku.com/articles/getting-started-with-play)
+* [Getting Started with Scala and Play on Heroku](https://devcenter.heroku.com/articles/getting-started-with-scala)
 * [Deploying Scala and Play Applications with the Heroku sbt Plugin](https://devcenter.heroku.com/articles/deploying-scala-and-play-applications-with-the-heroku-sbt-plugin)
 * [Using Node.js to Perform JavaScript Optimization for Play and Scala Applications](https://devcenter.heroku.com/articles/using-node-js-to-perform-javascript-optimization-for-play-and-scala-applications)
 * [Deploy Scala and Play Applications to Heroku from Travis CI](https://devcenter.heroku.com/articles/deploy-scala-and-play-applications-to-heroku-from-travis-ci)
