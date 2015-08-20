@@ -19,4 +19,16 @@ else
 fi
 
 DIR=`dirname "$0"`
-"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss2M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" ${PLAY_OPTS} -jar "$DIR/sbt/sbt-launch.jar" "$@"
+
+if [ -z "$FILTER_LOGGING" ]
+then
+  "$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx2G -Xss2M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled \
+    -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" ${PLAY_OPTS} \
+    -jar "$DIR/sbt/sbt-launch.jar" "$@"
+else 
+  # Not running in a terminal, filter resolving statements
+  "$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx2G -Xss2M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled \
+    -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" ${PLAY_OPTS} \
+    -jar "$DIR/sbt/sbt-launch.jar" "$@" \
+    | grep --line-buffered -v 'Resolving \|Generating '
+fi

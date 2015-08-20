@@ -1,0 +1,39 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=$DIR/../..
+FRAMEWORK=$BASEDIR/framework
+BUILD="$FRAMEWORK/build --warn"
+
+export FILTER_LOGGING=true
+
+CROSSBUILD=""
+# If first argument starts with +, it's a crossbuild argument, eg "+" or "+++2.11.7"
+# It needs to be part of the same argument as the SBT task that we run, so gets handled
+# specially
+if echo $1 | grep -q '^+'
+then
+    CROSSBUILD=$1
+    shift
+fi  
+
+cd $FRAMEWORK
+
+echo "[info]"
+echo "[info] ---- BUILDING PLAY"
+echo "[info]"
+$BUILD "$@" "${CROSSBUILD} publishLocal"
+
+echo "[info]"
+echo "[info] ---- RUNNING TESTS"
+echo "[info]"
+
+$BUILD "$@" "${CROSSBUILD} test"
+
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"

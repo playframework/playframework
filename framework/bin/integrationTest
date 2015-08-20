@@ -1,0 +1,44 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=$DIR/../..
+FRAMEWORK=$BASEDIR/framework
+INTEGRATION_TEST=$BASEDIR/framework/test/integrationtest
+INTEGRATION_TEST_JAVA=$BASEDIR/framework/test/integrationtest-java
+BUILD="$FRAMEWORK/build --warn"
+
+export FILTER_LOGGING=true
+
+cd $FRAMEWORK
+
+echo "[info]"
+echo "[info] ---- BUILDING PLAY"
+echo "[info]"
+$BUILD "$@" publishLocal
+
+cd $INTEGRATION_TEST
+
+echo "[info]"
+echo "[info] ---- RUNNING INTEGRATION TEST"
+echo "[info]"
+
+$BUILD "$@" test
+
+cd $INTEGRATION_TEST_JAVA
+
+echo "[info]"
+echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
+echo "[info]"
+echo "[info]"
+echo "[info] ---- RUNNING TESTS"
+echo "[info]"
+
+$BUILD "$@" test
+
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"

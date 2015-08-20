@@ -1,0 +1,31 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=$DIR/../..
+FRAMEWORK=$BASEDIR/framework
+DOCUMENTATION=$BASEDIR/documentation
+BUILD="$FRAMEWORK/build --warn"
+
+export FILTER_LOGGING=true
+
+cd $FRAMEWORK
+
+echo "[info]"
+echo "[info] ---- BUILDING PLAY "
+echo "[info]"
+$BUILD "$@" publishLocal
+
+echo "[info]"
+echo "[info] ---- RUNNING DOCUMENTATION TESTS"
+echo "[info]"
+
+cd $DOCUMENTATION
+$BUILD "$@" clean test validateDocs
+
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"
