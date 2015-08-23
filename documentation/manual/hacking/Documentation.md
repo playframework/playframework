@@ -86,7 +86,7 @@ All Java code samples should be tested using JUnit.  Simple code samples are usu
 
 Scala template code samples should be tested either with Specs in Scala or JUnit in Java.  Note that templates are compiled with different default imports, depending on whether they live in the Scala documentation or the Java documentation.  It is therefore also important to test them in the right context, if a template is relying on Java thread locals, they should be tested from a Java action.
 
-Where possible, template code samples should be consoloditated in a single file, but this may not always be possible, for example if the code sample contains a parameter declaration.
+Where possible, template code samples should be consolidated in a single file, but this may not always be possible, for example if the code sample contains a parameter declaration.
 
 ### Routes files
 
