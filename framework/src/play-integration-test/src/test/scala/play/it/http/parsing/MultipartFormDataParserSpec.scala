@@ -43,12 +43,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
-        parts.dataParts.get("text1") must beSome.like {
-          case field :: Nil => field must_== "the first text field"
-        }
-        parts.dataParts.get("text2:colon") must beSome.like {
-          case field :: Nil => field must_== "the second text field"
-        }
+        parts.dataParts.get("text1") must_== Some(Seq("the first text field"))
+        parts.dataParts.get("text2:colon") must_== Some(Seq("the second text field"))
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
@@ -66,6 +62,17 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       ))
 
       val result = await(parser.run(Source.single(ByteString(body))))
+
+      checkResult(result)
+    }
+
+    "parse some content that arrives one byte at a time" in new WithApplication() {
+      val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
+        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      ))
+
+      val bytes = body.getBytes.map(byte => ByteString(byte)).toVector
+      val result = await(parser.run(Source(bytes)))
 
       checkResult(result)
     }
