@@ -202,7 +202,7 @@ public class Http {
                 this.lang = lang;
                 scala.Option<String> domain = play.api.mvc.Session.domain();
                 response.setCookie(Play.langCookieName(), lang.code(), null, play.api.mvc.Session.path(),
-                    domain.isDefined() ? domain.get() : null, Play.langCookieSecure(), Play.langCookieHttpOnly());
+                        domain.isDefined() ? domain.get() : null, Play.langCookieSecure(), Play.langCookieHttpOnly());
                 return true;
             } else {
                 return false;
@@ -216,7 +216,7 @@ public class Http {
             this.lang = null;
             scala.Option<String> domain = play.api.mvc.Session.domain();
             response.discardCookie(Play.langCookieName(), play.api.mvc.Session.path(),
-                domain.isDefined() ? domain.get() : null, Play.langCookieSecure());
+                    domain.isDefined() ? domain.get() : null, Play.langCookieSecure());
         }
 
         /**
@@ -793,17 +793,17 @@ public class Http {
          */
         public RequestImpl build() {
             return new RequestImpl(new play.api.mvc.RequestImpl(
-                body(),
-                id,
-                asScala(tags()),
-                uri.toString(),
-                uri.getRawPath(),
-                method,
-                version,
-                mapListToScala(splitQuery()),
-                buildHeaders(),
-                remoteAddress,
-                secure));
+                    body(),
+                    id,
+                    asScala(tags()),
+                    uri.toString(),
+                    uri.getRawPath(),
+                    method,
+                    version,
+                    mapListToScala(splitQuery()),
+                    buildHeaders(),
+                    remoteAddress,
+                    secure));
         }
 
         // -------------------
@@ -915,22 +915,22 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder secure(boolean secure) {
-           this.secure = secure;
-           return this;
+            this.secure = secure;
+            return this;
         }
 
         /**
          * @return the status if the request is secure
          */
         public boolean secure() {
-           return secure;
+            return secure;
         }
 
         /**
          * @return the host name from the header
          */
         public String host() {
-          return header(HeaderNames.HOST);
+            return header(HeaderNames.HOST);
         }
 
         /**
@@ -938,8 +938,8 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder host(String host) {
-          header(HeaderNames.HOST, host);
-          return this;
+            header(HeaderNames.HOST, host);
+            return this;
         }
 
         /**
@@ -1036,16 +1036,16 @@ public class Http {
          * @return the cookies in Scala instances
          */
         private play.api.mvc.Cookies scalaCookies() {
-          String cookieHeader = header(HeaderNames.COOKIE);
-          scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
-          return play.api.mvc.Cookies$.MODULE$.fromCookieHeader(cookieHeaderOpt);
+            String cookieHeader = header(HeaderNames.COOKIE);
+            scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
+            return play.api.mvc.Cookies$.MODULE$.fromCookieHeader(cookieHeaderOpt);
         }
 
         /**
          * @return the cookies in Java instances
          */
         public Cookies cookies() {
-          return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(scalaCookies());
+            return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(scalaCookies());
         }
 
         /**
@@ -1053,9 +1053,9 @@ public class Http {
          * @param cookies the cookies in a Scala sequence
          */
         private void cookies(Seq<play.api.mvc.Cookie> cookies) {
-          String cookieHeader = header(HeaderNames.COOKIE);
-          String value = play.api.mvc.Cookies$.MODULE$.mergeCookieHeader(cookieHeader != null ? cookieHeader : "", cookies);
-          header(HeaderNames.COOKIE, value);
+            String cookieHeader = header(HeaderNames.COOKIE);
+            String value = play.api.mvc.Cookies$.MODULE$.mergeCookieHeader(cookieHeader != null ? cookieHeader : "", cookies);
+            header(HeaderNames.COOKIE, value);
         }
 
         /**
@@ -1064,18 +1064,18 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder cookie(Cookie cookie) {
-          cookies(play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
-          return this;
+            cookies(play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
+            return this;
         }
 
         /**
          * @return the cookies in a Java map
          */
         public Map<String,String> flash() {
-          play.api.mvc.Cookies scalaCookies = scalaCookies();
-          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Flash$.MODULE$.decodeCookieToMap(cookie);
-          return JavaConversions.mapAsJavaMap(data);
+            play.api.mvc.Cookies scalaCookies = scalaCookies();
+            scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
+            scala.collection.Map<String,String> data = play.api.mvc.Flash$.MODULE$.decodeCookieToMap(cookie);
+            return JavaConversions.mapAsJavaMap(data);
         }
 
         /**
@@ -1085,10 +1085,10 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(String key, String value) {
-          Map<String,String> data = new HashMap<>(flash());
-          data.put(key, value);
-          flash(data);
-          return this;
+            Map<String,String> data = new HashMap<>(flash());
+            data.put(key, value);
+            flash(data);
+            return this;
         }
 
         /**
@@ -1097,19 +1097,19 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(Map<String,String> data) {
-          play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
-          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
-          return this;
+            play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
+            cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
+            return this;
         }
 
         /**
          * @return the sessions in the request
          */
         public Map<String,String> session() {
-          play.api.mvc.Cookies scalaCookies = scalaCookies();
-          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Session$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
-          return JavaConversions.mapAsJavaMap(data);
+            play.api.mvc.Cookies scalaCookies = scalaCookies();
+            scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Session$.MODULE$.COOKIE_NAME());
+            scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
+            return JavaConversions.mapAsJavaMap(data);
         }
 
         /**
@@ -1119,10 +1119,10 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(String key, String value) {
-          Map<String,String> data = new HashMap<>(session());
-          data.put(key, value);
-          session(data);
-          return this;
+            Map<String,String> data = new HashMap<>(session());
+            data.put(key, value);
+            session(data);
+            return this;
         }
 
         /**
@@ -1131,9 +1131,9 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(Map<String,String> data) {
-          play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
-          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
-          return this;
+            play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
+            cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
+            return this;
         }
 
         /**
@@ -1545,6 +1545,14 @@ public class Http {
         }
 
         /**
+         * Set a new cookie.
+         * @param cookie to set
+         */
+        public void setCookie(Cookie cookie) {
+            cookies.add(cookie);
+        }
+
+        /**
          * Discard a cookie on the default path ("/") with no domain and that's not secure.
          *
          * @param name The name of the cookie to discard, must not be null
@@ -1701,7 +1709,9 @@ public class Http {
     /**
      * HTTP Cookie
      */
+
     public static class Cookie {
+
         private final String name;
         private final String value;
         private final Integer maxAge;
@@ -1719,6 +1729,15 @@ public class Http {
             this.domain = domain;
             this.secure = secure;
             this.httpOnly = httpOnly;
+        }
+
+        /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        public static CookieBuilder builder(String name, String value) {
+            return new CookieBuilder(name, value);
         }
 
         /**
@@ -1771,6 +1790,97 @@ public class Http {
             return httpOnly;
         }
 
+    }
+
+    public static class CookieBuilder {
+
+        private String name;
+        private String value;
+        private Integer maxAge;
+        private String path = "/";
+        private String domain;
+        private boolean secure = false;
+        private boolean httpOnly = false;
+
+        /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        private CookieBuilder(String name, String value){
+            this.name = name;
+            this.value = value;
+        }
+
+        /**
+         * @param name The name of the cookie
+         * @return the cookie builder with the new name
+         * */
+        public CookieBuilder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * @param value The value of the cookie
+         * @return the cookie builder with the new value
+         * */
+        public CookieBuilder withValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * @param maxAge The maxAge of the cookie
+         * @return the cookie builder with the new maxAge
+         * */
+        public CookieBuilder withMaxAge(Integer maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        /**
+         * @param path The path of the cookie
+         * @return the cookie builder with the new path
+         * */
+        public CookieBuilder withPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * @param domain The domain of the cookie
+         * @return the cookie builder with the new domain
+         * */
+        public CookieBuilder withDomain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
+        /**
+         * @param secure specify if the cookie is secure
+         * @return the cookie builder with the new is secure flag
+         * */
+        public CookieBuilder withSecure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        /**
+         * @param httpOnly specify if the cookie is httpOnly
+         * @return the cookie builder with the new is httpOnly flag
+         * */
+        public CookieBuilder withHttpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
+        }
+
+        /**
+         * @return a new cookie with the current builder parameters
+         * */
+        public Cookie build() {
+            return new Cookie(this.name, this.value, this.maxAge, this.path, this.domain, this.secure, this.httpOnly);
+        }
     }
 
     /**
