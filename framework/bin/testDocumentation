@@ -12,13 +12,6 @@ BUILD="$FRAMEWORK/build --warn"
 
 export FILTER_LOGGING=true
 
-cd $FRAMEWORK
-
-echo "[info]"
-echo "[info] ---- BUILDING PLAY "
-echo "[info]"
-$BUILD "$@" publishLocal
-
 echo "[info]"
 echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
