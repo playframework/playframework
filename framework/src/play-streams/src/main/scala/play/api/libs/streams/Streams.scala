@@ -1,9 +1,9 @@
 package play.api.libs.streams
 
-import java.io.{ FileInputStream, File, InputStream }
+import java.io.{ OutputStream, FileInputStream, File, InputStream }
 
 import akka.stream.{ Attributes, ActorAttributes, Materializer }
-import akka.stream.io.InputStreamSource
+import akka.stream.io.{ OutputStreamSink, InputStreamSource }
 import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
 import akka.util.ByteString
 import org.reactivestreams._
@@ -239,6 +239,17 @@ object Streams {
    */
   def resourceToSource(classLoader: ClassLoader, name: String, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
     inputStreamToSource(() => classLoader.getResourceAsStream(name), chunkSize)
+  }
+
+  /**
+   * Convert the given OutputStream to a sink that is materialized to a future of the number of bytes written to the
+   * OutputStream when the stream is finished.
+   *
+   * The OutputStream will be closed when the Sink is finished.
+   */
+  def outputStreamToSink(os: () => OutputStream): Sink[ByteString, Future[Long]] = {
+    OutputStreamSink(os)
+      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
   }
 
 }
