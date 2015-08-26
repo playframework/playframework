@@ -1455,6 +1455,14 @@ public class Http {
         }
 
         /**
+         * Set a new cookie.
+         * @param cookie to set
+         */
+        public void setCookie(Cookie cookie) {
+            cookies.add(cookie);
+        }
+
+        /**
          * Discard a cookie on the default path ("/") with no domain and that's not secure.
          *
          * @param name The name of the cookie to discard, must not be null
@@ -1611,14 +1619,15 @@ public class Http {
     /**
      * HTTP Cookie
      */
+
     public static class Cookie {
-        private final String name;
-        private final String value;
-        private final Integer maxAge;
-        private final String path;
-        private final String domain;
-        private final boolean secure;
-        private final boolean httpOnly;
+        private String name;
+        private String value;
+        private Integer maxAge;
+        private String path;
+        private String domain;
+        private boolean secure;
+        private boolean httpOnly;
 
         public Cookie(String name, String value, Integer maxAge, String path,
                       String domain, boolean secure, boolean httpOnly) {
@@ -1630,6 +1639,77 @@ public class Http {
             this.secure = secure;
             this.httpOnly = httpOnly;
         }
+
+        /**
+         * @param name The name of the cookie
+         * @return the cookie with the new name
+         * */
+
+        public Cookie setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * @param value The value of the cookie
+         * @return the cookie with the new value
+         * */
+
+        public Cookie setValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * @param maxAge The maxAge of the cookie
+         * @return the cookie with the new maxAge
+         * */
+
+        public Cookie setMaxAge(Integer maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        /**
+         * @param path The path of the cookie
+         * @return the cookie with the new path
+         * */
+
+        public Cookie setPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * @param domain The domain of the cookie
+         * @return the cookie with the new domain
+         * */
+
+        public Cookie setDomain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
+        /**
+         * @param secure specify if the cookie is secure
+         * @return the cookie with the new is secure flag
+         * */
+
+        public Cookie setSecure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        /**
+         * @param httpOnly specify if the cookie is httpOnly
+         * @return the cookie with the new is httpOnly flag
+         * */
+
+        public Cookie setHttpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
+        }
+
 
         /**
          * @return the cookie name
