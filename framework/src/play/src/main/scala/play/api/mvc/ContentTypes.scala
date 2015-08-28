@@ -13,8 +13,6 @@ import scala.concurrent.Future
 import scala.xml._
 import play.api._
 import play.api.libs.json._
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
 import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import java.util.Locale
@@ -23,8 +21,8 @@ import play.api.http.{ LazyHttpErrorHandler, ParserConfiguration, HttpConfigurat
 import play.utils.PlayIO
 import play.api.http.Status._
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Flow, Sink }
-import akka.stream.stage.{ Context, PushStage, SyncDirective, TerminationDirective }
+import akka.stream.scaladsl.{ Flow, Sink }
+import akka.stream.stage.{ Context, PushStage, SyncDirective }
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -119,7 +117,7 @@ case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) 
 /**
  * Multipart form data body.
  */
-case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart], missingFileParts: Seq[MissingFilePart]) {
+case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) {
 
   /**
    * Extract the data parts as Form url encoded.
@@ -139,33 +137,40 @@ object MultipartFormData {
 
   /**
    * A part.
+   *
+   * @tparam A the type that file parts are exposed as.
    */
-  sealed trait Part
+  sealed trait Part[+A]
 
   /**
    * A data part.
    */
-  case class DataPart(key: String, value: String) extends Part
+  case class DataPart(key: String, value: String) extends Part[Nothing]
 
   /**
    * A file part.
    */
-  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part
-
-  /**
-   * A file part with no content provided.
-   */
-  case class MissingFilePart(key: String) extends Part
+  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part[A]
 
   /**
    * A part that has not been properly parsed.
    */
-  case class BadPart(headers: Map[String, String]) extends Part
+  case class BadPart(headers: Map[String, String]) extends Part[Nothing]
 
   /**
-   * A data part that has excedeed the max size allowed.
+   * Emitted when the multipart stream can't be parsed for some reason.
    */
-  case class MaxDataPartSizeExceeded(key: String) extends Part
+  case class ParseError(message: String) extends Part[Nothing]
+
+  /**
+   * The multipart/form-data parser buffers many things in memory, including data parts, headers, file names etc.
+   *
+   * Some buffer limits apply to each element, eg, there is a buffer for headers before they are parsed.  Other buffer
+   * limits apply to all in memory data in aggregate, this includes data parts, file names, part names.
+   *
+   * If any of these buffers are exceeded, this will be emitted.
+   */
+  case class MaxMemoryBufferExceeded(message: String) extends Part[Nothing]
 }
 
 /**
@@ -305,16 +310,10 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
-      // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
-      Accumulator {
-        val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
-        val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
-        val sink = takeUpToFlow.toMat(foldingSink)(Keep.right)
-        sink.mapMaterializedValue { f: Future[ByteString] =>
-          import play.core.Execution.Implicits.internalContext
-          checkForMaxLengthAttained(request, f.map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
-        }
+    def tolerantText(maxLength: Long): BodyParser[String] = {
+      tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
+        // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
+        bytes.decodeString(request.charset.getOrElse("ISO-8859-1"))
       }
     }
 
@@ -348,17 +347,14 @@ trait BodyParsers {
      */
     def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
       BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
-        Accumulator {
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        enforceMaxLength(request, maxLength, Accumulator {
           val buffer = RawBuffer(memoryThreshold)
-          val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
-          val sink: Sink[ByteString, Future[RawBuffer]] = takeUpToFlow.toMat(
-            Sink.fold(buffer) { (bf, bs) => bf.push(bs); bf }
-          )(Keep.right)
-          sink.mapMaterializedValue { f: Future[RawBuffer] =>
-            import play.core.Execution.Implicits.internalContext
-            checkForMaxLengthAttained(request, f andThen { case b => buffer.close() })
+          val sink = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) => bf.push(bs); bf }
+          sink.mapMaterializedValue { future =>
+            future andThen { case _ => buffer.close() }
           }
-        }
+        } map (buffer => Right(buffer)))
       }
 
     /**
@@ -530,15 +526,9 @@ trait BodyParsers {
      *
      * @param to The file used to store the content.
      */
-    def file(to: File): BodyParser[File] = BodyParser.iteratee("file, to=" + to) { request =>
-      import play.core.Execution.Implicits.internalContext
-      Iteratee.fold[ByteString, FileOutputStream](new FileOutputStream(to)) { (os, data) =>
-        os.write(data.toArray)
-        os
-      }.map { os =>
-        os.close()
-        Right(to)
-      }
+    def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      Accumulator(Streams.outputStreamToSink(() => new FileOutputStream(to))).map(_ => Right(to))
     }
 
     /**
@@ -619,31 +609,30 @@ trait BodyParsers {
       def maxLengthOrDefaultLarge = maxLength.getOrElse(DefaultMaxDiskLength)
       val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
       contentType match {
-        case Some("text/plain") => {
+        case Some("text/plain") =>
           logger.trace("Parsing AnyContent as text")
           text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
-        }
-        case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
+
+        case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) =>
           logger.trace("Parsing AnyContent as xml")
           xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
-        }
-        case Some("text/json") | Some("application/json") => {
+
+        case Some("text/json") | Some("application/json") =>
           logger.trace("Parsing AnyContent as json")
           json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
-        }
-        case Some("application/x-www-form-urlencoded") => {
+
+        case Some("application/x-www-form-urlencoded") =>
           logger.trace("Parsing AnyContent as urlFormEncoded")
           urlFormEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
-        }
-        case Some("multipart/form-data") => {
+
+        case Some("multipart/form-data") =>
           logger.trace("Parsing AnyContent as multipartFormData")
-          multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge)(request)
+          multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge).apply(request)
             .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
-        }
-        case _ => {
+
+        case _ =>
           logger.trace("Parsing AnyContent as raw")
           raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
-        }
       }
     }
 
@@ -660,22 +649,11 @@ trait BodyParsers {
      *
      * @param filePartHandler Handles file parts.
      */
-    def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
-      BodyParser.iteratee("multipartFormData") { request =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-        val parser = Traversable.takeUpTo[ByteString](maxLength).transform(
-          Multipart.multipartParser(DefaultMaxTextLength, filePartHandler)(request)
-        ).flatMap {
-            case d @ Left(r) => Iteratee.eofOrElse(r)(d)
-            case d => checkForEof(request)(d)
-          }
-
-        parser.map {
-          case Left(tooLarge) => Left(tooLarge)
-          case Right(Left(badResult)) => Left(badResult)
-          case Right(Right(body)) => Right(body)
-        }
+    def multipartFormData[A](filePartHandler: Multipart.FilePartHandler[A], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
+      BodyParser("multipartFormData") { request =>
+        implicit val mat = Play.current.materializer
+        val bodyAccumulator = Multipart.multipartParser(DefaultMaxTextLength, filePartHandler).apply(request)
+        enforceMaxLength(request, maxLength, bodyAccumulator)
       }
     }
 
@@ -687,21 +665,27 @@ trait BodyParsers {
      * @param maxLength The max length allowed
      * @param parser The BodyParser to wrap
      */
-    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser.iteratee("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
+    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Traversable.takeUpTo[ByteString](maxLength).transform(Streams.accumulatorToIteratee(parser(request))).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
-        case Right(Right(result)) => Right(Right(result))
-        case Right(Left(badRequest)) => Left(badRequest)
-        case Left(maxSizeExceeded) => Right(Left(maxSizeExceeded))
-      }
+      val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
+      // If the parser is successful, the body becomes Right(body)
+      parser.map(Right.apply)
+        // Apply the request
+        .apply(request)
+        // Send it through our takeUpToFlow
+        .through(takeUpToFlow)
+        // And convert a max length failure to Right(Left(MaxSizeExceeded))
+        .recover {
+          case _: BodyParsers.MaxLengthLimitAttained => Right(Left(MaxSizeExceeded(maxLength)))
+        }
     }
 
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: Future[Result]): BodyParser[A] = BodyParser.iteratee("error") { request =>
+    def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error") { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Iteratee.flatten(result.map(r => Done(Left(r), Empty)))
+      Accumulator.done(result.map(Left.apply))
     }
 
     /**
@@ -730,56 +714,41 @@ trait BodyParsers {
     }
 
     /**
-     * Check that the input is finished. If it is finished, the iteratee returns `eofValue`.
-     * If the input is not finished then it returns a REQUEST_ENTITY_TOO_LARGE result.
+     * Enforce the max length on the stream consumed by the given accumulator.
      */
-    private def checkForEof[A](request: RequestHeader): A => Iteratee[ByteString, Either[Result, A]] = { eofValue: A =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
-      def cont: Iteratee[ByteString, Either[Result, A]] = Cont {
-        case in @ Input.El(e) =>
-          val badResult: Future[Result] = createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request)
-          Iteratee.flatten(badResult.map(r => Done(Left(r), in)))
-        case in @ Input.EOF =>
-          Done(Right(eofValue), in)
-        case Input.Empty =>
-          cont
-      }
-      cont
-    }
-
-    private def checkForMaxLengthAttained[A](request: RequestHeader, materializationRes: Future[A]): Future[Either[Result, A]] = {
-      import play.core.Execution.Implicits.internalContext
-      materializationRes.map(Right(_)).recoverWith {
+    private def enforceMaxLength[A](request: RequestHeader, maxLength: Long, accumulator: Accumulator[ByteString, Either[Result, A]]): Accumulator[ByteString, Either[Result, A]] = {
+      val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
+      import play.api.libs.concurrent.Execution.Implicits.defaultContext
+      accumulator.through(takeUpToFlow).recoverWith {
         case _: BodyParsers.MaxLengthLimitAttained =>
           val badResult = createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request)
           badResult.map(Left(_))
       }
     }
 
+    /**
+     * Create a body parser that uses the given parser and enforces the given max length.
+     *
+     * @param name The name of the body parser.
+     * @param maxLength The maximum length of the body to buffer.
+     * @param errorMessage The error message to prepend to the exception message if an error was encountered.
+     * @param parser The parser.
+     */
     private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, ByteString) => A): BodyParser[A] =
-      BodyParser.iteratee(name + ", maxLength=" + maxLength) { request =>
+      BodyParser(name + ", maxLength=" + maxLength) { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
-        import scala.util.control.Exception._
 
-        val bodyParser: Iteratee[ByteString, Either[Result, Either[Future[Result], A]]] =
-          Traversable.takeUpTo[ByteString](maxLength).transform(
-            Iteratee.consume[ByteString]().map { bytes =>
-              allCatch[A].either {
-                parser(request, bytes)
-              }.left.map {
-                case NonFatal(e) =>
-                  logger.debug(errorMessage, e)
-                  createBadResult(errorMessage + ": " + e.getMessage)(request)
-                case t => throw t
-              }
+        enforceMaxLength(request, maxLength, Accumulator(
+          Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+        ) mapFuture { bytes =>
+            try {
+              Future.successful(Right(parser(request, bytes)))
+            } catch {
+              case NonFatal(e) =>
+                logger.debug(errorMessage, e)
+                createBadResult(errorMessage + ": " + e.getMessage)(request).map(Left(_))
             }
-          ).flatMap(checkForEof(request))
-
-        bodyParser.mapM {
-          case Left(tooLarge) => Future.successful(Left(tooLarge))
-          case Right(Left(badResult)) => badResult.map(Left.apply)
-          case Right(Right(body)) => Future.successful(Right(body))
-        }
+          })
       }
   }
 }
