@@ -4,8 +4,10 @@
 package play.core.routing
 
 import org.apache.commons.lang3.reflect.MethodUtils
+import play.api.inject.Injector
 import play.api.mvc._
 import play.core.j.{ JavaHandlerComponents, JavaHandler, JavaActionAnnotations }
+import play.mvc.Http.RequestBody
 
 import scala.util.control.NonFatal
 
@@ -123,13 +125,28 @@ object HandlerInvokerFactory {
       def call(call: => A): Handler = new JavaHandler {
         def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
           val annotations = cachedAnnotations
-          val parser = cachedAnnotations.parser
+          val parser = {
+            val javaParser = components.injector.instanceOf(cachedAnnotations.parser)
+            javaBodyParserToScala(javaParser)
+          }
           def invocation: JPromise[JResult] = resultCall(call)
           def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
         }
       }
     }
     def resultCall(call: => A): JPromise[JResult]
+  }
+
+  private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
+    val accumulator = parser.apply(new play.core.j.RequestHeaderImpl(request)).asScala()
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    accumulator.map { javaEither =>
+      if (javaEither.left.isPresent) {
+        Left(javaEither.left.get().asScala())
+      } else {
+        Right(new RequestBody(javaEither.right.get()))
+      }
+    }
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {

@@ -5,6 +5,7 @@ package play.api.test
 
 import akka.stream.{ ClosedShape, Graph, Materializer }
 import akka.stream.scaladsl.Source
+import play.mvc.Http.RequestBody
 
 import scala.language.reflectiveCalls
 
@@ -212,16 +213,8 @@ trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
   // Java compatibility
-  def jRoute[T](app: Application, r: RequestHeader, body: T): Option[Future[Result]] = {
-    (body: @unchecked) match {
-      case body: AnyContentAsFormUrlEncoded => route(app, r, body)
-      case body: AnyContentAsJson => route(app, r, body)
-      case body: AnyContentAsXml => route(app, r, body)
-      case body: AnyContentAsText => route(app, r, body)
-      case body: AnyContentAsRaw => route(app, r, body)
-      case body: AnyContentAsEmpty.type => route(app, r, body)
-      //case _ => MatchError is thrown
-    }
+  def jRoute[T](app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
+    route(app, r, body.asBytes())
   }
 
   /**

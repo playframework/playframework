@@ -10,6 +10,7 @@ import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }
 import play.mvc.Http.RequestBody
 
+import scala.compat.java8.OptionConverters
 import scala.concurrent.Future
 import collection.JavaConverters._
 
@@ -213,6 +214,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     map.putAll(headers.toMap.mapValues(_.toArray).asJava)
     map
   }
+
+  def contentType() = OptionConverters.toJava(header.contentType)
+
+  def charset() = OptionConverters.toJava(header.charset)
 
   override def toString = header.toString
 

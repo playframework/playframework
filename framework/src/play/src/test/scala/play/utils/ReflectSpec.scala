@@ -54,7 +54,7 @@ object ReflectSpec extends Specification {
   }
 
   def bindings(configured: String, defaultClassName: String): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, DefaultDuck](
+    Reflect.bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, JavaDuckDelegate, DefaultDuck](
       Environment.simple(), PlayConfig(Configuration.from(Map("duck" -> configured))), "duck", defaultClassName)
   }
 
@@ -86,10 +86,21 @@ object ReflectSpec extends Specification {
     def getQuack = "java quack"
   }
 
+  class JavaDuckDelegate @Inject() (delegate: Duck) extends JavaDuck {
+    def getQuack = delegate.quack
+  }
+
   class NotADuck
 
   def doQuack(bindings: Seq[Binding[_]]): String = {
-    new GuiceInjectorBuilder().bindings(bindings).injector.instanceOf[Duck].quack
+    val injector = new GuiceInjectorBuilder().bindings(bindings).injector
+    val duck = injector.instanceOf[Duck]
+    val javaDuck = injector.instanceOf[JavaDuck]
+
+    // The Java duck and the Scala duck must agree
+    javaDuck.getQuack must_== duck.quack
+
+    duck.quack
   }
 
 }

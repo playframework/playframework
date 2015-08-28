@@ -1,12 +1,13 @@
 import play.mvc.Controller;
+import java.io.File;
 
 public class JavaFileUpload {
 
     static class SyncUpload extends Controller {
         //#syncUpload
         public static play.mvc.Result upload() {
-            play.mvc.Http.MultipartFormData body = request().body().asMultipartFormData();
-            play.mvc.Http.MultipartFormData.FilePart picture = body.getFile("picture");
+            play.mvc.Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+            play.mvc.Http.MultipartFormData.FilePart<File> picture = body.getFile("picture");
             if (picture != null) {
                 String fileName = picture.getFilename();
                 String contentType = picture.getContentType();

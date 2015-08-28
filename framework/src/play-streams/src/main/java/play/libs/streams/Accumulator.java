@@ -9,6 +9,7 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
@@ -89,16 +90,46 @@ public final class Accumulator<E, A> {
      * @return A new accumulator that has recovered from errors.
      */
     public Accumulator<E, A> recoverWith(Function<? super Throwable, ? extends CompletionStage<A>> f, Executor executor) {
+        // Below is the way that this *should* be implemented, but doesn't work due to
+        // https://github.com/scala/scala-java8-compat/issues/29
+        //        return new Accumulator<>(
+        //                sink.mapMaterializedValue(cs ->
+        //                        cs.handleAsync((a, error) -> {
+        //                            if (a != null) {
+        //                                return CompletableFuture.completedFuture(a);
+        //                            } else {
+        //                                if (error instanceof CompletionException) {
+        //                                    return f.apply(error.getCause());
+        //                                } else {
+        //                                    return f.apply(error);
+        //                                }
+        //                            }
+        //                        }, executor).thenCompose(Function.identity()))
+        //        );
         return new Accumulator<>(
-                sink.mapMaterializedValue(cs ->
-                        cs.handleAsync((a, error) -> {
-                            if (a != null) {
-                                return CompletableFuture.completedFuture(a);
-                            } else {
-                                return f.apply(error);
+                sink.mapMaterializedValue(cs -> {
+                    CompletableFuture<A> future = new CompletableFuture<>();
+                    cs.whenCompleteAsync((a, error) -> {
+                        if (a != null) {
+                            future.complete(a);
+                        } else {
+                            try {
+                                CompletionStage<A> recovered;
+                                if (error instanceof CompletionException) {
+                                    recovered = f.apply(error.getCause());
+                                } else {
+                                    recovered = f.apply(error);
+                                }
+                                recovered.thenAccept(future::complete);
+                            } catch (Exception e) {
+                                future.completeExceptionally(e);
                             }
-                        }, executor).thenCompose(Function.identity()))
+                        }
+                    }, executor);
+                    return future;
+                })
         );
+
     }
 
     /**
@@ -169,7 +200,7 @@ public final class Accumulator<E, A> {
      * @param a The done value for the accumulator.
      * @return The accumulator.
      */
-    public static <A> Accumulator<Object, A> done(A a) {
+    public static <E, A> Accumulator<E, A> done(A a) {
         return done(CompletableFuture.completedFuture(a));
     }
 
@@ -179,8 +210,8 @@ public final class Accumulator<E, A> {
      * @param a A future of the done value.
      * @return The accumulator.
      */
-    public static <A> Accumulator<Object, A> done(CompletionStage<A> a) {
-        return new Accumulator<Object, A>(Sink.cancelled().mapMaterializedValue((unit) -> a));
+    public static <E, A> Accumulator<E, A> done(CompletionStage<A> a) {
+        return new Accumulator(Sink.cancelled().mapMaterializedValue((unit) -> a));
     }
 
 }

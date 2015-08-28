@@ -90,12 +90,13 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
    */
   def toSink: Sink[E, Future[A]] = sink
 
+  import scala.annotation.unchecked.{ uncheckedVariance => uV }
   /**
    * Convert this accumulator to a Java Accumulator.
    *
    * @return The Java accumulator.
    */
-  def asJava: play.libs.streams.Accumulator[_ >: E, _ <: A] = {
+  def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
     play.libs.streams.Accumulator.fromSink(sink.asJava)
   }
 }
