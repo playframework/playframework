@@ -5,7 +5,7 @@ package play.api.libs.iteratee
 
 import java.util.ArrayDeque
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContextExecutor, ExecutionContext }
 
 /**
  * Contains the default ExecutionContext used by Iteratees.
@@ -16,7 +16,7 @@ object Execution {
 
   object Implicits {
     implicit def defaultExecutionContext: ExecutionContext = Execution.trampoline
-    implicit def trampoline: ExecutionContext = Execution.trampoline
+    implicit def trampoline: ExecutionContextExecutor = Execution.trampoline
   }
 
   /**
@@ -28,7 +28,7 @@ object Execution {
    * Blocking should be strictly avoided as it could hog the current thread.
    * Also, since we're running on a single thread, blocking code risks deadlock.
    */
-  object trampoline extends ExecutionContext {
+  object trampoline extends ExecutionContextExecutor {
 
     /*
      * A ThreadLocal value is used to track the state of the trampoline in the current

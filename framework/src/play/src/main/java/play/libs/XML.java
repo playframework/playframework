@@ -13,7 +13,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import akka.util.ByteString;
+import akka.util.ByteString$;
+import akka.util.ByteStringBuilder;
 import org.apache.xerces.impl.Constants;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -42,28 +49,56 @@ public class XML {
      * Parse an InputStream as DOM.
      */
     public static Document fromInputStream(InputStream in, String encoding) {
-       try {
+        InputSource is = new InputSource(in);
+        if (encoding != null) {
+            is.setEncoding(encoding);
+        }
 
-           DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", XML.class.getClassLoader());
-           factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-           factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-           factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
-           factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-           factory.setNamespaceAware(true);
-           DocumentBuilder builder = factory.newDocumentBuilder();
-
-           InputSource is = new InputSource(in);
-           is.setEncoding(encoding);
-           
-           return builder.parse(is);
-
-       } catch (ParserConfigurationException e) {
-           throw new RuntimeException(e);
-       } catch (SAXException e) {
-           throw new RuntimeException(e);
-       } catch (IOException e) {
-           throw new RuntimeException(e);
-       }
+        return fromInputSource(is);
     }
 
+    /**
+     * Parse the input source as DOM.
+     *
+     * @param source The source to parse.
+     * @return The Document.
+     */
+    public static Document fromInputSource(InputSource source) {
+        try {
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", XML.class.getClassLoader());
+            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+            factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            return builder.parse(source);
+
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Convert the document to bytes.
+     *
+     * @param document The document to convert.
+     * @return The ByteString representation of the document.
+     */
+    public static ByteString toBytes(Document document) {
+        ByteStringBuilder builder = ByteString$.MODULE$.newBuilder();
+        try {
+            TransformerFactory.newInstance().newTransformer()
+                .transform(new DOMSource(document), new StreamResult(builder.asOutputStream()));
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
+        }
+        return builder.result();
+    }
 }

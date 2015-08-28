@@ -271,7 +271,7 @@ trait BodyParsers {
      */
     val UNLIMITED: Long = Long.MaxValue
 
-    private val ApplicationXmlMatcher = """application/.*\+xml.*""".r
+    private[play] val ApplicationXmlMatcher = """application/.*\+xml.*""".r
 
     private def config = Play.maybeApplication.map(app => hcCache(app).parser)
       .getOrElse(ParserConfiguration())
@@ -792,7 +792,7 @@ object BodyParsers extends BodyParsers {
 
   private val hcCache = Application.instanceCache[HttpConfiguration]
 
-  private class TakeUpTo(maxLength: Long) extends PushStage[ByteString, ByteString] {
+  private[play] class TakeUpTo(maxLength: Long) extends PushStage[ByteString, ByteString] {
     private var pushedBytes: Long = 0
 
     override def onPush(chunk: ByteString, ctx: Context[ByteString]): SyncDirective = {
@@ -802,7 +802,7 @@ object BodyParsers extends BodyParsers {
     }
   }
 
-  private class MaxLengthLimitAttained extends RuntimeException(null, null, false, false)
+  private[play] class MaxLengthLimitAttained extends RuntimeException(null, null, false, false)
 }
 
 /**

@@ -13,6 +13,7 @@ import play.api.http.Status._
 import play.api.routing.Router
 import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
+import play.mvc.Http
 import play.utils.{ Reflect, PlayIO }
 
 import scala.concurrent._
@@ -49,7 +50,8 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, GlobalSettingsHttpErrorHandler](environment, PlayConfig(configuration), "play.http.errorHandler", "ErrorHandler")
+    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, GlobalSettingsHttpErrorHandler](environment, PlayConfig(configuration),
+      "play.http.errorHandler", "ErrorHandler")
   }
 }
 
@@ -291,4 +293,18 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
 
   def onServerError(request: RequestHeader, exception: Throwable) =
     errorHandler.onServerError(request, exception)
+}
+
+/**
+ * A Java error handler that's provided when a Scala one is configured, so that Java code can still have the error
+ * handler injected.
+ */
+private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler) extends play.http.HttpErrorHandler {
+  import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
+    play.libs.F.Promise.wrap(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
+
+  def onServerError(request: Http.RequestHeader, exception: Throwable) =
+    play.libs.F.Promise.wrap(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
 }

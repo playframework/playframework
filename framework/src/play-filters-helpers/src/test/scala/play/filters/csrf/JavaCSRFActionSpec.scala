@@ -5,6 +5,7 @@ package play.filters.csrf
 
 import play.api.libs.Crypto
 import play.api.mvc.Session
+import play.core.routing.HandlerInvokerFactory
 import play.libs.F.Promise
 import play.mvc.Http.{ RequestHeader, Context }
 
@@ -25,7 +26,9 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
-    def parser = annotations.parser
+    def parser = HandlerInvokerFactory.javaBodyParserToScala(
+      javaHandlerComponents.injector.instanceOf(annotations.parser)
+    )
     def invocation = F.Promise.pure(inv)
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method))
   }

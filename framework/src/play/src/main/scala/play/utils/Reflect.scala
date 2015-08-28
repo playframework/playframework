@@ -34,12 +34,14 @@ object Reflect {
    * @tparam ScalaTrait The trait to bind
    * @tparam JavaInterface The Java interface for Java versions of the implementation
    * @tparam JavaAdapter An adapter class that depends on `JavaInterface` and provides `ScalaTrait`
+   * @tparam JavaDelegate An implementation of `JavaInterface` that delegates to `ScalaTrait`, for when the configured
+   *                      class is not an instance of `JavaInterface`.
    * @tparam Default The default implementation of `ScalaTrait` if no user implementation has been provided
    * @return Zero or more bindings to provide `ScalaTrait`
    */
-  def bindingsFromConfiguration[ScalaTrait, JavaInterface, JavaAdapter <: ScalaTrait, Default <: ScalaTrait](
+  def bindingsFromConfiguration[ScalaTrait, JavaInterface, JavaAdapter <: ScalaTrait, JavaDelegate <: JavaInterface, Default <: ScalaTrait](
     environment: Environment, config: PlayConfig, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],
-      javaInterface: SubClassOf[JavaInterface], javaAdapter: ClassTag[JavaAdapter], default: ClassTag[Default]): Seq[Binding[_]] = {
+      javaInterface: SubClassOf[JavaInterface], javaAdapter: ClassTag[JavaAdapter], javaDelegate: ClassTag[JavaDelegate], default: ClassTag[Default]): Seq[Binding[_]] = {
 
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
@@ -47,7 +49,10 @@ object Reflect {
 
       // Directly implements the scala trait
       case Some(Left(direct)) =>
-        Seq(bind[ScalaTrait].to(direct))
+        Seq(
+          bind[ScalaTrait].to(direct),
+          bind[JavaInterface].to[JavaDelegate]
+        )
       // Implements the java interface
       case Some(Right(java)) =>
         Seq(

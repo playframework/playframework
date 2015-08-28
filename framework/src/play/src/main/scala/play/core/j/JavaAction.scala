@@ -12,7 +12,7 @@ import scala.language.existentials
 
 import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
-import play.mvc.{ Action => JAction, Result => JResult }
+import play.mvc.{ Action => JAction, Result => JResult, BodyParser => JBodyParser }
 import play.mvc.Http.{ Context => JContext }
 import play.libs.F.{ Promise => JPromise }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -24,12 +24,10 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 class JavaActionAnnotations(val controller: Class[_], val method: java.lang.reflect.Method) {
 
-  val parser: BodyParser[play.mvc.Http.RequestBody] =
+  val parser: Class[_ <: JBodyParser[_]] =
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
-      .headOption.map { bodyParserOf =>
-        bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-      }.getOrElse(JavaParsers.default_(-1))
+      .headOption.map(_.value).getOrElse(classOf[JBodyParser.Default])
 
   val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
     clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
