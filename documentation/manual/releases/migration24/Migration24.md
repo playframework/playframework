@@ -515,6 +515,8 @@ Previously, Play added all the resources to the the `conf` directory in the dist
 
 This can be turned off by setting `PlayKeys.externalizeResources := false`, which will cause no `conf` directory to be created in the distribution, and it will not be on the classpath.  The contents of the applications `conf` directory will still be on the classpath by virtue of the fact that it's included in the applications jar file.
 
+Please note that if you're using the Java Persistence API (JPA) you will need to set this option to false in order to deploy your application. Otherwise you will get an error message: `Entity X is not mapped`. This is not required for local development.
+
 ### Changes in Debian Package creation
 
 The [sbt-native-packager](https://github.com/sbt/sbt-native-packager) has been upgraded. Due to this, the following adjustments might be necessary:
