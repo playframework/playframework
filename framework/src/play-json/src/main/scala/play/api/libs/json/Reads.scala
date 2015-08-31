@@ -34,8 +34,7 @@ import reflect.ClassTag
 @implicitNotFound(
   "No Json deserializer found for type ${A}. Try to implement an implicit Reads or Format for this type."
 )
-trait Reads[A] {
-  self =>
+trait Reads[A] { self =>
   /**
    * Convert the JsValue into a A
    */
@@ -78,7 +77,8 @@ trait Reads[A] {
       }
     }
 
-  def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] = rb.compose(this.map(witness))
+  def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] =
+    rb.compose(this.map(witness))
 
 }
 
@@ -114,13 +114,14 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
         }
       }
     }
-    def empty: Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+
+    def empty: Reads[Nothing] =
+      new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
 
   }
 
-  def apply[A](f: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
-    def reads(json: JsValue) = f(json)
-  }
+  def apply[A](f: JsValue => JsResult[A]): Reads[A] =
+    new Reads[A] { def reads(json: JsValue) = f(json) }
 
   implicit def functorReads(implicit a: Applicative[Reads]) = new Functor[Reads] {
     def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
@@ -619,6 +620,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
 
     def reads(json: JsValue): JsResult[Date] = json match {
       case JsNumber(d) => JsSuccess(new Date(d.toLong))
+
       case JsString(s) => (s match {
         case WithMillisAndTz() => millisAndTz -> parseJDate(millisAndTz, s)
         case WithMillis() => millis -> parseJDate(millis, s)
@@ -629,6 +631,8 @@ trait DefaultReads extends LowPriorityDefaultReads {
         case (p, None) => JsError(Seq(JsPath() ->
           Seq(ValidationError("error.expected.date.isoformat", p))))
       }
+
+      case js => JsError("error.expected.date.isoformat")
     }
   }
 
@@ -783,6 +787,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
   }
 
+  /**
+   * Deserializer for JsArray.
+   */
   implicit object JsArrayReads extends Reads[JsArray] {
     def reads(json: JsValue) = json match {
       case o: JsArray => JsSuccess(o)
@@ -797,6 +804,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     def reads(json: JsValue) = JsSuccess(json)
   }
 
+  /**
+   * Deserializer for JsString.
+   */
   implicit object JsStringReads extends Reads[JsString] {
     def reads(json: JsValue) = json match {
       case s: JsString => JsSuccess(s)
@@ -804,6 +814,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
   }
 
+  /**
+   * Deserializer for JsNumber.
+   */
   implicit object JsNumberReads extends Reads[JsNumber] {
     def reads(json: JsValue) = json match {
       case n: JsNumber => JsSuccess(n)
@@ -811,6 +824,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
   }
 
+  /**
+   * Deserializer for JsBoolean.
+   */
   implicit object JsBooleanReads extends Reads[JsBoolean] {
     def reads(json: JsValue) = json match {
       case b: JsBoolean => JsSuccess(b)
@@ -877,9 +893,10 @@ trait DefaultReads extends LowPriorityDefaultReads {
   /**
    * Deserializer for java.util.UUID
    */
-  def uuidReader(checkUuuidValidity: Boolean = false): Reads[java.util.UUID] = new Reads[java.util.UUID] {
+  class UUIDReader(checkUuuidValidity: Boolean) extends Reads[java.util.UUID] {
     import java.util.UUID
     import scala.util.Try
+
     def check(s: String)(u: UUID): Boolean = (u != null && s == u.toString())
     def parseUuid(s: String): Option[UUID] = {
       val uncheckedUuid = Try(UUID.fromString(s)).toOption
@@ -899,6 +916,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
   }
 
-  implicit val uuidReads: Reads[java.util.UUID] = uuidReader()
+  @deprecated(message = "Use [[UUIDReader]]", since = "2.4.3")
+  def uuidReader(checkUuuidValidity: Boolean = false) =
+    new UUIDReader(checkUuuidValidity)
 
+  implicit val uuidReads: Reads[java.util.UUID] = new UUIDReader(false)
 }
