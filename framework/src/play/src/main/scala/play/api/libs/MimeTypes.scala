@@ -530,6 +530,7 @@ object MimeTypes {
         wmls=text/vnd.wap.wmlscript
         wmlsc=application/vnd.wap.wmlscriptc
         woff=application/font-woff
+        woff2=application/font-woff2
         word=application/msword
         wp5=application/wordperfect
         wp6=application/wordperfect
