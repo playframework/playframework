@@ -180,7 +180,9 @@ GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```scala
 package controllers.admin
-object Assets extends controllers.AssetsBuilder
+import javax.inject._
+import play.api.http.HttpErrorHandler
+class Assets @Inject() (errorHandler: HttpErrorHandler) extends controllers.AssetsBuilder(errorHandler)
 ```
 
 > **Note:** Java users can do something very similar i.e.:
