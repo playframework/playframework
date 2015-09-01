@@ -118,15 +118,26 @@ object Reloader {
    *
    * @return A closeable that can be closed to stop the server
    */
-  def startDevMode(runHooks: Seq[RunHook], javaOptions: Seq[String],
-    dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
-    reloadCompile: () => CompileResult, reloaderClassLoader: ClassLoaderCreator,
-    assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
-    monitoredFiles: Seq[File], fileWatchService: FileWatchService,
-    docsClasspath: Classpath, docsJar: Option[File],
-    defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
-    devSettings: Seq[(String, String)], args: Seq[String],
-    runSbtTask: String => AnyRef, mainClassName: String): PlayDevServer = {
+  def startDevMode(runHooks: Seq[RunHook],
+    javaOptions: Seq[String],
+    dependencyClasspath: Classpath,
+    dependencyClassLoader: ClassLoaderCreator,
+    reloadCompile: () => CompileResult,
+    reloaderClassLoader: ClassLoaderCreator,
+    assetsClassLoader: ClassLoader => ClassLoader,
+    commonClassLoader: ClassLoader,
+    monitoredFiles: Seq[File],
+    fileWatchService: FileWatchService,
+    docsClasspath: Classpath,
+    docsJar: Option[File],
+    defaultHttpPort: Int,
+    defaultHttpAddress: String,
+    projectPath: File,
+    devSettings: Seq[(String, String)],
+    args: Seq[String],
+    runSbtTask: String => AnyRef,
+    mainClassName: String,
+    loggerProxy: LoggerProxy): PlayDevServer = {
 
     val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress)
     val systemProperties = extractSystemProperties(javaOptions)
@@ -196,7 +207,7 @@ object Reloader {
     lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, runSbtTask)
+    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, loggerProxy, runSbtTask)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -274,6 +285,7 @@ class Reloader(
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
+    logger: LoggerProxy,
     runSbtTask: String => AnyRef) extends BuildLink {
 
   // The current classloader for the application
@@ -310,6 +322,11 @@ class Reloader(
    */
   def reload: AnyRef = {
     Reloader.synchronized {
+      logger.debug(s"reload: changed = $changed, " +
+        s"forceReloadNextTime = $forceReloadNextTime, " +
+        s"currentSourceMap = $currentSourceMap, " +
+        s"currentApplicationClassLoader = $currentApplicationClassLoader")
+
       if (changed || forceReloadNextTime || currentSourceMap.isEmpty || currentApplicationClassLoader.isEmpty) {
 
         val shouldReload = forceReloadNextTime

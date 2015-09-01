@@ -5,6 +5,7 @@ package play.forkrun
 
 import akka.actor._
 import java.io.File
+import play.runsupport.Logger
 import sbt.client.actors.{ SbtClientProxy, SbtConnectionProxy }
 import sbt.client.{ SbtConnector, TaskKey }
 import sbt.protocol.{ ScopedKey, TaskResult, TaskFailure }

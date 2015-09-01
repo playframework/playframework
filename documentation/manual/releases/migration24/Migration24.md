@@ -78,7 +78,7 @@ The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
 
 Also the corresponding class has changed. To set the FileWatchService to poll every two seconds, use it like this:
 ```scala
-PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(2000)
+PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(Keys.sLog.value, 2000)
 ```
 
 ### Play Slick dependency
@@ -541,13 +541,12 @@ The mysterious `OrderedExecutionContext` had [[been retained|Migration22#Concurr
 
 ### SubProject Assets
 
-Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other. 
+Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other.
 
-To get the asset routing to work correctly in your app, you'll need to change: 
+To get the asset routing to work correctly in your app, you'll need to change:
 
     GET     /assets/*file               controllers.myModule.Assets.at(path="/public", file)
 
 to this
 
     GET     /assets/*file               controllers.myModule.Assets.at(path="/public/lib/myModule", file)
-

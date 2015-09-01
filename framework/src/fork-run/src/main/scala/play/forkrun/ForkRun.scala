@@ -13,8 +13,9 @@ import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.TimeoutException
 import play.forkrun.protocol.{ ForkConfig, Serializers }
+import play.runsupport.Logger.Level
 import play.runsupport.Reloader.{ CompileResult, PlayDevServer }
-import play.runsupport.{ Colors, LoggerProxy, RunHook, FileWatchService, Reloader }
+import play.runsupport.{ Colors, Logger, RunHook, FileWatchService, Reloader }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{ Success, Failure, Properties }
@@ -30,10 +31,8 @@ object ForkRun {
     val configKey = args(1)
     val runArgs = args.drop(2)
 
-    val logLevel = Properties.propOrElse("fork.run.log.level", "info")
-    val logEvents = Properties.propOrFalse("fork.run.log.events")
-
-    val log = Logger(logLevel)
+    val logEvents = Properties.propOrFalse("play.run.log.events")
+    val log = Logger()
     val system = ActorSystem("play-fork-run", akkaNoLogging)
     val sbt = system.actorOf(SbtClient.props(new File(baseDirectory), log, logEvents), "sbt")
     val forkRun = system.actorOf(props(sbt, configKey, runArgs, log), "fork-run")
@@ -73,8 +72,8 @@ object ForkRun {
     val watchService = config.watchService match {
       case ForkConfig.DefaultWatchService => FileWatchService.defaultWatchService(config.targetDirectory, config.pollInterval, log)
       case ForkConfig.JDK7WatchService => FileWatchService.jdk7(log)
-      case ForkConfig.JNotifyWatchService => FileWatchService.jnotify(config.targetDirectory)
-      case ForkConfig.PollingWatchService(pollInterval) => FileWatchService.sbt(pollInterval)
+      case ForkConfig.JNotifyWatchService => FileWatchService.jnotify(config.targetDirectory, log)
+      case ForkConfig.PollingWatchService(pollInterval) => FileWatchService.sbt(pollInterval, log)
     }
 
     val runSbtTask = (s: String) => throw new UnsupportedOperationException("BuildLink.runTask is not supported in fork run")
@@ -98,7 +97,8 @@ object ForkRun {
       devSettings = config.devSettings,
       args = args,
       runSbtTask = runSbtTask,
-      mainClassName = config.mainClass
+      mainClassName = config.mainClass,
+      loggerProxy = log
     )
 
     println()
