@@ -364,7 +364,7 @@ trait WSRequest {
   def withHeaders(hdrs: (String, String)*): WSRequest
 
   /**
-   * adds any number of query string parameters to the
+   * adds any number of query string parameters to this request
    */
   def withQueryString(parameters: (String, String)*): WSRequest
 
