@@ -209,9 +209,17 @@ object CSRF {
       JavaHelpers.invokeWithContext(request, req => underlying.handle(req, msg))
   }
 
+  class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    def handle(req: Http.RequestHeader, msg: String) =
+      play.libs.F.Promise.wrap(delegate.handle(req._underlyingHeader(), msg).map(_.asJava))
+  }
+
   object ErrorHandler {
     def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-      Reflect.bindingsFromConfiguration[ErrorHandler, CSRFErrorHandler, JavaCSRFErrorHandlerAdapter, CSRFHttpErrorHandler](environment, PlayConfig(configuration), "play.filters.csrf.errorHandler", "CSRFErrorHandler")
+      Reflect.bindingsFromConfiguration[ErrorHandler, CSRFErrorHandler, JavaCSRFErrorHandlerAdapter, JavaCSRFErrorHandlerDelegate, CSRFHttpErrorHandler](environment, PlayConfig(configuration),
+        "play.filters.csrf.errorHandler", "CSRFErrorHandler")
     }
   }
 

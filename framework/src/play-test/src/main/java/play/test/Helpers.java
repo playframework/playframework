@@ -380,28 +380,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
       final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
-          app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.bodyAsAnyContent());
+          app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.body());
       return wrapScalaResult(Scala.orNull(opt), timeout);
-    }
-
-    @Deprecated
-    public static Result route(Application app, RequestBuilder requestBuilder, byte[] body) {
-      return route(app, requestBuilder, body, DEFAULT_TIMEOUT);
-    }
-
-    @Deprecated
-    public static Result route(Application app, RequestBuilder requestBuilder, byte[] body, long timeout) {
-      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), body)), timeout);
-    }
-
-    @Deprecated
-    public static Result route(RequestBuilder requestBuilder, byte[] body) {
-      return route(requestBuilder, body, DEFAULT_TIMEOUT);
-    }
-
-    @Deprecated
-    public static Result route(RequestBuilder requestBuilder, byte[] body, long timeout) {
-      return route(play.Play.application(), requestBuilder, body, timeout);
     }
 
     /**

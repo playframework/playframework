@@ -13,6 +13,7 @@ import play.mvc.Result;
 import scala.Option;
 
 import javax.inject.Inject;
+import java.util.Map;
 
 public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
@@ -54,7 +55,8 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                             tokenToCheck = values[0];
                         }
                     } else if (ctx.request().body().asMultipartFormData() != null) {
-                        String[] values = ctx.request().body().asMultipartFormData().asFormUrlEncoded().get(config.tokenName());
+                        Map<String, String[]> form = ctx.request().body().asMultipartFormData().asFormUrlEncoded();
+                        String[] values = form.get(config.tokenName());
                         if (values != null && values.length > 0) {
                             tokenToCheck = values[0];
                         }

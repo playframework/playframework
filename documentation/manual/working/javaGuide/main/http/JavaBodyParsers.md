@@ -52,6 +52,6 @@ Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded
 
 For parsers that buffer content on disk, such as the raw parser or `multipart/form-data`, the maximum content length is specified using the `play.http.parser.maxDiskBuffer` property, it defaults to 10MB.  The `multipart/form-data` parser also enforces the text max length property for the aggregate of the data fields.
 
-You can also override the default maximum content length for a given action via the `@BodyParser.Of` annotation:
+You can also override the default maximum content length for a given action by defining a custom body parser that defines the maximum length.  For example:
 
 @[max-length](code/javaguide/http/JavaBodyParsers.java)

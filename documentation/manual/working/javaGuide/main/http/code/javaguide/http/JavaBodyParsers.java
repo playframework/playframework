@@ -6,6 +6,7 @@ package javaguide.http;
 import akka.stream.Materializer;
 import org.junit.Before;
 import org.junit.Test;
+import play.http.HttpErrorHandler;
 import play.libs.Json;
 import play.test.WithApplication;
 import javaguide.testhelpers.MockJavaAction;
@@ -14,6 +15,8 @@ import javaguide.testhelpers.MockJavaAction;
 import play.mvc.*;
 import play.mvc.Http.*;
 //#imports
+
+import javax.inject.Inject;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -28,7 +31,7 @@ public class JavaBodyParsers extends WithApplication {
             //#request-body
             public Result index() {
                 RequestBody body = request().body();
-                return ok("Got body: " + body);
+                return ok("Got body: " + body.asText());
             }
             //#request-body
         }, fakeRequest().bodyText("foo"))), containsString("foo"));
@@ -74,16 +77,24 @@ public class JavaBodyParsers extends WithApplication {
             body.append("1234567890");
         }
         Materializer mat = app.injector().instanceOf(Materializer.class);
-        assertThat(callWithStringBody(new MockJavaAction() {
-                    //#max-length
-                    // Accept only 10KB of data.
-                    @BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
-                    public Result index() {
-                        return ok("Got body: " + request().body().asText());
-                    }
-                    //#max-length
-                }, fakeRequest(), body.toString(), mat).status(),
+        assertThat(callWithStringBody(new MaxLengthAction(), fakeRequest(), body.toString(), mat).status(),
                 equalTo(413));
     }
 
+    public static class MaxLengthAction extends MockJavaAction {
+        //#max-length
+        // Accept only 10KB of data.
+        public static class Text10Kb extends BodyParser.Text {
+            @Inject
+            public Text10Kb(HttpErrorHandler errorHandler) {
+                super(10 * 1024, errorHandler);
+            }
+        }
+
+        @BodyParser.Of(Text10Kb.class)
+        public Result index() {
+            return ok("Got body: " + request().body().asText());
+        }
+        //#max-length
+    }
 }

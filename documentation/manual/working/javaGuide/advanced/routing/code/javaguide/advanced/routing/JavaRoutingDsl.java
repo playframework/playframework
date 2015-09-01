@@ -13,12 +13,13 @@ import static play.mvc.Controller.*;
 //#imports
 
 import play.mvc.Result;
+import play.test.WithApplication;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-public class JavaRoutingDsl {
+public class JavaRoutingDsl extends WithApplication {
     @Test
     public void simple() {
         //#simple

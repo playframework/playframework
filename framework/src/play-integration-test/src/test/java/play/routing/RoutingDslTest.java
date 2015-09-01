@@ -9,6 +9,7 @@ import play.libs.F;
 import play.mvc.PathBindable;
 import play.mvc.Result;
 import play.mvc.Results;
+import play.test.WithApplication;
 
 import java.io.InputStream;
 
@@ -19,7 +20,7 @@ import static play.test.Helpers.*;
 /**
  * This class is in the integration tests so that we have the right helper classes to build a request with to test it.
  */
-public class RoutingDslTest {
+public class RoutingDslTest extends WithApplication {
 
     @Test
     public void noParameters() {

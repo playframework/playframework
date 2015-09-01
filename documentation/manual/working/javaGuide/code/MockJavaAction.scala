@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package javaguide.testhelpers
+package javaguide.testhelpers {
 
 import akka.stream.Materializer
 import play.api.mvc.{Action, Request}
@@ -12,21 +12,30 @@ import play.api.test.Helpers
 import play.libs.F
 import java.lang.reflect.Method
 
-abstract class MockJavaAction extends Controller with Action[Http.RequestBody] { self =>
+abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
+  self =>
 
-  private lazy val action = new JavaAction(new JavaHandlerComponents(
+  private lazy val components = new JavaHandlerComponents(
     play.api.Play.current.injector, new DefaultHttpRequestHandler
-  )) {
+  )
+
+  private lazy val action = new JavaAction(components) {
     val annotations = new JavaActionAnnotations(controller, method)
-    def parser = annotations.parser
+
+    def parser = play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
+      components.injector.instanceOf(annotations.parser)
+    )
+
     def invocation = self.invocation
   }
 
   def parser = action.parser
+
   def apply(request: Request[Http.RequestBody]) = action.apply(request)
 
   private val controller = this.getClass
   private val method = MockJavaActionJavaMocker.findActionMethod(this)
+
   def invocation = {
     method.invoke(this) match {
       case r: Result => F.Promise.pure(r)
@@ -36,6 +45,7 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
 }
 
 object MockJavaActionHelper {
+
   import Helpers.defaultAwaitTimeout
 
   def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder): Result = {
@@ -72,4 +82,17 @@ object MockJavaActionJavaMocker {
     theMethod.setAccessible(true)
     theMethod
   }
+}
+
+}
+
+/**
+ * javaBodyParserToScala is private to play
+ */
+package play {
+
+object HandlerInvokerFactoryAccessor {
+  val javaBodyParserToScala = play.core.routing.HandlerInvokerFactory.javaBodyParserToScala _
+}
+
 }

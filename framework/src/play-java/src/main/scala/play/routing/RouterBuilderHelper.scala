@@ -3,10 +3,13 @@
  */
 package play.routing
 
-import play.api.mvc.{ Results, Action }
+import play.api.Play
+import play.api.http.{ JavaHttpErrorHandlerDelegate, HttpConfiguration }
+import play.api.mvc.{ BodyParser, Results, Action }
 import play.core.j.{ JavaParsers, JavaHelpers }
+import play.core.routing.HandlerInvokerFactory
 import play.libs.F
-import play.mvc.Http.Context
+import play.mvc.Http.{ RequestBody, Context }
 import play.mvc.Result
 import play.utils.UriEncoding
 import scala.collection.JavaConversions._
@@ -58,8 +61,15 @@ private[routing] object RouterBuilderHelper {
             val action = maybeParams match {
               case Left(error) => Action(Results.BadRequest(error))
               case Right(params) =>
+
                 // Convert to a Scala action
-                Action.async(JavaParsers.default_(-1)) { request =>
+                val parser = HandlerInvokerFactory.javaBodyParserToScala(
+                  // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
+                  // it to instantiate the default body parser, we have to instantiate it ourselves.
+                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(Play.current.errorHandler),
+                    Play.current.injector.instanceOf[HttpConfiguration])
+                )
+                Action.async(parser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request)
                   try {
                     Context.current.set(ctx)

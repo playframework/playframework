@@ -623,7 +623,7 @@ public class F {
          * @return A left sided disjoint union
          */
         public static <L, R> Either<L, R> Left(L value) {
-            return new Either<L, R>(Optional.ofNullable(value), Optional.<R>empty());
+            return new Either<L, R>(Optional.of(value), Optional.<R>empty());
         }
 
         /**
@@ -633,7 +633,7 @@ public class F {
          * @return A right sided disjoint union
          */
         public static <L, R> Either<L, R> Right(R value) {
-            return new Either<L, R>(Optional.<L>empty(), Optional.ofNullable(value));
+            return new Either<L, R>(Optional.<L>empty(), Optional.of(value));
         }
 
         @Override
