@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import akka.japi.JavaPartialFunction;
 import play.core.j.FPromiseHelper;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;

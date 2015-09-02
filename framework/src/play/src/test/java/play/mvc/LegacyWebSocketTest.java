@@ -8,12 +8,11 @@ import java.util.function.Consumer;
 
 import org.junit.Test;
 import play.api.libs.iteratee.TestChannel;
-import play.libs.F;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertTrue;
 
-public class WebSocketTest {
+public class LegacyWebSocketTest {
 
     @Test
     public void testWebSocket() throws Throwable {
@@ -35,7 +34,7 @@ public class WebSocketTest {
 
         final WebSocket.In<String> wsIn = new WebSocket.In<>();
 
-        WebSocket<String> webSocket = WebSocket.whenReady((in, out) -> {
+        LegacyWebSocket<String> webSocket = WebSocket.whenReady((in, out) -> {
             ready.countDown();
             in.onMessage(m -> message.countDown());
             in.onClose(close::countDown);
@@ -69,7 +68,7 @@ public class WebSocketTest {
     public void testWhenReadyFactory() throws Exception {
         final CountDownLatch ready = new CountDownLatch(1);
 
-        WebSocket<String> webSocket = WebSocket.whenReady((in, out) -> ready.countDown());
+        LegacyWebSocket<String> webSocket = WebSocket.whenReady((in, out) -> ready.countDown());
 
         webSocket.onReady(null, null);
 

@@ -10,7 +10,7 @@ import play.api.libs.streams.ActorFlow
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.mvc.Http.{ Context => JContext }
-import play.mvc.{ WebSocket => JWebSocket }
+import play.mvc.{ WebSocket => JWebSocket, LegacyWebSocket }
 import play.libs.F.{ Promise => JPromise }
 import scala.collection.JavaConverters._
 
@@ -26,7 +26,7 @@ import play.core.Execution.Implicits.internalContext
  */
 object JavaWebSocket extends JavaHelpers {
 
-  def webSocketWrapper[A](retrieveWebSocket: => Future[JWebSocket[A]])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = WebSocket { request =>
+  def webSocketWrapper[A](retrieveWebSocket: => Future[LegacyWebSocket[A]])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = WebSocket { request =>
 
     val javaContext = createJavaContext(request)
 
@@ -54,7 +54,7 @@ object JavaWebSocket extends JavaHelpers {
             transformer.transform(ActorFlow.actorRef(jws.actorProps))
           } else {
 
-            val socketIn = new play.mvc.WebSocket.In[A]
+            val socketIn = new JWebSocket.In[A]
 
             val sink = Flow[A].map { msg =>
               socketIn.callbacks.asScala.foreach(_.accept(msg))
@@ -63,7 +63,7 @@ object JavaWebSocket extends JavaHelpers {
             })
 
             val source = Source.actorRef[A](256, OverflowStrategy.dropNew).mapMaterializedValue { actor =>
-              val socketOut = new play.mvc.WebSocket.Out[A] {
+              val socketOut = new JWebSocket.Out[A] {
                 def write(frame: A) = {
                   actor ! frame
                 }
@@ -84,18 +84,18 @@ object JavaWebSocket extends JavaHelpers {
 
   // -- Bytes
 
-  def ofBytes(retrieveWebSocket: => JWebSocket[Array[Byte]]): WebSocket =
+  def ofBytes(retrieveWebSocket: => LegacyWebSocket[Array[Byte]]): WebSocket =
     webSocketWrapper[Array[Byte]](Future.successful(retrieveWebSocket))
 
-  def promiseOfBytes(retrieveWebSocket: => JPromise[JWebSocket[Array[Byte]]]): WebSocket =
+  def promiseOfBytes(retrieveWebSocket: => JPromise[LegacyWebSocket[Array[Byte]]]): WebSocket =
     webSocketWrapper[Array[Byte]](retrieveWebSocket.wrapped())
 
   // -- String
 
-  def ofString(retrieveWebSocket: => JWebSocket[String]): WebSocket =
+  def ofString(retrieveWebSocket: => LegacyWebSocket[String]): WebSocket =
     webSocketWrapper[String](Future.successful(retrieveWebSocket))
 
-  def promiseOfString(retrieveWebSocket: => JPromise[JWebSocket[String]]): WebSocket =
+  def promiseOfString(retrieveWebSocket: => JPromise[LegacyWebSocket[String]]): WebSocket =
     webSocketWrapper[String](retrieveWebSocket.wrapped())
 
   // -- Json (JsonNode)
@@ -104,9 +104,9 @@ object JavaWebSocket extends JavaHelpers {
     play.libs.Json.parse, play.libs.Json.stringify
   )
 
-  def ofJson(retrieveWebSocket: => JWebSocket[JsonNode]): WebSocket =
+  def ofJson(retrieveWebSocket: => LegacyWebSocket[JsonNode]): WebSocket =
     webSocketWrapper[JsonNode](Future.successful(retrieveWebSocket))
 
-  def promiseOfJson(retrieveWebSocket: => JPromise[JWebSocket[JsonNode]]): WebSocket =
+  def promiseOfJson(retrieveWebSocket: => JPromise[LegacyWebSocket[JsonNode]]): WebSocket =
     webSocketWrapper[JsonNode](retrieveWebSocket.wrapped())
 }

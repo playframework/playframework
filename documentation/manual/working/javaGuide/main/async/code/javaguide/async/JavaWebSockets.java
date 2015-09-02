@@ -7,6 +7,7 @@ package javaguide.async;
 import akka.actor.*;
 import play.libs.F.*;
 import play.mvc.WebSocket;
+import play.mvc.LegacyWebSocket;
 //#imports
 
 import play.mvc.Controller;
@@ -19,7 +20,7 @@ public class JavaWebSockets {
     public static class ActorController1 {
 
         //#actor-accept
-        public static WebSocket<String> socket() {
+        public static LegacyWebSocket<String> socket() {
             return WebSocket.withActor(MyWebSocketActor::props);
         }
         //#actor-accept
@@ -55,7 +56,7 @@ public class JavaWebSockets {
 
     public static class ActorController2 extends Controller {
         //#actor-reject
-        public WebSocket<String> socket() {
+        public LegacyWebSocket<String> socket() {
             if (session().get("user") != null) {
                 return WebSocket.withActor(MyWebSocketActor::props);
             } else {
@@ -67,7 +68,7 @@ public class JavaWebSockets {
 
     public static class ActorController4 extends Controller {
         //#actor-json
-        public WebSocket<JsonNode> socket() {
+        public LegacyWebSocket<JsonNode> socket() {
             return WebSocket.withActor(MyWebSocketActor::props);
         }
         //#actor-json
@@ -77,7 +78,7 @@ public class JavaWebSockets {
 
     public static class Controller1 {
         //#websocket
-        public WebSocket<String> socket() {
+        public LegacyWebSocket<String> socket() {
             return WebSocket.whenReady((in, out) -> {
                 // For each event received on the socket,
                 in.onMessage(System.out::println);
@@ -94,7 +95,7 @@ public class JavaWebSockets {
 
     public static class Controller2 {
         //#discard-input
-        public WebSocket<String> socket() {
+        public LegacyWebSocket<String> socket() {
             return WebSocket.whenReady((in, out) -> {
                 out.write("Hello!");
                 out.close();
