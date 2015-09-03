@@ -26,7 +26,7 @@ cd $FRAMEWORK
 echo "[info]"
 echo "[info] ---- BUILDING PLAY"
 echo "[info]"
-$BUILD "$@" "${CROSSBUILD} publishLocal"
+$BUILD "$@" quickPublish "${CROSSBUILD} publishLocal"
 
 echo "[info]"
 echo "[info] ---- RUNNING TESTS"
