@@ -17,7 +17,7 @@ cd $FRAMEWORK
 echo "[info]"
 echo "[info] ---- BUILDING PLAY "
 echo "[info]"
-$BUILD "$@" publishLocal
+$BUILD "$@" quickPublish publishLocal
 
 echo "[info]"
 echo "[info] ---- TESTING TEMPLATES"
