@@ -1,6 +1,9 @@
-#! /usr/bin/env sh
+#! /bin/bash
 
 # Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+set -o pipefail
 
 if [ -z "${PLAY_VERSION}" ]; then
   PLAY_VERSION="2.3-SNAPSHOT"
