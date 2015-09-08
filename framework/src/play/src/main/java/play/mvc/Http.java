@@ -45,6 +45,7 @@ import play.Play;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import scala.deprecated;
 
 /**
  * Defines HTTP standard objects.
@@ -1492,7 +1493,9 @@ public class Http {
          * </pre>
          * @param name Cookie name, must not be null
          * @param value Cookie value
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value) {
             setCookie(name, value, null);
         }
@@ -1502,7 +1505,9 @@ public class Http {
          * @param name Cookie name, must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
         }
@@ -1513,7 +1518,9 @@ public class Http {
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path) {
             setCookie(name, value, maxAge, path, null);
         }
@@ -1525,7 +1532,9 @@ public class Http {
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
             setCookie(name, value, maxAge, path, domain, false, false);
         }
@@ -1539,9 +1548,18 @@ public class Http {
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
+        }
+
+        /**
+         * Set a new cookie.
+         * @param cookie to set
+         */
+        public void setCookie(Cookie cookie) {
+            cookies.add(cookie);
         }
 
         /**
@@ -1722,6 +1740,15 @@ public class Http {
         }
 
         /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        public static CookieBuilder builder(String name, String value) {
+            return new CookieBuilder(name, value);
+        }
+
+        /**
          * @return the cookie name
          */
         public String name() {
@@ -1771,6 +1798,101 @@ public class Http {
             return httpOnly;
         }
 
+    }
+
+    /*
+     * HTTP Cookie builder
+     */
+
+    public static class CookieBuilder {
+
+        private String name;
+        private String value;
+        private Integer maxAge;
+        private String path = "/";
+        private String domain;
+        private boolean secure = false;
+        private boolean httpOnly = false;
+
+        /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        private CookieBuilder(String name, String value){
+            this.name = name;
+            this.value = value;
+        }
+
+        /**
+         * @param name The name of the cookie
+         * @return the cookie builder with the new name
+         * */
+        public CookieBuilder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * @param value The value of the cookie
+         * @return the cookie builder with the new value
+         * */
+        public CookieBuilder withValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * @param maxAge The maxAge of the cookie
+         * @return the cookie builder with the new maxAge
+         * */
+        public CookieBuilder withMaxAge(Integer maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        /**
+         * @param path The path of the cookie
+         * @return the cookie builder with the new path
+         * */
+        public CookieBuilder withPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * @param domain The domain of the cookie
+         * @return the cookie builder with the new domain
+         * */
+        public CookieBuilder withDomain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
+        /**
+         * @param secure specify if the cookie is secure
+         * @return the cookie builder with the new is secure flag
+         * */
+        public CookieBuilder withSecure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        /**
+         * @param httpOnly specify if the cookie is httpOnly
+         * @return the cookie builder with the new is httpOnly flag
+         * */
+        public CookieBuilder withHttpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
+        }
+
+        /**
+         * @return a new cookie with the current builder parameters
+         * */
+        public Cookie build() {
+            return new Cookie(this.name, this.value, this.maxAge, this.path, this.domain, this.secure, this.httpOnly);
+        }
     }
 
     /**
