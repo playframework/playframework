@@ -23,7 +23,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void byDefault() {
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest())), equalTo("Hello World"));
+        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest(), mat)), equalTo("Hello World"));
     }
 
     public static class Controller1 extends MockJavaAction {
@@ -41,7 +41,7 @@ public class JavaStream extends WithApplication {
         try (OutputStream os = new FileOutputStream(file)) {
             IOUtils.write("hi", os);
         }
-        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
+        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest(), mat);
         assertThat(contentAsString(result, mat), equalTo("hi"));
         assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
         file.delete();
@@ -57,7 +57,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void inputStream() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()), mat);
+        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest(), mat), mat);
         // Wait until results refactoring is merged, then this will work
         // assertThat(content, containsString("hello"));
     }
@@ -77,7 +77,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void chunked() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest()), mat);
+        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest(), mat), mat);
         assertThat(content, equalTo("kikifoobar"));
     }
 

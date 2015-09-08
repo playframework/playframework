@@ -28,7 +28,7 @@ public class JavaActions extends WithApplication {
                 return ok("Got request " + request() + "!");
             }
             //#simple-action
-        }, fakeRequest()).status(), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
@@ -37,7 +37,7 @@ public class JavaActions extends WithApplication {
             public Result index() {
                 return new javaguide.http.full.Application().index();
             }
-        }, fakeRequest()).status(), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
@@ -52,7 +52,7 @@ public class JavaActions extends WithApplication {
             public F.Promise<Result> invocation() {
                 return F.Promise.pure(index("world"));
             }
-        }, fakeRequest());
+        }, fakeRequest(), mat);
         assertThat(result.status(), equalTo(200));
         assertThat(contentAsString(result), equalTo("Hello world"));
     }
@@ -65,7 +65,7 @@ public class JavaActions extends WithApplication {
                 return ok("Hello world!");
             }
             //#simple-result
-        }, fakeRequest()).status(), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class JavaActions extends WithApplication {
                 return redirect("/user/home");
             }
             //#redirect-action
-        }, fakeRequest());
+        }, fakeRequest(), mat);
         assertThat(result.status(), equalTo(SEE_OTHER));
         assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }
@@ -123,7 +123,7 @@ public class JavaActions extends WithApplication {
                 return temporaryRedirect("/user/home");
             }
             //#temporary-redirect-action
-        }, fakeRequest());
+        }, fakeRequest(), mat);
         assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
         assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }

@@ -32,7 +32,7 @@ public class JavaContentNegotiation extends WithApplication {
                         }
                     }
                     //#negotiate-content
-                }, fakeRequest().header("Accept", "text/html"))),
+                }, fakeRequest().header("Accept", "text/html"), mat)),
                 equalTo("html list of items"));
     }
 

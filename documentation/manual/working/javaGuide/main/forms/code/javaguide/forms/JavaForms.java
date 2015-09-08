@@ -51,7 +51,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void bindFromRequest() {
         Result result = MockJavaActionHelper.call(new Controller1(),
-                fakeRequest().bodyForm(ImmutableMap.of("email", "e", "password", "p")));
+                fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
         assertThat(contentAsString(result), equalTo("e"));
     }
 
@@ -127,7 +127,8 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void handleErrors() {
-        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
+        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest("POST", "/")
+            .bodyForm(ImmutableMap.of("email", "e")), mat);
         assertThat(contentAsString(result), startsWith("Got user"));
     }
 
@@ -146,7 +147,7 @@ public class JavaForms extends WithApplication {
         }
 
         public Result index() {
-            Form<User> userForm = Form.form(User.class).bind(ImmutableMap.of("email", "e"));
+            Form<User> userForm = Form.form(User.class).bindFromRequest();
             //#handle-errors
             if (userForm.hasErrors()) {
                 return badRequest(views.html.form.render(userForm));
@@ -178,7 +179,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void dynamicForm() {
         Result result = MockJavaActionHelper.call(new Controller3(),
-                fakeRequest().bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")));
+                fakeRequest("POST", "/").bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")), mat);
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }
 

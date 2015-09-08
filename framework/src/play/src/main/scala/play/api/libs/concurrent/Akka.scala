@@ -10,13 +10,13 @@ import com.google.inject.util.Types
 import com.google.inject.{ Binder, Key, AbstractModule }
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.typesafe.config.Config
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{Executor, TimeoutException}
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ Binding, Injector, ApplicationLifecycle, bind }
 import play.core.ClosableLazy
 import akka.actor._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContextExecutor, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
@@ -273,7 +273,7 @@ class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider
  * Provider for the default execution context
  */
 @Singleton
-class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContext] {
+class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get = actorSystem.dispatcher
 }
 

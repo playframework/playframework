@@ -1450,6 +1450,10 @@ public class Http {
             }
         }
 
+        public String toString() {
+            return "RequestBody of " + (body == null ? "null" : body.getClass());
+        }
+
     }
 
     /**

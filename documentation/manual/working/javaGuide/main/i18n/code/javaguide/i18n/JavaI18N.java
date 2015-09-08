@@ -45,7 +45,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultHello() {
-        Result result = MockJavaActionHelper.call(new DefaultLangController(), fakeRequest("GET", "/"));
+        Result result = MockJavaActionHelper.call(new DefaultLangController(), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
@@ -59,7 +59,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultScalaHello() {
-        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(), fakeRequest("GET", "/"));
+        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
@@ -71,7 +71,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkChangeLangHello() {
-        Result result = MockJavaActionHelper.call(new ChangeLangController(), fakeRequest("GET", "/"));
+        Result result = MockJavaActionHelper.call(new ChangeLangController(), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("bonjour"));
     }
 
@@ -86,7 +86,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSetTransientLangHello() {
-        Result result = MockJavaActionHelper.call(new SetTransientLangController(), fakeRequest("GET", "/"));
+        Result result = MockJavaActionHelper.call(new SetTransientLangController(), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("howdy"));
     }
 

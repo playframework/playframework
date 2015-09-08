@@ -62,7 +62,7 @@ public class JavaResponse extends WithApplication {
                 return ok("<h1>Hello World!</h1>");
             }
             //#response-headers
-        }, fakeRequest()).headers();
+        }, fakeRequest(), mat).headers();
         assertThat(headers.get(CACHE_CONTROL), equalTo("max-age=3600"));
         assertThat(headers.get(ETAG), equalTo("xxx"));
     }
@@ -124,7 +124,7 @@ public class JavaResponse extends WithApplication {
                         return ok("<h1>Hello World!</h1>", "iso-8859-1").as("text/html; charset=iso-8859-1");
                     }
                     //#charset
-                }, fakeRequest()).charset().get(),
+                }, fakeRequest(), mat).charset().get(),
                 equalTo("iso-8859-1"));
     }
 
