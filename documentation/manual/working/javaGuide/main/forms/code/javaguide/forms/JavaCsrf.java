@@ -24,6 +24,7 @@ import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.forms.html.form;
 
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class JavaCsrf extends WithApplication {
                 //#get-token
                 return ok(token.map(CSRF.Token::value).orElse(""));
             }
-        }, fakeRequest("GET", "/").session("csrfToken", token)));
+        }, fakeRequest("GET", "/").session("csrfToken", token), mat));
 
         assertTrue(crypto().compareSignedTokens(body, token));
     }
@@ -56,7 +57,7 @@ public class JavaCsrf extends WithApplication {
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
             }
-        }, fakeRequest("GET", "/").session("csrfToken", token)));
+        }, fakeRequest("GET", "/").session("csrfToken", token), mat));
 
         Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
@@ -72,7 +73,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfCheck() {
         assertThat(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-                .header(CONTENT_TYPE, "application/x-www-form-urlencoded")).status(), equalTo(FORBIDDEN));
+            .bodyForm(Collections.singletonMap("foo", "bar")), mat).status(), equalTo(FORBIDDEN));
     }
 
     public static class Controller1 extends MockJavaAction {
@@ -88,7 +89,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfAddToken() {
         assertThat(crypto().extractSignedToken(contentAsString(
-                MockJavaActionHelper.call(new Controller2(), fakeRequest("GET", "/"))
+                MockJavaActionHelper.call(new Controller2(), fakeRequest("GET", "/"), mat)
         )), notNullValue());
     }
 

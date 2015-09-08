@@ -205,8 +205,8 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[T]](provider: Class[P]): Binding[T] =
-    Binding(this, Some(ProviderConstructionTarget(provider)), None, false, SourceLocator.source)
+  def toProvider[P <: Provider[_ <: T]](provider: Class[P]): Binding[T] =
+    Binding(this, Some(ProviderConstructionTarget[T](provider)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given provider class.
@@ -214,7 +214,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[T]: ClassTag]: Binding[T] =
+  def toProvider[P <: Provider[_ <: T]: ClassTag]: Binding[T] =
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
 
   /**
@@ -253,7 +253,7 @@ final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTa
  *
  * @see The [[Module]] class for information on how to provide bindings.
  */
-final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[T]]) extends BindingTarget[T]
+final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <: T]]) extends BindingTarget[T]
 
 /**
  * A binding target that is provided by a class.

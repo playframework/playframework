@@ -5,6 +5,7 @@ import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+import org.reactivestreams.Publisher;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
@@ -192,6 +193,24 @@ public final class Accumulator<E, A> {
      */
     public static <E, A> Accumulator<E, A> fromSink(Sink<E, Future<A>> sink) {
         return new Accumulator<>(sink.mapMaterializedValue(FutureConverters::toJava));
+    }
+
+    /**
+     * Create an accumulator that forwards the stream fed into it to the source it produces.
+     *
+     * This is useful for when you want to send the consumed stream to another API that takes a Source as input.
+     *
+     * Extreme care must be taken when using this accumulator - the source *must always* be materialized and consumed.
+     * If it isn't, this could lead to resource leaks and deadlocks upstream.
+     *
+     * @return An accumulator that forwards the stream to the produced source.
+     */
+    public static <E> Accumulator<E, Source<E, ?>> source() {
+        // If Akka streams ever provides Sink.source(), we should use that instead.
+        // https://github.com/akka/akka/issues/18406
+        return new Accumulator<>(Sink.<E>publisher().mapMaterializedValue(publisher ->
+                        CompletableFuture.completedFuture(Source.from(publisher))
+        ));
     }
 
     /**

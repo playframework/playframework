@@ -22,9 +22,11 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   private lazy val action = new JavaAction(components) {
     val annotations = new JavaActionAnnotations(controller, method)
 
-    def parser = play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
-      components.injector.instanceOf(annotations.parser)
-    )
+    def parser = {
+      play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
+        components.injector.instanceOf(annotations.parser)
+      )
+    }
 
     def invocation = self.invocation
   }
@@ -48,8 +50,13 @@ object MockJavaActionHelper {
 
   import Helpers.defaultAwaitTimeout
 
-  def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder): Result = {
-    Helpers.await(action.apply(requestBuilder.build()._underlyingRequest)).asJava
+  def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder)(implicit mat: Materializer): Result = {
+    Helpers.await(requestBuilder.body() match {
+      case null =>
+        action.apply(requestBuilder.build()._underlyingRequest)
+      case other =>
+        Helpers.call(action, requestBuilder.build()._underlyingRequest, other.asBytes())
+    }).asJava
   }
 
   def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String)(implicit mat: Materializer): Result = {

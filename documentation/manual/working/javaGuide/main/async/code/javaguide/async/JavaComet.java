@@ -19,7 +19,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void manual() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest()), mat);
+        String content = contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest(), mat), mat);
         assertThat(content, containsString("<script>console.log('kiki')</script>"));
         assertThat(content, containsString("<script>console.log('foo')</script>"));
         assertThat(content, containsString("<script>console.log('bar')</script>"));
@@ -44,7 +44,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void comet() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller2(), fakeRequest()), mat);
+        String content = contentAsString(MockJavaActionHelper.call(new Controller2(), fakeRequest(), mat), mat);
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('kiki');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('foo');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('bar');</script>"));
@@ -65,7 +65,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void foreverIframe() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()), mat);
+        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest(), mat), mat);
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('kiki');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('foo');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('bar');</script>"));

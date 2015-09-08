@@ -90,7 +90,7 @@ public class JavaAkka {
                 public Promise<Result> index() {
                     return new javaguide.akka.async.Application().index();
                 }
-            }, fakeRequest());
+            }, fakeRequest(), app.getWrappedApplication().materializer());
             assertThat(contentAsString(result), equalTo("Got 2"));
         });
     }
