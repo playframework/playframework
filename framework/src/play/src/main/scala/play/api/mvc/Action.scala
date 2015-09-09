@@ -135,7 +135,7 @@ trait Action[A] extends EssentialAction {
  *
  * @tparam A the body content type
  */
-trait BodyParser[+A] extends Function1[RequestHeader, Accumulator[ByteString, Either[Result, A]]] {
+trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Result, A]]) {
   self =>
 
   /**

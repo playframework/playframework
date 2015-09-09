@@ -1,92 +1,78 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Body parsers
 
-## What is a Body Parser?
+## What is a body parser?
 
-An HTTP PUT or POST request contains a body. This body can use any format, specified in the `Content-Type` request header. In Play, a **body parser** transforms this request body into a Scala value. 
+An HTTP request is a header followed by a body.  The header is typically small - it can be safely buffered in memory, hence in Play it is modelled using the [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) class.  The body however can be potentially very long, and so is not buffered in memory, but rather is modelled as a stream.  However, many request body payloads are small and can be modelled in memory, and so to map the body stream to an object in memory, Play provides a [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) abstraction.
 
-However the request body for an HTTP request can be very large and a **body parser** can’t just wait and load the whole data set into memory before parsing it. A `BodyParser[A]` is basically an `Iteratee[Array[Byte],A]`, meaning that it receives chunks of bytes (as long as the web browser uploads some data) and computes a value of type `A` as result.
-
-Let’s consider some examples.
-
-- A **text** body parser could accumulate chunks of bytes into a String, and give the computed String as result (`Iteratee[Array[Byte],String]`).
-- A **file** body parser could store each chunk of bytes into a local file, and give a reference to the `java.io.File` as result (`Iteratee[Array[Byte],File]`).
-- A **s3** body parser could push each chunk of bytes to Amazon S3 and give a the S3 object id as result (`Iteratee[Array[Byte],S3ObjectId]`).
-
-Additionally a **body parser** has access to the HTTP request headers before it starts parsing the request body, and has the opportunity to run some precondition checks. For example, a body parser can check that some HTTP headers are properly set, or that the user trying to upload a large file has the permission to do so.
-
-> **Note**: That's why a body parser is not really an `Iteratee[Array[Byte],A]` but more precisely a `Iteratee[Array[Byte],Either[Result,A]]`, meaning that it has the opportunity to send directly an HTTP result itself (typically `400 BAD_REQUEST`, `412 PRECONDITION_FAILED` or `413 REQUEST_ENTITY_TOO_LARGE`) if it decides that it is not able to compute a correct value for the request body.
-
-Once the body parser finishes its job and gives back a value of type `A`, the corresponding `Action` function is executed and the computed body value is passed into the request.
+Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala.html).  Akka streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
 
 ## More about Actions
 
 Previously we said that an `Action` was a `Request => Result` function. This is not entirely true. Let’s have a more precise look at the `Action` trait:
 
-@[Source-Code-Action](code/ScalaBodyParser.scala)
-
+@[action](code/ScalaBodyParsers.scala)
 
 First we see that there is a generic type `A`, and then that an action must define a `BodyParser[A]`. With `Request[A]` being defined as:
 
-@[Source-Code-Request](code/ScalaBodyParser.scala)
-
+@[request](code/ScalaBodyParsers.scala)
 
 The `A` type is the type of the request body. We can use any Scala type as the request body, for example `String`, `NodeSeq`, `Array[Byte]`, `JsonValue`, or `java.io.File`, as long as we have a body parser able to process it.
 
 To summarize, an `Action[A]` uses a `BodyParser[A]` to retrieve a value of type `A` from the HTTP request, and to build a `Request[A]` object that is passed to the action code. 
 
-## Default body parser: AnyContent
+## Using the built in body parsers
 
-In our previous examples we never specified a body parser. So how can it work? If you don’t specify your own body parser, Play will use the default, which processes the body as an instance of `play.api.mvc.AnyContent`.
+Most typical web apps will not need to use custom body parsers, they can simply work with Play's built in body parsers.  These include parsers for JSON, XML, forms, as well as handling plain text bodies as Strings and byte bodies as `ByteString`.
 
-This body parser checks the `Content-Type` header and decides what kind of body to process:
+### The default body parser
 
-- **text/plain**: `String`
-- **application/json**: `JsValue`
-- **application/xml**, **text/xml** or **application/XXX+xml**: `NodeSeq`
-- **application/form-url-encoded**: `Map[String, Seq[String]]`
-- **multipart/form-data**: `MultipartFormData[TemporaryFile]`
-- any other content type: `RawBuffer`
+The default body parser that's used if you do not explicitly select a body parser will look at the incoming `Content-Type` header, and parses the body accordingly.  So for example, a `Content-Type` of type `application/json` will be parsed as a `JsValue`, while a `Content-Type` of `application/x-form-www-urlencoded` will be parsed as a `Map[String, Seq[String]]`.
 
-For example:
+The default body parser produces a body of type [`AnyContent`](api/scala/play/api/mvc/AnyContent.html).  The various types supported by `AnyContent` are accessible via `as` methods, such as `asJson`, which returns an `Option` of the body type:
 
-@[request-parse-as-text](code/ScalaBodyParser.scala)
+@[access-json-body](code/ScalaBodyParsers.scala)
 
+The following is a mapping of types supported by the default body parser:
 
-## Specifying a body parser
+- **text/plain**: `String`, accessible via `asText`.
+- **application/json**: [`JsValue`](api/scala/play/api/libs/json/JsValue.html), accessible via `asJson`.
+- **application/xml**, **text/xml** or **application/XXX+xml**: `scala.xml.NodeSeq`, accessible via `asXml`.
+- **application/form-url-encoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
+- **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.
+- Any other content type: [`RawBuffer`](api/scala/play/api/mvc/RawBuffer.html), accessible via `asRaw`.
 
-The body parsers available in Play are defined in `play.api.mvc.BodyParsers.parse`.
+The default body parser, for performance reasons, won't attempt to parse the body if the request method is not defined to have a meaningful body, as defined by the HTTP spec.  This means it only parses bodies of `POST`, `PUT` and `PATCH` requests, but not `GET`, `HEAD` or `DELETE`.  If you would like to parse request bodies for these methods, you can use the `anyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
 
-So for example, to define an action expecting a text body (as in the previous example):
+## Choosing an explicit body parser
 
-@[body-parser-text](code/ScalaBodyParser.scala)
+If you want to explicitly select a body parser, this can by passing a body parser to the `Action` [`apply`](api/scala/play/api/mvc/ActionBuilder.html#apply[A]\(bodyParser:play.api.mvc.BodyParser[A]\)\(block:R[A]=%3Eplay.api.mvc.Result\):play.api.mvc.Action[A]) or [`async`](api/scala/play/api/mvc/ActionBuilder.html#async[A]\(bodyParser:play.api.mvc.BodyParser[A]\)\(block:R[A]=%3Escala.concurrent.Future[play.api.mvc.Result]\):play.api.mvc.Action[A]) method.
 
+Play provides a number of body parsers out of the box, this is made available through the [`BodyParsers.parse`](api/scala/play/api/mvc/BodyParsers$parse$.html) object, which is conveniently pulled in by the [`Controller`](api/scala/play/api/mvc/Controller.html) trait.
 
-Do you see how the code is simpler? This is because the `parse.text` body parser already sent a `400 BAD_REQUEST` response if something went wrong. We don’t have to check again in our action code, and we can safely assume that `request.body` contains the valid `String` body.
+So for example, to define an action expecting a json body (as in the previous example):
 
-Alternatively we can use:
+@[body-parser-json](code/ScalaBodyParsers.scala)
 
-@[body-parser-tolerantText](code/ScalaBodyParser.scala)
+Note this time that the type of the body is `JsValue`, which makes it easier to work with the body since it's no longer an `Option`.  The reason why it's not an `Option` is because the json body parser will validate that the request has a `Content-Type` of `application/json`, and send back a `415 Unsupported Media Type` response if the request doesn't meet that expectation.  Hence we don't need to check again in our action code.
 
+This of course means that clients have to be well behaved, sending the correct `Content-Type` headers with their requests.  If you want to be a little more relaxed, you can instead use `tolerantJson`, which will ignore the `Content-Type` and try to parse the body as json regardless:
 
-This one doesn't check the `Content-Type` header and always loads the request body as a `String`.
-
-> **Tip:** There is a `tolerant` fashion provided for all body parsers included in Play.
+@[body-parser-tolerantJson](code/ScalaBodyParsers.scala)
 
 Here is another example, which will store the request body in a file:
 
-@[body-parser-file](code/ScalaBodyParser.scala)
+@[body-parser-file](code/ScalaBodyParsers.scala)
 
-## Combining body parsers
+### Combining body parsers
 
 In the previous example, all request bodies are stored in the same file. This is a bit problematic isn’t it? Let’s write another custom body parser that extracts the user name from the request Session, to give a unique file for each user:
 
-@[body-parser-combining](code/ScalaBodyParser.scala)
-
+@[body-parser-combining](code/ScalaBodyParsers.scala)
 
 > **Note:** Here we are not really writing our own BodyParser, but just combining existing ones. This is often enough and should cover most use cases. Writing a `BodyParser` from scratch is covered in the advanced topics section.
 
-## Max content length
+### Max content length
 
 Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a max content length because they have to load all the content into memory.  By default, the maximum content length that they will parse is 100KB.  It can be overridden by specifying the `play.http.parser.maxMemoryBuffer` property in `application.conf`:
 
@@ -96,9 +82,40 @@ For parsers that buffer content on disk, such as the raw parser or `multipart/fo
 
 You can also override the default maximum length for a given action:
 
-@[body-parser-limit-text](code/ScalaBodyParser.scala)
+@[body-parser-limit-text](code/ScalaBodyParsers.scala)
 
 You can also wrap any body parser with `maxLength`:
 
-@[body-parser-limit-file](code/ScalaBodyParser.scala)
+@[body-parser-limit-file](code/ScalaBodyParsers.scala)
 
+## Writing a custom body parser
+
+A custom body parser can be made by implementing the [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) trait.  This trait is simply a function:
+
+@[body-parser](code/ScalaBodyParsers.scala)
+
+The signature of this function may be a bit daunting at first, so let's break it down.
+
+The function takes a [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html).  This can be used to check information about the request - most commonly, it is used to get the `Content-Type`, so that the body can be correctly parsed.
+
+The return type of the function is an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  An accumulator is a thin layer around an [Akka streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala.html) [`Sink`](http://doc.akka.io/api/akka-stream-and-http-experimental/1.0/akka/stream/scaladsl/Sink.html).  An accumulator asynchronously accumulates streams of elements into a result, it can be run by passing in an Akka streams [`Source`](http://doc.akka.io/api/akka-stream-and-http-experimental/1.0/akka/stream/scaladsl/Source.html), this will return a `Future` that will be redeemed when the accumulator is complete.  It is essentially the same thing as a `Sink[E, Future[A]]`, in fact it is nothing more than a wrapper around this type, but the big difference is that `Accumulator` provides convenient methods such as `map`, `mapFuture`, `recover` etc. for working with the result as if it were a promise, where `Sink` requires all such operations to be wrapped in a `mapMaterializedValue` call.
+
+The accumulator that the `apply` method returns consumes elements of type [`ByteString`](http://doc.akka.io/api/akka/2.3.10/akka/util/ByteString.html) - these are essentially arrays of bytes, but differ from `byte[]` in that `ByteString` is immutable, and many operations such as slicing and appending happen in constant time.
+
+The return type of the accumulator is `Either[Result, A]` - it will either return a `Result`, or it will return a body of type `A`.  A result is generally returned in the case of an error, for example, if the body failed to be parsed, if the `Content-Type` didn't match the type that the body parser accepts, or if an in memory buffer was exceeded.  When the body parser returns a result, this will short circuit the processing of the action - the body parsers result will be returned immediately, and the action will never be invoked.
+
+### Directing the body elsewhere
+
+One common use case for writing a body parser is for when you actually don't want to parse the body, rather, you want to stream it elsewhere.  To do this, you may define a custom body parser:
+
+@[forward-body](code/ScalaBodyParsers.scala)
+
+### Custom parsing using Akka streams
+
+In rare circumstances, it may be necessary to write a custom parser using Akka streams.  In most cases it will suffice to buffer the body in a `ByteString` first, this will typically offer a far simpler way of parsing since you can use imperative methods and random access on the body.
+
+However, when that's not feasible, for example when the body you need to parse is too long to fit in memory, then you may need to write a custom body parser.
+
+A full description of how to use Akka streams is beyond the scope of this documentation - the best place to start is to read the [Akka streams documentation](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala.html).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala/stream-cookbook.html#Parsing_lines_from_a_stream_of_ByteStrings) documentation from the Akka streams cookbook:
+
+@[csv](code/ScalaBodyParsers.scala)
