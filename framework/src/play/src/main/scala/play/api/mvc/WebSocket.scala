@@ -101,6 +101,12 @@ object WebSocket {
 
   object MessageFlowTransformer {
 
+    implicit val identityMessageFlowTransformer: MessageFlowTransformer[Message, Message] = {
+      new MessageFlowTransformer[Message, Message] {
+        def transform(flow: Flow[Message, Message, _]) = flow
+      }
+    }
+
     /**
      * Converts text messages to/from Strings.
      */

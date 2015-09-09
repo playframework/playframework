@@ -3,11 +3,13 @@
  */
 package play.libs;
 
+import akka.japi.JavaPartialFunction;
 import scala.runtime.AbstractFunction0;
 
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * Class that contains useful java &lt;-&gt; scala conversion helpers.
@@ -163,6 +165,50 @@ public class Scala {
      */
     public static <C> scala.reflect.ClassTag<C> classTag() {
         return (scala.reflect.ClassTag<C>) scala.reflect.ClassTag$.MODULE$.Any();
+    }
+
+
+    /**
+     * Create a Scala PartialFunction from a function.
+     *
+     * A PartialFunction is one that isn't defined for the whole of its domain. If the function isn't defined for a
+     * particular input parameter, it can throw <code>F.noMatch()</code>, and this will be translated into the semantics
+     * of a Scala PartialFunction.
+     *
+     * For example:
+     *
+     * <pre>
+     *     Flow&lt;String, Integer, ?&gt; collectInts = Flow.&lt;String&gt;collect(Scala.partialFunction( str -&gt; {
+     *         try {
+     *             return Integer.parseInt(str);
+     *         } catch (NumberFormatException e) {
+     *             throw Scala.noMatch();
+     *         }
+     *     }));
+     * </pre>
+     *
+     * The above code will convert a flow of String into a flow of Integer, dropping any strings that can't be parsed
+     * as integers.
+     *
+     * @param f The function to make a partial function from.
+     * @return A Scala PartialFunction.
+     */
+    public static <A, B> scala.PartialFunction<A, B> partialFunction(Function<A, B> f) {
+        return new JavaPartialFunction<A, B>() {
+            @Override
+            public B apply(A a, boolean isCheck) throws Exception {
+                return f.apply(a);
+            }
+        };
+    }
+
+    /**
+     * Throw this exception to indicate that a partial function doesn't match.
+     *
+     * @return An exception that indicates a partial function doesn't match.
+     */
+    public static RuntimeException noMatch() {
+        return JavaPartialFunction.noMatch();
     }
 
 }
