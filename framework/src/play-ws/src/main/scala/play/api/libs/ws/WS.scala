@@ -364,7 +364,7 @@ trait WSRequest {
 
   /**
    * Sets the maximum time in milliseconds you expect the request to take.
-   * Warning: a stream consumption will be interrupted when this time is reached.
+   * Warning: a stream consumption will be interrupted when this time is reached unless -1 is set.
    */
   def withRequestTimeout(timeout: Long): WSRequest
 

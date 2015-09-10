@@ -250,7 +250,7 @@ public interface WSRequest {
     /**
      * Sets the request timeout in milliseconds.
      *
-     * @param timeout the request timeout in milliseconds.
+     * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
      * @return the modified WSRequest.
      */
     WSRequest setRequestTimeout(long timeout);

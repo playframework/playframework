@@ -165,15 +165,26 @@ object NingWSSpec extends PlaySpecification with Mockito {
       req.getFollowRedirect must beEqualTo(true)
     }
 
-    "support timeout" in new WithApplication {
+    "support finite timeout" in new WithApplication {
       val req: client.Request = WS.url("http://playframework.com/")
         .withRequestTimeout(1000).asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getRequestTimeout must be equalTo 1000
     }
 
+    "support infinite timeout" in new WithApplication {
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withRequestTimeout(-1).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getRequestTimeout must be equalTo -1
+    }
+
     "not support invalid timeout" in new WithApplication {
-      WS.url("http://playframework.com/").withRequestTimeout(-1) should throwAn[IllegalArgumentException]
+      WS.url("http://playframework.com/").withRequestTimeout(-2) should throwAn[IllegalArgumentException]
+    }
+
+    "not support a timeout greater than Int.MaxValue" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout(Int.MaxValue.toLong + 1) should throwAn[IllegalArgumentException]
     }
 
     "support a proxy server" in new WithApplication {
