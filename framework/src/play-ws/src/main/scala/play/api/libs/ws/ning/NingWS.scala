@@ -113,7 +113,7 @@ case class NingWSRequest(client: NingWSClient,
   def withFollowRedirects(follow: Boolean): WSRequest = copy(followRedirects = Some(follow))
 
   def withRequestTimeout(timeout: Long): WSRequest = {
-    require(timeout >= 0 && timeout <= Int.MaxValue, s"Request timeout must be between 0 and ${Int.MaxValue}")
+    require(timeout >= -1 && timeout <= Int.MaxValue, s"Request timeout must be between -1 and ${Int.MaxValue}")
     copy(requestTimeout = Some(timeout.toInt))
   }
 

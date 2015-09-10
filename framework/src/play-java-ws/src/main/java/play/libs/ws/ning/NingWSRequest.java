@@ -175,8 +175,8 @@ public class NingWSRequest implements WSRequest {
 
     @Override
     public WSRequest setRequestTimeout(long timeout) {
-        if (timeout < 0 || timeout > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Timeout must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+        if (timeout < -1 || timeout > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Timeout must be between -1 and " + Integer.MAX_VALUE + " inclusive");
         }
         this.timeout = (int) timeout;
         return this;
@@ -474,7 +474,7 @@ public class NingWSRequest implements WSRequest {
             throw new IllegalStateException("Impossible body: " + body);
         }
 
-        if (this.timeout > 0) {
+        if (this.timeout == -1 || this.timeout > 0) {
             builder.setRequestTimeout(this.timeout);
         }
 
