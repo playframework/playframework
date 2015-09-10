@@ -406,7 +406,7 @@ public class NingWSRequest implements WSRequest {
     public CompletionStage<StreamedResponse> stream() {
     	AsyncHttpClient asyncClient = (AsyncHttpClient) client.getUnderlying();
     	Request request = buildRequest();
-    	return StreamedResponse.from(StreamedRequest.execute(asyncClient, request));
+    	return StreamedResponse.from(Streamed.execute(asyncClient, request));
     }
 
     Request buildRequest() {

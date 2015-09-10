@@ -139,10 +139,10 @@ case class NingWSRequest(client: NingWSClient,
 
   def execute(): Future[WSResponse] = execute(buildRequest())
 
-  def stream(): Future[StreamedResponse] = StreamedRequest.execute(client.underlying, buildRequest())
+  def stream(): Future[StreamedResponse] = Streamed.execute(client.underlying, buildRequest())
 
   @deprecated("2.5", "Use `stream()` instead.")
-  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = StreamedRequest.execute2(client.underlying, buildRequest())
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = Streamed.execute2(client.underlying, buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
