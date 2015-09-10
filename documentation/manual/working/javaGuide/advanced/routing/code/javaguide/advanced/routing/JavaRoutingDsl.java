@@ -8,7 +8,8 @@ import org.junit.Test;
 //#imports
 import play.api.routing.Router;
 import play.routing.RoutingDsl;
-import play.libs.F;
+import java.util.concurrent.CompletableFuture;
+
 import static play.mvc.Controller.*;
 //#imports
 
@@ -77,7 +78,7 @@ public class JavaRoutingDsl extends WithApplication {
         //#async
         Router router = new RoutingDsl()
             .GET("/api/items/:id").routeAsync((Integer id) ->
-                F.Promise.pure(ok("Getting item " + id))
+                CompletableFuture.completedFuture(ok("Getting item " + id))
             )
             .build();
         //#async

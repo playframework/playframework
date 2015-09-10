@@ -3,19 +3,21 @@
  */
 package play.routing
 
+import java.util.concurrent.CompletionStage
+
 import play.api.Play
 import play.api.http.{ JavaHttpErrorHandlerDelegate, HttpConfiguration }
-import play.api.mvc.{ BodyParser, Results, Action }
-import play.core.j.{ JavaParsers, JavaHelpers }
+import play.api.mvc.{ Results, Action }
+import play.core.j.JavaHelpers
 import play.core.routing.HandlerInvokerFactory
-import play.libs.F
-import play.mvc.Http.{ RequestBody, Context }
+import play.mvc.Http.Context
 import play.mvc.Result
 import play.utils.UriEncoding
 import scala.collection.JavaConversions._
 
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 private[routing] object RouterBuilderHelper {
@@ -75,7 +77,7 @@ private[routing] object RouterBuilderHelper {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {
                       case result: Result => Future.successful(result.asScala)
-                      case promise: F.Promise[Result] => promise.wrapped.map(_.asScala)
+                      case promise: CompletionStage[Result] => FutureConverters.toScala(promise).map(_.asScala)
                     }
                   } finally {
                     Context.current.remove()

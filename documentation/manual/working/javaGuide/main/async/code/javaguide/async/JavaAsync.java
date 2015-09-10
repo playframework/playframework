@@ -4,37 +4,39 @@
 package javaguide.async;
 
 import org.junit.Test;
-import play.libs.F.Promise;
 import play.mvc.Result;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 import static play.mvc.Results.ok;
-import static play.test.Helpers.*;
 
 public class JavaAsync {
 
     @Test
-    public void promisePi() {
+    public void promisePi() throws Exception {
         //#promise-pi
-        Promise<Double> promiseOfPIValue = computePIAsynchronously();
-        Promise<Result> promiseOfResult = promiseOfPIValue.map(pi ->
+        CompletionStage<Double> promiseOfPIValue = computePIAsynchronously();
+        CompletionStage<Result> promiseOfResult = promiseOfPIValue.thenApply(pi ->
                         ok("PI value computed: " + pi)
         );
         //#promise-pi
-        assertThat(promiseOfResult.get(1000).status(), equalTo(200));
+        assertThat(promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status(), equalTo(200));
     }
 
     @Test
-    public void promiseAsync() {
+    public void promiseAsync() throws Exception {
         //#promise-async
-        Promise<Integer> promiseOfInt = Promise.promise(() -> intensiveComputation());
+        CompletionStage<Integer> promiseOfInt = CompletableFuture.supplyAsync(() -> intensiveComputation());
         //#promise-async
-        assertEquals(intensiveComputation(), promiseOfInt.get(1000));
+        assertEquals(intensiveComputation(), promiseOfInt.toCompletableFuture().get(1, TimeUnit.SECONDS));
     }
 
-    private static Promise<Double> computePIAsynchronously() {
-        return Promise.pure(Math.PI);
+    private static CompletionStage<Double> computePIAsynchronously() {
+        return CompletableFuture.completedFuture(Math.PI);
     }
 
     private static Integer intensiveComputation() {

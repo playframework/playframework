@@ -1,5 +1,12 @@
 language: scala
 sudo: false
+# This is needed as long as the travis build environment is JDK 1.8.0 < u40 (at time of writing it is u31)
+# Otherwise, FSpec fails due to deadlocks caused by CompletableFuture.thenCompose blocking in the trampoline 
+# executor.
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 jdk:
   - oraclejdk8
 env:

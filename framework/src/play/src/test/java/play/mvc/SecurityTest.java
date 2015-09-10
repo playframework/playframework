@@ -2,6 +2,9 @@ package play.mvc;
 
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.Annotation;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,12 +54,12 @@ public class SecurityTest {
         }
 
         @Test
-        public void testDontSetUsernameToNullUntilDelegateFinishes() {
+        public void testDontSetUsernameToNullUntilDelegateFinishes() throws Exception {
             runSetUsernameToNullInCallback(false);
         }
 
         @Test
-        public void testDontSetUsernameToNullUntilDelegateRaisesException() {
+        public void testDontSetUsernameToNullUntilDelegateRaisesException() throws Exception {
             runSetUsernameToNullInCallback(true);
         }
 
@@ -79,7 +82,7 @@ public class SecurityTest {
             verify(req).setUsername(null);
         }
 
-        private void runSetUsernameToNullInCallback(final boolean shouldRaiseException) {
+        private void runSetUsernameToNullInCallback(final boolean shouldRaiseException) throws Exception {
             action.delegate = new Action<Object>() {
                 @Override
                 public F.Promise<Result> call(Http.Context ctx) {
@@ -95,12 +98,12 @@ public class SecurityTest {
 
             if (shouldRaiseException) {
                 try {
-                    action.call(ctx).get(1000);
-                } catch (Exception e) {
-                    Assert.assertEquals(exception, e);
+                    action.call(ctx).toCompletableFuture().get(1, TimeUnit.SECONDS);
+                } catch (ExecutionException e) {
+                    Assert.assertEquals(exception, e.getCause());
                 }
             } else {
-                Assert.assertEquals(ok, action.call(ctx).get(1000));
+                Assert.assertEquals(ok, action.call(ctx).toCompletableFuture().get(1, TimeUnit.SECONDS));
             }
 
             verify(req).setUsername("test_user");

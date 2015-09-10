@@ -11,6 +11,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.concurrent.CompletionStage;
 
 public class ActionCompositionOrderTest {
 
@@ -21,8 +22,8 @@ public class ActionCompositionOrderTest {
 
     static class ControllerComposition extends Action<ControllerAnnotation> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).map(result -> {
+        public CompletionStage<Result> call(Http.Context ctx) {
+            return delegate.call(ctx).thenApply(result -> {
                 String newContent = "controller" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -36,8 +37,8 @@ public class ActionCompositionOrderTest {
 
     static class ActionComposition extends Action<ControllerAnnotation> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).map(result -> {
+        public CompletionStage<Result> call(Http.Context ctx) {
+            return delegate.call(ctx).thenApply(result -> {
                 String newContent = "action" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -53,7 +54,7 @@ public class ActionCompositionOrderTest {
 
     static class WithUsernameAction extends Action<WithUsername> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) {
+        public CompletionStage<Result> call(Http.Context ctx) {
             return delegate.call(ctx.withRequest(ctx.request().withUsername(configuration.value())));
         }
     }

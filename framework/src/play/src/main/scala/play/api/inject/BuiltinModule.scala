@@ -14,6 +14,7 @@ import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
 import play.api.libs.concurrent.{ MaterializerProvider, ExecutionContextProvider, ActorSystemProvider }
 import play.api.routing.Router
+import play.libs.concurrent.HttpExecutionContext
 
 import scala.concurrent.ExecutionContext
 
@@ -48,6 +49,7 @@ class BuiltinModule extends Module {
       bind[Materializer].toProvider[MaterializerProvider],
       bind[ExecutionContext].toProvider[ExecutionContextProvider],
       bind[Executor].toProvider[ExecutionContextProvider],
+      bind[HttpExecutionContext].toSelf,
       bind[Plugins].toProvider[PluginsProvider],
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],

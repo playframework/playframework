@@ -31,7 +31,7 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 @[ws-get](code/javaguide/ws/JavaWS.java)
 
-This returns a [`Promise<WSResponse>`](api/java/play/libs/F.Promise.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
+This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
 ### Request with authentication
 
@@ -91,7 +91,7 @@ The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString
 
 ## Processing the Response
 
-Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by mapping inside the `Promise`.
+Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by applying transformations such as `thenApply` and `thenCompose` to the `CompletionStage`.
 
 ### Processing a response as JSON
 
@@ -148,7 +148,7 @@ If you want to recover from an exception in the call, you can use `recover` or `
 
 ### Using in a controller
 
-You can map a `Promise<WSResponse>` to a `Promise<Result>` that can be handled directly by the Play server, using the asynchronous action pattern defined in [[Handling Asynchronous Results|JavaAsync]].
+You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that can be handled directly by the Play server, using the asynchronous action pattern defined in [[Handling Asynchronous Results|JavaAsync]].
 
 @[ws-action](code/javaguide/ws/JavaWS.java)
 

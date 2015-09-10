@@ -6,9 +6,9 @@ package javaguide.advanced.di;
 //#cleanup
 import javax.inject.*;
 import play.inject.ApplicationLifecycle;
-import play.libs.F;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class MessageQueueConnection {
@@ -20,7 +20,7 @@ public class MessageQueueConnection {
 
         lifecycle.addStopHook(() -> {
             connection.stop();
-            return F.Promise.pure(null);
+            return CompletableFuture.completedFuture(null);
         });
     }
 

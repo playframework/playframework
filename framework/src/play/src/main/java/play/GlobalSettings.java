@@ -3,12 +3,12 @@
  */
 package play;
 
-import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
 
 import java.io.File;
 import java.lang.reflect.*;
+import java.util.concurrent.CompletionStage;
 
 /**
  * GlobalSettings is instantiated by the framework when an application starts, to let you perform specific tasks
@@ -48,7 +48,7 @@ public class GlobalSettings {
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public F.Promise<Result> onError(RequestHeader request, Throwable t) {
+    public CompletionStage<Result> onError(RequestHeader request, Throwable t) {
         return null;
     }
 
@@ -63,7 +63,7 @@ public class GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
-            public F.Promise<Result> call(Context ctx) {
+            public CompletionStage<Result> call(Context ctx) {
                 return delegate.call(ctx);
             }
         };
@@ -95,7 +95,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<Result> onHandlerNotFound(RequestHeader request) {
+    public CompletionStage<Result> onHandlerNotFound(RequestHeader request) {
         return null;
     }
 
@@ -110,7 +110,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<Result> onBadRequest(RequestHeader request, String error) {
+    public CompletionStage<Result> onBadRequest(RequestHeader request, String error) {
         return null;
     }
 

@@ -8,6 +8,7 @@ import play.libs.F;
 import play.mvc.Http.*;
 
 import java.lang.annotation.*;
+import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
 
 /**
@@ -40,7 +41,7 @@ public class Security {
             this.injector = injector;
         }
 
-        public F.Promise<Result> call(final Context ctx) {
+        public CompletionStage<Result> call(final Context ctx) {
             try {
                 Authenticator authenticator = injector.instanceOf(configuration.value());
                 String username = authenticator.getUsername(ctx);
@@ -50,15 +51,8 @@ public class Security {
                 } else {
                     try {
                         ctx.request().setUsername(username);
-                        return delegate.call(ctx).transform(
-                            result -> {
-                                ctx.request().setUsername(null);
-                                return result;
-                            },
-                            throwable -> {
-                                ctx.request().setUsername(null);
-                                return throwable;
-                            }
+                        return delegate.call(ctx).whenComplete(
+                                (result, error) -> ctx.request().setUsername(null)
                         );
                     } catch(Exception e) {
                         ctx.request().setUsername(null);

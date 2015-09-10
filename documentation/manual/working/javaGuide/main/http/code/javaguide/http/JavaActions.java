@@ -4,12 +4,12 @@
 package javaguide.http;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.junit.Test;
-import play.libs.F;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.test.Helpers;
 
 import javaguide.testhelpers.MockJavaAction;
 import play.test.WithApplication;
@@ -49,8 +49,8 @@ public class JavaActions extends WithApplication {
             }
             //#params-action
 
-            public F.Promise<Result> invocation() {
-                return F.Promise.pure(index("world"));
+            public CompletionStage<Result> invocation() {
+                return CompletableFuture.completedFuture(index("world"));
             }
         }, fakeRequest(), mat);
         assertThat(result.status(), equalTo(200));

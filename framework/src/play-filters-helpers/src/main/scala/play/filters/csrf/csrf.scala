@@ -11,6 +11,7 @@ import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, ErrorHandler }
 import play.mvc.Http
 import play.utils.Reflect
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 import play.api._
@@ -213,7 +214,7 @@ object CSRF {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     def handle(req: Http.RequestHeader, msg: String) =
-      play.libs.F.Promise.wrap(delegate.handle(req._underlyingHeader(), msg).map(_.asJava))
+      FutureConverters.toJava(delegate.handle(req._underlyingHeader(), msg).map(_.asJava))
   }
 
   object ErrorHandler {

@@ -1,7 +1,5 @@
 package javaguide.tests;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
 import play.api.routing.Router;
@@ -12,6 +10,7 @@ import play.routing.RoutingDsl;
 import play.server.Server;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
@@ -39,7 +38,7 @@ public class JavaTestingWebServiceClients {
     }
 
     @Test
-    public void sendResource() throws IOException {
+    public void sendResource() throws Exception {
         //#send-resource
         Router router = new RoutingDsl()
             .GET("/repositories").routeTo(() ->
@@ -56,7 +55,7 @@ public class JavaTestingWebServiceClients {
         client.ws = ws;
 
         try {
-            List<String> repos = client.getRepositories().get(10000);
+            List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
             assertThat(repos, hasItem("octocat/Hello-World"));
         } finally {
             try {

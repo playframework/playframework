@@ -8,7 +8,7 @@ import javax.inject.Inject;
 
 import play.mvc.*;
 import play.libs.ws.*;
-import play.libs.F.Promise;
+import java.util.concurrent.CompletionStage;
 
 public class Application extends Controller {
 

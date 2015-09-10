@@ -15,6 +15,7 @@ import scala.reflect.ClassTag$;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.BiFunction;
@@ -336,7 +337,7 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RoutingDsl routeAsync(Supplier<F.Promise<Result>> action) {
+        public RoutingDsl routeAsync(Supplier<? extends CompletionStage<Result>> action) {
             return build(0, action, Supplier.class);
         }
 
@@ -346,7 +347,7 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RoutingDsl routeAsync(Function<A1, F.Promise<Result>> action) {
+        public <A1> RoutingDsl routeAsync(Function<A1, ? extends CompletionStage<Result>> action) {
             return build(1, action, Function.class);
         }
 
@@ -356,7 +357,7 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RoutingDsl routeAsync(BiFunction<A1, A2, F.Promise<Result>> action) {
+        public <A1, A2> RoutingDsl routeAsync(BiFunction<A1, A2, ? extends CompletionStage<Result>> action) {
             return build(2, action, BiFunction.class);
         }
 
@@ -366,7 +367,7 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RoutingDsl routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
+        public <A1, A2, A3> RoutingDsl routeAsync(F.Function3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
             return build(3, action, F.Function3.class);
         }
 

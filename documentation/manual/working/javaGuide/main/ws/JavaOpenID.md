@@ -28,10 +28,9 @@ Now any controller or component that wants to use OpenID will have to declare a 
 
 The OpenID API has two important functions:
 
-* `OpenIdClient.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Promise<String>`. If the OpenID is invalid, the returned `Promise` will be a `Thrown`.
-* `OpenIdClient.verifiedId` inspects the current request to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a promise of [UserInfo](api/java/play/libs/openid/UserInfo.html). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Promise` will be a `Thrown`.
-
-If the `Promise` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
+* `OpenIdClient.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `CompletionStage<String>`. If the OpenID is invalid, the returned `CompletionStage` will be completed with an exception.
+* `OpenIdClient.verifiedId` inspects the current request to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a promise of [UserInfo](api/java/play/libs/openid/UserInfo.html). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `CompletionStage` will be completed with an exception.
+If the `CompletionStage` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
 
 ### Example
 
