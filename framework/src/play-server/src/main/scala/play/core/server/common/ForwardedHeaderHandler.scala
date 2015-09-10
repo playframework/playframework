@@ -17,6 +17,10 @@ import ForwardedHeaderHandler._
  * from the end of the forwarded headers. The last header that is present
  * is the last untrusted proxy.
  *
+ * If more than one forwarded headers are present initially, but are all
+ * removed by this means, then the first forwarded header's address/protocol
+ * is treated as that of the remote client.
+ *
  * It is configured by two configuration options:
  * <dl>
  *   <dt>play.http.forwarded.version</dt>
@@ -37,22 +41,27 @@ import ForwardedHeaderHandler._
 private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
 
   def remoteProtocol(headers: Headers): Option[String] = {
-    firstUntrustedForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies).get("proto")
+    remoteForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies).get("proto")
   }
 
   def remoteAddress(headers: Headers): Option[String] = {
-    firstUntrustedForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies).get("for")
+    remoteForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies).get("for")
   }
+
+  private def remoteForwarded(
+    forwardedHeaders: Seq[Map[String, String]],
+    trustedProxies: Seq[Subnet]): Map[String, String] = firstUntrustedForwarded(forwardedHeaders, trustedProxies)
+    .orElse(forwardedHeaders.headOption)
+    .getOrElse(Map.empty)
 
   private def firstUntrustedForwarded(
     forwardedHeaders: Seq[Map[String, String]],
-    trustedProxies: Seq[Subnet]): Map[String, String] = forwardedHeaders
+    trustedProxies: Seq[Subnet]): Option[Map[String, String]] = forwardedHeaders
     .reverse
     .dropWhile(m => {
       isTrusted(m.getOrElse("for", "unknown"), trustedProxies)
     })
     .headOption
-    .getOrElse(Map.empty)
 
   private def isTrusted(s: String, trustedProxies: Seq[Subnet]): Boolean =
     NodeIdentifierParser.parseNode(s).fold(_ => false, _._1 match {

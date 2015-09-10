@@ -80,6 +80,14 @@ class ForwardedHeaderHandlerSpec extends Specification {
           |X-Forwarded-Proto: https, http
         """.stripMargin)) mustEqual Some("https")
     }
+
+    "not treat the first x-forwarded entry as a proxy even if it is in trustedProxies range" in new TestData {
+      handler(version("x-forwarded") ++ trustedProxies("192.168.1.1/24" :: "127.0.0.1" :: Nil)).remoteAddress(headers(
+        """
+          |X-Forwarded-For: 192.168.1.2, 192.168.1.3
+          |X-Forwarded-Proto: http, http
+        """.stripMargin)) mustEqual Some("192.168.1.2")
+    }
   }
 
   trait TestData extends Scope {
