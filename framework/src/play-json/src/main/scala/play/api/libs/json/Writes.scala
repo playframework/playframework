@@ -13,6 +13,7 @@ import java.time.{
 import java.time.temporal.Temporal
 import java.time.format.DateTimeFormatter
 
+import play.api.libs.functional.ContravariantFunctor
 import play.api.libs.json.jackson.JacksonJson
 
 import scala.annotation.implicitNotFound
@@ -95,11 +96,11 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
   val constraints: ConstraintWrites = this
   val path: PathWrites = this
 
-  /*implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
+  implicit val contravariantfunctorWrites: ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
 
-    def contramap[A,B](wa:Writes[A], f: B => A):Writes[B] = Writes[B]( b => wa.writes(f(b)) )
+    def contramap[A, B](wa: Writes[A], f: B => A): Writes[B] = Writes[B](b => wa.writes(f(b)))
 
-  }*/
+  }
 
   def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
     def writes(a: A): JsValue = f(a)
