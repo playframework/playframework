@@ -7,6 +7,8 @@ import play.Mode;
 import play.api.routing.Router;
 import play.core.j.JavaModeConverter;
 import play.core.server.JavaServerHelper;
+import scala.Int;
+import scala.Option;
 
 import java.net.InetSocketAddress;
 
@@ -29,10 +31,29 @@ public class Server {
     }
 
     /**
-     * Get the port the server is running on.
+     * Get the HTTP port the server is running on.
+     *
+     * throws IllegalStateException if it is not running on the HTTP protocol
      */
     public int httpPort() {
-        return server.mainAddress().getPort();
+        if (server.httpPort().isDefined()) {
+            return Int.unbox(server.httpPort().get());
+        } else {
+            throw new IllegalStateException("Server has no HTTP port. Try starting it with \"PortConfig.http(<port num>)\"?");
+        }
+    }
+
+    /**
+     * Get the HTTPS port the server is running on.
+     *
+     * throws IllegalStateException if it is not running on the HTTPS protocol.
+     */
+    public int httpsPort() {
+        if (server.httpsPort().isDefined()) {
+            return Int.unbox(server.httpsPort().get());
+        } else {
+            throw new IllegalStateException("Server has no HTTPS port. Try starting it with \"PortConfig.https(<port num>)\"?");
+        }
     }
 
     /**
@@ -93,7 +114,76 @@ public class Server {
      * @return The running server.
      */
     public static Server forRouter(Router router, Mode mode, int port) {
-        return new Server(JavaServerHelper.forRouter(router, JavaModeConverter.asScalaMode(mode), port));
+        return forRouter(router, mode, PortConfig.http(port));
     }
 
+    /**
+     * Create a server for the given router
+     * <p>
+     * The server will open to either HTTP or HTTPS traffic, depending on whether PortConfig.http(port) or
+     * PortConfig.https(port) is used.
+     *
+     * @param router The router for the server to serve
+     * @param mode The mode the server will run on
+     * @param portConfig The port and protocol the server will run on e.g. PortConfig.http(80), PortConfig.https(443)
+     * @return The running server
+     */
+    public static Server forRouter(Router router, Mode mode, PortConfig portConfig) {
+        return new Server(
+                JavaServerHelper.forRouter(
+                        router,
+                        JavaModeConverter.asScalaMode(mode),
+                        portConfig.maybeHttpPort(),
+                        portConfig.maybeSslPort()
+                )
+        );
+    }
+
+    /**
+     * Specifies the protocols supported by the server.
+     * A choice of HTTPS will force the server to serve only SSL traffic
+     **/
+    private enum Protocol {
+        HTTP,
+        HTTPS
+    }
+
+    /**
+     * Helper class that specifies protocol/port pairs for the server to expose.
+     */
+    public static class PortConfig {
+        private final Server.Protocol protocol;
+        private final int port;
+
+        /**
+         * Create a PortConfig in HTTPS mode
+         * @param port the port on which to serve ssl traffic
+         * @return the PortConfig
+         */
+        public static PortConfig https(int port) {
+            return new PortConfig(Server.Protocol.HTTPS, port);
+        }
+
+        /**
+         * Create a PortConfig in HTTP mode
+         * @param port the port on which to serve http traffic
+         * @return the PortConfig
+         */
+        public static PortConfig http(int port) {
+            return new PortConfig(Server.Protocol.HTTP, port);
+        }
+
+        private PortConfig(Server.Protocol protocol, int port) {
+            this.protocol = protocol;
+            this.port = port;
+        }
+
+        private Option<Integer> maybeHttpPort() {
+            return protocol == Protocol.HTTP? Option.apply(port): Option.empty();
+        }
+
+        private Option<Integer> maybeSslPort() {
+            return protocol == Protocol.HTTPS? Option.apply(port): Option.empty();
+        }
+    }
 }
