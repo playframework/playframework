@@ -237,4 +237,24 @@ object ValidationSpec extends Specification {
     }
   }
 
+  "A constraint that fails with field validation errors" should {
+    val fieldName = "field1"
+    val error = "field2 should not be the same as field1"
+    case class TestObj(field1: String, field2: String)
+    val constraintWithFieldLevelError = Constraint[TestObj]("") { t =>
+      Invalid(ValidationError(error).forField(fieldName))
+    }
+
+    "results in field level errors in the form's errors collection" in {
+      val f = Form[TestObj](mapping(("field1", text), ("field2", text))(TestObj.apply)(TestObj.unapply).verifying(constraintWithFieldLevelError))
+      f.bind(Map("field1" -> "valid", "field2" -> "valid")).fold(
+        formWithErrors => {
+          formWithErrors.errors.head.key must equalTo(fieldName)
+          formWithErrors.errors.head.message must equalTo(error)
+        },
+        _ => s"Form did not contain error for field: $fieldName." must equalTo("Error")
+      )
+    }
+  }
+
 }
