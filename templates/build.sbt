@@ -2,17 +2,9 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-scalaVersion := {
-  // If we're a snapshot build, then default to 2.10.5, since this is what gets built by default for Play
-  // If we're a production build, then we want 2.11.7.
-  sys.props.getOrElse("scala.version", if (isSnapshot.value) {
-    "2.10.5"
-  } else {
-    "2.11.7"
-  })
-}
+scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.10.5", "2.11.7")
+crossScalaVersions := Seq("2.11.7")
 
 templates := {
   val dir = baseDirectory.value

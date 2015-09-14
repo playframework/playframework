@@ -130,7 +130,7 @@ object Docs {
 
       val javadoc = {
         if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-        else DocNoCache.javadoc(label, compilers.javac)
+        else DocNoCache.javadoc(label, compilers)
       }
       javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
     }
@@ -218,7 +218,7 @@ object Docs {
     def scaladoc(label: String, compile: compiler.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String, compile: compiler.Javadoc): GenerateDoc =
-      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compile.doc))
+    def javadoc(label: String, compilers: Compiler.Compilers): GenerateDoc =
+      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javac.doc))
   }
 }
