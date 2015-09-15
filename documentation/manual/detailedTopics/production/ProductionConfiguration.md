@@ -273,6 +273,9 @@ $ /path/to/bin/<project-name> -J-Xms128M -J-Xmx512m -J-server
 As a convenience you can also set memory min, max, permgen and the reserved code cache size in one go; a formula is used to
 determine these values given the supplied parameter (which represents maximum memory):
 
+This option is ignored in the init script since 2.4.x : 
+-mem) echo "!! WARNING !! -mem option is ignored. Please use -J-Xmx and -J-Xms" && shift 2 ;;
+
 ```
 $ /path/to/bin/<project-name> -mem 512 -J-server
 ```
