@@ -378,6 +378,20 @@ As a result of these changes, your code can now assume that all values of type `
 * To get the same result as in 2.3, you can use `JsSuccess(jsv.asOpt[A])`. This will map all validation errors to `None`.
 * To map both `JsNull` and an undefined lookup result to `None`, use `jsv.validateOpt[A]`.
 * To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(Reads.optionWithNull[A])`. If the value does not exist the result will be a `JsError`.
+* 
+
+`Reads` in the form
+```scala
+(JsPath \ "property").read[Option[String]]
+```
+need to be replaced with
+
+```scala
+(JsPath \ "property").readNullable[String]
+```
+
+The same goes for `Writes` with `JsPath.writeNullable` and `Format` with `JsPath.formatNullable`.
+
 
 ## Testing changes
 
