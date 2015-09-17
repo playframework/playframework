@@ -513,7 +513,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "grant access to the underlying client" in withSimpleServer { ws =>
       //#underlying
-      import com.ning.http.client.AsyncHttpClient
+      import org.asynchttpclient.AsyncHttpClient
 
       val client: AsyncHttpClient = ws.underlying
       //#underlying

@@ -5,7 +5,7 @@ package play.it.libs
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import com.ning.http.client.{ RequestBuilderBase, SignatureCalculator }
+import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 import play.api.libs.oauth._
 import play.core.server.Server
 import play.it.tools.HttpBinApplication
@@ -124,8 +124,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
           aka("streamed response") must_== "abc"
       }
 
-    class CustomSigner extends WSSignatureCalculator with com.ning.http.client.SignatureCalculator {
-      def calculateAndAddSignature(request: com.ning.http.client.Request, requestBuilder: com.ning.http.client.RequestBuilderBase[_]) = {
+    class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
+      def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
       }
     }
@@ -186,7 +186,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       }
 
     class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
-      def calculateAndAddSignature(request: com.ning.http.client.Request, requestBuilder: RequestBuilderBase[_]) = {
+      def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {
         // do nothing
       }
     }

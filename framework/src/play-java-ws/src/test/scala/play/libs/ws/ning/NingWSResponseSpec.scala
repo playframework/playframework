@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
-import com.ning.http.client.{ FluentCaseInsensitiveStringsMap, Response }
+import org.asynchttpclient.{ FluentCaseInsensitiveStringsMap, Response }
 
 object NingWSResponseSpec extends Specification with Mockito {
 

@@ -18,7 +18,7 @@ import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication._
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.ning.http.client.providers.netty.response.NettyResponse
+import org.asynchttpclient.netty.NettyResponse
 import java.util.concurrent.atomic.AtomicBoolean
 
 object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification

@@ -11,9 +11,9 @@ import play.libs.ws.*;
  */
 public class NingWSCookie implements WSCookie {
 
-    private final com.ning.http.client.cookie.Cookie ahcCookie;
+    private final org.asynchttpclient.cookie.Cookie ahcCookie;
 
-    public NingWSCookie(com.ning.http.client.cookie.Cookie ahcCookie) {
+    public NingWSCookie(org.asynchttpclient.cookie.Cookie ahcCookie) {
         this.ahcCookie = ahcCookie;
     }
 

@@ -10,7 +10,7 @@ import javax.net.ssl.{ HostnameVerifier, SSLPeerUnverifiedException, SSLSession 
 import javax.security.auth.kerberos.KerberosPrincipal
 import sun.security.util.HostnameChecker
 import org.slf4j.LoggerFactory
-import com.ning.http.util.Base64
+import org.asynchttpclient.util.Base64
 import java.security.Principal
 
 /**

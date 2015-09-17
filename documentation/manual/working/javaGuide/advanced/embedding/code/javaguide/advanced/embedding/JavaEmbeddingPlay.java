@@ -3,7 +3,7 @@
  */
 package javaguide.advanced.embedding;
 
-import com.ning.http.client.AsyncHttpClientConfig;
+import org.asynchttpclient.AsyncHttpClientConfig;
 import org.junit.Test;
 
 import play.libs.F;
