@@ -5,21 +5,16 @@ package play.api.libs.ws.ning
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-
 import org.asynchttpclient.{ Response => AHCResponse, _ }
 import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
 import org.asynchttpclient.Realm.{ RealmBuilder, AuthScheme }
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
 import org.asynchttpclient.util.AsyncHttpProviderUtils
-
 import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.nio.charset.{ Charset, StandardCharsets }
-
 import javax.inject.{ Inject, Provider, Singleton }
-
 import io.netty.handler.codec.http.HttpHeaders
-
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
 import play.api.libs.iteratee.Enumerator
@@ -28,7 +23,6 @@ import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.debug._
 import play.core.parsers.FormUrlEncodedParser
 import play.core.utils.CaseInsensitiveOrdered
-
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.{ Future, Promise }
@@ -147,8 +141,8 @@ case class NingWSRequest(client: NingWSClient,
 
   def stream(): Future[StreamedResponse] = StreamedRequest.execute(client.underlying, buildRequest())
 
-  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
-    StreamedRequest.executeAndReturnEnumerator(client.underlying, buildRequest())
+  @deprecated("2.5", "Use `stream()` instead.")
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = StreamedRequest.execute2(client.underlying, buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
