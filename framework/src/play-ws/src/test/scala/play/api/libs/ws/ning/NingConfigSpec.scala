@@ -13,19 +13,14 @@ import play.api.Environment
 import play.api.libs.ws.WSClientConfig
 import play.api.libs.ws.ssl._
 
-import javax.net.ssl.{ HostnameVerifier, SSLSession, SSLContext }
+import javax.net.ssl.{ SSLSession, SSLContext }
 import org.asynchttpclient.proxy.ProxyServerSelector
 import org.asynchttpclient.util.ProxyUtils
-import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.slf4j.LoggerFactory
 
 import play.api.test.WithApplication
 
 import scala.concurrent.duration._
-
-class TestHostnameVerifier extends HostnameVerifier {
-  override def verify(s: String, sslSession: SSLSession): Boolean = true
-}
 
 object NingConfigSpec extends Specification with Mockito {
 
@@ -87,8 +82,6 @@ object NingConfigSpec extends Specification with Mockito {
 
         actual.getEnabledCipherSuites.toSeq must not contain Ciphers.deprecatedCiphers
         actual.getEnabledProtocols.toSeq must not contain Protocols.deprecatedProtocols
-
-        actual.getHostnameVerifier must beAnInstanceOf[DefaultHostnameVerifier]
       }
 
       "use an explicit idle timeout" in {
@@ -268,37 +261,25 @@ object NingConfigSpec extends Specification with Mockito {
           val warnings = appender.list
           warnings.size must beGreaterThan(0)
         }
-      }
 
-      "with hostname verifier" should {
-        "use the default hostname verifier" in {
+        "should validate certificates" in {
           val sslConfig = SSLConfig()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[DefaultHostnameVerifier]
+          asyncConfig.isAcceptAnyCertificate must beFalse
         }
 
-        "use an explicit hostname verifier" in {
-          val sslConfig = SSLConfig(hostnameVerifierClass = classOf[TestHostnameVerifier])
+        "should disable the hostname verifier if loose.acceptAnyCertificate is enabled" in {
+          val sslConfig = SSLConfig(loose = SSLLooseConfig(acceptAnyCertificate = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[TestHostnameVerifier]
-        }
-
-        "should disable the hostname verifier if loose.disableHostnameVerification is defined" in {
-          val sslConfig = SSLConfig(loose = SSLLooseConfig(disableHostnameVerification = true))
-          val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
-          val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
-
-          val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier]
+          asyncConfig.isAcceptAnyCertificate must beTrue
         }
       }
 
