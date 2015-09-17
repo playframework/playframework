@@ -47,7 +47,7 @@ public class WS {
      */
     public static WSClient newClient(int port) {
         WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder()
-            .setMaxRequestRetry(0).build());
+            .setMaxRequestRetry(0).setShutdownQuiet(0).setShutdownTimeout(0).build());
 
         return new WSClient() {
             public Object getUnderlying() {
