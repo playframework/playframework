@@ -276,16 +276,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
-    // Hostname Processing
-    if (!sslConfig.loose.disableHostnameVerification) {
-      val hostnameVerifier = buildHostnameVerifier(sslConfig)
-      // builder.setHostnameVerifier(hostnameVerifier)
-    } else {
-      logger.warn("buildHostnameVerifier: disabling hostname verification")
-      val disabledHostnameVerifier = new DisabledComplainingHostnameVerifier
-      // builder.setHostnameVerifier(disabledHostnameVerifier)
-    }
-
     builder.setSSLContext(sslContext)
   }
 
@@ -295,16 +285,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
   def buildTrustManagerFactory(ssl: SSLConfig): TrustManagerFactoryWrapper = {
     new DefaultTrustManagerFactoryWrapper(ssl.trustManagerConfig.algorithm)
-  }
-
-  def buildHostnameVerifier(sslConfig: SSLConfig): HostnameVerifier = {
-    logger.debug("buildHostnameVerifier: enabling hostname verification using {}", sslConfig.hostnameVerifierClass)
-    try {
-      sslConfig.hostnameVerifierClass.newInstance()
-    } catch {
-      case e: Exception =>
-        throw new IllegalStateException("Cannot configure hostname verifier", e)
-    }
   }
 
   def validateDefaultTrustManager(sslConfig: SSLConfig) {
