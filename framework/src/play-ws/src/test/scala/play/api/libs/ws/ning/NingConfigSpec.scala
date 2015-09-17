@@ -14,8 +14,8 @@ import play.api.libs.ws.WSClientConfig
 import play.api.libs.ws.ssl._
 
 import javax.net.ssl.{ HostnameVerifier, SSLSession, SSLContext }
-import com.ning.http.client.ProxyServerSelector
-import com.ning.http.util.ProxyUtils
+import org.asynchttpclient.proxy.ProxyServerSelector
+import org.asynchttpclient.util.ProxyUtils
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.slf4j.LoggerFactory
 
@@ -204,7 +204,7 @@ object NingConfigSpec extends Specification with Mockito {
         val config = defaultConfig.copy(disableUrlEncoding = true)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.isDisableUrlEncodingForBoundedRequests must_== true
+        actual.isDisableUrlEncodingForBoundRequests must_== true
       }
     }
 

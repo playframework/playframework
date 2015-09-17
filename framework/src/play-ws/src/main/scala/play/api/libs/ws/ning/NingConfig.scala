@@ -11,7 +11,7 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import org.slf4j.LoggerFactory
 
-import com.ning.http.client.AsyncHttpClientConfig
+import org.asynchttpclient.AsyncHttpClientConfig
 
 import javax.net.ssl._
 import play.api.{ PlayConfig, Environment, Configuration }
@@ -190,7 +190,7 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     builder.setWebSocketTimeout(toMillis(ningConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
-    builder.setDisableUrlEncodingForBoundedRequests(ningConfig.disableUrlEncoding)
+    builder.setDisableUrlEncodingForBoundRequests(ningConfig.disableUrlEncoding)
   }
 
   /**
@@ -279,11 +279,11 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     // Hostname Processing
     if (!sslConfig.loose.disableHostnameVerification) {
       val hostnameVerifier = buildHostnameVerifier(sslConfig)
-      builder.setHostnameVerifier(hostnameVerifier)
+      // builder.setHostnameVerifier(hostnameVerifier)
     } else {
       logger.warn("buildHostnameVerifier: disabling hostname verification")
       val disabledHostnameVerifier = new DisabledComplainingHostnameVerifier
-      builder.setHostnameVerifier(disabledHostnameVerifier)
+      // builder.setHostnameVerifier(disabledHostnameVerifier)
     }
 
     builder.setSSLContext(sslContext)

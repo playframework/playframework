@@ -3,13 +3,13 @@ package play.api.libs.ws.ning
 import scala.concurrent.Future
 import scala.concurrent.Promise
 
-import com.ning.http.client.AsyncHandler
-import com.ning.http.client.AsyncHandler.STATE
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.HttpResponseBodyPart
-import com.ning.http.client.HttpResponseHeaders
-import com.ning.http.client.HttpResponseStatus
-import com.ning.http.client.Request
+import org.asynchttpclient.AsyncHandler
+import org.asynchttpclient.AsyncHandler.State
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.HttpResponseBodyPart
+import org.asynchttpclient.HttpResponseHeaders
+import org.asynchttpclient.HttpResponseStatus
+import org.asynchttpclient.Request
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -37,8 +37,6 @@ private[play] object StreamedRequest {
   }
 
   def executeAndReturnEnumerator(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
-    import com.ning.http.client.AsyncHandler
-
     val result = Promise[(WSResponseHeaders, Enumerator[Array[Byte]])]()
 
     val errorInStream = Promise[Unit]()
@@ -50,17 +48,14 @@ private[play] object StreamedRequest {
     @volatile var current: Iteratee[Array[Byte], Unit] = Iteratee.flatten(promisedIteratee.future)
 
     client.executeRequest(request, new AsyncHandler[Unit]() {
-
-      import com.ning.http.client.AsyncHandler.STATE
-
       @throws(classOf[Exception])
-      override def onStatusReceived(status: HttpResponseStatus): STATE = {
+      override def onStatusReceived(status: HttpResponseStatus): State = {
         statusCode = status.getStatusCode
-        STATE.CONTINUE
+        State.CONTINUE
       }
 
       @throws(classOf[Exception])
-      override def onHeadersReceived(h: HttpResponseHeaders): STATE = {
+      override def onHeadersReceived(h: HttpResponseHeaders): State = {
         val headers = h.getHeaders
 
         val responseHeader = DefaultWSResponseHeaders(statusCode, NingWSRequest.ningHeadersToMap(headers))
@@ -96,11 +91,11 @@ private[play] object StreamedRequest {
         }
 
         result.trySuccess((responseHeader, enumerator))
-        STATE.CONTINUE
+        State.CONTINUE
       }
 
       @throws(classOf[Exception])
-      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): STATE = {
+      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): State = {
         if (!doneOrError) {
           import play.api.libs.concurrent.Execution.Implicits.defaultContext
           current = current.pureFlatFold {
@@ -116,12 +111,12 @@ private[play] object StreamedRequest {
               Error(e, input)
 
           }
-          STATE.CONTINUE
+          State.CONTINUE
         } else {
           current = null
           // Must close underlying connection, otherwise async http client will drain the stream
           bodyPart.markUnderlyingConnectionAsToBeClosed()
-          STATE.ABORT
+          State.ABORT
         }
       }
 

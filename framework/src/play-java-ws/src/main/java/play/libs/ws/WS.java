@@ -3,7 +3,7 @@
  */
 package play.libs.ws;
 
-import com.ning.http.client.AsyncHttpClientConfig;
+import org.asynchttpclient.AsyncHttpClientConfig;
 import play.Application;
 import play.libs.ws.ning.NingWSClient;
 
