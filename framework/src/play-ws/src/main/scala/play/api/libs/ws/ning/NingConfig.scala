@@ -191,6 +191,15 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
     builder.setDisableUrlEncodingForBoundRequests(ningConfig.disableUrlEncoding)
+    // forcing shutdown of the AHC event loop because otherwise the test suite fails with a 
+    // OutOfMemoryException: cannot create new native thread. This is because when executing 
+    // tests in parallel there can be many threads pool that are left around because AHC is 
+    // shutting them down gracefully.
+    // The proper solution is to make these parameters configurable, so that they can be set 
+    // to 0 when running tests, and keep sensible defaults otherwise. AHC defaults are 
+    // shutdownQuiet=2000 (milliseconds) and shutdownTimeout=15000 (milliseconds).
+    builder.setShutdownQuiet(0)
+    builder.setShutdownTimeout(0)
   }
 
   /**
