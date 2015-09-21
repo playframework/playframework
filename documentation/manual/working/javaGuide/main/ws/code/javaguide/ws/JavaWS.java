@@ -24,7 +24,7 @@ import play.mvc.Result;
 import javax.inject.Inject;
 
 // #ws-custom-client-imports
-import com.ning.http.client.*;
+import org.asynchttpclient.*;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ning.NingWSClientConfig;
 import play.api.libs.ws.ning.NingWSClientConfigFactory;
@@ -179,7 +179,7 @@ public class JavaWS {
 
             // You can directly use the builder for specific options once you have secure TLS defaults...
             AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
-                            .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
+                            .setProxyServer(new org.asynchttpclient.proxy.ProxyServer("127.0.0.1", 38080))
                             .setCompressionEnforced(true)
                             .build();
             WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig);
@@ -188,8 +188,8 @@ public class JavaWS {
             // #ws-custom-client
 
             // #ws-underlying-client
-            com.ning.http.client.AsyncHttpClient underlyingClient =
-                (com.ning.http.client.AsyncHttpClient) ws.getUnderlying();
+            org.asynchttpclient.AsyncHttpClient underlyingClient =
+                (org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
             // #ws-underlying-client
 
         }

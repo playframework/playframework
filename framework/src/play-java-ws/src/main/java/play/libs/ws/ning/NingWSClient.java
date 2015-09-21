@@ -4,8 +4,9 @@
 
 package play.libs.ws.ning;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.AsyncHttpClientConfig;
+import org.asynchttpclient.DefaultAsyncHttpClient;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
@@ -20,7 +21,7 @@ public class NingWSClient implements WSClient {
     private final AsyncHttpClient asyncHttpClient;
 
     public NingWSClient(AsyncHttpClientConfig config) {
-        this.asyncHttpClient = new AsyncHttpClient(config);
+        this.asyncHttpClient = new DefaultAsyncHttpClient(config);
     }
 
     @Override

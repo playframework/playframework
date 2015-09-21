@@ -6,7 +6,7 @@ package play.libs.ws.ning;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ning.http.util.AsyncHttpProviderUtils;
+import org.asynchttpclient.util.AsyncHttpProviderUtils;
 import org.w3c.dom.Document;
 import play.libs.Json;
 
@@ -14,9 +14,9 @@ import play.libs.ws.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +27,9 @@ import java.util.Map;
  */
 public class NingWSResponse implements WSResponse {
 
-    private com.ning.http.client.Response ahcResponse;
+    private org.asynchttpclient.Response ahcResponse;
 
-    public NingWSResponse(com.ning.http.client.Response ahcResponse) {
+    public NingWSResponse(org.asynchttpclient.Response ahcResponse) {
         this.ahcResponse = ahcResponse;
     }
 
@@ -76,7 +76,7 @@ public class NingWSResponse implements WSResponse {
     @Override
     public List<WSCookie> getCookies() {
         List<WSCookie> cookieList = new ArrayList<WSCookie>();
-        for (com.ning.http.client.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
+        for (org.asynchttpclient.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
             cookieList.add(new NingWSCookie(ahcCookie));
         }
         return cookieList;
@@ -87,7 +87,7 @@ public class NingWSResponse implements WSResponse {
      */
     @Override
     public WSCookie getCookie(String name) {
-        for (com.ning.http.client.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
+        for (org.asynchttpclient.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
             // safe -- cookie.getName() will never return null
             if (ahcCookie.getName().equals(name)) {
                 return new NingWSCookie(ahcCookie);
@@ -111,14 +111,14 @@ public class NingWSResponse implements WSResponse {
                 // As defined by RFC-2616#7.2.1
                 contentType = "application/octet-stream";
             }
-            String charset = AsyncHttpProviderUtils.parseCharset(contentType);
+            Charset charset = AsyncHttpProviderUtils.parseCharset(contentType);
 
             if (charset != null) {
                 return ahcResponse.getResponseBody(charset);
             } else if (contentType.startsWith("text/")) {
-                return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET.toString());
+                return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET);
             } else {
-                return ahcResponse.getResponseBody("utf-8");
+                return ahcResponse.getResponseBody(StandardCharsets.UTF_8);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

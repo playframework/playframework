@@ -87,5 +87,3 @@ play.ws.ssl.debug = {
  data = true
 }
 ```
-
-> **Next**: [[Configuring Certificate Validation|CertificateValidation]]
