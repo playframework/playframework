@@ -42,10 +42,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "support direct client instantiation" in new WithApplication {
-      val sslBuilder = new AsyncHttpClientConfig.Builder()
       val sslBuilder = new AsyncHttpClientConfig.Builder().setShutdownQuiet(0).setShutdownTimeout(0)
       implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
-      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
+      try WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
+      finally sslClient.close()
     }
 
     "NingWSClient.underlying" in new WithApplication {
