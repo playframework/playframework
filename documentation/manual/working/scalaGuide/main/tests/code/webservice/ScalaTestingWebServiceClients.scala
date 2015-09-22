@@ -28,6 +28,7 @@ import client._
 
 //#full-test
 import play.core.server.Server
+import play.api.Play
 import play.api.routing.sird._
 import play.api.mvc._
 import play.api.libs.json._
@@ -49,6 +50,7 @@ object GitHubClientSpec extends Specification with NoTimeConversions {
           Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
         }
       } { implicit port =>
+        implicit val materializer = Play.current.materializer
         WsTestClient.withClient { client =>
           val result = Await.result(
             new GitHubClient(client, "").repositories(), 10.seconds)
@@ -91,6 +93,7 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
 
     "allow sending a resource" in {
       //#send-resource
+      import play.api.Play
       import play.api.mvc._
       import play.api.routing.sird._
       import play.api.test._
@@ -101,6 +104,7 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
           Results.Ok.sendResource("github/repositories.json")
         }
       } { implicit port =>
+        implicit val materializer = Play.current.materializer
         //#send-resource
         WsTestClient.withClient { client =>
           Await.result(new GitHubClient(client, "").repositories(), 10.seconds) must_== Seq("octocat/Hello-World")
@@ -110,6 +114,7 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
 
     "allow being dry" in {
       //#with-github-client
+      import play.api.Play
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.Server
@@ -121,6 +126,7 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
             Results.Ok.sendResource("github/repositories.json")
           }
         } { implicit port =>
+          implicit val materializer = Play.current.materializer
           WsTestClient.withClient { client =>
             block(new GitHubClient(client, ""))
           }

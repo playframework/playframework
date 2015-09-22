@@ -3,25 +3,29 @@
  */
 package play.it.libs
 
-import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
-import play.api.libs.oauth._
-import play.core.server.Server
-import play.it.tools.HttpBinApplication
-
-import play.api.test._
-import play.api.http.{ HttpEntity, Port }
-import play.api.mvc._
-import play.it._
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import play.api.libs.iteratee._
-import java.io.IOException
-
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
-import akka.util.ByteString
+
+import java.io.IOException
+
+import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
+
+import play.api.http.{ HttpEntity, Port }
+import play.api.libs.iteratee._
+import play.api.libs.oauth._
+import play.api.mvc._
+import play.api.test._
+import play.core.server.Server
+import play.it._
+import play.it.tools.HttpBinApplication
+import play.api.mvc.BodyParsers.parse
+import play.api.mvc.Results.Ok
+import play.api.libs.streams.Accumulator
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.concurrent.Future
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
@@ -41,6 +45,23 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
     def withServer[T](block: play.libs.ws.WSClient => T) = {
       Server.withApplication(app) { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withEchoServer[T](block: play.libs.ws.WSClient => T) = {
+      def echo = BodyParser { req =>
+        import play.api.libs.concurrent.Execution.Implicits.defaultContext
+        Accumulator.source[ByteString].mapFuture { source =>
+          Future.successful(source).map(Right.apply)
+        }
+      }
+
+      Server.withRouter() {
+        case _ => Action(echo) { req =>
+          Ok.chunked(req.body)
+        }
+      } { implicit port =>
         withClient(block)
       }
     }
@@ -124,6 +145,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
           aka("streamed response") must_== "abc"
       }
 
+    "streaming a request body" in withEchoServer { ws =>
+      val source = akka.stream.javadsl.Source.adapt(Source(List("a", "b", "c").map(ByteString.apply)))
+      val res = ws.url("/post").setMethod("POST").setBody(source).execute()
+      val body = await(res.wrapped).getBody
+
+      body must_== "abc"
+    }
+
     class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
       def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
@@ -145,12 +174,33 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
   }
 
   "WS@scala" should {
+
     import play.api.libs.ws.WSSignatureCalculator
+    import play.api.libs.ws.StreamedBody
 
     implicit val materializer = app.materializer
 
+    val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+
     def withServer[T](block: play.api.libs.ws.WSClient => T) = {
       Server.withApplication(app) { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
+    def withEchoServer[T](block: play.api.libs.ws.WSClient => T) = {
+      def echo = BodyParser { req =>
+        import play.api.libs.concurrent.Execution.Implicits.defaultContext
+        Accumulator.source[ByteString].mapFuture { source =>
+          Future.successful(source).map(Right.apply)
+        }
+      }
+
+      Server.withRouter() {
+        case _ => Action(echo) { req =>
+          Ok.chunked(req.body)
+        }
+      } { implicit port =>
         WsTestClient.withClient(block)
       }
     }
@@ -184,6 +234,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         await(body.runWith(foldingSink)).decodeString("utf-8").
           aka("streamed response") must_== "abc"
       }
+
+    "streaming a request body" in withEchoServer { ws =>
+      val source = Source(List("a", "b", "c").map(ByteString.apply))
+      val res = ws.url("/post").withMethod("POST").withBody(StreamedBody(source)).execute()
+      val body = await(res).body
+
+      body must_== "abc"
+    }
 
     class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
       def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {

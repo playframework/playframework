@@ -4,6 +4,7 @@
 package play.it.http.assets
 
 import controllers.Assets
+import play.api.Play
 import play.api.libs.ws.WSClient
 import play.api.test._
 import org.apache.commons.io.IOUtils
@@ -29,6 +30,7 @@ trait AssetsSpec extends PlaySpecification
       Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {
         case req => Assets.versioned("/testassets", req.path)
       } { implicit port =>
+        implicit val materializer = Play.current.materializer
         withClient(block)
       }
     }
@@ -208,6 +210,7 @@ trait AssetsSpec extends PlaySpecification
         Server.withRouter() {
           case req => Assets.versioned("/scala", req.path)
         } { implicit port =>
+          implicit val materializer = Play.current.materializer
           withClient { client =>
             await(client.url("/collection").get()).status must_== NOT_FOUND
           }

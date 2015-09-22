@@ -253,9 +253,7 @@ case class InMemoryBody(bytes: ByteString) extends WSBody
  *
  * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody {
-  throw new NotImplementedError("A streaming request body is not yet implemented")
-}
+case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody
 
 /**
  * A file body

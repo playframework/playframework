@@ -32,7 +32,9 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
   })
 
   def withClientAndServer[T](block: WSClient => T) = {
-    Server.withApplication(appWithRedirect) { implicit port =>
+    val app = appWithRedirect
+    import app.materializer
+    Server.withApplication(app) { implicit port =>
       withClient(block)
     }
   }

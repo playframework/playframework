@@ -14,6 +14,10 @@ import play.libs.ws.WSRequest;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.asynchttpclient.AsyncHttpClientConfig;
+
+import akka.stream.Materializer;
+
 /**
  *
  */
@@ -23,10 +27,9 @@ public class NingWSAPI implements WSAPI {
     private final NingWSClient client;
 
     @Inject
-    public NingWSAPI(NingWSClientConfig clientConfig, ApplicationLifecycle lifecycle) {
-        client = new NingWSClient(
-                new NingAsyncHttpClientConfigBuilder(clientConfig).build()
-        );
+    public NingWSAPI(NingWSClientConfig clientConfig, ApplicationLifecycle lifecycle, Materializer materializer) {
+        AsyncHttpClientConfig config = new NingAsyncHttpClientConfigBuilder(clientConfig).build();
+        client = new NingWSClient(config, materializer);
         lifecycle.addStopHook(() -> {
             client.close();
             return F.Promise.pure(null);

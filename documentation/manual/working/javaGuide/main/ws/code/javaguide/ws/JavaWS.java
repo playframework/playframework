@@ -31,6 +31,7 @@ import play.api.libs.ws.ning.NingWSClientConfigFactory;
 import play.api.libs.ws.ssl.SSLConfigFactory;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import scala.concurrent.duration.Duration;
+import akka.stream.Materializer;
 // #ws-custom-client-imports
 
 public class JavaWS {
@@ -182,7 +183,8 @@ public class JavaWS {
                             .setProxyServer(new org.asynchttpclient.proxy.ProxyServer("127.0.0.1", 38080))
                             .setCompressionEnforced(true)
                             .build();
-            WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig);
+            Materializer materializer = play.api.Play.current().materializer();
+            WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig, materializer);
 
             Promise<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
             // #ws-custom-client

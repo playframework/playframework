@@ -1,5 +1,7 @@
 package play.api.test
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import play.api.libs.ws._
 import play.api.libs.ws.ning.{ NingWSClientConfig, NingWSClient }
 
@@ -53,8 +55,11 @@ trait WsTestClient {
    * @return The result of the block of code
    */
   def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1)) = {
+    val name = "ws-test-client-" + WsTestClient.instanceNumber.getAndIncrement
+    val system = ActorSystem(name)
+    val materializer = ActorMaterializer(namePrefix = Some(name))(system)
     // Don't retry for tests
-    val client = NingWSClient(NingWSClientConfig(maxRequestRetry = 0))
+    val client = NingWSClient(NingWSClientConfig(maxRequestRetry = 0))(materializer)
     val wrappedClient = new WSClient {
       def underlying[T] = client.underlying.asInstanceOf[T]
       def url(url: String) = {
@@ -71,9 +76,14 @@ trait WsTestClient {
       block(wrappedClient)
     } finally {
       client.close()
+      system.shutdown()
     }
   }
-
 }
 
-object WsTestClient extends WsTestClient
+object WsTestClient extends WsTestClient {
+  import java.util.concurrent.atomic.AtomicInteger
+  // This is used to create fresh names when creating `ActorMaterializer` instances in `WsTestClient.withClient`.
+  // The motivation is that it can be useful for debugging.
+  private val instanceNumber = new AtomicInteger(1)
+}

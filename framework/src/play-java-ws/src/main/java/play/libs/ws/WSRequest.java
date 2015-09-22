@@ -5,6 +5,10 @@ package play.libs.ws;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
+
 import play.libs.F;
 
 import java.io.File;
@@ -184,13 +188,21 @@ public interface WSRequest {
 
     /**
      * Set the body this request should use.
+     *
+     * @deprecated use {@link #setBody(Source)} instead.
      */
+    @Deprecated
     WSRequest setBody(InputStream body);
 
     /**
      * Set the body this request should use.
      */
     WSRequest setBody(File body);
+
+    /**
+     * Set the body this request should use.
+     */
+    WSRequest setBody(Source<ByteString,?> body);
 
     /**
      * Adds a header to the request.  Note that duplicate headers are allowed
