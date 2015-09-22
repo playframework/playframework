@@ -263,7 +263,7 @@ object BodyParser {
    * }
    * }}}
    */
-  @deprecated("Use Akka streams instead", "2.5.0")
+  @deprecated("Use apply instead", "2.5.0")
   def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
     iteratee("(no name)")(f)
   }
@@ -278,7 +278,7 @@ object BodyParser {
    * }
    * }}}
    */
-  @deprecated("Use Akka streams instead", "2.5.0")
+  @deprecated("Use apply instead", "2.5.0")
   def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
     override def toString = "BodyParser(" + debugName + ")"
