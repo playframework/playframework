@@ -105,7 +105,7 @@ object JsMacroImpl {
     val applies =
       companionType.decl(TermName("apply")) match {
         case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
-        case s => s.asMethod.alternatives
+        case s => s.asTerm.alternatives
       }
 
     // Find an apply method that matches the unapply
