@@ -55,7 +55,7 @@ object Dependencies {
   )
   val javassist = link
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
   val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 
   val springFrameworkVersion = "4.1.6.RELEASE"
