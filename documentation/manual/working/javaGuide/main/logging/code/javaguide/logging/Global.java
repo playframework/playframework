@@ -17,7 +17,7 @@ public class Global extends GlobalSettings {
   @Override
   @SuppressWarnings("rawtypes")
   public Action onRequest(Request request, Method method) {
-    accessLogger.info("method=" + request.method() + " uri=" + request.uri() + " remote-address=" + request.remoteAddress());
+    accessLogger.info("method={} uri={} remote-address={}", request.method(), request.uri(), request.remoteAddress());
     
     return super.onRequest(request, method);
   }
