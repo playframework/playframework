@@ -1,140 +1,113 @@
 package play.api.libs.ws.ning
 
-import scala.concurrent.Future
-import scala.concurrent.Promise
-
-import com.ning.http.client.AsyncHandler
-import com.ning.http.client.AsyncHandler.STATE
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.HttpResponseBodyPart
-import com.ning.http.client.HttpResponseHeaders
-import com.ning.http.client.HttpResponseStatus
-import com.ning.http.client.Request
-
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.libs.iteratee.Done
+import java.lang.IllegalStateException
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import org.asynchttpclient.handler.StreamedAsyncHandler
+import org.asynchttpclient.AsyncHandler.State
+import org.asynchttpclient.AsyncHttpClient
+import org.asynchttpclient.HttpResponseBodyPart
+import org.asynchttpclient.HttpResponseHeaders
+import org.asynchttpclient.HttpResponseStatus
+import org.asynchttpclient.Request
+import org.reactivestreams.Publisher
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.Error
-import play.api.libs.iteratee.Input.El
-import play.api.libs.iteratee.Iteratee
-import play.api.libs.iteratee.Step
 import play.api.libs.streams.Streams
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.ws.WSResponseHeaders
 import play.api.libs.ws.StreamedResponse
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 
 private[play] object StreamedRequest {
 
   def execute(client: AsyncHttpClient, request: Request): Future[StreamedResponse] = {
-    val result = executeAndReturnEnumerator(client, request)
-    import play.core.Execution.Implicits.internalContext
-    result.map {
-      case (response, enumerator) =>
-        val publisher = Streams.enumeratorToPublisher(enumerator)
-        StreamedResponse(response, Source(publisher).map(ByteString(_)))
+    val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
+    client.executeRequest(request, new DefaultStreamedAsyncHandler(promise))
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    promise.future.map {
+      case (headers, publisher) =>
+        // this transformation is not part of `DefaultStreamedAsyncHandler.onCompleted` because 
+        // a reactive-streams `Publisher` needs to be returned to implement `execute2`. Though, 
+        // once `execute2` is removed, we should move the code here inside 
+        // `DefaultStreamedAsyncHandler.onCompleted`.
+        val source = Source(publisher).map(bodyPart => ByteString(bodyPart.getBodyPartBytes))
+        StreamedResponse(headers, source)
     }
   }
 
-  def executeAndReturnEnumerator(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
-    import com.ning.http.client.AsyncHandler
+  // This method was introduced because in Play we have utilities that makes it easy to convert a `Publisher` into an `Enumerator`, 
+  // while it's not as easy to convert an akka-stream Source to a reactive-streams `Publisher` (as it requires materialization of 
+  // the stream). This is why `DefaultStreamedAsyncHandler`'s constructor takes a `Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]` 
+  // and not a `Promise[(WSResponseHeaders, Source[ByteString])]`. In fact, the moment this method is removed, we should refactor the 
+  // `DefaultStreamedAsyncHandler`' constructor parameter's type to the latter.
+  // This method is `deprecated` because we should remember to remove it together with `NingWSRequest.streamWithEnumerator`.
+  @deprecated("2.5", "Use `execute()` instead.")
+  def execute2(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+    val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
+    client.executeRequest(request, new DefaultStreamedAsyncHandler(promise))
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    promise.future.map {
+      case (headers, publisher) =>
+        val enumerator = Streams.publisherToEnumerator(publisher).map(_.getBodyPartBytes)
+        (headers, enumerator)
+    }
+  }
 
-    val result = Promise[(WSResponseHeaders, Enumerator[Array[Byte]])]()
+  private class DefaultStreamedAsyncHandler(promise: Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]) extends StreamedAsyncHandler[Unit] {
+    private var statusCode: Int = _
+    private var responseHeaders: WSResponseHeaders = _
+    private var publisher: Publisher[HttpResponseBodyPart] = _
 
-    val errorInStream = Promise[Unit]()
+    def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
+      if (this.publisher != null) State.ABORT
+      else {
+        this.publisher = publisher
+        promise.success((responseHeaders, publisher))
+        State.CONTINUE
+      }
+    }
 
-    val promisedIteratee = Promise[Iteratee[Array[Byte], Unit]]()
-
-    @volatile var doneOrError = false
-    @volatile var statusCode = 0
-    @volatile var current: Iteratee[Array[Byte], Unit] = Iteratee.flatten(promisedIteratee.future)
-
-    client.executeRequest(request, new AsyncHandler[Unit]() {
-
-      import com.ning.http.client.AsyncHandler.STATE
-
-      @throws(classOf[Exception])
-      override def onStatusReceived(status: HttpResponseStatus): STATE = {
+    override def onStatusReceived(status: HttpResponseStatus): State = {
+      if (this.publisher != null) State.ABORT
+      else {
         statusCode = status.getStatusCode
-        STATE.CONTINUE
+        State.CONTINUE
       }
+    }
 
-      @throws(classOf[Exception])
-      override def onHeadersReceived(h: HttpResponseHeaders): STATE = {
+    override def onHeadersReceived(h: HttpResponseHeaders): State = {
+      if (this.publisher != null) State.ABORT
+      else {
         val headers = h.getHeaders
-
-        val responseHeader = DefaultWSResponseHeaders(statusCode, NingWSRequest.ningHeadersToMap(headers))
-        val enumerator = new Enumerator[Array[Byte]]() {
-          def apply[A](i: Iteratee[Array[Byte], A]) = {
-
-            val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
-
-            import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-            // Map it so that we can complete the iteratee when it returns
-            val mapped = i.map {
-              a =>
-                doneIteratee.trySuccess(Done(a))
-                ()
-            }.recover {
-              // but if an error happens, we want to propogate that
-              case e =>
-                doneIteratee.tryFailure(e)
-                throw e
-            }
-
-            // Redeem the iteratee that we promised to the AsyncHandler
-            promisedIteratee.trySuccess(mapped)
-
-            // If there's an error in the stream from upstream, then fail this returned future with that
-            errorInStream.future.onFailure {
-              case e => doneIteratee.tryFailure(e)
-            }
-
-            doneIteratee.future
-          }
-        }
-
-        result.trySuccess((responseHeader, enumerator))
-        STATE.CONTINUE
+        responseHeaders = DefaultWSResponseHeaders(statusCode, NingWSRequest.ningHeadersToMap(headers))
+        State.CONTINUE
       }
+    }
 
-      @throws(classOf[Exception])
-      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): STATE = {
-        if (!doneOrError) {
-          import play.api.libs.concurrent.Execution.Implicits.defaultContext
-          current = current.pureFlatFold {
-            case Step.Done(a, e) =>
-              doneOrError = true
-              Done(a, e)
+    override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): State =
+      throw new IllegalStateException("Should not have received body part")
 
-            case Step.Cont(k) =>
-              k(El(bodyPart.getBodyPartBytes))
+    override def onCompleted(): Unit = {
+      // EmptyPublisher can be replaces with `Source.empty` when we carry out the refactoring 
+      // mentioned in the `execute2` method.
+      promise.trySuccess((responseHeaders, EmptyPublisher))
+    }
 
-            case Step.Error(e, input) =>
-              doneOrError = true
-              Error(e, input)
+    override def onThrowable(t: Throwable): Unit = promise.tryFailure(t)
+  }
 
-          }
-          STATE.CONTINUE
-        } else {
-          current = null
-          // Must close underlying connection, otherwise async http client will drain the stream
-          bodyPart.markUnderlyingConnectionAsToBeClosed()
-          STATE.ABORT
-        }
-      }
-
-      @throws(classOf[Exception])
-      override def onCompleted(): Unit = {
-        Option(current).foreach(_.run)
-      }
-
-      override def onThrowable(t: Throwable): Unit = {
-        result.tryFailure(t)
-        errorInStream.tryFailure(t)
-      }
-    })
-    result.future
+  private case object EmptyPublisher extends Publisher[HttpResponseBodyPart] {
+    def subscribe(s: Subscriber[_ >: HttpResponseBodyPart]): Unit = {
+      if (s eq null) throw new NullPointerException("Subscriber must not be null, rule 1.9")
+      s.onSubscribe(CancelledSubscription)
+      s.onComplete()
+    }
+    private case object CancelledSubscription extends Subscription {
+      override def request(elements: Long): Unit = ()
+      override def cancel(): Unit = ()
+    }
   }
 }

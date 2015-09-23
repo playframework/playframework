@@ -20,6 +20,7 @@ import scala.concurrent.duration._
 
 import play.api.mvc._
 import play.api.libs.ws._
+import play.api.http.HttpEntity
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -42,14 +43,6 @@ case class Person(name: String, age: Int)
  */
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
-
-  // This needs to be removed when https://github.com/playframework/playframework/issues/4688 is fixed.
-  import play.api.libs.iteratee._
-  implicit def source2enumerator(source: Source[ByteString, _]): Enumerator[Array[Byte]] = {
-    import play.api.libs.streams.Streams
-    val publisher = source.map(_.toArray).runWith(Sink.publisher)
-    Streams.publisherToEnumerator(publisher)
-  }
 
   val url = s"http://localhost:$testServerPort/"
 
@@ -357,7 +350,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
                   // If there's a content length, send that, otherwise return the body chunked
                   response.headers.get("Content-Length") match {
                     case Some(Seq(length)) =>
-                      Ok.feed(body).as(contentType).withHeaders("Content-Length" -> length)
+                      Ok.sendEntity(HttpEntity.Streamed(body, Some(length.toLong), Some(contentType)))
                     case _ =>
                       Ok.chunked(body).as(contentType)
                   }
@@ -513,7 +506,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "grant access to the underlying client" in withSimpleServer { ws =>
       //#underlying
-      import com.ning.http.client.AsyncHttpClient
+      import org.asynchttpclient.AsyncHttpClient
 
       val client: AsyncHttpClient = ws.underlying
       //#underlying

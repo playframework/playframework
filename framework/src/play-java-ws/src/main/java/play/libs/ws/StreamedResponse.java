@@ -5,7 +5,6 @@ import java.util.concurrent.CompletionStage;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import play.libs.ws.util.CollectionUtil;
-import scala.Tuple2;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 

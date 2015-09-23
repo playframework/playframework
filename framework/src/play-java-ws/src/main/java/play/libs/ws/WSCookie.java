@@ -3,7 +3,6 @@
  */
 package play.libs.ws;
 
-
 /**
  * A WS Cookie.
  */

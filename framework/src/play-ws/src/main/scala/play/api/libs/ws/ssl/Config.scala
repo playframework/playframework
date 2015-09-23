@@ -8,7 +8,7 @@ package play.api.libs.ws.ssl
 import play.api.PlayConfig
 import java.security.{ KeyStore, SecureRandom }
 import java.net.URL
-import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory, HostnameVerifier }
+import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory }
 
 /**
  * Configuration for a keystore.
@@ -143,7 +143,6 @@ case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = f
  *                                 default.
  * @param allowUnsafeRenegotiation Whether unsafe renegotiation should be allowed or not. If None, uses the platform
  *                                 default.
- * @param disableHostnameVerification Whether hostname verification should be disabled.
  * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not.
  */
 case class SSLLooseConfig(
@@ -151,7 +150,6 @@ case class SSLLooseConfig(
   allowWeakProtocols: Boolean = false,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
-  disableHostnameVerification: Boolean = false,
   acceptAnyCertificate: Boolean = false)
 
 /**
@@ -167,7 +165,6 @@ case class SSLLooseConfig(
  * @param disabledKeyAlgorithms The disabled key algorithms.
  * @param keyManagerConfig The key manager configuration.
  * @param trustManagerConfig The trust manager configuration.
- * @param hostnameVerifierClass The hostname verifier class.
  * @param secureRandom The SecureRandom instance to use. Let the platform choose if None.
  * @param debug The debug config.
  * @param loose Loose configuratino parameters
@@ -183,7 +180,6 @@ case class SSLConfig(
   disabledKeyAlgorithms: Seq[String] = Seq("RSA keySize < 2048", "DSA keySize < 2048", "EC keySize < 224"),
   keyManagerConfig: KeyManagerConfig = KeyManagerConfig(),
   trustManagerConfig: TrustManagerConfig = TrustManagerConfig(),
-  hostnameVerifierClass: Class[_ <: HostnameVerifier] = classOf[DefaultHostnameVerifier],
   secureRandom: Option[SecureRandom] = None,
   debug: SSLDebugConfig = SSLDebugConfig(),
   loose: SSLLooseConfig = SSLLooseConfig())
@@ -217,11 +213,6 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
     val ciphers = Some(c.get[Seq[String]]("enabledCipherSuites")).filter(_.nonEmpty)
     val protocols = Some(c.get[Seq[String]]("enabledProtocols")).filter(_.nonEmpty)
 
-    val hostnameVerifierClass = c.get[Option[String]]("hostnameVerifierClass") match {
-      case None => classOf[DefaultHostnameVerifier]
-      case Some(fqcn) => classLoader.loadClass(fqcn).asSubclass(classOf[HostnameVerifier])
-    }
-
     val disabledSignatureAlgorithms = c.get[Seq[String]]("disabledSignatureAlgorithms")
     val disabledKeyAlgorithms = c.get[Seq[String]]("disabledKeyAlgorithms")
 
@@ -237,7 +228,6 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
       enabledCipherSuites = ciphers,
       enabledProtocols = protocols,
       keyManagerConfig = keyManagers,
-      hostnameVerifierClass = hostnameVerifierClass,
       disabledSignatureAlgorithms = disabledSignatureAlgorithms,
       disabledKeyAlgorithms = disabledKeyAlgorithms,
       trustManagerConfig = trustManagers,
@@ -255,7 +245,6 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
     val allowWeakCiphers = config.get[Boolean]("allowWeakCiphers")
     val allowMessages = config.get[Option[Boolean]]("allowLegacyHelloMessages")
     val allowUnsafeRenegotiation = config.get[Option[Boolean]]("allowUnsafeRenegotiation")
-    val disableHostnameVerification = config.get[Boolean]("disableHostnameVerification")
     val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
 
     SSLLooseConfig(
@@ -263,7 +252,6 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
       allowWeakProtocols = allowWeakProtocols,
       allowLegacyHelloMessages = allowMessages,
       allowUnsafeRenegotiation = allowUnsafeRenegotiation,
-      disableHostnameVerification = disableHostnameVerification,
       acceptAnyCertificate = acceptAnyCertificate
     )
   }

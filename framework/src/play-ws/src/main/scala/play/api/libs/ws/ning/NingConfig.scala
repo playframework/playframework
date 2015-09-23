@@ -11,7 +11,7 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import org.slf4j.LoggerFactory
 
-import com.ning.http.client.AsyncHttpClientConfig
+import org.asynchttpclient.AsyncHttpClientConfig
 
 import javax.net.ssl._
 import play.api.{ PlayConfig, Environment, Configuration }
@@ -190,7 +190,16 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     builder.setWebSocketTimeout(toMillis(ningConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
-    builder.setDisableUrlEncodingForBoundedRequests(ningConfig.disableUrlEncoding)
+    builder.setDisableUrlEncodingForBoundRequests(ningConfig.disableUrlEncoding)
+    // forcing shutdown of the AHC event loop because otherwise the test suite fails with a 
+    // OutOfMemoryException: cannot create new native thread. This is because when executing 
+    // tests in parallel there can be many threads pool that are left around because AHC is 
+    // shutting them down gracefully.
+    // The proper solution is to make these parameters configurable, so that they can be set 
+    // to 0 when running tests, and keep sensible defaults otherwise. AHC defaults are 
+    // shutdownQuiet=2000 (milliseconds) and shutdownTimeout=15000 (milliseconds).
+    builder.setShutdownQuiet(0)
+    builder.setShutdownTimeout(0)
   }
 
   /**
@@ -276,16 +285,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
-    // Hostname Processing
-    if (!sslConfig.loose.disableHostnameVerification) {
-      val hostnameVerifier = buildHostnameVerifier(sslConfig)
-      builder.setHostnameVerifier(hostnameVerifier)
-    } else {
-      logger.warn("buildHostnameVerifier: disabling hostname verification")
-      val disabledHostnameVerifier = new DisabledComplainingHostnameVerifier
-      builder.setHostnameVerifier(disabledHostnameVerifier)
-    }
-
     builder.setSSLContext(sslContext)
   }
 
@@ -295,16 +294,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
   def buildTrustManagerFactory(ssl: SSLConfig): TrustManagerFactoryWrapper = {
     new DefaultTrustManagerFactoryWrapper(ssl.trustManagerConfig.algorithm)
-  }
-
-  def buildHostnameVerifier(sslConfig: SSLConfig): HostnameVerifier = {
-    logger.debug("buildHostnameVerifier: enabling hostname verification using {}", sslConfig.hostnameVerifierClass)
-    try {
-      sslConfig.hostnameVerifierClass.newInstance()
-    } catch {
-      case e: Exception =>
-        throw new IllegalStateException("Cannot configure hostname verifier", e)
-    }
   }
 
   def validateDefaultTrustManager(sslConfig: SSLConfig) {
