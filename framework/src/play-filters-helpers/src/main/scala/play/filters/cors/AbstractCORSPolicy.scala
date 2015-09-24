@@ -309,7 +309,7 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   private def isOriginAllowed(origin: String): Boolean = {
-    corsConfig.anyOriginAllowed || corsConfig.allowedOrigins.contains(origin)
+    corsConfig.anyOriginAllowed || corsConfig.allowedOrigins.contains(origin) || corsConfig.allowedOrigins.contains("*")
   }
 
   // http://tools.ietf.org/html/rfc6454#section-7.1
