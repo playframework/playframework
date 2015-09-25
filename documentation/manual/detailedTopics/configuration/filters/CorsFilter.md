@@ -19,6 +19,12 @@ Scala
 Java
 : @[filters](code/detailedtopics/configuration/cors/Filters.java)
 
+The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+
+```
+play.http.filters = "filters.MyFilters"
+```
+
 ## Configuring the CORS filter
 
 The filter can be configured from `application.conf`.  For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
