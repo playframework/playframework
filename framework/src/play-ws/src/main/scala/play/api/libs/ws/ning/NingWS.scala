@@ -329,8 +329,7 @@ case class NingWSRequest(client: NingWSClient,
     import org.asynchttpclient.proxy.ProxyServer.Protocol
 
     val protocol: Protocol = wsProxyServer.protocol.getOrElse("http").toLowerCase(java.util.Locale.ENGLISH) match {
-      case "http" => Protocol.HTTP
-      case "https" => Protocol.HTTPS
+      case "http" | "https" => Protocol.HTTP
       case "kerberos" => Protocol.KERBEROS
       case "ntlm" => Protocol.NTLM
       case "spnego" => Protocol.SPNEGO

@@ -6,6 +6,7 @@ package play.api.libs.ws.ning
 import akka.util.{ ByteString, Timeout }
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
 import org.asynchttpclient.{ AsyncHttpClient, AsyncHttpClientConfig, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse, Request => AHCRequest }
+import org.asynchttpclient.proxy.ProxyServer
 import org.specs2.mock.Mockito
 import scala.concurrent.duration._
 
@@ -192,7 +193,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo "https"
+      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must be equalTo "principal"
@@ -204,7 +205,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo "http"
+      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must beNull
