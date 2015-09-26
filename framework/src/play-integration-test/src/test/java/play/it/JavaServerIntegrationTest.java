@@ -6,11 +6,9 @@ package play.it;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import play.Mode;
 import play.api.routing.Router;
 import play.test.Helpers;
 import play.server.Server;
-import play.server.Server.PortConfig;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -21,18 +19,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JavaServerIntegrationTest {
     @Test
     public void testHttpEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
         int port = _availablePort();
-        _running(Server.forRouter(_emptyRouter(), port), server -> {
+        _running(new Server.Builder().http(port).build(_emptyRouter()), server -> {
             assertTrue(_isPortOccupied(port));
             assertFalse(_isServingSSL(port));
             assertEquals(server.httpPort(), port);
             try {
                 server.httpsPort();
-                fail("Exception should be thrown on accessing https port of server started in http mode");
+                fail("Exception should be thrown on accessing https port of server that is not serving that protocol");
             } catch (IllegalStateException e) {}
         });
         assertFalse(_isPortOccupied(port));
@@ -41,18 +41,51 @@ public class JavaServerIntegrationTest {
     @Test
     public void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
         int port = _availablePort();
-        _running(Server.forRouter(_emptyRouter(), Mode.DEV, PortConfig.https(port)), server -> {
+        _running(new Server.Builder().https(port).build(_emptyRouter()), server -> {
             assertEquals(server.httpsPort(), port);
             assertTrue(_isServingSSL(port));
 
             try {
                 server.httpPort();
-                fail("Exception should be thrown ona ccessing http port of server started in https mode");
-            } catch (IllegalStateException e) {}
+                fail("Exception should be thrown on accessing http port of server that is not serving that protocol");
+            } catch (IllegalStateException e) {
+            }
         });
         assertFalse(_isPortOccupied(port));
     }
 
+    @Test
+    public void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
+        List<Integer> availablePorts = _availablePorts(2);
+        int httpPort = availablePorts.get(0);
+        int httpsPort = availablePorts.get(1);
+
+        _running(new Server.Builder().http(httpPort).https(httpsPort).build(_emptyRouter()), server -> {
+            // HTTP port should be serving http in the clear
+            assertTrue(_isPortOccupied(httpPort));
+            assertFalse(_isServingSSL(httpPort));
+            assertEquals(server.httpPort(), httpPort);
+
+            // HTTPS port should be serving over SSL
+            assertTrue(_isPortOccupied(httpsPort));
+            assertTrue(_isServingSSL(httpsPort));
+            assertEquals(server.httpsPort(), httpsPort);
+        });
+
+        assertFalse(_isPortOccupied(httpPort));
+        assertFalse(_isPortOccupied(httpsPort));
+    }
+
+    @Test
+    public void testEmbeddedServerWillChooseAnHTTPPortIfNotProvided() throws Exception {
+        _running(new Server.Builder().build(_emptyRouter()), server -> {
+            assertTrue(_isPortOccupied(server.httpPort()));
+        });
+    }
+
+    //
+    // Private helpers
+    //
     private void _running(Server server, ServerRunnable runnable) throws Exception {
         try {
             runnable.run(server);
@@ -66,11 +99,23 @@ public class JavaServerIntegrationTest {
     }
 
     private int _availablePort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int port = socket.getLocalPort();
-        socket.close();
+        return _availablePorts(1).get(0);
+    }
 
-        return port;
+    private List<Integer> _availablePorts(int n) throws IOException {
+        List<ServerSocket> sockets = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            ServerSocket socket = new ServerSocket(0);
+            sockets.add(socket);
+        }
+
+        List<Integer> portNumbers = new ArrayList<>();
+        for (ServerSocket socket : sockets) {
+            portNumbers.add(socket.getLocalPort());
+            socket.close();
+        }
+
+        return portNumbers;
     }
 
     private boolean _isServingSSL(int port) throws IOException {
