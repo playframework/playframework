@@ -52,5 +52,10 @@ object RoutesCompilerSpec extends Specification with FileMatchers {
       val file = new File(this.getClass.getClassLoader.getResource("complexTypes.routes").toURI)
       RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
     }
+
+    "check if routes with complex names are compiled" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("complexNames.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
+    }
   }
 }

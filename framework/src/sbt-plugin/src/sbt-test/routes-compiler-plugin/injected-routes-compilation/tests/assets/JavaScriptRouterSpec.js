@@ -26,6 +26,19 @@ describe("The JavaScript router", function() {
         var data = jsRoutes.controllers.Application.takeBool(true);
         assert.equal("/take-bool?b=true", data.url);
     });
+    it("should add complex named parameters to the query string", function() {
+        var data = jsRoutes.controllers.Application.takeListTickedParam([1,2,3]);
+        var pname = encodeURI('b[]');
+        qs = [1,2,3].map(function(i){return pname + '=' + i}).join('&');
+        assert.equal("/take-list-tick-param?" + qs, data.url);
+    });
+    it("should avoid name colisions on query string with complex names", function() {
+        var data = jsRoutes.controllers.Application.takeTickedParams([1,2,3], "c");
+        var pname1 = encodeURI('b[]');
+        var pname2 = encodeURI('b%%')
+        qs = [1,2,3].map(function(i){return pname1 + '=' + i}).concat(pname2 + '=c').join('&');
+        assert.equal("/take-ticked-params?" + qs, data.url);
+    });
     it("should properly escape the host", function() {
         var data = jsRoutesBadHost.controllers.Application.index();
         assert(data.absoluteURL().indexOf("'}}};alert(1);a={a:{a:{a:'") >= 0)

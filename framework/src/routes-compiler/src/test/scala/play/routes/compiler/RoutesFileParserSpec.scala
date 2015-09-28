@@ -107,6 +107,11 @@ object RoutesFileParserSpec extends Specification {
       parseRoute("GET /s p.c.m(i: Int = 3)").call.parameters.get.head.fixed must beSome("3")
     }
 
+    "parse argument with complex name" in {
+      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(Seq(
+        Parameter("`b[]`", "List[String]", None, Some("[]"))))
+    }
+
     "parse a non instantiating route" in {
       parseRoute("GET /s p.c.m").call.instantiate must_== false
     }
