@@ -159,6 +159,8 @@ As you may have noticed, before calling `stream()` we need to set the HTTP metho
 
 @[stream-put](code/ScalaWSSpec.scala)
 
+Of course, you can use any other valid HTTP verb.
+
 ## Common Patterns and Use Cases
 
 ### Chaining WS calls

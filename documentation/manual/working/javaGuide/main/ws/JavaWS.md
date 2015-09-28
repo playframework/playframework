@@ -107,11 +107,31 @@ Similarly, you can process the response as XML by calling `response.asXml()`.
 
 ### Processing large responses
 
-When you are downloading a large file or document, `WS` allows you to get the response body as an `InputStream` so you can process the data without loading the entire content into memory at once.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
 
-@[ws-response-input-stream](code/javaguide/ws/JavaWS.java)
+`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<StreamedResponse>`. A `StreamedResponse` is a simple container holding together the response's headers and body.
 
-This example will read the response body and write it to a file in buffered increments.
+Any controller or component that wants to levearge the WS streaming functionality will have to add the following imports and dependencies:
+
+@[ws-streams-controller](code/javaguide/ws/MyController.java)
+
+Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
+
+@[stream-count-bytes](code/javaguide/ws/JavaWS.java)
+
+Alternatively, you could also stream the body out to another location. For example, a file:
+
+@[stream-to-file](code/javaguide/ws/JavaWS.java)
+
+Another common destination for response bodies is to stream them back from a controller's `Action`:
+
+@[stream-to-result](code/javaguide/ws/JavaWS.java)
+
+As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `setMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
+
+@[stream-put](code/javaguide/ws/JavaWS.java)
+
+Of course, you can use any other valid HTTP verb.
 
 ## Common Patterns and Use Cases
 
