@@ -17,6 +17,7 @@ import play.libs.Json;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.*;
 
 import org.w3c.dom.Document;
 import play.mvc.Result;
@@ -31,7 +32,10 @@ import play.api.libs.ws.ning.NingWSClientConfigFactory;
 import play.api.libs.ws.ssl.SSLConfigFactory;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import scala.concurrent.duration.Duration;
+
 import akka.stream.Materializer;
+import akka.stream.javadsl.*;
+import akka.util.ByteString;
 // #ws-custom-client-imports
 
 public class JavaWS {
@@ -96,6 +100,15 @@ public class JavaWS {
 
             ws.url(url).post(json);
             // #ws-post-json
+
+            String value = IntStream.range(0,100).boxed().
+                map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
+            ByteString seedValue = ByteString.fromString(value);
+            Stream<ByteString> largeSource = IntStream.range(0,10).boxed().map(i -> seedValue);
+            Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
+            // #ws-stream-request
+            Promise<WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
+            // #ws-stream-request
         }
 
         public void responseExamples() {

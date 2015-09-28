@@ -93,6 +93,16 @@ The easiest way to post XML data is to use XML literals.  XML literals are conve
 
 @[scalaws-post-xml](code/ScalaWSSpec.scala)
 
+### Streaming data
+
+It's also possible to stream data.
+
+For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](http://slick.typesafe.com/) does), here is an example showing how you could implement the described behavior:
+
+@[scalaws-stream-request](code/ScalaWSSpec.scala)
+
+The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[ByteString, _]`.
+
 ## Processing the Response
 
 Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).

@@ -79,6 +79,16 @@ The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]]
 
 @[ws-post-json](code/javaguide/ws/JavaWS.java)
 
+### Streaming data
+
+It's also possible to stream data.
+
+Here is an example showing how you could stream a large image to a different endpoint for further processing:
+
+@[ws-stream-request](code/javaguide/ws/JavaWS.java)
+
+The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString, ?>`.
+
 ## Processing the Response
 
 Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by mapping inside the `Promise`.

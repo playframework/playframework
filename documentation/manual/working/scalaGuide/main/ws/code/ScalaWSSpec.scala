@@ -386,7 +386,19 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         //#stream-count-bytes
         await(bytesReturned) must_== 10000l
       }
-    }
+
+
+    "stream request body" in withServer {
+        case ("PUT", "/") => Action(Ok(""))
+      } { ws =>
+        def largeImageFromDB: Source[ByteString, _] = largeSource
+        //#scalaws-stream-request
+        val wsResponse: Future[WSResponse] = ws.url(url)
+          .withBody(StreamedBody(largeImageFromDB)).execute("PUT")
+        //#scalaws-stream-request
+        await(wsResponse).status must_== 200
+      }
+    }    
 
     "work with for comprehensions" in withServer {
       case ("GET", "/one") =>
