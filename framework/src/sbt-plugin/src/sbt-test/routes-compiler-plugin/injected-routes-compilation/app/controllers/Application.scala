@@ -46,4 +46,7 @@ class Application extends Controller {
   def hello = Action {
     Ok("Hello world!")
   }
+  def interpolatorWarning(parameter: String) = Action {
+    Ok(parameter)
+  }
 }
