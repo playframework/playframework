@@ -5,6 +5,7 @@
 package play.it.action
 
 import org.specs2.mutable.Specification
+import play.api.Play
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.libs.iteratee.Enumerator
@@ -52,6 +53,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
       Server.withRouter()(routes) { implicit port =>
+        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }
@@ -60,6 +62,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       Server.withRouter() {
         case _ => action
       } { implicit port =>
+        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }

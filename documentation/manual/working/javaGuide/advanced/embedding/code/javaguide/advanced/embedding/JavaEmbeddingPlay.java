@@ -4,6 +4,8 @@
 package javaguide.advanced.embedding;
 
 import org.asynchttpclient.AsyncHttpClientConfig;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import play.libs.F;
@@ -13,10 +15,13 @@ import play.libs.ws.ning.NingWSClient;
 import java.util.function.Consumer;
 
 //#imports
+import javax.inject.Inject;
+import play.api.Play;
 import play.Mode;
 import play.routing.RoutingDsl;
 import play.server.Server;
 import static play.mvc.Controller.*;
+import akka.stream.Materializer;
 //#imports
 
 import static org.hamcrest.CoreMatchers.*;
@@ -73,7 +78,8 @@ public class JavaEmbeddingPlay {
     }
 
     private void withClient(Consumer<WSClient> callback) {
-        try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build())) {
+        Materializer materializer = Play.current().materializer();
+        try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
             callback.accept(client);
         }
     }

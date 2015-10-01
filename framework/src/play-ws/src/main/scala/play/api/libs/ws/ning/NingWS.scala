@@ -3,6 +3,7 @@
  */
 package play.api.libs.ws.ning
 
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.asynchttpclient.{ Response => AHCResponse, _ }
@@ -27,6 +28,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.Duration
+import akka.stream.scaladsl.Sink
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -35,7 +37,7 @@ import scala.concurrent.duration.Duration
  *
  * @param config a client configuration object
  */
-case class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
+case class NingWSClient(config: AsyncHttpClientConfig)(implicit materializer: Materializer) extends WSClient {
 
   private val asyncHttpClient = new DefaultAsyncHttpClient(config)
 
@@ -65,7 +67,7 @@ object NingWSClient {
    *
    * @param config configuration settings
    */
-  def apply(config: NingWSClientConfig = NingWSClientConfig()): NingWSClient = {
+  def apply(config: NingWSClientConfig = NingWSClientConfig())(implicit materializer: Materializer): NingWSClient = {
     val client = new NingWSClient(new NingAsyncHttpClientConfigBuilder(config).build())
     new SystemConfiguration().configure(config.wsClientConfig)
     client
@@ -95,7 +97,7 @@ case class NingWSRequest(client: NingWSClient,
     requestTimeout: Option[Int],
     virtualHost: Option[String],
     proxyServer: Option[WSProxyServer],
-    disableUrlEncoding: Option[Boolean]) extends WSRequest {
+    disableUrlEncoding: Option[Boolean])(implicit materializer: Materializer) extends WSRequest {
 
   def sign(calc: WSSignatureCalculator): WSRequest = copy(calc = Some(calc))
 
@@ -139,10 +141,10 @@ case class NingWSRequest(client: NingWSClient,
 
   def execute(): Future[WSResponse] = execute(buildRequest())
 
-  def stream(): Future[StreamedResponse] = StreamedRequest.execute(client.underlying, buildRequest())
+  def stream(): Future[StreamedResponse] = Streamed.execute(client.underlying, buildRequest())
 
   @deprecated("2.5", "Use `stream()` instead.")
-  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = StreamedRequest.execute2(client.underlying, buildRequest())
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = Streamed.execute2(client.underlying, buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
@@ -285,8 +287,8 @@ case class NingWSRequest(client: NingWSClient,
         }
 
         builder
-      case StreamedBody(bytes) =>
-        builder
+      case StreamedBody(source) =>
+        builder.setBody(source.map(_.toByteBuffer).runWith(Sink.publisher))
     }
 
     // headers
@@ -371,7 +373,7 @@ class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
 }
 
 @Singleton
-class NingWSAPI @Inject() (environment: Environment, clientConfig: NingWSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
+class NingWSAPI @Inject() (environment: Environment, clientConfig: NingWSClientConfig, lifecycle: ApplicationLifecycle)(implicit materializer: Materializer) extends WSAPI {
 
   private val logger = Logger(classOf[NingWSAPI])
 
@@ -544,10 +546,11 @@ trait NingWSComponents {
   def environment: Environment
   def configuration: Configuration
   def applicationLifecycle: ApplicationLifecycle
+  def materializer: Materializer
 
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   lazy val ningWsClientConfig: NingWSClientConfig =
     new NingWSClientConfigParser(wsClientConfig, configuration, environment).parse()
-  lazy val wsApi: WSAPI = new NingWSAPI(environment, ningWsClientConfig, applicationLifecycle)
+  lazy val wsApi: WSAPI = new NingWSAPI(environment, ningWsClientConfig, applicationLifecycle)(materializer)
   lazy val wsClient: WSClient = wsApi.client
 }

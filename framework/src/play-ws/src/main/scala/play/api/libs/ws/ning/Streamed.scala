@@ -21,7 +21,7 @@ import play.api.libs.ws.StreamedResponse
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 
-private[play] object StreamedRequest {
+private[play] object Streamed {
 
   def execute(client: AsyncHttpClient, request: Request): Future[StreamedResponse] = {
     val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()

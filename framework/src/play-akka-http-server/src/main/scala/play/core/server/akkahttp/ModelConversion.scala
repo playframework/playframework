@@ -108,9 +108,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
         // FIXME: should do something with the content-length?
         pubr
       case HttpEntity.Chunked(contentType, chunks) =>
-        // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        chunks.map(_.data())
+        chunks.takeWhile(!_.isLastChunk).map(_.data())
     }
   }
 

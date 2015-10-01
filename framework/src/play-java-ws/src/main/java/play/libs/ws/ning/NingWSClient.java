@@ -4,6 +4,8 @@
 
 package play.libs.ws.ning;
 
+import akka.stream.Materializer;
+
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -19,9 +21,11 @@ import play.libs.ws.WSRequest;
 public class NingWSClient implements WSClient {
 
     private final AsyncHttpClient asyncHttpClient;
+    private final Materializer materializer;
 
-    public NingWSClient(AsyncHttpClientConfig config) {
+    public NingWSClient(AsyncHttpClientConfig config, Materializer materializer) {
         this.asyncHttpClient = new DefaultAsyncHttpClient(config);
+        this.materializer = materializer;
     }
 
     @Override
@@ -31,7 +35,7 @@ public class NingWSClient implements WSClient {
 
     @Override
     public WSRequest url(String url) {
-        return new NingWSRequest(this, url);
+        return new NingWSRequest(this, url, materializer);
     }
 
     @Override
