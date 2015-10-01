@@ -253,7 +253,7 @@ case class InMemoryBody(bytes: ByteString) extends WSBody
  *
  * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody
+case class StreamedBody(bytes: Source[ByteString, _]) extends WSBody
 
 /**
  * A file body

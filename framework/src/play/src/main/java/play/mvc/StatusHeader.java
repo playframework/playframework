@@ -250,4 +250,8 @@ public class StatusHeader extends Result {
             throw new RuntimeException(e);
         }
     }
+
+    public Result sendEntity(HttpEntity entity) {
+        return new Result(status(),entity);
+    }
 }
