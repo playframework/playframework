@@ -43,6 +43,39 @@ object RoutesCompilerSpec extends Specification with FileMatchers {
       new File(tmp, "controllers/routes.java") must exist
     }
 
+    "do not generate reverse routes when told so" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, false, false), StaticRoutesGenerator, tmp)
+
+      new File(tmp, "generating/Routes.scala") must exist
+      new File(tmp, "generating/RoutesPrefix.scala") must exist
+      new File(tmp, "controllers/ReverseRoutes.scala") mustNotEqual exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.scala") mustNotEqual exist
+      new File(tmp, "controllers/routes.java") mustNotEqual exist
+    }
+
+    "do not generate forward routes when told so" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, false, true, false), StaticRoutesGenerator, tmp)
+
+      new File(tmp, "generating/Routes.scala") mustNotEqual exist
+      new File(tmp, "generating/RoutesPrefix.scala") must exist
+      new File(tmp, "controllers/ReverseRoutes.scala") must exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.scala") must exist
+      new File(tmp, "controllers/routes.java") must exist
+    }
+
+    "generate nothing when everything is disabled" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, false, false, false), StaticRoutesGenerator, tmp)
+
+      new File(tmp, "generating/Routes.scala") mustNotEqual exist
+      new File(tmp, "generating/RoutesPrefix.scala") mustNotEqual exist
+      new File(tmp, "controllers/ReverseRoutes.scala") mustNotEqual exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.scala") mustNotEqual exist
+      new File(tmp, "controllers/routes.java") mustNotEqual exist
+    }
+
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
       RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beLeft
