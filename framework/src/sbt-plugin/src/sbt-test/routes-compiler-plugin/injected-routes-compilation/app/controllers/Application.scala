@@ -28,6 +28,12 @@ class Application extends Controller {
   def takeList(x: List[Int]) = Action {
     Ok(x.mkString(","))
   }
+  def takeListTickedParam(`b[]`: List[Int]) = Action {
+    Ok(`b[]`.mkString(","))
+  }
+  def takeTickedParams(`b[]`: List[Int], `b%%`: String) = Action {
+    Ok(`b[]`mkString(",") + " " + `b%%`)
+  }
   def takeJavaList(x: java.util.List[Integer]) = Action {
     Ok(x.mkString(","))
   }

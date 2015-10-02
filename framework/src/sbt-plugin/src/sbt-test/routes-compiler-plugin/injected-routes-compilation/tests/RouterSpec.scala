@@ -58,6 +58,14 @@ object RouterSpec extends PlaySpecification {
       val Some(result) = route(FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
       contentAsString(result) must equalTo("1,2,3")
     }
+    "using backticked names on route params" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/take-list-tick-param?b[]=4&b[]=5&b[]=6"))
+      contentAsString(result) must equalTo("4,5,6")
+    }
+    "using backticked names urlencoded on route params" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/take-list-tick-param?b%5B%5D=4&b%5B%5D=5&b%5B%5D=6"))
+      contentAsString(result) must equalTo("4,5,6")
+    }
   }
 
   "use a new instance for each instantiated controller" in new WithApplication() {
@@ -125,6 +133,10 @@ object RouterSpec extends PlaySpecification {
     val route = someRoute.get
     route._2 must_== "/with/$param<[^/]+>"
     route._3 must startWith("controllers.Application.withParam")
+  }
+
+  "reverse routes complex query params " in new WithApplication() {
+    controllers.routes.Application.takeListTickedParam(List(1,2,3)).url must_== "/take-list-tick-param?b[]=1&b[]=2&b[]=3"
   }
 
   "choose the first matching route for a call in reverse routes" in new WithApplication() {

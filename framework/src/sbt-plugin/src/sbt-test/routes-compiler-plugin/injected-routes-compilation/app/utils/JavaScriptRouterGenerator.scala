@@ -12,7 +12,9 @@ object JavaScriptRouterGenerator extends App {
     Application.index,
     Application.post,
     Application.withParam,
-    Application.takeBool
+    Application.takeBool,
+    Application.takeListTickedParam,
+    Application.takeTickedParams
   ).body
 
   // Add module exports for node

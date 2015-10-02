@@ -13,7 +13,9 @@ GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
 GET         /take-bool              controllers.Application.takeBool(b: Boolean)
 GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
 GET         /take-list              controllers.Application.takeList(x: List[Int])
+GET         /take-list-tick-param   controllers.Application.takeListTickedParam(`b[]`: List[Int])
 GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[java.lang.Integer])
+GET         /take-ticked-params     controllers.Application.takeTickedParams(`b[]`: List[Int], `b%%`: String)
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 
