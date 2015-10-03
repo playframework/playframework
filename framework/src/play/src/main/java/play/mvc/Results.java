@@ -42,6 +42,9 @@ public class Results {
 
     /**
      * Generates a simple result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @return the header-only result
      */
     public static StatusHeader status(int status) {
         return new StatusHeader(status);
@@ -49,6 +52,10 @@ public class Results {
 
     /**
      * Generates a simple result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content
+     * @return the result
      */
     public static Result status(int status, Content content) {
         return status(status, content, UTF8);
@@ -56,6 +63,10 @@ public class Results {
 
     /**
      * Generates a simple result.
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content
+     * @param charset the charset to encode the content with (e.g. "UTF-8")
+     * @return the result
      */
     public static Result status(int status, Content content, String charset) {
         if (content == null) {
@@ -66,6 +77,10 @@ public class Results {
 
     /**
      * Generates a simple result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content. It will be encoded as a UTF-8 string.
+     * @return the result
      */
     public static Result status(int status, String content) {
         return status(status, content, UTF8);
@@ -73,6 +88,11 @@ public class Results {
 
     /**
      * Generates a simple result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content.
+     * @param charset the charset in which to encode the content (e.g. "UTF-8")
+     * @return the result
      */
     public static Result status(int status, String content, String charset) {
         if (content == null) {
@@ -82,14 +102,25 @@ public class Results {
     }
 
     /**
-     * Generates a simple result.
+     * Generates a simple result with json content and UTF8 encoding.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content as a play-json object
+     * @return the result
+     *
      */
     public static Result status(int status, JsonNode content) {
         return status(status, content, UTF8);
     }
 
     /**
-     * Generates a simple result.
+     * Generates a simple result with json content.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content, as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
+     *
      */
     public static Result status(int status, JsonNode content, String charset) {
         if (content == null) {
@@ -99,7 +130,11 @@ public class Results {
     }
 
     /**
-     * Generates a simple result.
+     * Generates a simple result with byte-array content.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content, as a byte array
+     * @return the result
      */
     public static Result status(int status, byte[] content) {
         if (content == null) {
@@ -110,6 +145,10 @@ public class Results {
 
     /**
      * Generates a simple result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content
+     * @return the result
      */
     public static Result status(int status, ByteString content) {
         if (content == null) {
@@ -120,6 +159,10 @@ public class Results {
 
     /**
      * Generates a chunked result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result status(int status, InputStream content) {
         return status(status).sendInputStream(content);
@@ -127,20 +170,35 @@ public class Results {
 
     /**
      * Generates a chunked result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result status(int status, InputStream content, long contentLength) {
         return status(status).sendInputStream(content, contentLength);
     }
 
     /**
-     * Generates a result.
+     * Generates a result with file contents.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @return the result
      */
     public static Result status(int status, File content) {
         return status(status, content, true);
     }
 
     /**
-     * Generates a result.
+     * Generates a result with file content.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @param inline <code>true</code> to have it sent with inline Content-Disposition.
+     * @return the result
+     *
      */
     public static Result status(int status, File content, boolean inline) {
         return status(status).sendFile(content, inline);
@@ -148,6 +206,11 @@ public class Results {
 
     /**
      * Generates a result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @param fileName the name that the client should receive this file as
+     * @return the result
      */
     public static Result status(int status, File content, String fileName) {
         return status(status).sendFile(content, fileName);
@@ -211,6 +274,8 @@ public class Results {
 
             /**
              * Write a Chunk.
+             *
+             * @param chunk the chunk to write
              */
             public void write(A chunk) {
                 channel.push(chunk);
@@ -218,6 +283,8 @@ public class Results {
 
             /**
              * Attach a callback to be called when the socket is disconnected.
+             *
+             * @param callback the function to run when the socket is disconnected
              */
             public void onDisconnected(final Runnable callback) {
                 disconnected.onRedeem(ignored -> callback.run());
@@ -379,8 +446,11 @@ public class Results {
     // See https://github.com/jroper/play-source-generator
     //////////////////////////////////////////////////////
 
+
     /**
      * Generates a 200 OK result.
+     *
+     * @return the result
      */
     public static StatusHeader ok() {
         return new StatusHeader(OK);
@@ -388,6 +458,9 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result ok(Content content) {
         return status(OK, content);
@@ -395,6 +468,10 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result ok(Content content, String charset) {
         return status(OK, content, charset);
@@ -402,6 +479,9 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result ok(String content) {
         return status(OK, content);
@@ -409,13 +489,21 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result ok(String content, String charset) {
         return status(OK, content, charset);
     }
 
     /**
-     * Generates a $status.code OK result.
+     * Generates a 200 OK result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result ok(JsonNode content) {
         return status(OK, content);
@@ -423,6 +511,10 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result ok(JsonNode content, String charset) {
         return status(OK, content, charset);
@@ -430,6 +522,9 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result ok(byte[] content) {
         return status(OK, content);
@@ -437,6 +532,9 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result ok(InputStream content) {
         return status(OK, content);
@@ -444,6 +542,10 @@ public class Results {
 
     /**
      * Generates a 200 OK result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result ok(InputStream content, long contentLength) {
         return status(OK, content, contentLength);
@@ -453,6 +555,7 @@ public class Results {
      * Generates a 200 OK result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result ok(File content) {
         return status(OK, content);
@@ -463,6 +566,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result ok(File content, boolean inline) {
         return status(OK, content, inline);
@@ -473,6 +577,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result ok(File content, String filename) {
         return status(OK, content, filename);
@@ -483,14 +588,19 @@ public class Results {
      *
      * @deprecated Use {@link #ok } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result ok(Chunks<?> chunks) {
         return status(OK, chunks);
     }
 
+
     /**
      * Generates a 201 Created result.
+     *
+     * @return the result
      */
     public static StatusHeader created() {
         return new StatusHeader(CREATED);
@@ -498,6 +608,9 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result created(Content content) {
         return status(CREATED, content);
@@ -505,6 +618,10 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result created(Content content, String charset) {
         return status(CREATED, content, charset);
@@ -512,6 +629,9 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result created(String content) {
         return status(CREATED, content);
@@ -519,13 +639,21 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result created(String content, String charset) {
         return status(CREATED, content, charset);
     }
 
     /**
-     * Generates a $status.code Created result.
+     * Generates a 201 Created result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result created(JsonNode content) {
         return status(CREATED, content);
@@ -533,6 +661,10 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result created(JsonNode content, String charset) {
         return status(CREATED, content, charset);
@@ -540,6 +672,9 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result created(byte[] content) {
         return status(CREATED, content);
@@ -547,6 +682,9 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result created(InputStream content) {
         return status(CREATED, content);
@@ -554,6 +692,10 @@ public class Results {
 
     /**
      * Generates a 201 Created result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result created(InputStream content, long contentLength) {
         return status(CREATED, content, contentLength);
@@ -563,6 +705,7 @@ public class Results {
      * Generates a 201 Created result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result created(File content) {
         return status(CREATED, content);
@@ -573,6 +716,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result created(File content, boolean inline) {
         return status(CREATED, content, inline);
@@ -583,6 +727,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result created(File content, String filename) {
         return status(CREATED, content, filename);
@@ -593,14 +738,19 @@ public class Results {
      *
      * @deprecated Use {@link #created } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result created(Chunks<?> chunks) {
         return status(CREATED, chunks);
     }
 
+
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @return the result
      */
     public static StatusHeader badRequest() {
         return new StatusHeader(BAD_REQUEST);
@@ -608,6 +758,9 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result badRequest(Content content) {
         return status(BAD_REQUEST, content);
@@ -615,6 +768,10 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result badRequest(Content content, String charset) {
         return status(BAD_REQUEST, content, charset);
@@ -622,6 +779,9 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result badRequest(String content) {
         return status(BAD_REQUEST, content);
@@ -629,13 +789,21 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result badRequest(String content, String charset) {
         return status(BAD_REQUEST, content, charset);
     }
 
     /**
-     * Generates a $status.code Bad Request result.
+     * Generates a 400 Bad Request result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result badRequest(JsonNode content) {
         return status(BAD_REQUEST, content);
@@ -643,6 +811,10 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result badRequest(JsonNode content, String charset) {
         return status(BAD_REQUEST, content, charset);
@@ -650,6 +822,9 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result badRequest(byte[] content) {
         return status(BAD_REQUEST, content);
@@ -657,6 +832,9 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result badRequest(InputStream content) {
         return status(BAD_REQUEST, content);
@@ -664,6 +842,10 @@ public class Results {
 
     /**
      * Generates a 400 Bad Request result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result badRequest(InputStream content, long contentLength) {
         return status(BAD_REQUEST, content, contentLength);
@@ -673,6 +855,7 @@ public class Results {
      * Generates a 400 Bad Request result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result badRequest(File content) {
         return status(BAD_REQUEST, content);
@@ -683,6 +866,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result badRequest(File content, boolean inline) {
         return status(BAD_REQUEST, content, inline);
@@ -693,6 +877,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result badRequest(File content, String filename) {
         return status(BAD_REQUEST, content, filename);
@@ -703,14 +888,19 @@ public class Results {
      *
      * @deprecated Use {@link #badRequest } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result badRequest(Chunks<?> chunks) {
         return status(BAD_REQUEST, chunks);
     }
 
+
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @return the result
      */
     public static StatusHeader unauthorized() {
         return new StatusHeader(UNAUTHORIZED);
@@ -718,6 +908,9 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result unauthorized(Content content) {
         return status(UNAUTHORIZED, content);
@@ -725,6 +918,10 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result unauthorized(Content content, String charset) {
         return status(UNAUTHORIZED, content, charset);
@@ -732,6 +929,9 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result unauthorized(String content) {
         return status(UNAUTHORIZED, content);
@@ -739,13 +939,21 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result unauthorized(String content, String charset) {
         return status(UNAUTHORIZED, content, charset);
     }
 
     /**
-     * Generates a $status.code Unauthorized result.
+     * Generates a 401 Unauthorized result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result unauthorized(JsonNode content) {
         return status(UNAUTHORIZED, content);
@@ -753,6 +961,10 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result unauthorized(JsonNode content, String charset) {
         return status(UNAUTHORIZED, content, charset);
@@ -760,6 +972,9 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result unauthorized(byte[] content) {
         return status(UNAUTHORIZED, content);
@@ -767,6 +982,9 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result unauthorized(InputStream content) {
         return status(UNAUTHORIZED, content);
@@ -774,6 +992,10 @@ public class Results {
 
     /**
      * Generates a 401 Unauthorized result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result unauthorized(InputStream content, long contentLength) {
         return status(UNAUTHORIZED, content, contentLength);
@@ -783,6 +1005,7 @@ public class Results {
      * Generates a 401 Unauthorized result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result unauthorized(File content) {
         return status(UNAUTHORIZED, content);
@@ -793,6 +1016,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result unauthorized(File content, boolean inline) {
         return status(UNAUTHORIZED, content, inline);
@@ -803,6 +1027,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result unauthorized(File content, String filename) {
         return status(UNAUTHORIZED, content, filename);
@@ -813,14 +1038,19 @@ public class Results {
      *
      * @deprecated Use {@link #unauthorized } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result unauthorized(Chunks<?> chunks) {
         return status(UNAUTHORIZED, chunks);
     }
 
+
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @return the result
      */
     public static StatusHeader paymentRequired() {
         return new StatusHeader(PAYMENT_REQUIRED);
@@ -828,6 +1058,9 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result paymentRequired(Content content) {
         return status(PAYMENT_REQUIRED, content);
@@ -835,6 +1068,10 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result paymentRequired(Content content, String charset) {
         return status(PAYMENT_REQUIRED, content, charset);
@@ -842,6 +1079,9 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result paymentRequired(String content) {
         return status(PAYMENT_REQUIRED, content);
@@ -849,13 +1089,21 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result paymentRequired(String content, String charset) {
         return status(PAYMENT_REQUIRED, content, charset);
     }
 
     /**
-     * Generates a $status.code Payment Required result.
+     * Generates a 402 Payment Required result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result paymentRequired(JsonNode content) {
         return status(PAYMENT_REQUIRED, content);
@@ -863,6 +1111,10 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result paymentRequired(JsonNode content, String charset) {
         return status(PAYMENT_REQUIRED, content, charset);
@@ -870,6 +1122,9 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result paymentRequired(byte[] content) {
         return status(PAYMENT_REQUIRED, content);
@@ -877,6 +1132,9 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result paymentRequired(InputStream content) {
         return status(PAYMENT_REQUIRED, content);
@@ -884,6 +1142,10 @@ public class Results {
 
     /**
      * Generates a 402 Payment Required result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result paymentRequired(InputStream content, long contentLength) {
         return status(PAYMENT_REQUIRED, content, contentLength);
@@ -893,6 +1155,7 @@ public class Results {
      * Generates a 402 Payment Required result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result paymentRequired(File content) {
         return status(PAYMENT_REQUIRED, content);
@@ -903,6 +1166,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result paymentRequired(File content, boolean inline) {
         return status(PAYMENT_REQUIRED, content, inline);
@@ -913,6 +1177,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result paymentRequired(File content, String filename) {
         return status(PAYMENT_REQUIRED, content, filename);
@@ -923,14 +1188,19 @@ public class Results {
      *
      * @deprecated Use {@link #paymentRequired } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result paymentRequired(Chunks<?> chunks) {
         return status(PAYMENT_REQUIRED, chunks);
     }
 
+
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @return the result
      */
     public static StatusHeader forbidden() {
         return new StatusHeader(FORBIDDEN);
@@ -938,6 +1208,9 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result forbidden(Content content) {
         return status(FORBIDDEN, content);
@@ -945,6 +1218,10 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result forbidden(Content content, String charset) {
         return status(FORBIDDEN, content, charset);
@@ -952,6 +1229,9 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result forbidden(String content) {
         return status(FORBIDDEN, content);
@@ -959,13 +1239,21 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result forbidden(String content, String charset) {
         return status(FORBIDDEN, content, charset);
     }
 
     /**
-     * Generates a $status.code Forbidden result.
+     * Generates a 403 Forbidden result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result forbidden(JsonNode content) {
         return status(FORBIDDEN, content);
@@ -973,6 +1261,10 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result forbidden(JsonNode content, String charset) {
         return status(FORBIDDEN, content, charset);
@@ -980,6 +1272,9 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result forbidden(byte[] content) {
         return status(FORBIDDEN, content);
@@ -987,6 +1282,9 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result forbidden(InputStream content) {
         return status(FORBIDDEN, content);
@@ -994,6 +1292,10 @@ public class Results {
 
     /**
      * Generates a 403 Forbidden result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result forbidden(InputStream content, long contentLength) {
         return status(FORBIDDEN, content, contentLength);
@@ -1003,6 +1305,7 @@ public class Results {
      * Generates a 403 Forbidden result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result forbidden(File content) {
         return status(FORBIDDEN, content);
@@ -1013,6 +1316,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result forbidden(File content, boolean inline) {
         return status(FORBIDDEN, content, inline);
@@ -1023,6 +1327,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result forbidden(File content, String filename) {
         return status(FORBIDDEN, content, filename);
@@ -1033,14 +1338,19 @@ public class Results {
      *
      * @deprecated Use {@link #forbidden } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result forbidden(Chunks<?> chunks) {
         return status(FORBIDDEN, chunks);
     }
 
+
     /**
      * Generates a 404 Not Found result.
+     *
+     * @return the result
      */
     public static StatusHeader notFound() {
         return new StatusHeader(NOT_FOUND);
@@ -1048,6 +1358,9 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result notFound(Content content) {
         return status(NOT_FOUND, content);
@@ -1055,6 +1368,10 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result notFound(Content content, String charset) {
         return status(NOT_FOUND, content, charset);
@@ -1062,6 +1379,9 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result notFound(String content) {
         return status(NOT_FOUND, content);
@@ -1069,13 +1389,21 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result notFound(String content, String charset) {
         return status(NOT_FOUND, content, charset);
     }
 
     /**
-     * Generates a $status.code Not Found result.
+     * Generates a 404 Not Found result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result notFound(JsonNode content) {
         return status(NOT_FOUND, content);
@@ -1083,6 +1411,10 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result notFound(JsonNode content, String charset) {
         return status(NOT_FOUND, content, charset);
@@ -1090,6 +1422,9 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result notFound(byte[] content) {
         return status(NOT_FOUND, content);
@@ -1097,6 +1432,9 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result notFound(InputStream content) {
         return status(NOT_FOUND, content);
@@ -1104,6 +1442,10 @@ public class Results {
 
     /**
      * Generates a 404 Not Found result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result notFound(InputStream content, long contentLength) {
         return status(NOT_FOUND, content, contentLength);
@@ -1113,6 +1455,7 @@ public class Results {
      * Generates a 404 Not Found result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result notFound(File content) {
         return status(NOT_FOUND, content);
@@ -1123,6 +1466,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result notFound(File content, boolean inline) {
         return status(NOT_FOUND, content, inline);
@@ -1133,6 +1477,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result notFound(File content, String filename) {
         return status(NOT_FOUND, content, filename);
@@ -1143,14 +1488,19 @@ public class Results {
      *
      * @deprecated Use {@link #notFound } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result notFound(Chunks<?> chunks) {
         return status(NOT_FOUND, chunks);
     }
 
+
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @return the result
      */
     public static StatusHeader internalServerError() {
         return new StatusHeader(INTERNAL_SERVER_ERROR);
@@ -1158,6 +1508,9 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the HTTP response body
+     * @return the result
      */
     public static Result internalServerError(Content content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1165,6 +1518,10 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result internalServerError(Content content, String charset) {
         return status(INTERNAL_SERVER_ERROR, content, charset);
@@ -1172,6 +1529,9 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
      */
     public static Result internalServerError(String content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1179,13 +1539,21 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
      */
     public static Result internalServerError(String content, String charset) {
         return status(INTERNAL_SERVER_ERROR, content, charset);
     }
 
     /**
-     * Generates a $status.code Internal Server Error result.
+     * Generates a 500 Internal Server Error result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
      */
     public static Result internalServerError(JsonNode content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1193,6 +1561,10 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param charset the charset into which the json should be encoded
+     * @return the result
      */
     public static Result internalServerError(JsonNode content, String charset) {
         return status(INTERNAL_SERVER_ERROR, content, charset);
@@ -1200,6 +1572,9 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the result's body content
+     * @return the result
      */
     public static Result internalServerError(byte[] content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1207,6 +1582,9 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
      */
     public static Result internalServerError(InputStream content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1214,6 +1592,10 @@ public class Results {
 
     /**
      * Generates a 500 Internal Server Error result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
      */
     public static Result internalServerError(InputStream content, long contentLength) {
         return status(INTERNAL_SERVER_ERROR, content, contentLength);
@@ -1223,6 +1605,7 @@ public class Results {
      * Generates a 500 Internal Server Error result.
      *
      * @param content The file to send.
+     * @return the result
      */
     public static Result internalServerError(File content) {
         return status(INTERNAL_SERVER_ERROR, content);
@@ -1233,6 +1616,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
      */
     public static Result internalServerError(File content, boolean inline) {
         return status(INTERNAL_SERVER_ERROR, content, inline);
@@ -1243,6 +1627,7 @@ public class Results {
      *
      * @param content The file to send.
      * @param filename The name to send the file as.
+     * @return the result
      */
     public static Result internalServerError(File content, String filename) {
         return status(INTERNAL_SERVER_ERROR, content, filename);
@@ -1253,6 +1638,8 @@ public class Results {
      *
      * @deprecated Use {@link #internalServerError } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
      * instead.
+     * @param chunks Deprecated
+     * @return Deprecated
      */
     @Deprecated
     public static Result internalServerError(Chunks<?> chunks) {
@@ -1263,6 +1650,7 @@ public class Results {
      * Generates a 301 Moved Permanently result.
      *
      * @param url The url to redirect.
+     * @return the result
      */
     public static Result movedPermanently(String url) {
         return new Result(MOVED_PERMANENTLY, Collections.singletonMap(LOCATION, url));
@@ -1272,6 +1660,7 @@ public class Results {
      * Generates a 301 Moved Permanently result.
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
      */
     public static Result movedPermanently(Call call) {
         return new Result(MOVED_PERMANENTLY, Collections.singletonMap(LOCATION, call.url()));
@@ -1281,6 +1670,7 @@ public class Results {
      * Generates a 302 Found result.
      *
      * @param url The url to redirect.
+     * @return the result
      */
     public static Result found(String url) {
         return new Result(FOUND, Collections.singletonMap(LOCATION, url));
@@ -1290,6 +1680,7 @@ public class Results {
      * Generates a 302 Found result.
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
      */
     public static Result found(Call call) {
         return new Result(FOUND, Collections.singletonMap(LOCATION, call.url()));
@@ -1299,6 +1690,7 @@ public class Results {
      * Generates a 303 See Other result.
      *
      * @param url The url to redirect.
+     * @return the result
      */
     public static Result seeOther(String url) {
         return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, url));
@@ -1308,6 +1700,7 @@ public class Results {
      * Generates a 303 See Other result.
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
      */
     public static Result seeOther(Call call) {
         return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.url()));
@@ -1317,6 +1710,7 @@ public class Results {
      * Generates a 303 See Other result.
      *
      * @param url The url to redirect.
+     * @return the result
      */
     public static Result redirect(String url) {
         return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, url));
@@ -1326,6 +1720,7 @@ public class Results {
      * Generates a 303 See Other result.
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
      */
     public static Result redirect(Call call) {
         return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.url()));
@@ -1335,6 +1730,7 @@ public class Results {
      * Generates a 307 Temporary Redirect result.
      *
      * @param url The url to redirect.
+     * @return the result
      */
     public static Result temporaryRedirect(String url) {
         return new Result(TEMPORARY_REDIRECT, Collections.singletonMap(LOCATION, url));
@@ -1344,9 +1740,9 @@ public class Results {
      * Generates a 307 Temporary Redirect result.
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
      */
     public static Result temporaryRedirect(Call call) {
         return new Result(TEMPORARY_REDIRECT, Collections.singletonMap(LOCATION, call.url()));
     }
-
 }

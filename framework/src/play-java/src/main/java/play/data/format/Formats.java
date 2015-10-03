@@ -15,16 +15,16 @@ import java.lang.annotation.*;
  * Defines several default formatters.
  */
 public class Formats {
-    
+
     // -- DATE
-    
+
     /**
      * Formatter for <code>java.util.Date</code> values.
      */
     public static class DateFormatter extends Formatters.SimpleFormatter<Date> {
-        
+
         private final String pattern;
-        
+
         /**
          * Creates a date formatter.
          *
@@ -33,7 +33,7 @@ public class Formats {
         public DateFormatter(String pattern) {
             this.pattern = pattern;
         }
-        
+
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
@@ -46,10 +46,10 @@ public class Formats {
                 return null;
             }
             SimpleDateFormat sdf = new SimpleDateFormat(pattern, locale);
-            sdf.setLenient(false);  
+            sdf.setLenient(false);
             return sdf.parse(text);
         }
-        
+
         /**
          * Unbinds this fields - converts a concrete value to a plain string.
          *
@@ -63,9 +63,9 @@ public class Formats {
             }
             return new SimpleDateFormat(pattern, locale).format(value);
         }
-        
+
     }
-    
+
     /**
      * Defines the format for a <code>Date</code> field.
      */
@@ -73,18 +73,20 @@ public class Formats {
     @Retention(RUNTIME)
     @play.data.Form.Display(name="format.date", attributes={"pattern"})
     public static @interface DateTime {
-        
+
         /**
          * Date pattern, as specified for {@link SimpleDateFormat}.
+         *
+         * @return the date pattern
          */
         String pattern();
     }
-    
+
     /**
      * Annotation formatter, triggered by the <code>@DateTime</code> annotation.
      */
     public static class AnnotationDateFormatter extends Formatters.AnnotationFormatter<DateTime,Date> {
-        
+
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
@@ -98,10 +100,10 @@ public class Formats {
                 return null;
             }
             SimpleDateFormat sdf = new SimpleDateFormat(annotation.pattern(), locale);
-            sdf.setLenient(false);  
+            sdf.setLenient(false);
             return sdf.parse(text);
         }
-        
+
         /**
          * Unbinds this field - converts a concrete value to plain string
          *
@@ -116,23 +118,23 @@ public class Formats {
             }
             return new SimpleDateFormat(annotation.pattern(), locale).format(value);
         }
-        
+
     }
-    
+
     // -- STRING
-    
+
     /**
      * Defines the format for a <code>String</code> field that cannot be empty.
      */
     @Target({FIELD})
     @Retention(RUNTIME)
     public static @interface NonEmpty {}
-    
+
     /**
      * Annotation formatter, triggered by the <code>@NonEmpty</code> annotation.
      */
     public static class AnnotationNonEmptyFormatter extends Formatters.AnnotationFormatter<NonEmpty,String> {
-        
+
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
@@ -147,7 +149,7 @@ public class Formats {
             }
             return text;
         }
-        
+
         /**
          * Unbinds this field - converts a concrete value to plain string
          *
@@ -162,8 +164,8 @@ public class Formats {
             }
             return value;
         }
-        
+
     }
-    
-    
+
+
 }

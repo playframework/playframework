@@ -12,6 +12,7 @@ public class Play {
 
     /**
      * @deprecated inject the {@link play.Application} instead
+     * @return Deprecated
      */
     @Deprecated
     public static Application application() {
@@ -20,6 +21,7 @@ public class Play {
 
     /**
      * @deprecated inject the {@link play.Environment} instead
+     * @return Deprecated
      */
     @Deprecated
     public static Mode mode() {
@@ -28,6 +30,7 @@ public class Play {
 
     /**
      * @deprecated inject the {@link play.Environment} instead
+     * @return Deprecated
      */
     @Deprecated
     public static boolean isDev() {
@@ -36,6 +39,7 @@ public class Play {
 
     /**
      * @deprecated inject the {@link play.Environment} instead
+     * @return Deprecated
      */
     @Deprecated
     public static boolean isProd() {
@@ -44,6 +48,7 @@ public class Play {
 
     /**
      * @deprecated inject the {@link play.Environment} instead
+     * @return Deprecated
      */
     @Deprecated
     public static boolean isTest() {

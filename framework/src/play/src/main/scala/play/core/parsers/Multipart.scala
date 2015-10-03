@@ -28,7 +28,7 @@ object Multipart {
   private final val maxHeaderBuffer = 4096
 
   /**
-   * Parses the stream into a stream of [[Part]] to be handled by `partHandler`.
+   * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.

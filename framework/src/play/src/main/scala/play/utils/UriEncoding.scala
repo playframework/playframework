@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream
  * Provides support for correctly encoding pieces of URIs.
  *
  * @see http://www.ietf.org/rfc/rfc3986.txt
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 object UriEncoding {
 
@@ -28,7 +29,7 @@ object UriEncoding {
    * other differences too.
    *
    * When encoding path segments the `encodePathSegment` method should always
-   * be used in preference to the [[java.net.URLEncoder.encode(String,String)]]
+   * be used in preference to the [[$javadoc/java/net/URLEncoder.html#encode-java.lang.String-java.lang.String- java.net.URLEncoder.encode]]
    * method. `URLEncoder.encode`, despite its name, actually provides encoding
    * in the `application/x-www-form-urlencoded` MIME format which is the encoding
    * used for form data in HTTP GET and POST requests. This encoding is suitable
@@ -73,7 +74,7 @@ object UriEncoding {
    * other differences too.
    *
    * When decoding path segments the `decodePathSegment` method should always
-   * be used in preference to the [[java.net.URLDecoder.decode(String,String)]]
+   * be used in preference to the [[$javadoc/java/net/URLDecoder.html java.net.URLDecoder.decode]]
    * method. `URLDecoder.decode`, despite its name, actually decodes
    * the `application/x-www-form-urlencoded` MIME format which is the encoding
    * used for form data in HTTP GET and POST requests. This format is suitable
@@ -83,7 +84,7 @@ object UriEncoding {
    * @param s The string to decode. Must use the US-ASCII character set.
    * @param outputCharset The name of the encoding that the output should be encoded with.
    *     The output string will be converted from octets (bytes) using this character encoding.
-   * @throws InvalidEncodingException If the input is not a valid encoded path segment.
+   * @throws InvalidUriEncodingException If the input is not a valid encoded path segment.
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePathSegment(s: String, outputCharset: String): String = {
@@ -130,7 +131,7 @@ object UriEncoding {
    * @param s The string to decode. Must use the US-ASCII character set.
    * @param outputCharset The name of the encoding that the output should be encoded with.
    *     The output string will be converted from octets (bytes) using this character encoding.
-   * @throws InvalidEncodingException If the input is not a valid encoded path.
+   * @throws InvalidUriEncodingException If the input is not a valid encoded path.
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePath(s: String, outputCharset: String): String = {

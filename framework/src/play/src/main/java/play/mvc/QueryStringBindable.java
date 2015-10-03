@@ -54,7 +54,7 @@ import java.util.*;
  * size parameters if you pleased.
  */
 public interface QueryStringBindable<T extends QueryStringBindable<T>> {
-    
+
     /**
      * Bind a query string parameter.
      *
@@ -64,19 +64,23 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      *      or None if it couldn't.
      */
     Optional<T> bind(String key, Map<String,String[]> data);
-    
+
     /**
      * Unbind a query string parameter.  This should return a query string fragment, in the form
      * <code>key=value[&amp;key2=value2...]</code>.
      *
      * @param key Parameter key
+     * @return this key's query-string fragment.
      */
     String unbind(String key);
-    
+
     /**
      * Javascript function to unbind in the Javascript router.
      *
      * If this bindable just represents a single value, you may return null to let the default implementation handle it.
+     *
+     * @return null for default behavior, otherwise a valid javascript function that accepts the key and value as
+     *         arguments and returns a valid query string fragment (in the format <code>key=value</code>)
      */
     String javascriptUnbind();
 }

@@ -24,6 +24,10 @@ public class JPA {
     /**
      * Create a default JPAApi with the given persistence unit configuration.
      * Automatically initialise the JPA entity manager factories.
+     *
+     * @param name the EntityManagerFactory's name
+     * @param unitName the persistence unit's name
+     * @return the configured JPAApi
      */
     public static JPAApi createFor(String name, String unitName) {
         return new DefaultJPAApi(DefaultJPAConfig.of(name, unitName)).start();
@@ -32,13 +36,18 @@ public class JPA {
     /**
      * Create a default JPAApi with name "default" and the given unit name.
      * Automatically initialise the JPA entity manager factories.
+     *
+     * @param unitName the persistence unit's name
+     * @return the configured JPAApi
      */
     public static JPAApi createFor(String unitName) {
         return new DefaultJPAApi(DefaultJPAConfig.of("default", unitName)).start();
     }
 
     /**
-     * Get the JPA api for the current play application.
+     * Get JPA api for the current play application.
+     *
+     * @return the JPAApi
      */
     public static JPAApi jpaApi() {
         Application app = Play.application();
@@ -49,7 +58,10 @@ public class JPA {
     }
 
     /**
-     * Get the EntityManager for specified persistence unit for this thread.
+     * Get the EntityManager for a particular persistence unit for this thread.
+     *
+     * @param key name of the EntityManager to return
+     * @return the EntityManager
      */
     public static EntityManager em(String key) {
         EntityManager em = jpaApi().em(key);
@@ -62,6 +74,8 @@ public class JPA {
 
     /**
      * Get the default EntityManager for this thread.
+     *
+     * @return the EntityManager
      */
     public static EntityManager em() {
         Http.Context context = Http.Context.current.get();
@@ -83,6 +97,8 @@ public class JPA {
     /**
      * Bind an EntityManager to the current HTTP context.
      * If no HTTP context is available the EntityManager gets bound to the current thread instead.
+     *
+     * @param em the EntityManager to bind to this HTTP context.
      */
     public static void bindForSync(EntityManager em) {
         bindForCurrentContext(em, true);
@@ -91,6 +107,7 @@ public class JPA {
     /**
      * Bind an EntityManager to the current HTTP context.
      *
+     * @param em the EntityManager to bind
      * @throws RuntimeException if no HTTP context is present.
      */
     public static void bindForAsync(EntityManager em) {
@@ -100,6 +117,9 @@ public class JPA {
     /**
      * Bind an EntityManager to the current HTTP context.
      *
+     * @param em the EntityManager to bind, or null to remove the manager from the context instead.
+     * @param threadLocalFallback true to attempt placing the EntityManager into a threadLocal in case placing it into
+     *                            the httpContext fails.
      * @throws RuntimeException if no HTTP context is present and {@code threadLocalFallback} is false.
      */
     private static void bindForCurrentContext(EntityManager em, boolean threadLocalFallback) {
@@ -124,6 +144,8 @@ public class JPA {
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute.
+     * @param <T> return type of the block
+     * @return the result of the block, having already committed the transaction (or rolled it back in case of exception)
      */
     public static <T> T withTransaction(Supplier<T> block) {
         return jpaApi().withTransaction(block);
@@ -133,6 +155,9 @@ public class JPA {
      * Run a block of asynchronous code in a JPA transaction.
      *
      * @param block Block of code to execute.
+     * @param <T> return type of the block
+     * @return a future to the result of the block, having already committed the transaction
+     *         (or rolled it back in case of exception)
      *
      * @deprecated This may cause deadlocks
      */
@@ -156,6 +181,9 @@ public class JPA {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
+     * @param <T> return type of the provided block
+     * @return a future to the result of the block, having already committed the transaction
+     *         (or rolled it back in case of exception)
      */
     public static <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
         return jpaApi().withTransaction(name, readOnly, block);
@@ -167,6 +195,9 @@ public class JPA {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
+     * @param <T> return type of the block
+     * @return a future to the result of the block, having already committed the transaction
+     *         (or rolled it back in case of exception)
      *
      * @deprecated This may cause deadlocks
      */

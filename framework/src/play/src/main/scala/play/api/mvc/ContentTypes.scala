@@ -432,7 +432,7 @@ trait BodyParsers {
      *   val userForm: Form[User] = Form(mapping("name" -> nonEmptyText)(User.apply)(User.unapply))
      *
      *   Action(parse.form(userForm)) { request =>
-     *     Ok(s"Hello, ${request.body.name}!")
+     *     Ok(s"Hello, \${request.body.name}!")
      *   }
      * }}}
      *

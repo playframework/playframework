@@ -61,7 +61,9 @@ object BuildSettings {
     testListeners in (Test,test) := Nil,
     javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
-    bintrayPackage := "play-sbt-plugin"
+    bintrayPackage := "play-sbt-plugin",
+    autoAPIMappings := true,
+    apiMappings += scalaInstance.value.libraryJar -> url( raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html""")
   )
 
   /**

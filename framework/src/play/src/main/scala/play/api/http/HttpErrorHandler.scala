@@ -182,9 +182,9 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a server error occurs.
    *
-   * By default, the implementation of this method delegates to [[onProdServerError()]] when in prod mode, and
-   * [[onDevServerError()]] in dev mode.  It is recommended, if you want Play's debug info on the error page in dev
-   * mode, that you override [[onProdServerError()]] instead of this method.
+   * By default, the implementation of this method delegates to [[onProdServerError]] when in prod mode, and
+   * [[onDevServerError]] in dev mode.  It is recommended, if you want Play's debug info on the error page in dev
+   * mode, that you override [[onProdServerError]] instead of this method.
    *
    * @param request The request that triggered the server error.
    * @param exception The server error.
@@ -236,7 +236,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked in prod mode when a server error occurs.
    *
-   * Override this rather than [[onServerError()]] if you don't want to change Play's debug output when logging errors
+   * Override this rather than [[onServerError]] if you don't want to change Play's debug output when logging errors
    * in dev mode.
    *
    * @param request The request that triggered the error.

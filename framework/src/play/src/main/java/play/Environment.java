@@ -43,6 +43,8 @@ public class Environment {
 
     /**
      * The root path that the application is deployed at.
+     *
+     * @return the path
      */
     public File rootPath() {
         return env.rootPath();
@@ -50,6 +52,8 @@ public class Environment {
 
     /**
      * The classloader that all application classes and resources can be loaded from.
+     *
+     * @return the class loader
      */
     public ClassLoader classLoader() {
         return env.classLoader();
@@ -57,6 +61,8 @@ public class Environment {
 
     /**
      * The mode of the application.
+     *
+     * @return the mode
      */
     public Mode mode() {
         if (env.mode().equals(play.api.Mode.Prod())) {
@@ -70,6 +76,8 @@ public class Environment {
 
     /**
      * Returns `true` if the application is `DEV` mode.
+     *
+     * @return `true` if the application is `DEV` mode.
      */
     public boolean isDev() {
         return mode().equals(Mode.DEV);
@@ -77,6 +85,8 @@ public class Environment {
 
     /**
      * Returns `true` if the application is `PROD` mode.
+     *
+     * @return `true` if the application is `PROD` mode.
      */
     public boolean isProd() {
         return mode().equals(Mode.PROD);
@@ -84,6 +94,8 @@ public class Environment {
 
     /**
      * Returns `true` if the application is `TEST` mode.
+     *
+     * @return `true` if the application is `TEST` mode.
      */
     public boolean isTest() {
         return mode().equals(Mode.TEST);
@@ -124,6 +136,8 @@ public class Environment {
      *
      * Uses the same classloader that the environment classloader is defined in,
      * the current working directory as the path and test mode.
+     *
+     * @return the environment
      */
     public static Environment simple() {
         return new Environment(new File("."), Environment.class.getClassLoader(), Mode.TEST);
@@ -132,6 +146,8 @@ public class Environment {
     /**
      * The underlying Scala API Environment object that this Environment
      * wraps.
+     *
+     * @return the environemnt
      */
     public play.api.Environment underlying() {
         return env;

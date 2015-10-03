@@ -20,6 +20,8 @@ public class GlobalSettings {
 
     /**
      * Executed before any plugin - you can set-up your database schema here, for instance.
+     *
+     * @param app the bootstrapping application
      */
     public void beforeStart(Application app) {
     }
@@ -27,12 +29,16 @@ public class GlobalSettings {
     /**
      * Executed after all plugins, including the database set-up with Evolutions and the EBean wrapper.
      * This is a good place to execute some of your application code to create entries, for instance.
+     *
+     * @param app the bootstrapped application
      */
     public void onStart(Application app) {
     }
 
     /**
      * Executed when the application stops.
+     *
+     * @param app the application that is shutting down
      */
     public void onStop(Application app) {
     }
@@ -45,6 +51,7 @@ public class GlobalSettings {
      *
      * By overriding this method one can provide an alternative error page.
      *
+     * @param request header of the HTTP request being processed
      * @param t is any throwable
      * @return null as the default implementation
      */
@@ -108,6 +115,7 @@ public class GlobalSettings {
      * By overriding this method one can provide an alternative 400 page.
      *
      * @param request the HTTP request
+     * @param error an arbitrary string describing the error
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
     public CompletionStage<Result> onBadRequest(RequestHeader request, String error) {
@@ -118,6 +126,11 @@ public class GlobalSettings {
      * @deprecated This method does not do anything.
      * Instead, specify configuration in your config file
      * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
+     *
+     * @param config deprecated
+     * @param path deprecated
+     * @param classloader deprecated
+     * @return deprecated
      */
     @Deprecated
     public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
@@ -128,6 +141,12 @@ public class GlobalSettings {
      * @deprecated This method does not do anything.
      * Instead, specify configuration in your config file
      * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
+     *
+     * @param config deprecated
+     * @param path deprecated
+     * @param classloader deprecated
+     * @param mode deprecated
+     * @return deprecated
      */
     @Deprecated
     public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
@@ -136,6 +155,9 @@ public class GlobalSettings {
 
     /**
      * Get the filters that should be used to handle each request.
+     *
+     * @param <T> the filter type
+     * @return an instance of the filter type
      */
     public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {
         return new Class[0];

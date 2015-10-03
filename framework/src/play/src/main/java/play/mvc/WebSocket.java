@@ -82,6 +82,8 @@ public abstract class WebSocket {
      * Acceptor for JSON WebSockets.
      *
      * @param in The class of the incoming messages, used to decode them from the JSON.
+     * @param <In> The websocket's input type (what it receives from clients)
+     * @param <Out> The websocket's output type (what it writes to clients)
      * @return The WebSocket acceptor.
      */
     public static <In, Out> MappedWebSocketAcceptor<In, Out> json(Class<In> in) {
@@ -107,6 +109,9 @@ public abstract class WebSocket {
 
     /**
      * Utility class for creating WebSockets.
+     *
+     * @param <In> the type the websocket reads from clients (e.g. String, JsonNode)
+     * @param <Out> the type the websocket outputs back to remote clients (e.g. String, JsonNode)
      */
     public static class MappedWebSocketAcceptor<In, Out> {
         private final PartialFunction<Message, F.Either<In, Message>> inMapper;
@@ -183,6 +188,8 @@ public abstract class WebSocket {
 
         /**
          * Writes a frame.
+         *
+         * @param frame the frame to write
          */
         void write(A frame);
 
@@ -212,6 +219,8 @@ public abstract class WebSocket {
 
         /**
          * Registers a message callback.
+         *
+         * @param callback the function to execute when a message is received
          */
         public void onMessage(Consumer<A> callback) {
             callbacks.add(callback);
@@ -219,6 +228,8 @@ public abstract class WebSocket {
 
         /**
          * Registers a close callback.
+         *
+         * @param callback the function to execute when a socket closes
          */
         public void onClose(Runnable callback) {
             closeCallbacks.add(callback);
@@ -231,6 +242,7 @@ public abstract class WebSocket {
      * implemented using the specified {@code Callback2<In<A>, Out<A>>}
      *
      * @param callback the callback used to implement onReady
+     * @param <A> the in/out type of the legacy websocket
      * @return a new WebSocket
      * @throws NullPointerException if the specified callback is null
      * @deprecated Use the WebSocket.accept* methods instead.
@@ -244,6 +256,7 @@ public abstract class WebSocket {
      * Rejects a WebSocket.
      *
      * @param result The result that will be returned.
+     * @param <A> the socket's in/out type
      * @return A rejected WebSocket.
      * @deprecated Use the WebSocket.accept*OrResult methods instead.
      */
@@ -262,6 +275,7 @@ public abstract class WebSocket {
      * Handles a WebSocket with an actor.
      *
      * @param props The function used to create the props for the actor.  The passed in argument is the upstream actor.
+     * @param <A> the socket's in/out type
      * @return An actor WebSocket.
      * @deprecated Use the WebSocket.accept* methods instead, with a flow created by wrapping a Sink.actorRef and
      *             Source.actorRef.

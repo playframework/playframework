@@ -61,6 +61,8 @@ public class Http {
 
         /**
          * Retrieves the current HTTP context, for the current thread.
+         *
+         * @return the context
          */
         public static Context current() {
             Context c = current.get();
@@ -109,9 +111,12 @@ public class Http {
         /**
          * Creates a new HTTP context.
          *
-         * @param request the HTTP request
+         * @param id the unique context ID
+         * @param header the request header
+         * @param request the request with body
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
+         * @param args any arbitrary data to associate with this request context.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
             this.id = id;
@@ -125,6 +130,8 @@ public class Http {
 
         /**
          * The context id (unique)
+         *
+         * @return the id
          */
         public Long id() {
             return id;
@@ -132,6 +139,8 @@ public class Http {
 
         /**
          * Returns the current request.
+         *
+         * @return the request
          */
         public Request request() {
             return request;
@@ -139,6 +148,8 @@ public class Http {
 
         /**
          * Returns the current response.
+         *
+         * @return the response
          */
         public Response response() {
             return response;
@@ -146,6 +157,8 @@ public class Http {
 
         /**
          * Returns the current session.
+         *
+         * @return the session
          */
         public Session session() {
             return session;
@@ -153,6 +166,8 @@ public class Http {
 
         /**
          * Returns the current flash scope.
+         *
+         * @return the flash scope
          */
         public Flash flash() {
             return flash;
@@ -161,12 +176,16 @@ public class Http {
         /**
          * The original Play request Header used to create this context.
          * For internal usage only.
+         *
+         * @return the original request header.
          */
         public play.api.mvc.RequestHeader _requestHeader() {
             return header;
         }
 
         /**
+         * The current lang
+         *
          * @return the current lang
          */
         public Lang lang() {
@@ -186,6 +205,7 @@ public class Http {
 
         /**
          * Change durably the lang for the current user.
+         *
          * @param code New lang code to use (e.g. "fr", "en-US", etc.)
          * @return true if the requested lang was supported by the application, otherwise false
          */
@@ -195,6 +215,7 @@ public class Http {
 
         /**
          * Change durably the lang for the current user.
+         *
          * @param lang New Lang object to use
          * @return true if the requested lang was supported by the application, otherwise false
          */
@@ -226,6 +247,7 @@ public class Http {
          * will be set for this request, but will not change for
          * future requests.
          *
+         * @param code the language code to set (e.g. "en-US")
          * @throws IllegalArgumentException If the given language
          * is not supported by the application.
          */
@@ -239,6 +261,7 @@ public class Http {
          * will be set for this request, but will not change for
          * future requests.
          *
+         * @param lang the language to set
          * @throws IllegalArgumentException If the given language
          * is not supported by the application.
          */
@@ -272,6 +295,8 @@ public class Http {
 
             /**
              * Returns the current response.
+             *
+             * @return the current response.
              */
             public static Response response() {
                 return Context.current().response();
@@ -279,6 +304,8 @@ public class Http {
 
             /**
              * Returns the current request.
+             *
+             * @return the current request.
              */
             public static Request request() {
                 return Context.current().request();
@@ -286,6 +313,8 @@ public class Http {
 
             /**
              * Returns the current flash scope.
+             *
+             * @return the current flash scope.
              */
             public static Flash flash() {
                 return Context.current().flash();
@@ -293,6 +322,8 @@ public class Http {
 
             /**
              * Returns the current session.
+             *
+             * @return the current session.
              */
             public static Session session() {
                 return Context.current().session();
@@ -300,12 +331,16 @@ public class Http {
 
             /**
              * Returns the current lang.
+             *
+             * @return the current lang.
              */
             public static Lang lang() {
                 return Context.current().lang();
             }
 
             /**
+             * Returns the messages for the current lang
+             *
              * @return the messages for the current lang
              */
             public static Messages messages() {
@@ -314,6 +349,8 @@ public class Http {
 
             /**
              * Returns the current context.
+             *
+             * @return the current context.
              */
             public static Context ctx() {
                 return Context.current();
@@ -349,7 +386,7 @@ public class Http {
         private final Context wrapped;
 
         /**
-         * @param wrapped
+         * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
             super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
@@ -412,16 +449,22 @@ public class Http {
 
         /**
          * The complete request URI, containing both path and query string.
+         *
+         * @return the uri
          */
         String uri();
 
         /**
          * The HTTP Method.
+         *
+         * @return the http method
          */
         String method();
 
         /**
          * The HTTP version.
+         *
+         * @return the version
          */
         String version();
 
@@ -430,27 +473,36 @@ public class Http {
          *
          * retrieves the last untrusted proxy
          * from the Forwarded-Headers or the X-Forwarded-*-Headers.
+         *
+         * @return the remote address
          */
         String remoteAddress();
 
         /**
          * Is the client using SSL?
          *
+         * @return true that the client is using SSL
          */
         boolean secure();
 
         /**
          * The request host.
+         *
+         * @return the host
          */
         String host();
 
         /**
          * The URI path.
+         *
+         * @return the path
          */
         String path();
 
         /**
          * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
+         *
+         * @return the preference-ordered list of languages accepted by the client
          */
         List<play.i18n.Lang> acceptLanguages();
 
@@ -461,17 +513,24 @@ public class Http {
 
         /**
          * Check if this request accepts a given media type.
+         *
+         * @param mimeType the mimeType to check for support.
          * @return true if <code>mimeType</code> is in the Accept header, otherwise false
          */
         boolean accepts(String mimeType);
 
         /**
          * The query string content.
+         *
+         * @return the query string map
          */
         Map<String,String[]> queryString();
 
         /**
          * Helper method to access a queryString parameter.
+         *
+         * @param key the query string parameter to look up
+         * @return the value for the provided <code>key</code>.
          */
         String getQueryString(String key);
 
@@ -497,6 +556,7 @@ public class Http {
          * Retrieves a single header.
          *
          * @param headerName The name of the header (case-insensitive)
+         * @return the value corresponding to <code>headerName</code>, or null if it was not present
          */
         String getHeader(String headerName);
 
@@ -504,6 +564,7 @@ public class Http {
          * Checks if the request has the header.
          *
          * @param headerName The name of the header (case-insensitive)
+         * @return <code>true</code> if the request did contain the header.
          */
         boolean hasHeader(String headerName);
 
@@ -523,6 +584,8 @@ public class Http {
 
         /**
          * For internal Play-use only
+         *
+         * @return the underlying request
          */
         play.api.mvc.RequestHeader _underlyingHeader();
     }
@@ -534,29 +597,39 @@ public class Http {
 
         /**
          * The request body.
+         *
+         * @return the body
          */
         RequestBody body();
 
         /**
          * The user name for this request, if defined.
          * This is usually set by annotating your Action with <code>@Authenticated</code>.
+         *
+         * @return the username
          */
         String username();
 
         /**
          * Defines the user name for this request.
+         *
          * @deprecated As of release 2.4, use {@link #withUsername}
+         * @param username Deprecated
          */
         @Deprecated void setUsername(String username);
 
         /**
          * Returns a request updated with specified user name
+         *
          * @param username the new user name
+         * @return a copy of the request containing the specified user name
          */
         Request withUsername(String username);
 
         /**
          * For internal Play-use only
+         *
+         * @return the underlying request
          */
         play.api.mvc.Request<RequestBody> _underlyingRequest();
     }
@@ -677,7 +750,7 @@ public class Http {
 
         /**
          * @param username the username for the request
-         * @return the builder
+         * @return the modified builder
          */
         public RequestBuilder username(String username) {
             this.username = username;
@@ -689,6 +762,7 @@ public class Http {
          *
          * @param body the body
          * @param contentType Content-Type header value
+         * @return the modified builder
          */
         protected RequestBuilder body(RequestBody body, String contentType) {
             header("Content-Type", contentType);
@@ -700,6 +774,7 @@ public class Http {
          * Set the body of the request.
          *
          * @param body The body.
+         * @return the modified builder
          */
         protected RequestBuilder body(RequestBody body) {
             this.body = body;
@@ -709,7 +784,9 @@ public class Http {
         /**
          * Set a Binary Data to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         *
          * @param data the Binary Data
+         * @return the modified builder
          */
         public RequestBuilder bodyRaw(ByteString data) {
             play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), data);
@@ -719,7 +796,9 @@ public class Http {
         /**
          * Set a Binary Data to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         *
          * @param data the Binary Data
+         * @return the modified builder
          */
         public RequestBuilder bodyRaw(byte[] data) {
             return bodyRaw(ByteString.fromArray(data));
@@ -727,6 +806,9 @@ public class Http {
 
         /**
          * Set a Form url encoded body to this request.
+         *
+         * @param data the x-www-form-urlencoded parameters
+         * @return the modified builder
          */
         public RequestBuilder bodyFormArrayValues(Map<String, String[]> data) {
             return body(new RequestBody(data), "application/x-www-form-urlencoded");
@@ -734,6 +816,9 @@ public class Http {
 
         /**
          * Set a Form url encoded body to this request.
+         *
+         * @param data the x-www-form-urlencoded parameters
+         * @return the modified builder
          */
         public RequestBuilder bodyForm(Map<String, String> data) {
             Map<String, String[]> arrayValues = new HashMap<>();
@@ -746,7 +831,9 @@ public class Http {
         /**
          * Set a Json Body to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+         *
          * @param node the Json Node
+         * @return this builder, updated
          */
         public RequestBuilder bodyJson(JsonNode node) {
             return body(new RequestBody(node), "application/json");
@@ -755,7 +842,9 @@ public class Http {
         /**
          * Set a Json Body to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+         *
          * @param json the JsValue
+         * @return the modified builder
          */
         public RequestBuilder bodyJson(JsValue json) {
             return bodyJson(Json.parse(play.api.libs.json.Json.stringify(json)));
@@ -764,7 +853,9 @@ public class Http {
         /**
          * Set a XML to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/xml</tt>.
+         *
          * @param xml the XML
+         * @return the modified builder
          */
         public RequestBuilder bodyXml(InputSource xml) {
             return bodyXml(XML.fromInputSource(xml));
@@ -772,8 +863,11 @@ public class Http {
 
         /**
          * Set a XML to this request.
+         *
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/xml</tt>.
+         *
          * @param xml the XML
+         * @return the modified builder
          */
         public RequestBuilder bodyXml(Document xml) {
             return body(new RequestBody(xml), "application/xml");
@@ -782,7 +876,9 @@ public class Http {
         /**
          * Set a Text to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
+         *
          * @param text the text
+         * @return this builder, updated
          */
         public RequestBuilder bodyText(String text) {
             return body(new RequestBody(text), "text/plain");
@@ -790,6 +886,7 @@ public class Http {
 
         /**
          * Builds the request.
+         *
          * @return a build of the given parameters
          */
         public RequestImpl build() {
@@ -1203,6 +1300,8 @@ public class Http {
 
         /**
          * Buffer size.
+         *
+         * @return the buffer size
          */
         public abstract Long size();
 
@@ -1216,11 +1315,15 @@ public class Http {
 
         /**
          * Returns the buffer content as a bytes array
+         *
+         * @return the bytes
          */
         public abstract ByteString asBytes();
 
         /**
          * Returns the buffer content as File
+         *
+         * @return the file
          */
         public abstract File asFile();
 
@@ -1277,6 +1380,8 @@ public class Http {
 
             /**
              * The part name.
+             *
+             * @return the part name
              */
             public String getKey() {
                 return key;
@@ -1284,6 +1389,8 @@ public class Http {
 
             /**
              * The file name.
+             *
+             * @return the file name
              */
             public String getFilename() {
                 return filename;
@@ -1291,6 +1398,8 @@ public class Http {
 
             /**
              * The file Content-Type
+             *
+             * @return the content type
              */
             public String getContentType() {
                 return contentType;
@@ -1298,6 +1407,8 @@ public class Http {
 
             /**
              * The File.
+             *
+             * @return the file
              */
             public A getFile() {
                 return file;
@@ -1307,16 +1418,23 @@ public class Http {
 
         /**
          * Extract the data parts as Form url encoded.
+         *
+         * @return the data that was URL encoded
          */
         public abstract Map<String, String[]> asFormUrlEncoded();
 
         /**
          * Retrieves all file parts.
+         *
+         * @return the file parts
          */
         public abstract List<FilePart<A>> getFiles();
 
         /**
          * Access a file part.
+         *
+         * @param key name of the file part to access
+         * @return the file part specified by key
          */
         public FilePart<A> getFile(String key) {
             for(FilePart filePart: getFiles()) {
@@ -1341,6 +1459,9 @@ public class Http {
 
         /**
          * The request content parsed as multipart form data.
+         *
+         * @param <A> the file type (e.g. play.api.libs.Files.TemporaryFile)
+         * @return the content parsed as multipart form data
          */
         public <A> MultipartFormData<A> asMultipartFormData() {
             return as(MultipartFormData.class);
@@ -1348,6 +1469,8 @@ public class Http {
 
         /**
          * The request content parsed as URL form-encoded.
+         *
+         * @return the request content parsed as URL form-encoded.
          */
         public Map<String,String[]> asFormUrlEncoded() {
             // Best effort, check if it's a map, then check if the first element in that map is String -> String[].
@@ -1366,6 +1489,8 @@ public class Http {
 
         /**
          * The request content as Array bytes.
+         *
+         * @return The request content as Array bytes.
          */
         public RawBuffer asRaw() {
             return as(RawBuffer.class);
@@ -1373,6 +1498,8 @@ public class Http {
 
         /**
          * The request content as text.
+         *
+         * @return The request content as text.
          */
         public String asText() {
             return as(String.class);
@@ -1380,6 +1507,8 @@ public class Http {
 
         /**
          * The request content as XML.
+         *
+         * @return The request content as XML.
          */
         public Document asXml() {
             return as(Document.class);
@@ -1387,6 +1516,8 @@ public class Http {
 
         /**
          * The request content as Json.
+         *
+         * @return The request content as Json.
          */
         public JsonNode asJson() {
             return as(JsonNode.class);
@@ -1398,6 +1529,8 @@ public class Http {
          * This makes a best effort attempt to convert the parsed body to a ByteString, if it knows how. This includes
          * String, json, XML and form bodies.  It doesn't include multipart/form-data or raw bodies that don't fit in
          * the configured max memory buffer, nor does it include custom output types from custom body parsers.
+         *
+         * @return the request content as a ByteString
          */
         public ByteString asBytes() {
             if (body instanceof Optional) {
@@ -1442,6 +1575,10 @@ public class Http {
 
         /**
          * Cast this RequestBody as T if possible.
+         *
+         * @param tType class that we are trying to cast the body as
+         * @param <T> type of the provided <code>tType</code>
+         * @return either a successful cast into T or null
          */
         public <T> T as(Class<T> tType) {
             if (tType.isInstance(body)) {
@@ -1477,6 +1614,8 @@ public class Http {
 
         /**
          * Gets the current response headers.
+         *
+         * @return the current response headers.
          */
         public Map<String,String> getHeaders() {
             return headers;
@@ -1484,6 +1623,8 @@ public class Http {
 
         /**
          * @deprecated noop. Use {@link Result#as(String)} instead.
+         *
+         * @param contentType Deprecated
          */
         @Deprecated
         public void setContentType(String contentType) {
@@ -1495,9 +1636,10 @@ public class Http {
          * <pre>
          * response().setCookie("theme", "blue");
          * </pre>
+         *
          * @param name Cookie name, must not be null
          * @param value Cookie value
-         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
+         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         @Deprecated
         public void setCookie(String name, String value) {
@@ -1509,7 +1651,7 @@ public class Http {
          * @param name Cookie name, must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
+         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         @Deprecated
         public void setCookie(String name, String value, Integer maxAge) {
@@ -1522,7 +1664,7 @@ public class Http {
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
-         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
+         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path) {
@@ -1536,7 +1678,7 @@ public class Http {
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
-         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
+         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
@@ -1552,7 +1694,7 @@ public class Http {
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
-         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
+         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
@@ -1560,6 +1702,7 @@ public class Http {
 
         /**
          * Set a new cookie.
+         *
          * @param cookie to set
          */
         public void setCookie(Cookie cookie) {

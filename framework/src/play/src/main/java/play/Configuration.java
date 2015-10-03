@@ -35,6 +35,9 @@ public class Configuration {
 
     /**
      * Load a new configuration from an environment.
+     *
+     * @param env the environment used to initialize the created config
+     * @return the created config
      */
     public static Configuration load(Environment env) {
         return new Configuration(play.api.Configuration.load(env.underlying()));
@@ -42,6 +45,8 @@ public class Configuration {
 
     /**
      * A new empty configuration.
+     *
+     * @return a new empty configuration
      */
     public static Configuration empty() {
         return new Configuration(ConfigFactory.empty());
@@ -49,6 +54,8 @@ public class Configuration {
 
     /**
      * A new reference configuration.
+     *
+     * @return the configuration
      */
     public static Configuration reference() {
         return new Configuration(ConfigFactory.defaultReference());
@@ -60,6 +67,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a Typesafe Config object.
+     *
+     * @param conf the typesafe config
      */
     public Configuration(Config conf) {
         this(new play.api.Configuration(conf));
@@ -67,6 +76,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a map.
+     *
+     * @param conf the configuration map
      */
     public Configuration(Map<String, Object> conf) {
         this(ConfigFactory.parseMap(conf));
@@ -74,6 +85,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration by parsing a string in HOCON format.
+     *
+     * @param s the HOCON-formatted string
      */
     public Configuration(String s) {
         this(ConfigFactory.parseString(s));
@@ -81,6 +94,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a Scala-based configuration.
+     *
+     * @param conf the scala-based configuration
      */
     @Inject
     public Configuration(play.api.Configuration conf) {
@@ -330,7 +345,7 @@ public class Configuration {
 
     /**
      * Returns the config as a set of full paths to config values.  This is
-     * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
+     * different to {@link #asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
      * objects, and keys are recursively expanded to be pull path keys.
      *
      * @return The config as an entry set
@@ -663,6 +678,9 @@ public class Configuration {
 
     /**
      * Extend this configuration with fallback configuration.
+     *
+     * @param fallback the configuration to fall back on if no value is found for a key
+     * @return a new configuration that falls back on the provided one
      */
     public Configuration withFallback(Configuration fallback) {
         return new Configuration(underlying().withFallback(fallback.underlying()));

@@ -99,6 +99,8 @@ object Docs {
       val javaCache = new File(targetDir, "javaapidocs.cache")
 
       val label = "Play " + version
+      val apiMappings = Keys.apiMappings.value
+      val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
 
       val options = Seq(
         // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
@@ -106,7 +108,9 @@ object Docs {
         // into the FILE_SOURCE variable below, which is definitely not what we want.
         // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
         "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath,
-        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala",
+        "-doc-external-doc", externalDocsScalacOption)
+
 
       val compilers = Keys.compilers.value
       val useCache = apiDocsUseCache.value
@@ -125,6 +129,7 @@ object Docs {
         "-windowtitle", label,
         "-notimestamp",
         "-subpackages", "play",
+        "-Xmaxwarns", "1000",
         "-exclude", "play.api:play.core"
       )
 

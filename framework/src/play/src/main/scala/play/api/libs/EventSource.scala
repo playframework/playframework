@@ -53,7 +53,8 @@ object EventSource {
   object EventIdExtractor extends LowPriorityEventIdExtractor
 
   /**
-   * Makes an `Enumeratee[E, Event]`, that is an [[Enumeratee]] transforming [[E]] values into [[Event]] values.
+   * Makes an `Enumeratee[E, Event]`, that is an [[iteratee.Enumeratee]] transforming `E` values
+   * into [[Event]] values.
    *
    * Usage example:
    *
@@ -61,6 +62,8 @@ object EventSource {
    *   val someDataStream: Enumerator[SomeData] = ???
    *   Ok.chunked(someDataStream &> EventSource())
    * }}}
+   *
+   * @tparam E from type of the Enumeratee
    */
   def apply[E: EventDataExtractor: EventNameExtractor: EventIdExtractor](): Enumeratee[E, Event] =
     Enumeratee.map[E] { e => Event(e) }

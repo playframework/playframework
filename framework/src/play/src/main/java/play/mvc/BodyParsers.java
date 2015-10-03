@@ -26,7 +26,8 @@ public class BodyParsers {
      * @param errorMessage The error message to pass to the error handler if the content type is not valid.
      * @param validate The validation function.
      * @param parser The parser to use if the content type is valid.
-     * @return An accumulator to parse tho body.
+     * @param <A> The type to be parsed by the parser
+     * @return An accumulator to parse the body.
      */
     public static <A> Accumulator<ByteString, F.Either<Result, A>> validateContentType(HttpErrorHandler errorHandler,
                Http.RequestHeader request, String errorMessage, Function<String, Boolean> validate,

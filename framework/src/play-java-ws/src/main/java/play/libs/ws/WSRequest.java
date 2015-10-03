@@ -32,6 +32,8 @@ public interface WSRequest {
 
     /**
      * Perform a GET on the request asynchronously.
+     *
+     * @return a promise to the response
      */
     F.Promise<WSResponse> get();
 
@@ -43,6 +45,7 @@ public interface WSRequest {
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as String
+     * @return a promise to the response
      */
     F.Promise<WSResponse> patch(String body);
 
@@ -50,6 +53,7 @@ public interface WSRequest {
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as JSON
+     * @return a promise to the response
      */
     F.Promise<WSResponse> patch(JsonNode body);
 
@@ -57,6 +61,7 @@ public interface WSRequest {
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as an InputStream
+     * @return a promise to the response
      */
     F.Promise<WSResponse> patch(InputStream body);
 
@@ -64,6 +69,7 @@ public interface WSRequest {
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as a File
+     * @return a promise to the response
      */
     F.Promise<WSResponse> patch(File body);
 
@@ -75,6 +81,7 @@ public interface WSRequest {
      * Perform a POST on the request asynchronously.
      *
      * @param body represented as String
+     * @return a promise to the response
      */
     F.Promise<WSResponse> post(String body);
 
@@ -82,6 +89,7 @@ public interface WSRequest {
      * Perform a POST on the request asynchronously.
      *
      * @param body represented as JSON
+     * @return a promise to the response
      */
     F.Promise<WSResponse> post(JsonNode body);
 
@@ -89,6 +97,7 @@ public interface WSRequest {
      * Perform a POST on the request asynchronously.
      *
      * @param body represented as an InputStream
+     * @return a promise to the response
      */
     F.Promise<WSResponse> post(InputStream body);
 
@@ -96,6 +105,7 @@ public interface WSRequest {
      * Perform a POST on the request asynchronously.
      *
      * @param body represented as a File
+     * @return a promise to the response
      */
     F.Promise<WSResponse> post(File body);
 
@@ -107,6 +117,7 @@ public interface WSRequest {
      * Perform a PUT on the request asynchronously.
      *
      * @param body represented as String
+     * @return a promise to the response
      */
     F.Promise<WSResponse> put(String body);
 
@@ -114,6 +125,7 @@ public interface WSRequest {
      * Perform a PUT on the request asynchronously.
      *
      * @param body represented as JSON
+     * @return a promise to the response
      */
     F.Promise<WSResponse> put(JsonNode body);
 
@@ -121,6 +133,7 @@ public interface WSRequest {
      * Perform a PUT on the request asynchronously.
      *
      * @param body represented as an InputStream
+     * @return a promise to the response
      */
     F.Promise<WSResponse> put(InputStream body);
 
@@ -128,6 +141,7 @@ public interface WSRequest {
      * Perform a PUT on the request asynchronously.
      *
      * @param body represented as a File
+     * @return a promise to the response
      */
     F.Promise<WSResponse> put(File body);
 
@@ -137,16 +151,22 @@ public interface WSRequest {
 
     /**
      * Perform a DELETE on the request asynchronously.
+     *
+     * @return a promise to the response
      */
     F.Promise<WSResponse> delete();
 
     /**
      * Perform a HEAD on the request asynchronously.
+     *
+     * @return a promise to the response
      */
     F.Promise<WSResponse> head();
 
     /**
      * Perform an OPTIONS on the request asynchronously.
+     *
+     * @return a promise to the response
      */
     F.Promise<WSResponse> options();
 
@@ -154,18 +174,23 @@ public interface WSRequest {
      * Execute an arbitrary method on the request asynchronously.
      *
      * @param method The method to execute
+     * @return a promise to the response
      */
     F.Promise<WSResponse> execute(String method);
 
     /**
      * Execute an arbitrary method on the request asynchronously.  Should be used with setMethod().
+     *
+     * @return a promise to the response
      */
     F.Promise<WSResponse> execute();
 
     /**
      * Execute this request and stream the response body.
+     *
+     * @return a promise to the streaming response
      */
-    CompletionStage<StreamedResponse> stream(); 
+    CompletionStage<StreamedResponse> stream();
 
     //-------------------------------------------------------------------------
     // Setters
@@ -173,16 +198,22 @@ public interface WSRequest {
 
     /**
      * Set the HTTP method this request should use, where the no args execute() method is invoked.
+     *
+     * @return the modified WSRequest.
      */
     WSRequest setMethod(String method);
 
     /**
      * Set the body this request should use.
+     *
+     * @return the modified WSRequest.
      */
     WSRequest setBody(String body);
 
     /**
      * Set the body this request should use.
+     *
+     * @return the modified WSRequest.
      */
     WSRequest setBody(JsonNode body);
 
@@ -190,12 +221,16 @@ public interface WSRequest {
      * Set the body this request should use.
      *
      * @deprecated use {@link #setBody(Source)} instead.
+     * @input body Deprecated
+     * @return Deprecated
      */
     @Deprecated
     WSRequest setBody(InputStream body);
 
     /**
      * Set the body this request should use.
+     *
+     * @return the modified WSRequest.
      */
     WSRequest setBody(File body);
 
@@ -208,60 +243,76 @@ public interface WSRequest {
      * Adds a header to the request.  Note that duplicate headers are allowed
      * by the HTTP specification, and removing a header is not available
      * through this API.
+     *
+     * @param name the header name
+     * @param value the header value
+     * @return the modified WSRequest.
      */
     WSRequest setHeader(String name, String value);
 
     /**
      * Sets the query string to query.
+     *
+     * @param query the fully formed query string
+     * @return the modified WSRequest.
      */
     WSRequest setQueryString(String query);
 
     /**
      * Sets a query parameter with the given name, this can be called repeatedly.  Duplicate query parameters are allowed.
      *
-     * @param name
-     * @param value
+     * @param name the query parameter name
+     * @param value the query parameter value
+     * @return the modified WSRequest.
      */
     WSRequest setQueryParameter(String name, String value);
 
     /**
      * Sets the authentication header for the current request using BASIC authentication.
      *
-     * @param userInfo
+     * @param userInfo a string formed as "username:password".
+     * @return the modified WSRequest.
      */
     WSRequest setAuth(String userInfo);
 
     /**
      * Sets the authentication header for the current request using BASIC authentication.
      *
-     * @param username
-     * @param password
+     * @param username the basic auth username
+     * @param password the basic auth password
      */
     WSRequest setAuth(String username, String password);
 
     /**
      * Sets the authentication header for the current request.
      *
-     * @param username
-     * @param password
+     * @param username the username
+     * @param password the password
      * @param scheme   authentication scheme
      */
     WSRequest setAuth(String username, String password, WSAuthScheme scheme);
 
     /**
      * Sets an (OAuth) signature calculator.
+     *
+     * @param calculator the signature calculator
+     * @return the modified WSRequest
      */
     WSRequest sign(WSSignatureCalculator calculator);
 
     /**
      * Sets whether redirects (301, 302) should be followed automatically.
      *
-     * @param followRedirects
+     * @param followRedirects true if the request should follow redirects
+     * @return the modified WSRequest
      */
     WSRequest setFollowRedirects(Boolean followRedirects);
 
     /**
      * Sets the virtual host as a "hostname:port" string.
+     *
+     * @param virtualHost the virtual host
+     * @return the modified WSRequest
      */
     WSRequest setVirtualHost(String virtualHost);
 
@@ -278,6 +329,7 @@ public interface WSRequest {
      * default to UTF-8.
      *
      * @param contentType The content type
+     * @return the modified WSRequest
      */
     WSRequest setContentType(String contentType);
 
@@ -323,6 +375,8 @@ public interface WSRequest {
     /**
      * Gets the original request timeout in milliseconds, passed into the
      * request as input.
+     *
+     * @return the timeout
      */
     long getRequestTimeout();
 

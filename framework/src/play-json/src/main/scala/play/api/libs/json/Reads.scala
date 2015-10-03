@@ -441,7 +441,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
    * @param p Typeclass instance based on `parsing`
-   * @see [[TemporalFormatter]]
+   * @see [[DefaultWrites.TemporalFormatter]]
    *
    * {{{
    * import play.api.libs.json.Java8Reads.localDateTimeReads
@@ -484,8 +484,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
    * @param p Typeclass instance based on `parsing`
-   * @see [[TemporalFormatter]]
-   *
+   * @see [[DefaultWrites.TemporalFormatter]]
    * {{{
    * import play.api.libs.json.Java8Reads.zonedDateTimeReads
    *
@@ -527,8 +526,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
    * @param p Typeclass instance based on `parsing`
-   * @see [[TemporalFormatter]]
-   *
+   * @see [[DefaultWrites.TemporalFormatter]]
    * {{{
    * import play.api.libs.json.Java8Reads.localDateReads
    *
@@ -570,8 +568,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
    * @param p Typeclass instance based on `parsing`
-   * @see [[TemporalFormatter]]
-   *
+   * @see [[DefaultWrites.TemporalFormatter]]
    * {{{
    * import play.api.libs.json.Java8Reads.instantReads
    *

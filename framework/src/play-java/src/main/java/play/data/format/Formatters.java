@@ -24,6 +24,7 @@ public class Formatters {
      *
      * @param text the text to parse
      * @param clazz class representing the required type
+     * @param <T> the type to parse out of the text
      * @return the parsed value
      */
     public static <T> T parse(String text, Class<T> clazz) {
@@ -36,6 +37,7 @@ public class Formatters {
      * @param field the related field (custom formatters are extracted from this field annotation)
      * @param text the text to parse
      * @param clazz class representing the required type
+     * @param <T> the type to parse out of the text
      * @return the parsed value
      */
     @SuppressWarnings("unchecked")
@@ -47,6 +49,7 @@ public class Formatters {
      * Computes the display string for any value.
      *
      * @param t the value to print
+     * @param <T> the type to print
      * @return the formatted string
      */
     public static <T> String print(T t) {
@@ -65,6 +68,7 @@ public class Formatters {
      *
      * @param field the related field - custom formatters are extracted from this field annotation
      * @param t the value to print
+     * @param <T> the type to print
      * @return the formatted string
      */
     public static <T> String print(Field field, T t) {
@@ -76,6 +80,7 @@ public class Formatters {
      *
      * @param desc the field descriptor - custom formatters are extracted from this descriptor.
      * @param t the value to print
+     * @param <T> the type to print
      * @return the formatted string
      */
     public static <T> String print(TypeDescriptor desc, T t) {
@@ -107,6 +112,8 @@ public class Formatters {
 
     /**
      * Super-type for custom simple formatters.
+     *
+     * @param <T> the type that this formatter will parse and print
      */
     public static abstract class SimpleFormatter<T> {
 
@@ -115,6 +122,7 @@ public class Formatters {
          *
          * @param text the field text
          * @param locale the current Locale
+         * @throws java.text.ParseException if the text could not be parsed into T
          * @return a new value
          */
         public abstract T parse(String text, Locale locale) throws java.text.ParseException;
@@ -132,6 +140,9 @@ public class Formatters {
 
     /**
      * Super-type for annotation-based formatters.
+     *
+     * @param <A> the type of the annotation
+     * @param <T> the type that this formatter will parse and print
      */
     public static abstract class AnnotationFormatter<A extends Annotation,T> {
 
@@ -141,6 +152,7 @@ public class Formatters {
          * @param annotation the annotation that trigerred this formatter
          * @param text the field text
          * @param locale the current <code>Locale</code>
+         * @throws java.text.ParseException when the text could not be parsed
          * @return a new value
          */
         public abstract T parse(A annotation, String text, Locale locale) throws java.text.ParseException;
@@ -191,6 +203,7 @@ public class Formatters {
      * Registers a simple formatter.
      *
      * @param clazz class handled by this formatter
+     * @param <T> the type that this formatter will parse and print
      * @param formatter the formatter to register
      */
     public static <T> void register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
@@ -216,6 +229,8 @@ public class Formatters {
      *
      * @param clazz class handled by this formatter
      * @param formatter the formatter to register
+     * @param <A> the annotation type
+     * @param <T> the type that will be parsed or printed
      */
     @SuppressWarnings("unchecked")
     public static <A extends Annotation,T> void register(final Class<T> clazz, final AnnotationFormatter<A,T> formatter) {

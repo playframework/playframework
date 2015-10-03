@@ -18,6 +18,10 @@ public class Routes {
 
     /**
      * Generates a JavaScript router.
+     *
+     * @param name the router's name
+     * @param routes the reverse routes for this router
+     * @return the router
      */
     public static JavaScript javascriptRouter(String name, play.api.routing.JavaScriptReverseRoute... routes) {
         return javascriptRouter(name, "jQuery.ajax", routes);
@@ -25,11 +29,15 @@ public class Routes {
 
     /**
      * Generates a JavaScript router.
+     *
+     * @param name the router's name
+     * @param ajaxMethod which asynchronous call method the user's browser will use (e.g. "jQuery.ajax")
+     * @param routes the reverse routes for this router
+     * @return the router
      */
     public static JavaScript javascriptRouter(String name, String ajaxMethod, play.api.routing.JavaScriptReverseRoute... routes) {
         return play.api.Routes.javascriptRouter(
             name, Scala.Option(ajaxMethod), play.mvc.Http.Context.current().request().host(), Scala.toSeq(routes)
         );
     }
-
 }

@@ -15,7 +15,7 @@ import javax.inject.Inject;
  * Defines several security helpers.
  */
 public class Security {
-    
+
     /**
      * Wraps the annotated action in an <code>AuthenticatedAction</code>.
      */
@@ -25,7 +25,7 @@ public class Security {
     public @interface Authenticated {
         Class<? extends Authenticator> value() default Authenticator.class;
     }
-    
+
     /**
      * Wraps another action, allowing only authenticated HTTP requests.
      * <p>
@@ -67,29 +67,33 @@ public class Security {
         }
 
     }
-    
+
     /**
      * Handles authentication.
      */
     public static class Authenticator extends Results {
-        
+
         /**
          * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
+         * @param ctx the current request context
          * @return null if the user is not authenticated.
          */
         public String getUsername(Context ctx) {
             return ctx.session().get("username");
         }
-        
+
         /**
          * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
+         *
+         * @param ctx the current request context
+         * @return a <code>401 Not Authorized</code> result
          */
         public Result onUnauthorized(Context ctx) {
             return unauthorized(views.html.defaultpages.unauthorized.render());
         }
-        
+
     }
-    
-    
+
+
 }
