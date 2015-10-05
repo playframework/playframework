@@ -6,7 +6,6 @@ package play.core
 import com.fasterxml.jackson.databind.ObjectMapper
 import play.api._
 import play.api.inject._
-import play.api.libs.json.jackson.PlayJsonModule
 import play.libs.Json
 
 import javax.inject._
@@ -29,7 +28,7 @@ class ObjectMapperModule extends Module {
 @Singleton
 class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
   lazy val get = {
-    val objectMapper = new ObjectMapper().registerModule(PlayJsonModule)
+    val objectMapper = Json.newDefaultMapper()
     Json.setObjectMapper(objectMapper)
     lifecycle.addStopHook { () =>
       Future.successful(Json.setObjectMapper(null))
