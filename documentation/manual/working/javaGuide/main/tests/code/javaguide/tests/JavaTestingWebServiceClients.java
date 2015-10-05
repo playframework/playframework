@@ -1,5 +1,7 @@
 package javaguide.tests;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
 import play.api.routing.Router;
@@ -37,7 +39,7 @@ public class JavaTestingWebServiceClients {
     }
 
     @Test
-    public void sendResource() {
+    public void sendResource() throws IOException {
         //#send-resource
         Router router = new RoutingDsl()
             .GET("/repositories").routeTo(() ->
@@ -57,8 +59,12 @@ public class JavaTestingWebServiceClients {
             List<String> repos = client.getRepositories().get(10000);
             assertThat(repos, hasItem("octocat/Hello-World"));
         } finally {
-            ws.close();
-            server.stop();
+            try {
+                ws.close();
+            }
+            finally {
+                server.stop();
+            }
         }
     }
 

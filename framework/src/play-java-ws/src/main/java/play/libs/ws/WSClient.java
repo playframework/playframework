@@ -3,6 +3,8 @@
  */
 package play.libs.ws;
 
+import java.io.IOException;
+
 /**
  * This is the WS Client interface.
  */
@@ -28,5 +30,5 @@ public interface WSClient extends java.io.Closeable {
      *
      * Use this for manually instantiated clients.
      */
-    void close();
+    void close() throws IOException;
 }

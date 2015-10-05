@@ -14,7 +14,7 @@ import org.asynchttpclient.*;
 import org.asynchttpclient.request.body.generator.FileBodyGenerator;
 import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;
 import org.asynchttpclient.oauth.OAuthSignatureCalculator;
-import org.asynchttpclient.util.AsyncHttpProviderUtils;
+import org.asynchttpclient.util.HttpUtils;
 
 import org.reactivestreams.Publisher;
 
@@ -441,7 +441,7 @@ public class NingWSRequest implements WSRequest {
             if (contentType == null) {
                 contentType = "text/plain";
             }
-            Charset charset = AsyncHttpProviderUtils.parseCharset(contentType);
+            Charset charset = HttpUtils.parseCharset(contentType);
             if (charset == null) {
                 charset = StandardCharsets.UTF_8;
                 List<String> contentTypeList = new ArrayList<String>();

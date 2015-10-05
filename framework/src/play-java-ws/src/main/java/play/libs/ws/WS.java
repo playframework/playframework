@@ -7,6 +7,8 @@ import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
 
+import java.io.IOException;
+
 import org.asynchttpclient.AsyncHttpClientConfig;
 
 import play.Application;
@@ -72,9 +74,13 @@ public class WS {
                     return client.url(url);
                 }
             }
-            public void close() {
-                client.close();
-                system.shutdown();
+            public void close() throws IOException {
+                try {
+                    client.close();
+                }
+                finally {
+                    system.shutdown();
+                }
             }
         };
     }

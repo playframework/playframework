@@ -10,7 +10,7 @@ import org.asynchttpclient.{ Response => AHCResponse, _ }
 import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
 import org.asynchttpclient.Realm.{ RealmBuilder, AuthScheme }
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.util.AsyncHttpProviderUtils
+import org.asynchttpclient.util.HttpUtils
 import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.nio.charset.{ Charset, StandardCharsets }
@@ -261,7 +261,7 @@ case class NingWSRequest(client: NingWSClient,
           if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
             // extract the content type and the charset
             val charset =
-              Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
+              Option(HttpUtils.parseCharset(ct)).getOrElse {
                 // NingWSRequest modifies headers to include the charset, but this fails tests in Scala.
                 //val contentTypeList = Seq(ct + "; charset=utf-8")
                 //possiblyModifiedHeaders = this.headers.updated(HttpHeaders.Names.CONTENT_TYPE, contentTypeList)
@@ -508,9 +508,9 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
     // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
     // set and content type is not text/*, otherwise default to ISO-8859-1
     val contentType = Option(ahcResponse.getContentType).getOrElse("application/octet-stream")
-    val charset = Option(AsyncHttpProviderUtils.parseCharset(contentType)).getOrElse {
+    val charset = Option(HttpUtils.parseCharset(contentType)).getOrElse {
       if (contentType.startsWith("text/"))
-        AsyncHttpProviderUtils.DEFAULT_CHARSET
+        HttpUtils.DEFAULT_CHARSET
       else
         StandardCharsets.UTF_8
     }
