@@ -45,7 +45,7 @@ class Routes(
   def documentation = List(@for((dep, index) <- rules.zipWithIndex) {
     @dep.rule match {
       case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, this.prefix, @tq@call@tq)}
-      case Route(verb, path, call, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @tq@path@tq, @tq@call@tq)}
+      case Route(verb, path, call, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
       case include: Include => {prefixed_@(dep.ident)_@(index).router.documentation}
   },}
     Nil
@@ -68,8 +68,8 @@ case route @ Route(verb, path, call, comments) => {
       "@call.method",
       @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
       "@verb",
-      @tq@comments.map(_.comment).mkString("\n")@tq,
-      this.prefix + @tq@path@tq
+      @encodeStringConstant(comments.map(_.comment).mkString("\n")),
+      this.prefix + @encodeStringConstant(path.toString)
     )
   )
 }
