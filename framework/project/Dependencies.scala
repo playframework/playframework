@@ -85,7 +85,7 @@ object Dependencies {
       .exclude("javassist", "javassist"),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.1",
+    "net.jodah" % "typetools" % "0.4.3",
 
     guava,
     findBugs,
