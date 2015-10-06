@@ -54,7 +54,7 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: () => Future[Unit]): Unit
+  def addStopHook(hook: () => Future[_]): Unit
 
   /**
    * Add a stop hook to be called when the application stops.
@@ -62,10 +62,8 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: Callable[F.Promise[Void]]): Unit = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    addStopHook(() => hook.call().wrapped().map(_ => ()))
-  }
+  def addStopHook(hook: Callable[F.Promise[_]]): Unit =
+    addStopHook(() => hook.call().wrapped())
 }
 
 /**
@@ -74,9 +72,9 @@ trait ApplicationLifecycle {
 @Singleton
 class DefaultApplicationLifecycle extends ApplicationLifecycle {
   private val mutex = new Object()
-  @volatile private var hooks = List.empty[() => Future[Unit]]
+  @volatile private var hooks = List.empty[() => Future[_]]
 
-  def addStopHook(hook: () => Future[Unit]) = mutex.synchronized {
+  def addStopHook(hook: () => Future[_]) = mutex.synchronized {
     hooks = hook :: hooks
   }
 
@@ -85,12 +83,12 @@ class DefaultApplicationLifecycle extends ApplicationLifecycle {
    *
    * @return A future that will be redeemed once all hooks have executed.
    */
-  def stop(): Future[Unit] = {
+  def stop(): Future[_] = {
 
     // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-    hooks.foldLeft(Future.successful(())) { (future, hook) =>
+    hooks.foldLeft(Future.successful[Any](())) { (future, hook) =>
       future.flatMap { _ =>
         hook().recover {
           case e => Logger.error("Error executing stop hook", e)

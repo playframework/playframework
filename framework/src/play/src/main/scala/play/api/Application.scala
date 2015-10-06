@@ -204,7 +204,7 @@ trait Application {
   /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
-  def stop(): Future[Unit]
+  def stop(): Future[_]
 
   /**
    * Get the injector for this application.
