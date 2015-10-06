@@ -8,8 +8,6 @@ import play.api.mvc.{ Result, Results }
 
 class SerializableResultSpec extends PlaySpecification {
 
-  sequential
-
   "SerializableResult" should {
 
     def serializeAndDeserialize(result: Result): Result = {

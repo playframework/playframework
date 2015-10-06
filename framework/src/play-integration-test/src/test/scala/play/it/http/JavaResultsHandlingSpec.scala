@@ -19,8 +19,6 @@ object AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with Akka
 
 trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  sequential
-
   "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort

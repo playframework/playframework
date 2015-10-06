@@ -18,8 +18,6 @@ import scala.concurrent.duration._
 
 object AllowedHostsFilterSpec extends PlaySpecification {
 
-  sequential
-
   private def request(hostHeader: String, uri: String = "/", headers: Seq[(String, String)] = Seq()) = {
     val req = FakeRequest(method = "GET", path = uri)
       .withHeaders(headers: _*)

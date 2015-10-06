@@ -19,8 +19,6 @@ object AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecificati
 trait AssetsSpec extends PlaySpecification
     with WsTestClient with ServerIntegrationSpecification {
 
-  sequential
-
   "Assets controller" should {
 
     val defaultCacheControl = Some("public, max-age=3600")

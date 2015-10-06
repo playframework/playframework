@@ -19,8 +19,6 @@ import akka.util.ByteString
 
 object NingWSSpec extends PlaySpecification with Mockito {
 
-  sequential
-
   "Ning WS" should {
 
     object PairMagnet {

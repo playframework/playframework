@@ -10,8 +10,6 @@ import play.api.Mode
 
 object MessagesSpec extends PlaySpecification with Controller {
 
-  sequential
-
   implicit val lang = Lang("en-US")
   import play.api.i18n.Messages.Implicits.applicationMessages
 

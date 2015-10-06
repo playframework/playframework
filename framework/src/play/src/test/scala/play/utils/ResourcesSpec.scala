@@ -50,7 +50,6 @@ object ResourcesSpec extends Specification {
     def openConnection(u: URL): URLConnection = throw new Exception("should never happen")
   }
 
-  sequential
   "resources isDirectory" should {
 
     step {

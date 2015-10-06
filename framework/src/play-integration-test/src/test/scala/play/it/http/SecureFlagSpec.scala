@@ -21,8 +21,6 @@ object AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpe
  */
 trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecification {
 
-  sequential
-
   /** An action whose result is just "true" or "false" depending on the value of result.secure */
   val secureFlagAction = Action {
     request => Results.Ok(request.secure.toString)

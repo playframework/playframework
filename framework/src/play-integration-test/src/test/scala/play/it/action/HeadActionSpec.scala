@@ -30,7 +30,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
   private def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
   }
-  sequential
 
   "HEAD requests" should {
 

@@ -19,8 +19,6 @@ import scala.concurrent.duration.Duration
 
 object FakesSpec extends PlaySpecification {
 
-  sequential
-
   "FakeApplication" should {
 
     "allow adding routes inline" in {

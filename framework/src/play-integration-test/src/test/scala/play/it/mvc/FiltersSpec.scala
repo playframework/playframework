@@ -69,8 +69,6 @@ trait GlobalFiltersSpec extends FiltersSpec {
 
 trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
-  sequential
-
   "filters" should {
     "handle errors" in {
 

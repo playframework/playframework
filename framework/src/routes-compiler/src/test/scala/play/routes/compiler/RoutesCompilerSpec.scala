@@ -11,8 +11,6 @@ import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 object RoutesCompilerSpec extends Specification with FileMatchers {
 
-  sequential
-
   "route file compiler" should {
 
     def withTempDir[T](block: File => T) = {
