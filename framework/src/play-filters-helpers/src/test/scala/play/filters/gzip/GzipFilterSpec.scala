@@ -25,8 +25,6 @@ import org.specs2.matcher.DataTables
 
 object GzipFilterSpec extends PlaySpecification with DataTables {
 
-  sequential
-
   "The GzipFilter" should {
 
     "gzip responses" in withApplication(Ok("hello")) { implicit mat =>

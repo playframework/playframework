@@ -26,8 +26,6 @@ import play.core.DefaultWebCommands
  */
 object CSRFFilterSpec extends CSRFCommonSpecs {
 
-  sequential
-
   "a CSRF filter also" should {
 
     // conditions for adding a token

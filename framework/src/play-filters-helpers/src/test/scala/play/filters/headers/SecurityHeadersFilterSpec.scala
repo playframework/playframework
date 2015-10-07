@@ -21,8 +21,6 @@ object SecurityHeadersFilterSpec extends PlaySpecification {
 
   import SecurityHeadersFilter._
 
-  sequential
-
   class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
     def filters = Seq(securityHeadersFilter)
   }

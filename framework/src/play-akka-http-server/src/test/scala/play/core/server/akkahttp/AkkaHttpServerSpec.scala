@@ -17,8 +17,6 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
   private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "true") == "true")
   skipAllIf(!runTests)
 
-  sequential
-
   def requestFromServer[T](
     path: String)(
       exec: WSRequest => Future[WSResponse])(

@@ -23,8 +23,6 @@ object NettyGlobalSettingsSpec extends GlobalSettingsSpec with NettyIntegrationS
 
 trait GlobalSettingsSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  sequential
-
   def withServer[T](applicationGlobal: Option[String])(uri: String)(block: String => T) = {
     implicit val port = testServerPort
     val additionalSettings = applicationGlobal.fold(Map.empty[String, String]) { s: String =>

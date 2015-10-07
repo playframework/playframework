@@ -13,8 +13,6 @@ import scala.concurrent.{ Future, Promise }
 
 class OAuthSpec extends PlaySpecification {
 
-  sequential
-
   val consumerKey = ConsumerKey("someConsumerKey", "someVerySecretConsumerSecret")
   val requestToken = RequestToken("someRequestToken", "someVerySecretRequestSecret")
   val oauthCalculator = OAuthCalculator(consumerKey, requestToken)

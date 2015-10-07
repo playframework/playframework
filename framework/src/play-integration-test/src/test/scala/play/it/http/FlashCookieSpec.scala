@@ -12,8 +12,6 @@ object AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationS
 
 trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 
-  sequential
-
   def appWithRedirect = FakeApplication(withRoutes = {
     case ("GET", "/flash") =>
       Action {

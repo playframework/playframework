@@ -35,8 +35,6 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Web service client" title
 
-  sequential
-
   def app = HttpBinApplication.app
 
   val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)

@@ -28,8 +28,6 @@ object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpeci
 
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  sequential
-
   override implicit def defaultAwaitTimeout = 5.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: => A): A = {

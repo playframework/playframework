@@ -6,8 +6,6 @@ import play.api.test._
 
 object WSSpec extends PlaySpecification {
 
-  sequential
-
   val uploadApp = FakeApplication(withRoutes = {
     case ("POST", "/") =>
       Action { request =>
