@@ -272,6 +272,7 @@ object PlayBuild extends Build {
     .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "play-jdbc-evolutions")
+    .settings(libraryDependencies += derbyDatabase % Test)
     .dependsOn(PlayJdbcApiProject)
     .dependsOn(PlaySpecs2Project % "test")
     .dependsOn(PlayJdbcProject % "test")
