@@ -6,7 +6,7 @@ package play.libs.ws.ning;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.asynchttpclient.util.AsyncHttpProviderUtils;
+import org.asynchttpclient.util.HttpUtils;
 import org.w3c.dom.Document;
 import play.libs.Json;
 
@@ -111,12 +111,12 @@ public class NingWSResponse implements WSResponse {
                 // As defined by RFC-2616#7.2.1
                 contentType = "application/octet-stream";
             }
-            Charset charset = AsyncHttpProviderUtils.parseCharset(contentType);
+            Charset charset = HttpUtils.parseCharset(contentType);
 
             if (charset != null) {
                 return ahcResponse.getResponseBody(charset);
             } else if (contentType.startsWith("text/")) {
-                return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET);
+                return ahcResponse.getResponseBody(HttpUtils.DEFAULT_CHARSET);
             } else {
                 return ahcResponse.getResponseBody(StandardCharsets.UTF_8);
             }

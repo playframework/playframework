@@ -3,6 +3,8 @@
  */
 package javaguide.advanced.embedding;
 
+import java.io.IOException;
+
 import org.asynchttpclient.AsyncHttpClientConfig;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -30,7 +32,7 @@ import static org.junit.Assert.*;
 public class JavaEmbeddingPlay {
 
     @Test
-    public void simple() {
+    public void simple() throws IOException {
         //#simple
         Server server = Server.forRouter(new RoutingDsl()
             .GET("/hello/:to").routeTo(to ->
@@ -57,7 +59,7 @@ public class JavaEmbeddingPlay {
     }
 
     @Test
-    public void config() {
+    public void config() throws IOException {
         //#config
         Server server = Server.forRouter(new RoutingDsl()
             .GET("/hello/:to").routeTo(to ->
@@ -77,7 +79,7 @@ public class JavaEmbeddingPlay {
         }
     }
 
-    private void withClient(Consumer<WSClient> callback) {
+    private void withClient(Consumer<WSClient> callback) throws IOException {
         Materializer materializer = Play.current().materializer();
         try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
             callback.accept(client);

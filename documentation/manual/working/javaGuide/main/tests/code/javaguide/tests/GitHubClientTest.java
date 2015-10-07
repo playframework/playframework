@@ -1,6 +1,7 @@
 package javaguide.tests;
 
 //#content
+import java.io.IOException;
 import java.util.*;
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.*;
@@ -39,9 +40,13 @@ public class GitHubClientTest {
     }
 
     @After
-    public void tearDown() {
-        ws.close();
-        server.stop();
+    public void tearDown() throws IOException {
+        try {
+            ws.close();
+        }
+        finally {
+            server.stop();
+        }
     }
 
     @Test

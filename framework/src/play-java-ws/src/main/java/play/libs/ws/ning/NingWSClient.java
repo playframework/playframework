@@ -6,6 +6,8 @@ package play.libs.ws.ning;
 
 import akka.stream.Materializer;
 
+import java.io.IOException;
+
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -39,7 +41,7 @@ public class NingWSClient implements WSClient {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         asyncHttpClient.close();
     }
 }
