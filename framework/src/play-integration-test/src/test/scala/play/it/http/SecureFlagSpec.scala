@@ -46,26 +46,23 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
     val sslPort = 19943
 
+    def test(connection: HttpsURLConnection, expect: Boolean) = {
+      Source.fromInputStream(connection.getContent.asInstanceOf[InputStream]).mkString must_== expect.toString
+    }
+
     "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort)
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed // All these tests are waiting on Akka HTTP to support SSL
-    "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort)
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed
+      test(createConn(sslPort), true)
+    }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort, Some("https"))
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed
-    "not show that requests are secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort, Some("http"))
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "false"
-    }.pendingUntilAkkaHttpFixed
+      test(createConn(sslPort, Some("https")), true)
+    }
+    "not show that requests are not secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) { _ =>
+      test(createConn(sslPort, Some("http")), false)
+    }
   }
 
   "Play http server" should {
-    "not show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) { port =>
+    "not show that requests are not secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "foo")
       )
