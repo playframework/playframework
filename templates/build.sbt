@@ -51,7 +51,7 @@ templateParameters := Map(
   "MOCHA_VERSION" -> "1.1.0",
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
-  "PLAY_SLICK_VERSION" -> "1.0.0",
+  "PLAY_SLICK_VERSION" -> "1.1.0",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )
