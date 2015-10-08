@@ -7,19 +7,15 @@ import akka.util.ByteString
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
 
-import java.io.IOException
-
 import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 
-import play.api.http.{ HttpEntity, Port }
-import play.api.libs.iteratee._
+import play.api.http.Port
 import play.api.libs.oauth._
 import play.api.mvc._
 import play.api.test._
 import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication
-import play.api.mvc.BodyParsers.parse
 import play.api.mvc.Results.Ok
 import play.api.libs.streams.Accumulator
 

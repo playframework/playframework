@@ -9,10 +9,8 @@ import akka.util.ByteString
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
-import play.api.libs.iteratee._
 import play.it._
 import scala.util.Try
-import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 import play.api.http.{ HttpEntity, HttpChunk, Status }
 
 object NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
@@ -54,7 +52,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
     }
 
     "not add a content length header when none is supplied" in makeRequest(
-      Results.Ok.feed(Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
+      Results.Ok.sendEntity(HttpEntity.Streamed(Source(List("abc", "def", "ghi")).map(ByteString.apply), None, None))
     ) { response =>
         response.header(CONTENT_LENGTH) must beNone
         response.header(TRANSFER_ENCODING) must beNone
@@ -62,15 +60,15 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "chunk results for chunked streaming strategy" in makeRequest(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { response =>
         response.header(TRANSFER_ENCODING) must beSome("chunked")
         response.header(CONTENT_LENGTH) must beNone
         response.body must_== "abc"
       }
 
-    "close the connection for feed results" in withServer(
-      Results.Ok.feed(Enumerator("a", "b", "c"))
+    "close the connection when no content length is sent" in withServer(
+      Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("abc")), None, None))
     ) { port =>
         val response = BasicHttpClient.makeRequests(port, checkClosed = true)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
@@ -144,7 +142,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "close chunked connections when requested" in withServer(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { port =>
         // will timeout if not closed
         BasicHttpClient.makeRequests(port, checkClosed = true)(
@@ -153,7 +151,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "keep chunked connections alive by default" in withServer(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
@@ -193,7 +191,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "reject HTTP 1.0 requests for chunked results" in withServer(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")

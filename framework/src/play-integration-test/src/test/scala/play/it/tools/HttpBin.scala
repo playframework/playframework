@@ -5,6 +5,7 @@
 package play.it.tools
 
 import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import play.api.libs.ws.ning.NingWSComponents
 import play.api.routing.SimpleRouter
 import play.api.routing.Router.Routes
@@ -201,7 +202,6 @@ object HttpBinApplication {
 
   val stream: Routes = {
     case GET(p"/stream/$param<[0-9]+>") =>
-      import play.api.libs.iteratee.Enumerator
       Action { request =>
         val body = requestHeaderWriter.writes(request).as[JsObject]
 
@@ -209,7 +209,7 @@ object HttpBinApplication {
           body ++ Json.obj("id" -> index)
         }
 
-        Ok.chunked(Enumerator(content: _*)).as("application/json")
+        Ok.chunked(Source(content)).as("application/json")
       }
   }
 

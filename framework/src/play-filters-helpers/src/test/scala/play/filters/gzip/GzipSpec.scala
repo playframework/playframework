@@ -7,7 +7,6 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
 import org.apache.commons.io.IOUtils
-import scala.concurrent.duration._
 
 import concurrent.Await
 import play.api.libs.iteratee.{ Iteratee, Enumeratee, Enumerator }

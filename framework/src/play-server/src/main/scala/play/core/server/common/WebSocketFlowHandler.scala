@@ -117,18 +117,37 @@ object WebSocketFlowHandler {
         }
       }
 
+      /**
+       * Two things are needed to handle and propagate a cancellation, the close message is needed to be propagated,
+       * and demand from downstream is needed to propagate it. If demand from downstream is received first, this will
+       * be a Left of the callback to invoke when cancellation is captured. If cancellation is captured first, then
+       * this will be a Right of the message that should be sent when demand from downstream is received.
+       */
       val serverCancellationState = new AtomicReference[Either[AsyncCallback[Message], Message]](null)
 
-      val handleServerCancellation = AkkaStreams.blockCancel[Message] { () =>
-        if (state.compareAndSet(Open, ServerInitiatedClose)) {
-          val close = CloseMessage(Some(CloseCodes.Regular))
-          if (!serverCancellationState.compareAndSet(null, Right(close))) {
-            val Left(callback) = serverCancellationState.get()
-            callback.invoke(close)
+      /**
+       * Does nothing but capture cancellation from the user flow, so that the propagateServerCancellation flow
+       * can turn it into a message to be sent downstream.
+       */
+      val handleServerCancellation = Flow[Message].transform(() => new PushStage[Message, Message] {
+        override def onDownstreamFinish(ctx: Context[Message]): TerminationDirective = {
+          if (state.compareAndSet(Open, ServerInitiatedClose)) {
+            val close = CloseMessage(Some(CloseCodes.Regular))
+            if (!serverCancellationState.compareAndSet(null, Right(close))) {
+              val Left(callback) = serverCancellationState.get()
+              callback.invoke(close)
+            }
           }
+          // We propagate the cancel, but this will be ignored by the broadcast enumerator
+          ctx.finish()
         }
-      }
+        override def onPush(elem: Message, ctx: Context[Message]): SyncDirective = ctx.push(elem)
+      })
 
+      /**
+       * Async stage that simply captures demand, and sends a close message when the user flow cancels, coordinating
+       * with the handleServerCancellation stage via the serverCancellationStage atomic reference.
+       */
       val propagateServerCancellation = Flow[Message].transform(() => new AsyncStage[Message, Message, Message] {
         def onAsyncInput(event: Message, ctx: AsyncContext[Message, Message]) = {
           ctx.pushAndFinish(event)
@@ -165,13 +184,24 @@ object WebSocketFlowHandler {
         }
       })
 
-      val broadcast = builder.add(Broadcast[Message](2))
+      // Must not eager cancel, the only way that the connection gets closed is by pushing completion downstream.
+      val broadcast = builder.add(Broadcast[Message](3, eagerCancel = false))
       val merge = builder.add(OnlyFirstCanFinishMerge[Message](3))
 
-      broadcast.out(0) ~> handleClientControlMessages ~> merge.in(0)
-      broadcast.out(1) ~> handleServerCancellation ~> flow.transform(() => handleServerInitiatedClose) ~> merge.in(1)
+      // This ensures that cancel is never propagated upstream, since the ignore sink will ensure that the broadcast
+      // always stays open.
+      broadcast.out(0) ~> Sink.ignore
+      // Handles pings/closes etc. This is the only route that can actually close the connection, since the only time
+      // that we're allowed to close the connection is when we've received a close message from the client.
+      broadcast.out(1) ~> handleClientControlMessages ~> merge.in(0)
+      // The main route for server websocket messages. Cancellation and completion (either successfully or by an error)
+      // are both captured here, and transformed into close events.
+      broadcast.out(2) ~> handleServerCancellation ~> flow.transform(() => handleServerInitiatedClose) ~> merge.in(1)
+      // An async stage that, when demand is received, and the server cancels, propagates that cancellation as a close
+      // message. This never propagates demand.
       Source.lazyEmpty ~> propagateServerCancellation ~> merge.in(2)
 
+      // Finally, we block all outgoing messages after a close message is sent.
       (broadcast.in, (merge.out ~> blockAllMessagesAfterClose).outlet)
     }
 
