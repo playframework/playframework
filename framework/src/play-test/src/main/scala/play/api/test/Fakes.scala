@@ -225,7 +225,7 @@ case class FakeApplication(
   override def plugins: Seq[Plugin.Deprecated] = app.plugins
   override def requestHandler: HttpRequestHandler = app.requestHandler
   override def errorHandler: HttpErrorHandler = app.errorHandler
-  override def stop(): Future[Unit] = app.stop()
+  override def stop(): Future[_] = app.stop()
   override def injector: Injector = app.injector
 }
 

@@ -20,7 +20,7 @@ public class DelegateApplicationLifecycle implements ApplicationLifecycle {
     }
 
     @Override
-    public void addStopHook(final Callable<F.Promise<Void>> hook) {
+    public void addStopHook(final Callable<F.Promise<?>> hook) {
         delegate.addStopHook(hook);
     }
 }
