@@ -62,3 +62,7 @@ Here follows a short table that should ease the migration:
 | map        | map        |
 
 `Optional` has a lot more combinators, so we highly encourage you to discover its API if you are not familiar with it already.
+
+## Replaced static methods with dependency injection
+
+You should `@Inject ActorSystem system` instead of using `play.libs.Akka.system()`
