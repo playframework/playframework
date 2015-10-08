@@ -11,36 +11,41 @@ import play.core.j.JavaModeConverter$;
 public class Play {
 
     /**
-     * Returns the currently running application.
+     * @deprecated inject the {@link play.Application} instead
      */
+    @Deprecated
     public static Application application() {
         return play.api.Play.current().injector().instanceOf(Application.class);
     }
 
     /**
-     * Returns the current mode of the application.
+     * @deprecated inject the {@link play.Environment} instead
      */
+    @Deprecated
     public static Mode mode() {
         return JavaModeConverter$.MODULE$.asJavaMode(play.api.Play.mode(play.api.Play.current()));
     }
 
     /**
-     * Returns `true` if the current application is `DEV` mode.
+     * @deprecated inject the {@link play.Environment} instead
      */
+    @Deprecated
     public static boolean isDev() {
         return play.api.Play.isDev(play.api.Play.current());
     }
 
     /**
-     * Returns `true` if the current application is `PROD` mode.
+     * @deprecated inject the {@link play.Environment} instead
      */
+    @Deprecated
     public static boolean isProd() {
         return play.api.Play.isProd(play.api.Play.current());
     }
 
     /**
-     * Returns `true` if the current application is `TEST` mode.
+     * @deprecated inject the {@link play.Environment} instead
      */
+    @Deprecated
     public static boolean isTest() {
         return play.api.Play.isTest(play.api.Play.current());
     }

@@ -116,108 +116,89 @@ object Play {
   }
 
   /**
-   * Scans the current application classloader to retrieve a resources contents as a stream.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
-   * }}}
-   *
-   * @param name Absolute name of the resource (from the classpath root).
-   * @return Maybe a stream if found.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
     app.resourceAsStream(name)
   }
 
   /**
-   * Scans the current application classloader to retrieve a resource.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
-   * }}}
-   *
-   * @param name absolute name of the resource (from the classpath root)
-   * @return the resource URL, if found
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
     app.resource(name)
   }
 
   /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath the relative path of the file to fetch
-   * @return a file instance; it is not guaranteed that the file exists
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def getFile(relativePath: String)(implicit app: Application): File = {
     app.getFile(relativePath)
   }
 
   /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath relative path of the file to fetch
-   * @return an existing file
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
     app.getExistingFile(relativePath)
   }
 
   /**
-   * Returns the current application.
+   * @deprecated inject the {@link play.api.Application} instead
    */
+  @Deprecated
   def application(implicit app: Application): Application = app
 
   /**
-   * Returns the current application classloader.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def classloader(implicit app: Application): ClassLoader = app.classloader
 
   /**
-   * Returns the current application configuration.
+   * @deprecated inject the {@link play.api.Configuration} instead
    */
+  @Deprecated
   def configuration(implicit app: Application): Configuration = app.configuration
 
   /**
-   * Returns the current application router.
+   * @deprecated inject the {@link play.api.routing.Router} instead
    */
+  @Deprecated
   def routes(implicit app: Application): play.api.routing.Router = app.routes
 
   /**
-   * Returns the current application global settings.
+   * @deprecated inject the {@link play.api.GlobalSettings} instead
    */
+  @Deprecated
   def global(implicit app: Application): GlobalSettings = app.global
 
   /**
-   * Returns the current application mode.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def mode(implicit app: Application): Mode.Mode = app.mode
 
   /**
-   * Returns `true` if the current application is `DEV` mode.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
 
   /**
-   * Returns `true` if the current application is `PROD` mode.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
 
   /**
-   * Returns `true` if the current application is `TEST` mode.
+   * @deprecated inject the {@link play.api.Environment} instead
    */
+  @Deprecated
   def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
   /**
