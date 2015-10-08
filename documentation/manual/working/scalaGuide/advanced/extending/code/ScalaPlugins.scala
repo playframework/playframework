@@ -67,12 +67,11 @@ class MyComponent() {
 //###insert: package actors
 
 import play.api._
-import play.api.libs.concurrent.Akka
 import akka.actor._
 import javax.inject.Inject
 
-class Actors @Inject() (implicit app: Application) extends Plugin {
-  lazy val myActor = Akka.system.actorOf(MyActor.props, "my-actor")
+class Actors @Inject() (system: ActorSystem) extends Plugin {
+  lazy val myActor = system.actorOf(MyActor.props, "my-actor")
 }
 
 object Actors {
