@@ -62,3 +62,7 @@ Here follows a short table that should ease the migration:
 | map        | map        |
 
 `Optional` has a lot more combinators, so we highly encourage you to discover its API if you are not familiar with it already.
+
+## Replaced static methods with dependency injection
+
+If you are using `controllers.ExternalAssets` in your routes file you must either set `routesGenerator := InjectedRoutesGenerator` in your `build.sbt` or you must use the `@` symbol in front of the route like `GET /some/path @controllers.ExternalAssets.at`

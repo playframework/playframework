@@ -8,11 +8,7 @@ import javax.inject.Inject
 import play.api._
 import play.api.mvc._
 
-import Play.current
-
 import java.io._
-
-object ExternalAssets extends ExternalAssets
 
 /**
  * Controller that serves static resources from an external folder.
@@ -31,7 +27,7 @@ object ExternalAssets extends ExternalAssets
  * }}}
  *
  */
-class ExternalAssets @Inject() () extends Controller {
+class ExternalAssets @Inject() (environment: Environment) extends Controller {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
@@ -42,13 +38,13 @@ class ExternalAssets @Inject() () extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(rootPath: String, file: String): Action[AnyContent] = Action { request =>
-    Play.mode match {
+    environment.mode match {
       case Mode.Prod => NotFound
       case _ => {
 
         val fileToServe = rootPath match {
           case AbsolutePath(_) => new File(rootPath, file)
-          case _ => new File(Play.application.getFile(rootPath), file)
+          case _ => new File(environment.getFile(rootPath), file)
         }
 
         if (fileToServe.exists) {
