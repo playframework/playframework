@@ -5,9 +5,11 @@ package play.api.libs.json
 
 import java.time.{
   Clock,
+  DateTimeException,
   Instant,
   LocalDate,
   LocalDateTime,
+  OffsetDateTime,
   ZoneId,
   ZoneOffset,
   ZonedDateTime
@@ -333,14 +335,8 @@ trait DefaultReads extends LowPriorityDefaultReads {
   /** Parsing companion */
   object TemporalParser {
     /** Instance of local date/time based on specified pattern. */
-    implicit def LocalDateTimePatternParser(pattern: String): TemporalParser[LocalDateTime] = new TemporalParser[LocalDateTime] {
-      def parse(input: String): Option[LocalDateTime] = try {
-        Some(LocalDateTime.parse(input, DateTimeFormatter.ofPattern(pattern)))
-      } catch {
-        case _: DateTimeParseException => None
-        case _: UnsupportedTemporalTypeException => None
-      }
-    }
+    implicit def LocalDateTimePatternParser(pattern: String): TemporalParser[LocalDateTime] =
+      LocalDateTimeFormatterParser(DateTimeFormatter.ofPattern(pattern))
 
     /** Instance of local date/time based on formatter. */
     implicit def LocalDateTimeFormatterParser(formatter: DateTimeFormatter): TemporalParser[LocalDateTime] = new TemporalParser[LocalDateTime] {
@@ -352,15 +348,23 @@ trait DefaultReads extends LowPriorityDefaultReads {
       }
     }
 
-    /** Instance of date based on specified pattern. */
-    implicit def DatePatternParser(pattern: String): TemporalParser[LocalDate] = new TemporalParser[LocalDate] {
-      def parse(input: String): Option[LocalDate] = try {
-        Some(LocalDate.parse(input, DateTimeFormatter.ofPattern(pattern)))
+    /** Instance of offset date/time based on specified pattern. */
+    implicit def OffsetDateTimePatternParser(pattern: String): TemporalParser[OffsetDateTime] =
+      OffsetDateTimeFormatterParser(DateTimeFormatter.ofPattern(pattern))
+
+    /** Instance of offset date/time based on formatter. */
+    implicit def OffsetDateTimeFormatterParser(formatter: DateTimeFormatter): TemporalParser[OffsetDateTime] = new TemporalParser[OffsetDateTime] {
+      def parse(input: String): Option[OffsetDateTime] = try {
+        Some(OffsetDateTime.parse(input, formatter))
       } catch {
         case _: DateTimeParseException => None
         case _: UnsupportedTemporalTypeException => None
       }
     }
+
+    /** Instance of date based on specified pattern. */
+    implicit def DatePatternParser(pattern: String): TemporalParser[LocalDate] =
+      DateFormatterParser(DateTimeFormatter.ofPattern(pattern))
 
     /** Instance of date based on formatter. */
     implicit def DateFormatterParser(formatter: DateTimeFormatter): TemporalParser[LocalDate] = new TemporalParser[LocalDate] {
@@ -373,60 +377,30 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
 
     /** Instance of instant parser based on specified pattern. */
-    implicit def InstantPatternParser(pattern: String): TemporalParser[Instant] = new TemporalParser[Instant] {
-      def parse(input: String): Option[Instant] = try {
-        val time = LocalDateTime.parse(
-          input, DateTimeFormatter.ofPattern(pattern)).atZone(ZoneId.of("Z"))
-
-        Some(time.toInstant)
-      } catch {
-        case _: DateTimeParseException => None
-        case _: UnsupportedTemporalTypeException => None
-      }
-    }
+    implicit def InstantPatternParser(pattern: String): TemporalParser[Instant] =
+      InstantFormatterParser(DateTimeFormatter.ofPattern(pattern))
 
     /** Instance of instant parser based on formatter. */
     implicit def InstantFormatterParser(formatter: DateTimeFormatter): TemporalParser[Instant] = new TemporalParser[Instant] {
       def parse(input: String): Option[Instant] = try {
-        val time = LocalDateTime.parse(input, formatter).atZone(ZoneId.of("Z"))
-
-        Some(time.toInstant)
+        Some(Instant.from(formatter.parse(input)))
       } catch {
+        case _: DateTimeException => None
         case _: DateTimeParseException => None
         case _: UnsupportedTemporalTypeException => None
       }
     }
 
     /** Instance of zoned date/time based on specified pattern. */
-    implicit def ZonedDateTimePatternParser(pattern: String): TemporalParser[ZonedDateTime] = new TemporalParser[ZonedDateTime] {
-      def parse(input: String): Option[ZonedDateTime] = try {
-        Some(ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(pattern)))
-      } catch {
-        case _: DateTimeParseException => try {
-          Some(LocalDateTime.parse(input,
-            DateTimeFormatter.ofPattern(pattern)).atZone(ZoneId.systemDefault))
-
-        } catch {
-          case _: DateTimeParseException => None
-          case _: UnsupportedTemporalTypeException => None
-        }
-        case _: UnsupportedTemporalTypeException => None
-      }
-    }
+    implicit def ZonedDateTimePatternParser(pattern: String): TemporalParser[ZonedDateTime] =
+      ZonedDateTimeFormatterParser(DateTimeFormatter.ofPattern(pattern))
 
     /** Instance of zoned date/time based on formatter. */
     implicit def ZonedDateTimeFormatterParser(formatter: DateTimeFormatter): TemporalParser[ZonedDateTime] = new TemporalParser[ZonedDateTime] {
       def parse(input: String): Option[ZonedDateTime] = try {
         Some(ZonedDateTime.parse(input, formatter))
       } catch {
-        case _: DateTimeParseException => try {
-          Some(LocalDateTime.parse(input, formatter).
-            atZone(ZoneId.systemDefault))
-
-        } catch {
-          case _: DateTimeParseException => None
-          case _: UnsupportedTemporalTypeException => None
-        }
+        case _: DateTimeParseException => None
         case _: UnsupportedTemporalTypeException => None
       }
     }
@@ -434,8 +408,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
 
   /**
    * Reads for the `java.time.LocalDateTime` type.
-   * When input value doesn't specify the time zone,
-   * then `java.time.ZoneId.systemDefault` is used.
    *
    * @tparam T Type of argument to instantiate date/time parser
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
@@ -465,7 +437,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
 
     @inline def epoch(millis: Long): LocalDateTime = LocalDateTime.ofInstant(
-      Instant.ofEpochMilli(millis), ZoneId.systemDefault)
+      Instant.ofEpochMilli(millis), ZoneOffset.UTC)
   }
 
   /**
@@ -476,9 +448,47 @@ trait DefaultReads extends LowPriorityDefaultReads {
     localDateTimeReads(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
+   * Reads for the `java.time.OffsetDateTime` type.
+   *
+   * Note: it is intentionally not supported to read an OffsetDateTime from a
+   * number.
+   *
+   * @tparam T Type of argument to instantiate date/time parser
+   * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
+   * @param p Typeclass instance based on `parsing`
+   * @see [[TemporalFormatter]]
+   *
+   * {{{
+    * import play.api.libs.json.Reads.offsetDateTimeReads
+    *
+    * val customReads1 = offsetDateTimeReads("dd/MM/yyyy, HH:mm:ss (Z)")
+    * val customReads2 = offsetDateTimeReads(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    * val customReads3 = offsetDateTimeReads(
+    *   DateTimeFormatter.ISO_OFFSET_DATE_TIME, _.drop(1))
+   * }}}
+   */
+  def offsetDateTimeReads[T](parsing: T, corrector: String => String = identity)(implicit p: T => TemporalParser[OffsetDateTime]): Reads[OffsetDateTime] = new Reads[OffsetDateTime] {
+    def reads(json: JsValue): JsResult[OffsetDateTime] = json match {
+      case JsString(s) => p(parsing).parse(corrector(s)) match {
+        case Some(d) => JsSuccess(d)
+        case None => JsError(Seq(JsPath() ->
+          Seq(ValidationError("error.expected.date.isoformat", parsing))))
+      }
+      case _ => JsError(Seq(JsPath() ->
+        Seq(ValidationError("error.expected.date"))))
+    }
+  }
+
+  /**
+   * The default typeclass to reads `java.time.OffsetDateTime` from JSON.
+   * Accepts date/time formats as '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
+   */
+  implicit val DefaultOffsetDateTimeReads =
+    offsetDateTimeReads(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+  /**
    * Reads for the `java.time.ZonedDateTime` type.
-   * When input value doesn't specify the time zone,
-   * then `java.time.ZoneId.systemDefault` is used.
    *
    * @tparam T Type of argument to instantiate date/time parser
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
@@ -507,7 +517,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
     }
 
     @inline def epoch(millis: Long): ZonedDateTime = ZonedDateTime.ofInstant(
-      Instant.ofEpochMilli(millis), ZoneId.systemDefault)
+      Instant.ofEpochMilli(millis), ZoneOffset.UTC)
   }
 
   /**
@@ -519,8 +529,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
 
   /**
    * Reads for the `java.time.LocalDate` type.
-   * When input value doesn't specify the time zone,
-   * then `java.time.ZoneId.systemDefault` is used.
    *
    * @tparam T Type of argument to instantiate date parser
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
@@ -549,7 +557,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
       }
 
       @inline def epoch(millis: Long): LocalDate = LocalDate.now(
-        Clock.fixed(Instant.ofEpochMilli(millis), ZoneId.systemDefault))
+        Clock.fixed(Instant.ofEpochMilli(millis), ZoneOffset.UTC))
     }
 
   /**
@@ -561,8 +569,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
 
   /**
    * Reads for the `java.time.Instant` type.
-   * When input value doesn't specify the time zone,
-   * then `java.time.ZoneId.systemDefault` is used.
    *
    * @tparam T Type of argument to instantiate date parser
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
