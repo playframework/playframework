@@ -3,13 +3,14 @@
  */
 package javaguide.testhelpers {
 
+import java.util.concurrent.{CompletionStage, CompletableFuture}
+
 import akka.stream.Materializer
 import play.api.mvc.{Action, Request}
 import play.core.j.{JavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultHttpRequestHandler
 import play.mvc.{Controller, Http, Result}
 import play.api.test.Helpers
-import play.libs.F
 import java.lang.reflect.Method
 
 abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
@@ -40,8 +41,8 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
 
   def invocation = {
     method.invoke(this) match {
-      case r: Result => F.Promise.pure(r)
-      case f: F.Promise[_] => f.asInstanceOf[F.Promise[Result]]
+      case r: Result => CompletableFuture.completedFuture(r)
+      case f: CompletionStage[_] => f.asInstanceOf[CompletionStage[Result]]
     }
   }
 }

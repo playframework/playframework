@@ -7,7 +7,8 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import play.libs.ws.*;
-import play.libs.F.Promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 // #ws-imports
 
 // #json-imports
@@ -18,12 +19,10 @@ import play.libs.Json;
 import scala.compat.java8.FutureConverters;
 
 import java.io.*;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.*;
 
 import org.w3c.dom.Document;
@@ -68,7 +67,7 @@ public class JavaWS {
             // #ws-complex-holder
 
             // #ws-get
-            Promise<WSResponse> responsePromise = complexRequest.get();
+            CompletionStage<WSResponse> responsePromise = complexRequest.get();
             // #ws-get
 
             String url = "http://example.com";
@@ -118,7 +117,7 @@ public class JavaWS {
             Stream<ByteString> largeSource = IntStream.range(0,10).boxed().map(i -> seedValue);
             Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
             // #ws-stream-request
-            Promise<WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
+            CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
             // #ws-stream-request
         }
 
@@ -127,15 +126,13 @@ public class JavaWS {
             String url = "http://example.com";
 
             // #ws-response-json
-            Promise<JsonNode> jsonPromise = ws.url(url).get().map(response -> {
-                return response.asJson();
-            });
+            CompletionStage<JsonNode> jsonPromise = ws.url(url).get()
+                    .thenApply(WSResponse::asJson);
             // #ws-response-json
 
             // #ws-response-xml
-            Promise<Document> documentPromise = ws.url(url).get().map(response -> {
-                return response.asXml();
-            });
+            CompletionStage<Document> documentPromise = ws.url(url).get()
+                    .thenApply(WSResponse::asXml);
             // #ws-response-xml
         }
 
@@ -211,34 +208,27 @@ public class JavaWS {
                 if (responseHeaders.getStatus() == 200) {
                     // Get the content type
                     String contentType =
-                        Optional.ofNullable(responseHeaders.getHeaders().get("Content-Type"))
-                        .map(contentTypes -> contentTypes.get(0)).
-                        orElse("application/octet-stream");
+                            Optional.ofNullable(responseHeaders.getHeaders().get("Content-Type"))
+                                    .map(contentTypes -> contentTypes.get(0)).
+                                    orElse("application/octet-stream");
 
                     // If there's a content length, send that, otherwise return the body chunked
                     Optional<String> contentLength = Optional.ofNullable(responseHeaders.getHeaders()
-                        .get("Content-Length"))
-                        .map(contentLengths -> contentLengths.get(0));
-                    if(contentLength.isPresent()) {
+                            .get("Content-Length"))
+                            .map(contentLengths -> contentLengths.get(0));
+                    if (contentLength.isPresent()) {
                         return ok().sendEntity(new HttpEntity.Streamed(
-                            body, 
-                            Optional.of(Long.parseLong(contentLength.get())), 
-                            Optional.of(contentType)
+                                body,
+                                Optional.of(Long.parseLong(contentLength.get())),
+                                Optional.of(contentType)
                         ));
-                    }
-                    else {
+                    } else {
                         return ok().chunked(body).as(contentType);
                     }
-                }
-                else {
+                } else {
                     return new Result(Status.BAD_GATEWAY);
                 }
             });
-            // Your controller's action method should return a `Promise<Result>`, and here we 
-            // shows how the conversion from  `CompletionStage` to `Promise` can be done. This 
-            // won't be needed once https://github.com/playframework/playframework/issues/4691 
-            // is fixed.
-            Promise<Result> actionResult = Promise.wrap(FutureConverters.toScala(result));
             //#stream-to-result
         }
 
@@ -252,16 +242,20 @@ public class JavaWS {
         public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get()
-                    .flatMap(responseOne -> ws.url(responseOne.getBody()).get())
-                    .flatMap(responseTwo -> ws.url(responseTwo.getBody()).get());
+            final CompletionStage<WSResponse> responseThreePromise = ws.url(urlOne).get()
+                    .thenCompose(responseOne -> ws.url(responseOne.getBody()).get())
+                    .thenCompose(responseTwo -> ws.url(responseTwo.getBody()).get());
             // #ws-composition
 
             // #ws-recover
-            Promise<WSResponse> responsePromise = ws.url("http://example.com").get();
-            Promise<WSResponse> recoverPromise = responsePromise.recoverWith(throwable ->
-                            ws.url("http://backup.example.com").get()
-            );
+            CompletionStage<WSResponse> responsePromise = ws.url("http://example.com").get();
+            CompletionStage<WSResponse> recoverPromise = responsePromise.handle((result, error) -> {
+                if (error != null) {
+                    return ws.url("http://backup.example.com").get();
+                } else {
+                    return CompletableFuture.completedFuture(result);
+                }
+            }).thenCompose(Function.identity());
             // #ws-recover
         }
 
@@ -297,7 +291,7 @@ public class JavaWS {
 
             WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig, materializer);
 
-            Promise<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
+            CompletionStage<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
             // #ws-custom-client
 
             // #ws-underlying-client
@@ -314,9 +308,9 @@ public class JavaWS {
         private WSClient ws;
 
         // #ws-action
-        public Promise<Result> index() {
-            return ws.url(feedUrl).get().map(response ->
-                            ok("Feed title: " + response.asJson().findPath("title").asText())
+        public CompletionStage<Result> index() {
+            return ws.url(feedUrl).get().thenApply(response ->
+                ok("Feed title: " + response.asJson().findPath("title").asText())
             );
         }
         // #ws-action
@@ -328,10 +322,10 @@ public class JavaWS {
         private WSClient ws;
 
         // #composed-call
-        public Promise<Result> index() {
+        public CompletionStage<Result> index() {
             return ws.url(feedUrl).get()
-                    .flatMap(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
-                    .map(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
+                    .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
+                    .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call
     }

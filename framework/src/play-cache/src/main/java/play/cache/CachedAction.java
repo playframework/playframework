@@ -7,12 +7,14 @@ import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
 
+import java.util.concurrent.CompletionStage;
+
 /**
  * Cache another action.
  */
 public class CachedAction extends Action<Cached> {
 
-    public F.Promise<Result> call(Context ctx) {
+    public CompletionStage<Result> call(Context ctx) {
         try {
             final String key = configuration.key();
             final Integer duration = configuration.duration();
@@ -20,7 +22,7 @@ public class CachedAction extends Action<Cached> {
             Result cacheResult = (Result) Cache.get(key);
 
             if (cacheResult == null) {
-                return delegate.call(ctx).map(result -> {
+                return delegate.call(ctx).thenApply(result -> {
                     Cache.set(key, result, duration);
                     return result;
                 });

@@ -4,15 +4,12 @@
 package play.libs;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import akka.japi.JavaPartialFunction;
-import play.core.j.FPromiseHelper;
+import play.libs.concurrent.Futures;
+import play.libs.concurrent.HttpExecution;
+import scala.compat.java8.FutureConverters;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
@@ -30,28 +27,34 @@ public class F {
 
     /**
      * A promise to produce a result of type <code>A</code>.
+     *
+     * @deprecated Use the JDK8 {@link CompletionStage} instead. When migrating to CompletionStage, Promise implements
+     *             CompletionStage, so it may be easier to first migrate all the existing method calls on the promise,
+     *             such as map/flatMap, which are also deprecated but include migration instructions in the deprecation
+     *             message.
      */
-    public static class Promise<A> {
+    @Deprecated
+    public static class Promise<A> implements CompletionStage<A> {
 
-        private final Future<A> future;
+        private final CompletionStage<A> wrapped;
 
-        /**
-         * Creates a Promise that wraps a Scala Future.
-         *
-         * @param future The Scala Future to wrap
-         */
-        private Promise(Future<A> future) {
-            this.future = future;
+        private Promise(CompletionStage<A> wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        public static <A> Promise<A> wrap(CompletionStage<A> future) {
+            return new Promise<>(future);
         }
 
         /**
          * Creates a Promise that wraps a Scala Future.
          *
          * @param future The Scala Future to wrap
+         * @deprecated Use {@link FutureConverters#toJava(Future)} instead.
          */
-        @SuppressWarnings("deprecation")
+        @Deprecated
         public static <A> Promise<A> wrap(Future<A> future) {
-            return new Promise<A>(future);
+            return new Promise<>(FutureConverters.toJava(future));
         }
 
         /**
@@ -61,9 +64,11 @@ public class F {
          *
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
+         * @deprecated Use {@link Futures#sequence(CompletionStage[])} instead.
          */
-        public static <A> Promise<List<A>> sequence(Promise<A>... promises){
-            return FPromiseHelper.<A>sequence(java.util.Arrays.asList(promises), HttpExecution.defaultContext());
+        @Deprecated
+        public static <A> Promise<List<A>> sequence(Promise<A>... promises) {
+            return Futures.sequence(Arrays.asList(promises));
         }
 
         /**
@@ -72,9 +77,11 @@ public class F {
          * @param ec Used to execute the sequencing operations.
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
+         * @deprecated Use {@link Futures#sequence(CompletionStage[])} instead.
          */
-        public static <A> Promise<List<A>> sequence(ExecutionContext ec, Promise<A>... promises){
-            return FPromiseHelper.<A>sequence(java.util.Arrays.asList(promises), ec);
+        @Deprecated
+        public static <A> Promise<List<A>> sequence(ExecutionContext ec, Promise<A>... promises) {
+            return sequence(Arrays.asList(promises), ec);
         }
 
         /**
@@ -83,9 +90,11 @@ public class F {
          * @param message The message to use to redeem the Promise.
          * @param delay The delay (expressed with the corresponding unit).
          * @param unit The Unit.
+         * @deprecated Use {@link Futures#timeout(Object, long, TimeUnit)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> timeout(A message, long delay, TimeUnit unit) {
-            return FPromiseHelper.timeout(message, delay, unit);
+            return Futures.timeout(message, delay, unit);
         }
 
         /**
@@ -93,9 +102,11 @@ public class F {
          *
          * @param message The message to use to redeem the Promise.
          * @param delay The delay expressed in milliseconds.
+         * @deprecated Use {@link Futures#timeout(Object, long, TimeUnit)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> timeout(A message, long delay) {
-            return timeout(message, delay, TimeUnit.MILLISECONDS);
+            return Futures.timeout(message, delay, TimeUnit.MILLISECONDS);
         }
 
         /**
@@ -106,9 +117,11 @@ public class F {
          *
          * @return a promise without a real value
          * @param delay The delay expressed in milliseconds.
+         * @deprecated Use {@link Futures#timeout(long, TimeUnit)} instead.
          */
-        public static Promise<scala.Unit> timeout(long delay) {
-            return timeout(delay, TimeUnit.MILLISECONDS);
+        @Deprecated
+        public static Promise<Void> timeout(long delay) {
+            return Futures.timeout(delay, TimeUnit.MILLISECONDS);
         }
 
         /**
@@ -120,9 +133,11 @@ public class F {
          * @param delay The delay (expressed with the corresponding unit).
          * @param unit The Unit.
          * @return a promise without a real value
+         * @deprecated Use {@link Futures#timeout(long, TimeUnit)} instead.
          */
-        public static Promise<scala.Unit> timeout(long delay, TimeUnit unit) {
-            return FPromiseHelper.timeout(delay, unit);
+        @Deprecated
+        public static Promise<Void> timeout(long delay, TimeUnit unit) {
+            return Futures.timeout(delay, unit);
         }
 
         /**
@@ -132,9 +147,11 @@ public class F {
          *
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
+         * @deprecated Use {@link Futures#sequence(Iterable)} instead.
          */
-        public static <A> Promise<List<A>> sequence(Iterable<Promise<A>> promises){
-            return FPromiseHelper.sequence(promises, HttpExecution.defaultContext());
+        @Deprecated
+        public static <A> Promise<List<A>> sequence(Iterable<Promise<A>> promises) {
+            return Futures.sequence(promises);
         }
 
         /**
@@ -143,26 +160,42 @@ public class F {
          * @param promises The promises to combine
          * @param ec Used to execute the sequencing operations.
          * @return A single promise whose methods act on the list of redeemed promises
+         * @deprecated Use {@link Futures#sequence(Iterable)} instead.
          */
+        @Deprecated
         public static <A> Promise<List<A>> sequence(Iterable<Promise<A>> promises, ExecutionContext ec){
-            return FPromiseHelper.sequence(promises, ec);
+            CompletableFuture<List<A>> result = CompletableFuture.completedFuture(new ArrayList<>());
+            for (Promise<A> promise: promises) {
+                result = result.thenCombineAsync(promise, (list, a) -> {
+                    list.add(a);
+                    return list;
+                }, toExecutor(ec));
+            }
+            return new Promise<>(result);
         }
 
         /**
          * Create a new pure promise, that is, a promise with a constant value from the start.
          *
          * @param a the value for the promise
+         * @deprecated Use {@link CompletableFuture#completedFuture(Object)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> pure(final A a) {
-            return FPromiseHelper.pure(a);
+            return new Promise<>(CompletableFuture.completedFuture(a));
         }
 
         /**
          * Create a new promise throwing an exception.
          * @param throwable Value to throw
+         * @deprecated Construct a new {@link CompletableFuture} and use
+         *             {@link CompletableFuture#completeExceptionally(Throwable)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> throwing(Throwable throwable) {
-            return FPromiseHelper.throwing(throwable);
+            CompletableFuture<A> future = new CompletableFuture<>();
+            future.completeExceptionally(throwable);
+            return new Promise<>(future);
         }
 
         /**
@@ -171,9 +204,11 @@ public class F {
          * The Function0 will be run in the default ExecutionContext.
          *
          * @param function Used to fulfill the Promise.
+         * @deprecated Use {@link CompletableFuture#supplyAsync(Supplier, Executor)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> promise(Supplier<A> function) {
-            return FPromiseHelper.promise(function, HttpExecution.defaultContext());
+            return new Promise<>(CompletableFuture.supplyAsync(function, HttpExecution.defaultContext()));
         }
 
         /**
@@ -181,9 +216,11 @@ public class F {
          *
          * @param function Used to fulfill the Promise.
          * @param ec The ExecutionContext to run the function in.
+         * @deprecated Use {@link CompletableFuture#supplyAsync(Supplier, Executor)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> promise(Supplier<A> function, ExecutionContext ec) {
-            return FPromiseHelper.promise(function, ec);
+            return new Promise<>(CompletableFuture.supplyAsync(function, toExecutor(ec)));
         }
 
         /**
@@ -195,9 +232,12 @@ public class F {
          * @param function The function to call to fulfill the Promise.
          * @param delay The time to wait.
          * @param unit The units to use for the delay.
+         * @deprecated Use {@link Futures#delayed(Supplier, long, TimeUnit, Executor)} with
+         *             {@link HttpExecution#defaultContext()} instead.
          */
+        @Deprecated
         public static <A> Promise<A> delayed(Supplier<A> function, long delay, TimeUnit unit) {
-            return FPromiseHelper.delayed(function, delay, unit, HttpExecution.defaultContext());
+            return Futures.delayed(function, delay, unit, HttpExecution.defaultContext());
         }
 
         /**
@@ -207,10 +247,11 @@ public class F {
          * @param function The function to call to fulfill the Promise.
          * @param delay The time to wait.
          * @param unit The units to use for the delay.
-         * @param ec The ExecutionContext to run the Function0 in.
+         * @deprecated Use {@link Futures#delayed(Supplier, long, TimeUnit, Executor)} instead.
          */
+        @Deprecated
         public static <A> Promise<A> delayed(Supplier<A> function, long delay, TimeUnit unit, ExecutionContext ec) {
-            return FPromiseHelper.delayed(function, delay, unit, ec);
+            return Futures.delayed(function, delay, unit, toExecutor(ec));
         }
 
         /**
@@ -221,10 +262,30 @@ public class F {
          * @param unit timeout for timeout
          * @throws PromiseTimeoutException when the promise did timeout.
          * @return The promised result
-         *
+         * @deprecated Calling get on a promise is a blocking operation and so introduces the risk of deadlocks
+         *      and has serious performance implications.
          */
+        @Deprecated
         public A get(long timeout, TimeUnit unit) {
-            return FPromiseHelper.get(this, timeout, unit);
+            // This rather complex exception matching is to ensure that the existing (quite comprehensive)
+            // tests still pass. CompletableFuture does a lot of wrapping of exceptions, and doesn't unwrap
+            // them, but this API did unwrap things, so to ensure the same exceptions are thrown from the
+            // existing APIs, this needed to be done.
+            try {
+                return this.toCompletableFuture().get(timeout, unit);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (TimeoutException e) {
+                throw new PromiseTimeoutException(e.getMessage(), e);
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else if (e.getCause() instanceof TimeoutException) {
+                    throw new PromiseTimeoutException(e.getCause().getMessage(), e.getCause());
+                } else {
+                    throw new RuntimeException(e.getCause());
+                }
+            }
         }
 
         /**
@@ -234,18 +295,24 @@ public class F {
          * @param timeout A user defined timeout in milliseconds
          * @throws PromiseTimeoutException when the promise did timeout.
          * @return The promised result
+         * @deprecated Calling get on a promise is a blocking operation and so introduces the risk of deadlocks
+         *      and has serious performance implications.
          */
+        @Deprecated
         public A get(long timeout) {
-            return FPromiseHelper.get(this, timeout, TimeUnit.MILLISECONDS);
+            return get(timeout, TimeUnit.MILLISECONDS);
         }
 
         /**
          * Combines the current promise with <code>another</code> promise using `or`.
          *
          * @param another promise that will be combined
+         * @deprecated Use {@link #applyToEither(CompletionStage, Function)} instead.
          */
+        @Deprecated
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
-            return FPromiseHelper.or(this, another);
+            return new Promise<>(wrapped.thenApply(Either::<A, B>Left)
+                    .applyToEither(another.thenApply(Either::<A, B>Right), Function.identity()));
         }
 
         /**
@@ -254,9 +321,11 @@ public class F {
          * The callback will be run in the default execution context.
          *
          * @param action The action to perform.
+         * @deprecated Use {@link #thenAcceptAsync(Consumer, Executor)} with {@link HttpExecution#defaultContext()} instead.
          */
-        public void onRedeem(final Consumer<A> action) {
-            FPromiseHelper.onRedeem(this, action, HttpExecution.defaultContext());
+        @Deprecated
+        public void onRedeem(final Consumer<? super A> action) {
+            wrapped.thenAcceptAsync(action, HttpExecution.defaultContext());
         }
 
         /**
@@ -264,9 +333,11 @@ public class F {
          *
          * @param action The action to perform.
          * @param ec The ExecutionContext to execute the action in.
+         * @deprecated Use {@link #thenAcceptAsync(Consumer, Executor)} instead.
          */
-        public void onRedeem(final Consumer<A> action, ExecutionContext ec) {
-            FPromiseHelper.onRedeem(this, action, ec);
+        @Deprecated
+        public void onRedeem(final Consumer<? super A> action, ExecutionContext ec) {
+            wrapped.thenAcceptAsync(action, toExecutor(ec));
         }
 
         /**
@@ -277,9 +348,12 @@ public class F {
          *
          * @param function The function to map <code>A</code> to <code>B</code>.
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
+         * @deprecated Use {@link #thenApplyAsync(Function, Executor)} with {@link HttpExecution#defaultContext()} if
+         *             you want to capture the current context.
          */
-        public <B> Promise<B> map(final Function<? super A, B> function) {
-            return FPromiseHelper.map(this, function, HttpExecution.defaultContext());
+        @Deprecated
+        public <B> Promise<B> map(final Function<? super A, ? extends B> function) {
+            return new Promise<>(wrapped.thenApplyAsync(function, HttpExecution.defaultContext()));
         }
 
         /**
@@ -289,9 +363,11 @@ public class F {
          * @param function The function to map <code>A</code> to <code>B</code>.
          * @param ec The ExecutionContext to execute the function in.
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
+         * @deprecated Use {@link #thenApplyAsync(Function, Executor)}
          */
-        public <B> Promise<B> map(final Function<? super A, B> function, ExecutionContext ec) {
-            return FPromiseHelper.map(this, function, ec);
+        @Deprecated
+        public <B> Promise<B> map(final Function<? super A, ? extends B> function, ExecutionContext ec) {
+            return new Promise<>(wrapped.thenApplyAsync(function, toExecutor(ec)));
         }
 
         /**
@@ -303,9 +379,19 @@ public class F {
          *      of type <code>T</code>, or it may throw another exception, or it may do some other handling.
          * @return A wrapped promise that will only throw an exception if the supplied <code>function</code> throws an
          *      exception.
+         * @deprecated Use {@link #exceptionally(Function)} if you don't need the current context captured,
+         *             or {@link #handleAsync(BiFunction, Executor)} with {@link HttpExecution#defaultContext()} if
+         *             you do.
          */
-        public Promise<A> recover(final Function<Throwable,A> function) {
-            return FPromiseHelper.recover(this, function, HttpExecution.defaultContext());
+        @Deprecated
+        public Promise<A> recover(final Function<Throwable, ? extends A> function) {
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    return function.apply(error);
+                } else {
+                    return a;
+                }
+            }, HttpExecution.defaultContext()));
         }
 
         /**
@@ -316,9 +402,17 @@ public class F {
          * @param ec The ExecutionContext to execute the function in.
          * @return A wrapped promise that will only throw an exception if the supplied <code>function</code> throws an
          *      exception.
+         * @deprecated Use {@link #handleAsync(BiFunction, Executor)} instead.
          */
-        public Promise<A> recover(final Function<Throwable,A> function, ExecutionContext ec) {
-            return FPromiseHelper.recover(this, function, ec);
+        @Deprecated
+        public Promise<A> recover(final Function<Throwable, ? extends A> function, ExecutionContext ec) {
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    return function.apply(error);
+                } else {
+                    return a;
+                }
+            }, toExecutor(ec)));
         }
 
         /**
@@ -328,9 +422,19 @@ public class F {
          *
          * @param function The function to handle the exception, and which returns another promise
          * @return A promise that will delegate to another promise on failure
+         * @deprecated Use {@link #exceptionally(Function)} if you don't need the current context captured,
+         *             or {@link #handleAsync(BiFunction, Executor)} with {@link HttpExecution#defaultContext()} if
+         *             you do, then use {@link #thenCompose(Function)} with the identity function to flatten the result.
          */
-        public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function) {
-            return FPromiseHelper.recoverWith(this, function, HttpExecution.defaultContext());
+        @Deprecated
+        public Promise<A> recoverWith(final Function<Throwable, ? extends CompletionStage<A>> function) {
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    return function.apply(error);
+                } else {
+                    return CompletableFuture.completedFuture(a);
+                }
+            }, HttpExecution.defaultContext()).thenCompose(Function.identity()));
         }
 
         /**
@@ -339,9 +443,18 @@ public class F {
          * @param function The function to handle the exception, and which returns another promise
          * @param ec The ExecutionContext to execute the function in
          * @return A promise that will delegate to another promise on failure
+         * @deprecated Use {@link #handleAsync(BiFunction, Executor)} instead, followed by {@link #thenCompose(Function)}
+         *             with the identity function.
          */
+        @Deprecated
         public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function, ExecutionContext ec) {
-            return FPromiseHelper.recoverWith(this, function, ec);
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    return function.apply(error);
+                } else {
+                    return CompletableFuture.completedFuture(a);
+                }
+            }, toExecutor(ec)).thenCompose(Function.identity()));
         }
 
         /**
@@ -351,9 +464,26 @@ public class F {
          *
          * @param fallback The promise to fallback to if this promise has failed
          * @return A promise that will delegate to another promise on failure
+         * @deprecated Use {@link #handleAsync(BiFunction)} followed by {@link #thenCompose(Function)}
+         *             with the identity function.
          */
+        @Deprecated
         public Promise<A> fallbackTo(final Promise<A> fallback) {
-            return FPromiseHelper.fallbackTo(this, fallback);
+            return new Promise<>(wrapped.handle((a, error) -> {
+               if (error != null) {
+                   return fallback.handle((fallbackA, fallbackError) -> {
+                       if (fallbackError != null) {
+                           CompletableFuture<A> failed = new CompletableFuture<>();
+                           failed.completeExceptionally(error);
+                           return failed;
+                       } else {
+                           return CompletableFuture.completedFuture(fallbackA);
+                       }
+                   }).thenCompose(Function.identity());
+               } else {
+                   return CompletableFuture.completedFuture(a);
+               }
+            }).thenCompose(Function.identity()));
         }
 
         /**
@@ -362,9 +492,16 @@ public class F {
          * This action will be run in the default exceution context.
          *
          * @param action The action to perform.
+         * @deprecated Use {@link #whenCompleteAsync(BiConsumer, Executor)} with {@link HttpExecution#defaultContext()} if
+         *             you want to capture the current context.
          */
+        @Deprecated
         public void onFailure(final Consumer<Throwable> action) {
-            FPromiseHelper.onFailure(this, action, HttpExecution.defaultContext());
+            wrapped.whenCompleteAsync((a, error) -> {
+                if (error != null) {
+                    action.accept(error);
+                }
+            }, HttpExecution.defaultContext());
         }
 
         /**
@@ -372,9 +509,15 @@ public class F {
          *
          * @param action The action to perform.
          * @param ec The ExecutionContext to execute the callback in.
+         * @deprecated Use {@link #whenCompleteAsync(BiConsumer, Executor)}.
          */
+        @Deprecated
         public void onFailure(final Consumer<Throwable> action, ExecutionContext ec) {
-            FPromiseHelper.onFailure(this, action, ec);
+            wrapped.whenCompleteAsync((a, error) -> {
+                if (error != null) {
+                    action.accept(error);
+                }
+            }, toExecutor(ec));
         }
 
         /**
@@ -385,9 +528,12 @@ public class F {
          *
          * @param function The function to map <code>A</code> to a promise for <code>B</code>.
          * @return A wrapped promise for a result of type <code>B</code>
+         * @deprecated Use {@link #thenComposeAsync(Function, Executor)} with {@link HttpExecution#defaultContext()} if
+         *             you want to capture the current context.
          */
-        public <B> Promise<B> flatMap(final Function<? super A,Promise<B>> function) {
-            return FPromiseHelper.flatMap(this, function, HttpExecution.defaultContext());
+        @Deprecated
+        public <B> Promise<B> flatMap(final Function<? super A, ? extends CompletionStage<B>> function) {
+            return new Promise<>(wrapped.thenComposeAsync(function, HttpExecution.defaultContext()));
         }
 
         /**
@@ -397,9 +543,11 @@ public class F {
          * @param function The function to map <code>A</code> to a promise for <code>B</code>.
          * @param ec The ExecutionContext to execute the function in.
          * @return A wrapped promise for a result of type <code>B</code>
+         * @deprecated Use {@link #thenComposeAsync(Function, Executor)}.
          */
-        public <B> Promise<B> flatMap(final Function<? super A,Promise<B>> function, ExecutionContext ec) {
-            return FPromiseHelper.flatMap(this, function, ec);
+        @Deprecated
+        public <B> Promise<B> flatMap(final Function<? super A, ? extends CompletionStage<B>> function, ExecutionContext ec) {
+            return new Promise<>(wrapped.thenComposeAsync(function, toExecutor(ec)));
         }
 
         /**
@@ -408,9 +556,17 @@ public class F {
          *
          * @param predicate The predicate to test the current value.
          * @return A new promise with the current value, if the predicate is satisfied.
+         * @deprecated Use {@link #thenApplyAsync(Function, Executor)} to implement the filter manually.
          */
+        @Deprecated
         public Promise<A> filter(final Predicate<? super A> predicate) {
-            return FPromiseHelper.filter(this, predicate, HttpExecution.defaultContext());
+            return new Promise<>(wrapped.thenApplyAsync(a -> {
+                if (predicate.test(a)) {
+                    return a;
+                } else {
+                    throw new NoSuchElementException("Promise.filter predicate is not satisfied");
+                }
+            }, HttpExecution.defaultContext()));
         }
 
         /**
@@ -420,9 +576,17 @@ public class F {
          * @param predicate The predicate to test the current value.
          * @param ec The ExecutionContext to execute the filtering in.
          * @return A new promise with the current value, if the predicate is satisfied.
+         * @deprecated Use {@link #thenApplyAsync(Function, Executor)} to implement the filter manually.
          */
+        @Deprecated
         public Promise<A> filter(final Predicate<? super A> predicate, ExecutionContext ec) {
-            return FPromiseHelper.filter(this, predicate, ec);
+            return new Promise<>(wrapped.thenApplyAsync(a -> {
+                if (predicate.test(a)) {
+                    return a;
+                } else {
+                    throw new NoSuchElementException("Promise.filter predicate is not satisfied");
+                }
+            }, toExecutor(ec)));
         }
 
         /**
@@ -434,9 +598,17 @@ public class F {
          * @param onSuccess The function to map a successful result from {@code A} to {@code B}
          * @param onFailure The function to map the {@code Throwable} when failed
          * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         * @deprecated Use {@link #handleAsync(BiFunction, Executor)} instead.
          */
-        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure) {
-            return FPromiseHelper.transform(this, onSuccess, onFailure, HttpExecution.defaultContext());
+        @Deprecated
+        public <B> Promise<B> transform(final Function<? super A, ? extends B> onSuccess, final Function<Throwable, Throwable> onFailure) {
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    throw error instanceof CompletionException ? (CompletionException) error : new CompletionException(onFailure.apply(error));
+                } else {
+                    return onSuccess.apply(a);
+                }
+            }, HttpExecution.defaultContext()));
         }
 
         /**
@@ -447,34 +619,243 @@ public class F {
          * @param onFailure The function to map the {@code Throwable} when failed
          * @param ec The ExecutionContext to execute functions in
          * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         * @deprecated Use {@link #handleAsync(BiFunction, Executor)} instead.
          */
-        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure, ExecutionContext ec) {
-            return FPromiseHelper.transform(this, onSuccess, onFailure, ec);
+        @Deprecated
+        public <B> Promise<B> transform(final Function<? super A, ? extends B> onSuccess, final Function<Throwable, Throwable> onFailure, ExecutionContext ec) {
+            return new Promise<>(wrapped.handleAsync((a, error) -> {
+                if (error != null) {
+                    throw error instanceof CompletionException ? (CompletionException) error : new CompletionException(onFailure.apply(error));
+                } else {
+                    return onSuccess.apply(a);
+                }
+            }, toExecutor(ec)));
         }
 
         /**
          * Zips the values of this promise with <code>another</code>, and creates a new promise holding the tuple of their results
          * @param another
+         * @deprecated Use {@link #thenCombine(CompletionStage, BiFunction)} instead.
          */
-        public <B> Promise<Tuple<A, B>> zip(Promise<B> another) {
-            return wrap(wrapped().zip(another.wrapped())).map(
-                new Function<scala.Tuple2<A, B>, Tuple<A, B>>() {
-                    public Tuple<A, B> apply(scala.Tuple2<A, B> scalaTuple) {
-                        return new Tuple(scalaTuple._1, scalaTuple._2);
-                    }
-                }
-            );
+        @Deprecated
+        public <B> Promise<Tuple<A, B>> zip(CompletionStage<B> another) {
+            return thenCombine(another, (a, b) -> new Tuple(a, b));
         }
 
         /**
          * Gets the Scala Future wrapped by this Promise.
          *
          * @return The Scala Future
+         * @deprecated Promise no longer wraps a Scala Future, use asScala instead.
          */
+        @Deprecated
         public Future<A> wrapped() {
-            return future;
+            return asScala();
         }
 
+        /**
+         * Convert this promise to a Scala future.
+         *
+         * This is equivalent to FutureConverters.toScala(this), however, it converts the wrapped completion stage to
+         * a future rather than this, which means if the wrapped completion stage itself wraps a Scala future, it will
+         * simply return that wrapped future.
+         *
+         * @return A Scala future that is completed when this promise is completed.
+         */
+        public Future<A> asScala() {
+            return FutureConverters.toScala(wrapped);
+        }
+
+        // delegate methods
+        @Override
+        public <U> Promise<U> thenApply(Function<? super A, ? extends U> fn) {
+            return new Promise<>(wrapped.thenApply(fn));
+        }
+
+        @Override
+        public <U> Promise<U> thenApplyAsync(Function<? super A, ? extends U> fn) {
+            return new Promise<>(wrapped.thenApplyAsync(fn));
+        }
+
+        @Override
+        public <U> Promise<U> thenApplyAsync(Function<? super A, ? extends U> fn, Executor executor) {
+            return new Promise<>(wrapped.thenApplyAsync(fn, executor));
+        }
+
+        @Override
+        public Promise<Void> thenAccept(Consumer<? super A> action) {
+            return new Promise<>(wrapped.thenAccept(action));
+        }
+
+        @Override
+        public Promise<Void> thenAcceptAsync(Consumer<? super A> action) {
+            return new Promise<>(wrapped.thenAcceptAsync(action));
+        }
+
+        @Override
+        public Promise<Void> thenAcceptAsync(Consumer<? super A> action, Executor executor) {
+            return new Promise<>(wrapped.thenAcceptAsync(action, executor));
+        }
+
+        @Override
+        public Promise<Void> thenRun(Runnable action) {
+            return new Promise<>(wrapped.thenRun(action));
+        }
+
+        @Override
+        public Promise<Void> thenRunAsync(Runnable action) {
+            return new Promise<>(wrapped.thenRunAsync(action));
+        }
+
+        @Override
+        public Promise<Void> thenRunAsync(Runnable action, Executor executor) {
+            return new Promise<>(wrapped.thenRunAsync(action, executor));
+        }
+
+        @Override
+        public <U, V> Promise<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super A, ? super U, ? extends V> fn) {
+            return new Promise<>(wrapped.thenCombine(other, fn));
+        }
+
+        @Override
+        public <U, V> Promise<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super A, ? super U, ? extends V> fn) {
+            return new Promise<>(wrapped.thenCombineAsync(other, fn));
+        }
+
+        @Override
+        public <U, V> Promise<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super A, ? super U, ? extends V> fn, Executor executor) {
+            return new Promise<>(wrapped.thenCombineAsync(other, fn, executor));
+        }
+
+        @Override
+        public <U> Promise<Void> thenAcceptBoth(CompletionStage<? extends U> other, BiConsumer<? super A, ? super U> action) {
+            return new Promise<>(wrapped.thenAcceptBoth(other, action));
+        }
+
+        @Override
+        public <U> Promise<Void> thenAcceptBothAsync(CompletionStage<? extends U> other, BiConsumer<? super A, ? super U> action) {
+            return new Promise<>(wrapped.thenAcceptBothAsync(other, action));
+        }
+
+        @Override
+        public <U> Promise<Void> thenAcceptBothAsync(CompletionStage<? extends U> other, BiConsumer<? super A, ? super U> action, Executor executor) {
+            return new Promise<>(wrapped.thenAcceptBothAsync(other, action, executor));
+        }
+
+        @Override
+        public Promise<Void> runAfterBoth(CompletionStage<?> other, Runnable action) {
+            return new Promise<>(wrapped.runAfterBoth(other, action));
+        }
+
+        @Override
+        public Promise<Void> runAfterBothAsync(CompletionStage<?> other, Runnable action) {
+            return new Promise<>(wrapped.runAfterBothAsync(other, action));
+        }
+
+        @Override
+        public Promise<Void> runAfterBothAsync(CompletionStage<?> other, Runnable action, Executor executor) {
+            return new Promise<>(wrapped.runAfterBothAsync(other, action, executor));
+        }
+
+        @Override
+        public <U> Promise<U> applyToEither(CompletionStage<? extends A> other, Function<? super A, U> fn) {
+            return new Promise<>(wrapped.applyToEither(other, fn));
+        }
+
+        @Override
+        public <U> Promise<U> applyToEitherAsync(CompletionStage<? extends A> other, Function<? super A, U> fn) {
+            return new Promise<>(wrapped.applyToEitherAsync(other, fn));
+        }
+
+        @Override
+        public <U> Promise<U> applyToEitherAsync(CompletionStage<? extends A> other, Function<? super A, U> fn, Executor executor) {
+            return new Promise<>(wrapped.applyToEitherAsync(other, fn, executor));
+        }
+
+        @Override
+        public Promise<Void> acceptEither(CompletionStage<? extends A> other, Consumer<? super A> action) {
+            return new Promise<>(wrapped.acceptEither(other, action));
+        }
+
+        @Override
+        public Promise<Void> acceptEitherAsync(CompletionStage<? extends A> other, Consumer<? super A> action) {
+            return new Promise<>(wrapped.acceptEitherAsync(other, action));
+        }
+
+        @Override
+        public Promise<Void> acceptEitherAsync(CompletionStage<? extends A> other, Consumer<? super A> action, Executor executor) {
+            return new Promise<>(wrapped.acceptEitherAsync(other, action, executor));
+        }
+
+        @Override
+        public Promise<Void> runAfterEither(CompletionStage<?> other, Runnable action) {
+            return new Promise<>(wrapped.runAfterEither(other, action));
+        }
+
+        @Override
+        public Promise<Void> runAfterEitherAsync(CompletionStage<?> other, Runnable action) {
+            return new Promise<>(wrapped.runAfterEitherAsync(other, action));
+        }
+
+        @Override
+        public Promise<Void> runAfterEitherAsync(CompletionStage<?> other, Runnable action, Executor executor) {
+            return new Promise<>(wrapped.runAfterEitherAsync(other, action, executor));
+        }
+
+        @Override
+        public <U> Promise<U> thenCompose(Function<? super A, ? extends CompletionStage<U>> fn) {
+            return new Promise<>(wrapped.thenCompose(fn));
+        }
+
+        @Override
+        public <U> Promise<U> thenComposeAsync(Function<? super A, ? extends CompletionStage<U>> fn) {
+            return new Promise<>(wrapped.thenComposeAsync(fn));
+        }
+
+        @Override
+        public <U> Promise<U> thenComposeAsync(Function<? super A, ? extends CompletionStage<U>> fn, Executor executor) {
+            return new Promise<>(wrapped.thenComposeAsync(fn, executor));
+        }
+
+        @Override
+        public Promise<A> exceptionally(Function<Throwable, ? extends A> fn) {
+            return new Promise<>(wrapped.exceptionally(fn));
+        }
+
+        @Override
+        public Promise<A> whenComplete(BiConsumer<? super A, ? super Throwable> action) {
+            return new Promise<>(wrapped.whenComplete(action));
+        }
+
+        @Override
+        public Promise<A> whenCompleteAsync(BiConsumer<? super A, ? super Throwable> action) {
+            return new Promise<>(wrapped.whenCompleteAsync(action));
+        }
+
+        @Override
+        public Promise<A> whenCompleteAsync(BiConsumer<? super A, ? super Throwable> action, Executor executor) {
+            return new Promise<>(wrapped.whenCompleteAsync(action, executor));
+        }
+
+        @Override
+        public <U> Promise<U> handle(BiFunction<? super A, Throwable, ? extends U> fn) {
+            return new Promise<>(wrapped.handle(fn));
+        }
+
+        @Override
+        public <U> Promise<U> handleAsync(BiFunction<? super A, Throwable, ? extends U> fn) {
+            return new Promise<>(wrapped.handleAsync(fn));
+        }
+
+        @Override
+        public <U> Promise<U> handleAsync(BiFunction<? super A, Throwable, ? extends U> fn, Executor executor) {
+            return new Promise<>(wrapped.handleAsync(fn, executor));
+        }
+
+        @Override
+        public CompletableFuture<A> toCompletableFuture() {
+            return wrapped.toCompletableFuture();
+        }
     }
 
     /**
@@ -495,23 +876,24 @@ public class F {
      * someFutureInt.success(42);
      * }
      * </pre>
+     * @deprecated Use {@link CompletableFuture} instead.
      */
-    public static class RedeemablePromise<A> extends Promise<A>{
+    @Deprecated
+    public static class RedeemablePromise<A> extends Promise<A> {
 
-        private final scala.concurrent.Promise<A> promise;
+        private final CompletableFuture<A> future;
 
-        private RedeemablePromise(scala.concurrent.Promise<A> promise) {
-            super(FPromiseHelper.getFuture(promise));
+        private RedeemablePromise(CompletableFuture<A> future) {
+            super(future);
 
-            this.promise = promise;
+            this.future = future;
         }
 
         /**
          * Creates a new Promise with no value
          */
         public static <A> RedeemablePromise<A> empty() {
-            scala.concurrent.Promise<A> p = FPromiseHelper.empty();
-            return new RedeemablePromise(p);
+            return new RedeemablePromise<>(new CompletableFuture<>());
         }
 
         /**
@@ -520,7 +902,9 @@ public class F {
          * @param a The value to complete with
          */
         public void success(A a) {
-            this.promise.success(a);
+            if (!future.complete(a)) {
+                throw new IllegalStateException("RedeemablePromise already completed.");
+            }
         }
 
         /**
@@ -529,7 +913,9 @@ public class F {
          * @param t The exception to fail the promise with
          */
         public void failure(Throwable t) {
-            this.promise.failure(t);
+            if (!future.completeExceptionally(t)) {
+                throw new IllegalStateException("RedeemablePromise already completed.");
+            }
         }
 
         /**
@@ -540,8 +926,20 @@ public class F {
          *         promise. If the completion was successful then the result will be a null value,
          *         if the completion failed then the result will be an IllegalStateException.
          */
-        public Promise<Void> completeWith(Promise other) {
-            return this.completeWith(other, HttpExecution.defaultContext());
+        public Promise<Void> completeWith(CompletionStage<? extends A> other) {
+            return new Promise<>(other.handle((a, error) -> {
+                boolean completed;
+                if (error != null) {
+                    completed = future.completeExceptionally(error);
+                } else {
+                    completed = future.complete(a);
+                }
+                if (!completed) {
+                    throw new IllegalStateException("RedeemablePromise already completed.");
+                } else {
+                    return null;
+                }
+            }));
         }
 
         /**
@@ -553,8 +951,20 @@ public class F {
          *         promise. If the completion was successful then the result will be a null value,
          *         if the completion failed then the result will be an IllegalStateException.
          */
-        public Promise<Void> completeWith(Promise other, ExecutionContext ec) {
-            return Promise.wrap(FPromiseHelper.completeWith(this.promise, other.future, ec));
+        public Promise<Void> completeWith(CompletionStage<? extends A> other, ExecutionContext ec) {
+            return new Promise<>(other.handleAsync((a, error) -> {
+                boolean completed;
+                if (error != null) {
+                    completed = future.completeExceptionally(error);
+                } else {
+                    completed = future.complete(a);
+                }
+                if (!completed) {
+                    throw new IllegalStateException("RedeemablePromise already completed.");
+                } else {
+                    return null;
+                }
+            }, toExecutor(ec)));
         }
 
         /**
@@ -565,8 +975,14 @@ public class F {
          *         promise. If the completion was successful then the result will be true, if the
          *         completion couldn't occur then the result will be false.
          */
-        public Promise<Boolean> tryCompleteWith(Promise other) {
-            return this.tryCompleteWith(other, HttpExecution.defaultContext());
+        public Promise<Boolean> tryCompleteWith(Promise<? extends A> other) {
+            return new Promise<>(other.handle((a, error) -> {
+                if (error != null) {
+                    return future.completeExceptionally(error);
+                } else {
+                    return future.complete(a);
+                }
+            }));
         }
 
         /**
@@ -578,8 +994,14 @@ public class F {
          *         promise. If the completion was successful then the result will be true, if the
          *         completion couldn't occur then the result will be false.
          */
-        public Promise<Boolean> tryCompleteWith(Promise other, ExecutionContext ec) {
-            return Promise.wrap(FPromiseHelper.tryCompleteWith(this.promise, other.future, ec));
+        public Promise<Boolean> tryCompleteWith(Promise<? extends A> other, ExecutionContext ec) {
+            return new Promise<>(other.handleAsync((a, error) -> {
+                if (error != null) {
+                    return future.completeExceptionally(error);
+                } else {
+                    return future.complete(a);
+                }
+            }, toExecutor(ec)));
         }
     }
 
@@ -881,6 +1303,18 @@ public class F {
      */
     public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
         return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
+    }
+
+    /**
+     * Converts the execution context to an executor, preparing it first.
+     */
+    private static Executor toExecutor(ExecutionContext ec) {
+        ExecutionContext prepared = ec.prepare();
+        if (prepared instanceof Executor) {
+            return (Executor) prepared;
+        } else {
+            return prepared::execute;
+        }
     }
 
 }

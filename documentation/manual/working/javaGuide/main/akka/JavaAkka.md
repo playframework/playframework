@@ -27,7 +27,7 @@ To create and/or use an actor, you need an `ActorSystem`.  This can be obtained 
 
 The most basic thing that you can do with an actor is send it a message.  When you send a message to an actor, there is no response, it's fire and forget.  This is also known as the _tell_ pattern.
   
-In a web application however, the _tell_ pattern is often not useful, since HTTP is a protocol that has requests and responses.  In this case, it is much more likely that you will want to use the _ask_ pattern.  The ask pattern returns a Scala `Future`, which you can then wrap in a Play `Promise`, and then map to your own result type.
+In a web application however, the _tell_ pattern is often not useful, since HTTP is a protocol that has requests and responses.  In this case, it is much more likely that you will want to use the _ask_ pattern.  The ask pattern returns a Scala `Future`, which you can convert to a Java `CompletionStage` using `scala.compat.java8.FutureConverts.toJava`, and then map to your own result type.
 
 Below is an example of using our `HelloActor` with the ask pattern:
 
@@ -36,7 +36,7 @@ Below is an example of using our `HelloActor` with the ask pattern:
 A few things to notice:
 
 * The ask pattern needs to be imported, it's often most convenient to static import the `ask` method.
-* The returned future is wrapped in a `Promise`.  The resulting promise is a `Promise<Object>`, so when you access its value, you need to cast it to the type you are expecting back from the actor.
+* The returned future is converted to a `CompletionStage`.  The resulting promise is a `CompletionStage<Object>`, so when you access its value, you need to cast it to the type you are expecting back from the actor.
 * The ask pattern requires a timeout, we have supplied 1000 milliseconds.  If the actor takes longer than that to respond, the returned promise will be completed with a timeout error.
 * Since we're creating the actor in the constructor, we need to scope our controller as `Singleton`, so that a new actor isn't created every time this controller is used.
 

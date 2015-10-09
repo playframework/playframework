@@ -16,6 +16,7 @@ import play.core.SourceMapper
 import play.mvc.Http
 import play.utils.{ Reflect, PlayIO }
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent._
 import scala.util.control.NonFatal
 
@@ -303,8 +304,8 @@ private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorH
   import play.api.libs.iteratee.Execution.Implicits.trampoline
 
   def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
-    play.libs.F.Promise.wrap(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
+    FutureConverters.toJava(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
 
   def onServerError(request: Http.RequestHeader, exception: Throwable) =
-    play.libs.F.Promise.wrap(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
+    FutureConverters.toJava(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
 }

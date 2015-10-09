@@ -4,9 +4,10 @@
 package play.filters.csrf;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
+
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
-import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -31,7 +32,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public F.Promise<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Context ctx) {
         RequestHeader request = ctx._requestHeader();
 
         if (CSRFAction.getTokenFromHeader(request, config).isEmpty()) {

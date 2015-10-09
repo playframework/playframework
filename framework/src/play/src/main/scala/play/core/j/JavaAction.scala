@@ -3,18 +3,19 @@
  */
 package play.core.j
 
+import java.util.concurrent.CompletionStage
 import javax.inject.Inject
 
-import play.api.http.{ HttpConfiguration, HttpRequestHandler }
-import play.api.inject.{ Injector, NewInstanceInjector }
+import play.api.http.HttpConfiguration
+import play.api.inject.Injector
 
+import scala.compat.java8.FutureConverters
 import scala.language.existentials
 
 import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult, BodyParser => JBodyParser }
 import play.mvc.Http.{ Context => JContext }
-import play.libs.F.{ Promise => JPromise }
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
@@ -35,9 +36,9 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 
   val actionMixins = {
     val allDeclaredAnnotations: Seq[java.lang.annotation.Annotation] = if (HttpConfiguration.current.actionComposition.controllerAnnotationsFirst) {
-      (controllerAnnotations ++ method.getDeclaredAnnotations)
+      controllerAnnotations ++ method.getDeclaredAnnotations
     } else {
-      (method.getDeclaredAnnotations ++ controllerAnnotations)
+      method.getDeclaredAnnotations ++ controllerAnnotations
     }
     allDeclaredAnnotations.collect {
       case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
@@ -52,7 +53,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
  */
 abstract class JavaAction(components: JavaHandlerComponents) extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
-  def invocation: JPromise[JResult]
+  def invocation: CompletionStage[JResult]
   val annotations: JavaActionAnnotations
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
@@ -60,7 +61,7 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
     val javaContext: JContext = createJavaContext(req)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): JPromise[JResult] = {
+      def call(ctx: JContext): CompletionStage[JResult] = {
         // The context may have changed, set it again
         val oldContext = JContext.current.get()
         try {
@@ -89,7 +90,7 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
       val javaClassLoader = Thread.currentThread.getContextClassLoader
       new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
     }
-    val actionFuture: Future[Future[JResult]] = Future { finalAction.call(javaContext).wrapped }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(finalAction.call(javaContext)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture

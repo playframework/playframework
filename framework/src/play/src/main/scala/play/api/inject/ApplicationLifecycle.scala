@@ -3,12 +3,12 @@
  */
 package play.api.inject
 
-import java.util.concurrent.Callable
+import java.util.concurrent.{ CompletionStage, Callable }
 
 import javax.inject.Singleton
 import play.api.Logger
-import play.libs.F
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 /**
@@ -62,8 +62,9 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: Callable[F.Promise[_]]): Unit =
-    addStopHook(() => hook.call().wrapped())
+  def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit = {
+    addStopHook(() => FutureConverters.toScala(hook.call().asInstanceOf[CompletionStage[_]]))
+  }
 }
 
 /**

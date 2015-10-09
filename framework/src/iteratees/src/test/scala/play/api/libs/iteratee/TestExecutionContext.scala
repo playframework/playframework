@@ -10,7 +10,7 @@ object TestExecutionContext {
   /**
    * Create a `TestExecutionContext` that delegates to the iteratee package's default `ExecutionContext`.
    */
-  def apply(): TestExecutionContext = new TestExecutionContext(Execution.defaultExecutionContext)
+  def apply(): TestExecutionContext = new TestExecutionContext(Execution.trampoline)
 
 }
 

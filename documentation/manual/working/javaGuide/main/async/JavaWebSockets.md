@@ -44,7 +44,7 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 ### Accepting a WebSocket asynchronously
 
-You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `Promise<WebSocket<A>>` instead of `WebSocket<A>`.
+You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `CompletionStage<WebSocket<A>>` instead of `WebSocket<A>`.
 
 ### Handling different types of messages
 

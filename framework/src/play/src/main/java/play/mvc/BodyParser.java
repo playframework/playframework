@@ -359,9 +359,8 @@ public interface BodyParser<A> {
                             .transform(() -> new BodyParsers$.TakeUpTo(maxLength))
             ).recoverWith(exception -> {
                 if (exception instanceof play.api.mvc.BodyParsers$.MaxLengthLimitAttained) {
-                    return FutureConverters.toJava(
-                            errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
-                                    .map(F.Either::<Result, A>Left).wrapped());
+                    return errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
+                            .thenApply(F.Either::<Result, A>Left);
                 } else {
                     CompletableFuture<F.Either<Result, A>> cf = new CompletableFuture<>();
                     cf.completeExceptionally(exception);
@@ -400,7 +399,7 @@ public interface BodyParser<A> {
                 try {
                     return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
-                    return FutureConverters.toJava(errorHandler.onClientError(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage()).wrapped())
+                    return errorHandler.onClientError(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage())
                             .thenApply(F.Either::<Result, A>Left);
                 }
             }, JavaParsers.trampoline());

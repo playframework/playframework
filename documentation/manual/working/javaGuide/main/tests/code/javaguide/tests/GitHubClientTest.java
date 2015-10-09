@@ -3,6 +3,7 @@ package javaguide.tests;
 //#content
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.*;
 import play.api.routing.Router;
@@ -50,8 +51,9 @@ public class GitHubClientTest {
     }
 
     @Test
-    public void repositories() {
-        List<String> repos = client.getRepositories().get(10000);
+    public void repositories() throws Exception {
+        List<String> repos = client.getRepositories()
+                .toCompletableFuture().get(10, TimeUnit.SECONDS);
         assertThat(repos, hasItem("octocat/Hello-World"));
     }
 }

@@ -34,9 +34,8 @@ public class BodyParsers {
         if (request.contentType().map(validate).orElse(false)) {
             return parser.apply(request);
         } else {
-            CompletionStage<Result> result = FutureConverters.toJava(
-                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage).wrapped()
-            );
+            CompletionStage<Result> result =
+                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
             return Accumulator.done(result.thenApply(F.Either::Left));
         }
     }

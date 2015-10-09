@@ -3,9 +3,12 @@
  */
 package play.api.inject.guice
 
+import javax.inject.{ Provider, Inject }
+
 import com.google.inject.{ Module => GuiceModule }
+import play.api.routing.Router
 import play.api.{ Application, Configuration, Environment, GlobalSettings, Logger, OptionalSourceMapper }
-import play.api.inject.{ bind, Injector => PlayInjector }
+import play.api.inject.{ Injector => PlayInjector, RoutesProvider, bind }
 import play.core.{ DefaultWebCommands, WebCommands }
 
 /**
@@ -60,6 +63,19 @@ final class GuiceApplicationBuilder(
    */
   def load(modules: GuiceableModule*): GuiceApplicationBuilder =
     load((env, conf) => modules)
+
+  /**
+   * Override the router with the given router.
+   */
+  def router(router: Router): GuiceApplicationBuilder =
+    overrides(bind[Router].toInstance(router))
+
+  /**
+   * Override the router with a router that first tries to route to the passed in additional router, before falling
+   * back to the default router.
+   */
+  def additionalRouter(router: Router): GuiceApplicationBuilder =
+    overrides(bind[Router].to(new AdditionalRouterProvider(router)))
 
   /**
    * Create a new Play application Module for an Application using this configured builder.
@@ -119,4 +135,9 @@ final class GuiceApplicationBuilder(
     disabled: Seq[Class[_]],
     eagerly: Boolean): GuiceApplicationBuilder =
     copy(environment, configuration, modules, overrides, disabled, eagerly)
+}
+
+private class AdditionalRouterProvider(additional: Router) extends Provider[Router] {
+  @Inject private var fallback: RoutesProvider = _
+  lazy val get = Router.from(additional.routes.orElse(fallback.get.routes))
 }
