@@ -12,17 +12,13 @@ import play.libs.Akka;
 import javax.inject.Inject;
 
 public class Actors extends Plugin {
-    private final Application app;
+
+    private @Inject ActorSystem system;
 
     private ActorRef myActor;
 
-    @Inject
-    public Actors(Application app) {
-        this.app = app;
-    }
-
     public void onStart() {
-        myActor = Akka.system().actorOf(MyActor.props(), "my-actor");
+        myActor = system.actorOf(MyActor.props(), "my-actor");
     }
 
     public static ActorRef getMyActor() {
