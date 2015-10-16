@@ -133,9 +133,11 @@ object Crypto {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value The String to encrypt.
    * @return An hexadecimal encrypted string.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def encryptAES(value: String): String = crypto.encryptAES(value)
 
   /**
@@ -153,10 +155,12 @@ object Crypto {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value The String to encrypt.
    * @param privateKey The key used to encrypt.
    * @return An hexadecimal encrypted string.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def encryptAES(value: String, privateKey: String): String = crypto.encryptAES(value, privateKey)
 
   /**
@@ -169,9 +173,11 @@ object Crypto {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value An hexadecimal encrypted string.
    * @return The decrypted String.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def decryptAES(value: String): String = crypto.decryptAES(value)
 
   /**
@@ -186,10 +192,12 @@ object Crypto {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value An hexadecimal encrypted string.
    * @param privateKey The key used to encrypt.
    * @return The decrypted String.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def decryptAES(value: String, privateKey: String): String = crypto.decryptAES(value, privateKey)
 }
 
@@ -397,9 +405,11 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value The String to encrypt.
    * @return An hexadecimal encrypted string.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def encryptAES(value: String): String = {
     encryptAES(value, config.secret)
   }
@@ -420,10 +430,12 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value The String to encrypt.
    * @param privateKey The key used to encrypt.
    * @return A Base64 encrypted string.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def encryptAES(value: String, privateKey: String): String = {
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
     val cipher = getCipherWithConfiguredProvider(config.aesTransformation)
@@ -469,9 +481,11 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
+   * @deprecated This method is deprecated and will be removed in future versions.
    * @param value An hexadecimal encrypted string.
    * @return The decrypted String.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def decryptAES(value: String): String = {
     decryptAES(value, config.secret)
   }
@@ -492,6 +506,7 @@ class Crypto @Inject() (config: CryptoConfig) {
    * @param privateKey The key used to encrypt.
    * @return The decrypted String.
    */
+  @deprecated(message = "This method is deprecated and will be removed in future versions.", since = "2.4.4")
   def decryptAES(value: String, privateKey: String): String = {
     val seperator = "-"
     val sepIndex = value.indexOf(seperator)
