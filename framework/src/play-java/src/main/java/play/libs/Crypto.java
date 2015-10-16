@@ -129,9 +129,11 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value The String to encrypt.
      * @return An hexadecimal encrypted string.
      */
+    @Deprecated
     public String encryptAES(String value) {
         return crypto.encryptAES(value);
     }
@@ -153,10 +155,12 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value      The String to encrypt.
      * @param privateKey The key used to encrypt.
      * @return An hexadecimal encrypted string.
      */
+    @Deprecated
     public String encryptAES(String value, String privateKey) {
         return crypto.encryptAES(value, privateKey);
     }
@@ -172,9 +176,11 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value An hexadecimal encrypted string.
      * @return The decrypted String.
      */
+    @Deprecated
     public String decryptAES(String value) {
         return crypto.decryptAES(value);
     }
@@ -192,10 +198,12 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value      An hexadecimal encrypted string.
      * @param privateKey The key used to encrypt.
      * @return The decrypted String.
      */
+    @Deprecated
     public String decryptAES(String value, String privateKey) {
         return crypto.decryptAES(value, privateKey);
     }
