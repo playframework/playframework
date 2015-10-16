@@ -11,7 +11,7 @@ import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.HttpErrorHandler
 import play.api.inject.{ Binding, Module }
-import play.api.libs.Crypto
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.core.j.JavaHelpers
@@ -202,27 +202,27 @@ object CSRF {
     def compareTokens(tokenA: String, tokenB: String): Boolean
   }
 
-  class TokenProviderProvider @Inject() (config: CSRFConfig) extends Provider[TokenProvider] {
+  class TokenProviderProvider @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner) extends Provider[TokenProvider] {
     override val get = config.signTokens match {
-      case true => SignedTokenProvider
-      case false => UnsignedTokenProvider
+      case true => new SignedTokenProvider(tokenSigner)
+      case false => new UnsignedTokenProvider(tokenSigner)
     }
   }
 
-  class ConfigTokenProvider(config: => CSRFConfig) extends TokenProvider {
-    lazy val underlying = new TokenProviderProvider(config).get
+  class ConfigTokenProvider(config: => CSRFConfig, tokenSigner: CSRFTokenSigner) extends TokenProvider {
+    lazy val underlying = new TokenProviderProvider(config, tokenSigner).get
     def generateToken = underlying.generateToken
     def compareTokens(tokenA: String, tokenB: String) = underlying.compareTokens(tokenA, tokenB)
   }
 
-  object SignedTokenProvider extends TokenProvider {
-    def generateToken = Crypto.generateSignedToken
-    def compareTokens(tokenA: String, tokenB: String) = Crypto.compareSignedTokens(tokenA, tokenB)
+  class SignedTokenProvider(tokenSigner: CSRFTokenSigner) extends TokenProvider {
+    def generateToken = tokenSigner.generateSignedToken
+    def compareTokens(tokenA: String, tokenB: String) = tokenSigner.compareSignedTokens(tokenA, tokenB)
   }
 
-  object UnsignedTokenProvider extends TokenProvider {
-    def generateToken = Crypto.generateToken
-    def compareTokens(tokenA: String, tokenB: String) = Crypto.constantTimeEquals(tokenA, tokenB)
+  class UnsignedTokenProvider(tokenSigner: CSRFTokenSigner) extends TokenProvider {
+    def generateToken = tokenSigner.generateToken
+    def compareTokens(tokenA: String, tokenB: String) = tokenSigner.constantTimeEquals(tokenA, tokenB)
   }
 
   /**
@@ -281,13 +281,13 @@ class CSRFModule extends Module {
  */
 trait CSRFComponents {
   def configuration: Configuration
-  def crypto: Crypto
+  def tokenSigner: CSRFTokenSigner
   def httpErrorHandler: HttpErrorHandler
   implicit def materializer: Materializer
 
   lazy val csrfConfig: CSRFConfig = CSRFConfig.fromConfiguration(configuration)
-  lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig).get
+  lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig, tokenSigner).get
   lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRFHttpErrorHandler(httpErrorHandler)
-  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, crypto, csrfTokenProvider, csrfErrorHandler)
+  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, tokenSigner, csrfTokenProvider, csrfErrorHandler)
 
 }

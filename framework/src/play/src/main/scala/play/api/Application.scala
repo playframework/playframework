@@ -3,27 +3,25 @@
  */
 package play.api
 
+import java.io._
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.Singleton
 import play.api.http._
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
+import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.crypto._
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
-import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
-import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
-import play.api.libs.concurrent.ActorSystemProvider
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
-import java.io._
-
-import annotation.implicitNotFound
-
-import reflect.ClassTag
+import scala.annotation.implicitNotFound
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 /**
  * A Play application.
@@ -248,7 +246,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration + tempFileCreator + global
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + global
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -265,7 +263,8 @@ trait BuiltInComponents {
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
 
-  lazy val crypto: Crypto = new Crypto(cryptoConfig)
+  lazy val cookieSigner: CookieSigner = new CookieSignerProvider(cryptoConfig).get
+  lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 
   @deprecated("Use dependency injection", "2.5.x")
   lazy val global: GlobalSettings.Deprecated = play.api.GlobalSettings(configuration, environment)

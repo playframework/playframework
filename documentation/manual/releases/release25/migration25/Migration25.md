@@ -241,3 +241,15 @@ Previously, a CSRF token could be retrieved from the HTTP request in any action.
 Also, a minor bug was fixed in this release in which the CSRF token would be empty (throwing an exception in the template helper) if its signature was invalid. Now it will be regenerated on the same request so a token is still available from the template helpers and `CSRF.getToken`.
 
 For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [[Scala|ScalaCsrf]].
+
+## Crypto Deprecated
+
+From Play 1.x, Play has come with a Crypto object that provides some cryptographic operations.  This used internally by Play.  The Crypto object is not mentioned in the documentation, but is mentioned as “cryptographic utilities” in the scaladoc.  
+
+For a variety of reasons, providing cryptographic utilities as a convenience has turned out not to be workable.   In 2.5.x, Crypto will be defined as an internal library, part of Play’s private API, with an explicit note that user level cryptographic operations should not call out to Crypto methods.   Please see [[Crypto Migration|CryptoMigration25]] for more details.
+
+### How to Migrate
+
+Cryptographic migration will depend on your use case, especially if there is unsafe construction of the cryptographic primitives.  The short version is to use [Kalium](https://abstractj.github.io/kalium/) if possible, otherwise use [KeyCzar](https://github.com/google/keyczar) or straight [JCA](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html).
+
+Please see [[Crypto Migration|CryptoMigration25]] for more details.
