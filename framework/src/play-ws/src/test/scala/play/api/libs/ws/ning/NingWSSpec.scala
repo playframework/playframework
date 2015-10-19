@@ -3,17 +3,19 @@
  */
 package play.api.libs.ws.ning
 
-import akka.util.Timeout
-import com.ning.http.client
-import com.ning.http.client.cookie.{ Cookie => AHCCookie }
-import com.ning.http.client.{ AsyncHttpClient, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse }
+import akka.util.{ ByteString, Timeout }
+import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import org.asynchttpclient.{ AsyncHttpClient, AsyncHttpClientConfig, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse, Request => AHCRequest }
+import org.asynchttpclient.proxy.ProxyServer
 import org.specs2.mock.Mockito
+import scala.concurrent.duration._
 
 import play.api.mvc._
 
 import java.util
 import play.api.libs.ws._
 import play.api.test._
+import akka.util.ByteString
 
 object NingWSSpec extends PlaySpecification with Mockito {
 
@@ -41,9 +43,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "support direct client instantiation" in new WithApplication {
-      val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
+      val sslBuilder = new AsyncHttpClientConfig.Builder().setShutdownQuiet(0).setShutdownTimeout(0)
       implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
-      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
+      try WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
+      finally sslClient.close()
     }
 
     "NingWSClient.underlying" in new WithApplication {
@@ -52,15 +55,13 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "NingWSCookie.underlying" in new WithApplication() {
-      import com.ning.http.client.cookie.Cookie
-
-      val mockCookie = mock[Cookie]
+      val mockCookie = mock[AHCCookie]
       val cookie = new NingWSCookie(mockCookie)
-      val thisCookie = cookie.underlying[Cookie]
+      val thisCookie = cookie.underlying[AHCCookie]
     }
 
     "support several query string values for a parameter" in new WithApplication {
-      val req: client.Request = WS.url("http://playframework.com/")
+      val req: AHCRequest = WS.url("http://playframework.com/")
         .withQueryString("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[NingWSRequest].buildRequest()
 
       import scala.collection.JavaConverters._
@@ -96,7 +97,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     */
 
     "support http headers" in new WithApplication {
-      val req: client.Request = WS.url("http://playframework.com/")
+      val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getHeaders.get("key").contains("value1") must beTrue
@@ -106,7 +107,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "not make Content-Type header if there is Content-Type in headers already" in new WithApplication {
       import scala.collection.JavaConverters._
-      val req: client.Request = WS.url("http://playframework.com/")
+      val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("Content-Type" -> "fake/contenttype; charset=utf-8").withBody(<aaa>value1</aaa>).asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("fake/contenttype; charset=utf-8"))
@@ -124,64 +125,75 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
       import scala.collection.JavaConverters._
-      val req: client.Request = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1"))).asInstanceOf[NingWSRequest]
+      val req: AHCRequest = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1"))).asInstanceOf[NingWSRequest]
         .buildRequest()
-      req.getFormParams.asScala must containTheSameElementsAs(List(new com.ning.http.client.Param("param1", "value1")))
+      req.getFormParams.asScala must containTheSameElementsAs(List(new Param("param1", "value1")))
     }
 
     "Have form body on POST of content type text/plain" in new WithApplication {
       val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
-      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
+      val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
         .buildRequest()
       (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD")
     }
 
     "Keep the charset if it has been set manually with a charset" in new WithApplication {
       import scala.collection.JavaConverters._
-      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
+      val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=US-ASCII"))
     }
 
     "POST binary data as is" in new WithApplication {
-      val binData: Array[Byte] = (0 to 511).map(_.toByte).toArray
-      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData).asInstanceOf[NingWSRequest]
+      val binData = ByteString((0 to 511).map(_.toByte).toArray)
+      val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData).asInstanceOf[NingWSRequest]
         .buildRequest()
 
-      req.getByteData must beTheSameAs(binData)
+      ByteString(req.getByteData) must_== binData
     }
 
     "support a virtual host" in new WithApplication {
-      val req: client.Request = WS.url("http://playframework.com/")
+      val req: AHCRequest = WS.url("http://playframework.com/")
         .withVirtualHost("192.168.1.1").asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getVirtualHost must be equalTo "192.168.1.1"
     }
 
     "support follow redirects" in new WithApplication {
-      val req: client.Request = WS.url("http://playframework.com/")
+      val req: AHCRequest = WS.url("http://playframework.com/")
         .withFollowRedirects(follow = true).asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getFollowRedirect must beEqualTo(true)
     }
 
-    "support timeout" in new WithApplication {
-      val req: client.Request = WS.url("http://playframework.com/")
-        .withRequestTimeout(1000).asInstanceOf[NingWSRequest]
+    "support finite timeout" in new WithApplication {
+      val req: AHCRequest = WS.url("http://playframework.com/")
+        .withRequestTimeout(1000.millis).asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getRequestTimeout must be equalTo 1000
     }
 
-    "not support invalid timeout" in new WithApplication {
-      WS.url("http://playframework.com/").withRequestTimeout(-1) should throwAn[IllegalArgumentException]
+    "support infinite timeout" in new WithApplication {
+      val req: AHCRequest = WS.url("http://playframework.com/")
+        .withRequestTimeout(Duration.Inf).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getRequestTimeout must be equalTo -1
+    }
+
+    "not support negative timeout" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout(-1.millis) should throwAn[IllegalArgumentException]
+    }
+
+    "not support a timeout greater than Int.MaxValue" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout((Int.MaxValue.toLong + 1).millis) should throwAn[IllegalArgumentException]
     }
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
-      val req: client.Request = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
+      val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo "https"
+      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must be equalTo "principal"
@@ -190,10 +202,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(host = "localhost", port = 8080)
-      val req: client.Request = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
+      val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo "http"
+      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must beNull
@@ -256,10 +268,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "get cookies from an AHC response" in {
 
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val (name, value, wrap, domain, path, expires, maxAge, secure, httpOnly) =
-        ("someName", "someValue", true, "example.com", "/", 2000L, 1000, false, false)
+      val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
+        ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -271,17 +283,16 @@ object NingWSSpec extends PlaySpecification with Mockito {
       cookie.name must beSome(name)
       cookie.value must beSome(value)
       cookie.path must ===(path)
-      cookie.expires must beSome(expires)
       cookie.maxAge must beSome(maxAge)
       cookie.secure must beFalse
     }
 
     "get a single cookie from an AHC response" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val (name, value, wrap, domain, path, expires, maxAge, secure, httpOnly) =
-        ("someName", "someValue", true, "example.com", "/", 2000L, 1000, false, false)
+      val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
+        ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -293,7 +304,6 @@ object NingWSSpec extends PlaySpecification with Mockito {
           cookie.value must beSome(value)
           cookie.domain must ===(domain)
           cookie.path must ===(path)
-          cookie.expires must beSome(expires)
           cookie.maxAge must beSome(maxAge)
           cookie.secure must beFalse
       }
@@ -302,22 +312,21 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "return -1 values of expires and maxAge as None" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
 
-      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1L, -1, false, false)
+      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1L, false, false)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
 
       val optionCookie = response.cookie("someName")
       optionCookie must beSome[WSCookie].which { cookie =>
-        cookie.expires must beNone
         cookie.maxAge must beNone
       }
     }
 
     "get the body as bytes from the AHC response" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val bytes = Array[Byte](-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
-      ahcResponse.getResponseBodyAsBytes returns bytes
+      val bytes = ByteString(-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
+      ahcResponse.getResponseBodyAsBytes returns bytes.toArray
       val response = NingWSResponse(ahcResponse)
       response.bodyAsBytes must_== bytes
     }

@@ -84,7 +84,7 @@ Class loaders and thread locals need special handling in a multithreaded environ
 In a Play application the [thread context class loader](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#getContextClassLoader--) may not always be able to load application classes. You should explicitly use the application class loader to load classes.
 
 Java
-: @[using-app-classloader](code/ThreadPoolsJava.java)
+: @[using-app-classloader](code/detailedtopics/ThreadPoolsJava.java)
 
 Scala
 : @[using-app-classloader](code/ThreadPools.scala)
@@ -97,12 +97,13 @@ In some cases you may not be able to explicitly use the application classloader.
 
 Java code in Play uses a `ThreadLocal` to find out about contextual information such as the current HTTP request. Scala code doesn't need to use `ThreadLocal`s because it can use implicit parameters to pass context instead. `ThreadLocal`s are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
 
-Java `ThreadLocal`s, along with the correct context `ClassLoader`, are propagated automatically by `ExecutionContextExecutor` objects provided through the `HttpExecution` class. (An `ExecutionContextExecutor` is both a Scala `ExecutionContext` and a Java `Executor`.) These special `ExecutionContextExecutor` objects are automatically created and used by Java actions and Java `Promise` methods. The default objects wrap the default user thread pool. If you want to do your own threading then you should use the `HttpExecution` class' helper methods to get an `ExecutionContextExecutor` object yourself.
+The problem with using thread locals however is that as soon as control switches to another thread, you lose thread local information. So if you were to map a `CompletionStage` using `thenApply`, and then try to access the HTTP context (eg, the session or request), it won't work.  To address this, Play provides an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html).  This allows you to capture the current context in an `Executor`, which you can then pass to the `CompletionStage` `*Async` methods such as `thenApplyAsync()`, and when the executor executes your callback, it will ensure the thread local context is setup so that you can access the request/session/flash/response objects.
 
-In the example below, a user thread pool is wrapped to create a new `ExecutionContext` that propagates thread locals correctly.
+To use the `HttpExecutionContext`, inject it into your component, and then pass the current context anytime a `CompletionStage` is interacted with.  For example:
 
-@[async-explicit-ec-imports](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
-@[async-explicit-ec](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
+@[http-execution-context](code/detailedtopics/httpec/MyController.java)
+
+If you have a custom executor, you can wrap it in an `HttpExecutionContext` simply by passing it to the `HttpExecutionContext`s constructor.
 
 ## Best practices
 

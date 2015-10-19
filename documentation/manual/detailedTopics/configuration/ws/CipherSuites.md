@@ -22,10 +22,10 @@ In 1.6, the out of the box list is [out of order](http://op-co.de/blog/posts/and
   "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
 ```
 
-The list of cipher suites can be configured manually using the `ws.ssl.enabledCiphers` setting:
+The list of cipher suites can be configured manually using the `play.ws.ssl.enabledCipherSuites` setting:
 
 ```
-play.ws.ssl.enabledCiphers = [
+play.ws.ssl.enabledCipherSuites = [
   "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"
 ]
 ```
@@ -43,7 +43,7 @@ If you have JDK 1.8, setting the system property `-Djdk.tls.ephemeralDHKeySize=2
 As per the [Recommendations for Secure Use of TLS and DTLS](https://datatracker.ietf.org/doc/draft-ietf-uta-tls-bcp/), the following cipher suites are recommended:
 
 ```
-play.ws.ssl.enabledCiphers = [
+play.ws.ssl.enabledCipherSuites = [
   "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
   "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
   "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
@@ -87,5 +87,3 @@ play.ws.ssl.debug = {
  data = true
 }
 ```
-
-> **Next**: [[Configuring Certificate Validation|CertificateValidation]]

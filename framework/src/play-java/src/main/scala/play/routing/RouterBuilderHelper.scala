@@ -3,9 +3,13 @@
  */
 package play.routing
 
+import java.util.concurrent.CompletionStage
+
+import play.api.Play
+import play.api.http.{ JavaHttpErrorHandlerDelegate, HttpConfiguration }
 import play.api.mvc.{ Results, Action }
-import play.core.j.{ JavaParsers, JavaHelpers }
-import play.libs.F
+import play.core.j.JavaHelpers
+import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.Context
 import play.mvc.Result
 import play.utils.UriEncoding
@@ -13,6 +17,7 @@ import scala.collection.JavaConversions._
 
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 private[routing] object RouterBuilderHelper {
@@ -58,14 +63,21 @@ private[routing] object RouterBuilderHelper {
             val action = maybeParams match {
               case Left(error) => Action(Results.BadRequest(error))
               case Right(params) =>
+
                 // Convert to a Scala action
-                Action.async(JavaParsers.default_(-1)) { request =>
+                val parser = HandlerInvokerFactory.javaBodyParserToScala(
+                  // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
+                  // it to instantiate the default body parser, we have to instantiate it ourselves.
+                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(Play.current.errorHandler),
+                    Play.current.injector.instanceOf[HttpConfiguration])
+                )
+                Action.async(parser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request)
                   try {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {
-                      case result: Result => Future.successful(result.toScala)
-                      case promise: F.Promise[Result] => promise.wrapped.map(_.toScala)
+                      case result: Result => Future.successful(result.asScala)
+                      case promise: CompletionStage[Result] => FutureConverters.toScala(promise).map(_.asScala)
                     }
                   } finally {
                     Context.current.remove()

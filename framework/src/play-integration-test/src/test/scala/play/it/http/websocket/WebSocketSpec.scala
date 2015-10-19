@@ -4,22 +4,24 @@
 package play.it.http.websocket
 
 import java.nio.charset.Charset
+import akka.stream.scaladsl._
+import akka.util.ByteString
 import play.api.test._
 import play.api.Application
 import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration._
 import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.libs.iteratee._
 import play.it._
 import java.net.URI
 import org.jboss.netty.handler.codec.http.websocketx._
 import org.specs2.matcher.Matcher
-import akka.actor.{ ActorRef, PoisonPill, Actor, Props }
-import play.mvc.WebSocket.{ Out, In }
+import akka.actor._
 import play.core.routing.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.function.Consumer
+import java.util.function.{ Consumer, Function }
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
@@ -27,6 +29,8 @@ object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpeci
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   sequential
+
+  override implicit def defaultAwaitTimeout = 5.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: => A): A = {
     val currentApp = new AtomicReference[FakeApplication]
@@ -40,13 +44,13 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
   }
 
   def runWebSocket[A](handler: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Future[A]): A = {
-    val innerResult = Promise[A]()
     WebSocketClient { client =>
+      val innerResult = Promise[A]()
       await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream")) { (in, out) =>
         innerResult.completeWith(handler(in, out))
       })
+      await(innerResult.future)
     }
-    await(innerResult.future)
   }
 
   def pongFrame(matcher: Matcher[String]): Matcher[WebSocketFrame] = beLike {
@@ -75,6 +79,18 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
     case Input.Empty => getChunks(chunks, onDone)
   }
 
+  /**
+   * Akka streams get chunks
+   */
+  def akkaStreamsGetChunks[A](onDone: List[A] => _): Sink[A, _] =
+    Sink.fold[List[A], A](Nil)((result, next) => next :: result).mapMaterializedValue { future =>
+      future.onSuccess {
+        case result => onDone(result.reverse)
+      }
+    }
+
+  def akkaStreamsEmptySource[A] = Source(Promise[A]().future)
+
   /*
    * Shared tests
    */
@@ -82,7 +98,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
     val consumed = Promise[List[String]]()
     withServer(app => webSocket(app)(consumed)) {
       val result = runWebSocket { (in, out) =>
-        Enumerator(new TextWebSocketFrame("a"), new TextWebSocketFrame("b"), new CloseWebSocketFrame(1000, "")) |>>> out
+        Enumerator(new TextWebSocketFrame("a"), new TextWebSocketFrame("b"), new CloseWebSocketFrame(1000, "")) |>> out
         consumed.future
       }
       result must_== Seq("a", "b")
@@ -115,7 +131,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
   def closeWhenTheConsumerIsDone(webSocket: Application => Handler) = {
     withServer(app => webSocket(app)) {
       val frames = runWebSocket { (in, out) =>
-        Enumerator[WebSocketFrame](new TextWebSocketFrame("foo")) |>> out
+        Enumerator[WebSocketFrame](new TextWebSocketFrame("a")) |>> out
         in |>>> Iteratee.getChunks[WebSocketFrame]
       }
       frames must contain(exactly(
@@ -129,158 +145,199 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       implicit val port = testServerPort
       await(wsUrl("/stream").withHeaders(
         "Upgrade" -> "websocket",
-        "Connection" -> "upgrade"
+        "Connection" -> "upgrade",
+        "Sec-WebSocket-Version" -> "13",
+        "Sec-WebSocket-Key" -> "x3JJHMbDL1EzLkh9GBhXDw==",
+        "Origin" -> "http://example.com"
       ).get()).status must_== FORBIDDEN
     }
   }
 
   "Plays WebSockets" should {
-    "allow consuming messages" in allowConsumingMessages { _ =>
-      consumed =>
+    "allow handling WebSockets using Akka streams" in {
+      "allow consuming messages" in allowConsumingMessages { _ =>
+        consumed =>
+          WebSocket.accept[String, String] { req =>
+            Flow.wrap(akkaStreamsGetChunks[String](consumed.success _),
+              akkaStreamsEmptySource[String])(Keep.none)
+          }
+      }
+
+      "allow sending messages" in allowSendingMessages { _ =>
+        messages =>
+          WebSocket.accept[String, String] { req =>
+            Flow.wrap(Sink.ignore, Source(messages))(Keep.none)
+          }
+      }
+
+      "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
+        WebSocket.accept[String, String] { req =>
+          Flow.wrap(Sink.cancelled, akkaStreamsEmptySource[String])(Keep.none)
+        }
+      }
+
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
+        statusCode =>
+          WebSocket.acceptOrResult[String, String] { req =>
+            Future.successful(Left(Results.Status(statusCode)))
+          }
+      }
+
+      "aggregate text frames" in {
+        val consumed = Promise[List[String]]()
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.wrap(akkaStreamsGetChunks[String](consumed.success _),
+            akkaStreamsEmptySource[String])(Keep.none)
+        }) {
+          val result = runWebSocket { (in, out) =>
+            Enumerator(
+              new TextWebSocketFrame("first"),
+              new TextWebSocketFrame(false, 0, "se"),
+              new ContinuationWebSocketFrame(false, 0, "co"),
+              new ContinuationWebSocketFrame(true, 0, "nd"),
+              new TextWebSocketFrame("third"),
+              new CloseWebSocketFrame(1000, "")) |>> out
+            consumed.future
+          }
+          result must_== Seq("first", "second", "third")
+        }
+      }
+
+      "aggregate binary frames" in {
+        val consumed = Promise[List[ByteString]]()
+
+        withServer(app => WebSocket.accept[ByteString, ByteString] { req =>
+          Flow.wrap(akkaStreamsGetChunks[ByteString](consumed.success _),
+            akkaStreamsEmptySource[ByteString])(Keep.none)
+        }) {
+          val result = runWebSocket { (in, out) =>
+            Enumerator(
+              new BinaryWebSocketFrame(binaryBuffer("first")),
+              new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
+              new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
+              new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
+              new BinaryWebSocketFrame(binaryBuffer("third")),
+              new CloseWebSocketFrame(1000, "")) |>> out
+            consumed.future
+          }
+          result.map(b => b.utf8String) must_== Seq("first", "second", "third")
+        }
+      }
+
+      "close the websocket when the buffer limit is exceeded" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.wrap(Sink.ignore, akkaStreamsEmptySource[String])(Keep.none)
+        }) {
+          val frames = runWebSocket { (in, out) =>
+            Enumerator[WebSocketFrame](
+              new TextWebSocketFrame(false, 0, "first frame"),
+              new ContinuationWebSocketFrame(true, 0, new String(Array.range(1, 65530).map(_ => 'a')))
+            ) |>> out
+            in |>>> Iteratee.getChunks[WebSocketFrame]
+          }
+          frames must contain(exactly(
+            closeFrame(1009)
+          ))
+        }
+      }
+
+      "close the websocket when the wrong type of frame is received" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.wrap(Sink.ignore, akkaStreamsEmptySource[String])(Keep.none)
+        }) {
+          val frames = runWebSocket { (in, out) =>
+            Enumerator[WebSocketFrame](
+              new BinaryWebSocketFrame(binaryBuffer("first")),
+              new TextWebSocketFrame("foo")) |>> out
+            in |>>> Iteratee.getChunks[WebSocketFrame]
+          }
+          frames must contain(exactly(
+            closeFrame(1003)
+          ))
+        }
+      }
+
+      "respond to pings" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.wrap(Sink.ignore, akkaStreamsEmptySource[String])(Keep.none)
+        }) {
+          val frames = runWebSocket { (in, out) =>
+            Enumerator[WebSocketFrame](
+              new PingWebSocketFrame(binaryBuffer("hello")),
+              new CloseWebSocketFrame(1000, "")
+            ) |>> out
+            in |>>> Iteratee.getChunks[WebSocketFrame]
+          }
+          frames must contain(exactly(
+            pongFrame(be_==("hello")),
+            closeFrame()
+          ))
+        }
+      }
+
+      "not respond to pongs" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.wrap(Sink.ignore, akkaStreamsEmptySource[String])(Keep.none)
+        }) {
+          val frames = runWebSocket { (in, out) =>
+            Enumerator[WebSocketFrame](
+              new PongWebSocketFrame(),
+              new CloseWebSocketFrame(1000, "")
+            ) |>> out
+            in |>>> Iteratee.getChunks[WebSocketFrame]
+          }
+          frames must contain(exactly(
+            closeFrame()
+          ))
+        }
+      }
+
+    }
+
+    "allow handling WebSockets using iteratees" in {
+
+      "allow consuming messages" in allowConsumingMessages { _ =>
+        consumed =>
+          WebSocket.using[String] { req =>
+            (getChunks[String](Nil, consumed.success _), Enumerator.empty)
+          }
+      }
+
+      "allow sending messages" in allowSendingMessages { _ =>
+        messages =>
+          WebSocket.using[String] { req =>
+            (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
+          }
+      }
+
+      "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
         WebSocket.using[String] { req =>
-          (getChunks[String](Nil, consumed.success _), Enumerator.empty)
+          (Done(()), Enumerator.empty)
         }
-    }.pendingUntilAkkaHttpFixed // All tests in this class are waiting on https://github.com/akka/akka/issues/16848
-
-    "allow sending messages" in allowSendingMessages { _ =>
-      messages =>
-        WebSocket.using[String] { req =>
-          (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
-        }
-    }.pendingUntilAkkaHttpFixed
-
-    "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
-      WebSocket.using[String] { req =>
-        (Iteratee.head, Enumerator.empty)
-      }
-    }.pendingUntilAkkaHttpFixed
-
-    "clean up when closed" in cleanUpWhenClosed { _ =>
-      cleanedUp =>
-        WebSocket.using[String] { req =>
-          (Iteratee.ignore, Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
-        }
-    }.pendingUntilAkkaHttpFixed
-
-    "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
-      statusCode =>
-        WebSocket.tryAccept[String] { req =>
-          Future.successful(Left(Results.Status(statusCode)))
-        }
-    }.pendingUntilAkkaHttpFixed
-
-    "aggregate text frames" in {
-      val consumed = Promise[List[String]]()
-      withServer(app => WebSocket.using[String] { req =>
-        (getChunks[String](Nil, consumed.success _), Enumerator.empty)
-      }) {
-        val result = runWebSocket { (in, out) =>
-          Enumerator(
-            new TextWebSocketFrame("first"),
-            new TextWebSocketFrame(false, 0, "se"),
-            new ContinuationWebSocketFrame(false, 0, "co"),
-            new ContinuationWebSocketFrame(true, 0, "nd"),
-            new TextWebSocketFrame("third"),
-            new CloseWebSocketFrame(1000, "")) |>>> out
-          consumed.future
-        }
-        result must_== Seq("first", "second", "third")
       }
 
-    }.pendingUntilAkkaHttpFixed
-
-    "aggregate binary frames" in {
-      val consumed = Promise[List[Array[Byte]]]()
-
-      withServer(app => WebSocket.using[Array[Byte]] { req =>
-        (getChunks[Array[Byte]](Nil, consumed.success _), Enumerator.empty)
-      }) {
-        val result = runWebSocket { (in, out) =>
-          Enumerator(
-            new BinaryWebSocketFrame(binaryBuffer("first")),
-            new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
-            new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
-            new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
-            new BinaryWebSocketFrame(binaryBuffer("third")),
-            new CloseWebSocketFrame(1000, "")) |>>> out
-          consumed.future
-        }
-        result.map(b => b.toSeq) must_== Seq("first".getBytes("utf-8").toSeq, "second".getBytes("utf-8").toSeq, "third".getBytes("utf-8").toSeq)
+      "clean up when closed" in cleanUpWhenClosed { _ =>
+        cleanedUp =>
+          WebSocket.using[String] { req =>
+            (Iteratee.ignore, Enumerator.repeat("foo").onDoneEnumerating {
+              cleanedUp.success(true)
+            })
+          }
       }
-    }.pendingUntilAkkaHttpFixed
 
-    "close the websocket when the buffer limit is exceeded" in {
-      withServer(app => WebSocket.using[String] { req =>
-        (Iteratee.ignore, Enumerator.empty)
-      }) {
-        val frames = runWebSocket { (in, out) =>
-          Enumerator[WebSocketFrame](
-            new TextWebSocketFrame(false, 0, "first frame"),
-            new ContinuationWebSocketFrame(true, 0, new String(Array.range(1, 65530).map(_ => 'a')))
-          ) |>> out
-          in |>>> Iteratee.getChunks[WebSocketFrame]
-        }
-        frames must contain(exactly(
-          closeFrame(1009)
-        ))
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
+        statusCode =>
+          WebSocket.tryAccept[String] { req =>
+            Future.successful(Left(Results.Status(statusCode)))
+          }
       }
-    }.pendingUntilAkkaHttpFixed
-
-    "close the websocket when the wrong type of frame is received" in {
-      withServer(app => WebSocket.using[Array[Byte]] { req =>
-        (Iteratee.ignore, Enumerator.empty)
-      }) {
-        val frames = runWebSocket { (in, out) =>
-          Enumerator[WebSocketFrame](
-            new BinaryWebSocketFrame(binaryBuffer("first")),
-            new TextWebSocketFrame("foo")) |>> out
-          in |>>> Iteratee.getChunks[WebSocketFrame]
-        }
-        frames must contain(exactly(
-          closeFrame(1003)
-        ))
-      }
-    }.pendingUntilAkkaHttpFixed
-
-    "respond to pings" in {
-      withServer(app => WebSocket.using[String] { req =>
-        (Iteratee.head, Enumerator.empty)
-      }) {
-        val frames = runWebSocket { (in, out) =>
-          Enumerator[WebSocketFrame](
-            new PingWebSocketFrame(binaryBuffer("hello")),
-            new CloseWebSocketFrame(1000, "")
-          ) |>> out
-          in |>>> Iteratee.getChunks[WebSocketFrame]
-        }
-        frames must contain(exactly(
-          pongFrame(be_==("hello")),
-          closeFrame()
-        ))
-      }
-    }.pendingUntilAkkaHttpFixed
-
-    "not respond to pongs" in {
-      withServer(app => WebSocket.using[String] { req =>
-        (Iteratee.head, Enumerator.empty)
-      }) {
-        val frames = runWebSocket { (in, out) =>
-          Enumerator[WebSocketFrame](
-            new PongWebSocketFrame(),
-            new CloseWebSocketFrame(1000, "")
-          ) |>> out
-          in |>>> Iteratee.getChunks[WebSocketFrame]
-        }
-        frames must contain(exactly(
-          closeFrame()
-        ))
-      }
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "allow handling a WebSocket with an actor" in {
 
       "allow consuming messages" in allowConsumingMessages { implicit app =>
         consumed =>
+          import app.materializer
           WebSocket.acceptWithActor[String, String] { req =>
             out =>
               Props(new Actor() {
@@ -294,34 +351,37 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 }
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "allow sending messages" in allowSendingMessages { implicit app =>
         messages =>
+          import app.materializer
           WebSocket.acceptWithActor[String, String] { req =>
             out =>
               Props(new Actor() {
                 messages.foreach { msg =>
                   out ! msg
                 }
-                out ! PoisonPill
+                out ! Status.Success(())
                 def receive = PartialFunction.empty
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
+        import app.materializer
         WebSocket.acceptWithActor[String, String] { req =>
           out =>
             Props(new Actor() {
-              out ! PoisonPill
+              out ! Status.Success(())
               def receive = PartialFunction.empty
             })
         }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "clean up when closed" in cleanUpWhenClosed { implicit app =>
         cleanedUp =>
+          import app.materializer
           WebSocket.acceptWithActor[String, String] { req =>
             out =>
               Props(new Actor() {
@@ -331,14 +391,15 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 }
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
         statusCode =>
+          import app.materializer
           WebSocket.tryAcceptWithActor[String, String] { req =>
             Future.successful(Left(Results.Status(statusCode)))
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
     }
 
@@ -346,8 +407,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
-      import play.mvc.{ WebSocket => JWebSocket, Results => JResults }
-      import play.libs.F
+      import java.util.{List => JList}
+      import scala.collection.JavaConverters._
 
       implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
         val invoker = factory.createInvoker(
@@ -359,7 +420,45 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "allow consuming messages" in allowConsumingMessages { _ =>
         consumed =>
-          new JWebSocket[String] {
+          val javaConsumed = Promise[JList[String]]()
+          consumed.completeWith(javaConsumed.future.map(_.asScala.toList))
+          WebSocketSpecJavaActions.allowConsumingMessages(javaConsumed)
+      }
+
+      "allow sending messages" in allowSendingMessages { _ =>
+        messages =>
+          WebSocketSpecJavaActions.allowSendingMessages(messages.asJava)
+      }
+
+      "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
+        WebSocketSpecJavaActions.closeWhenTheConsumerIsDone()
+      }
+
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
+        statusCode =>
+          WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
+      }
+
+    }
+
+    "allow handling a WebSocket using legacy java API" in {
+
+      import play.core.routing.HandlerInvokerFactory
+      import play.core.routing.HandlerInvokerFactory._
+      import play.mvc.{ LegacyWebSocket, WebSocket => JWebSocket, Results => JResults }
+      import JWebSocket.{In, Out}
+
+      implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
+        val invoker = factory.createInvoker(
+          javaHandler,
+          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
+        )
+        invoker.call(javaHandler)
+      }
+
+      "allow consuming messages" in allowConsumingMessages { _ =>
+        consumed =>
+          new LegacyWebSocket[String] {
             @volatile var messages = List.empty[String]
             def onReady(in: In[String], out: Out[String]) = {
               in.onMessage(new Consumer[String] {
@@ -370,11 +469,11 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               })
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "allow sending messages" in allowSendingMessages { _ =>
         messages =>
-          new JWebSocket[String] {
+          new LegacyWebSocket[String] {
             def onReady(in: In[String], out: Out[String]) = {
               messages.foreach { msg =>
                 out.write(msg)
@@ -382,39 +481,39 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               out.close()
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "clean up when closed" in cleanUpWhenClosed { _ =>
         cleanedUp =>
-          new JWebSocket[String] {
+          new LegacyWebSocket[String] {
             def onReady(in: In[String], out: Out[String]) = {
               in.onClose(new Runnable {
                 def run() = cleanedUp.success(true)
               })
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
         statusCode =>
           JWebSocket.reject[String](JResults.status(statusCode))
-      }.pendingUntilAkkaHttpFixed
+      }
 
       "allow handling a websocket with an actor" in allowSendingMessages { _ =>
         messages =>
-          JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
+          JWebSocket.withActor[String](new Function[ActorRef, Props]() {
             def apply(out: ActorRef) = {
               Props(new Actor() {
                 messages.foreach { msg =>
                   out ! msg
                 }
-                out ! PoisonPill
+                out ! Status.Success(())
                 def receive = PartialFunction.empty
               })
             }
-          }
-          )
-      }.pendingUntilAkkaHttpFixed
+          })
+      }
     }
+
   }
 }

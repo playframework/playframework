@@ -37,6 +37,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
     }.application
 
     Server.withApplication(app) { implicit port =>
+      import app.materializer
       WsTestClient.withClient(block)
     }
 
@@ -48,7 +49,7 @@ trait GlobalFiltersSpec extends FiltersSpec {
 
     import play.api.inject.bind
 
-    val appBuilder = new GuiceApplicationBuilder()
+    val app = new GuiceApplicationBuilder()
       .configure(settings)
       .overrides(bind[Router].toInstance(testRouter))
       .global(
@@ -57,9 +58,10 @@ trait GlobalFiltersSpec extends FiltersSpec {
             errorHandler.fold(super.onHandlerNotFound(request))(_.onClientError(request, 404, ""))
           }
         }
-      )
+      ).build()
 
-    Server.withApplication(appBuilder.build()) { implicit port =>
+    Server.withApplication(app) { implicit port =>
+      import app.materializer
       WsTestClient.withClient(block)
     }
   }

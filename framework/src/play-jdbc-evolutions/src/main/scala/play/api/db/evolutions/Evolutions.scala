@@ -84,6 +84,7 @@ private[evolutions] object DatabaseUrlPatterns {
   lazy val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
   lazy val OracleJdbcUrl = "^jdbc:oracle:.*".r
   lazy val MysqlJdbcUrl = "^(jdbc:)?mysql:.*".r
+  lazy val DerbyJdbcUrl = "^jdbc:derby:.*".r
 }
 
 /**
@@ -160,7 +161,7 @@ object Evolutions {
     }.mkString("\n")
 
     val hasDownWarning =
-      "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n"
+      "# !!! WARNING! This script contains DOWNS evolutions that are likely destructive\n\n"
 
     if (scripts.exists(_.isInstanceOf[DownScript])) hasDownWarning + txt else txt
   }

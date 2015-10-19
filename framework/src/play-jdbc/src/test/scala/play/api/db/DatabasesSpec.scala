@@ -5,6 +5,7 @@ package play.api.db
 
 import java.sql.SQLException
 import com.zaxxer.hikari.HikariDataSource
+import org.jdbcdslog.LogSqlDataSource
 import org.specs2.mutable.{ After, Specification }
 
 object DatabasesSpec extends Specification {
@@ -27,6 +28,12 @@ object DatabasesSpec extends Specification {
       val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default")
       db.name must_== "default"
       db.url must_== "jdbc:h2:mem:default"
+    }
+
+    "create database with log sql" in new WithDatabase {
+      val config = Map("logSql" -> "true")
+      val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
+      db.dataSource must beAnInstanceOf[LogSqlDataSource]
     }
 
     "create default in-memory database" in new WithDatabase {
@@ -120,8 +127,17 @@ object DatabasesSpec extends Specification {
       db.getConnection.close()
       db.shutdown()
       db.getConnection.close() must throwA[SQLException].like {
-        case e => e.getMessage must startWith("Pool has been shutdown")
+        case e => e.getMessage must endWith("has been closed.")
       }
+    }
+
+    "not supply connections after shutdown a database with log sql" in {
+      val config = Map("logSql" -> "true")
+      val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
+
+      db.getConnection.close()
+      db.shutdown()
+      db.getConnection.close() must throwA[SQLException]
     }
 
   }

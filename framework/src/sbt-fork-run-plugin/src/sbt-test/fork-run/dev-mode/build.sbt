@@ -4,4 +4,6 @@ DevModeBuild.settings
 
 fork in run := true
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+// This actually doesn't do anything, since the build runs in a forked sbt server which doesn't have the same
+// system properties as the sbt client that forked it.
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")

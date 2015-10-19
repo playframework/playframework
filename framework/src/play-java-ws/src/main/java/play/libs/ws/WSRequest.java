@@ -5,12 +5,17 @@ package play.libs.ws;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
+
 import play.libs.F;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the main interface to building a WS request in Java.
@@ -157,6 +162,11 @@ public interface WSRequest {
      */
     F.Promise<WSResponse> execute();
 
+    /**
+     * Execute this request and stream the response body.
+     */
+    CompletionStage<StreamedResponse> stream(); 
+
     //-------------------------------------------------------------------------
     // Setters
     //-------------------------------------------------------------------------
@@ -178,13 +188,21 @@ public interface WSRequest {
 
     /**
      * Set the body this request should use.
+     *
+     * @deprecated use {@link #setBody(Source)} instead.
      */
+    @Deprecated
     WSRequest setBody(InputStream body);
 
     /**
      * Set the body this request should use.
      */
     WSRequest setBody(File body);
+
+    /**
+     * Set the body this request should use.
+     */
+    WSRequest setBody(Source<ByteString,?> body);
 
     /**
      * Adds a header to the request.  Note that duplicate headers are allowed
@@ -250,7 +268,7 @@ public interface WSRequest {
     /**
      * Sets the request timeout in milliseconds.
      *
-     * @param timeout the request timeout in milliseconds.
+     * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
      * @return the modified WSRequest.
      */
     WSRequest setRequestTimeout(long timeout);

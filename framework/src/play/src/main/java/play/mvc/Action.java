@@ -4,7 +4,8 @@
 package play.mvc;
 
 import play.mvc.Http.*;
-import static play.libs.F.Promise;
+
+import java.util.concurrent.CompletionStage;
 
 /**
  * An action acts as decorator for the action method call.
@@ -24,7 +25,7 @@ public abstract class Action<T> extends Results {
     /**
      * Executes this action with the given HTTP context and returns the result.
      */
-    public abstract Promise<Result> call(Context ctx) throws Throwable;
+    public abstract CompletionStage<Result> call(Context ctx);
     
     /**
      * A simple action with no configuration.

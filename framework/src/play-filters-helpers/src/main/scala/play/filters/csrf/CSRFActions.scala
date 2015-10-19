@@ -3,13 +3,18 @@
  */
 package play.filters.csrf
 
-import akka.stream.FlowMaterializer
-import play.api.libs.streams.{ Streams, Accumulator }
+import java.net.{ URLDecoder, URLEncoder }
+import java.util.Locale
+
+import akka.stream.Materializer
+import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
+import akka.stream.stage.{ DetachedContext, DetachedStage, PushStage, Context }
+import akka.util.ByteString
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.http.HeaderNames._
+import play.core.parsers.Multipart
 import play.filters.csrf.CSRF._
-import play.api.libs.iteratee._
-import play.api.mvc.BodyParsers.parse._
 import scala.concurrent.Future
 
 /**
@@ -23,16 +28,12 @@ import scala.concurrent.Future
 class CSRFAction(next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
     tokenProvider: TokenProvider = SignedTokenProvider,
-    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: FlowMaterializer) extends EssentialAction {
+    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._
   import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-  // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailedIteratee(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] =
-    Iteratee.flatten(clearTokenIfInvalid(req, config, errorHandler, msg).map(r => Done(r)))
-
-  private def checkFailed(req: RequestHeader, msg: String): Accumulator[Array[Byte], Result] =
+  private def checkFailed(req: RequestHeader, msg: String): Accumulator[ByteString, Result] =
     Accumulator.done(clearTokenIfInvalid(req, config, errorHandler, msg))
 
   def apply(request: RequestHeader) = {
@@ -65,12 +66,10 @@ class CSRFAction(next: EssentialAction,
 
             // Check the body
             request.contentType match {
-              case Some("application/x-www-form-urlencoded") => Streams.iterateeToAccumulator(
-                checkFormBody(request, headerToken, config.tokenName, next)
-              )
-              case Some("multipart/form-data") => Streams.iterateeToAccumulator(
-                checkMultipartBody(request, headerToken, config.tokenName, next)
-              )
+              case Some("application/x-www-form-urlencoded") =>
+                checkFormBody(request, next, headerToken, config.tokenName)
+              case Some("multipart/form-data") =>
+                checkMultipartBody(request, next, headerToken, config.tokenName)
               // No way to extract token from other content types
               case Some(content) =>
                 filterLogger.trace(s"[CSRF] Check failed because $content request")
@@ -106,46 +105,258 @@ class CSRFAction(next: EssentialAction,
     }
   }
 
-  private def checkFormBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
-  private def checkMultipartBody = checkBody[MultipartFormData[Unit]](multipartFormData[Unit]({
-    case _ => Iteratee.ignore[Array[Byte]].map(_ => MultipartFormData.FilePart("", "", None, ()))
-  }), _.dataParts) _
+  private def checkFormBody = checkBody(extractTokenFromFormBody) _
+  private def checkMultipartBody(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
+    (for {
+      mt <- request.mediaType
+      maybeBoundary <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
+      boundary <- maybeBoundary._2
+    } yield {
+      checkBody(extractTokenFromMultipartFormDataBody(ByteString(boundary)))(request, action, tokenFromHeader, tokenName)
+    }).getOrElse(checkFailed(request, "No boundary found in multipart/form-data request"))
+  }
 
-  private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, tokenFromHeader: String, tokenName: String, next: EssentialAction) = {
-    // Take up to 100kb of the body
-    val firstPartOfBody: Iteratee[Array[Byte], Array[Byte]] =
-      Traversable.take[Array[Byte]](config.postBodyBuffer.asInstanceOf[Int]) &>> Iteratee.consume[Array[Byte]]()
-
-    firstPartOfBody.flatMap { bytes: Array[Byte] =>
-      // Parse the first 100kb
-      val parsedBody = Enumerator(bytes) |>>> Streams.accumulatorToIteratee(parser(request))
-
-      Iteratee.flatten(parsedBody.map { parseResult =>
-        val validToken = parseResult.fold(
-          // error parsing the body, we couldn't find a valid token
-          _ => false,
-          // extract the token and verify
-          body => (for {
-            values <- extractor(body).get(tokenName)
-            token <- values.headOption
-          } yield tokenProvider.compareTokens(token, tokenFromHeader)).getOrElse(false)
-        )
-
-        if (validToken) {
-          // Feed the buffered bytes into the next request, and return the iteratee
+  private def checkBody[T](extractor: (ByteString, String) => Option[String])(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
+    // We need to ensure that the action isn't actually executed until the body is validated.
+    // To do that, we use Flow.splitWhen(_ => false).  This basically says, give me a Source
+    // containing all the elements when you receive the first element.  Our BodyHandler doesn't
+    // output any part of the body until it has validated the CSRF check, so we know that
+    // the source is validated. Then using a Sink.head, we turn that Source into an Accumulator,
+    // which we can then map to execute and feed into our action.
+    // CSRF check failures are used by failing the stream with a NoTokenInBody exception.
+    Accumulator(
+      Flow[ByteString].transform(() => new BodyHandler(config, { body =>
+        if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
           filterLogger.trace("[CSRF] Valid token found in body")
-          Iteratee.flatten(Enumerator(bytes) |>> Streams.accumulatorToIteratee(next(request)))
+          true
         } else {
           filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
-          checkFailedIteratee(request, "Invalid CSRF token found in form body")
+          false
         }
-      })
+      }))
+        .splitWhen(_ => false)
+        .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
+    ).mapFuture { validatedBodySource =>
+        action(request).run(validatedBodySource)
+      }.recoverWith {
+        case NoTokenInBody => clearTokenIfInvalid(request, config, errorHandler, "No CSRF token found in body")
+      }
+  }
+
+  /**
+   * Does a very simple parse of the form body to find the token, if it exists.
+   */
+  private def extractTokenFromFormBody(body: ByteString, tokenName: String): Option[String] = {
+    val tokenEquals = ByteString(URLEncoder.encode(tokenName, "utf-8")) ++ ByteString('=')
+
+    // First check if it's the first token
+    if (body.startsWith(tokenEquals)) {
+      Some(URLDecoder.decode(body.drop(tokenEquals.size).takeWhile(_ != '&').utf8String, "utf-8"))
+    } else {
+      val andTokenEquals = ByteString('&') ++ tokenEquals
+      val index = body.indexOfSlice(andTokenEquals)
+      if (index == -1) {
+        None
+      } else {
+        Some(URLDecoder.decode(body.drop(index + andTokenEquals.size).takeWhile(_ != '&').utf8String, "utf-8"))
+      }
     }
+  }
+
+  /**
+   * Does a very simple multipart/form-data parse to find the token if it exists.
+   */
+  private def extractTokenFromMultipartFormDataBody(boundary: ByteString)(body: ByteString, tokenName: String): Option[String] = {
+    val crlf = ByteString("\r\n")
+    val boundaryLine = ByteString("\r\n--") ++ boundary
+
+    /**
+     * A boundary will start with CRLF, unless it's the first boundary in the body.  So that we don't have to handle
+     * the first boundary differently, prefix the whole body with CRLF.
+     */
+    val prefixedBody = crlf ++ body
+
+    /**
+     * Extract the headers from the given position.
+     *
+     * This is invoked recursively, and exits when it reaches the end of stream, or a blank line (indicating end of
+     * headers).  It returns the headers, and the position of the first byte after the headers.  The headers are all
+     * converted to lower case.
+     */
+    def extractHeaders(position: Int): (Int, List[(String, String)]) = {
+      // If it starts with CRLF, we've reached the end of the headers
+      if (prefixedBody.startsWith(crlf, position)) {
+        (position + 2) -> Nil
+      } else {
+        // Read up to the next CRLF
+        val nextCrlf = prefixedBody.indexOfSlice(crlf, position)
+        if (nextCrlf == -1) {
+          // Technically this is a protocol error
+          position -> Nil
+        } else {
+          val header = prefixedBody.slice(position, nextCrlf).utf8String
+          header.split(":", 2) match {
+            case Array(_) =>
+              // Bad header, ignore
+              extractHeaders(nextCrlf + 2)
+            case Array(key, value) =>
+              val (endIndex, headers) = extractHeaders(nextCrlf + 2)
+              endIndex -> ((key.trim().toLowerCase(Locale.ENGLISH) -> value.trim()) :: headers)
+          }
+        }
+      }
+    }
+
+    /**
+     * Find the token.
+     *
+     * This is invoked recursively, once for each part found.  It finds the start of the next part, then extracts
+     * the headers, and if the header has a name of our token name, then it extracts the body, and returns that,
+     * otherwise it moves onto the next part.
+     */
+    def findToken(position: Int): Option[String] = {
+      // Find the next boundary from position
+      prefixedBody.indexOfSlice(boundaryLine, position) match {
+        case -1 => None
+        case nextBoundary =>
+          // Progress past the CRLF at the end of the boundary
+          val nextCrlf = prefixedBody.indexOfSlice(crlf, nextBoundary + boundaryLine.size)
+          if (nextCrlf == -1) {
+            None
+          } else {
+            val startOfNextPart = nextCrlf + 2
+            // Extract the headers
+            val (startOfPartData, headers) = extractHeaders(startOfNextPart)
+            headers.toMap match {
+              case Multipart.PartInfoMatcher(name) if name == tokenName =>
+                // This part is the token, find the next boundary
+                val endOfData = prefixedBody.indexOfSlice(boundaryLine, startOfPartData)
+                if (endOfData == -1) {
+                  None
+                } else {
+                  // Extract the token value
+                  Some(prefixedBody.slice(startOfPartData, endOfData).utf8String)
+                }
+              case _ =>
+                // Find the next part
+                findToken(startOfPartData)
+            }
+          }
+      }
+    }
+
+    findToken(0)
   }
 
 }
 
+/**
+ * A body handler.
+ *
+ * This will buffer the body until it reaches the end of stream, or until the buffer limit is reached.
+ *
+ * Once it has finished buffering, it will attempt to find the token in the body, and if it does, validates it,
+ * failing the stream if it's invalid.  If it's valid, it forwards the buffered body, and then stops buffering and
+ * continues forwarding the body as is (or finishes if the stream was finished).
+ */
+private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) extends DetachedStage[ByteString, ByteString] {
+  var buffer: ByteString = ByteString.empty
+  var next: ByteString = null
+  var continue = false
+
+  def onPush(elem: ByteString, ctx: DetachedContext[ByteString]) = {
+    if (continue) {
+      // Standard contract for forwarding as is in DetachedStage
+      if (ctx.isHoldingDownstream) {
+        ctx.pushAndPull(elem)
+      } else {
+        next = elem
+        ctx.holdUpstream()
+      }
+    } else {
+      if (buffer.size + elem.size > config.postBodyBuffer) {
+        // We've finished buffering up to the configured limit, try to validate
+        buffer ++= elem
+        if (checkBody(buffer)) {
+          // Switch to continue, and push the buffer
+          continue = true
+          if (ctx.isHoldingDownstream) {
+            val toPush = buffer
+            buffer = null
+            ctx.pushAndPull(toPush)
+          } else {
+            next = buffer
+            buffer = null
+            ctx.holdUpstream()
+          }
+        } else {
+          // CSRF check failed
+          ctx.fail(CSRFAction.NoTokenInBody)
+        }
+      } else {
+        // Buffer
+        buffer ++= elem
+        ctx.pull()
+      }
+    }
+  }
+
+  def onPull(ctx: DetachedContext[ByteString]) = {
+    if (continue) {
+      // Standard contract for forwarding as is in DetachedStage
+      if (next != null) {
+        val toPush = next
+        next = null
+        if (ctx.isFinishing) {
+          ctx.pushAndFinish(toPush)
+        } else {
+          ctx.pushAndPull(toPush)
+        }
+      } else {
+        if (ctx.isFinishing) {
+          ctx.finish()
+        } else {
+          ctx.holdDownstream()
+        }
+      }
+    } else {
+      // Otherwise hold because we're buffering
+      ctx.holdDownstream()
+    }
+  }
+
+  override def onUpstreamFinish(ctx: DetachedContext[ByteString]) = {
+    if (continue) {
+      if (next != null) {
+        ctx.absorbTermination()
+      } else {
+        ctx.finish()
+      }
+    } else {
+      // CSRF check
+      if (checkBody(buffer)) {
+        if (ctx.isHoldingDownstream) {
+          // If we have demand, push the buffer downstream.
+          // This seems like it shouldn't work, since you shouldn't be allowed to pull when finishing.  But it does.
+          // See https://github.com/akka/akka/issues/18285.
+          ctx.pushAndPull(buffer)
+        } else {
+          // Otherwise, absorb the termination, and hold the buffer, and enter the continue state.
+          next = buffer
+          buffer = null
+          continue = true
+          ctx.absorbTermination()
+        }
+      } else {
+        ctx.fail(CSRFAction.NoTokenInBody)
+      }
+    }
+  }
+}
+
 object CSRFAction {
+
+  private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
 
   /**
    * Get the header token, that is, the token that should be validated.

@@ -3,16 +3,17 @@
  */
 package play.db.jpa;
 
-import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
+
+import java.util.concurrent.CompletionStage;
 
 /**
  * Wraps an action in am JPA transaction.
  */
 public class TransactionalAction extends Action<Transactional> {
 
-    public F.Promise<Result> call(final Context ctx) throws Throwable {
+    public CompletionStage<Result> call(final Context ctx) {
         return JPA.withTransaction(
             configuration.value(),
             configuration.readOnly(),

@@ -15,9 +15,9 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => if (sendUnauthorizedResult) {
-        CSRFCheck(Action(Results.Ok), new CustomErrorHandler())
+        CSRFCheck(Action(req => Results.Ok), new CustomErrorHandler())
       } else {
-        CSRFCheck(Action(Results.Ok))
+        CSRFCheck(Action(req => Results.Ok))
       }
     } {
       import play.api.Play.current

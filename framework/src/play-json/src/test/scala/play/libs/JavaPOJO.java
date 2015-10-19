@@ -8,15 +8,7 @@ public class JavaPOJO {
     private String foo;
     private String bar;
     private Instant instant;
-    private Optional<Long> optLong;
-
-    public JavaPOJO() {
-    }
-
-    public JavaPOJO(String foo, String bar) {
-        this.foo = foo;
-        this.bar = bar;
-    }
+    private Optional<Integer> optNumber;
 
     public String getFoo() {
         return foo;
@@ -42,11 +34,11 @@ public class JavaPOJO {
         this.instant = instant;
     }
 
-    public Optional<Long> getOptLong() {
-        return optLong;
+    public Optional<Integer> getOptNumber() {
+        return optNumber;
     }
 
-    public void setOptLong(Optional<Long> optLong) {
-        this.optLong = optLong;
+    public void setOptNumber(Optional<Integer> optNumber) {
+        this.optNumber = optNumber;
     }
 }

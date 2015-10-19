@@ -6,8 +6,10 @@ package play.api
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.Singleton
 import play.api.http._
+import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
 import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
@@ -93,6 +95,11 @@ trait Application {
    * The default ActorSystem used by the application.
    */
   def actorSystem: ActorSystem
+
+  /**
+   * The default Materializer used by the application.
+   */
+  implicit def materializer: Materializer
 
   /**
    * Cached value of `routes`. For performance, don't synchronize
@@ -197,7 +204,7 @@ trait Application {
   /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
-  def stop(): Future[Unit]
+  def stop(): Future[_]
 
   /**
    * Get the injector for this application.
@@ -244,6 +251,7 @@ class DefaultApplication @Inject() (environment: Environment,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
+    override val materializer: Materializer,
     override val plugins: Plugins) extends Application {
 
   def path = environment.rootPath
@@ -266,7 +274,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration + tempFileCreator
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -276,10 +284,13 @@ trait BuiltInComponents {
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, httpRequestHandler, httpErrorHandler, actorSystem, Plugins.empty)
+    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer, Plugins.empty)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)
+
+  lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
 }

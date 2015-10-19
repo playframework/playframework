@@ -3,13 +3,13 @@ package javaguide.logging;
 //#logging-pattern-mix
 import play.Logger;
 import play.Logger.ALogger;
-import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.With;
+import java.util.concurrent.CompletionStage;
 
 public class Application extends Controller {
   
@@ -36,7 +36,7 @@ class AccessLoggingAction extends Action.Simple {
   
   private ALogger accessLogger = Logger.of("access");
   
-  public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+  public CompletionStage<Result> call(Http.Context ctx) {
     final Request request = ctx.request();
     accessLogger.info("method=" + request.method() + " uri=" + request.uri() + " remote-address=" + request.remoteAddress());
     

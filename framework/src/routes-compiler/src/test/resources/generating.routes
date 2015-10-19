@@ -1,1 +1,2 @@
 GET    /foo     controllers.FooController.foo(bar: Boolean = false)
+GET /foo/lotsOfParams controller.FooController.lotsOfParams(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: String, l: String, m: String, n: String, o: String, p: String, q: Option[Int], r: Option[Int], s: Option[Int], t: Option[Int], u: Option[String], v: Float, w: Float, x: Int)

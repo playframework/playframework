@@ -70,7 +70,7 @@ That's why we have created some specialized combinators and API called **JSON tr
 - You may tell JSON transformers are just `f:JSON => JSON`.  
 - So a JSON transformer could be simply a `Writes[A <: JsValue]`.  
 - But, a JSON transformer is not only a function: as we said, we also want to validate JSON while transforming it.  
-- As a consequence, a JSON transformer is a `Reads[A <: Jsvalue]`.
+- As a consequence, a JSON transformer is a `Reads[A <: JsValue]`.
 
 > Keep in mind that a `Reads[A <: JsValue]` is able to transform and not only to read/validate
 
@@ -92,7 +92,7 @@ In the code samples below, we’ll use the following JSON:
   "key2" : {
     "key21" : 123,
     "key22" : true,
-    "key23" : [ "alpha", "beta", "gamma"]
+    "key23" : [ "alpha", "beta", "gamma"],
     "key24" : {
       "key241" : 234.123,
       "key242" : "value242"

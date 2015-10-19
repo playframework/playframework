@@ -27,17 +27,16 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
   }
 
   "ServerResultUtils.cleanFlashCookie" should {
-    def flashCookieResult(cookie: Option[(String, String)], flash: Option[(String, String)]): Option[Seq[Cookie]] = {
+    def flashCookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
       val rh = CookieRequestHeader(cookie)
-      val result = flash.fold[Result](Ok) { case (name, value) => Ok.flashing(name -> value) }
       ServerResultUtils.cleanFlashCookie(rh, result).header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
     }
 
     "do nothing when flash not present" in {
-      flashCookieResult(None, None) must beNone
+      flashCookieResult(None, Ok) must beNone
     }
     "send flash if new" in {
-      flashCookieResult(None, Some("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
+      flashCookieResult(None, Ok.flashing("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -45,15 +44,26 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
       }
     }
     "clear flash when received" in {
-      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), None) must beSome { cookies: Seq[Cookie] =>
+      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
         cookie.value must_== ""
       }
     }
+    "leave other cookies untouched when clearing" in {
+      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.withCookies(Cookie("cookie", "value"))) must beSome { cookies: Seq[Cookie] =>
+        cookies.length must_== 2
+        cookies.find(_.name == "PLAY_FLASH") must beSome.like {
+          case cookie => cookie.value must_== ""
+        }
+        cookies.find(_.name == "cookie") must beSome.like {
+          case cookie => cookie.value must_== "value"
+        }
+      }
+    }
     "clear old flash value when different value sent" in {
-      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Some("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
+      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.flashing("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -61,23 +71,4 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
       }
     }
   }
-
-  "ServerResultUtils.readAheadOne" should {
-
-    "capture a 0-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator() >>> Enumerator.eof)) must_== Left(None)
-    }
-
-    "capture a 1-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator(1) >>> Enumerator.eof)) must_== Left(Option(1))
-    }
-
-    "not capture 2 0-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator(1, 2) >>> Enumerator.eof)) must beRight { enum: Enumerator[Int] =>
-        await(enum |>>> Iteratee.getChunks[Int]) must_== Seq(1, 2)
-      }
-    }
-
-  }
-
 }

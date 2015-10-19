@@ -5,7 +5,7 @@ package play.api.libs.iteratee
 
 import java.lang.{ Boolean => JBoolean }
 import java.util.concurrent.LinkedBlockingQueue
-import play.libs.F
+import java.util.function.{ BiFunction, Function }
 import scala.concurrent.duration._
 
 /**
@@ -41,9 +41,9 @@ class TestChannel[A](defaultTimeout: Duration) extends Concurrent.Channel[A] {
 
   def expect(expected: A, timeout: Duration): A = expect(expected, timeout, _ == _)
 
-  def expect(expected: A, test: F.Function2[A, A, JBoolean]): A = expect(expected, defaultTimeout, test)
+  def expect(expected: A, test: BiFunction[A, A, JBoolean]): A = expect(expected, defaultTimeout, test)
 
-  def expect(expected: A, timeout: Duration, test: F.Function2[A, A, JBoolean]): A = expect(expected, timeout, test.apply(_, _))
+  def expect(expected: A, timeout: Duration, test: BiFunction[A, A, JBoolean]): A = expect(expected, timeout, test.apply(_, _))
 
   def expect(expected: A, test: (A, A) => Boolean): A = expect(expected, defaultTimeout, test)
 

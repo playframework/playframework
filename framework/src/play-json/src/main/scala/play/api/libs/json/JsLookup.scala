@@ -51,6 +51,13 @@ case class JsLookup(result: JsLookupResult) extends AnyVal {
   }
 
   /**
+   * Access a value of this array.
+   *
+   * @param index Element index
+   */
+  def \(index: Int): JsLookupResult = apply(index)
+
+  /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
    *
    * @param fieldName the name of the property to look up
@@ -96,11 +103,20 @@ sealed trait JsLookupResult extends Any with JsReadable {
     case undef: JsUndefined => Left(undef.validationError)
   }
   def get: JsValue = toOption.get
-  def getOrElse(v: JsValue): JsValue = toOption.getOrElse(v)
+  def getOrElse(v: => JsValue): JsValue = toOption.getOrElse(v)
 
   def validate[A](implicit rds: Reads[A]) = this match {
     case JsDefined(v) => v.validate[A]
     case undef: JsUndefined => JsError(undef.validationError)
+  }
+
+  /**
+   * If this result contains `JsNull` or is undefined, returns `JsSuccess(None)`.
+   * Otherwise returns the result of validating as an `A` and wrapping the result in a `Some`.
+   */
+  def validateOpt[A](implicit rds: Reads[A]): JsResult[Option[A]] = this match {
+    case JsUndefined() => JsSuccess(None)
+    case JsDefined(a) => Reads.optionWithNull(rds).reads(a)
   }
 }
 object JsLookupResult {

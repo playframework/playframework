@@ -40,7 +40,7 @@ object EventSourceSpec extends Specification {
   "EventSource.Event" should {
     "be writeable as a response body" in {
       val result = Results.Ok.chunked(Enumerator("foo", "bar", "baz") &> EventSource())
-      result.header.headers.get(HeaderNames.CONTENT_TYPE) must beSome(ContentTypes.EVENT_STREAM)
+      result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
     }
   }
 

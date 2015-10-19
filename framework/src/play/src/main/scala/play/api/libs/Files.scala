@@ -4,12 +4,70 @@
 package play.api.libs
 
 import java.io._
-import java.nio.file.{ FileAlreadyExistsException, StandardCopyOption }
+import java.nio.file.{ FileAlreadyExistsException, StandardCopyOption, SimpleFileVisitor, Path, FileVisitResult }
+import java.nio.file.attribute.BasicFileAttributes
+
+import javax.inject.{ Inject, Singleton };
+
+import play.api.{ Application, Play };
+import play.api.inject.ApplicationLifecycle;
+import java.nio.file.{ Files => JFiles }
+
+import scala.concurrent.Future
 
 /**
  * FileSystem utilities.
  */
 object Files {
+
+  /**
+   * Logic for creating a temporary file. Users should try to clean up the
+   * file themselves, but this TemporaryFileCreator implementation may also
+   * try to clean up any leaked files, e.g. when the Application or JVM stops.
+   */
+  trait TemporaryFileCreator {
+    def create(prefix: String, suffix: String): File
+  }
+
+  /**
+   * Creates temporary folders inside a single temporary folder. The folder
+   * is deleted when the application stops.
+   */
+  @Singleton
+  class DefaultTemporaryFileCreator @Inject() (applicationLifecycle: ApplicationLifecycle) extends TemporaryFileCreator {
+    private lazy val playTempFolder = JFiles.createTempDirectory("playtemp")
+
+    /**
+     * Application stop hook which deletes the temporary folder recursively (including subfolders).
+     */
+    applicationLifecycle.addStopHook { () =>
+      Future.successful(JFiles.walkFileTree(playTempFolder, new SimpleFileVisitor[Path] {
+        override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+          JFiles.deleteIfExists(file)
+          FileVisitResult.CONTINUE
+        }
+        override def postVisitDirectory(dir: Path, exc: IOException) = {
+          JFiles.deleteIfExists(dir)
+          FileVisitResult.CONTINUE
+        }
+      }))
+    }
+
+    def create(prefix: String, suffix: String): File = {
+      JFiles.createTempFile(playTempFolder, prefix, suffix).toFile
+    }
+  }
+
+  /**
+   * Creates temporary folders using the default JRE method. Files
+   * created by this method will not be cleaned up with the application
+   * or JVM stops.
+   */
+  object SingletonTemporaryFileCreator extends TemporaryFileCreator {
+    def create(prefix: String, suffix: String): File = {
+      JFiles.createTempFile(prefix, suffix).toFile
+    }
+  }
 
   /**
    * A temporary file hold a reference to a real file, and will delete
@@ -21,7 +79,7 @@ object Files {
      * Clean this temporary file now.
      */
     def clean(): Boolean = {
-      file.delete()
+      JFiles.deleteIfExists(file.toPath)
     }
 
     /**
@@ -30,9 +88,9 @@ object Files {
     def moveTo(to: File, replace: Boolean = false): File = {
       try {
         if (replace)
-          java.nio.file.Files.move(file.toPath, to.toPath, StandardCopyOption.REPLACE_EXISTING)
+          JFiles.move(file.toPath, to.toPath, StandardCopyOption.REPLACE_EXISTING)
         else
-          java.nio.file.Files.move(file.toPath, to.toPath)
+          JFiles.move(file.toPath, to.toPath)
       } catch {
         case ex: FileAlreadyExistsException => to
       }
@@ -55,6 +113,18 @@ object Files {
   object TemporaryFile {
 
     /**
+     * Cache the current Application's TemporaryFileCreator
+     */
+    private val creatorCache = Application.instanceCache[TemporaryFileCreator]
+
+    /**
+     * Get the current TemporaryFileCreator - either the injected
+     * instance or the SingletonTemporaryFileCreator if no application
+     * is currently running.
+     */
+    private def currentCreator: TemporaryFileCreator = Play.maybeApplication.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(creatorCache)
+
+    /**
      * Create a new temporary file.
      *
      * Example:
@@ -67,7 +137,7 @@ object Files {
      * @return A temporary file instance.
      */
     def apply(prefix: String = "", suffix: String = ""): TemporaryFile = {
-      new TemporaryFile(File.createTempFile(prefix, suffix))
+      TemporaryFile(currentCreator.create(prefix, suffix))
     }
 
   }

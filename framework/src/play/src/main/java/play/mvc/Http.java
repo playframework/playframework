@@ -9,8 +9,18 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import akka.util.ByteString;
+import akka.util.ByteString$;
+import akka.util.ByteStringBuilder;
+import akka.util.CompactByteString;
+import play.core.j.JavaParsers;
+import play.libs.Json;
+import play.libs.XML;
 import scala.Predef;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
@@ -35,6 +45,7 @@ import play.Play;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import scala.deprecated;
 
 /**
  * Defines HTTP standard objects.
@@ -497,6 +508,20 @@ public class Http {
         boolean hasHeader(String headerName);
 
         /**
+         * Get the content type of the request.
+         *
+         * @return The request content type excluding the charset, if it exists.
+         */
+        Optional<String> contentType();
+
+        /**
+         * Get the charset of the request.
+         *
+         * @return The request charset, which comes from the content type header, if it exists.
+         */
+        Optional<String> charset();
+
+        /**
          * For internal Play-use only
          */
         play.api.mvc.RequestHeader _underlyingHeader();
@@ -621,7 +646,7 @@ public class Http {
      */
     public static class RequestBuilder {
 
-        protected AnyContent body;
+        protected RequestBody body;
         protected String username;
 
         /**
@@ -633,29 +658,13 @@ public class Http {
           host("localhost");
           version("HTTP/1.1");
           remoteAddress("127.0.0.1");
-          body(play.api.mvc.AnyContentAsEmpty$.MODULE$);
+          body(new RequestBody(null));
         }
 
         /**
          * @return the request body, if a previously the body has been set
          */
         public RequestBody body() {
-            if (body == null) {
-                return null;
-            }
-            return new play.core.j.JavaParsers.DefaultRequestBody(
-                body.asFormUrlEncoded(),
-                body.asRaw(),
-                body.asText(),
-                body.asJson(),
-                body.asXml(),
-                body.asMultipartFormData());
-        }
-
-        /**
-         * @return the body of the request
-         */
-        public AnyContent bodyAsAnyContent() {
             return body;
         }
 
@@ -676,22 +685,24 @@ public class Http {
         }
 
         /**
-         * Set a AnyContent to this request.
-         * @param anyContent the AnyContent
+         * Set the body of the request.
+         *
+         * @param body the body
          * @param contentType Content-Type header value
          */
-        protected RequestBuilder body(AnyContent anyContent, String contentType) {
+        protected RequestBuilder body(RequestBody body, String contentType) {
             header("Content-Type", contentType);
-            body(anyContent);
+            body(body);
             return this;
         }
 
         /**
-         * Set a AnyContent to this request.
-         * @param anyContent the AnyContent
+         * Set the body of the request.
+         *
+         * @param body The body.
          */
-        protected RequestBuilder body(AnyContent anyContent) {
-            body = anyContent;
+        protected RequestBuilder body(RequestBody body) {
+            this.body = body;
             return this;
         }
 
@@ -700,33 +711,36 @@ public class Http {
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
          * @param data the Binary Data
          */
+        public RequestBuilder bodyRaw(ByteString data) {
+            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), data);
+            return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), "application/octet-stream");
+        }
+
+        /**
+         * Set a Binary Data to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         * @param data the Binary Data
+         */
         public RequestBuilder bodyRaw(byte[] data) {
-            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.length, data);
-            return body(new AnyContentAsRaw(buffer), "application/octet-stream");
+            return bodyRaw(ByteString.fromArray(data));
         }
 
         /**
          * Set a Form url encoded body to this request.
          */
-        public RequestBuilder bodyFormArrayValues(Map<String,String[]> data) {
-            Map<String,Seq<String>> seqs = new HashMap<>();
-            for (Entry<String,String[]> entry: data.entrySet()) {
-                seqs.put(entry.getKey(), Predef.genericWrapArray(entry.getValue()));
-            }
-            scala.collection.immutable.Map<String,Seq<String>> map = asScala(seqs);
-            return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
+        public RequestBuilder bodyFormArrayValues(Map<String, String[]> data) {
+            return body(new RequestBody(data), "application/x-www-form-urlencoded");
         }
 
         /**
          * Set a Form url encoded body to this request.
          */
-        public RequestBuilder bodyForm(Map<String,String> data) {
-            Map<String,Seq<String>> seqs = new HashMap<>();
-            for (Entry<String,String> entry: data.entrySet()) {
-                seqs.put(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue())));
+        public RequestBuilder bodyForm(Map<String, String> data) {
+            Map<String, String[]> arrayValues = new HashMap<>();
+            for (Entry<String, String> entry: data.entrySet()) {
+                arrayValues.put(entry.getKey(), new String[]{entry.getValue()});
             }
-            scala.collection.immutable.Map<String,Seq<String>> map = asScala(seqs);
-            return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
+            return bodyFormArrayValues(arrayValues);
         }
 
         /**
@@ -735,7 +749,7 @@ public class Http {
          * @param node the Json Node
          */
         public RequestBuilder bodyJson(JsonNode node) {
-            return bodyJson(JacksonJson.jsonNodeToJsValue(node));
+            return body(new RequestBody(node), "application/json");
         }
 
         /**
@@ -744,7 +758,7 @@ public class Http {
          * @param json the JsValue
          */
         public RequestBuilder bodyJson(JsValue json) {
-            return body(new AnyContentAsJson(json), "application/json");
+            return bodyJson(Json.parse(play.api.libs.json.Json.stringify(json)));
         }
 
         /**
@@ -753,7 +767,16 @@ public class Http {
          * @param xml the XML
          */
         public RequestBuilder bodyXml(InputSource xml) {
-            return body(new AnyContentAsXml(scala.xml.XML.load(xml)), "application/xml");
+            return bodyXml(XML.fromInputSource(xml));
+        }
+
+        /**
+         * Set a XML to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/xml</tt>.
+         * @param xml the XML
+         */
+        public RequestBuilder bodyXml(Document xml) {
+            return body(new RequestBody(xml), "application/xml");
         }
 
         /**
@@ -762,7 +785,7 @@ public class Http {
          * @param text the text
          */
         public RequestBuilder bodyText(String text) {
-            return body(new AnyContentAsText(text), "text/plain");
+            return body(new RequestBody(text), "text/plain");
         }
 
         /**
@@ -1189,12 +1212,12 @@ public class Http {
          * @param maxLength The max length allowed to be stored in memory
          * @return null if the content is too big to fit in memory
          */
-        public abstract byte[] asBytes(int maxLength);
+        public abstract ByteString asBytes(int maxLength);
 
         /**
          * Returns the buffer content as a bytes array
          */
-        public abstract byte[] asBytes();
+        public abstract ByteString asBytes();
 
         /**
          * Returns the buffer content as File
@@ -1206,19 +1229,46 @@ public class Http {
     /**
      * Multipart form data body.
      */
-    public abstract static class MultipartFormData {
+    public abstract static class MultipartFormData<A> {
+
+        /**
+         * Info about a file part
+         */
+        public static class FileInfo {
+            private final String key;
+            private final String filename;
+            private final String contentType;
+
+            public FileInfo(String key, String filename, String contentType) {
+                this.key = key;
+                this.filename = filename;
+                this.contentType = contentType;
+            }
+
+            public String getKey() {
+                return key;
+            }
+
+            public String getFilename() {
+                return filename;
+            }
+
+            public String getContentType() {
+                return contentType;
+            }
+        }
 
         /**
          * A file part.
          */
-        public static class FilePart {
+        public static class FilePart<A> {
 
             final String key;
             final String filename;
             final String contentType;
-            final File file;
+            final A file;
 
-            public FilePart(String key, String filename, String contentType, File file) {
+            public FilePart(String key, String filename, String contentType, A file) {
                 this.key = key;
                 this.filename = filename;
                 this.contentType = contentType;
@@ -1249,7 +1299,7 @@ public class Http {
             /**
              * The File.
              */
-            public File getFile() {
+            public A getFile() {
                 return file;
             }
 
@@ -1258,17 +1308,17 @@ public class Http {
         /**
          * Extract the data parts as Form url encoded.
          */
-        public abstract Map<String,String[]> asFormUrlEncoded();
+        public abstract Map<String, String[]> asFormUrlEncoded();
 
         /**
          * Retrieves all file parts.
          */
-        public abstract List<FilePart> getFiles();
+        public abstract List<FilePart<A>> getFiles();
 
         /**
          * Access a file part.
          */
-        public FilePart getFile(String key) {
+        public FilePart<A> getFile(String key) {
             for(FilePart filePart: getFiles()) {
                 if(filePart.getKey().equals(key)) {
                     return filePart;
@@ -1276,34 +1326,41 @@ public class Http {
             }
             return null;
         }
-
     }
 
     /**
      * The request body.
      */
-    public static class RequestBody {
+    public static final class RequestBody {
 
-        /**
-         * @deprecated Since Play 2.4, this method always returns false. When the max size is exceeded, a 413 error is
-         *             returned
-         */
-        @Deprecated
-        public boolean isMaxSizeExceeded() {
-            return false;
+        private final Object body;
+
+        public RequestBody(Object body) {
+            this.body = body;
         }
 
         /**
          * The request content parsed as multipart form data.
          */
-        public MultipartFormData asMultipartFormData() {
-            return null;
+        public <A> MultipartFormData<A> asMultipartFormData() {
+            return as(MultipartFormData.class);
         }
 
         /**
          * The request content parsed as URL form-encoded.
          */
         public Map<String,String[]> asFormUrlEncoded() {
+            // Best effort, check if it's a map, then check if the first element in that map is String -> String[].
+            if (body instanceof Map) {
+                if (((Map) body).isEmpty()) {
+                    return Collections.emptyMap();
+                } else {
+                    Map.Entry<Object, Object> first = ((Map<Object, Object>) body).entrySet().iterator().next();
+                    if (first.getKey() instanceof String && first.getValue() instanceof String[]) {
+                        return (Map<String, String[]>) body;
+                    }
+                }
+            }
             return null;
         }
 
@@ -1311,40 +1368,91 @@ public class Http {
          * The request content as Array bytes.
          */
         public RawBuffer asRaw() {
-            return null;
+            return as(RawBuffer.class);
         }
 
         /**
          * The request content as text.
          */
         public String asText() {
-            return null;
+            return as(String.class);
         }
 
         /**
          * The request content as XML.
          */
         public Document asXml() {
-            return null;
+            return as(Document.class);
         }
 
         /**
          * The request content as Json.
          */
         public JsonNode asJson() {
+            return as(JsonNode.class);
+        }
+
+        /**
+         * The request content as a ByteString.
+         *
+         * This makes a best effort attempt to convert the parsed body to a ByteString, if it knows how. This includes
+         * String, json, XML and form bodies.  It doesn't include multipart/form-data or raw bodies that don't fit in
+         * the configured max memory buffer, nor does it include custom output types from custom body parsers.
+         */
+        public ByteString asBytes() {
+            if (body instanceof Optional) {
+                if (!((Optional<?>) body).isPresent()) {
+                    return ByteString.empty();
+                }
+            } else if (body instanceof ByteString) {
+                return (ByteString) body;
+            } else if (body instanceof byte[]) {
+                return ByteString.fromArray((byte[]) body);
+            } else if (body instanceof String) {
+                return ByteString.fromString((String) body);
+            } else if (body instanceof RawBuffer) {
+                return ((RawBuffer) body).asBytes();
+            } else if (body instanceof JsonNode) {
+                return ByteString.fromString(Json.stringify((JsonNode) body));
+            } else if (body instanceof Document) {
+                return XML.toBytes((Document) body);
+            } else {
+                Map<String, String[]> form = asFormUrlEncoded();
+                if (form != null) {
+                    return ByteString.fromString(form.entrySet().stream()
+                            .flatMap(entry -> {
+                                String key = encode(entry.getKey());
+                                return Arrays.asList(entry.getValue()).stream().map(
+                                        value -> key + "=" + encode(value)
+                                );
+                            }).collect(Collectors.joining("&")));
+                }
+            }
             return null;
         }
+
+        private String encode(String value) {
+            try {
+                return URLEncoder.encode(value, "utf8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
 
         /**
          * Cast this RequestBody as T if possible.
          */
-        @SuppressWarnings("unchecked")
         public <T> T as(Class<T> tType) {
-            if(this.getClass().isAssignableFrom(tType)) {
-                return (T)this;
+            if (tType.isInstance(body)) {
+                return tType.cast(body);
             } else {
                 return null;
             }
+        }
+
+        public String toString() {
+            return "RequestBody of " + (body == null ? "null" : body.getClass());
         }
 
     }
@@ -1375,12 +1483,10 @@ public class Http {
         }
 
         /**
-         * Sets the content-type of the response.
-         *
-         * @param contentType The content type, must not be null
+         * @deprecated noop. Use {@link Result#as(String)} instead.
          */
+        @Deprecated
         public void setContentType(String contentType) {
-            setHeader(CONTENT_TYPE, contentType);
         }
 
         /**
@@ -1391,7 +1497,9 @@ public class Http {
          * </pre>
          * @param name Cookie name, must not be null
          * @param value Cookie value
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value) {
             setCookie(name, value, null);
         }
@@ -1401,7 +1509,9 @@ public class Http {
          * @param name Cookie name, must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
         }
@@ -1412,7 +1522,9 @@ public class Http {
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path) {
             setCookie(name, value, maxAge, path, null);
         }
@@ -1424,7 +1536,9 @@ public class Http {
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
             setCookie(name, value, maxAge, path, domain, false, false);
         }
@@ -1438,9 +1552,18 @@ public class Http {
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
+         * @deprecated Use {@link Response#setCookie(Cookie)} instead.
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
+        }
+
+        /**
+         * Set a new cookie.
+         * @param cookie to set
+         */
+        public void setCookie(Cookie cookie) {
+            cookies.add(cookie);
         }
 
         /**
@@ -1621,6 +1744,15 @@ public class Http {
         }
 
         /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        public static CookieBuilder builder(String name, String value) {
+            return new CookieBuilder(name, value);
+        }
+
+        /**
          * @return the cookie name
          */
         public String name() {
@@ -1672,6 +1804,101 @@ public class Http {
 
     }
 
+    /*
+     * HTTP Cookie builder
+     */
+
+    public static class CookieBuilder {
+
+        private String name;
+        private String value;
+        private Integer maxAge;
+        private String path = "/";
+        private String domain;
+        private boolean secure = false;
+        private boolean httpOnly = false;
+
+        /**
+         * @param name the cookie builder name
+         * @param value the cookie builder value
+         * @return the cookie builder with the specified name and value
+         */
+        private CookieBuilder(String name, String value){
+            this.name = name;
+            this.value = value;
+        }
+
+        /**
+         * @param name The name of the cookie
+         * @return the cookie builder with the new name
+         * */
+        public CookieBuilder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * @param value The value of the cookie
+         * @return the cookie builder with the new value
+         * */
+        public CookieBuilder withValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * @param maxAge The maxAge of the cookie
+         * @return the cookie builder with the new maxAge
+         * */
+        public CookieBuilder withMaxAge(Integer maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        /**
+         * @param path The path of the cookie
+         * @return the cookie builder with the new path
+         * */
+        public CookieBuilder withPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * @param domain The domain of the cookie
+         * @return the cookie builder with the new domain
+         * */
+        public CookieBuilder withDomain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
+        /**
+         * @param secure specify if the cookie is secure
+         * @return the cookie builder with the new is secure flag
+         * */
+        public CookieBuilder withSecure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        /**
+         * @param httpOnly specify if the cookie is httpOnly
+         * @return the cookie builder with the new is httpOnly flag
+         * */
+        public CookieBuilder withHttpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
+        }
+
+        /**
+         * @return a new cookie with the current builder parameters
+         * */
+        public Cookie build() {
+            return new Cookie(this.name, this.value, this.maxAge, this.path, this.domain, this.secure, this.httpOnly);
+        }
+    }
+
     /**
      * HTTP Cookies set
      */
@@ -1679,9 +1906,9 @@ public class Http {
 
         /**
          * @param name Name of the cookie to retrieve
-         * @return the cookie that is associated with the given name, or null if there is no such cookie
+         * @return the cookie that is associated with the given name
          */
-        public Cookie get(String name);
+        Cookie get(String name);
 
     }
 

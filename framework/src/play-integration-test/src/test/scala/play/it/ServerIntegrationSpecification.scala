@@ -2,11 +2,11 @@ package play.it
 
 import org.specs2.execute._
 import org.specs2.mutable.Specification
-import play.api.{ Application, FakeApplication }
-import play.core.server.NettyServer
-import play.core.server.ServerProvider
+import org.specs2.specification.{ AroundEach, Around }
+import play.api.Application
+import play.core.server.{ NettyServer, ServerProvider }
 import play.core.server.akkahttp.AkkaHttpServer
-import AsResult._
+import scala.concurrent.duration._
 
 /**
  * Helper for creating tests that test integration with different server
@@ -17,9 +17,16 @@ import AsResult._
  * When a test extends this trait it will automatically get overridden versions of
  * TestServer and WithServer that delegate to the correct server backend.
  */
-trait ServerIntegrationSpecification extends PendingUntilFixed {
+trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
+
+  /**
+   * Retry up to 3 times.
+   */
+  def around[R: AsResult](r: => R) = {
+    AsResult(EventuallyResults.eventually(3, 20.milliseconds)(r))
+  }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
     /**

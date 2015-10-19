@@ -11,7 +11,6 @@ import play.core.j
 
 import scala.concurrent.Future
 import play.api.http._
-import play.core.actions.HeadAction
 import play.api.http.Status._
 
 /**
@@ -114,17 +113,18 @@ trait GlobalSettings {
 
       // We automatically permit HEAD requests against any GETs without the need to
       // add an explicit mapping in Routes
-      val missingHandler: Handler = request.method match {
+      request.method match {
         case HttpVerbs.HEAD =>
-          val headAction = onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
-            case Some(action: EssentialAction) => action
-            case None => notFoundHandler
+          onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
+            case Some(action: EssentialAction) => action match {
+              case handler: RequestTaggingHandler => (handler.tagRequest(request), action)
+              case _ => (request, action)
+            }
+            case None => (request, notFoundHandler)
           }
-          new HeadAction(headAction)
         case _ =>
-          notFoundHandler
+          (request, notFoundHandler)
       }
-      (request, missingHandler)
     }
 
     (routedRequest, doFilter(rh => handler)(routedRequest))

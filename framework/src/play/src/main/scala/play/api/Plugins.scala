@@ -26,7 +26,7 @@ import scala.collection.IndexedSeqLike
  * }}}
  * The associated int defines the plugin priority.
  */
-@deprecated("Use modules instead", since = "2.4.0")
+@deprecated("Use modules instead. See `play.api.inject.Module`", since = "2.4.0")
 trait Plugin {
 
   /**

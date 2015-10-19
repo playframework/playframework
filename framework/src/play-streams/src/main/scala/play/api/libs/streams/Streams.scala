@@ -1,7 +1,11 @@
 package play.api.libs.streams
 
-import akka.stream.FlowMaterializer
+import java.io.{ OutputStream, FileInputStream, File, InputStream }
+
+import akka.stream.{ Attributes, ActorAttributes, Materializer }
+import akka.stream.io.{ OutputStreamSink, InputStreamSource }
 import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
+import akka.util.ByteString
 import org.reactivestreams._
 import play.api.libs.iteratee._
 import play.api.libs.streams.impl.SubscriberIteratee
@@ -12,6 +16,16 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
  * and from Reactive Streams' Publishers and Subscribers.
  */
 object Streams {
+
+  /**
+   * The default dispatcher used for blocking IO in Play.
+   */
+  val BlockingIoDisptacher = "play.akka.blockingIoDispatcher"
+
+  /**
+   * The attributes used for any Akka streams that work with blocking IO.
+   */
+  val BlockingIoAttributes: Attributes = ActorAttributes.dispatcher(BlockingIoDisptacher)
 
   /**
    * Adapt a Future into a Publisher. For a successful Future the
@@ -132,8 +146,13 @@ object Streams {
   /**
    * Adapt an Enumerator to a Publisher. Each Subscriber will be
    * adapted to an Iteratee and applied to the Enumerator. Input of
-   * type Input.El will result in calls to onNext. Input of type
-   * Input.EOF will call onComplete and end the Subscription.
+   * type Input.El will result in calls to onNext.
+   *
+   * Either onError or onComplete will always be invoked as the
+   * last call to the subscriber, the former happening if the
+   * enumerator fails with an error, the latter happening when
+   * the first of either Input.EOF is fed, or the enumerator
+   * completes.
    *
    * If emptyElement is None then Input of type Input.Empty will
    * be ignored. If it is set to Some(x) then it will call onNext
@@ -183,7 +202,7 @@ object Streams {
    * the subscriber, however it does not materialize the subscriber until the
    * iteratees fold method has been invoked.
    */
-  def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: FlowMaterializer): Iteratee[T, U] = {
+  def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: Materializer): Iteratee[T, U] = {
     new Iteratee[T, U] {
       def fold[B](folder: (Step[T, U]) => Future[B])(implicit ec: ExecutionContext) = {
         Source.subscriber.toMat(accumulator.toSink) { (subscriber, result) =>
@@ -193,4 +212,44 @@ object Streams {
       }
     }
   }
+
+  /**
+   * Convert the given input stream to a Akka streams source.
+   */
+  def inputStreamToSource(is: InputStream, chunkSize: Int): Source[ByteString, _] =
+    inputStreamToSource(() => is, chunkSize)
+
+  /**
+   * Convert the given input stream callback to a Akka streams source.
+   */
+  def inputStreamToSource(is: () => InputStream, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
+    InputStreamSource(is, chunkSize)
+      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
+  }
+
+  /**
+   * Convert the given File to a Akka streams source.
+   */
+  def fileToSource(file: File, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
+    inputStreamToSource(() => new FileInputStream(file), chunkSize)
+  }
+
+  /**
+   * Convert the resource from the given classloader to a Akka streams source.
+   */
+  def resourceToSource(classLoader: ClassLoader, name: String, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
+    inputStreamToSource(() => classLoader.getResourceAsStream(name), chunkSize)
+  }
+
+  /**
+   * Convert the given OutputStream to a sink that is materialized to a future of the number of bytes written to the
+   * OutputStream when the stream is finished.
+   *
+   * The OutputStream will be closed when the Sink is finished.
+   */
+  def outputStreamToSink(os: () => OutputStream): Sink[ByteString, Future[Long]] = {
+    OutputStreamSink(os)
+      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
+  }
+
 }

@@ -9,7 +9,7 @@ Previously, we said that an action is a Java method that returns a `play.mvc.Res
 
 ```java
 public abstract class Action {
-  public abstract Promise<Result> call(Context ctx) throws Throwable;
+  public abstract CompletionStage<Result> call(Context ctx) throws Throwable;
 }
 ```
 

@@ -13,8 +13,13 @@ import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -210,7 +215,15 @@ public class RoutingDsl {
 
         Method actionMethod = null;
         for (Method m : actionFunction.getMethods()) {
-            if (!m.isDefault()) {
+        	// Here I assume that we are always passing a `actionFunction` type that:
+        	// 1) defines exactly one abstract method, and 
+        	// 2) the abstract method is the method that we want to invoke.
+        	// This works fine with the current implementation of `PathPatternMatcher`, but I wouldn't be 
+        	// surprised if it breaks in the future, which is why this comment exists.
+        	// Also, the former implementation (which was checking for the first non default method), was 
+        	// not working when using a `java.util.function.Function` type (Function.identity was being 
+        	// returned, instead of Function.apply).
+            if (Modifier.isAbstract(m.getModifiers())) {
                 actionMethod = m;
             }
         }
@@ -284,8 +297,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RoutingDsl routeTo(F.Function0<Result> action) {
-            return build(0, action, F.Function0.class);
+        public RoutingDsl routeTo(Supplier<Result> action) {
+            return build(0, action, Supplier.class);
         }
 
         /**
@@ -294,8 +307,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RoutingDsl routeTo(F.Function<A1, Result> action) {
-            return build(1, action, F.Function.class);
+        public <A1> RoutingDsl routeTo(Function<A1, Result> action) {
+            return build(1, action, Function.class);
         }
 
         /**
@@ -304,8 +317,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RoutingDsl routeTo(F.Function2<A1, A2, Result> action) {
-            return build(2, action, F.Function2.class);
+        public <A1, A2> RoutingDsl routeTo(BiFunction<A1, A2, Result> action) {
+            return build(2, action, BiFunction.class);
         }
 
         /**
@@ -324,8 +337,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RoutingDsl routeAsync(F.Function0<F.Promise<Result>> action) {
-            return build(0, action, F.Function0.class);
+        public RoutingDsl routeAsync(Supplier<? extends CompletionStage<Result>> action) {
+            return build(0, action, Supplier.class);
         }
 
         /**
@@ -334,8 +347,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RoutingDsl routeAsync(F.Function<A1, F.Promise<Result>> action) {
-            return build(1, action, F.Function.class);
+        public <A1> RoutingDsl routeAsync(Function<A1, ? extends CompletionStage<Result>> action) {
+            return build(1, action, Function.class);
         }
 
         /**
@@ -344,8 +357,8 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RoutingDsl routeAsync(F.Function2<A1, A2, F.Promise<Result>> action) {
-            return build(2, action, F.Function2.class);
+        public <A1, A2> RoutingDsl routeAsync(BiFunction<A1, A2, ? extends CompletionStage<Result>> action) {
+            return build(2, action, BiFunction.class);
         }
 
         /**
@@ -354,11 +367,11 @@ public class RoutingDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RoutingDsl routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
+        public <A1, A2, A3> RoutingDsl routeAsync(F.Function3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
             return build(3, action, F.Function3.class);
         }
 
-        private <T> RoutingDsl build(int arity, Object action, Class<?> actionFunction) {
+        private <T> RoutingDsl build(int arity, T action, Class<T> actionFunction) {
             return with(method, pathPattern, arity, action, actionFunction);
         }
     }

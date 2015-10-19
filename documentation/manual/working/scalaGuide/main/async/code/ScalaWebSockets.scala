@@ -3,46 +3,55 @@
  */
 package scalaguide.async.websockets
 
+import akka.stream.Materializer
+import akka.stream.scaladsl._
+import play.api.http.websocket.{ TextMessage, Message }
+import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.test._
-import scala.concurrent.Promise
+import scala.concurrent.{ Future, Promise }
 
 object ScalaWebSockets extends PlaySpecification {
 
   import java.io.Closeable
-  import play.api.libs.iteratee._
   import play.api.mvc.{Result, WebSocket}
-  import play.api.libs.json.{Json, JsValue}
+  import play.api.libs.json.Json
 
   "Scala WebSockets" should {
 
-    "support actors" in {
+    def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(implicit mat: Materializer): Either[Result, List[Message]] = {
+      await(webSocket(FakeRequest())).right.map { flow =>
 
-      def runWebSocket[In, Out](webSocket: WebSocket[In, Out], in: Enumerator[In]): Either[Result, List[Out]] = {
-        await(webSocket.f(FakeRequest())).right.map { f =>
-          val consumed = Promise[List[Out]]()
-          def getChunks(chunks: List[Out]): Iteratee[Out, Unit] = Cont {
-            case Input.El(out) => getChunks(out :: chunks)
-            case Input.EOF => Done(consumed.success(chunks.reverse))
-            case Input.Empty => getChunks(chunks)
+        // When running in the real world, if the flow cancels upstream, Play's WebSocket protocol implementation will
+        // handle this and close the WebSocket, but here, that won't happen, so we redeem the future when we receive
+        // enough.
+        val promise = Promise[List[Message]]()
+        if (expectOut == 0) promise.success(Nil)
+        val flowResult = in via flow runWith Sink.fold[(List[Message], Int), Message]((Nil, expectOut)) { (state, out) =>
+          val (result, remaining) = state
+          if (remaining == 1) {
+            promise.success(result :+ out)
           }
-          f(in, getChunks(Nil))
-          await(consumed.future)
+          (result :+ out, remaining - 1)
         }
-
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        await(Future.firstCompletedOf(Seq(promise.future, flowResult.map(_._1))))
       }
+    }
+
+    "support actors" in {
 
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
-        runWebSocket(Samples.Controller1.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.like {
-          case list => list must_== List("I received your message: foo")
+        runWebSocket(Samples.Controller1.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
+          case list => list must_== List(TextMessage("I received your message: foo"))
         }
       }
 
       "allow cleaning up" in new WithApplication() {
-        @volatile var closed = false
+        val closed = Promise[Unit]()
         val someResource = new Closeable() {
-          def close() = closed = true
+          def close() = closed.success(())
         }
         class MyActor extends Actor {
           def receive = PartialFunction.empty
@@ -55,9 +64,9 @@ object ScalaWebSockets extends PlaySpecification {
         }
 
         runWebSocket(
-          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Enumerator.eof
-        ) must beRight[List[String]]
-        closed must beTrue
+          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Source.empty, 0
+        ) must beRight[List[Message]]
+        await(closed.future) must_== ()
       }
 
       "allow closing the WebSocket" in new WithApplication() {
@@ -72,29 +81,30 @@ object ScalaWebSockets extends PlaySpecification {
         }
 
         runWebSocket(
-          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Enumerator.empty
-        ) must beRight[List[String]]
+          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Source(Promise[Message]().future), 0
+        ) must beRight[List[Message]]
       }
 
       "allow rejecting the WebSocket" in new WithApplication() {
-        runWebSocket(Samples.Controller2.socket, Enumerator.empty) must beLeft.which { result =>
+        runWebSocket(Samples.Controller2.socket, Source.empty, 0) must beLeft.which { result =>
           result.header.status must_== FORBIDDEN
         }
       }
 
       "allow creating a json actor" in new WithApplication() {
         val json = Json.obj("foo" -> "bar")
-        runWebSocket(Samples.Controller4.socket, Enumerator[JsValue](json) >>> Enumerator.eof) must beRight.which { out =>
-          out must_== List(json)
+        runWebSocket(Samples.Controller4.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
+          out must_== List(TextMessage(Json.stringify(json)))
         }
       }
 
       "allow creating a higher level object actor" in new WithApplication() {
         runWebSocket(
           Samples.Controller5.socket,
-          Enumerator(Samples.Controller5.InEvent("blah")) >>> Enumerator.eof
+          Source.single(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.InEvent("blah"))))),
+          1
         ) must beRight.which { out =>
-          out must_== List(Samples.Controller5.OutEvent("blah"))
+          out must_== List(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.OutEvent("blah")))))
         }
       }
 
@@ -102,51 +112,32 @@ object ScalaWebSockets extends PlaySpecification {
 
     "support iteratees" in {
 
-      def runWebSocket[In, Out](webSocket: WebSocket[In, Out], in: Enumerator[In]): Either[Result, List[Out]] = {
-        await(webSocket.f(FakeRequest())).right.map { f =>
-          val consumed = Promise[List[Out]]()
-          @volatile var chunks = List.empty[Out]
-          def getChunks: Iteratee[Out, Unit] = Cont {
-            case Input.El(out) =>
-              chunks = out :: chunks
-              getChunks
-            case Input.EOF => Done(consumed.trySuccess(chunks.reverse))
-            case Input.Empty => getChunks
-          }
-
-          import scala.concurrent.ExecutionContext.Implicits.global
-          import scala.concurrent.duration._
-          f(in.onDoneEnumerating {
-            // Yeah, ugly, but it makes a race condition unlikely.
-            play.api.libs.concurrent.Promise.timeout((), 100.milliseconds).onSuccess {
-              case _ => consumed.trySuccess(chunks)
-            }
-          }, getChunks)
-          await(consumed.future)
-        }
-      }
-
       "iteratee1" in new WithApplication() {
-        runWebSocket(Samples.Controller6.socket, Enumerator.eof) must beRight.which { out =>
-          out must_== List("Hello!")
+        runWebSocket(Samples.Controller6.socket, Source.empty, 1) must beRight.which { out =>
+          out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Enumerator.empty) must beRight.which { out =>
-          out must_== List("Hello!")
+        runWebSocket(Samples.Controller7.socket, Source(Promise[Message]().future), 1) must beRight.which { out =>
+          out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee3" in new WithApplication() {
-        runWebSocket(Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.which { out =>
-          out must_== List("I received your message: foo")
+        runWebSocket(Samples.Controller8.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
+          out must_== List(TextMessage("I received your message: foo"))
         }
       }
 
     }
   }
 
+  /**
+   * The default await timeout.  Override this to change it.
+   */
+  import scala.concurrent.duration._
+  override implicit def defaultAwaitTimeout = 2.seconds
 }
 
 object Samples {
@@ -156,6 +147,7 @@ object Samples {
     //#actor-accept
     import play.api.mvc._
     import play.api.Play.current
+    import play.api.Play.materializer
 
     def socket = WebSocket.acceptWithActor[String, String] { request => out =>
       MyWebSocketActor.props(out)
@@ -188,6 +180,7 @@ object Samples {
     import scala.concurrent.Future
     import play.api.mvc._
     import play.api.Play.current
+    import play.api.Play.materializer
 
     def socket = WebSocket.tryAcceptWithActor[String, String] { request =>
       Future.successful(request.session.get("user") match {
@@ -217,6 +210,7 @@ object Samples {
     import play.api.mvc._
     import play.api.libs.json._
     import play.api.Play.current
+    import play.api.Play.materializer
 
     def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
       MyWebSocketActor.props(out)
@@ -252,13 +246,13 @@ object Samples {
     //#actor-json-frames
     import play.api.mvc.WebSocket.FrameFormatter
 
-    implicit val inEventFrameFormatter = FrameFormatter.jsonFrame[InEvent]
-    implicit val outEventFrameFormatter = FrameFormatter.jsonFrame[OutEvent]
+    implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
     //#actor-json-frames
 
     //#actor-json-in-out
     import play.api.mvc._
     import play.api.Play.current
+    import play.api.Play.materializer
 
     def socket = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
       MyWebSocketActor.props(out)

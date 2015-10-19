@@ -10,8 +10,6 @@ import scala.util.{ Failure, Success, Try }
 private[streams] object PromiseSubscriber {
   /**
    * Internal state of the Subscriber.
-   *
-   * @tparam The type of the element.
    */
   sealed trait State
   /**

@@ -2,17 +2,9 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-scalaVersion := {
-  // If we're a snapshot build, then default to 2.10.5, since this is what gets built by default for Play
-  // If we're a production build, then we want 2.11.6
-  sys.props.getOrElse("scala.version", if (isSnapshot.value) {
-    "2.10.5"
-  } else {
-    "2.11.6"
-  })
-}
+scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.10.5", "2.11.6")
+crossScalaVersions := Seq("2.11.7")
 
 templates := {
   val dir = baseDirectory.value
@@ -42,16 +34,16 @@ templateParameters := Map(
   "PLAY_VERSION" -> version.value,
   "SCALA_VERSION" -> scalaVersion.value,
   "PLAY_DOCS_URL" -> playDocsUrl(version.value),
-  "SBT_VERSION" -> "0.13.8",
+  "SBT_VERSION" -> "0.13.9",
   "COFFEESCRIPT_VERSION" -> "1.0.0",
-  "LESS_VERSION" -> "1.0.6",
+  "LESS_VERSION" -> "1.1.0",
   "JSHINT_VERSION" -> "1.0.3",
   "DIGEST_VERSION" -> "1.1.0",
   "RJS_VERSION" -> "1.0.7",
   "MOCHA_VERSION" -> "1.1.0",
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
-  "PLAY_SLICK_VERSION" -> "1.0.0",
+  "PLAY_SLICK_VERSION" -> "1.1.0",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )

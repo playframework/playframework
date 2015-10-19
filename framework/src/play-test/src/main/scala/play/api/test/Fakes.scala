@@ -6,6 +6,8 @@ package play.api.test
 import javax.inject.{ Inject, Provider }
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
+import akka.util.ByteString
 import play.api._
 import play.api.http._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -135,8 +137,8 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+    _copy(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
   }
 
   /**
@@ -219,10 +221,11 @@ case class FakeApplication(
   override def global: GlobalSettings = app.global
   override def configuration: Configuration = app.configuration
   override def actorSystem: ActorSystem = app.actorSystem
+  override implicit def materializer: Materializer = app.materializer
   override def plugins: Seq[Plugin.Deprecated] = app.plugins
   override def requestHandler: HttpRequestHandler = app.requestHandler
   override def errorHandler: HttpErrorHandler = app.errorHandler
-  override def stop(): Future[Unit] = app.stop()
+  override def stop(): Future[_] = app.stop()
   override def injector: Injector = app.injector
 }
 

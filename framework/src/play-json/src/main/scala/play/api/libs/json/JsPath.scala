@@ -163,6 +163,7 @@ case class JsPath(path: List[PathNode] = List()) {
   def \\(child: Symbol) = JsPath(path :+ RecursiveSearch(child.name))
 
   def apply(idx: Int): JsPath = JsPath(path :+ IdxPathNode(idx))
+  def \(idx: Int): JsPath = apply(idx)
 
   def apply(json: JsValue): List[JsValue] = path.foldLeft(List(json))((s, p) => s.flatMap(p.apply))
 

@@ -80,28 +80,28 @@ public class JavaJsonActions extends WithApplication {
     @Test
     public void requestAsAnyContentAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")), mat)
         ), equalTo("Hello Greg"));
     }
 
     @Test
     public void requestAsJsonAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")), mat)
         ), equalTo("Hello Greg"));
     }
 
     @Test
     public void responseAction() {
         assertThat(contentAsString(
-            call(new JsonResponseAction(), fakeRequest())
+            call(new JsonResponseAction(), fakeRequest(), mat)
         ), equalTo("{\"exampleField1\":\"foobar\",\"exampleField2\":\"Hello world!\"}"));
     }
 
     @Test
     public void responseDaoAction() {
         assertThat(contentAsString(
-            call(new JsonResponseDaoAction(), fakeRequest())
+            call(new JsonResponseDaoAction(), fakeRequest(), mat)
         ), equalTo("[{\"firstName\":\"Foo\",\"lastName\":\"Bar\",\"age\":30}]"));
     }
 

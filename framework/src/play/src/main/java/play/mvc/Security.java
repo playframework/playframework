@@ -3,10 +3,13 @@
  */
 package play.mvc;
 
+import play.inject.Injector;
 import play.libs.F;
 import play.mvc.Http.*;
 
 import java.lang.annotation.*;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 
 /**
  * Defines several security helpers.
@@ -30,10 +33,17 @@ public class Security {
      * <code>username</code> attribute.
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
-        
-        public F.Promise<Result> call(final Context ctx) {
+
+        private final Injector injector;
+
+        @Inject
+        public AuthenticatedAction(Injector injector) {
+            this.injector = injector;
+        }
+
+        public CompletionStage<Result> call(final Context ctx) {
             try {
-                Authenticator authenticator = configuration.value().newInstance();
+                Authenticator authenticator = injector.instanceOf(configuration.value());
                 String username = authenticator.getUsername(ctx);
                 if(username == null) {
                     Result unauthorized = authenticator.onUnauthorized(ctx);
@@ -41,18 +51,8 @@ public class Security {
                 } else {
                     try {
                         ctx.request().setUsername(username);
-                        return delegate.call(ctx).transform(
-                            new F.Function<Result, Result>() {
-                                @Override
-                                public Result apply(Result result) throws Throwable {
-                                    ctx.request().setUsername(null);
-                                    return result;
-                                }
-                            },
-                                throwable -> {
-                                    ctx.request().setUsername(null);
-                                    return throwable;
-                                }
+                        return delegate.call(ctx).whenComplete(
+                                (result, error) -> ctx.request().setUsername(null)
                         );
                     } catch(Exception e) {
                         ctx.request().setUsername(null);

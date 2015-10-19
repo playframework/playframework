@@ -3,7 +3,14 @@
  */
 package play.libs.ws;
 
-import com.ning.http.client.AsyncHttpClientConfig;
+import akka.actor.ActorSystem;
+import akka.stream.ActorMaterializer;
+import akka.stream.ActorMaterializerSettings;
+
+import java.io.IOException;
+
+import org.asynchttpclient.AsyncHttpClientConfig;
+
 import play.Application;
 import play.libs.ws.ning.NingWSClient;
 
@@ -46,8 +53,15 @@ public class WS {
      * @return A running WS client.
      */
     public static WSClient newClient(int port) {
-        WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder()
-            .setMaxRequestRetry(0).build());
+        AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
+                .setMaxRequestRetry(0).setShutdownQuiet(0).setShutdownTimeout(0).build();
+
+        String name = "ws-java-newClient";
+        ActorSystem system = ActorSystem.create(name);
+        ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
+        ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+
+        WSClient client = new NingWSClient(config, materializer);
 
         return new WSClient() {
             public Object getUnderlying() {
@@ -60,8 +74,13 @@ public class WS {
                     return client.url(url);
                 }
             }
-            public void close() {
-                client.close();
+            public void close() throws IOException {
+                try {
+                    client.close();
+                }
+                finally {
+                    system.shutdown();
+                }
             }
         };
     }

@@ -7,18 +7,19 @@ package javaguide.http.root;
 import play.http.HttpErrorHandler;
 import play.mvc.*;
 import play.mvc.Http.*;
-import play.libs.F.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class ErrorHandler implements HttpErrorHandler {
-    public Promise<Result> onClientError(RequestHeader request, int statusCode, String message) {
-        return Promise.<Result>pure(
-            Results.status(statusCode, "A client error occurred: " + message)
+    public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
+        return CompletableFuture.completedFuture(
+                Results.status(statusCode, "A client error occurred: " + message)
         );
     }
 
-    public Promise<Result> onServerError(RequestHeader request, Throwable exception) {
-        return Promise.<Result>pure(
-            Results.internalServerError("A server error occurred: " + exception.getMessage())
+    public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception) {
+        return CompletableFuture.completedFuture(
+                Results.internalServerError("A server error occurred: " + exception.getMessage())
         );
     }
 }

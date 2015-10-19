@@ -48,7 +48,7 @@ public class DatabaseTest {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
-        assertThat((DataSource) JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
+        assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
@@ -91,7 +91,7 @@ public class DatabaseTest {
         Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
-        assertThat((DataSource) JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
+        assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
@@ -99,12 +99,8 @@ public class DatabaseTest {
     public void supplyConnections() throws Exception {
         Database db = Databases.inMemory("test-connection");
 
-        Connection connection = db.getConnection();
-
-        try {
+        try (Connection connection = db.getConnection()) {
             connection.createStatement().execute("create table test (id bigint not null, name varchar(255))");
-        } finally {
-            connection.close();
         }
 
         db.shutdown();
@@ -114,18 +110,12 @@ public class DatabaseTest {
     public void enableAutocommitByDefault() throws Exception {
         Database db = Databases.inMemory("test-autocommit");
 
-        Connection c1 = db.getConnection();
-        Connection c2 = db.getConnection();
-
-        try {
+        try (Connection c1 = db.getConnection(); Connection c2 = db.getConnection()) {
             c1.createStatement().execute("create table test (id bigint not null, name varchar(255))");
             c1.createStatement().execute("insert into test (id, name) values (1, 'alice')");
             ResultSet results = c2.createStatement().executeQuery("select * from test");
             assertThat(results.next(), is(true));
             assertThat(results.next(), is(false));
-        } finally {
-            c1.close();
-            c2.close();
         }
 
         db.shutdown();
@@ -194,7 +184,7 @@ public class DatabaseTest {
         db.getConnection().close();
         db.shutdown();
         exception.expect(SQLException.class);
-        exception.expectMessage(startsWith("Pool has been shutdown"));
+        exception.expectMessage(endsWith("has been closed."));
         db.getConnection().close();
     }
 }

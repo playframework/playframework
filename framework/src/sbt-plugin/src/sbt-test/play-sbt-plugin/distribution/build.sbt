@@ -4,7 +4,7 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 
 val checkStartScript = InputKey[Unit]("checkStartScript")
 
@@ -18,7 +18,7 @@ checkStartScript := {
   }
   val contents = IO.read(startScript)
   val lines = IO.readLines(startScript)
-  if (!contents.contains( """app_mainclass="play.core.server.ProdServerStart"""")) {
+  if (!contents.contains( """app_mainclass=("play.core.server.ProdServerStart")""")) {
     startScriptError(contents, "Cannot find the declaration of the main class in the script")
   }
   val appClasspath = lines.find(_ startsWith "declare -r app_classpath")

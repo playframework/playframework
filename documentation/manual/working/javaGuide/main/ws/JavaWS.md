@@ -31,7 +31,7 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 @[ws-get](code/javaguide/ws/JavaWS.java)
 
-This returns a [`Promise<WSResponse>`](api/java/play/libs/F.Promise.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
+This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
 ### Request with authentication
 
@@ -59,9 +59,9 @@ For example, if you are sending plain text in a particular format, you may want 
 
 @[ws-header-content-type](code/javaguide/ws/JavaWS.java)
 
-### Request with time out
+### Request with timeout
 
-If you wish to specify a request timeout, you can use `setTimeout` to set a value in milliseconds.
+If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout. 
 
 @[ws-timeout](code/javaguide/ws/JavaWS.java)
 
@@ -79,9 +79,19 @@ The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]]
 
 @[ws-post-json](code/javaguide/ws/JavaWS.java)
 
+### Streaming data
+
+It's also possible to stream data.
+
+Here is an example showing how you could stream a large image to a different endpoint for further processing:
+
+@[ws-stream-request](code/javaguide/ws/JavaWS.java)
+
+The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString, ?>`.
+
 ## Processing the Response
 
-Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by mapping inside the `Promise`.
+Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by applying transformations such as `thenApply` and `thenCompose` to the `CompletionStage`.
 
 ### Processing a response as JSON
 
@@ -97,11 +107,31 @@ Similarly, you can process the response as XML by calling `response.asXml()`.
 
 ### Processing large responses
 
-When you are downloading a large file or document, `WS` allows you to get the response body as an `InputStream` so you can process the data without loading the entire content into memory at once.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
 
-@[ws-response-input-stream](code/javaguide/ws/JavaWS.java)
+`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<StreamedResponse>`. A `StreamedResponse` is a simple container holding together the response's headers and body.
 
-This example will read the response body and write it to a file in buffered increments.
+Any controller or component that wants to levearge the WS streaming functionality will have to add the following imports and dependencies:
+
+@[ws-streams-controller](code/javaguide/ws/MyController.java)
+
+Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
+
+@[stream-count-bytes](code/javaguide/ws/JavaWS.java)
+
+Alternatively, you could also stream the body out to another location. For example, a file:
+
+@[stream-to-file](code/javaguide/ws/JavaWS.java)
+
+Another common destination for response bodies is to stream them back from a controller's `Action`:
+
+@[stream-to-result](code/javaguide/ws/JavaWS.java)
+
+As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `setMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
+
+@[stream-put](code/javaguide/ws/JavaWS.java)
+
+Of course, you can use any other valid HTTP verb.
 
 ## Common Patterns and Use Cases
 
@@ -118,7 +148,7 @@ If you want to recover from an exception in the call, you can use `recover` or `
 
 ### Using in a controller
 
-You can map a `Promise<WSResponse>` to a `Promise<Result>` that can be handled directly by the Play server, using the asynchronous action pattern defined in [[Handling Asynchronous Results|JavaAsync]].
+You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that can be handled directly by the Play server, using the asynchronous action pattern defined in [[Handling Asynchronous Results|JavaAsync]].
 
 @[ws-action](code/javaguide/ws/JavaWS.java)
 

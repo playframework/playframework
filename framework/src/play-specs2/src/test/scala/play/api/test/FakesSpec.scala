@@ -5,7 +5,8 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
+import akka.util.ByteString
 import play.api.mvc._
 
 import play.api.test.Helpers._
@@ -58,7 +59,7 @@ object FakesSpec extends PlaySpecification {
             baz
           </bar>
         </foo>
-      val bytes = xml.toString.getBytes("utf-16le")
+      val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
       route(req) aka "response" must beSome.which { resp =>
@@ -73,7 +74,7 @@ object FakesSpec extends PlaySpecification {
             baz
           </bar>
         </foo>
-      val bytes = xml.toString.getBytes("utf-16le")
+      val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
         .withHeaders(
@@ -99,7 +100,7 @@ object FakesSpec extends PlaySpecification {
     }
   }
 
-  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: FlowMaterializer): String = {
+  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
     val action = Action { request => testContentType = request.headers.get(CONTENT_TYPE); Ok }
     val headers = new WrappedRequest(request)

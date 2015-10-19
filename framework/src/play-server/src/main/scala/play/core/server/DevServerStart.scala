@@ -5,6 +5,7 @@ package play.core.server
 
 import java.io._
 import java.util.Properties
+import akka.stream.ActorMaterializer
 import play.api._
 import play.api.mvc._
 import play.api.libs.concurrent.ActorSystemProvider
@@ -203,7 +204,8 @@ object DevServerStart {
           configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
         val (actorSystem, actorSystemStopHook) = ActorSystemProvider.start(classLoader, serverConfig.configuration)
-        val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem, actorSystemStopHook)
+        val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
+          ActorMaterializer()(actorSystem), actorSystemStopHook)
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {

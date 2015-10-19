@@ -16,6 +16,8 @@ import play.api.Application
  * val conn = DB.getConnection("customers")
  * }}}
  */
+@deprecated(since = "2.4.3",
+  message = "Use [[play.api.db.Database]]")
 object DB {
 
   private val dbCache = Application.instanceCache[DBApi]

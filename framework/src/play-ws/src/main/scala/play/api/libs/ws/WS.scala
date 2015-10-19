@@ -3,23 +3,27 @@
  */
 package play.api.libs.ws
 
-import java.net.URI
-
-import scala.concurrent.{ Future, ExecutionContext }
-
+import java.io.Closeable
 import java.io.File
-
-import play.api.http.Writeable
-import play.api.libs.iteratee._
-
-import play.api._
+import java.net.URI
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 import scala.xml.Elem
+import akka.stream.Materializer
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.Application
+import play.api.http.Writeable
 import play.api.libs.json.JsValue
+import play.api.libs.iteratee._
+import java.io.IOException
 
 /**
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
  */
-trait WSClient {
+trait WSClient extends Closeable {
 
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
@@ -37,7 +41,7 @@ trait WSClient {
   def url(url: String): WSRequest
 
   /** Closes this client, and releases underlying resources. */
-  def close(): Unit
+  @throws[IOException] def close(): Unit
 }
 
 /**
@@ -225,9 +229,9 @@ trait WSResponse {
   def json: JsValue
 
   /**
-   * The response body as a byte array.
+   * The response body as a byte string.
    */
-  def bodyAsBytes: Array[Byte]
+  def bodyAsBytes: ByteString
 }
 
 /**
@@ -240,16 +244,14 @@ sealed trait WSBody
  *
  * @param bytes The bytes of the body
  */
-case class InMemoryBody(bytes: Array[Byte]) extends WSBody
+case class InMemoryBody(bytes: ByteString) extends WSBody
 
 /**
  * A streamed body
  *
- * @param bytes An enumerator of the bytes of the body
+ * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Enumerator[Array[Byte]]) extends WSBody {
-  throw new NotImplementedError("A streaming request body is not yet implemented")
-}
+case class StreamedBody(bytes: Source[ByteString, _]) extends WSBody
 
 /**
  * A file body
@@ -260,6 +262,11 @@ case class FileBody(file: File) extends WSBody
  * An empty body
  */
 case object EmptyBody extends WSBody
+
+/**
+ * A streamed response containing a response header and a streamable body.
+ */
+case class StreamedResponse(headers: WSResponseHeaders, body: Source[ByteString, _])
 
 /**
  * A WS Request builder.
@@ -353,7 +360,7 @@ trait WSRequest {
   def withHeaders(hdrs: (String, String)*): WSRequest
 
   /**
-   * adds any number of query string parameters to the
+   * adds any number of query string parameters to this request
    */
   def withQueryString(parameters: (String, String)*): WSRequest
 
@@ -363,10 +370,11 @@ trait WSRequest {
   def withFollowRedirects(follow: Boolean): WSRequest
 
   /**
-   * Sets the maximum time in milliseconds you expect the request to take.
-   * Warning: a stream consumption will be interrupted when this time is reached.
+   * Sets the maximum time you expect the request to take.
+   * Use Duration.Inf to set an infinite request timeout.
+   * Warning: a stream consumption will be interrupted when this time is reached unless Duration.Inf is set.
    */
-  def withRequestTimeout(timeout: Long): WSRequest
+  def withRequestTimeout(timeout: Duration): WSRequest
 
   /**
    * Sets the virtual host to use in this request
@@ -405,12 +413,13 @@ trait WSRequest {
   /**
    * performs a get
    */
-  def get() = withMethod("GET").execute()
+  def get(): Future[WSResponse] = withMethod("GET").execute()
 
   /**
    * performs a get
    * @param consumer that's handling the response
    */
+  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
   def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     getStream().flatMap {
       case (response, enumerator) =>
@@ -421,28 +430,30 @@ trait WSRequest {
   /**
    * performs a get
    */
+  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
   def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
-    withMethod("GET").stream()
+    withMethod("GET").streamWithEnumerator()
   }
 
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  def patch[T](body: T)(implicit wrt: Writeable[T]) =
+  def patch[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("PATCH").withBody(body).execute()
 
   /**
    * Perform a PATCH on the request asynchronously.
    * Request body won't be chunked
    */
-  def patch(body: File) = withMethod("PATCH").withBody(FileBody(body)).execute()
+  def patch(body: File): Future[WSResponse] = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
+  @deprecated("2.5.0", """Use WS.withMethod("PATCH").stream()""")
   def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PATCH").withBody(body).stream().flatMap {
+    withMethod("PATCH").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
     }
@@ -451,21 +462,22 @@ trait WSRequest {
   /**
    * Perform a POST on the request asynchronously.
    */
-  def post[T](body: T)(implicit wrt: Writeable[T]) =
+  def post[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("POST").withBody(body).execute()
 
   /**
    * Perform a POST on the request asynchronously.
    * Request body won't be chunked
    */
-  def post(body: File) = withMethod("POST").withBody(FileBody(body)).execute()
+  def post(body: File): Future[WSResponse] = withMethod("POST").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
+  @deprecated("2.5.0", """Use WS.withMethod("POST").stream()""")
   def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("POST").withBody(body).stream().flatMap {
+    withMethod("POST").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
     }
@@ -474,21 +486,22 @@ trait WSRequest {
   /**
    * Perform a PUT on the request asynchronously.
    */
-  def put[T](body: T)(implicit wrt: Writeable[T]) =
+  def put[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
     withMethod("PUT").withBody(body).execute()
 
   /**
    * Perform a PUT on the request asynchronously.
    * Request body won't be chunked
    */
-  def put(body: File) = withMethod("PUT").withBody(FileBody(body)).execute()
+  def put(body: File): Future[WSResponse] = withMethod("PUT").withBody(FileBody(body)).execute()
 
   /**
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
+  @deprecated("2.5.0", """Use WS.withMethod("PUT").stream()""")
   def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PUT").withBody(body).stream().flatMap {
+    withMethod("PUT").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
     }
@@ -497,17 +510,17 @@ trait WSRequest {
   /**
    * Perform a DELETE on the request asynchronously.
    */
-  def delete() = withMethod("DELETE").execute()
+  def delete(): Future[WSResponse] = withMethod("DELETE").execute()
 
   /**
    * Perform a HEAD on the request asynchronously.
    */
-  def head() = withMethod("HEAD").execute()
+  def head(): Future[WSResponse] = withMethod("HEAD").execute()
 
   /**
    * Perform a OPTIONS on the request asynchronously.
    */
-  def options() = withMethod("OPTIONS").execute()
+  def options(): Future[WSResponse] = withMethod("OPTIONS").execute()
 
   def execute(method: String): Future[WSResponse] = withMethod(method).execute()
 
@@ -517,9 +530,17 @@ trait WSRequest {
   def execute(): Future[WSResponse]
 
   /**
-   * Execute this request and stream the response body in an enumerator
+   * Execute this request and stream the response body.
    */
-  def stream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
+  def stream(): Future[StreamedResponse]
+
+  /**
+   * Execute this request and stream the response body.
+   * @note This method used to be named `stream`, but it was renamed because the method's signature was
+   *       changed and the JVM doesn't allow overloading on the return type.
+   */
+  @deprecated("2.5.0", "Use `WS.stream()` instead.")
+  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 
 /**
@@ -576,14 +597,9 @@ trait WSCookie {
   def path: String
 
   /**
-   * The expiry date.
-   */
-  def expires: Option[Long]
-
-  /**
    * The maximum age.
    */
-  def maxAge: Option[Int]
+  def maxAge: Option[Long]
 
   /**
    * If the cookie is secure.

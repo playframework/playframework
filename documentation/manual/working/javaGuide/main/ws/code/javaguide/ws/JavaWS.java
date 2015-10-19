@@ -7,8 +7,8 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import play.libs.ws.*;
-import play.libs.F.Function;
-import play.libs.F.Promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 // #ws-imports
 
 // #json-imports
@@ -16,22 +16,35 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 // #json-imports
 
+import scala.compat.java8.FutureConverters;
+
 import java.io.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.*;
 
 import org.w3c.dom.Document;
 import play.mvc.Result;
 
 import javax.inject.Inject;
 
+import play.http.HttpEntity;
+import play.mvc.Http.Status;
+
 // #ws-custom-client-imports
-import com.ning.http.client.*;
+import org.asynchttpclient.*;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ning.NingWSClientConfig;
 import play.api.libs.ws.ning.NingWSClientConfigFactory;
 import play.api.libs.ws.ssl.SSLConfigFactory;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import scala.concurrent.duration.Duration;
+
+import akka.stream.Materializer;
+import akka.stream.javadsl.*;
+import akka.util.ByteString;
 // #ws-custom-client-imports
 
 public class JavaWS {
@@ -40,6 +53,7 @@ public class JavaWS {
     public static class Controller0 extends MockJavaAction {
 
         private WSClient ws;
+        private Materializer materializer;
 
         public void requestExamples() {
             // #ws-holder
@@ -53,7 +67,7 @@ public class JavaWS {
             // #ws-complex-holder
 
             // #ws-get
-            Promise<WSResponse> responsePromise = complexRequest.get();
+            CompletionStage<WSResponse> responsePromise = complexRequest.get();
             // #ws-get
 
             String url = "http://example.com";
@@ -96,66 +110,152 @@ public class JavaWS {
 
             ws.url(url).post(json);
             // #ws-post-json
+
+            String value = IntStream.range(0,100).boxed().
+                map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
+            ByteString seedValue = ByteString.fromString(value);
+            Stream<ByteString> largeSource = IntStream.range(0,10).boxed().map(i -> seedValue);
+            Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
+            // #ws-stream-request
+            CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
+            // #ws-stream-request
         }
 
         public void responseExamples() {
 
-          String url = "http://example.com";
+            String url = "http://example.com";
 
             // #ws-response-json
-            Promise<JsonNode> jsonPromise = ws.url(url).get().map(response -> {
-                return response.asJson();
-            });
+            CompletionStage<JsonNode> jsonPromise = ws.url(url).get()
+                    .thenApply(WSResponse::asJson);
             // #ws-response-json
 
             // #ws-response-xml
-            Promise<Document> documentPromise = ws.url(url).get().map(response -> {
-                return response.asXml();
-            });
+            CompletionStage<Document> documentPromise = ws.url(url).get()
+                    .thenApply(WSResponse::asXml);
             // #ws-response-xml
-
-            // #ws-response-input-stream
-            Promise<File> filePromise = ws.url(url).get().map(response -> {
-                InputStream inputStream = null;
-                OutputStream outputStream = null;
-                try {
-                    inputStream = response.getBodyAsStream();
-
-                    // write the inputStream to a File
-                    final File file = new File("/tmp/response.txt");
-                    outputStream = new FileOutputStream(file);
-
-                    int read = 0;
-                    byte[] buffer = new byte[1024];
-
-                    while ((read = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, read);
-                    }
-
-                    return file;
-                } catch (IOException e) {
-                    throw e;
-                } finally {
-                    if (inputStream != null) {inputStream.close();}
-                    if (outputStream != null) {outputStream.close();}
-                }
-            });
-            // #ws-response-input-stream
         }
 
+        public void streamSimpleRequest() {
+            String url = "http://example.com";
+            // #stream-count-bytes
+            // Make the request
+            CompletionStage<StreamedResponse> futureResponse = 
+                ws.url(url).setMethod("GET").stream();
+
+            CompletionStage<Long> bytesReturned = futureResponse.thenCompose(res -> {
+                Source<ByteString, ?> responseBody = res.getBody();
+
+                // Count the number of bytes returned
+                Sink<ByteString, scala.concurrent.Future<Long>> bytesSum =
+                    Sink.fold(0L, (total, bytes) -> total + bytes.length());
+
+                // Converts the materialized Scala Future into a Java8 `CompletionStage`
+                Sink<ByteString, CompletionStage<Long>> convertedBytesSum =
+                    bytesSum.mapMaterializedValue(FutureConverters::toJava);
+
+                return responseBody.runWith(convertedBytesSum, materializer);
+            });
+            // #stream-count-bytes
+        }
+
+        public void streamFile() throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
+            String url = "http://example.com";
+            //#stream-to-file
+            File file = File.createTempFile("stream-to-file-", ".txt");
+            FileOutputStream outputStream = new FileOutputStream(file);
+
+            // Make the request
+            CompletionStage<StreamedResponse> futureResponse =
+                ws.url(url).setMethod("GET").stream();
+
+            CompletionStage<File> downloadedFile = futureResponse.thenCompose(res -> {
+                Source<ByteString, ?> responseBody = res.getBody();
+
+                // The sink that writes to the output stream
+                Sink<ByteString,scala.concurrent.Future<scala.runtime.BoxedUnit>> outputWriter = 
+                    Sink.<ByteString>foreach(bytes -> outputStream.write(bytes.toArray()));
+
+                // Converts the materialized Scala Future into a Java8 `CompletionStage`
+                Sink<ByteString, CompletionStage<?>> convertedOutputWriter =
+                    outputWriter.mapMaterializedValue(FutureConverters::toJava);
+
+                // materialize and run the stream
+                CompletionStage<File> result = responseBody.runWith(convertedOutputWriter, materializer)
+                    .whenComplete((value, error) -> {
+                        // Close the output stream whether there was an error or not
+                        try { outputStream.close(); }
+                        catch(IOException e) {}
+                    })
+                    .thenApply(v -> file);
+                return result;
+            });
+            //#stream-to-file
+            downloadedFile.toCompletableFuture().get();
+            file.delete();
+        }
+
+        public void streamResponse() {
+            String url = "http://example.com";
+            //#stream-to-result
+            // Make the request
+            CompletionStage<StreamedResponse> futureResponse = ws.url(url).setMethod("GET").stream();
+
+            CompletionStage<Result> result = futureResponse.thenApply(response -> {
+                WSResponseHeaders responseHeaders = response.getHeaders();
+                Source<ByteString, ?> body = response.getBody();
+                // Check that the response was successful
+                if (responseHeaders.getStatus() == 200) {
+                    // Get the content type
+                    String contentType =
+                            Optional.ofNullable(responseHeaders.getHeaders().get("Content-Type"))
+                                    .map(contentTypes -> contentTypes.get(0)).
+                                    orElse("application/octet-stream");
+
+                    // If there's a content length, send that, otherwise return the body chunked
+                    Optional<String> contentLength = Optional.ofNullable(responseHeaders.getHeaders()
+                            .get("Content-Length"))
+                            .map(contentLengths -> contentLengths.get(0));
+                    if (contentLength.isPresent()) {
+                        return ok().sendEntity(new HttpEntity.Streamed(
+                                body,
+                                Optional.of(Long.parseLong(contentLength.get())),
+                                Optional.of(contentType)
+                        ));
+                    } else {
+                        return ok().chunked(body).as(contentType);
+                    }
+                } else {
+                    return new Result(Status.BAD_GATEWAY);
+                }
+            });
+            //#stream-to-result
+        }
+
+        public void streamPut() {
+            String url = "http://example.com";
+            //#stream-put
+            CompletionStage<StreamedResponse> futureResponse  =
+                ws.url(url).setMethod("PUT").setBody("some body").stream();
+            //#stream-put
+        }
         public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get()
-                    .flatMap(responseOne -> ws.url(responseOne.getBody()).get())
-                    .flatMap(responseTwo -> ws.url(responseTwo.getBody()).get());
+            final CompletionStage<WSResponse> responseThreePromise = ws.url(urlOne).get()
+                    .thenCompose(responseOne -> ws.url(responseOne.getBody()).get())
+                    .thenCompose(responseTwo -> ws.url(responseTwo.getBody()).get());
             // #ws-composition
 
             // #ws-recover
-            Promise<WSResponse> responsePromise = ws.url("http://example.com").get();
-            Promise<WSResponse> recoverPromise = responsePromise.recoverWith(throwable ->
-                            ws.url("http://backup.example.com").get()
-            );
+            CompletionStage<WSResponse> responsePromise = ws.url("http://example.com").get();
+            CompletionStage<WSResponse> recoverPromise = responsePromise.handle((result, error) -> {
+                if (error != null) {
+                    return ws.url("http://backup.example.com").get();
+                } else {
+                    return CompletableFuture.completedFuture(result);
+                }
+            }).thenCompose(Function.identity());
             // #ws-recover
         }
 
@@ -185,17 +285,18 @@ public class JavaWS {
 
             // You can directly use the builder for specific options once you have secure TLS defaults...
             AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
-                            .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
+                            .setProxyServer(new org.asynchttpclient.proxy.ProxyServer("127.0.0.1", 38080))
                             .setCompressionEnforced(true)
                             .build();
-            WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig);
 
-            Promise<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
+            WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig, materializer);
+
+            CompletionStage<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
             // #ws-custom-client
 
             // #ws-underlying-client
-            com.ning.http.client.AsyncHttpClient underlyingClient =
-                (com.ning.http.client.AsyncHttpClient) ws.getUnderlying();
+            org.asynchttpclient.AsyncHttpClient underlyingClient =
+                (org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
             // #ws-underlying-client
 
         }
@@ -207,9 +308,9 @@ public class JavaWS {
         private WSClient ws;
 
         // #ws-action
-        public Promise<Result> index() {
-            return ws.url(feedUrl).get().map(response ->
-                            ok("Feed title: " + response.asJson().findPath("title").asText())
+        public CompletionStage<Result> index() {
+            return ws.url(feedUrl).get().thenApply(response ->
+                ok("Feed title: " + response.asJson().findPath("title").asText())
             );
         }
         // #ws-action
@@ -221,12 +322,11 @@ public class JavaWS {
         private WSClient ws;
 
         // #composed-call
-        public Promise<Result> index() {
+        public CompletionStage<Result> index() {
             return ws.url(feedUrl).get()
-                    .flatMap(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
-                    .map(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
+                    .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
+                    .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call
     }
-
 }

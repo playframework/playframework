@@ -13,7 +13,9 @@ import play.api.Application;
 
 /**
  * Provides a high-level API for getting JDBC connections.
+ * @deprecated Use play.api.Database
  */
+@Deprecated
 public final class DB {
 	private DB(){}
 

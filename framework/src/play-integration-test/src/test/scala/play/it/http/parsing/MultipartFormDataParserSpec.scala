@@ -4,6 +4,7 @@
 package play.it.http.parsing
 
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{ Result, MultipartFormData, BodyParsers }
 import play.api.test._
@@ -42,12 +43,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
-        parts.dataParts.get("text1") must beSome.like {
-          case field :: Nil => field must_== "the first text field"
-        }
-        parts.dataParts.get("text2:colon") must beSome.like {
-          case field :: Nil => field must_== "the second text field"
-        }
+        parts.dataParts.get("text1") must_== Some(Seq("the first text field"))
+        parts.dataParts.get("text2:colon") must_== Some(Seq("the second text field"))
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
@@ -64,7 +61,18 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
+
+      checkResult(result)
+    }
+
+    "parse some content that arrives one byte at a time" in new WithApplication() {
+      val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
+        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      ))
+
+      val bytes = body.getBytes.map(byte => ByteString(byte)).toVector
+      val result = await(parser.run(Source(bytes)))
 
       checkResult(result)
     }
@@ -74,7 +82,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data" // no boundary
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== BAD_REQUEST
@@ -88,7 +96,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
@@ -102,7 +110,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
@@ -114,7 +122,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       checkResult(result)
     }
@@ -129,6 +137,18 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
       result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")))
+    }
+
+    "parse unquoted content disposition" in {
+      val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
+      result must not(beEmpty)
+      result.get must equalTo(("document", "hello.txt", None))
+    }
+
+    "ignore extended filename in content disposition" in {
+      val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt"""))
+      result must not(beEmpty)
+      result.get must equalTo(("document", "hello.txt", None))
     }
   }
 

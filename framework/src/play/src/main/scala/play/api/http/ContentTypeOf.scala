@@ -3,10 +3,8 @@
  */
 package play.api.http
 
+import akka.util.ByteString
 import play.api.mvc._
-import play.api._
-import play.api.http.Status._
-import play.api.http.HeaderNames._
 import play.api.libs.json._
 import play.twirl.api._
 
@@ -16,7 +14,7 @@ import scala.annotation._
  * Defines the default content type for type `A`.
  *
  * @tparam A the content type
- * @param the default content type for `A`, if any
+ * @param mimeType the default content type for `A`, if any
  */
 @implicitNotFound(
   "Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]"
@@ -99,6 +97,11 @@ trait DefaultContentTypeOfs {
    * Default content type for byte array (application/application/octet-stream).
    */
   implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(ContentTypes.BINARY))
+
+  /**
+   * Default content type for byte array (application/application/octet-stream).
+   */
+  implicit def contentTypeOf_ByteString: ContentTypeOf[ByteString] = ContentTypeOf[ByteString](Some(ContentTypes.BINARY))
 
   /**
    * Default content type for empty responses (no content type).

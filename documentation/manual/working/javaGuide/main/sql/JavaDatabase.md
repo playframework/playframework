@@ -74,27 +74,28 @@ db.default.url="jdbc:postgresql://database.example.com/playdb"
 # Connect to playdb as playdbuser
 db.default.driver=com.mysql.jdbc.Driver
 db.default.url="jdbc:mysql://localhost/playdb"
-db.default.user=playdbuser
+db.default.username=playdbuser
 db.default.password="a strong password"
 ```
 
 ## Accessing the JDBC datasource
 
-The `play.db` package provides access to the configured data sources:
+The `play.db` package provides access to the default datasource.
 
-```java
-import play.db.*;
+@[](code/JavaApplicationDatabase.java)
 
-DataSource ds = DB.getDatasource();
-```
+For a database other than the default:
+
+@[](code/JavaNamedDatabase.java)
 
 ## Obtaining a JDBC connection
 
 You can retrieve a JDBC connection the same way:
 
-```
+```java
 Connection connection = DB.getConnection();
 ```
+
 It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 
 ## Exposing the datasource through JNDI
@@ -107,14 +108,37 @@ db.default.url="jdbc:h2:mem:play"
 db.default.jndiName=DefaultDS
 ```
 
-## Importing a Database Driver
+## How to configure SQL log statement
+
+Not all connection pools offer (out of the box) a way to log SQL statements. HikariCP, per instance, suggests that you use the log capacities of your database vendor. From [HikariCP docs](https://github.com/brettwooldridge/HikariCP/tree/dev#log-statement-text--slow-query-logging):
+
+#### *Log Statement Text / Slow Query Logging*
+
+*Like Statement caching, most major database vendors support statement logging through properties of their own driver. This includes Oracle, MySQL, Derby, MSSQL, and others. Some even support slow query logging. We consider this a "development-time" feature. For those few databases that do not support it, jdbcdslog-exp is a good option. Great stuff during development and pre-Production.*
+
+Because of that, Play uses [jdbcdslog-exp](https://github.com/jdbcdslog/jdbcdslog) to enable consistent SQL log statement support for supported pools. The SQL log statement can be configured by database, using `logSql` property:
+
+```properties
+# Default database configuration using PostgreSQL database engine
+db.default.driver=org.postgresql.Driver
+db.default.url="jdbc:postgresql://database.example.com/playdb"
+db.default.logSql=true
+```
+
+After that, you can configure the jdbcdslog-exp [log level as explained in their manual](https://code.google.com/p/jdbcdslog/wiki/UserGuide#Setup_logging_engine). Basically, you need to configure your root logger to `INFO` and then decide what jdbcdslog-exp will log (connections, statements and result sets). Here is an example using `logback.xml` to configure the logs:
+
+@[](/confs/play/logback-play-logSql.xml)
+
+> **Warning**: Keep in mind that this is intended to be used just in development environments and you should not configure it in production, since there is a performance degradation and it will pollute your logs.
+
+## Configuring the JDBC Driver dependency
 
 Other than for the h2 in-memory database, useful mostly in development mode, Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 
 ```
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 ```
 
 ## Selecting and configuring the connection pool

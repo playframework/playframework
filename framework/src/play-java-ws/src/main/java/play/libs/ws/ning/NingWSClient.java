@@ -4,29 +4,44 @@
 
 package play.libs.ws.ning;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
+import akka.stream.Materializer;
+
+import java.io.IOException;
+
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.AsyncHttpClientConfig;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 
+/**
+ * A WS client backed by a Ning AsyncHttpClient.
+ *
+ * If you need to debug Ning, set logger.com.ning.http.client=DEBUG in your application.conf file.
+ */
 public class NingWSClient implements WSClient {
 
-    private AsyncHttpClient asyncHttpClient;
+    private final AsyncHttpClient asyncHttpClient;
+    private final Materializer materializer;
 
-    public NingWSClient(AsyncHttpClientConfig config) {
-        this.asyncHttpClient = new AsyncHttpClient(config);
+    public NingWSClient(AsyncHttpClientConfig config, Materializer materializer) {
+        this.asyncHttpClient = new DefaultAsyncHttpClient(config);
+        this.materializer = materializer;
     }
 
+    @Override
     public Object getUnderlying() {
-        return this.asyncHttpClient;
+        return asyncHttpClient;
     }
 
     @Override
     public WSRequest url(String url) {
-        return new NingWSRequest(this, url);
+        return new NingWSRequest(this, url, materializer);
     }
 
-    public void close() {
-        this.asyncHttpClient.close();
+    @Override
+    public void close() throws IOException {
+        asyncHttpClient.close();
     }
 }

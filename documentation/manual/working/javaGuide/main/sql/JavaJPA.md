@@ -53,6 +53,15 @@ Finally you have to tell Play, which persistent unit should be used by your JPA 
 jpa.default=defaultPersistenceUnit
 ```
 
+## Deploying Play with JPA
+
+Running Play in development mode while using JPA will work fine, but in order to deploy the application you will need to add this to your `build.sbt` file.
+
+@[](code/jpa.sbt)
+
+Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. Note that the content of conf directory will still be available in the classpath due to it being inclued in the applications jar file.
+
+
 ## Annotating JPA actions with `@Transactional`
 
 Every JPA call must be done in a transaction so, to enable JPA for a particular action, annotate it with `@play.db.jpa.Transactional`. This will compose your action method with a JPA `Action` that manages the transaction for you:

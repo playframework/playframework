@@ -1,21 +1,18 @@
 package play.core.server.akkahttp
 
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.ContentType
 import akka.http.scaladsl.model.headers._
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import java.net.InetSocketAddress
-import org.reactivestreams.Publisher
 import play.api.Logger
+import play.api.http.{ HttpEntity => PlayHttpEntity, HttpChunk }
 import play.api.http.HeaderNames._
 import play.api.libs.iteratee._
-import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
 import scala.collection.immutable
-import scala.concurrent.Future
 
 /**
  * Conversions between Akka's and Play's HTTP model objects.
@@ -32,7 +29,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Source[Array[Byte], Any]) = {
+    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Source[ByteString, Any]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -99,22 +96,20 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: FlowMaterializer): Source[Array[Byte], Any] = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    request: HttpRequest)(implicit fm: Materializer): Source[ByteString, Any] = {
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
         Source.empty
       case HttpEntity.Strict(_, data) =>
-        Source.single(data.toArray)
+        Source.single(data)
       case HttpEntity.Default(_, 0, _) =>
         Source.empty
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        pubr.map(_.toArray)
+        pubr
       case HttpEntity.Chunked(contentType, chunks) =>
-        // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        chunks.map(_.data().toArray)
+        chunks.takeWhile(!_.isLastChunk).map(_.data())
     }
   }
 
@@ -123,30 +118,27 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   def convertResult(
     requestHeaders: RequestHeader,
-    result: Result,
-    protocol: HttpProtocol): Future[HttpResponse] = {
+    unvalidated: Result,
+    protocol: HttpProtocol)(implicit mat: Materializer): HttpResponse = {
 
+    val result = ServerResultUtils.validateResult(requestHeaders, unvalidated)
     val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    convertResultBody(requestHeaders, convertedHeaders, result, protocol).flatMap {
-      case Left(alternativeResult) =>
-        convertResult(requestHeaders, alternativeResult, protocol)
-      case Right((entity, connection)) =>
-        Future.successful(
-          HttpResponse(
-            status = result.header.status,
-            headers = convertedHeaders.misc ++ connection,
-            entity = entity,
-            protocol = protocol)
-        )
-    }
+    val entity = convertResultBody(requestHeaders, convertedHeaders, result, protocol)
+    val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, result)
+    val closeHeader = connectionHeader.header.map(Connection(_))
+    HttpResponse(
+      status = result.header.status,
+      headers = convertedHeaders.misc ++ closeHeader,
+      entity = entity,
+      protocol = protocol
+    )
   }
 
   def convertResultBody(
     requestHeaders: RequestHeader,
     convertedHeaders: AkkaHttpHeaders,
     result: Result,
-    protocol: HttpProtocol): Future[Either[Result, (ResponseEntity, Option[Connection])]] = {
+    protocol: HttpProtocol): ResponseEntity = {
 
     import Execution.Implicits.trampoline
 
@@ -155,67 +147,34 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       AkkaStreamsConversion.enumeratorToSource(dataEnum)
     }
 
-    ServerResultUtils.determineResultStreaming(requestHeaders, result).map {
-      case Left(ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
-        logger.warn(s"Cannot send result, sending error result instead: $reason")
-        Left(alternativeResult)
-      case Right((streaming, connectionHeader)) =>
-        def valid(entity: ResponseEntity): Right[Nothing, (ResponseEntity, Option[Connection])] = {
-          val akkaConnectionHeader: Option[Connection] = connectionHeader.header.map(h => Connection(h))
-          Right((entity, akkaConnectionHeader))
+    val contentType = result.body.contentType.fold(ContentTypes.NoContentType) { ct =>
+      HttpHeader.parse(CONTENT_TYPE, ct) match {
+        case HttpHeader.ParsingResult.Ok(`Content-Type`(akkaCt), _) => akkaCt
+        case _ => ContentTypes.NoContentType
+      }
+
+    }
+
+    result.body match {
+      case PlayHttpEntity.Strict(data, _) =>
+        HttpEntity.Strict(contentType, data)
+
+      case PlayHttpEntity.Streamed(data, Some(contentLength), _) =>
+        HttpEntity.Default(contentType, contentLength, data)
+
+      case PlayHttpEntity.Streamed(data, _, _) =>
+        HttpEntity.CloseDelimited(contentType, data)
+
+      case PlayHttpEntity.Chunked(data, _) =>
+        val akkaChunks = data.map {
+          case HttpChunk.Chunk(chunk) =>
+            HttpEntity.Chunk(chunk)
+          case HttpChunk.LastChunk(trailers) if trailers.headers.isEmpty =>
+            HttpEntity.LastChunk
+          case HttpChunk.LastChunk(trailers) =>
+            HttpEntity.LastChunk(trailer = convertHeaders(trailers.headers))
         }
-        streaming match {
-          case ServerResultUtils.StreamWithClose(enum) =>
-            assert(connectionHeader.willClose)
-            valid(HttpEntity.CloseDelimited(
-              contentType = convertedHeaders.contentType,
-              data = dataSource(enum)
-            ))
-          case ServerResultUtils.StreamWithNoBody =>
-            valid(HttpEntity.Empty)
-          case ServerResultUtils.StreamWithKnownLength(enum) =>
-            convertedHeaders.contentLength.get match {
-              case 0 =>
-                valid(HttpEntity.empty(
-                  contentType = convertedHeaders.contentType
-                ))
-              case contentLength =>
-                valid(HttpEntity.Default(
-                  contentType = convertedHeaders.contentType,
-                  contentLength = contentLength,
-                  data = dataSource(enum)
-                ))
-            }
-          case ServerResultUtils.StreamWithStrictBody(body) =>
-            valid(HttpEntity.Strict(
-              contentType = convertedHeaders.contentType,
-              data = if (body.isEmpty) ByteString.empty else ByteString(body)
-            ))
-          case ServerResultUtils.UseExistingTransferEncoding(transferEncodedEnum) =>
-            assert(convertedHeaders.transferEncoding.isDefined) // Guaranteed by ServerResultUtils
-            val transferEncoding = convertedHeaders.transferEncoding.get
-            transferEncoding match {
-              case immutable.Seq(TransferEncodings.chunked) =>
-                valid(HttpEntity.Chunked(
-                  contentType = convertedHeaders.contentType,
-                  chunks = dechunkAndRechunk(transferEncodedEnum)
-                ))
-              case other =>
-                logger.warn(s"Cannot send result, sending error instead: Akka HTTP server only supports 'Transfer-Encoding: chunked', was $other")
-                Left(Results.InternalServerError(""))
-            }
-          case ServerResultUtils.PerformChunkedTransferEncoding(enum) =>
-            val chunksEnum = (
-              enum.map(HttpEntity.ChunkStreamPart(_)) >>>
-              Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
-              Enumerator.eof
-            )
-            val chunksSource = AkkaStreamsConversion.enumeratorToSource(chunksEnum)
-            valid(HttpEntity.Chunked(
-              contentType = convertedHeaders.contentType,
-              chunks = chunksSource
-            ))
-        }
+        HttpEntity.Chunked(contentType, akkaChunks)
     }
   }
 
@@ -232,34 +191,15 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   }
 
   /**
-   * Given a chunk encoded stream, decode it and reencode it in Akka's chunk format.
-   */
-  private def dechunkAndRechunk(chunkEncodedEnum: Enumerator[Array[Byte]]): Source[HttpEntity.ChunkStreamPart, Unit] = {
-    import Execution.Implicits.trampoline
-    val rechunkEnee = Results.dechunkWithTrailers ><> Enumeratee.map[Either[Array[Byte], Seq[(String, String)]]][HttpEntity.ChunkStreamPart] {
-      case Left(bytes) =>
-        HttpEntity.ChunkStreamPart(bytes)
-      case Right(rawHeaderStrings) =>
-        HttpEntity.LastChunk(trailer = convertHeaders(rawHeaderStrings))
-    }
-    val akkaChunksEnum: Enumerator[HttpEntity.ChunkStreamPart] = (chunkEncodedEnum &> rechunkEnee) >>> Enumerator.eof
-    AkkaStreamsConversion.enumeratorToSource(akkaChunksEnum)
-  }
-
-  /**
    * A representation of Akka HTTP headers separate from an `HTTPMessage`.
    * Akka HTTP treats some headers specially and these are split out into
    * separate values.
    *
-   * @misc General headers. Guaranteed not to contain any of the special
+   * @param misc General headers. Guaranteed not to contain any of the special
    * headers stored in the other values.
-   * @contentType If present, the value of the `Content-Type` header.
-   * @contentLength If present, the value of the `Content-Length` header.
    */
   case class AkkaHttpHeaders(
     misc: immutable.Seq[HttpHeader],
-    contentType: ContentType,
-    contentLength: Option[Long],
     transferEncoding: Option[immutable.Seq[TransferEncoding]])
 
   /**
@@ -270,12 +210,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     playHeaders: Map[String, String]): AkkaHttpHeaders = {
     val rawHeaders: Iterable[(String, String)] = ServerResultUtils.splitSetCookieHeaders(playHeaders)
     val convertedHeaders: Seq[HttpHeader] = convertHeaders(rawHeaders)
-    val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, ContentTypes.`application/octet-stream`, None, None)
+    val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, None)
     convertedHeaders.foldLeft(emptyHeaders) {
-      case (accum, ct: `Content-Type`) =>
-        accum.copy(contentType = ct.contentType)
-      case (accum, cl: `Content-Length`) =>
-        accum.copy(contentLength = Some(cl.length))
       case (accum, te: `Transfer-Encoding`) =>
         accum.copy(transferEncoding = Some(te.encodings))
       case (accum, miscHeader) =>

@@ -4,17 +4,18 @@
 package play.api.cache
 
 import java.io._
-import play.api._
+import akka.util.ByteString
+import play.api.http.HttpEntity
 import play.api.mvc._
-import play.api.libs.iteratee.{ Enumerator, Iteratee }
 import scala.annotation.tailrec
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * Wraps a Result to make it Serializable.
  */
 private[play] final class SerializableResult(constructorResult: Result) extends Externalizable {
+
+  assert(Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
+    "Only strict entities can be cached, streamed entities cannot be cached")
 
   /**
    * Create an empty object. Must call `readExternal` after calling
@@ -34,7 +35,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
     cachedResult
   }
   override def readExternal(in: ObjectInput): Unit = {
-    assert(in.readByte() == SerializableResult.encodingVersion)
+    assert(in.readByte() == SerializableResult.encodingVersion, "Result was serialised from a different version of Play")
 
     val status = in.readInt()
 
@@ -50,37 +51,28 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
     }
 
     val body = {
-      val numberOfChunks: Int = in.readInt()
-      val chunks: Array[Array[Byte]] = new Array[Array[Byte]](numberOfChunks)
-      for (i <- 0 until numberOfChunks) {
-        val chunkLength = in.readInt()
-        val chunk = new Array[Byte](chunkLength)
-        @tailrec
-        def readBytes(offset: Int, length: Int): Unit = {
-          if (length > 0) {
-            val readLength = in.read(chunk, offset, length)
-            readBytes(offset + readLength, length - readLength)
-          }
+      val hasContentType = in.readBoolean()
+      val contentType = if (hasContentType) {
+        Some(in.readUTF())
+      } else {
+        None
+      }
+      val sizeOfBody: Int = in.readInt()
+      val buffer = new Array[Byte](sizeOfBody)
+      @tailrec
+      def readBytes(offset: Int, length: Int): Unit = {
+        if (length > 0) {
+          val readLength = in.read(buffer, offset, length)
+          readBytes(offset + readLength, length - readLength)
         }
-        readBytes(0, chunkLength)
-        chunks(i) = chunk
       }
-      Enumerator(chunks: _*) >>> Enumerator.eof
-    }
-
-    val connection = {
-      val connectionInt: Int = in.readInt()
-      connectionInt match {
-        case 1 => HttpConnection.KeepAlive
-        case 2 => HttpConnection.Close
-        case unknown => throw new IOException(s"Can't deserialize HttpConnection coded as: $unknown")
-      }
+      readBytes(0, sizeOfBody)
+      HttpEntity.Strict(ByteString(buffer), contentType)
     }
 
     cachedResult = Result(
       header = ResponseHeader(status, headerMap),
-      body = body,
-      connection = connection
+      body = body
     )
   }
   override def writeExternal(out: ObjectOutput): Unit = {
@@ -98,25 +90,20 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
     }
 
     {
-      val bodyChunks: List[Array[Byte]] = Await.result(cachedResult.body |>>> Iteratee.getChunks[Array[Byte]], Duration.Inf)
-      out.writeInt(bodyChunks.length)
-      for ((chunk, i) <- bodyChunks.zipWithIndex) {
-        out.writeInt(chunk.length)
-        out.write(chunk)
+      out.writeBoolean(cachedResult.body.contentType.nonEmpty)
+      cachedResult.body.contentType.foreach { ct =>
+        out.writeUTF(ct)
       }
-    }
-
-    {
-      val connectionInt: Int = result.connection match {
-        case HttpConnection.KeepAlive => 1
-        case HttpConnection.Close => 2
-        case unknown => throw new IOException(s"Can't serialize HttpConnection value: $unknown")
+      val body = cachedResult.body match {
+        case HttpEntity.Strict(data, _) => data
+        case other => throw new IllegalStateException("Non strict body cannot be materialized")
       }
-      out.writeInt(connectionInt)
+      out.writeInt(body.length)
+      out.write(body.toArray)
     }
   }
 }
 
 private[play] object SerializableResult {
-  val encodingVersion = 1.toByte
+  val encodingVersion = 2.toByte
 }

@@ -32,6 +32,11 @@ class HikariCPConfigSpec extends Specification {
       new HikariCPConfig(dbConfig, reference).toHikariConfig.getJdbcUrl must beEqualTo("jdbc:h2:mem:")
     }
 
+    "set connectionInitSql config" in new Configs {
+      val config = from("hikaricp.connectionInitSql" -> "SELECT 1")
+      new HikariCPConfig(dbConfig, config).toHikariConfig.getConnectionInitSql must beEqualTo("SELECT 1")
+    }
+
     "respect the defaults as" in {
       "autoCommit to true" in new Configs {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.isAutoCommit must beTrue

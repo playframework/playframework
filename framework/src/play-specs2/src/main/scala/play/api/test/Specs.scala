@@ -3,7 +3,6 @@
  */
 package play.api.test
 
-import akka.stream.ActorFlowMaterializer
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
@@ -36,7 +35,7 @@ abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new 
  */
 abstract class WithApplication(val app: Application = FakeApplication()) extends Around with Scope {
   implicit def implicitApp = app
-  implicit def implicitFlowMaterializer = ActorFlowMaterializer()(app.actorSystem)
+  implicit def implicitMaterializer = app.materializer
   override def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
@@ -54,6 +53,7 @@ abstract class WithServer(
     val app: Application = FakeApplication(),
     val port: Int = Helpers.testServerPort,
     val serverProvider: Option[ServerProvider] = None) extends Around with Scope {
+  implicit def implicitMaterializer = app.materializer
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 

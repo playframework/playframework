@@ -56,6 +56,8 @@ libraryDependencies += evolutions
 
 While, if you are not using evolutions, you can now safely remove `evolutionplugin=disabled` from your `application.conf`.
 
+The configuration keys have changed, so instead of `evolutionplugin=disabled` you now need to use `play.evolutions.enabled=false` (See [[Evolutions configuration|Evolutions#Evolutions-configuration]])
+
 If you are using Play Slick module (with or without evolutions), things have changed quite a bit, so make sure to read the [[Play Slick migration guide|PlaySlickMigrationGuide]].
 
 ### IDEs: Eclipse and IntelliJ IDEA
@@ -208,6 +210,10 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 ### GlobalSettings
 
 If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Read the [[`GlobalSettings` migration documentation|GlobalSettings]] for the glory details.
+
+## `Plugin` deprecated
+
+Both Java [`play.Plugin`](api/java/play/Plugin.html) and Scala [`play.api.Plugin`](api/scala/play/api/Plugin.html) types have been deprecated. Read [[migrating Plugin to Module|PluginsToModules]] to update your code to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).
 
 ## Configuration changes
 
@@ -371,11 +377,26 @@ As a result of these changes, your code can now assume that all values of type `
 
 ### Reading Options
 
-`OptionReads` is no longer available by default in 2.4. If you have code of the form `jsv.validate[Option[A]]`, you'll need to either rewrite it or add an additional import:
+`OptionReads` is no longer available by default in 2.4. If you have code of the form `jsv.validate[Option[A]]`, you'll need to rewrite it:
 
 * To get the same result as in 2.3, you can use `JsSuccess(jsv.asOpt[A])`. This will map all validation errors to `None`.
-* To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(optionWithNull[A])`.
-* To map both `JsNull` and an undefined lookup result to `None`, use `jsLookupResult.getOrElse(JsNull).validate(optionWithNull[A])` or similar.
+* To map both `JsNull` and an undefined lookup result to `None`, use `jsv.validateOpt[A]`.
+* To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(Reads.optionWithNull[A])`. If the value does not exist the result will be a `JsError`.
+* 
+
+`Reads` in the form
+```scala
+(JsPath \ "property").read[Option[String]]
+```
+need to be replaced with
+
+```scala
+(JsPath \ "property").readNullable[String]
+```
+
+The same goes for `Writes` with `JsPath.writeNullable` and `Format` with `JsPath.formatNullable`.
+
+Please note that `readNullable` will return a `JsError` if a node could not be found before the last node. Previously a `JsSuccess(None)` was returned.
 
 ## Testing changes
 
@@ -513,6 +534,8 @@ Previously, Play added all the resources to the the `conf` directory in the dist
 
 This can be turned off by setting `PlayKeys.externalizeResources := false`, which will cause no `conf` directory to be created in the distribution, and it will not be on the classpath.  The contents of the applications `conf` directory will still be on the classpath by virtue of the fact that it's included in the applications jar file.
 
+Please note that if you're using the Java Persistence API (JPA) you will need to set this option to false in order to deploy your application. Otherwise you will get an error message: `Entity X is not mapped`. This is not required for local development.
+
 ### Changes in Debian Package creation
 
 The [sbt-native-packager](https://github.com/sbt/sbt-native-packager) has been upgraded. Due to this, the following adjustments might be necessary:
@@ -534,3 +557,16 @@ serverLoading in Debian := SystemV
 ### No more OrderedExecutionContext
 
 The mysterious `OrderedExecutionContext` had [[been retained|Migration22#Concurrent-F.Promise-execution]] in Play for several versions in order to support legacy applications. It was rarely used and has now been removed. If you still need the `OrderedExecutionContext` for some reason, you can create your own implementation based on the [Play 2.3 source](https://github.com/playframework/playframework/blob/2.3.x/framework/src/play/src/main/scala/play/core/j/OrderedExecutionContext.scala). If you haven't heard of this class, then there's nothing you need to do.
+
+### SubProject Assets
+
+Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other. 
+
+To get the asset routing to work correctly in your app, you'll need to change: 
+
+    GET     /assets/*file               controllers.myModule.Assets.at(path="/public", file)
+
+to this
+
+    GET     /assets/*file               controllers.myModule.Assets.at(path="/public/lib/myModule", file)
+

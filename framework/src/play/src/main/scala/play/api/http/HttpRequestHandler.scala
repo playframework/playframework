@@ -5,14 +5,12 @@ package play.api.http
 
 import javax.inject.{ Provider, Inject }
 
-import akka.stream.FlowMaterializer
 import play.api.inject.{ BindingKey, Binding }
 import play.api.libs.streams.Accumulator
 import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
 import play.api.mvc._
 import play.api.routing.Router
-import play.core.actions.HeadAction
 import play.core.j.{ JavaHandler, JavaHandlerComponents }
 import play.utils.Reflect
 
@@ -122,17 +120,18 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
 
       // We automatically permit HEAD requests against any GETs without the need to
       // add an explicit mapping in Routes
-      val missingHandler: Handler = request.method match {
+      request.method match {
         case HttpVerbs.HEAD =>
-          val headAction = routeRequest(request.copy(method = HttpVerbs.GET)) match {
-            case Some(action: EssentialAction) => action
-            case _ => notFoundHandler
+          routeRequest(request.copy(method = HttpVerbs.GET)) match {
+            case Some(action: EssentialAction) => action match {
+              case handler: RequestTaggingHandler => (handler.tagRequest(request), action)
+              case _ => (request, action)
+            }
+            case None => (request, notFoundHandler)
           }
-          new HeadAction(headAction)
         case _ =>
-          notFoundHandler
+          (request, notFoundHandler)
       }
-      (request, missingHandler)
     }
 
     (routedRequest, filterHandler(rh => handler)(routedRequest))

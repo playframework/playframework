@@ -47,7 +47,7 @@ If you must turn on loose options, there are a couple of things you can do to mi
 
 **Environment Scoping**: You can define [environment variables in HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md#substitution-fallback-to-environment-variables) to ensure that any loose options are not hardcoded in configuration files, and therefore cannot escape an development environment.
 
-**Runtime / Deployment Checks**: You can add code to your deployment scripts or program that checks that `ws.ssl.loose` options are not enabled in a production environment.  The runtime mode can be found in the [`Application.mode`](api/scala/play/api/Application.html) method.
+**Runtime / Deployment Checks**: You can add code to your deployment scripts or program that checks that `play.ws.ssl.loose` options are not enabled in a production environment.  The runtime mode can be found in the [`Application.mode`](api/scala/play/api/Application.html) method.
 
 ## Loose Options
 
@@ -72,6 +72,8 @@ play.ws.ssl.loose.acceptAnyCertificate=true
 
 With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](https://mitmproxy.org/).
 
+> Note: By disabling certificate validation, you are also disabling hostname verification!
+
 ### Disabling Weak Ciphers Checking
 
 There are some ciphers which are known to have flaws, and are [disabled](http://sim.ivi.co/2011/08/jsse-oracle-provider-default-disabled.html) in 1.7.  WS will throw an exception if a weak cipher is found in the `ws.ssl.enabledCiphers` list.  If you specifically want a weak cipher, set this flag:
@@ -87,10 +89,12 @@ With weak cipher checking disabled, you are vulnerable to attackers that use for
 If you want to disable hostname verification, you can set a loose flag:
 
 ```
-play.ws.ssl.loose.disableHostnameVerification=true
+play.ws.ssl.loose.acceptAnyCertificate=true
 ```
 
 With hostname verification disabled, a DNS proxy such as `dnschef` can [easily intercept communication](https://tersesystems.com/2014/03/31/testing-hostname-verification/).
+
+> Note: By disabling hostname verification, you are also disabling certificate verification!
 
 ### Disabled Protocols
 

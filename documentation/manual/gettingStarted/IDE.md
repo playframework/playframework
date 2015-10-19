@@ -15,6 +15,13 @@ Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or n
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+
+```scala
+// Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
+EclipseKeys.preTasks := Seq(compile in Compile)
+```
+
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
 If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
@@ -22,7 +29,6 @@ If you do not want to install Scala IDE and have only Java sources in your proje
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes 
-EclipseKeys.preTasks := Seq(compile in Compile)                  // Compile the project before generating Eclipse files, so that .class files for views and routes are present
 ```
 
 ### Generate configuration
@@ -78,6 +84,8 @@ To create a Play application:
 
 IntelliJ IDEA creates an empty application using SBT.
 
+Currently, for Play 2.4.x, instead of using the IntelliJ wizard to create a new project, we suggest that you create it using Activator and then Import it to IntelliJ.
+
 You can also import an existing Play project.
 
 To import a Play project:
@@ -91,8 +99,12 @@ Check the project's structure, make sure all necessary dependencies are download
 
 You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
 
-1. In the project tree, right-click the application.
-2. From the list in the context menu, select ***Run Play2 App***.
+1. Create a new Run Configuration -- From the main menu, select Run -> Edit Configurations
+2. Click on the + to add a new configuration
+3. From the list of configurations, choose "SBT Task"
+4. In the "tasks" input box, simply put "run"
+5. Apply changes and select OK.
+6. Now you can choose "Run" from the main Run menu and run your application
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 

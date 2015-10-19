@@ -4,7 +4,6 @@
 package play.data.format;
 
 import org.springframework.core.*;
-import org.springframework.format.*;
 import org.springframework.core.convert.*;
 import org.springframework.context.i18n.*;
 import org.springframework.format.support.*;
@@ -14,8 +13,6 @@ import java.util.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.*;
-
-import play.libs.F.*;
 
 /**
  * Formatters helper.
@@ -105,7 +102,7 @@ public class Formatters {
         register(Date.class, new Formats.DateFormatter("yyyy-MM-dd"));
         register(Date.class, new Formats.AnnotationDateFormatter());
         register(String.class, new Formats.AnnotationNonEmptyFormatter());
-        registerOption();
+        registerOptional();
     }
 
     /**
@@ -160,41 +157,33 @@ public class Formatters {
     }
 
     /**
-     * Converter for String -> Option and Option -> String
+     * Converter for String -> Optional and Optional -> String
      */
-    private static <T> void registerOption() {
+    private static void registerOptional() {
         conversion.addConverter(new GenericConverter() {
 
             public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
                 if (sourceType.getObjectType().equals(String.class)) {
-                    // From String to Option
-                    Object element = conversion.convert(source, sourceType, targetType.getElementTypeDescriptor());
-                    if (element == null) {
-                        return new None();
-                    } else {
-                        return new Some<Object>(element);
-                    }
+                    // From String to Optional
+                    Object element = conversion.convert(source, sourceType, targetType.elementTypeDescriptor(source));
+                    return Optional.ofNullable(element);
                 } else if (targetType.getObjectType().equals(String.class)) {
-                    // Fromt Option to String
+                    // From Optional to String
                     if (source == null) return "";
 
-                    Option<?> opt = (Option) source;
-                    if (!opt.isDefined()) {
-                        return "";
-                    } else {
-                        return conversion.convert(source, sourceType.getElementTypeDescriptor(), targetType);
-                    }
+                    Optional<?> opt = (Optional) source;
+                    return opt.map(o -> conversion.convert(source, sourceType.getElementTypeDescriptor(), targetType))
+                              .orElse("");
                 }
                 return null;
             }
 
             public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
-                Set<ConvertiblePair> result = new HashSet<ConvertiblePair>();
-                result.add(new ConvertiblePair(Option.class, String.class));
-                result.add(new ConvertiblePair(String.class, Option.class));
+                Set<ConvertiblePair> result = new HashSet<>();
+                result.add(new ConvertiblePair(Optional.class, String.class));
+                result.add(new ConvertiblePair(String.class, Optional.class));
                 return result;
             }
-
         });
     }
 
@@ -236,7 +225,7 @@ public class Formatters {
 
         conversion.addConverter(new ConditionalGenericConverter() {
             public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
-                Set<GenericConverter.ConvertiblePair> types = new HashSet<GenericConverter.ConvertiblePair>();
+                Set<GenericConverter.ConvertiblePair> types = new HashSet<>();
                 types.add(new GenericConverter.ConvertiblePair(clazz, String.class));
                 return types;
             }
@@ -266,7 +255,7 @@ public class Formatters {
 
         conversion.addConverter(new ConditionalGenericConverter() {
             public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
-                Set<GenericConverter.ConvertiblePair> types = new HashSet<GenericConverter.ConvertiblePair>();
+                Set<GenericConverter.ConvertiblePair> types = new HashSet<>();
                 types.add(new GenericConverter.ConvertiblePair(String.class, clazz));
                 return types;
             }

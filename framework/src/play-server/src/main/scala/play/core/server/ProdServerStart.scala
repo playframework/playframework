@@ -115,8 +115,7 @@ object ProdServerStart {
   }
 
   /**
-   * Create a pid file for the current process, and register a hook
-   * to delete the file on process termination.
+   * Create a pid file for the current process.
    */
   def createPidFile(process: ServerProcess, configuration: Configuration): Option[File] = {
     val pidFilePath = configuration.getString("play.server.pidfile.path").getOrElse(throw ServerStartException("Pid file path not configured"))

@@ -4,6 +4,9 @@ package detailedtopics.configuration.ws {
 
 import java.io.File
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+
 import play.api.{Mode, Environment}
 import play.api.libs.json.JsSuccess
 import play.api.libs.ws._
@@ -13,7 +16,15 @@ import play.api.test._
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import scala.concurrent.duration._
 
-class HowsMySSLSpec extends PlaySpecification {
+import org.specs2.specification.AfterAll
+
+class HowsMySSLSpec extends PlaySpecification with AfterAll {
+  val system = ActorSystem("howsMySSLSpec")
+  implicit val materializer = ActorMaterializer()(system)
+
+  def afterAll(): Unit = {
+    system.shutdown()
+  }
 
   def createClient(rawConfig: play.api.Configuration): WSClient = {
     val classLoader = Thread.currentThread().getContextClassLoader
@@ -70,11 +81,11 @@ class HowsMySSLSpec extends PlaySpecification {
         """.stripMargin
 
       val configString = """
-         |//ws.ssl.debug=["certpath", "ssl", "trustmanager"]
-         |ws.ssl.protocol="TLSv1"
-         |ws.ssl.enabledProtocols=["TLSv1"]
+         |//play.ws.ssl.debug=["certpath", "ssl", "trustmanager"]
+         |play.ws.ssl.protocol="TLSv1"
+         |play.ws.ssl.enabledProtocols=["TLSv1"]
          |
-         |ws.ssl.trustManager = {
+         |play.ws.ssl.trustManager = {
          |  stores = [
          |    { type: "PEM", data = ${geotrust.pem} }
          |  ]

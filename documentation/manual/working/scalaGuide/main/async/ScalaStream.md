@@ -58,7 +58,7 @@ def index = Action {
 
 Actually we have a problem here. As we don’t specify the `Content-Length` header, Play will have to compute it itself, and the only way to do this is to consume the whole enumerator content and load it into memory, and then compute the response size.
 
-That’s a problem for large files that we don’t want to load completely into memory. So to avoid that, we just have to specify the `Content-Length` header ourself.
+That’s a problem for large files that we don’t want to load completely into memory. So to avoid that, we just have to specify the `Content-Length` header ourselves.
 
 ```scala
 def index = Action {

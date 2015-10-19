@@ -71,7 +71,7 @@ A virtual host can be specified as a string.
 
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value in milliseconds.
+If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value. An infinite timeout can be set by passing `Duration.Inf`.
 
 @[request-timeout](code/ScalaWSSpec.scala)
 
@@ -93,13 +93,27 @@ The easiest way to post XML data is to use XML literals.  XML literals are conve
 
 @[scalaws-post-xml](code/ScalaWSSpec.scala)
 
+### Streaming data
+
+It's also possible to stream data.
+
+For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](http://slick.typesafe.com/) does), here is an example showing how you could implement the described behavior:
+
+@[scalaws-stream-request](code/ScalaWSSpec.scala)
+
+The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[ByteString, _]`.
+
 ## Processing the Response
 
 Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
 
 The examples given below have some common dependencies that will be shown once here for brevity.
 
-Whenever an operation is done on a `Future`, an implicit execution context must be available - this declares which thread pool the callback to the future should run in.  The default Play execution context is often sufficient:
+Whenever an operation is done on a `Future`, an implicit execution context must be available - this declares which thread pool the callback to the future should run in.  You can inject the default Play execution context in your DI-ed class by declaring an additional dependency to `ExecutionContext` in the class' constructor:
+
+@[scalaws-context-injected](code/ScalaWSSpec.scala)
+
+If you are not using DI, you can still access the default Play execution context:
 
 @[scalaws-context](code/ScalaWSSpec.scala)
 
@@ -125,25 +139,27 @@ You can process the response as an [XML literal](http://www.scala-lang.org/api/c
 
 ### Processing large responses
 
-Calling `get()` or `post()` will cause the body of the request to be loaded into memory before the response is made available.  When you are downloading with large, multi-gigabyte files, this may result in unwelcome garbage collection or even out of memory errors.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
 
-`WS` lets you use the response incrementally by using an [[iteratee|Iteratees]].  The `stream()` and `getStream()` methods on `WSRequest` return `Future[(WSResponseHeaders, Enumerator[Array[Byte]])]`.  The enumerator contains the response body.
+`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `Future[StreamedResponse]`. A `StreamedResponse` is a simple container holding together the response's headers and body.
 
-Here is a trivial example that uses an iteratee to count the number of bytes returned by the response:
+Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
 @[stream-count-bytes](code/ScalaWSSpec.scala)
 
-Of course, usually you won't want to consume large bodies like this, the more common use case is to stream the body out to another location.  For example, to stream the body to a file:
+Alternatively, you could also stream the body out to another location. For example, a file:
 
 @[stream-to-file](code/ScalaWSSpec.scala)
 
-Another common destination for response bodies is to stream them through to a response that this server is currently serving:
+Another common destination for response bodies is to stream them back from a controller's `Action`:
 
 @[stream-to-result](code/ScalaWSSpec.scala)
 
-`POST` and `PUT` calls require manually calling the `withMethod` method, eg:
+As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `withMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
 
 @[stream-put](code/ScalaWSSpec.scala)
+
+Of course, you can use any other valid HTTP verb.
 
 ## Common Patterns and Use Cases
 

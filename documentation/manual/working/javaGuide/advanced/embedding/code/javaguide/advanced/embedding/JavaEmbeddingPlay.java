@@ -3,20 +3,26 @@
  */
 package javaguide.advanced.embedding;
 
-import com.ning.http.client.AsyncHttpClientConfig;
+import java.io.IOException;
+
+import org.asynchttpclient.AsyncHttpClientConfig;
 import org.junit.Test;
 
-import play.libs.F;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 import play.libs.ws.ning.NingWSClient;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 //#imports
+import play.api.Play;
 import play.Mode;
 import play.routing.RoutingDsl;
 import play.server.Server;
 import static play.mvc.Controller.*;
+import akka.stream.Materializer;
 //#imports
 
 import static org.hamcrest.CoreMatchers.*;
@@ -25,7 +31,7 @@ import static org.junit.Assert.*;
 public class JavaEmbeddingPlay {
 
     @Test
-    public void simple() {
+    public void simple() throws Exception {
         //#simple
         Server server = Server.forRouter(new RoutingDsl()
             .GET("/hello/:to").routeTo(to ->
@@ -38,11 +44,15 @@ public class JavaEmbeddingPlay {
         try {
             withClient(ws -> {
                 //#http-port
-                F.Promise<WSResponse> response = ws.url(
+                CompletionStage<WSResponse> response = ws.url(
                     "http://localhost:" + server.httpPort() + "/hello/world"
                 ).get();
                 //#http-port
-                assertThat(response.get(10000).getBody(), equalTo("Hello world"));
+                try {
+                    assertThat(response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody(), equalTo("Hello world"));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             });
         } finally {
             //#stop
@@ -52,7 +62,7 @@ public class JavaEmbeddingPlay {
     }
 
     @Test
-    public void config() {
+    public void config() throws Exception {
         //#config
         Server server = Server.forRouter(new RoutingDsl()
             .GET("/hello/:to").routeTo(to ->
@@ -64,16 +74,23 @@ public class JavaEmbeddingPlay {
         //#config
 
         try {
-            withClient(ws ->
-                assertThat(ws.url("http://localhost:19000/hello/world").get().get(10000).getBody(), equalTo("Hello world"))
+            withClient(ws -> {
+                    try {
+                        assertThat(ws.url("http://localhost:19000/hello/world").get().toCompletableFuture().get(10,
+                                TimeUnit.SECONDS).getBody(), equalTo("Hello world"));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             );
         } finally {
             server.stop();
         }
     }
 
-    private void withClient(Consumer<WSClient> callback) {
-        try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build())) {
+    private void withClient(Consumer<WSClient> callback) throws IOException {
+        Materializer materializer = Play.current().materializer();
+        try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
             callback.accept(client);
         }
     }

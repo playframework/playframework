@@ -15,7 +15,7 @@ import play.api.libs.JNDI
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
-import scala.concurrent.duration.{ FiniteDuration, Duration }
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * BoneCP runtime inject module.
@@ -91,7 +91,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
       override def onQueryExecuteTimeLimitExceeded(handle: ConnectionHandle, statement: Statement, sql: String, logParams: java.util.Map[AnyRef, AnyRef], timeElapsedInNs: Long) {
         val timeMs = timeElapsedInNs / 1000
         val query = PoolUtil.fillLogParams(sql, logParams)
-        logger.warn(s"Query execute time limit exceeded (${timeMs}ms) - query: ${query}")
+        logger.warn(s"Query execute time limit exceeded (${timeMs}ms) - query: $query")
       }
 
     })

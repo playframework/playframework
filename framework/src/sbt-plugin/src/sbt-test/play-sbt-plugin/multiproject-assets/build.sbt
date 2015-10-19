@@ -1,4 +1,5 @@
 import java.net.URLClassLoader
+import com.typesafe.sbt.packager.Keys.executableScriptName
 
 name := "assets-sample"
 
@@ -10,7 +11,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 
 TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
@@ -43,7 +44,7 @@ InputKey[Unit]("checkOnTestClasspath") := {
 }
 
 TaskKey[Unit]("check-assets-jar-on-classpath") := {
-  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / normalizedName.value)
+  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / executableScriptName.value)
   val assetsJar = s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar"
   if (startScript.contains(assetsJar)) {
     println("Found reference to " + assetsJar + " in start script")

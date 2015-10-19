@@ -5,6 +5,7 @@ package play.runsupport
 
 import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
+import java.security.{ PrivilegedAction, AccessController }
 import java.util.jar.JarFile
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
@@ -25,6 +26,27 @@ object Reloader {
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
   val SystemProperty = "-D([^=]+)=(.*)".r
+
+  private val accessControlContext = AccessController.getContext
+
+  /**
+   * Execute f with context ClassLoader of Reloader
+   */
+  private def withReloaderContextClassLoader[T](f: => T): T = {
+    val thread = Thread.currentThread
+    val oldLoader = thread.getContextClassLoader
+    // we use accessControlContext & AccessController to avoid a ClassLoader leak (ProtectionDomain class)
+    AccessController.doPrivileged(new PrivilegedAction[T]() {
+      def run: T = {
+        try {
+          thread.setContextClassLoader(classOf[Reloader].getClassLoader)
+          f
+        } finally {
+          thread.setContextClassLoader(oldLoader)
+        }
+      }
+    }, accessControlContext)
+  }
 
   /**
    * Take all the options in javaOptions of the format "-Dfoo=bar" and return them as a Seq of key value pairs of the format ("foo" -> "bar")
@@ -68,15 +90,9 @@ object Reloader {
 
   def urls(cp: Classpath): Array[URL] = cp.map(_.toURI.toURL).toArray
 
-  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
-    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
-  }
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new NamedURLClassLoader(name, urls, parent)
 
-  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
-    require(parent ne null)
-    override def getResources(name: String): java.util.Enumeration[java.net.URL] = getParent.getResources(name)
-    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
-  }
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new DelegatedResourcesClassLoader(name, urls, parent)
 
   def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader = new AssetsClassLoader(parent, allAssets)
 
@@ -301,36 +317,39 @@ class Reloader(
         changed = false
         forceReloadNextTime = false
 
-        // Run the reload task, which will trigger everything to compile
-        reloadCompile() match {
-          case CompileFailure(exception) =>
-            // We force reload next time because compilation failed this time
-            forceReloadNextTime = true
-            exception
+        // use Reloader context ClassLoader to avoid ClassLoader leaks in sbt/scala-compiler threads
+        Reloader.withReloaderContextClassLoader {
+          // Run the reload task, which will trigger everything to compile
+          reloadCompile() match {
+            case CompileFailure(exception) =>
+              // We force reload next time because compilation failed this time
+              forceReloadNextTime = true
+              exception
 
-          case CompileSuccess(sourceMap, classpath) =>
+            case CompileSuccess(sourceMap, classpath) =>
 
-            currentSourceMap = Some(sourceMap)
+              currentSourceMap = Some(sourceMap)
 
-            // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
-            // they won't trigger a reload.
-            // Use the SBT watch service, passing true as the termination to force it to break after one check
-            val (_, newState) = SourceModificationWatch.watch(PathFinder.strict(classpath).***, 0, watchState)(true)
-            // SBT has a quiet wait period, if that's set to true, sources were modified
-            val triggered = newState.awaitingQuietPeriod
-            watchState = newState
+              // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
+              // they won't trigger a reload.
+              // Use the SBT watch service, passing true as the termination to force it to break after one check
+              val (_, newState) = SourceModificationWatch.watch(PathFinder.strict(classpath).***, 0, watchState)(true)
+              // SBT has a quiet wait period, if that's set to true, sources were modified
+              val triggered = newState.awaitingQuietPeriod
+              watchState = newState
 
-            if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
-              // Create a new classloader
-              val version = classLoaderVersion.incrementAndGet
-              val name = "ReloadableClassLoader(v" + version + ")"
-              val urls = Reloader.urls(classpath)
-              val loader = createClassLoader(name, urls, baseLoader)
-              currentApplicationClassLoader = Some(loader)
-              loader
-            } else {
-              null // null means nothing changed
-            }
+              if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
+                // Create a new classloader
+                val version = classLoaderVersion.incrementAndGet
+                val name = "ReloadableClassLoader(v" + version + ")"
+                val urls = Reloader.urls(classpath)
+                val loader = createClassLoader(name, urls, baseLoader)
+                currentApplicationClassLoader = Some(loader)
+                loader
+              } else {
+                null // null means nothing changed
+              }
+          }
         }
       } else {
         null // null means nothing changed

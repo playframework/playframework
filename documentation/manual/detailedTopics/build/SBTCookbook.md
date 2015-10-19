@@ -1,93 +1,29 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # SBT Cookbook
 
-## Hook actions around `play run`
+## Hooking into Play's dev mode
 
-You can apply actions around the `play run` command by extending `PlayRunHook`.
-This trait define the following methods:
+When Play runs in dev mode, that is, when using `activator run`, it's often useful to hook into this to start up additional processes that are required for development.  This can be done by defining a `PlayRunHook`, which is a trait with the following methods:
 
- * `beforeStarted(): Unit`
- * `afterStarted(addr: InetSocketAddress): Unit`
- * `afterStopped(): Unit`
+ * `beforeStarted(): Unit` - called before the play application is started, but after all "before run" tasks have been completed.
+ * `afterStarted(addr: InetSocketAddress): Unit` - called after the play application has been started.
+ * `afterStopped(): Unit` - called after the play process has been stopped.
 
-`beforeStarted` method is called before the play application is started, but after all "before run" tasks have been completed.
+Now let's say you want to build a Web application with `grunt` before the application is started.  First, you need to create a Scala object in the `project/` directory to extend `PlayRunHook`.  Let's name it `Grunt.scala`:
 
-`afterStarted` method is called after the play application has been started.
+@[grunt-before-started](code/runhook.sbt)
 
-`afterStopped` method is called after the play process has been stopped.
+Now you can register this hook in `build.sbt`:
 
-> **Note:** The following example illustrate how you can start and stop a command with play run hook.
-> In the near future [sbt-web](https://github.com/sbt/sbt-web) will provide a better way to integrate Grunt with an SBT build.
+@[grunt-build-sbt](code/runhook.sbt)
 
-Now let's say you want to build a Web application with `grunt` before the application is started.
-First, you need to create a Scala object in the `project/` directory to extend `PlayRunHook`.
-Let's name it `Grunt.scala`:
+This will execute the `grunt dist` command in `baseDirectory` before the application is started whenever you run `activator run`.
 
-```scala
-import play.PlayRunHook
-import sbt._
+Now we want to modify our run hook to execute the `grunt watch` command to observe changes and rebuild the Web application when they happen, so we'll modify the `Grunt.scala` file we created before:
 
-object Grunt {
-  def apply(base: File): PlayRunHook = {
+@[grunt-watch](code/runhook.sbt)
 
-    object GruntProcess extends PlayRunHook {
-
-      override def beforeStarted(): Unit = {
-        Process("grunt dist", base).run
-      }
-    }
-
-    GruntProcess
-  }
-}
-```
-
-Then in the `build.sbt` file you need to register this hook:
-
-```scala
-import Grunt._
-import play.PlayImport.PlayKeys.playRunHooks
-
-playRunHooks <+= baseDirectory.map(base => Grunt(base))
-```
-
-This will execute the `grunt dist` command in `baseDirectory` before the application is started.
-
-Now we want to execute `grunt watch` command to observe changes and rebuild the Web application when that happen:
-
-```scala
-import play.PlayRunHook
-import sbt._
-
-import java.net.InetSocketAddress
-
-object Grunt {
-  def apply(base: File): PlayRunHook = {
-
-    object GruntProcess extends PlayRunHook {
-
-      var process: Option[Process] = None
-
-      override def beforeStarted(): Unit = {
-        Process("grunt dist", base).run
-      }
-
-      override def afterStarted(addr: InetSocketAddress): Unit = {
-        process = Some(Process("grunt watch", base).run)
-      }
-
-      override def afterStopped(): Unit = {
-        process.map(p => p.destroy())
-        process = None
-      }
-    }
-
-    GruntProcess
-  }
-}
-```
-
-Once the application has been started we execute `grunt watch` and when the application has been stopped we destroy the grunt process. There's nothing to change in `build.sbt`
+Now when the application is started using `activator run`, `grunt watch` will be executed to rerun the grunt build whenever files change.
 
 ## Add compiler options
 
@@ -100,17 +36,13 @@ For example, you may want to add the feature flag to have details on feature war
 
 Simply add `-feature` to the `scalacOptions` attribute:
 
-```scala
-scalacOptions += "-feature"
-```
+@[compiler-options](code/cookbook.sbt)
 
 ## Add additional asset directory
 
 For example you can add the `pictures` folder to be included as an additional asset directory:
 
-```scala
-unmanagedResourceDirectories in Assets <+= baseDirectory { _ / "pictures" }
-```
+@[add-assets](code/cookbook.sbt)
 
 This will allow you to use `routes.Assets.at` with this folder.
 
@@ -118,11 +50,7 @@ This will allow you to use `routes.Assets.at` with this folder.
 
 To speed up compilation you can disable documentation generation:
 
-```scala
-sources in (Compile, doc) := Seq.empty
-
-publishArtifact in (Compile, packageDoc) := false
-```
+@[disable-scaladoc](code/cookbook.sbt)
 
 The first line will disable documentation generation and the second one will avoid to publish the documentation artifact.
 
@@ -135,16 +63,10 @@ By default `ivyLoggingLevel` is set on `UpdateLogging.DownloadOnly`. You can cha
 
 For example if you want to only display errors:
 
-```scala
-ivyLoggingLevel := UpdateLogging.Quiet
-```
+@[ivy-logging](code/cookbook.sbt)
 
 ## Fork and parallel execution in test
 
 By default parallel execution is disabled and fork is enabled. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
 
-```scala
-parallelExecution in Test := true
-
-fork in Test := false
-```
+@[fork-parallel-test](code/cookbook.sbt)

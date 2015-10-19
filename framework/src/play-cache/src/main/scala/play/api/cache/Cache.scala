@@ -4,16 +4,15 @@
 package play.api.cache
 
 import javax.inject._
-
 import play.api._
 import play.api.inject.{ BindingKey, Injector, ApplicationLifecycle, Module }
-
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-
 import scala.concurrent.duration._
-
 import play.cache.{ CacheApi => JavaCacheApi, DefaultCacheApi => DefaultJavaCacheApi, NamedCacheImpl }
+
+import net.sf.ehcache._
+import com.google.common.primitives.Primitives
 
 /**
  * The cache API
@@ -132,8 +131,6 @@ object Cache {
   }
 }
 
-import net.sf.ehcache._
-
 /**
  * EhCache components for compile time injection
  */
@@ -148,8 +145,7 @@ trait EhCacheComponents {
    * Use this to create with the given name.
    */
   def cacheApi(name: String): CacheApi = {
-    ehCacheManager.addCache(name)
-    new EhCacheApi(ehCacheManager.getEhcache(name))
+    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager))
   }
 
   lazy val defaultCacheApi: CacheApi = cacheApi("play")
@@ -207,9 +203,20 @@ class CacheManagerProvider @Inject() (env: Environment, config: Configuration, l
 
 private[play] class NamedEhCacheProvider(name: String) extends Provider[Ehcache] {
   @Inject private var manager: CacheManager = _
-  lazy val get: Ehcache = {
+  lazy val get: Ehcache = NamedEhCacheProvider.getNamedCache(name, manager)
+}
+
+private[play] object NamedEhCacheProvider {
+  def getNamedCache(name: String, manager: CacheManager) = try {
     manager.addCache(name)
     manager.getEhcache(name)
+  } catch {
+    case e: ObjectExistsException =>
+      throw new EhCacheExistsException(
+        s"""An EhCache instance with name '$name' already exists.
+           |
+           |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
+         """.stripMargin, e)
   }
 }
 
@@ -234,6 +241,8 @@ private[play] class NamedCachedProvider(key: BindingKey[CacheApi]) extends Provi
   }
 }
 
+private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
+
 @Singleton
 class EhCacheApi @Inject() (cache: Ehcache) extends CacheApi {
 
@@ -254,11 +263,11 @@ class EhCacheApi @Inject() (cache: Ehcache) extends CacheApi {
     cache.put(element)
   }
 
-  def get[T](key: String)(implicit ct: ClassTag[T]) = {
-    Option(cache.get(key)).map(_.getObjectValue).collect {
-      case tValue if ct.runtimeClass.isInstance(tValue) => tValue.asInstanceOf[T]
-      case tValue if ct == ClassTag.Nothing => tValue.asInstanceOf[T]
-    }
+  def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
+    Option(cache.get(key)).map(_.getObjectValue).filter { v =>
+      Primitives.wrap(ct.runtimeClass).isInstance(v) ||
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+    }.asInstanceOf[Option[T]]
   }
 
   def getOrElse[A: ClassTag](key: String, expiration: Duration)(orElse: => A) = {

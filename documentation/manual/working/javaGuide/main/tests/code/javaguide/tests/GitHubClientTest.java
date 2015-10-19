@@ -1,7 +1,9 @@
 package javaguide.tests;
 
 //#content
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.*;
 import play.api.routing.Router;
@@ -39,14 +41,19 @@ public class GitHubClientTest {
     }
 
     @After
-    public void tearDown() {
-        ws.close();
-        server.stop();
+    public void tearDown() throws IOException {
+        try {
+            ws.close();
+        }
+        finally {
+            server.stop();
+        }
     }
 
     @Test
-    public void repositories() {
-        List<String> repos = client.getRepositories().get(10000);
+    public void repositories() throws Exception {
+        List<String> repos = client.getRepositories()
+                .toCompletableFuture().get(10, TimeUnit.SECONDS);
         assertThat(repos, hasItem("octocat/Hello-World"));
     }
 }

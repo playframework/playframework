@@ -1,11 +1,10 @@
 package play.it.http.parsing
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText, number }
 import play.api.http.Writeable
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc.{ BodyParser, BodyParsers, Result, Results }
 import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
@@ -16,10 +15,10 @@ class FormBodyParserSpec extends PlaySpecification {
 
   "The form body parser" should {
 
-    def parse[A, B](body: B, bodyParser: BodyParser[A])(implicit W: Writeable[B], mat: FlowMaterializer): Either[Result, A] = {
+    def parse[A, B](body: B, bodyParser: BodyParser[A])(implicit writeable: Writeable[B], mat: Materializer): Either[Result, A] = {
       await(
-        bodyParser(FakeRequest().withHeaders(W.contentType.map(CONTENT_TYPE -> _).toSeq: _*))
-          .run(Source.single(W.transform(body)))
+        bodyParser(FakeRequest().withHeaders(writeable.contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(writeable.transform(body)))
       )
     }
 

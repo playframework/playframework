@@ -4,6 +4,7 @@
 package play.it.http.assets
 
 import controllers.Assets
+import play.api.Play
 import play.api.libs.ws.WSClient
 import play.api.test._
 import org.apache.commons.io.IOUtils
@@ -29,6 +30,7 @@ trait AssetsSpec extends PlaySpecification
       Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {
         case req => Assets.versioned("/testassets", req.path)
       } { implicit port =>
+        implicit val materializer = Play.current.materializer
         withClient(block)
       }
     }
@@ -89,7 +91,7 @@ trait AssetsSpec extends PlaySpecification
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       //result.header(CONTENT_ENCODING) must beSome("gzip")
-      val ahcResult: com.ning.http.client.Response = result.underlying.asInstanceOf[com.ning.http.client.Response]
+      val ahcResult: org.asynchttpclient.Response = result.underlying.asInstanceOf[org.asynchttpclient.Response]
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
       IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
       // release deflate resources
@@ -208,6 +210,7 @@ trait AssetsSpec extends PlaySpecification
         Server.withRouter() {
           case req => Assets.versioned("/scala", req.path)
         } { implicit port =>
+          implicit val materializer = Play.current.materializer
           withClient { client =>
             await(client.url("/collection").get()).status must_== NOT_FOUND
           }

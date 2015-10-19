@@ -5,8 +5,6 @@ package play.mvc;
 
 import java.util.*;
 
-import play.libs.F.*;
-
 /**
  * Binder for query string parameters.
  *
@@ -20,17 +18,17 @@ import play.libs.F.*;
  *     public int index;
  *     public int size;
  *
- *     public Option&lt;Pager&gt; bind(String key, Map&lt;String, String[]&gt; data) {
+ *     public Optional&lt;Pager&gt; bind(String key, Map&lt;String, String[]&gt; data) {
  *         if (data.contains(key + ".index" &amp;&amp; data.contains(key + ".size") {
  *             try {
  *                 index = Integer.parseInt(data.get(key + ".index")[0]);
  *                 size = Integer.parseInt(data.get(key + ".size")[0]);
- *                 return Some(this);
+ *                 return Optional.&lt;Pager&gt;ofNullable(this);
  *             } catch (NumberFormatException e) {
- *                 return None();
+ *                 return Optional.&lt;Pager&gt;empty();
  *             }
  *         } else {
- *             return None();
+ *             return Optional.&lt;Pager&gt;empty();
  *         }
  *     }
  *
@@ -65,7 +63,7 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      * @return An instance of this class (it could be this class) if the query string data can be bound to this type,
      *      or None if it couldn't.
      */
-    public Option<T> bind(String key, Map<String,String[]> data);
+    Optional<T> bind(String key, Map<String,String[]> data);
     
     /**
      * Unbind a query string parameter.  This should return a query string fragment, in the form
@@ -73,13 +71,12 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      *
      * @param key Parameter key
      */
-    public String unbind(String key);
+    String unbind(String key);
     
     /**
      * Javascript function to unbind in the Javascript router.
      *
      * If this bindable just represents a single value, you may return null to let the default implementation handle it.
      */
-    public String javascriptUnbind();
-    
+    String javascriptUnbind();
 }

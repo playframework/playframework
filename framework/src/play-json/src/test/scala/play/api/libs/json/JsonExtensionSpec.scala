@@ -43,16 +43,16 @@ object Program {
 
 case class Person(name: String, age: Int)
 object Person {
-  implicit val personReads = Json.reads[Person]
-  implicit val personWrites = Json.writes[Person]
+  implicit val personReads: Reads[Person] = Json.reads[Person]
+  implicit val personWrites: OWrites[Person] = Json.writes[Person]
 }
 
 package foreign {
   case class Foreigner(name: String)
 }
 object ForeignTest {
-  implicit val foreignerReads = Json.reads[foreign.Foreigner]
-  implicit val foreignerWrites = Json.writes[foreign.Foreigner]
+  implicit val foreignerReads: Reads[foreign.Foreigner] = Json.reads[foreign.Foreigner]
+  implicit val foreignerWrites: OWrites[foreign.Foreigner] = Json.writes[foreign.Foreigner]
 }
 
 import play.api.libs.json._
@@ -68,7 +68,12 @@ case class VarArgsOnly(ints: Int*)
 case class LastVarArg(name: String, ints: Int*)
 
 object Person2 {
-  implicit val person2Fmt = Json.format[Person2]
+  implicit val person2Fmt: OFormat[Person2] = Json.format[Person2]
+}
+
+case class CustomApply(a: Int, b: String)
+object CustomApply {
+  def apply(): CustomApply = apply(10, "foo")
 }
 
 object JsonExtensionSpec extends Specification {
@@ -544,6 +549,16 @@ object JsonExtensionSpec extends Specification {
       implicit val toto2Writes = Json.writes[Toto2]
       implicit val toto2Format = Json.format[Toto2]
       success
+    }
+
+    "create a format[CustomApply]" in {
+      import play.api.libs.json.Json
+
+      implicit val fmt = Json.format[CustomApply]
+
+      Json.fromJson[CustomApply](Json.obj("a" -> 5, "b" -> "foo")) must beEqualTo(JsSuccess(CustomApply(5, "foo")))
+      Json.toJson(CustomApply(5, "foo")) must beEqualTo(Json.obj("a" -> 5, "b" -> "foo"))
+      Json.toJson(CustomApply()) must beEqualTo(Json.obj("a" -> 10, "b" -> "foo"))
     }
 
   }

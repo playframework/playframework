@@ -3,11 +3,13 @@
  */
 package play.data
 
+import java.util
+import java.util.Optional
+
 import org.specs2.mutable.Specification
 import play.mvc.Http.{ Context, Request, RequestBuilder }
 import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
-import play.libs.F
 import play.twirl.api.Html
 
 object FormSpec extends Specification {
@@ -76,9 +78,24 @@ object FormSpec extends Specification {
 
     }
 
-    "support option deserialization" in {
+    "support optional deserialization of a common map" in {
+      val data = new util.HashMap[String, String]()
+      data.put("name", "kiwi")
+
+      val userForm1: Form[AnotherUser] = Form.form(classOf[AnotherUser])
+      val user1 = userForm1.bind(new java.util.HashMap[String, String]()).get()
+      user1.getCompany.isPresent must beFalse
+
+      data.put("company", "Acme")
+
+      val userForm2: Form[AnotherUser] = Form.form(classOf[AnotherUser])
+      val user2 = userForm2.bind(data).get()
+      user2.getCompany.isPresent must beTrue
+    }
+
+    "support optional deserialization of a request" in {
       val user1 = Form.form(classOf[AnotherUser]).bindFromRequest(dummyRequest(Map("name" -> Array("Kiki")))).get
-      user1.getCompany.isDefined must beEqualTo(false)
+      user1.getCompany.isPresent must beEqualTo(false)
 
       val user2 = Form.form(classOf[AnotherUser]).bindFromRequest(dummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme")))).get
       user2.getCompany.get must beEqualTo("Acme")
@@ -147,7 +164,7 @@ object FormSpec extends Specification {
         // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
         // used come from the form, not the input data
         new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-          Map.empty.asJava, F.None().asInstanceOf[F.Option[JavaForm]], null)
+          Map.empty.asJava, Optional.empty[JavaForm], null)
       }
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {

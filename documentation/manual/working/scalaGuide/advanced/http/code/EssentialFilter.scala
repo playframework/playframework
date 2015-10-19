@@ -1,17 +1,22 @@
 package scalaguide.advanced.filters.essential
 
 // #essential-filter-example
+import javax.inject.Inject
+import akka.util.ByteString
 import play.api.Logger
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.ExecutionContext
 
-object LoggingFilter extends EssentialFilter {
+class LoggingFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter {
   def apply(nextFilter: EssentialAction) = new EssentialAction {
     def apply(requestHeader: RequestHeader) = {
 
       val startTime = System.currentTimeMillis
 
-      nextFilter(requestHeader).map { result =>
+      val accumulator: Accumulator[ByteString, Result] = nextFilter(requestHeader)
+
+      accumulator.map { result =>
 
         val endTime = System.currentTimeMillis
         val requestTime = endTime - startTime

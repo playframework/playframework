@@ -19,7 +19,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 )
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {

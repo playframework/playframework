@@ -3,12 +3,12 @@
  */
 package scalaguide.http.scalaactions {
 
+import akka.util.ByteString
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable.Specification
 import play.api.libs.json._
-import play.api.libs.iteratee.Enumerator
 import scala.concurrent.Future
 import org.specs2.execute.AsResult
 
@@ -83,16 +83,17 @@ object ScalaActionsSpec extends Specification with Controller {
 
     "support returning a simple result" in {
       //#simple-result-action
+      import play.api.http.HttpEntity
+
       def index = Action {
         Result(
-          header = ResponseHeader(200, Map(CONTENT_TYPE -> "text/plain")),
-          body = Enumerator("Hello world!".getBytes())
+          header = ResponseHeader(200, Map.empty),
+          body = HttpEntity.Strict(ByteString("Hello world!"), Some("text/plain"))
         )
       }
       //#simple-result-action
       assertAction(index) { result =>
         contentAsString(result) must_== "Hello world!"
-        header(CONTENT_TYPE, result) must be some "text/plain"
       }
     }
 

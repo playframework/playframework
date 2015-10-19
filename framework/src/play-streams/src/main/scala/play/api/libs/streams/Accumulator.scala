@@ -1,6 +1,6 @@
 package play.api.libs.streams
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{ Source, Keep, Flow, Sink }
 import org.reactivestreams.{ Publisher, Subscription, Subscriber }
 
@@ -61,14 +61,14 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
   /**
    * Run this accumulator by feeding in the given source.
    */
-  def run(source: Source[E, _])(implicit materializer: FlowMaterializer): Future[A] = {
+  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
     source.toMat(sink)(Keep.right).run()
   }
 
   /**
    * Run this accumulator by feeding a completed source into it.
    */
-  def run()(implicit materializer: FlowMaterializer): Future[A] = {
+  def run()(implicit materializer: Materializer): Future[A] = {
     run(Source.empty)
   }
 
@@ -83,12 +83,22 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
    *   val intFuture = source ~>: intAccumulator
    * }}}
    */
-  def ~>:(source: Source[E, _])(implicit materializer: FlowMaterializer): Future[A] = run(source)
+  def ~>:(source: Source[E, _])(implicit materializer: Materializer): Future[A] = run(source)
 
   /**
    * Convert this accumulator to a Sink that gets materialised to a Future.
    */
   def toSink: Sink[E, Future[A]] = sink
+
+  import scala.annotation.unchecked.{ uncheckedVariance => uV }
+  /**
+   * Convert this accumulator to a Java Accumulator.
+   *
+   * @return The Java accumulator.
+   */
+  def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
+    play.libs.streams.Accumulator.fromSink(sink.asJava)
+  }
 }
 
 object Accumulator {
@@ -115,9 +125,25 @@ object Accumulator {
   def done[A](a: Future[A]): Accumulator[Any, A] = new Accumulator(Sink.cancelled[Any].mapMaterializedValue(_ => a))
 
   /**
+   * Create an accumulator that forwards the stream fed into it to the source it produces.
+   *
+   * This is useful for when you want to send the consumed stream to another API that takes a Source as input.
+   *
+   * Extreme care must be taken when using this accumulator - the source *must always* be materialized and consumed.
+   * If it isn't, this could lead to resource leaks and deadlocks upstream.
+   *
+   * @return An accumulator that forwards the stream to the produced source.
+   */
+  def source[E]: Accumulator[E, Source[E, _]] = {
+    // If Akka streams ever provides Sink.source(), we should use that instead.
+    // https://github.com/akka/akka/issues/18406
+    Accumulator(Sink.publisher[E].mapMaterializedValue(publisher => Future.successful(Source(publisher))))
+  }
+
+  /**
    * Flatten a future of an accumulator to an accumulator.
    */
-  def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: FlowMaterializer): Accumulator[E, A] = {
+  def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Accumulator[E, A] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     // Ideally, we'd use the following code, except due to akka streams bugs...

@@ -4,6 +4,7 @@
 package play.core.server
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
 import play.api.{ Application, Configuration }
 import play.core.ApplicationProvider
 import scala.concurrent.Future
@@ -21,7 +22,7 @@ trait ServerProvider {
    * Create a server for a given application.
    */
   final def createServer(config: ServerConfig, app: Application): Server =
-    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, () => Future.successful(())))
+    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, app.materializer, () => Future.successful(())))
 }
 
 object ServerProvider {
@@ -39,6 +40,7 @@ object ServerProvider {
     config: ServerConfig,
     appProvider: ApplicationProvider,
     actorSystem: ActorSystem,
+    materializer: Materializer,
     stopHook: () => Future[Unit])
 
   /**

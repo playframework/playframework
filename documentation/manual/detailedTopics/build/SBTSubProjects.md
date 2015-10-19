@@ -122,7 +122,7 @@ lazy val main = (project in file("."))
 name := "myadmin"
 
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "5.1.35",
+  "mysql" % "mysql-connector-java" % "5.1.36",
   jdbc,
   anorm
 )
@@ -153,7 +153,7 @@ project
   └ plugins.sbt
 ```
 
-> **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `Keys.devSettings += ("play.http.router", "admin.Routes")`.
+> **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `PlayKeys.devSettings += ("play.http.router", "admin.Routes")`.
 
 `conf/routes`:
 
@@ -167,21 +167,16 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 
 `modules/admin/conf/admin.routes`:
 
-```
-GET /index                  controllers.admin.Application.index()
+@[assets-routes](code/detailedtopics.build.subprojects.assets.routes)
 
-GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
-
-```
+> **Note:** Resources are served from a unique classloader, and thus resource path must be relative from project classpath root.
+> Subprojects resources are generated in `target/web/public/main/lib/{module-name}`, so the resources are accessible from `/public/lib/{module-name}` when using `play.api.Application#resources(uri)` method, which is what the `Assets.at` method does.
 
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
 `modules/admin/controllers/Assets.scala`:
 
-```scala
-package controllers.admin
-object Assets extends controllers.AssetsBuilder
-```
+@[assets-builder](code/SubProjectsAssetsBuilder.scala)
 
 > **Note:** Java users can do something very similar i.e.:
 

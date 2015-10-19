@@ -90,7 +90,7 @@ object CORSConfig {
         }.getOrElse(_ => true),
       isHttpHeaderAllowed =
         config.get[Option[Seq[String]]]("allowedHttpHeaders").map { headers =>
-          val s = headers.map(_.toLowerCase).toSet
+          val s = headers.map(_.toLowerCase(java.util.Locale.ENGLISH)).toSet
           s.contains _
         }.getOrElse(_ => true),
       exposedHeaders =

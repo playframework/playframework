@@ -35,7 +35,7 @@ public class JavaSessionFlash extends WithApplication {
                         }
                     }
                     //#read-session
-                }, fakeRequest().session("connected", "foo"))),
+                }, fakeRequest().session("connected", "foo"), mat)),
                 equalTo("Hello foo"));
     }
 
@@ -48,7 +48,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok("Welcome!");
             }
             //#store-session
-        }, fakeRequest()).session();
+        }, fakeRequest(), mat).session();
         assertThat(session.get("connected"), equalTo("user@gmail.com"));
     }
 
@@ -61,7 +61,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok("Bye");
             }
             //#remove-from-session
-        }, fakeRequest().session("connected", "foo")).session();
+        }, fakeRequest().session("connected", "foo"), mat).session();
         assertThat(session.get("connected"), nullValue());
     }
 
@@ -74,7 +74,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok("Bye");
             }
             //#discard-whole-session
-        }, fakeRequest().session("connected", "foo")).session();
+        }, fakeRequest().session("connected", "foo"), mat).session();
         assertThat(session.get("connected"), nullValue());
     }
 
@@ -90,7 +90,7 @@ public class JavaSessionFlash extends WithApplication {
                         return ok(message);
                     }
                     //#read-flash
-                }, fakeRequest().flash("success", "hi"))),
+                }, fakeRequest().flash("success", "hi"), mat)),
                 equalTo("hi"));
     }
 
@@ -103,7 +103,7 @@ public class JavaSessionFlash extends WithApplication {
                 return redirect("/home");
             }
             //#store-flash
-        }, fakeRequest()).flash();
+        }, fakeRequest(), mat).flash();
         assertThat(flash.get("success"), equalTo("The item has been created"));
     }
 
@@ -114,7 +114,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok(javaguide.http.views.html.index.render());
             }
         };
-        assertThat(contentAsString(call(index, fakeRequest())).trim(), equalTo("Welcome!"));
-        assertThat(contentAsString(call(index, fakeRequest().flash("success", "Flashed!"))).trim(), equalTo("Flashed!"));
+        assertThat(contentAsString(call(index, fakeRequest(), mat)).trim(), equalTo("Welcome!"));
+        assertThat(contentAsString(call(index, fakeRequest().flash("success", "Flashed!"), mat)).trim(), equalTo("Flashed!"));
     }
 }

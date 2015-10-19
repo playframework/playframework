@@ -128,4 +128,34 @@ object WritesSpec extends org.specs2.mutable.Specification {
         aka("written date") must_== JsString(format(customPattern1, instant))
     }
   }
+
+  "OWrites" should {
+    val writes = OWrites[Foo] { foo =>
+      Json.obj("bar" -> foo.bar)
+    }
+    val time = System.currentTimeMillis()
+
+    "be transformed with JsObject function" in {
+      val transformed: OWrites[Foo] = writes.transform({ obj: JsObject =>
+        obj ++ Json.obj("time" -> time)
+      })
+      val written: JsObject = transformed.writes(Foo("Lorem"))
+
+      written must_== Json.obj("bar" -> "Lorem", "time" -> time)
+    }
+
+    "be transformed with another OWrites" in {
+      val transformed: OWrites[Foo] =
+        writes.transform(OWrites[JsObject] { obj =>
+          obj ++ Json.obj("time" -> time)
+        })
+      val written: JsObject = transformed.writes(Foo("Lorem"))
+
+      written must_== Json.obj("bar" -> "Lorem", "time" -> time)
+    }
+  }
+
+  // ---
+
+  case class Foo(bar: String)
 }

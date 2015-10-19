@@ -5,18 +5,18 @@ package play.api.libs.concurrent
 
 import java.lang.reflect.Method
 
-import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.util.Types
 import com.google.inject.{ Binder, Key, AbstractModule }
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.typesafe.config.Config
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{Executor, TimeoutException}
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ Binding, Injector, ApplicationLifecycle, bind }
 import play.core.ClosableLazy
 import akka.actor._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContextExecutor, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
@@ -265,15 +265,15 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
  * Provider for the default flow materializer
  */
 @Singleton
-class FlowMaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[FlowMaterializer] {
-  lazy val get: FlowMaterializer = ActorFlowMaterializer()(actorSystem)
+class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
+  lazy val get: Materializer = ActorMaterializer()(actorSystem)
 }
 
 /**
  * Provider for the default execution context
  */
 @Singleton
-class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContext] {
+class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get = actorSystem.dispatcher
 }
 
@@ -298,10 +298,10 @@ object ActorSystemProvider {
 
     val name = config.get[String]("play.akka.actor-system")
     val system = ActorSystem(name, akkaConfig, classLoader)
-    logger.info(s"Starting application default Akka system: $name")
+    logger.debug(s"Starting application default Akka system: $name")
 
     val stopHook = { () =>
-      logger.info(s"Shutdown application default Akka system: $name")
+      logger.debug(s"Shutdown application default Akka system: $name")
       system.shutdown()
 
       config.get[Duration]("play.akka.shutdown-timeout") match {

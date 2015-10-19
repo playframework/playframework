@@ -44,7 +44,7 @@ object SomeFeatureSpec extends Specification {
 
 In the above case, the ``val msg = ...`` line will be extracted and rendered as code in the page.  All code samples should be checked to ensure they compile, run, and if it makes sense, ensure that it does what the documentation says it does.  It should not try to test the features themselves.
 
-All code samples get run on the same classloader.  Consequently they must all be well namespaced, within a package that corresponds to the part of the documentation they are associated with.
+All scala/java/routes/templates code samples get run on the same classloader.  Consequently they must all be well namespaced, within a package that corresponds to the part of the documentation they are associated with.
 
 In some cases, it may not be possible for the code that should appear in the documentation to exactly match the code that you can write given the above guidelines.  In particular, some code samples require the use of package names like `controllers`.  As a last resort if there are no other ways around this, there are a number of directives you can put in the code to instruct the code samples extractor to modify the sample.  These are:
 
@@ -86,7 +86,7 @@ All Java code samples should be tested using JUnit.  Simple code samples are usu
 
 Scala template code samples should be tested either with Specs in Scala or JUnit in Java.  Note that templates are compiled with different default imports, depending on whether they live in the Scala documentation or the Java documentation.  It is therefore also important to test them in the right context, if a template is relying on Java thread locals, they should be tested from a Java action.
 
-Where possible, template code samples should be consoloditated in a single file, but this may not always be possible, for example if the code sample contains a parameter declaration.
+Where possible, template code samples should be consolidated in a single file, but this may not always be possible, for example if the code sample contains a parameter declaration.
 
 ### Routes files
 
@@ -96,7 +96,7 @@ The routes compiler used by the documentation runs in a special mode that genera
 
 ### SBT code
 
-At current, SBT code samples cannot be pulled out of the documentation, since compiling and running them will require a very custom SBT setup involving using completely different classloaders and classpaths.
+SBT code samples should be extracted to `*.sbt` files.  These files get tested separately by the `evaluateSbtFiles` task, which compiles and runs them - by load, it means it runs the settings definitions (ie, builds a `Seq[Setting[_]]`, but doesn't actually run the tasks or settings declared.  The classloader used to run these is the same as the SBT classloader, so any plugins that the code snippets require need to be plugins to the sbt project.
 
 ### Other code
 

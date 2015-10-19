@@ -7,7 +7,6 @@ import play.api.libs.streams.Accumulator
 import play.it._
 import play.api.mvc._
 import play.api.test._
-import play.api.libs.iteratee._
 
 object NettyExpect100ContinueSpec extends Expect100ContinueSpec with NettyIntegrationSpecification
 object AkkaHttpExpect100ContinueSpec extends Expect100ContinueSpec with AkkaHttpIntegrationSpecification
@@ -27,7 +26,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
       }
     }
 
-    "honour 100 continue" in withServer(Action(Results.Ok)) { port =>
+    "honour 100 continue" in withServer(Action(req => Results.Ok)) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "10"), "abcdefghij")
       )
@@ -64,7 +63,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
       }
 
     "leave the Netty pipeline in the right state after accepting a 100 continue request" in withServer(
-      Action(Results.Ok)
+      Action(req => Results.Ok)
     ) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "10"), "abcdefghij"),

@@ -3,6 +3,8 @@
  */
 package play.db.jpa;
 
+import java.util.function.Supplier;
+
 import javax.persistence.EntityManager;
 import play.libs.F;
 
@@ -13,6 +15,8 @@ public interface JPAApi {
 
     /**
      * Initialise JPA entity manager factories.
+     *
+     * @return JPAApi instance
      */
     public JPAApi start();
 
@@ -20,6 +24,7 @@ public interface JPAApi {
      * Get the EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
+     * @return EntityManager for the specified persistence unit name
      */
     public EntityManager em(String name);
 
@@ -27,18 +32,22 @@ public interface JPAApi {
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
-    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable;
+    public <T> T withTransaction(Supplier<T> block);
 
     /**
      * Run a block of asynchronous code in a JPA transaction.
      *
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      *
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+    public <T> F.Promise<T> withTransactionAsync(Supplier<F.Promise<T>> block);
 
     /**
      * Run a block of code in a JPA transaction.
@@ -53,8 +62,10 @@ public interface JPAApi {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
-    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable;
+    public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block);
 
     /**
      * Run a block of asynchronous code in a JPA transaction.
@@ -62,11 +73,13 @@ public interface JPAApi {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
+     * @param <T> type of result
+     * @return code execution result
      *
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, Supplier<F.Promise<T>> block);
 
     /**
      * Close all entity manager factories.

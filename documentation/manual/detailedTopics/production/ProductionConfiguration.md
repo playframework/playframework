@@ -87,6 +87,12 @@ Using this file, you can stop your application using the `kill` command, for exa
 $ kill $(cat /var/run/play.pid)
 ```
 
+To prevent Play from creating it's own PID, you can set the path to `/dev/null` in your `application.conf` file:
+
+```
+pidfile.path = "/dev/null"
+```
+
 ### Using environment variables
 
 You can also reference environment variables from your `application.conf` file:
@@ -268,11 +274,4 @@ You can specify any JVM arguments to the application startup script. Otherwise t
 
 ```
 $ /path/to/bin/<project-name> -J-Xms128M -J-Xmx512m -J-server
-```
-
-As a convenience you can also set memory min, max, permgen and the reserved code cache size in one go; a formula is used to
-determine these values given the supplied parameter (which represents maximum memory):
-
-```
-$ /path/to/bin/<project-name> -mem 512 -J-server
 ```

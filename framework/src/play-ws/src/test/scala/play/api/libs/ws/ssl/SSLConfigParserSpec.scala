@@ -31,7 +31,6 @@ object SSLConfigParserSpec extends Specification {
                                 |protocol = TLSv1.1
                                 |checkRevocation = true
                                 |revocationLists = [ "http://example.com" ]
-                                |hostnameVerifierClass = "com.ning.http.util.DefaultHostnameVerifier"
                                 |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
                                 |enabledProtocols = [ TLSv1.2, TLSv1.1, SSLv3 ]
                                 |disabledSignatureAlgorithms = [md2, md3]
@@ -44,7 +43,6 @@ object SSLConfigParserSpec extends Specification {
       actual.revocationLists must beSome.which {
         _ must beEqualTo(Seq(new java.net.URL("http://example.com")))
       }
-      actual.hostnameVerifierClass must_== classOf[com.ning.http.util.DefaultHostnameVerifier]
       actual.enabledCipherSuites must beSome.which(_ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "SSLv3")))
       actual.disabledSignatureAlgorithms must containTheSameElementsAs(Seq("md2", "md3"))
@@ -59,7 +57,6 @@ object SSLConfigParserSpec extends Specification {
                                 | allowUnsafeRenegotiation = true
                                 | allowWeakCiphers = true
                                 | allowWeakProtocols = true
-                                | disableHostnameVerification = true
                                 | acceptAnyCertificate = true
                                 |}
                               """.stripMargin)
@@ -67,7 +64,6 @@ object SSLConfigParserSpec extends Specification {
       actual.loose.allowUnsafeRenegotiation must beSome(true)
       actual.loose.allowWeakCiphers must beTrue
       actual.loose.allowWeakProtocols must beTrue
-      actual.loose.disableHostnameVerification must beTrue
       actual.loose.acceptAnyCertificate must beTrue
     }
 
