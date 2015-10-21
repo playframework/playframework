@@ -40,7 +40,7 @@ You can also add comments to the route file, with the `#` character.
 
 ## The HTTP method
 
-The HTTP method can be any of the valid methods supported by HTTP (`GET`, `POST`, `PUT`, `DELETE`, `HEAD`).
+The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
 
 ## The URI pattern
 
