@@ -7,7 +7,7 @@ import javax.inject.{ Provider, Inject }
 
 import com.google.inject.{ Module => GuiceModule }
 import play.api.routing.Router
-import play.api.{ Application, Configuration, Environment, GlobalSettings, Logger, OptionalSourceMapper }
+import play.api._
 import play.api.inject.{ Injector => PlayInjector, RoutesProvider, bind }
 import play.core.{ DefaultWebCommands, WebCommands }
 
@@ -85,9 +85,9 @@ final class GuiceApplicationBuilder(
     val appConfiguration = initialConfiguration ++ configuration
     val globalSettings = global.getOrElse(GlobalSettings(appConfiguration, environment))
 
-    // TODO: Logger should be application specific, and available via dependency injection.
-    //       Creating multiple applications will stomp on the global logger configuration.
-    Logger.configure(environment)
+    LoggerConfigurator(environment.classLoader).foreach {
+      _.configure(environment)
+    }
 
     if (appConfiguration.underlying.hasPath("logger")) {
       Logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")

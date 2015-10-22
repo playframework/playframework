@@ -358,6 +358,14 @@ object PlayBuild extends Build {
       })
     .dependsOn(SbtForkRunProtocolProject, SbtPluginProject)
 
+  lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
+    .settings(
+      libraryDependencies ++= logback,
+      parallelExecution in Test := false,
+      // quieten deprecation warnings in tests
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+    ).dependsOn(PlayProject)
+
   lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
     .settings(
       libraryDependencies ++= playWsDeps,
@@ -387,7 +395,7 @@ object PlayBuild extends Build {
       // The integration test WebSocket client need a recent version of Netty 3.x
       libraryDependencies += "io.netty" % "netty" % "3.10.4.Final" % Test
     )
-    .dependsOn(PlayProject % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
+    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayAkkaHttpServerProject)
@@ -424,6 +432,7 @@ object PlayBuild extends Build {
     PlayNettyUtilsProject,
     PlayNettyServerProject,
     PlayServerProject,
+    PlayLogback,
     PlayWsProject,
     PlayWsJavaProject,
     SbtRunSupportProject,

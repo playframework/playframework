@@ -59,7 +59,9 @@ class MyComponents(context: Context) extends BuiltInComponentsFromContext(contex
 //#basicextended
 class MyApplicationLoaderWithInitialization extends ApplicationLoader {
   def load(context: Context) = {
-    Logger.configure(context.environment)
+    LoggerConfigurator(context.environment.classLoader).foreach {
+      _.configure(context.environment)
+    }
     new MyComponents(context).application
   }
 }

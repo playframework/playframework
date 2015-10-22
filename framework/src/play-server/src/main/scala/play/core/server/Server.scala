@@ -66,7 +66,9 @@ trait Server extends ServerWithStop {
   def applicationProvider: ApplicationProvider
 
   def stop() {
-    Logger.shutdown()
+    applicationProvider.current.foreach { app =>
+      LoggerConfigurator(app.classloader).foreach(_.shutdown())
+    }
   }
 
   /**
