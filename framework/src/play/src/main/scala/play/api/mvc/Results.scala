@@ -83,8 +83,8 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
 
   /**
    * Add a header with a DateTime formatted using the default http date format
-   * @param headers
-   * @return
+   * @param headers the headers with a DateTime to add to this result.
+   * @return the new result.
    */
   def withDateHeaders(headers: (String, DateTime)*): Result = {
     copy(header = header.copy(headers = header.headers ++ headers.map {
