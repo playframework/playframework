@@ -221,7 +221,7 @@ public interface WSRequest {
      * Set the body this request should use.
      *
      * @deprecated use {@link #setBody(Source)} instead.
-     * @input body Deprecated
+     * @param body Deprecated
      * @return Deprecated
      */
     @Deprecated
