@@ -893,7 +893,9 @@ public class Http {
                 this.secure = uri.getScheme().equals("https");
             }
             this.uri = uri;
-            host(uri.getHost());
+            if (uri.getHost() != null) {
+              host(uri.getHost());
+            }
             return this;
         }
 
