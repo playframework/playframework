@@ -86,7 +86,12 @@ object DevServerStart {
         // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
         // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
         // configure it here.
-        Logger.init(path, Mode.Dev)
+        LoggerConfigurator(this.getClass.getClassLoader) match {
+          case Some(loggerConfigurator) =>
+            loggerConfigurator.init(path, Mode.Dev)
+          case None =>
+            System.out.println("No play.logger.configurator found: logging must be configured entirely by the application.")
+        }
 
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
         println()

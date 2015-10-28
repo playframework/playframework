@@ -89,6 +89,7 @@ object ApplicationBuild extends Build {
       playProject("Filters-Helpers") % "test",
       playProject("Play-JDBC-Evolutions") % "test",
       playProject("Play-JDBC") % "test",
+      playProject("Play-Logback") % "test",
       playProject("Play-Java-JDBC") % "test"
   )
 

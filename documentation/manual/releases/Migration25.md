@@ -66,3 +66,13 @@ Here follows a short table that should ease the migration:
 ## Replaced static methods with dependency injection
 
 If you are using `controllers.ExternalAssets` in your routes file you must either set `routesGenerator := InjectedRoutesGenerator` in your `build.sbt` or you must use the `@` symbol in front of the route like `GET /some/path @controllers.ExternalAssets.at`
+
+## Refactored Logback as an optional dependency
+
+The runtime dependency on Logback has been removed, and Play can now use any SLF4J compatible logging framework.  Logback is included by default, but because it exists as a separate module outside of Play (and is not part of the Logger class), the `play.api.Logger$ColoredLevel` converter in logback.xml has changed to `play.api.libs.logback.ColoredLevel`:
+
+```
+<conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+```
+
+Details on how to set up Play with different logging frameworks are in [[Configuring logging|SettingsLogger]] section.

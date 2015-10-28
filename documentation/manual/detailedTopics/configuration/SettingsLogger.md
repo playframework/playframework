@@ -1,13 +1,13 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring logging
 
-Play uses [Logback](http://logback.qos.ch/) as its logging engine, see the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
+Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
 
 ## Default configuration
 
 Play uses the following default configuration in production:
 
-@[](/confs/play/logback-play-default.xml)
+@[](/confs/play-logback/logback-play-default.xml)
 
 A few things to note about this configuration:
 
@@ -65,7 +65,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
             <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} [%level] from %logger in %thread - %message%n%xException</pattern>
         </encoder>
     </appender>
-    
+
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${user.dir}/web/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -85,7 +85,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
     <logger name="access" level="INFO" additivity="false">
         <appender-ref ref="ACCESS_FILE" />
     </logger>
-    
+
     <root level="INFO">
         <appender-ref ref="FILE"/>
     </root>
@@ -126,7 +126,7 @@ A couple things to note:
 
 - Setting `akka.loggers` to `["akka.event.slf4j.Slf4jLogger"]` will cause Akka to use Play's underlying logging engine.
 - The `akka.loglevel` property sets the threshold at which Akka will forward log requests to the logging engine but does not control logging output. Once the log requests are forwarded, the Logback configuration controls log levels and appenders as normal. You should set `akka.loglevel` to the lowest threshold that you will use in Logback configuration for your Akka components.
- 
+
 Next, refine your Akka logging settings in your Logback configuration:
 
 ```xml
@@ -139,3 +139,70 @@ Next, refine your Akka logging settings in your Logback configuration:
 You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.
 
 For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/current/scala/logging.html).
+
+## Using a Custom Logging Framework
+
+Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` SBT plugin must be disabled using `disablePlugins`:
+
+```scala
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .disablePlugins(PlayLogback)
+```
+
+From there, a custom logging framework can be used.  Here, Log4J 2 is used as an example.
+
+```scala
+libraryDependencies ++= Seq(
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.4.1",
+  "org.apache.logging.log4j" % "log4j-api" % "2.4.1",
+  "org.apache.logging.log4j" % "log4j-core" % "2.4.1"
+)
+```
+
+Once the libraries and the SLF4J adapter are loaded, the `log4j.configurationFile` system property can be set on the command line as usual.
+
+If custom configuration depending on Play's mode is required, you can do additional customization with the `LoggerConfigurator`.  To do this, add a `logger-configurator.properties` to the classpath, with 
+
+```properties
+play.logger.configurator=Log4J2LoggerConfigurator
+```
+
+And then extend LoggerConfigurator with any customizations:
+
+```scala
+import java.io.File
+import java.net.URL
+
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core._
+import org.apache.logging.log4j.core.config.Configurator
+
+import play.api.{Mode, Environment, LoggerConfigurator}
+
+class Log4J2LoggerConfigurator extends LoggerConfigurator {
+
+  override def init(rootPath: File, mode: Mode.Mode): Unit = {
+    val properties = Map("application.home" -> rootPath.getAbsolutePath)
+    val resourceName = if (mode == Mode.Dev) "log4j2-dev.xml" else "log4j2.xml"
+    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
+    configure(properties, resourceUrl)
+  }
+
+  override def shutdown(): Unit = {
+    val context = LogManager.getContext().asInstanceOf[LoggerContext]
+    Configurator.shutdown(context)
+  }
+
+  override def configure(env: Environment): Unit = {
+    val properties = Map("application.home" -> env.rootPath.getAbsolutePath)
+    val resourceUrl = env.resource("log4j2.xml")
+    configure(properties, resourceUrl)
+  }
+
+  override def configure(properties: Map[String, String], config: Option[URL]): Unit = {
+    val context =  LogManager.getContext(false).asInstanceOf[LoggerContext]
+    context.setConfigLocation(config.get.toURI)
+  }
+}
+```

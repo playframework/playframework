@@ -26,6 +26,8 @@ object Dependencies {
   ).map(_ % "2.6.0")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12")
+  val logback = Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3")
+
   val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
@@ -42,7 +44,7 @@ object Dependencies {
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database,
     acolyte % Test,
-    "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
+    "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val javaJdbcDeps = Seq(acolyte % Test)
 
@@ -94,7 +96,7 @@ object Dependencies {
     findBugs,
 
     "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.21"
-  ) ++ javassist ++ specsBuild.map(_ % Test)
+  ) ++ javassist ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit = "junit" % "junit" % "4.12"
@@ -111,7 +113,6 @@ object Dependencies {
 
   def runtime(scalaVersion: String) =
     slf4j ++
-    Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.13") ++
     jacksons ++
     Seq(
@@ -136,12 +137,13 @@ object Dependencies {
       scalaParserCombinators,
       scalaJava8Compat
     ) ++
-    specsBuild.map(_ % Test) ++
+    specsBuild.map(_ % Test) ++ logback.map(_ % Test) ++
     javaTestDeps
+
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.0"
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test)++ logback.map(_ % Test)
 
   val nettyUtilsDependencies = slf4j
 
@@ -152,7 +154,7 @@ object Dependencies {
   val routesCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.4",
     specsMatcherExtra % Test
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
     moduleId.extra(
@@ -163,7 +165,7 @@ object Dependencies {
 
   def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
     sbtIO(sbtVersion, scalaVersion)
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
@@ -178,7 +180,7 @@ object Dependencies {
 
   def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
     sbtRcClient(scalaBinaryVersion)
-  ) ++ specsBuild.map(_ % "test")
+  ) ++ specsBuild.map(_ % "test") ++ logback.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtRcClient(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
@@ -224,7 +226,7 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.2"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
-    ) ++ javassist ++ specsBuild.map(_ % Test)
+    ) ++ javassist ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
   }
 
   val playdocWebjarDependencies = Seq(
@@ -239,20 +241,20 @@ object Dependencies {
   val iterateesDependencies = Seq(
     "org.scala-stm" %% "scala-stm" % "0.7",
     typesafeConfig
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
     "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
     scalaJava8Compat
-  ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
+  ) ++ specsBuild.map(_ % "test") ++ logback.map(_ % Test) ++ javaTestDeps
 
   def jsonDependencies(scalaVersion: String) = Seq(
     jodatime,
     jodaConvert,
     "org.scala-lang" % "scala-reflect" % scalaVersion) ++
   jacksons ++
-  specsBuild.map(_ % Test)
+  specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
@@ -261,9 +263,9 @@ object Dependencies {
 
   val playServerDependencies = Seq(
     guava % Test
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
-  val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
+  val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
     findBugs,
@@ -272,14 +274,16 @@ object Dependencies {
   )
 
   val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.11" +:
-    specsBuild.map(_ % Test)
+    (specsBuild.map(_ % Test) ++ logback.map(_ % Test))
 
   val playWsDeps = Seq(
     guava,
     "org.asynchttpclient" % "async-http-client" % "2.0.0-alpha14"
-  ) ++ Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
-  (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
-  mockitoAll % Test
+  ) ++
+    Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
+    logback.map(_ % Test) ++
+    (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
+    mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % "1.2.2"
