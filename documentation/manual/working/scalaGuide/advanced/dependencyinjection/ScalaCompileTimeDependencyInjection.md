@@ -44,7 +44,11 @@ By default Play will generate a static router that requires all of your actions 
 
 When you do this, Play will generate a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The routers constructor will also, as its first argument, accept an [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), which is used to handle parameter binding errors.  The primary constructor will also accept a prefix String as the last argument, but an overloaded constructor that defaults this to `"/"` will also be provided.
 
-The following routes:
+Should you wish to implement a custom `Router`, you can do so by extending `SimpleRouter` as follows:
+
+@[content](code/scalaguide.advanced.dependencyinjection.bar.routes)
+
+When using the `InjectedRoutesGenerator`, the following routes:
 
 @[content](code/scalaguide.advanced.dependencyinjection.routes)
 
