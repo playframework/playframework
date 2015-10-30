@@ -65,7 +65,7 @@ To enable `jdk.tls.disabledAlgorithms` or `jdk.certpath.disabledAlgorithms` (whi
 
 ```
 # disabledAlgorithms.properties
-jdk.tls.disabledAlgorithms=EC keySize < 160, RSA keySize < 2048, DSA keySize < 2048
+jdk.tls.disabledAlgorithms=SSLv3, EC keySize < 160, RSA keySize < 2048, DSA keySize < 2048
 jdk.certpath.disabledAlgorithms=MD2, MD4, MD5, EC keySize < 160, RSA keySize < 2048, DSA keySize < 2048
 ```
 
