@@ -394,7 +394,8 @@ private[data] object FormUtils {
  * A form error.
  *
  * @param key The error key (should be associated with a field using the same key).
- * @param message The form message (often a simple message key needing to be translated).
+ * @param messages The form message (often a simple message key needing to be translated), if more than one message
+ *                 is passed the last one will be used.
  * @param args Arguments used to format the message.
  */
 case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
@@ -772,7 +773,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
-   * @param constraints the constraints to add
+   * @param addConstraints the constraints to add
    * @return the new mapping
    */
   def verifying(addConstraints: Constraint[Option[T]]*): Mapping[Option[T]] = {
@@ -853,7 +854,7 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
-   * @param constraints the constraints to add
+   * @param addConstraints the constraints to add
    * @return the new mapping
    */
   def verifying(addConstraints: Constraint[T]*): Mapping[T] = {
