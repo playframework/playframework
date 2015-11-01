@@ -178,7 +178,7 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
   /**
    * Combines these validation errors with another validation failure.
    *
-   * @param another validation failure
+   * @param other validation failure
    * @return a new merged `Invalid`
    */
   def ++(other: Invalid): Invalid = Invalid(this.errors ++ other.errors)

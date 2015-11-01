@@ -10,8 +10,8 @@ private[streams] object IterateeSubscriber {
   /**
    * Internal state of the Subscriber.
    *
-   * @tparam The type of elements.
-   * @tparam The result type of the Iteratee.
+   * @tparam T type of elements.
+   * @tparam R The result type of the Iteratee.
    */
   sealed trait State[T, R]
   /**
@@ -60,7 +60,7 @@ private[streams] object IterateeSubscriber {
    * A Subscriber that is finished. We don't track the precise reason for
    * being finished.
    *
-   * @param result The result of this Subscriber.
+   * @param resultIteratee The result of this Subscriber.
    */
   case class Finished[T, R](resultIteratee: Iteratee[T, R]) extends State[T, R]
 }
