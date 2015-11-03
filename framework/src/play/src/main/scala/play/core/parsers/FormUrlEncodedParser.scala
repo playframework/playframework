@@ -53,7 +53,7 @@ object FormUrlEncodedParser {
    * Parse the content type "application/x-www-form-urlencoded", mapping to a Java compatible format.
    * @param data The body content of the request, or whatever needs to be so parsed
    * @param encoding The character encoding of data
-   * @return A ListMap of keys to the sequence of values for that key
+   * @return A Map of keys to the sequence of array values for that key
    */
   def parseAsJavaArrayValues(data: String, encoding: String): java.util.Map[String, Array[String]] = {
     import scala.collection.JavaConverters._
