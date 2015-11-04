@@ -34,7 +34,7 @@ Since this is a val, this can only be used inside some scope.
 
 ## Using filters
 
-The simplest way to use a filter is to extends the `WithFilters` trait on your `Global` object:
+The simplest way to use a filter is to extend the `WithFilters` trait on your `Global` object:
 
 @[filter-trait-example](code/GlobalWithFilters.scala)
 
