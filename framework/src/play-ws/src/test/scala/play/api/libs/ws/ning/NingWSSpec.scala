@@ -8,6 +8,7 @@ import com.ning.http.client
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.{ AsyncHttpClient, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse }
 import org.specs2.mock.Mockito
+import play.api.libs.oauth.{ RequestToken, ConsumerKey, OAuthCalculator }
 
 import play.api.mvc._
 
@@ -122,11 +123,11 @@ object NingWSSpec extends PlaySpecification with Mockito {
       pending("disabled until discussion about charset handling")
     }
 
-    "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
+    "Have form body on POST of content type application/x-www-form-urlencoded" in new WithApplication {
       import scala.collection.JavaConverters._
       val req: client.Request = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1"))).asInstanceOf[NingWSRequest]
         .buildRequest()
-      req.getFormParams.asScala must containTheSameElementsAs(List(new com.ning.http.client.Param("param1", "value1")))
+      (new String(req.getByteData, "UTF-8")) must be_==("param1=value1")
     }
 
     "Have form body on POST of content type text/plain" in new WithApplication {
@@ -134,6 +135,44 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
         .buildRequest()
       (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD")
+    }
+
+    "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
+        .withBody("HELLO WORLD") // and body is set to string (see #5221)
+        .asInstanceOf[NingWSRequest]
+        .buildRequest()
+      (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD") // should result in byte data.
+    }
+
+    "Have form params on POST of content type application/x-www-form-urlencoded when signed" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val consumerKey = ConsumerKey("key", "secret")
+      val requestToken = RequestToken("token", "secret")
+      val calc = OAuthCalculator(consumerKey, requestToken)
+      val req: client.Request = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1")))
+        .sign(calc)
+        .asInstanceOf[NingWSRequest]
+        .buildRequest()
+      // Note we use getFormParams instead of getByteData here.
+      req.getFormParams.asScala must containTheSameElementsAs(List(new com.ning.http.client.Param("param1", "value1")))
+    }
+
+    "Remove a user defined content length header if we are parsing body explicitly when signed" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val consumerKey = ConsumerKey("key", "secret")
+      val requestToken = RequestToken("token", "secret")
+      val calc = OAuthCalculator(consumerKey, requestToken)
+      val req: client.Request = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1")))
+        .withHeaders("Content-Length" -> "9001") // add a meaningless content length here...
+        .sign(calc)
+        .asInstanceOf[NingWSRequest]
+        .buildRequest()
+
+      val headers = req.getHeaders
+      headers.getFirstValue("Content-Length") must beNull // no content length!
     }
 
     "Keep the charset if it has been set manually with a charset" in new WithApplication {

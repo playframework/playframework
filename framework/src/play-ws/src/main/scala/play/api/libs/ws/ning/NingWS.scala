@@ -235,8 +235,7 @@ case class NingWSRequest(client: NingWSClient,
     proxyServer.foreach(p => builder.setProxyServer(createProxy(p)))
     requestTimeout.foreach(builder.setRequestTimeout)
 
-    // Set the body.
-    val possiblyModifiedHeaders = this.headers
+    var possiblyModifiedHeaders = this.headers
     val builderWithBody = body match {
       case EmptyBody => builder
       case FileBody(file) =>
@@ -247,7 +246,13 @@ case class NingWSRequest(client: NingWSClient,
         val ct: String = contentType.getOrElse("text/plain")
 
         try {
-          if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+          // Only parse out the form body if we are doing the signature calculation.
+          if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED) && calc.isDefined) {
+
+            // If we are taking responsibility for setting the request body, we should block any
+            // externally defined Content-Length field (see #5221 for the details)
+            possiblyModifiedHeaders = this.headers.filterNot { case (k, v) => k.equals(HttpHeaders.Names.CONTENT_LENGTH) }
+
             // extract the content type and the charset
             val charset = Charset.forName(
               Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
