@@ -27,7 +27,7 @@ class NingWSRequestSpec extends Specification with Mockito {
       val client = mock[NingWSClient]
       val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
 
-      val ningRequest = new NingWSRequest(client, "http://playframework.com/", null)
+      val ningRequest = new NingWSRequest(client, "http://playframework.com/")
         .setHeader("Content-Type", "text/plain")
         .setBody("HELLO WORLD")
         .asInstanceOf[NingWSRequest]
@@ -38,7 +38,7 @@ class NingWSRequestSpec extends Specification with Mockito {
     "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in new WithApplication {
       import scala.collection.JavaConverters._
       val client = mock[NingWSClient]
-      val req = new NingWSRequest(client, "http://playframework.com/", null)
+      val req = new NingWSRequest(client, "http://playframework.com/")
         .setHeader("Content-Type", "application/x-www-form-urlencoded") // set content type by hand
         .setBody("HELLO WORLD") // and body is set to string (see #5221)
         .asInstanceOf[NingWSRequest]
@@ -52,14 +52,14 @@ class NingWSRequestSpec extends Specification with Mockito {
       val consumerKey = new OAuth.ConsumerKey("key", "secret")
       val token = new OAuth.RequestToken("token", "secret")
       val calc = new OAuth.OAuthCalculator(consumerKey, token)
-      val req = new NingWSRequest(client, "http://playframework.com/", null)
+      val req = new NingWSRequest(client, "http://playframework.com/")
         .setHeader("Content-Type", "application/x-www-form-urlencoded") // set content type by hand
         .setBody("param1=value1")
         .sign(calc)
         .asInstanceOf[NingWSRequest]
         .buildRequest()
       // Note we use getFormParams instead of getByteData here.
-      req.getFormParams.asScala must containTheSameElementsAs(List(new org.asynchttpclient.Param("param1", "value1")))
+      req.getFormParams.asScala must containTheSameElementsAs(List(new com.ning.http.client.Param("param1", "value1")))
     }
 
     "Remove a user defined content length header if we are parsing body explicitly when signed" in new WithApplication {
@@ -68,7 +68,7 @@ class NingWSRequestSpec extends Specification with Mockito {
       val consumerKey = new OAuth.ConsumerKey("key", "secret")
       val token = new OAuth.RequestToken("token", "secret")
       val calc = new OAuth.OAuthCalculator(consumerKey, token)
-      val req = new NingWSRequest(client, "http://playframework.com/", null)
+      val req = new NingWSRequest(client, "http://playframework.com/")
         .setHeader("Content-Type", "application/x-www-form-urlencoded") // set content type by hand
         .setBody("param1=value1")
         .setHeader("Content-Length", "9001") // add a meaningless content length here...
@@ -79,7 +79,6 @@ class NingWSRequestSpec extends Specification with Mockito {
       val headers = req.getHeaders
       headers.getFirstValue("Content-Length") must beNull // no content length!
     }
-
 
     "should support setting a request timeout" in {
       requestWithTimeout(1000) must beEqualTo(1000)
