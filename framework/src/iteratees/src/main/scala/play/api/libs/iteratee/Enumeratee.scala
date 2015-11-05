@@ -584,7 +584,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that drops input until a predicate is satisfied.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def dropWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -612,7 +612,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through while a predicate is satisfied. Once the predicate
    * fails, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def takeWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -640,7 +640,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through until a predicate is satisfied. Once the predicate
    * is satisfied, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def breakE[E](p: E => Boolean)(implicit ec: ExecutionContext) = new Enumeratee[E, E] {

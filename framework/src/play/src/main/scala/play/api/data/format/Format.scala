@@ -76,7 +76,7 @@ object Formats {
   /**
    * Helper for formatters binders
    * @param parse Function parsing a String value into a T value, throwing an exception in case of failure
-   * @param error Error to set in case of parsing failure
+   * @param errArgs Error to set in case of parsing failure
    * @param key Key name of the field to parse
    * @param data Field data
    */
@@ -253,8 +253,6 @@ object Formats {
 
   /**
    * Default formatter for `org.joda.time.DateTime` type with pattern `yyyy-MM-dd`.
-   *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
    */
   implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
 
