@@ -28,7 +28,7 @@ onClose(() -> {
 })
 ```
 
-And further assume that the `onClose` method was changed and it now takes a `java.lang.Runnable` in argument, instead of a `F.Callback0`. Here is how your implementation should be changed:
+And further assume that the `onClose` method was changed and it now takes a `java.lang.Runnable` argument, instead of `F.Callback0`. Because `Runnable` cannot throw a checked exception, you must change your implementation using something like this:
 
 ```java
 onClose(() -> {
@@ -41,7 +41,15 @@ onClose(() -> {
 })
 ```
 
-Wrapping the checked exception into a generic `RuntimeException` is not exactly considered a best practice. Therefore, you may want to create a specific exception type that is more appropriate to the abstraction. Having said that, if a lambda's body does not throw a checked exception, and you are using the java8 lambda syntax as we did above, then you won't need to change anything in your code.
+To avoid copy-pasting a repetitive try-catch construct all across your project, you might consider adopting the [Durian](https://github.com/diffplug/durian) library's [`Errors`](https://github.com/diffplug/durian/blob/master/test/com/diffplug/common/base/ErrorsExample.java?ts=4) class (either through [Maven](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.durian%22%20AND%20a%3A%22durian%22) or by copy-pasting [two](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Errors.java) [classes](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Throwing.java)).  It allows you to easily wrap lambdas which throw checked exceptions as their standard Java 8 functional interface, as such:
+
+```java
+onClose(Errors.rethrow().wrap(database::stop));
+onClose(Errors.log().wrap(database::stop));
+// You can also make your own error handler, see https://github.com/diffplug/durian/blob/master/test/com/diffplug/common/base/ErrorsExample.java?ts=4
+```
+
+If you are using the java8 lambda syntax and the lambda's body does not throw a checked exception, then you won't need to change anything in your code.
 
 Last but not least, if you are using `F.Callback3<A,B,C>` in your application, since there is no Java8 replacement for it, you may want to use `akka.japi.function.Function3`.
 
