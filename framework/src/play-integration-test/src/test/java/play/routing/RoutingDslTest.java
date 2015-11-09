@@ -12,6 +12,7 @@ import play.mvc.Results;
 import play.test.WithApplication;
 
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -65,7 +66,7 @@ public class RoutingDslTest extends WithApplication {
     @Test
     public void noParametersAsync() {
         Router router = new RoutingDsl()
-                .GET("/hello/world").routeAsync(() -> F.Promise.pure(Results.ok("Hello world")))
+                .GET("/hello/world").routeAsync(() -> CompletableFuture.completedFuture(Results.ok("Hello world")))
                 .build();
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
@@ -75,7 +76,7 @@ public class RoutingDslTest extends WithApplication {
     @Test
     public void oneParameterAsync() {
         Router router = new RoutingDsl()
-                .GET("/hello/:to").routeAsync(to -> F.Promise.pure(Results.ok("Hello " + to)))
+                .GET("/hello/:to").routeAsync(to -> CompletableFuture.completedFuture(Results.ok("Hello " + to)))
                 .build();
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
@@ -85,7 +86,7 @@ public class RoutingDslTest extends WithApplication {
     @Test
     public void twoParametersAsync() {
         Router router = new RoutingDsl()
-                .GET("/:say/:to").routeAsync((say, to) -> F.Promise.pure(Results.ok(say + " " + to)))
+                .GET("/:say/:to").routeAsync((say, to) -> CompletableFuture.completedFuture(Results.ok(say + " " + to)))
                 .build();
 
         assertThat(makeRequest(router, "GET", "/Hello/world"), equalTo("Hello world"));
@@ -95,7 +96,8 @@ public class RoutingDslTest extends WithApplication {
     @Test
     public void threeParametersAsync() {
         Router router = new RoutingDsl()
-                .GET("/:say/:to/:extra").routeAsync((say, to, extra) -> F.Promise.pure(Results.ok(say + " " + to + extra)))
+                .GET("/:say/:to/:extra").routeAsync((say, to, extra) -> CompletableFuture.completedFuture(
+                Results.ok(say + " " + to + extra)))
                 .build();
 
         assertThat(makeRequest(router, "GET", "/Hello/world/!"), equalTo("Hello world!"));
@@ -191,7 +193,7 @@ public class RoutingDslTest extends WithApplication {
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/hello/10"));
     }
-    
+
     @Test
     public void multipleRoutes() {
         Router router = new RoutingDsl()

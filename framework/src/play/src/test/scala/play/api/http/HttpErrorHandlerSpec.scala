@@ -3,6 +3,8 @@
  */
 package play.api.http
 
+import java.util.concurrent.CompletableFuture
+
 import org.specs2.mutable.Specification
 import play.api.inject.BindingKey
 import play.api.{ OptionalSourceMapper, Configuration, Mode, Environment }
@@ -83,9 +85,9 @@ object HttpErrorHandlerSpec extends Specification {
 
   class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
     def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
-      play.libs.F.Promise.pure(play.mvc.Results.ok())
+      CompletableFuture.completedFuture(play.mvc.Results.ok())
     def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
-      play.libs.F.Promise.pure(play.mvc.Results.ok())
+      CompletableFuture.completedFuture(play.mvc.Results.ok())
   }
 
 }

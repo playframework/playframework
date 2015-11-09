@@ -3,13 +3,13 @@
  */
 package play.it.http
 
+import java.util.concurrent.{ CompletionStage, CompletableFuture }
+
 import play.api._
 import play.api.mvc.EssentialAction
 import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
 import play.core.routing.HandlerInvokerFactory
-import play.http.DefaultHttpRequestHandler
 import play.mvc.{ Http, Result }
-import play.libs.F.Promise
 
 /**
  * Use this to mock Java actions, eg:
@@ -37,7 +37,7 @@ object JAction {
 }
 
 trait AbstractMockController {
-  def invocation: Promise[Result]
+  def invocation: CompletionStage[Result]
 
   def ctx = Http.Context.current()
   def response = ctx.response()
@@ -48,10 +48,10 @@ trait AbstractMockController {
 
 abstract class MockController extends AbstractMockController {
   def action: Result
-  def invocation: Promise[Result] = Promise.pure(action)
+  def invocation: CompletionStage[Result] = CompletableFuture.completedFuture(action)
 }
 
 abstract class AsyncMockController extends AbstractMockController {
-  def action: Promise[Result]
-  def invocation: Promise[Result] = action
+  def action: CompletionStage[Result]
+  def invocation: CompletionStage[Result] = action
 }

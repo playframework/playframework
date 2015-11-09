@@ -8,6 +8,7 @@ import play.inject.ApplicationLifecycle;
 import play.libs.F;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -38,7 +39,7 @@ public class DefaultJPAApi implements JPAApi {
             jpaApi = new DefaultJPAApi(jpaConfig);
             lifecycle.addStopHook(() -> {
                 jpaApi.shutdown();
-                return F.Promise.pure(null);
+                return CompletableFuture.completedFuture(null);
             });
             jpaApi.start();
         }
