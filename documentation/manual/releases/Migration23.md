@@ -229,9 +229,9 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
 
 Coffeescript options have changed. The new options are:
 
-* `sourceMaps` When set, generates sourceMap files. Defaults to `true`.
+* `sourceMap` When set, generates sourceMap files. Defaults to `true`.
 
-  `CoffeeScriptKeys.sourceMaps := true`
+  `CoffeeScriptKeys.sourceMap := true`
 
 * `bare` When set, generates JavaScript without the [top-level function safety wrapper](http://coffeescript.org/#lexical-scope). Defaults to `false`.
 
