@@ -26,6 +26,10 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
         super(builder);
     }
 
+    public static GuiceApplicationBuilder fromScalaBuilder(play.api.inject.guice.GuiceApplicationBuilder builder) {
+        return new GuiceApplicationBuilder(builder);
+    }
+
     /**
      * Set the initial configuration loader.
      * Overrides the default or any previously configured values.
