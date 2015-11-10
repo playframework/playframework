@@ -269,7 +269,7 @@ case class Configuration(underlying: Config) {
    * }}}
    *
    * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized vales are `yes/no or true/false.
+   * Authorized vales are `yes/no` or true/false.
    *
    * @param path the configuration key, relative to the configuration root key
    * @return a configuration value
@@ -407,7 +407,7 @@ case class Configuration(underlying: Config) {
    * }}}
    *
    * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized vales are `yes/no or true/false.
+   * Authorized vales are `yes/no` or true/false.
    */
   def getBooleanList(path: String): Option[java.util.List[java.lang.Boolean]] = readValue(path, underlying.getBooleanList(path))
 
@@ -427,7 +427,7 @@ case class Configuration(underlying: Config) {
    * }}}
    *
    * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized vales are `yes/no or true/false.
+   * Authorized vales are `yes/no` or true/false.
    */
   def getBooleanSeq(path: String): Option[Seq[java.lang.Boolean]] = getBooleanList(path).map(asScalaList)
 

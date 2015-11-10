@@ -214,7 +214,7 @@ trait ConstraintWrites {
 
   /**
    * Pure Option Writer[T] which writes "null" when None which is different
-   * from `JsPath.writeNullable which omits the field when None
+   * from `JsPath.writeNullable` which omits the field when None
    */
   def optionWithNull[A](implicit wa: Writes[A]) = Writes[Option[A]] { a =>
     a match {
