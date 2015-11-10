@@ -3,10 +3,10 @@
  */
 package play.filters.csrf
 
+import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.http.HttpFilters
-import play.libs.F.Promise
 import play.mvc.Http
 
 import scala.concurrent.Future
@@ -210,7 +210,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) = Promise.pure(play.mvc.Results.unauthorized())
+  def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
 }
 
 class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {

@@ -2,6 +2,8 @@ package play.mvc;
 
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.Annotation;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +14,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import play.inject.Injector;
-import play.libs.F;
 
 import static org.mockito.Mockito.*;
 
@@ -67,7 +68,7 @@ public class SecurityTest {
         public void testSetUsernameToNullWhenExceptionRaised() {
             action.delegate = new Action<Object>() {
                 @Override
-                public F.Promise<Result> call(Http.Context ctx) {
+                public CompletionStage<Result> call(Http.Context ctx) {
                     throw exception;
                 }
             };
@@ -85,8 +86,8 @@ public class SecurityTest {
         private void runSetUsernameToNullInCallback(final boolean shouldRaiseException) throws Exception {
             action.delegate = new Action<Object>() {
                 @Override
-                public F.Promise<Result> call(Http.Context ctx) {
-                    return F.Promise.promise(() -> {
+                public CompletionStage<Result> call(Http.Context ctx) {
+                    return CompletableFuture.supplyAsync(() -> {
                         if (shouldRaiseException) {
                             throw exception;
                         } else {

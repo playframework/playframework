@@ -3,10 +3,11 @@
  */
 package play.libs.ws.ning;
 
+import java.util.concurrent.CompletableFuture;
+
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import play.api.libs.ws.ning.NingWSClientConfig;
 import play.inject.ApplicationLifecycle;
-import play.libs.F;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
@@ -32,7 +33,7 @@ public class NingWSAPI implements WSAPI {
         client = new NingWSClient(config, materializer);
         lifecycle.addStopHook(() -> {
             client.close();
-            return F.Promise.pure(null);
+            return CompletableFuture.completedFuture(null);
         });
     }
 

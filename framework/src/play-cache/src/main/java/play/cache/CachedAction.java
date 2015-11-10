@@ -3,11 +3,12 @@
  */
 package play.cache;
 
-import play.libs.F;
-import play.mvc.*;
-import play.mvc.Http.*;
-
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+
+import play.mvc.Action;
+import play.mvc.Http.Context;
+import play.mvc.Result;
 
 /**
  * Cache another action.
@@ -27,7 +28,7 @@ public class CachedAction extends Action<Cached> {
                     return result;
                 });
             } else {
-                return F.Promise.pure(cacheResult);
+                return CompletableFuture.completedFuture(cacheResult);
             }
 
         } catch (RuntimeException e) {

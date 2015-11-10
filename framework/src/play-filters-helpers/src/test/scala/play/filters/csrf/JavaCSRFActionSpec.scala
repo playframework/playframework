@@ -3,17 +3,17 @@
  */
 package play.filters.csrf
 
+import java.util.concurrent.CompletableFuture
+
 import play.api.libs.Crypto
 import play.api.mvc.Session
 import play.core.routing.HandlerInvokerFactory
-import play.libs.F.Promise
 import play.mvc.Http.{ RequestHeader, Context }
 
 import scala.concurrent.Future
 import play.api.libs.ws._
 import play.mvc.{ Results, Result, Controller }
 import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
-import play.libs.F
 
 import scala.reflect.ClassTag
 
@@ -29,7 +29,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     def parser = HandlerInvokerFactory.javaBodyParserToScala(
       javaHandlerComponents.injector.instanceOf(annotations.parser)
     )
-    def invocation = F.Promise.pure(inv)
+    def invocation = CompletableFuture.completedFuture(inv)
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method))
   }
 
@@ -122,7 +122,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRFErrorHandler {
     def handle(req: RequestHeader, msg: String) = {
-      Promise.pure(Results.unauthorized(msg))
+      CompletableFuture.completedFuture(Results.unauthorized(msg))
     }
   }
 }
