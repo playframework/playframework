@@ -340,7 +340,7 @@ package play.api.mvc {
      *
      * implicit val req: RequestHeader = myRequest
      * val url: String = Call("GET", "/url").absoluteURL()
-     * // == "http://$host/url", or "https://$host/url" if secure
+     * // == "http://\$host/url", or "https://\$host/url" if secure
      * }}}
      */
     def absoluteURL()(implicit request: RequestHeader): String =
@@ -360,7 +360,7 @@ package play.api.mvc {
      *
      * implicit val req: RequestHeader = myRequest
      * val url: String = Call("GET", "/url").webSocketURL()
-     * // == "ws://$host/url", or "wss://$host/url" if secure
+     * // == "ws://\$host/url", or "wss://\$host/url" if secure
      * }}}
      */
     def webSocketURL()(implicit request: RequestHeader): String =

@@ -72,7 +72,7 @@ trait Application {
    * @tparam T the plugin type
    * @param  pluginClass the plugin’s class
    * @return the plugin instance, wrapped in an option, used by this application
-   * @throws Error if no plugins of type `T` are loaded by this application
+   * @throws scala.Error if no plugins of type `T` are loaded by this application
    */
   def plugin[T](pluginClass: Class[T]): Option[T] =
     plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).map(_.asInstanceOf[T])
@@ -87,7 +87,7 @@ trait Application {
    *
    * @tparam T the plugin type
    * @return The plugin instance used by this application.
-   * @throws Error if no plugins of type T are loaded by this application.
+   * @throws scala.Error if no plugins of type `T` are loaded by this application.
    */
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 

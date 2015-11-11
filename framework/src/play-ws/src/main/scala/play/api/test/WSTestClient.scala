@@ -42,7 +42,7 @@ trait WsTestClient {
    *
    * {{{
    * Server.withRouter() {
-   *   case GET(p"/hello/$who") => Action(Ok("Hello " + who))
+   *   case GET(p"/hello/\$who") => Action(Ok("Hello " + who))
    * } { implicit port =>
    *   withClient { ws =>
    *     await(ws.url("/hello/world").get()).body must_== "Hello world"

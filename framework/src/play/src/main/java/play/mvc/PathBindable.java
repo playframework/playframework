@@ -62,6 +62,7 @@ public interface PathBindable<T extends PathBindable<T>> {
      * Unbind a URL path parameter.
      *
      * @param key Parameter key
+     * @return a suitable string representation of T for use in constructing a new URL path
      */
     public String unbind(String key);
 

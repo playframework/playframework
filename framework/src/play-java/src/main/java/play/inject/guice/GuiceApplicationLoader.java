@@ -36,6 +36,9 @@ public class GuiceApplicationLoader implements ApplicationLoader {
 
     /**
      * Construct a builder to use for loading the given context.
+     *
+     * @param context the context the returned builder will load
+     * @return the builder
      */
     public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
         return initialBuilder
@@ -45,9 +48,11 @@ public class GuiceApplicationLoader implements ApplicationLoader {
     }
 
     /**
-     * Override some bindings using information from the context. The default
-     * implementation of this method provides bindings that most applications
-     * should include.
+     * Identify some bindings that should be used as overrides when loading an application using this context. The default
+     * implementation of this method provides bindings that most applications should include.
+     *
+     * @param context the context that should be searched for overrides
+     * @return the bindings that should be used to override
      */
     protected GuiceableModule[] overrides(ApplicationLoader.Context context) {
         scala.collection.Seq<GuiceableModule> seq = play.api.inject.guice.GuiceApplicationLoader$.MODULE$.defaultOverrides(context.underlying());

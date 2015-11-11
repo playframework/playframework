@@ -20,6 +20,8 @@ public @interface Cached {
 
     /**
      * The duration the action should be cached for.  Defaults to 0.
+     *
+     * @return the duration
      */
     int duration() default 0;
 }

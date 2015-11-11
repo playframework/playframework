@@ -15,13 +15,13 @@ import scala.language.experimental.macros
  * The request method extractors return the original request for further extraction.
  *
  * The path extractor supports three kinds of extracted values:
- * - Path segment values. This is the default, eg `p"/foo/$id"`. The value will be URI decoded, and may not traverse /'s.
- * - Full path values. This can be indicated by post fixing the value with a *, eg `p"/assets/$path*"`. The value will
+ * - Path segment values. This is the default, eg `p"/foo/\$id"`. The value will be URI decoded, and may not traverse /'s.
+ * - Full path values. This can be indicated by post fixing the value with a *, eg `p"/assets/\$path*"`. The value will
  *   not be URI decoded, as that will make it impossible to distinguish between / and %2F.
  * - Regex values. This can be indicated by post fixing the value with a regular expression enclosed in angle brackets.
- *   For example, `p"/foo/$id<[0-9]+>`. The value will not be URI decoded.
+ *   For example, `p"/foo/\$id<[0-9]+>`. The value will not be URI decoded.
  *
- * The extractors for primitive types are merely provided for convenience, for example, `p"/foo/${int(id)}"` will
+ * The extractors for primitive types are merely provided for convenience, for example, `p"/foo/\${int(id)}"` will
  * extract `id` as an integer.  If `id` is not an integer, the match will simply fail.
  *
  * Example usage:
@@ -32,12 +32,12 @@ import scala.language.experimental.macros
  *  import play.api.mvc._
  *
  *  Router.from {
- *    case GET(p"/hello/$to") => Action {
- *      Results.Ok(s"Hello $to")
+ *    case GET(p"/hello/\$to") => Action {
+ *      Results.Ok(s"Hello \$to")
  *    }
- *    case PUT(p"/api/items/${int(id)}") => Action.async { req =>
+ *    case PUT(p"/api/items/\${int(id)}") => Action.async { req =>
  *      Items.save(id, req.body.json.as[Item]).map { _ =>
- *        Results.Ok(s"Saved item $id")
+ *        Results.Ok(s"Saved item \$id")
  *      }
  *    }
  *  }
@@ -59,28 +59,28 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
     /**
      * String interpolator for required query parameters out of query strings.
      *
-     * The format must match `q"paramName=${param}"`.
+     * The format must match `q"paramName=\${param}"`.
      */
     def q: RequiredQueryStringParameter = macro macroimpl.QueryStringParameterMacros.required
 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
-     * The format must match `q_?"paramName=${param}"`.
+     * The format must match `q_?"paramName=\${param}"`.
      */
     def q_? : OptionalQueryStringParameter = macro macroimpl.QueryStringParameterMacros.optional
 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
-     * The format must match `q_*"paramName=${params}"`.
+     * The format must match `q_*"paramName=\${params}"`.
      */
     def q_* : SeqQueryStringParameter = macro macroimpl.QueryStringParameterMacros.seq
 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
-     * The format must match `qo"paramName=${param}"`.
+     * The format must match `qo"paramName=\${param}"`.
      *
      * The `q_?` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
@@ -90,7 +90,7 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
-     * The format must match `qs"paramName=${params}"`.
+     * The format must match `qs"paramName=\${params}"`.
      *
      * The `q_*` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.

@@ -110,6 +110,9 @@ public class MessagesApi {
      *
      * Will select a language from the candidates, based on the languages available, and fallback to the default language
      * if none of the candidates are available.
+     *
+     * @param candidates the candidate languages
+     * @return the most appropriate Messages instance given the candidate languages
      */
     public Messages preferred(Collection<Lang> candidates) {
         Seq<Lang> cs = JavaConversions.collectionAsScalaIterable(candidates).toSeq();
@@ -123,6 +126,9 @@ public class MessagesApi {
      *
      * Will select a language from the candidates, based on the languages available, and fallback to the default language
      * if none of the candidates are available.
+     *
+     * @param request the incoming request
+     * @return the preferred messages context for the request
      */
     public Messages preferred(Http.RequestHeader request) {
         play.api.i18n.Messages msgs = messages.preferred(request);

@@ -44,7 +44,7 @@ public class OAuth {
     public OAuthProvider getProvider() {
         return provider;
     }
-    
+
     /**
      * Request the request token and secret.
      *
@@ -83,6 +83,7 @@ public class OAuth {
      * The URL where the user needs to be redirected to grant authorization to your application.
      *
      * @param token request token
+     * @return the url
      */
     public String redirectUrl(String token) {
         return oauth.signpost.OAuth.addQueryParameters(

@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableMap;
  * Creation helpers for manually instantiating databases.
  */
 public final class Databases {
-// Databases is a final class and not an interface because an interface cannot be declared final. Also, that should 
+// Databases is a final class and not an interface because an interface cannot be declared final. Also, that should
 // clarify why the class' constructor is private: we really don't want this class to be either instantiated or subclassed.
 	private Databases() {}
     // ----------------
@@ -139,6 +139,10 @@ public final class Databases {
     /**
      * Create an in-memory H2 database with name "default" and with
      * extra configuration provided by the given entries.
+     *
+     * @param k1 an H2 configuration key.
+     * @param v1 configuration value corresponding to `k1`
+     * @return a configured in-memory H2 database
      */
     public static Database inMemoryWith(String k1, Object v1) {
         return inMemory(ImmutableMap.of(k1, v1));
@@ -147,6 +151,12 @@ public final class Databases {
     /**
      * Create an in-memory H2 database with name "default" and with
      * extra configuration provided by the given entries.
+     *
+     * @param k1 an H2 configuration key
+     * @param v1 H2 configuration value corresponding to `k1`
+     * @param k2 a second H2 configuration key
+     * @param v2 a configuration value corresponding to `k2`
+     * @return a configured in-memory H2 database
      */
     public static Database inMemoryWith(String k1, Object v1, String k2, Object v2) {
         return inMemory(ImmutableMap.of(k1, v1, k2, v2));
@@ -155,6 +165,14 @@ public final class Databases {
     /**
      * Create an in-memory H2 database with name "default" and with
      * extra configuration provided by the given entries.
+     *
+     * @param k1 an H2 configuration key
+     * @param v1 H2 configuration value corresponding to `k1`
+     * @param k2 a second H2 configuration key
+     * @param v2 a configuration value corresponding to `k2`
+     * @param k3 a third H2 configuraiton key
+     * @param v3 a configuration value corresponding to `k3`
+     * @return a configured in-memory H2 database
      */
     public static Database inMemoryWith(String k1, Object v1, String k2, Object v2, String k3, Object v3) {
         return inMemory(ImmutableMap.of(k1, v1, k2, v2, k3, v3));

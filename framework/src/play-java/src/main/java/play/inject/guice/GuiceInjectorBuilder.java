@@ -24,6 +24,8 @@ public final class GuiceInjectorBuilder extends GuiceBuilder<GuiceInjectorBuilde
 
     /**
      * Create a Play Injector backed by Guice using this configured builder.
+     *
+     * @return the injector
      */
     public Injector build() {
         return injector();

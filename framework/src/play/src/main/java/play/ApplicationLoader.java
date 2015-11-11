@@ -30,6 +30,9 @@ public interface ApplicationLoader {
 
   /**
    * Load an application given the context.
+   *
+   * @param context the context the apps hould be loaded into
+   * @return the loaded application
    */
   Application load(ApplicationLoader.Context context);
 
@@ -77,6 +80,8 @@ public interface ApplicationLoader {
 
     /**
      * Get the wrapped Scala context.
+     *
+     * @return the wrapped scala context
      */
     public play.api.ApplicationLoader.Context underlying() {
         return underlying;
@@ -84,6 +89,8 @@ public interface ApplicationLoader {
 
     /**
      * Get the environment from the context.
+     *
+     * @return the environment
      */
     public Environment environment() {
         return new Environment(underlying.environment());
@@ -93,6 +100,8 @@ public interface ApplicationLoader {
      * Get the configuration from the context. This configuration is not necessarily the same
      * configuration used by the application, as the ApplicationLoader may, through it's own
      * mechanisms, modify it or completely ignore it.
+     *
+     * @return the initial configuration
      */
     public Configuration initialConfiguration() {
         return new Configuration(underlying.initialConfiguration());
@@ -100,6 +109,9 @@ public interface ApplicationLoader {
 
     /**
      * Create a new context with a different environment.
+     *
+     * @param environment the environment this context should use
+     * @return a context using the specified environment
      */
     public Context withEnvironment(Environment environment) {
         play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
@@ -112,6 +124,9 @@ public interface ApplicationLoader {
 
     /**
      * Create a new context with a different configuration.
+     *
+     * @param initialConfiguration the configuration to use in the created context
+     * @return the created context
      */
     public Context withConfiguration(Configuration initialConfiguration) {
         play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
@@ -137,6 +152,7 @@ public interface ApplicationLoader {
      *                        configuration files, and together form the initialConfiguration provided by the context.  It
      *                        is intended for use in dev mode, to allow the build system to pass additional configuration
      *                        into the application.
+     * @return the created context
      */
     public static Context create(Environment environment, Map<String, Object> initialSettings) {
         play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader$.MODULE$.createContext(
@@ -153,6 +169,7 @@ public interface ApplicationLoader {
      * Locates and loads the necessary configuration files for the application.
      *
      * @param environment The application environment.
+     * @return a context created with the provided underlying environment
      */
     public static Context create(Environment environment) {
         return create(environment, Collections.emptyMap());

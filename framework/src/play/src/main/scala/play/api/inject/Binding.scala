@@ -18,7 +18,7 @@ import com.google.inject.name.Names
  * Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to instances, providers or
  * implementation classes.
  *
- * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[javax.inject.Singleton]], then the
+ * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[$javadoc/javax/inject/Singleton javax.inject.Singleton]], then the
  * binding may declare itself to be eagerly instantiated.  In which case, it should be eagerly instantiated when Play
  * starts up.
  *
@@ -28,6 +28,8 @@ import com.google.inject.name.Names
  * @param eager Whether the binding should be eagerly instantiated.
  * @param source Where this object was bound. Used in error reporting.
  * @see The [[Module]] class for information on how to provide bindings.
+ *
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
 

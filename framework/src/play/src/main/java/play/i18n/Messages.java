@@ -39,10 +39,10 @@ public class Messages {
     }
 
     /**
-     * Converts the varargs to a scala buffer, 
+     * Converts the varargs to a scala buffer,
      * takes care of wrapping varargs into a intermediate list if necessary
-     * 
-     * @param args the message arguments 
+     *
+     * @param args the message arguments
      * @return scala type for message processing
      */
     private static Buffer<Object> convertArgsToScalaBuffer(final Object... args) {
@@ -50,9 +50,9 @@ public class Messages {
     }
 
     /**
-     * Wraps arguments passed into a list if necessary. 
+     * Wraps arguments passed into a list if necessary.
      *
-     * Returns the first value as is if it is the only argument and a subtype of `java.util.List` 
+     * Returns the first value as is if it is the only argument and a subtype of `java.util.List`
      * Otherwise, it calls Arrays.asList on args
      * @param args arguments as a List
      */
@@ -152,6 +152,8 @@ public class Messages {
 
     /**
      * The lang for these messages
+     *
+     * @return the language
      */
     public Lang lang() {
         return lang;

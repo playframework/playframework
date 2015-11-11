@@ -78,8 +78,9 @@ public class NingWSRequest implements WSRequest {
     /**
      * Sets a header with the given name, this can be called repeatedly.
      *
-     * @param name
-     * @param value
+     * @param name the header name
+     * @param value the header value
+     * @return the receiving WSRequest, with the new header set.
      */
     @Override
     public NingWSRequest setHeader(String name, String value) {

@@ -17,7 +17,8 @@ public class Cache {
     /**
      * Retrieves an object by key.
      *
-     * @return object
+     * @param key the cache key
+     * @return the object or null
      */
     public static Object get(String key) {
         return cacheApi().get(key);
@@ -26,6 +27,7 @@ public class Cache {
     /**
      * Retrieve a value from the cache, or set it from a default Callable function.
      *
+     * @param <T>        the type of object being queried
      * @param key        Item key.
      * @param block      block returning value to set if key does not exist
      * @param expiration expiration period in seconds.
@@ -39,6 +41,8 @@ public class Cache {
     /**
      * Sets a value with expiration.
      *
+     * @param key the key to set
+     * @param value the value to set
      * @param expiration expiration in seconds
      */
     public static void set(String key, Object value, int expiration) {
@@ -47,11 +51,19 @@ public class Cache {
 
     /**
      * Sets a value without expiration.
+     *
+     * @param key the key to set
+     * @param value the value to set
      */
     public static void set(String key, Object value) {
         cacheApi().set(key, value);
     }
 
+    /**
+     * Removes the entry at a specific key
+     *
+     * @param key the key whose entry to remove
+     */
     public static void remove(String key) {
         cacheApi().remove(key);
     }

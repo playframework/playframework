@@ -52,7 +52,7 @@ case class NingWSClient(config: AsyncHttpClientConfig)(implicit materializer: Ma
 
 object NingWSClient {
   /**
-   * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of an [[AsyncHttpClientConfig]].
+   * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of an [[https://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
    *

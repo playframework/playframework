@@ -53,6 +53,8 @@ public interface BodyParser<A> {
 
         /**
          * The class of the body parser to use.
+         *
+         * @return the class
          */
         Class<? extends BodyParser> value();
 
@@ -62,6 +64,8 @@ public interface BodyParser<A> {
          * play.http.parser.maxMemoryBuffer and play.http.parser.maxDiskBuffer. To define a custom max length for a
          * particular action, create a custom body parser, optionally extending one of the existing ones and passing
          * the max length into their constructors.
+         *
+         * @return Deprecated
          */
         @Deprecated
         long maxLength() default -1;
@@ -371,6 +375,9 @@ public interface BodyParser<A> {
 
         /**
          * Implement this method to implement the actual body parser.
+         *
+         * @param request header for the request to parse
+         * @return the accumulator that parses the request
          */
         protected abstract Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request);
     }

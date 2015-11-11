@@ -12,7 +12,7 @@ import play.api.{ PlayConfig, Logger, Configuration, Play }
 import play.api.mvc.{ ActionBuilder, Request, Result }
 
 /**
- * An [[ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
  * @see [[CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
@@ -27,7 +27,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
 }
 
 /**
- * An [[ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
  * It can be configured to...
  *

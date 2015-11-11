@@ -19,16 +19,22 @@ public interface Application {
 
     /**
      * Get the underlying Scala application.
+     *
+     * @return the application
      */
     play.api.Application getWrappedApplication();
 
     /**
      * Get the application configuration.
+     *
+     * @return the configuration
      */
     Configuration configuration();
 
     /**
      * Get the injector for this application.
+     *
+     * @return the injector
      */
     Injector injector();
 
@@ -84,6 +90,7 @@ public interface Application {
      * Get the {@link play.Plugin} instance for the given class.
      *
      * @param pluginClass the Class of the plugin
+     * @param <T> the type of the plugin
      * @return an instance of the plugin (if found, otherwise null)
      */
     default <T> T plugin(Class<T> pluginClass) {

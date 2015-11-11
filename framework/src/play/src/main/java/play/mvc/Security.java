@@ -70,6 +70,7 @@ public class Security {
         /**
          * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
+         * @param ctx the current request context
          * @return null if the user is not authenticated.
          */
         public String getUsername(Context ctx) {
@@ -78,6 +79,9 @@ public class Security {
 
         /**
          * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
+         *
+         * @param ctx the current request context
+         * @return a <code>401 Not Authorized</code> result
          */
         public Result onUnauthorized(Context ctx) {
             return unauthorized(views.html.defaultpages.unauthorized.render());

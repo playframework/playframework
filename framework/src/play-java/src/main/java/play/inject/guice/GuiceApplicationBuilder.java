@@ -33,6 +33,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
     /**
      * Set the initial configuration loader.
      * Overrides the default or any previously configured values.
+     *
+     * @param load the configuration loader
+     * @return the configured application builder
      */
     public GuiceApplicationBuilder loadConfig(Function<Environment, Configuration> load) {
         return newBuilder(delegate.loadConfig(func((play.api.Environment env) -> load.apply(new Environment(env)).getWrappedConfiguration())));
@@ -41,6 +44,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
     /**
      * Set the initial configuration.
      * Overrides the default or any previously configured values.
+     *
+     * @param conf the configuration
+     * @return the configured application builder
      */
     public GuiceApplicationBuilder loadConfig(Configuration conf) {
         return loadConfig(env -> conf);
@@ -49,6 +55,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
     /**
      * Set the global settings object.
      * Overrides the default or any previously configured values.
+     *
+     * @param global the configuration
+     * @return the configured application builder
      */
     public GuiceApplicationBuilder global(GlobalSettings global) {
         return newBuilder(delegate.global(new JavaGlobalSettingsAdapter(global)));
@@ -57,6 +66,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
     /**
      * Set the module loader.
      * Overrides the default or any previously configured values.
+     *
+     * @param loader the configuration
+     * @return the configured application builder
      */
     public GuiceApplicationBuilder load(BiFunction<Environment, Configuration, List<GuiceableModule>> loader) {
         return newBuilder(delegate.load(func((play.api.Environment env, play.api.Configuration conf) ->
@@ -66,6 +78,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Override the module loader with the given guiceable modules.
+     *
+     * @param modules the set of overriding modules
+     * @return an application builder that incorporates the overrides
      */
     public GuiceApplicationBuilder load(GuiceableModule... modules) {
         return newBuilder(delegate.load(Scala.varargs(modules)));
@@ -73,6 +88,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Override the module loader with the given Guice modules.
+     *
+     * @param modules the set of overriding modules
+     * @return an application builder that incorporates the overrides
      */
     public GuiceApplicationBuilder load(com.google.inject.Module... modules) {
         return load(Guiceable.modules(modules));
@@ -80,6 +98,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Override the module loader with the given Play modules.
+     *
+     * @param modules the set of overriding modules
+     * @return an application builder that incorporates the overrides
      */
     public GuiceApplicationBuilder load(play.api.inject.Module... modules) {
         return load(Guiceable.modules(modules));
@@ -87,6 +108,9 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Override the module loader with the given Play bindings.
+     *
+     * @param bindings the set of binding override
+     * @return an application builder that incorporates the overrides
      */
     public GuiceApplicationBuilder load(play.api.inject.Binding<?>... bindings) {
         return load(Guiceable.bindings(bindings));
@@ -94,6 +118,8 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Create a new Play Application using this configured builder.
+     *
+     * @return the application
      */
     public Application build() {
         return injector().instanceOf(Application.class);
@@ -101,6 +127,8 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
 
     /**
      * Implementation of Self creation for GuiceBuilder.
+     *
+     * @return the application builder
      */
     protected GuiceApplicationBuilder newBuilder(play.api.inject.guice.GuiceApplicationBuilder builder) {
         return new GuiceApplicationBuilder(builder);

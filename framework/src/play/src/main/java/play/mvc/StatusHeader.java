@@ -73,6 +73,7 @@ public class StatusHeader extends Result {
      * The resource will be loaded from the same classloader that this class comes from.
      *
      * @param resourceName The path of the resource to load.
+     * @return an inlined '200 OK' result containing the resource in the body with in-line content disposition.
      */
     public Result sendResource(String resourceName) {
         return sendResource(resourceName, true);
@@ -83,6 +84,7 @@ public class StatusHeader extends Result {
      *
      * @param resourceName The path of the resource to load.
      * @param classLoader  The classloader to load it from.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
      */
     public Result sendResource(String resourceName, ClassLoader classLoader) {
         return sendResource(resourceName, classLoader, true);
@@ -95,6 +97,7 @@ public class StatusHeader extends Result {
      *
      * @param resourceName The path of the resource to load.
      * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
      */
     public Result sendResource(String resourceName, boolean inline) {
         return sendResource(resourceName, this.getClass().getClassLoader(), inline);
@@ -106,6 +109,7 @@ public class StatusHeader extends Result {
      * @param resourceName The path of the resource to load.
      * @param classLoader  The classloader to load it from.
      * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @return a '200 OK' result containing the resource in the body.
      */
     public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline) {
         return doSendResource(Streams.resourceToSource(classLoader, resourceName, 8192).asJava(),
@@ -113,30 +117,33 @@ public class StatusHeader extends Result {
     }
 
     /**
-     * Sends the given path.
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
      *
      * @param path The path to send.
+     * @return a '200 OK' result containing the file at the provided path with inline content disposition.
      */
     public Result sendPath(Path path) {
         return sendPath(path, false);
     }
 
     /**
-     * Sends the given path.
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
      *
      * @param path   The path to send.
      * @param inline Whether it should be served as an inline file, or as an attachment.
+     * @return a '200 OK' result containing the file at the provided path
      */
     public Result sendPath(Path path, boolean inline) {
         return sendPath(path, inline, path.getFileName().toString());
     }
 
     /**
-     * Sends the given path.
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions
      *
      * @param path     The path to send.
      * @param inline   Whether it should be served as an inline file, or as an attachment.
      * @param filename The file name of the path.
+     * @return a '200 OK' result containing the file at the provided path
      */
     public Result sendPath(Path path, boolean inline, String filename) {
         if (path == null) {
@@ -164,6 +171,7 @@ public class StatusHeader extends Result {
      *
      * @param file The file to send.
      * @param inline  True if the file should be sent inline, false if it should be sent as an attachment.
+     * @return a '200 OK' result containing the file
      */
     public Result sendFile(File file, boolean inline) {
         if (file == null) {
@@ -178,6 +186,7 @@ public class StatusHeader extends Result {
      *
      * @param file The file to send.
      * @param fileName The name of the attachment
+     * @return a '200 OK' result containing the file
      */
     public Result sendFile(File file, String fileName) {
         if (file == null) {
@@ -203,6 +212,9 @@ public class StatusHeader extends Result {
 
     /**
      * Send a chunked response with the given chunks.
+     *
+     * @param chunks the chunks to send
+     * @return a '200 OK' response with the given chunks.
      */
     public Result chunked(Source<ByteString, ?> chunks) {
         return new Result(status(), HttpEntity.chunked(chunks, Optional.empty()));
@@ -212,6 +224,9 @@ public class StatusHeader extends Result {
      * Send a chunked response with the given chunks.
      *
      * @deprecated Use {@link #chunked(Source)} instead.
+     * @param chunks Deprecated
+     * @param <T> Deprecated
+     * @return Deprecated
      */
     public <T> Result chunked(Results.Chunks<T> chunks) {
         return new Result(status(), HttpEntity.chunked(
@@ -223,6 +238,9 @@ public class StatusHeader extends Result {
 
     /**
      * Send a json result.
+     *
+     * @param json the json node to send
+     * @return a '200 OK' result containing the json encoded as UTF-8.
      */
     public Result sendJson(JsonNode json) {
         return sendJson(json, "utf-8");
@@ -230,6 +248,10 @@ public class StatusHeader extends Result {
 
     /**
      * Send a json result.
+     *
+     * @param json the json to send
+     * @param charset the charset in which to encode the json (e.g. "UTF-8")
+     * @return a '200 OK' result containing the json encoded with the given charset
      */
     public Result sendJson(JsonNode json, String charset) {
         if (json == null) {

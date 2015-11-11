@@ -10,7 +10,7 @@ import play.api.mvc.EssentialFilter
 import play.utils.Reflect
 
 /**
- * Provides filters to the [[play.http.HttpRequestHandler]].
+ * Provides filters to the [[play.api.http.HttpRequestHandler]].
  */
 trait HttpFilters {
 

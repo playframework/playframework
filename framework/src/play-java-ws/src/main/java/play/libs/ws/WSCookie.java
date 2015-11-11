@@ -10,6 +10,10 @@ public interface WSCookie {
 
     /**
      * Returns the underlying "native" object for the cookie.
+     *
+     * This is probably an <code>org.asynchttpclient.cookie.Cookie</code>.
+     *
+     * @return the "native" object
      */
     public Object getUnderlying();
 

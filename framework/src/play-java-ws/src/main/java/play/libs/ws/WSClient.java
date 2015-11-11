@@ -22,6 +22,7 @@ public interface WSClient extends java.io.Closeable {
      * return an asynchronous {@code Promise<WSResponse>}.
      *
      * @param url the URL to request
+     * @return the request
      */
     WSRequest url(String url);
 
