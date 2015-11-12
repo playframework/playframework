@@ -4,6 +4,7 @@
 package play.api.db
 
 import java.sql.{ Connection, Driver, DriverManager }
+import javax.inject.Provider
 import javax.sql.DataSource
 
 import org.jdbcdslog.LogSqlDataSource
@@ -92,10 +93,11 @@ object Databases {
  * Default implementation of the database API.
  * Provides driver registration and connection methods.
  */
-abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
+abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment,
+                               databaseConfigProvider: Provider[DatabaseConfig]) extends Database {
 
   private val config = PlayConfig(configuration)
-  val databaseConfig = DatabaseConfig.fromConfig(config, environment)
+  val databaseConfig = databaseConfigProvider.get()
 
   // abstract methods to be implemented
 
