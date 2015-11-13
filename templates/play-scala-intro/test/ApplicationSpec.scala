@@ -15,11 +15,11 @@ class ApplicationSpec extends Specification {
 
   "Application" should {
 
-    "send 404 on a bad request" in new WithApplication{
+    "send 404 on a bad request" in new WithApplication {
       route(FakeRequest(GET, "/boum")) must beSome.which (status(_) == NOT_FOUND)
     }
 
-    "render the index page" in new WithApplication{
+    "render the index page" in new WithApplication {
       val home = route(FakeRequest(GET, "/")).get
 
       status(home) must equalTo(OK)
