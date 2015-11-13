@@ -115,7 +115,7 @@ object Files {
     /**
      * Cache the current Application's TemporaryFileCreator
      */
-    private val creatorCache = Application.instanceCache[DefaultTemporaryFileCreator]
+    private val creatorCache = Application.instanceCache[TemporaryFileCreator]
 
     /**
      * Get the current TemporaryFileCreator - either the injected

@@ -5,6 +5,9 @@ import java.nio.charset.Charset
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.After
+import play.api.ApplicationLoader.Context
+import play.api.routing.Router
+import play.api._
 import play.api.libs.Files.TemporaryFile
 import play.utils.PlayIO
 
@@ -50,6 +53,28 @@ object FilesSpec extends Specification with After {
 
         val to = TemporaryFile(file).moveTo(destination, replace = false)
         new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+      }
+
+      "works when using compile time dependency injection" in {
+        val context = ApplicationLoader.createContext(
+          new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
+        val appLoader = new ApplicationLoader {
+          def load(context: Context) = {
+            (new BuiltInComponentsFromContext(context) {
+              lazy val router = Router.empty
+            }).application
+          }
+        }
+        val app = appLoader.load(context)
+        Play.start(app)
+        val tempFile = try {
+          val tempFile = TemporaryFile()
+          tempFile.file.exists must beTrue
+          tempFile.file
+        } finally {
+          Play.stop(app)
+        }
+        tempFile.exists must beFalse
       }
 
     }

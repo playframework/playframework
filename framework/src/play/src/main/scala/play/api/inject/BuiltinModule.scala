@@ -7,6 +7,7 @@ import akka.actor.ActorSystem
 import javax.inject.{ Singleton, Inject, Provider }
 import play.api._
 import play.api.http._
+import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator, TemporaryFile }
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
 import play.api.libs.concurrent.{ ExecutionContextProvider, ActorSystemProvider }
 import play.api.routing.Router
@@ -45,7 +46,8 @@ class BuiltinModule extends Module {
       bind[Plugins].toProvider[PluginsProvider],
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
-      bind[Crypto].toSelf
+      bind[Crypto].toSelf,
+      bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
         HttpFilters.bindingsFromConfiguration,
