@@ -147,3 +147,7 @@ And if you map it in the `conf/routes` file:
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
 @[reverse-router](code/ScalaRouting.scala)
+
+## Custom routing
+
+See [[String Interpolating Routing DSL|ScalaSirdRouter]]

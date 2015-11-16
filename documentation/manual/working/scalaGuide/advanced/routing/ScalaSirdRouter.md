@@ -53,3 +53,19 @@ To further the point that these are just regular extractor objects, you can see 
 
 @[complex](code/ScalaSirdRouter.scala)
 
+## Binding sird Router
+
+Configuring an application to use a sird Router can be achieved in many ways, depending on use case:
+
+### Embedding play
+An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlay]] section.
+
+### Providing a DI router
+
+A router can be provided to the application as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]]:
+
+@[load](code/SirdAppLoader.scala)
+
+### Overriding binding
+
+A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|ScalaTestingWithGuice#Override-bindings]] 

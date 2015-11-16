@@ -153,3 +153,7 @@ You can then reverse the URL to the `hello` action method, by using the `control
 @[reverse-redirect](code/javaguide/http/routing/controllers/Application.java)
 
 > **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello`.
+
+## Advanced Routing
+
+See [[Routing DSL|JavaRoutingDsl]]

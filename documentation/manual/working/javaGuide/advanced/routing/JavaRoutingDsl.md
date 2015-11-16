@@ -32,3 +32,24 @@ Supported types include `Integer`, `Long`, `Float`, `Double`, `Boolean`, and any
 Asynchronous actions are of course also supported, using the `routeAsync` method:
 
 @[async](code/javaguide/advanced/routing/JavaRoutingDsl.java)
+
+## Binding Routing DSL
+
+Configuring an application to use a Routing DSL can be achieved in many ways, depending on use case:
+
+### Embedding play
+An example of embedding a play server with Routing DSL can be found in [[Embedding Play|JavaEmbeddingPlay]] section.
+
+### Providing a DI router
+
+A router can be provided to the application similarly as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]], using e.g. a java builder class:
+
+@[](code/router/RoutingDslBuilder.java)
+
+and in the application loader:
+
+@[load](code/AppLoader.scala)
+
+### Overriding binding
+
+A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|JavaTestingWithGuice#Override-bindings]] 

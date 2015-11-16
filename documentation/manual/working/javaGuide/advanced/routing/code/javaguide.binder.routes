@@ -1,0 +1,7 @@
+# #user
+GET     /user/:user            controllers.BinderApplication.user(user: javaguide.binder.models.User)
+# #user
+
+# #ageRange
+GET     /ageRange                     controllers.BinderApplication.age(age: javaguide.binder.models.AgeRange)
+# #ageRange
