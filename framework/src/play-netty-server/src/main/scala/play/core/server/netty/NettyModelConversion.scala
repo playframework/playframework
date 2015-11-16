@@ -14,7 +14,7 @@ import play.api.http.HeaderNames._
 import play.api.http.{ Status, HttpChunk, HttpEntity }
 import play.api.libs.streams.MaterializeOnDemandPublisher
 import play.api.mvc._
-import play.core.server.common.{ ServerResultUtils, ServerRequestUtils, ForwardedHeaderHandler }
+import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
 
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Try }
@@ -67,19 +67,11 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override def version = request.getProtocolVersion.text()
       override def queryString = parameters
       override lazy val headers = getHeaders(request)
-      override lazy val remoteAddress = {
-        ServerRequestUtils.findRemoteAddress(
-          forwardedHeaderHandler,
-          headers,
-          connectionRemoteAddress = _remoteAddress)
+      private lazy val remoteConnection: ConnectionInfo = {
+        forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, secureProtocol, headers)
       }
-      override lazy val secure = {
-        ServerRequestUtils.findSecureProtocol(
-          forwardedHeaderHandler,
-          headers,
-          connectionSecureProtocol = secureProtocol
-        )
-      }
+      override def remoteAddress = remoteConnection.address.getHostAddress
+      override def secure = remoteConnection.secure
     }
   }
 
