@@ -272,14 +272,31 @@ object PlayBuild extends Build {
       PlayNettyUtilsProject)
 
   lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
-    .settings(libraryDependencies ++= playServerDependencies)
+    .settings(
+      libraryDependencies ++= playServerDependencies,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingClassProblem]("play.core.server.common.ServerRequestUtils"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.server.common.ServerRequestUtils$"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.play$core$server$common$ForwardedHeaderHandler$$isTrusted"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.remoteAddress"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.remoteProtocol")
+      )
+    )
     .dependsOn(
       PlayProject,
       IterateesProject % "test->test;compile->compile"
     )
 
   lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
-    .settings(libraryDependencies ++= netty)
+    .settings(
+      libraryDependencies ++= netty,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$rRemoteAddress$1"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$tryToCreateRequest$1"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$rSecure$1"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$createRequestHeader$1")
+      )
+    )
     .dependsOn(PlayServerProject)
 
   // ignored binary incompatibilities for PlayAkkaHttpServerProject since it's an experimental project
