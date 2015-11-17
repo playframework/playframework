@@ -33,7 +33,10 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
 
-        private final Injector injector;
+        private Injector injector;
+
+        public AuthenticatedAction() {
+        }
 
         @Inject
         public AuthenticatedAction(Injector injector) {
@@ -42,7 +45,7 @@ public class Security {
 
         public F.Promise<Result> call(final Context ctx) {
             try {
-                Authenticator authenticator = injector.instanceOf(configuration.value());
+                Authenticator authenticator = injector == null ? configuration.value().newInstance() : injector.instanceOf(configuration.value());
                 String username = authenticator.getUsername(ctx);
                 if(username == null) {
                     Result unauthorized = authenticator.onUnauthorized(ctx);
