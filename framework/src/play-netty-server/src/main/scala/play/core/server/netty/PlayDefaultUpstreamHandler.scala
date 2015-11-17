@@ -18,7 +18,7 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.core.server.Server
-import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
+import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 import play.core.system.RequestIdProvider
 import play.core.websocket._
 import scala.collection.JavaConverters._
@@ -87,18 +87,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-        val rHeaders: Headers = getHeaders(nettyHttpRequest)
-
-        def rRemoteAddress = ServerRequestUtils.findRemoteAddress(
-          forwardedHeaderHandler,
-          rHeaders,
-          connectionRemoteAddress = e.getRemoteAddress.asInstanceOf[InetSocketAddress])
-        def rSecure = ServerRequestUtils.findSecureProtocol(
-          forwardedHeaderHandler,
-          rHeaders,
-          connectionSecureProtocol = ctx.getPipeline.get(classOf[SslHandler]) != null
-        )
-
         def tryToCreateRequest = {
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
           // wrapping into URI to handle absoluteURI
@@ -116,9 +104,14 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             override def method = nettyHttpRequest.getMethod.getName
             override def version = nettyVersion.getText
             override def queryString = parameters
-            override def headers = rHeaders
-            override lazy val remoteAddress = rRemoteAddress
-            override lazy val secure = rSecure
+            override val headers = getHeaders(nettyHttpRequest)
+            private lazy val remoteConnection: ConnectionInfo = {
+              val connectionRemoteAddress = e.getRemoteAddress.asInstanceOf[InetSocketAddress].getAddress
+              val connectionSecureProtocol = ctx.getPipeline.get(classOf[SslHandler]) != null
+              forwardedHeaderHandler.remoteConnection(connectionRemoteAddress, connectionSecureProtocol, headers)
+            }
+            override def remoteAddress = remoteConnection.address.getHostAddress
+            override def secure = remoteConnection.secure
           }
           untaggedRequestHeader
         }

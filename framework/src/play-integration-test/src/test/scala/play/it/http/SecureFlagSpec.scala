@@ -74,7 +74,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
     }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "https")), "foo")
+        BasicRequest("GET", "/", "HTTP/1.1", Map(X_FORWARDED_FOR -> "127.0.0.1", X_FORWARDED_PROTO -> "https"), "foo")
       )
       responses.length must_== 1
       responses(0).body must_== Left("true")
@@ -92,7 +92,10 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
   def createConn(sslPort: Int, forwardedProto: Option[String] = None) = {
     val conn = new URL("https://localhost:" + sslPort + "/").openConnection().asInstanceOf[HttpsURLConnection]
-    forwardedProto.foreach(proto => conn.setRequestProperty(X_FORWARDED_PROTO, proto))
+    forwardedProto.foreach { proto =>
+      conn.setRequestProperty(X_FORWARDED_FOR, "127.0.0.1")
+      conn.setRequestProperty(X_FORWARDED_PROTO, proto)
+    }
     conn.setSSLSocketFactory(sslFactory)
     conn
   }
