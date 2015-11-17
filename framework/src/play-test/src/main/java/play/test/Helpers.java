@@ -486,7 +486,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             try {
                 start(server);
                 startedServer = server;
-                browser = testBrowser(webDriver);
+                browser = testBrowser(webDriver, server.port());
                 block.accept(browser);
             } 
             finally {
