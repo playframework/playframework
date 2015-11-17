@@ -67,22 +67,22 @@ object Dependencies {
     // This is depended on by hibernate validator, we upgrade to 3.2.0 to avoid LGPL license of 3.1.x
     "org.jboss.logging" % "jboss-logging" % "3.2.1.Final",
 
-    ("org.springframework" % "spring-context" % springFrameworkVersion notTransitive ())
+    ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
       .exclude("org.springframework", "spring-core")
       .exclude("org.springframework", "spring-expression")
       .exclude("org.springframework", "spring-asm"),
 
-    ("org.springframework" % "spring-core" % springFrameworkVersion notTransitive ())
+    ("org.springframework" % "spring-core" % springFrameworkVersion)
       .exclude("org.springframework", "spring-asm")
       .exclude("commons-logging", "commons-logging"),
 
-    ("org.springframework" % "spring-beans" % springFrameworkVersion notTransitive ())
+    ("org.springframework" % "spring-beans" % springFrameworkVersion)
       .exclude("org.springframework", "spring-core"),
 
-    ("org.reflections" % "reflections" % "0.9.9" notTransitive ())
-      .exclude("javassist", "javassist"),
+    ("org.reflections" % "reflections" % "0.9.9")
+      .exclude("com.google.code.findbugs", "annotations"),
 
     // Used by the Java routing DSL
     "net.jodah" % "typetools" % "0.4.3",
