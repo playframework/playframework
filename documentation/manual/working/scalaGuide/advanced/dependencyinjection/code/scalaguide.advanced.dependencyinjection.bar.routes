@@ -1,0 +1,16 @@
+#injected
+package bar
+
+import com.google.inject.Inject
+import play.api.http.HttpErrorHandler
+import play.api.mvc.RequestHeader
+import play.api.routing.SimpleRouter
+
+class Routes(val httpErrorHandler: HttpErrorHandler) extends SimpleRouter{
+  override def routes = {
+    case header: RequestHeader => controllers.Staties.hello("")
+  }
+
+}
+#injected
+
