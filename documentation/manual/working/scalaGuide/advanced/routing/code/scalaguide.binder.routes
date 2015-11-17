@@ -1,0 +1,7 @@
+# #user
+GET     /user/:user            controllers.BinderApplication.user(user: scalaguide.binder.models.User)
+# #user
+
+# #ageRange
+GET     /ageRange                     controllers.BinderApplication.age(age: scalaguide.binder.models.AgeRange)
+# #ageRange
