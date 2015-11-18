@@ -209,7 +209,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 
 ### GlobalSettings
 
-If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Read the [[`GlobalSettings` migration documentation|GlobalSettings]] for the glory details.
+If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Read the [[`GlobalSettings` migration documentation|GlobalSettings]] for the gory details.
 
 ## `Plugin` deprecated
 
