@@ -1524,6 +1524,15 @@ public class Http {
         }
 
         /**
+         * The Json request content as a POJO.
+         *
+         * @return The Json request content as a POJO.
+         */
+        public <T> T parseJson(Class<T> clazz) {
+            return Json.fromJson(asJson(), clazz);
+        }
+
+        /**
          * The request content as a ByteString.
          *
          * This makes a best effort attempt to convert the parsed body to a ByteString, if it knows how. This includes
