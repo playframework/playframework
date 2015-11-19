@@ -24,7 +24,7 @@ The following steps need to be taken to update your sbt build before you can loa
 Update the Play version number in `project/plugins.sbt` to upgrade Play:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.4")
 ```
 
 ### sbt upgrade
