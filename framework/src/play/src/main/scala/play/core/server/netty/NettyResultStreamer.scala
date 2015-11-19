@@ -84,7 +84,7 @@ object NettyResultStreamer {
           ctx.sendDownstream(ode)
         }
       case Failure(ex) =>
-        Play.logger.debug(ex.toString)
+        Play.logger.error("Exception while sending chunked response to client:", ex)
         Channels.close(oue.getChannel)
     }
     sentResponse
