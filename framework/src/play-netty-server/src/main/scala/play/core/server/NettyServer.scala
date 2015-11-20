@@ -15,8 +15,10 @@ import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
@@ -31,6 +33,10 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
+
+sealed trait NettyTransport
+case object Jdk extends NettyTransport
+case object Native extends NettyTransport
 
 /**
  * creates a Server implementation based Netty
@@ -47,6 +53,12 @@ class NettyServer(
   private val maxChunkSize = nettyConfig.getInt("maxChunkSize")
   private val logWire = nettyConfig.getBoolean("log.wire")
 
+  private lazy val transport = nettyConfig.getString("transport") match {
+    case "native" => Native
+    case "jdk" => Jdk
+    case _ => throw ServerStartException("Netty transport configuration value should be either jdk or native")
+  }
+
   import NettyServer._
 
   def mode = config.mode
@@ -54,10 +66,14 @@ class NettyServer(
   /**
    * The event loop
    */
-  private val eventLoop = new NioEventLoopGroup(
-    nettyConfig.getInt("eventLoopThreads"),
-    NamedThreadFactory("netty-event-loop")
-  )
+  private val eventLoop = {
+    val threadCount = nettyConfig.getInt("eventLoopThreads")
+    val threadFactory = NamedThreadFactory("netty-event-loop")
+    transport match {
+      case Native => new EpollEventLoopGroup(threadCount, threadFactory)
+      case Jdk => new NioEventLoopGroup(threadCount, threadFactory)
+    }
+  }
 
   /**
    * A reference to every channel, both server and incoming, this allows us to shutdown cleanly.
@@ -86,7 +102,10 @@ class NettyServer(
         setOption(ChannelOption.valueOf(option.getKey), unwrap(option.getValue))
       } else {
         logger.warn("Ignoring unknown Netty channel option: " + option.getKey)
-        logger.warn("Valid values can be found at http://netty.io/4.0/api/io/netty/channel/ChannelOption.html")
+        transport match {
+          case Native => logger.warn("Valid values can be found at http://netty.io/4.0/api/io/netty/channel/ChannelOption.html and http://netty.io/4.0/api/io/netty/channel/epoll/EpollChannelOption.html")
+          case Jdk => logger.warn("Valid values can be found at http://netty.io/4.0/api/io/netty/channel/ChannelOption.html")
+        }
       }
     }
   }
@@ -98,8 +117,14 @@ class NettyServer(
     val serverChannelEventLoop = eventLoop.next
 
     val channelPublisher = new HandlerPublisher(serverChannelEventLoop, classOf[Channel])
+
+    val channelClass = transport match {
+      case Native => classOf[EpollServerSocketChannel]
+      case Jdk => classOf[NioServerSocketChannel]
+    }
+
     val bootstrap = new Bootstrap()
-      .channel(classOf[NioServerSocketChannel])
+      .channel(channelClass)
       .group(serverChannelEventLoop)
       .option(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
       .handler(channelPublisher)

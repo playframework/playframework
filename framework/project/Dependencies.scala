@@ -142,7 +142,8 @@ object Dependencies {
 
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.0"
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.0",
+    "io.netty" % "netty-transport-native-epoll" % "4.0.29.Final" classifier "linux-x86_64"
   ) ++ specsBuild.map(_ % Test)++ logback.map(_ % Test)
 
   val nettyUtilsDependencies = slf4j
