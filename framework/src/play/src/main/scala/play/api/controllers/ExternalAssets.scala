@@ -21,9 +21,9 @@ import java.io._
  *
  * You can use this controller in any application, just by declaring the appropriate route. For example:
  * {{{
- * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="/home/peter/myplayapp/external", file)
- * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="C:\external", file)
- * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="relativeToYourApp", file)
+ * GET     /assets/*file               controllers.ExternalAssets.at(path="/home/peter/myplayapp/external", file)
+ * GET     /assets/*file               controllers.ExternalAssets.at(path="C:\\external", file)
+ * GET     /assets/*file               controllers.ExternalAssets.at(path="relativeToYourApp", file)
  * }}}
  *
  */
