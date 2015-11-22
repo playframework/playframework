@@ -64,6 +64,14 @@ object FilterArgsSpec extends Specification {
       )
     }
 
+    "support https disabled" in {
+      check("-Dhttps.port=disabled", "-Dhttp.port=1234")(
+        properties = Seq("https.port" -> "disabled", "http.port" -> "1234"),
+        httpPort = Some(1234),
+        httpsPort = None
+      )
+    }
+
     "support address property" in {
       check("-Dhttp.address=localhost")(
         properties = Seq("http.address" -> "localhost"),

@@ -135,6 +135,35 @@ object ProdServerStartSpec extends Specification {
       fakeServer.stopCallCount must_== 1
     }
 
+    "read configuration for disabled https port" in withTempDir { tempDir =>
+      val process = new FakeServerProcess(
+        args = Seq(tempDir.getAbsolutePath),
+        propertyMap = Map(
+          "play.server.provider" -> classOf[FakeServerProvider].getName,
+          "play.server.http.port" -> "80",
+          "play.server.https.port" -> "disabled",
+          "play.server.http.address" -> "localhost"
+        ),
+        pid = Some("123")
+      )
+      val pidFile = new File(tempDir, "RUNNING_PID")
+      pidFile.exists must beFalse
+      val server = ProdServerStart.start(process)
+      def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
+      try {
+        server.getClass must_== classOf[FakeServer]
+        pidFile.exists must beTrue
+        fakeServer.stopCallCount must_== 0
+        fakeServer.config.port must_== Some(80)
+        fakeServer.config.sslPort must_== None
+        fakeServer.config.address must_== "localhost"
+      } finally {
+        process.shutdown()
+      }
+      pidFile.exists must beFalse
+      fakeServer.stopCallCount must_== 1
+    }
+
     "exit with an error if no root dir defined" in withTempDir { tempDir =>
       val process = new FakeServerProcess()
       exitResult {

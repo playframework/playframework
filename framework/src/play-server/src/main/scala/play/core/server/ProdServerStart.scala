@@ -90,15 +90,19 @@ object ProdServerStart {
       file
     }
 
-    val httpPort = configuration.getString("play.server.http.port").flatMap {
-      case "disabled" => None
-      case str =>
-        val i = try Integer.parseInt(str) catch {
-          case _: NumberFormatException => throw ServerStartException(s"Invalid HTTP port: $str")
-        }
-        Some(i)
+    def parsePort(portType: String): Option[Int] = {
+      configuration.getString(s"play.server.${portType}.port").flatMap {
+        case "disabled" => None
+        case str =>
+          val i = try Integer.parseInt(str) catch {
+            case _: NumberFormatException => throw ServerStartException(s"Invalid ${portType.toUpperCase} port: $str")
+          }
+          Some(i)
+      }
     }
-    val httpsPort = configuration.getInt("play.server.https.port")
+
+    val httpPort = parsePort("http")
+    val httpsPort = parsePort("https")
     if (!(httpPort orElse httpsPort).isDefined) throw ServerStartException("Must provide either an HTTP or HTTPS port")
 
     val address = configuration.getString("play.server.http.address").getOrElse("0.0.0.0")

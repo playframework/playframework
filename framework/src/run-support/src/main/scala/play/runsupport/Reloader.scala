@@ -71,16 +71,22 @@ object Reloader {
     val props = properties.toMap
     def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
 
+    def parsePortValue(portValue: Option[String], defaultValue: Option[Int] = None): Option[Int] = {
+      portValue match {
+        case None => defaultValue
+        case Some("disabled") => None
+        case Some(s) => Some(parsePort(s))
+      }
+    }
+
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     val httpPortString = otherArgs.headOption orElse prop("http.port")
-    val httpPort = {
-      if (httpPortString.exists(_ == "disabled")) None
-      else httpPortString map parsePort orElse Option(defaultHttpPort)
-    }
+    val httpPort = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPort = prop("https.port") map parsePort
+    val httpsPortString = prop("https.port")
+    val httpsPort = parsePortValue(httpsPortString)
 
     // http address can be defined as a -Dhttp.address argument or system property
     val httpAddress = prop("http.address") getOrElse defaultHttpAddress
