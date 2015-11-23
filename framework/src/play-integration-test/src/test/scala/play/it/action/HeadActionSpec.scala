@@ -4,11 +4,11 @@
 
 package play.it.action
 
+import akka.stream.scaladsl.Source
 import org.specs2.mutable.Specification
 import play.api.Play
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.ws.{ WSClient, WSResponse }
 import play.api.mvc._
 import play.api.routing.Router.Routes
@@ -20,7 +20,6 @@ import play.it._
 import play.it.tools.HttpBinApplication._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.asynchttpclient.netty.NettyResponse
-import java.util.concurrent.atomic.AtomicBoolean
 
 object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
 object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
@@ -37,7 +36,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     val chunkedResponse: Routes = {
       case GET(p"/chunked") =>
         Action { request =>
-          Results.Ok.chunked(Enumerator("a", "b", "c"))
+          Results.Ok.chunked(Source(List("a", "b", "c")))
         }
     }
 
@@ -105,18 +104,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       val responseList = await(collectedFutures)
 
       foreach(responseList)((_: WSResponse).status must_== NOT_FOUND)
-    }
-
-    "clean up any onDoneEnumerating callbacks" in {
-      val wasCalled = new AtomicBoolean()
-
-      val action = Action {
-        Results.Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
-      }
-      serverWithAction(action) { client =>
-        await(client.url("/get").head())
-        wasCalled.get() must be_==(true).eventually
-      }
     }
 
     "tag request with DefaultHttpRequestHandler" in serverWithAction(new RequestTaggingHandler with EssentialAction {

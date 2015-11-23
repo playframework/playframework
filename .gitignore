@@ -8,6 +8,7 @@ target
 RUNNING_PID
 generated.keystore
 generated.truststore
+*.log
 
 # Scala-IDE specific
 .scala_dependencies

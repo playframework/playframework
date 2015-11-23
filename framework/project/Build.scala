@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 
@@ -393,9 +393,7 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
     .settings(
       parallelExecution in Test := false,
-      previousArtifact := None,
-      // The integration test WebSocket client need a recent version of Netty 3.x
-      libraryDependencies += "io.netty" % "netty" % "3.10.4.Final" % Test
+      previousArtifact := None
     )
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)

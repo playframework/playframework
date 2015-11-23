@@ -5,10 +5,10 @@ package play.api.test
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.test.Helpers._
 import play.api.mvc.Results._
-import play.api.libs.iteratee.Enumerator
 import play.twirl.api.Content
 import scala.concurrent.Future
 
@@ -61,7 +61,7 @@ class HelpersSpec extends Specification {
       implicit val system = ActorSystem()
       try {
         implicit val mat = ActorMaterializer()
-        contentAsBytes(Future.successful(Ok.chunked(Enumerator("a", "b", "c")))) must_== ByteString(97, 98, 99)
+        contentAsBytes(Future.successful(Ok.chunked(Source(List("a", "b", "c"))))) must_== ByteString(97, 98, 99)
       } finally {
         system.shutdown()
       }

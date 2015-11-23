@@ -25,7 +25,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Retry up to 3 times.
    */
   def around[R: AsResult](r: => R) = {
-    AsResult(EventuallyResults.eventually(3, 20.milliseconds)(r))
+    AsResult(EventuallyResults.eventually(1, 20.milliseconds)(r))
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {

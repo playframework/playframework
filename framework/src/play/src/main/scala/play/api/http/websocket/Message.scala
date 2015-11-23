@@ -32,6 +32,14 @@ case class BinaryMessage(data: ByteString) extends Message
  * @param reason The reason it was closed.
  */
 case class CloseMessage(statusCode: Option[Int] = Some(CloseCodes.Regular), reason: String = "") extends Message
+
+object CloseMessage {
+  def apply(statusCode: Int): CloseMessage =
+    CloseMessage(Some(statusCode), "")
+  def apply(statusCode: Int, reason: String): CloseMessage =
+    CloseMessage(Some(statusCode), reason)
+}
+
 /**
  * A ping message.
  *

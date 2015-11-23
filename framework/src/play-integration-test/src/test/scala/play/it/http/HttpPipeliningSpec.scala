@@ -3,14 +3,11 @@
  */
 package play.it.http
 
+import akka.stream.scaladsl.Source
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ Results, EssentialAction }
 import play.api.test._
-import play.api.test.TestServer
-import play.api.libs.concurrent.Promise
-import play.api.libs.iteratee._
 import play.it._
-import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import akka.pattern.after
@@ -57,13 +54,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
     "wait for the first response body to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
         case "/long" => Accumulator.done(
-          Results.Ok.chunked(Enumerator.unfoldM[Int, String](0) { chunk =>
-            if (chunk < 3) {
-              after(50.milliseconds, actorSystem.scheduler)(Future(Some((chunk + 1, chunk.toString))))
-            } else {
-              Future.successful(None)
-            }
-          })
+          Results.Ok.chunked(Source(initialDelay = 50.milliseconds, interval = 50.milliseconds, tick = "chunk").take(3))
         )
         case "/short" => Accumulator.done(Results.Ok("short"))
         case _ => Accumulator.done(Results.NotFound)
@@ -75,7 +66,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
       )
       responses(0).status must_== 200
       responses(0).body must beRight
-      responses(0).body.right.get._1 must containAllOf(Seq("0", "1", "2")).inOrder
+      responses(0).body.right.get._1 must containAllOf(Seq("chunk", "chunk", "chunk")).inOrder
       responses(1).status must_== 200
       responses(1).body must beLeft("short")
     }

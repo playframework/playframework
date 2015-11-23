@@ -3,13 +3,11 @@
  */
 package play.it.http
 
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{ Flow, Sink }
 import akka.util.ByteString
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.test._
-import play.api.test.TestServer
-import play.api.libs.iteratee._
 import play.it._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
@@ -48,9 +46,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
-      Streams.iterateeToAccumulator(
-        Traversable.takeUpTo[ByteString](20 * 1024) &>> Iteratee.ignore[ByteString].map(_ => Results.Ok)
-      )
+      Accumulator(Sink.ignore).through(Flow[ByteString].take(10)).map(_ => Results.Ok)
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       // Trickle feed is important, otherwise it won't switch to ignoring the body.

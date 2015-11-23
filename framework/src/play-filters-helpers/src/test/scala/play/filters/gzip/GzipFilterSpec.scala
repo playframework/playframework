@@ -19,7 +19,6 @@ import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import org.apache.commons.io.IOUtils
 import scala.concurrent.Future
-import play.api.libs.iteratee.Enumerator
 import scala.util.Random
 import org.specs2.matcher.DataTables
 

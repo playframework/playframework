@@ -3,7 +3,7 @@
  */
 package play.it.http
 
-import java.io.{ ByteArrayInputStream, IOException }
+import java.io.ByteArrayInputStream
 import play.api.Application
 import play.api.test._
 import play.api.libs.ws.WSResponse
@@ -12,7 +12,6 @@ import play.libs.EventSource
 import play.libs.EventSource.Event
 import play.mvc.Results
 import play.mvc.Results.Chunks
-import scala.util.{ Failure, Success, Try }
 
 object NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
