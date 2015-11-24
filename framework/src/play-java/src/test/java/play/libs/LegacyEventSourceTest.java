@@ -11,16 +11,16 @@ import play.mvc.Results.Chunks;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.assertions.Assertions.assertThat;
-import static play.libs.EventSource.Event.event;
+import static play.libs.LegacyEventSource.Event.event;
 
-public class EventSourceTest {
+public class LegacyEventSourceTest {
 
     @Test
     public void testOnReady() throws Exception {
         final TestChannel<String> testChannel = new TestChannel<>();
         final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
         final CountDownLatch invoked = new CountDownLatch(1);
-        EventSource eventSource = new EventSource() {
+        LegacyEventSource eventSource = new LegacyEventSource() {
             @Override
             public void onConnected() {
                 invoked.countDown();
@@ -36,13 +36,13 @@ public class EventSourceTest {
     public void testSends() {
         final TestChannel<String> testChannel = new TestChannel<>();
         final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
-        EventSource eventSource = new EventSource() {
+        LegacyEventSource eventSource = new LegacyEventSource() {
             @Override
             public void onConnected() {}
         };
         eventSource.onReady(out);
 
-        eventSource.send(new EventSource.Event("data1", "id1", "name1"));
+        eventSource.send(new LegacyEventSource.Event("data1", "id1", "name1"));
         eventSource.send(event("data2"));
         eventSource.send(event("data3").withId("id3"));
         eventSource.send(event("data4").withName("name4"));
@@ -62,7 +62,7 @@ public class EventSourceTest {
     public void testClose() throws Exception {
         final TestChannel<String> testChannel = new TestChannel<>();
         final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
-        EventSource eventSource = new EventSource() {
+        LegacyEventSource eventSource = new LegacyEventSource() {
             @Override
             public void onConnected() {}
         };
@@ -78,7 +78,7 @@ public class EventSourceTest {
     @Test
     public void testWhenConnectedFactory() throws Exception {
         final CountDownLatch invoked = new CountDownLatch(1);
-        EventSource eventSource = EventSource.whenConnected(es -> invoked.countDown());
+        LegacyEventSource eventSource = LegacyEventSource.whenConnected(es -> invoked.countDown());
         eventSource.onConnected();
         assertThat(invoked.await(1, SECONDS)).isTrue();
     }
