@@ -205,9 +205,10 @@ object PlayRun {
 
     val filter = Set("--no-exit-sbt")
     val filtered = args.filterNot(filter)
+    val devSettings = Seq.empty[(String, String)] // there are no dev settings in a prod website
 
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress))
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(stage, state).get._2.toEither match {

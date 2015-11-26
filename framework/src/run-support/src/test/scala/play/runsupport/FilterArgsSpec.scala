@@ -15,9 +15,10 @@ object FilterArgsSpec extends Specification {
     properties: Seq[(String, String)] = Seq.empty,
     httpPort: Option[Int] = Some(defaultHttpPort),
     httpsPort: Option[Int] = None,
-    httpAddress: String = defaultHttpAddress): Result = {
+    httpAddress: String = defaultHttpAddress,
+    devSettings: Seq[(String, String)] = Seq.empty): Result = {
 
-    val result = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress)
+    val result = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     result must_== ((properties, httpPort, httpsPort, httpAddress))
   }
 
@@ -35,11 +36,17 @@ object FilterArgsSpec extends Specification {
       )
     }
 
-    "support port property" in {
+    "support port property with system property" in {
       check("-Dhttp.port=1234")(
         properties = Seq("http.port" -> "1234"),
         httpPort = Some(1234)
       )
+    }
+
+    "support port property with dev setting" in {
+      val devSettings: Seq[(String, String)] = Seq("play.server.http.port" -> "1234")
+      val result = Reloader.filterArgs(Seq.empty, defaultHttpPort, defaultHttpAddress, devSettings)
+      result must_== ((Seq.empty, Some(1234), None, defaultHttpAddress))
     }
 
     "support disabled port property" in {
@@ -64,6 +71,12 @@ object FilterArgsSpec extends Specification {
       )
     }
 
+    "support https port property with dev setting" in {
+      val devSettings: Seq[(String, String)] = Seq("play.server.https.port" -> "1234")
+      val result = Reloader.filterArgs(Seq.empty, defaultHttpPort, defaultHttpAddress, devSettings)
+      result must_== ((Seq.empty, Some(9000), Some(1234), defaultHttpAddress))
+    }
+
     "support https disabled" in {
       check("-Dhttps.port=disabled", "-Dhttp.port=1234")(
         properties = Seq("https.port" -> "disabled", "http.port" -> "1234"),
@@ -77,6 +90,12 @@ object FilterArgsSpec extends Specification {
         properties = Seq("http.address" -> "localhost"),
         httpAddress = "localhost"
       )
+    }
+
+    "support address property with dev setting" in {
+      val devSettings: Seq[(String, String)] = Seq("play.server.http.address" -> "not-default-address")
+      val result = Reloader.filterArgs(Seq.empty, defaultHttpPort, defaultHttpAddress, devSettings)
+      result must_== ((Seq.empty, Some(9000), None, "not-default-address"))
     }
 
     "support all options" in {
