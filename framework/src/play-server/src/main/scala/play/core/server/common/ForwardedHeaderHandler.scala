@@ -177,6 +177,6 @@ private[server] object ForwardedHeaderHandler {
           .getOrElse(List("::1", "127.0.0.1"))
           .map(Subnet.apply).toList
       )
-    }.getOrElse(ForwardedHeaderHandlerConfig(Xforwarded, List(Subnet("::1"), Subnet("172.0.0.1"))))
+    }.getOrElse(ForwardedHeaderHandlerConfig(Xforwarded, List(Subnet("::1"), Subnet("127.0.0.1"))))
   }
 }
