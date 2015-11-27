@@ -116,7 +116,7 @@ dist
 
 ## Default SBT layout
 
-You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, use `disablePlugins(PlayLayoutPlugin)`. This will stop Play from overriding the default SBT layout, which looks like this:
+You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, use `disablePlugins(PlayLayoutPlugin)`. Also, add `PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value` so that auto reload seemlessly work for twirl templates. This will stop Play from overriding the default SBT layout, which looks like this:
 
 ```
 build.sbt                  → Application build script
