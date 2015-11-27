@@ -11,7 +11,7 @@ sbt breaks typical build executions up into very fine grained tasks, and any tas
 
 The documentation here describes Play's usage of sbt at a very high level.  As you start to use sbt more in your project, it is recommended that you follow the [sbt tutorial](http://www.scala-sbt.org/0.13/tutorial/index.html) to get an understanding for how sbt fits together.  Another resource that many people have found useful is [this series of blog posts](https://jazzy.id.au/2015/03/03/sbt-task-engine.html).
 
-## Play application directory structure 
+## Play application directory structure
 
 Most people get started with Play using the `activator new` command which produces a directory structure like this:
 
@@ -26,13 +26,13 @@ Most people get started with Play using the `activator new` command which produc
 
 For now, we are going to concern ourselves with the `/build.sbt` file and the `/project` directory.
 
-## The `/build.sbt` file. 
+## The `/build.sbt` file.
 
 When you use the `activator new foo` command, the build description file, `/build.sbt`, will be generated like this:
 
 @[default](code/build.sbt)
 
-The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command. 
+The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command.
 
 The `version` line provides  the version of your application which is used as part of the name for the artifacts your build will produce.
 
@@ -70,6 +70,6 @@ Everything related to building your project is kept in the `/project` directory 
 The Play console and all of its development features like live reloading are implemented via an sbt plugin.  It is registered in the `/project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. "2.4.0" 
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. "%PLAY_VERSION%"
 ```
 > Note that `build.properties` and `plugins.sbt` must be manually updated when you are changing the play version.
