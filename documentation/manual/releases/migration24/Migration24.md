@@ -24,7 +24,7 @@ The following steps need to be taken to update your sbt build before you can loa
 Update the Play version number in `project/plugins.sbt` to upgrade Play:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
 ```
 
 ### sbt upgrade
@@ -565,13 +565,12 @@ The mysterious `OrderedExecutionContext` had [[been retained|Migration22#Concurr
 
 ### SubProject Assets
 
-Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other. 
+Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other.
 
-To get the asset routing to work correctly in your app, you'll need to change: 
+To get the asset routing to work correctly in your app, you'll need to change:
 
     GET     /assets/*file               controllers.myModule.Assets.at(path="/public", file)
 
 to this
 
     GET     /assets/*file               controllers.myModule.Assets.at(path="/public/lib/myModule", file)
-
