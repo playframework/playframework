@@ -5,6 +5,7 @@ package scalaguide.ws.scalaws
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import play.api.libs.ws.ahc._
 import play.api.test._
 
 import java.io._
@@ -447,9 +448,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "allow working with clients directly" in withSimpleServer { ws =>
 
       //#implicit-client
-      import play.api.libs.ws.ning._
 
-      implicit val sslClient = NingWSClient()
+      implicit val sslClient = AhcWSClient()
       // close with sslClient.close() when finished with client
       val response = WS.clientUrl(url).get()
 
@@ -495,7 +495,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       import com.typesafe.config.ConfigFactory
       import play.api._
       import play.api.libs.ws._
-      import play.api.libs.ws.ning._
 
       val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString(
         """
@@ -506,8 +505,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
       val parser = new WSConfigParser(configuration, environment)
-      val config = new NingWSClientConfig(wsClientConfig = parser.parse())
-      val builder = new NingAsyncHttpClientConfigBuilder(config)
+      val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
+      val builder = new AhcConfigBuilder(config)
       //#programmatic-config
 
       ok

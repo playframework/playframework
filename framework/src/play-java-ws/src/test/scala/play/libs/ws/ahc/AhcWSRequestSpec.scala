@@ -1,21 +1,21 @@
-package play.libs.ws.ning
+package play.libs.ws.ahc
 
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
-class NingWSRequestSpec extends Specification with Mockito {
+class AhcWSRequestSpec extends Specification with Mockito {
 
-  "NingWSRequest" should {
+  "AhcWSRequest" should {
 
     "should respond to getMethod" in {
-      val client = mock[NingWSClient]
-      val request = new NingWSRequest(client, "http://example.com", /*materializer*/ null)
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
       request.buildRequest().getMethod must be_==("GET")
     }
 
     "should set virtualHost appropriately" in {
-      val client = mock[NingWSClient]
-      val request = new NingWSRequest(client, "http://example.com", /*materializer*/ null)
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
       request.setVirtualHost("foo.com")
       val actual = request.buildRequest().getVirtualHost()
       actual must beEqualTo("foo.com")
@@ -39,8 +39,8 @@ class NingWSRequestSpec extends Specification with Mockito {
   }
 
   def requestWithTimeout(timeout: Long) = {
-    val client = mock[NingWSClient]
-    val request = new NingWSRequest(client, "http://example.com", /*materializer*/ null)
+    val client = mock[AhcWSClient]
+    val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
     request.setRequestTimeout(timeout)
     request.buildRequest().getRequestTimeout()
   }

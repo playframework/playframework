@@ -2,15 +2,15 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 
-package play.libs.ws.ning;
+package play.libs.ws.ahc;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.asynchttpclient.util.HttpUtils;
 import org.w3c.dom.Document;
 import play.libs.Json;
-
-import play.libs.ws.*;
+import play.libs.ws.WSCookie;
+import play.libs.ws.WSResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,11 +25,11 @@ import java.util.Map;
 /**
  * A WS response.
  */
-public class NingWSResponse implements WSResponse {
+public class AhcWSResponse implements WSResponse {
 
     private org.asynchttpclient.Response ahcResponse;
 
-    public NingWSResponse(org.asynchttpclient.Response ahcResponse) {
+    public AhcWSResponse(org.asynchttpclient.Response ahcResponse) {
         this.ahcResponse = ahcResponse;
     }
 
@@ -77,7 +77,7 @@ public class NingWSResponse implements WSResponse {
     public List<WSCookie> getCookies() {
         List<WSCookie> cookieList = new ArrayList<WSCookie>();
         for (org.asynchttpclient.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
-            cookieList.add(new NingWSCookie(ahcCookie));
+            cookieList.add(new AhcWSCookie(ahcCookie));
         }
         return cookieList;
     }
@@ -90,7 +90,7 @@ public class NingWSResponse implements WSResponse {
         for (org.asynchttpclient.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
             // safe -- cookie.getName() will never return null
             if (ahcCookie.getName().equals(name)) {
-                return new NingWSCookie(ahcCookie);
+                return new AhcWSCookie(ahcCookie);
             }
         }
         return null;
@@ -126,7 +126,7 @@ public class NingWSResponse implements WSResponse {
     }
 
     /**
-     * Get the response body as a {@link org.w3c.dom.Document DOM document}
+     * Get the response body as a {@link Document DOM document}
      * @return a DOM document
      */
     @Override
@@ -139,7 +139,7 @@ public class NingWSResponse implements WSResponse {
     }
 
     /**
-     * Get the response body as a {@link com.fasterxml.jackson.databind.JsonNode}
+     * Get the response body as a {@link JsonNode}
      * @return the json response
      */
     @Override
@@ -179,10 +179,10 @@ public class NingWSResponse implements WSResponse {
     }
 
     /**
-     * Return the request {@link java.net.URI}. Note that if the request got redirected, the value of the
-     * {@link java.net.URI} will be the last valid redirect url.
+     * Return the request {@link URI}. Note that if the request got redirected, the value of the
+     * {@link URI} will be the last valid redirect url.
      *
-     * @return the request {@link java.net.URI}.
+     * @return the request {@link URI}.
      */
     @Override
     public URI getUri() {

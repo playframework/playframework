@@ -2,18 +2,18 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 
-package play.libs.ws.ning;
+package play.libs.ws.ahc;
 
-import play.libs.ws.*;
+import play.libs.ws.WSCookie;
 
 /**
  * The Ning implementation of a WS cookie.
  */
-public class NingWSCookie implements WSCookie {
+public class AhcWSCookie implements WSCookie {
 
     private final org.asynchttpclient.cookie.Cookie ahcCookie;
 
-    public NingWSCookie(org.asynchttpclient.cookie.Cookie ahcCookie) {
+    public AhcWSCookie(org.asynchttpclient.cookie.Cookie ahcCookie) {
         this.ahcCookie = ahcCookie;
     }
 

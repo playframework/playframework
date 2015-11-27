@@ -65,7 +65,7 @@ trait WSRequestMagnet {
  * When greater flexibility is needed, you can also create clients explicitly and pass them into WS:
  *
  * {{{
- * implicit val client = new NingWSClient(builder.build())
+ * implicit val client = new AhcWSClient(builder.build())
  * WS.url("http://example.com/feed").get()
  * }}}
  *
@@ -74,15 +74,15 @@ trait WSRequestMagnet {
  * {{{
  * import com.typesafe.config.ConfigFactory
  * import play.api.libs.ws._
- * import play.api.libs.ws.ning._
+ * import play.api.libs.ws.ahc._
  *
  * val configuration = play.api.Configuration(ConfigFactory.parseString(
  * """
  *   |ws.ssl.trustManager = ...
  * """.stripMargin))
  * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
- * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
- * val secureClient: WSClient = new NingWSClient(builder.build())
+ * val builder = new AhcConfigBuilder(parser.parse())
+ * val secureClient: WSClient = new AhcWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
  * }}}
  *
@@ -153,7 +153,7 @@ object WS {
    * Prepares a new request using an implicit client.  The client must be in scope and configured, i.e.
    *
    * {{{
-   * implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+   * implicit val sslClient = new play.api.libs.ws.ahc.AhcWSClient(sslBuilder.build())
    * WS.clientUrl("http://example.com/feed")
    * }}}
    *

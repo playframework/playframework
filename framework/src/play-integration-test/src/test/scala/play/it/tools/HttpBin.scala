@@ -6,7 +6,7 @@ package play.it.tools
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import play.api.libs.ws.ning.NingWSComponents
+import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.routing.SimpleRouter
 import play.api.routing.Router.Routes
 import play.api.routing.sird._
@@ -322,7 +322,7 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with NingWSComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
       def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)

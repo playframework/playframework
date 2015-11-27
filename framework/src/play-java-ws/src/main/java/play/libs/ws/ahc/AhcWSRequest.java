@@ -2,24 +2,21 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 
-package play.libs.ws.ning;
+package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
-import akka.stream.javadsl.*;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import io.netty.handler.codec.http.HttpHeaders;
 import org.asynchttpclient.*;
+import org.asynchttpclient.oauth.OAuthSignatureCalculator;
 import org.asynchttpclient.request.body.generator.FileBodyGenerator;
 import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;
-import org.asynchttpclient.oauth.OAuthSignatureCalculator;
 import org.asynchttpclient.util.HttpUtils;
-
 import org.reactivestreams.Publisher;
-
-import io.netty.handler.codec.http.HttpHeaders;
-import play.api.libs.ws.ning.*;
+import play.api.libs.ws.ahc.Streamed;
 import play.core.parsers.FormUrlEncodedParser;
 import play.libs.F;
 import play.libs.Json;
@@ -40,7 +37,7 @@ import java.util.concurrent.CompletionStage;
 /**
  * provides the User facing API for building WS request.
  */
-public class NingWSRequest implements WSRequest {
+public class AhcWSRequest implements WSRequest {
 
     private final String url;
     private String method = "GET";
@@ -52,7 +49,7 @@ public class NingWSRequest implements WSRequest {
     private String password;
     private WSAuthScheme scheme;
     private WSSignatureCalculator calculator;
-    private final NingWSClient client;
+    private final AhcWSClient client;
 
     private final Materializer materializer;
 
@@ -60,7 +57,7 @@ public class NingWSRequest implements WSRequest {
     private Boolean followRedirects = null;
     private String virtualHost = null;
 
-    public NingWSRequest(NingWSClient client, String url, Materializer materializer) {
+    public AhcWSRequest(AhcWSClient client, String url, Materializer materializer) {
         this.client = client;
         URI reference = URI.create(url);
 
@@ -83,7 +80,7 @@ public class NingWSRequest implements WSRequest {
      * @return the receiving WSRequest, with the new header set.
      */
     @Override
-    public NingWSRequest setHeader(String name, String value) {
+    public AhcWSRequest setHeader(String name, String value) {
         if (headers.containsKey(name)) {
             Collection<String> values = headers.get(name);
             values.add(value);
@@ -290,7 +287,7 @@ public class NingWSRequest implements WSRequest {
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> get() {
+    public F.Promise<WSResponse> get() {
         return execute("GET");
     }
 
@@ -299,21 +296,21 @@ public class NingWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> patch(String body) {
+    public F.Promise<WSResponse> patch(String body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> patch(JsonNode body) {
+    public F.Promise<WSResponse> patch(JsonNode body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> patch(InputStream body) {
+    public F.Promise<WSResponse> patch(InputStream body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
@@ -331,28 +328,28 @@ public class NingWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> post(String body) {
+    public F.Promise<WSResponse> post(String body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> post(JsonNode body) {
+    public F.Promise<WSResponse> post(JsonNode body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> post(InputStream body) {
+    public F.Promise<WSResponse> post(InputStream body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> post(File body) {
+    public F.Promise<WSResponse> post(File body) {
         setMethod("POST");
         setBody(body);
         return execute();
@@ -363,50 +360,50 @@ public class NingWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> put(String body) {
+    public F.Promise<WSResponse> put(String body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> put(JsonNode body) {
+    public F.Promise<WSResponse> put(JsonNode body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> put(InputStream body) {
+    public F.Promise<WSResponse> put(InputStream body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> put(File body) {
+    public F.Promise<WSResponse> put(File body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> delete() {
+    public F.Promise<WSResponse> delete() {
         return execute("DELETE");
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> head() {
+    public F.Promise<WSResponse> head() {
         return execute("HEAD");
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> options() {
+    public F.Promise<WSResponse> options() {
         return execute("OPTIONS");
     }
 
     @Override
-    public F.Promise<play.libs.ws.WSResponse> execute(String method) {
+    public F.Promise<WSResponse> execute(String method) {
         setMethod(method);
         return execute();
     }
@@ -532,14 +529,14 @@ public class NingWSRequest implements WSRequest {
 
     private F.Promise<WSResponse> execute(Request request) {
 
-        final scala.concurrent.Promise<play.libs.ws.WSResponse> scalaPromise = scala.concurrent.Promise$.MODULE$.<play.libs.ws.WSResponse>apply();
+        final scala.concurrent.Promise<WSResponse> scalaPromise = scala.concurrent.Promise$.MODULE$.<WSResponse>apply();
         try {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) client.getUnderlying();
-            asyncHttpClient.executeRequest(request, new AsyncCompletionHandler<org.asynchttpclient.Response>() {
+            asyncHttpClient.executeRequest(request, new AsyncCompletionHandler<Response>() {
                 @Override
-                public org.asynchttpclient.Response onCompleted(org.asynchttpclient.Response response) {
-                    final org.asynchttpclient.Response ahcResponse = response;
-                    scalaPromise.success(new NingWSResponse(ahcResponse));
+                public Response onCompleted(Response response) {
+                    final Response ahcResponse = response;
+                    scalaPromise.success(new AhcWSResponse(ahcResponse));
                     return response;
                 }
 

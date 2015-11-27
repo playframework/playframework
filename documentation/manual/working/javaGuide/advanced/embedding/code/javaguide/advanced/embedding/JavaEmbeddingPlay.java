@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
-import play.libs.ws.ning.NingWSClient;
+import play.libs.ws.ahc.AhcWSClient;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletionStage;
@@ -90,7 +90,7 @@ public class JavaEmbeddingPlay {
 
     private void withClient(Consumer<WSClient> callback) throws IOException {
         Materializer materializer = Play.current().materializer();
-        try (WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
+        try (WSClient client = new AhcWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
             callback.accept(client);
         }
     }

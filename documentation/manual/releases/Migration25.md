@@ -84,3 +84,7 @@ The runtime dependency on Logback has been removed, and Play can now use any SLF
 ```
 
 Details on how to set up Play with different logging frameworks are in [[Configuring logging|SettingsLogger]] section.
+
+## Renamed Ning components into Ahc
+
+In order to reflect the proper AsyncHttpClient library name, package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`.
