@@ -44,8 +44,8 @@ See the `Streams` object's [API documentation](api/scala/play/api/libs/streams/S
 
 For more examples you can look at the code used by the experimental [[Akka HTTP server backend|AkkaHttpServer]]. Here are the main files where you can find examples:
 
-<!-- FIXME: Update links once a 2.4.x branch is available. -->
 
-* [ModelConversion](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/ModelConversion.scala)
-* [AkkaStreamsConversion](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaStreamsConversion.scala)
-* [AkkaHttpServer](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaHttpServer.scala)
+
+* [ModelConversion](https://github.com/playframework/playframework/blob/2.4.x/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/ModelConversion.scala)
+* [AkkaStreamsConversion](https://github.com/playframework/playframework/blob/2.4.x/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaStreamsConversion.scala)
+* [AkkaHttpServer](https://github.com/playframework/playframework/blob/2.4.x/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaHttpServer.scala)
