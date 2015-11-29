@@ -116,7 +116,7 @@ val toIntOrEnd: Enumeratee[String,Int ] = Enumeratee.mapInput[String] {
 }
 ```
 
-`Enumeratee.map` and `Enumeratee.mapImput` are pretty straight forward, they operate on a per chunk basis and they convert them. Another useful `Enumeratee` is the `Enumeratee.filter` :
+`Enumeratee.map` and `Enumeratee.mapInput` are pretty straight forward, they operate on a per chunk basis and they convert them. Another useful `Enumeratee` is the `Enumeratee.filter` :
 
 ```scala
 def filter[E](predicate: E => Boolean): Enumeratee[E, E]
