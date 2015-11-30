@@ -10,6 +10,13 @@ trait Monoid[A] {
 
 }
 
+object Monoid {
+  implicit def endomorphismMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
+    override def append(f1: A => A, f2: A => A) = f2 compose f1
+    override def identity = Predef.identity
+  }
+}
+
 class MonoidOps[A](m1: A)(implicit m: Monoid[A]) {
   def |+|(m2: A): A = m.append(m1, m2)
 }
