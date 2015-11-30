@@ -166,7 +166,7 @@ You can instantiate a WSClient directly from code and use this for making reques
 
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
-> NOTE: if you instantiate a NingWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+> NOTE: if you instantiate a AhcWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
 
 You can also get access to the underlying `AsyncHttpClient`.
 
@@ -174,7 +174,7 @@ You can also get access to the underlying `AsyncHttpClient`.
 
 This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](https://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/RequestBuilder.html).
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS
@@ -203,17 +203,16 @@ To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring
 ### Configuring AsyncClientConfig
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
-Please refer to the [AsyncHttpClientConfig Documentation](https://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
-* `play.ws.ning.allowPoolingConnection`
-* `play.ws.ning.allowSslConnectionPool`
-* `play.ws.ning.ioThreadMultiplier`
-* `play.ws.ning.maxConnectionsPerHost`
-* `play.ws.ning.maxConnectionsTotal`
-* `play.ws.ning.maxConnectionLifeTime`
-* `play.ws.ning.idleConnectionInPoolTimeout`
-* `ws.ning.webSocketIdleTimeout`
-* `play.ws.ning.maxNumberOfRedirects`
-* `play.ws.ning.maxRequestRetry`
-* `play.ws.ning.removeQueryParamsOnRedirect`
-* `play.ws.ning.useRawUrl`
+* `play.ws.ahc.allowPoolingConnection`
+* `play.ws.ahc.allowSslConnectionPool`
+* `play.ws.ahc.ioThreadMultiplier`
+* `play.ws.ahc.maxConnectionsPerHost`
+* `play.ws.ahc.maxConnectionsTotal`
+* `play.ws.ahc.maxConnectionLifeTime`
+* `play.ws.ahc.idleConnectionInPoolTimeout`
+* `play.ws.ahc.webSocketIdleTimeout`
+* `play.ws.ahc.maxNumberOfRedirects`
+* `play.ws.ahc.maxRequestRetry`
+* `play.ws.ahc.disableUrlEncoding`

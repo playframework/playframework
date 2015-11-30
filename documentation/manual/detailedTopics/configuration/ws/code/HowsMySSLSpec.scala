@@ -6,11 +6,11 @@ import java.io.File
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import play.api.libs.ws.ahc._
 
 import play.api.{Mode, Environment}
 import play.api.libs.json.JsSuccess
 import play.api.libs.ws._
-import play.api.libs.ws.ning._
 import play.api.test._
 
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
@@ -29,14 +29,14 @@ class HowsMySSLSpec extends PlaySpecification with AfterAll {
   def createClient(rawConfig: play.api.Configuration): WSClient = {
     val classLoader = Thread.currentThread().getContextClassLoader
     val parser = new WSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
-    val clientConfig = new NingWSClientConfig(parser.parse())
+    val clientConfig = new AhcWSClientConfig(parser.parse())
     // Debug flags only take effect in JSSE when DebugConfiguration().configure is called.
     //import play.api.libs.ws.ssl.debug.DebugConfiguration
     //clientConfig.ssl.map {
     //   _.debug.map(new DebugConfiguration().configure)
     //}
-    val builder = new NingAsyncHttpClientConfigBuilder(clientConfig)
-    val client = new NingWSClient(builder.build())
+    val builder = new AhcConfigBuilder(clientConfig)
+    val client = new AhcWSClient(builder.build())
     client
   }
 

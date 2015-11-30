@@ -146,9 +146,9 @@ public class OAuth {
         private OAuthSignatureCalculator calculator;
 
         public OAuthCalculator(ConsumerKey consumerKey, RequestToken token) {
-            org.asynchttpclient.oauth.ConsumerKey ningConsumerKey = new org.asynchttpclient.oauth.ConsumerKey(consumerKey.key, consumerKey.secret);
-            org.asynchttpclient.oauth.RequestToken ningRequestToken = new org.asynchttpclient.oauth.RequestToken(token.token, token.secret);
-            calculator = new OAuthSignatureCalculator(ningConsumerKey, ningRequestToken);
+            org.asynchttpclient.oauth.ConsumerKey ahcConsumerKey = new org.asynchttpclient.oauth.ConsumerKey(consumerKey.key, consumerKey.secret);
+            org.asynchttpclient.oauth.RequestToken ahcRequestToken = new org.asynchttpclient.oauth.RequestToken(token.token, token.secret);
+            calculator = new OAuthSignatureCalculator(ahcConsumerKey, ahcRequestToken);
         }
 
         public OAuthSignatureCalculator getCalculator() {

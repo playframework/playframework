@@ -3,7 +3,7 @@ package play.api.test
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.libs.ws._
-import play.api.libs.ws.ning.{ NingWSClientConfig, NingWSClient }
+import play.api.libs.ws.ahc.{ AhcWSClientConfig, AhcWSClient }
 
 import play.api.mvc.Call
 
@@ -59,7 +59,7 @@ trait WsTestClient {
     val system = ActorSystem(name)
     val materializer = ActorMaterializer(namePrefix = Some(name))(system)
     // Don't retry for tests
-    val client = NingWSClient(NingWSClientConfig(maxRequestRetry = 0))(materializer)
+    val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
     val wrappedClient = new WSClient {
       def underlying[T] = client.underlying.asInstanceOf[T]
       def url(url: String) = {

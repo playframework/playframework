@@ -1,25 +1,16 @@
-package play.api.libs.ws.ning
+package play.api.libs.ws.ahc
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import java.lang.IllegalStateException
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.AsyncHandler.State
-import org.asynchttpclient.AsyncHttpClient
-import org.asynchttpclient.HttpResponseBodyPart
-import org.asynchttpclient.HttpResponseHeaders
-import org.asynchttpclient.HttpResponseStatus
-import org.asynchttpclient.Request
-import org.reactivestreams.Publisher
+import org.asynchttpclient.{ AsyncHttpClient, HttpResponseBodyPart, HttpResponseHeaders, HttpResponseStatus, Request }
+import org.asynchttpclient.handler.StreamedAsyncHandler
+import org.reactivestreams.{ Publisher, Subscriber, Subscription }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.streams.Streams
-import play.api.libs.ws.DefaultWSResponseHeaders
-import play.api.libs.ws.WSResponseHeaders
-import play.api.libs.ws.StreamedResponse
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
+import play.api.libs.ws.{ DefaultWSResponseHeaders, StreamedResponse, WSResponseHeaders }
+
+import scala.concurrent.{ Future, Promise }
 
 private[play] object Streamed {
 
@@ -43,7 +34,7 @@ private[play] object Streamed {
   // the stream). This is why `DefaultStreamedAsyncHandler`'s constructor takes a `Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]` 
   // and not a `Promise[(WSResponseHeaders, Source[ByteString])]`. In fact, the moment this method is removed, we should refactor the 
   // `DefaultStreamedAsyncHandler`' constructor parameter's type to the latter.
-  // This method is `deprecated` because we should remember to remove it together with `NingWSRequest.streamWithEnumerator`.
+  // This method is `deprecated` because we should remember to remove it together with `AhcWSRequest.streamWithEnumerator`.
   @deprecated("2.5", "Use `execute()` instead.")
   def execute2(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
     val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
@@ -82,7 +73,7 @@ private[play] object Streamed {
       if (this.publisher != null) State.ABORT
       else {
         val headers = h.getHeaders
-        responseHeaders = DefaultWSResponseHeaders(statusCode, NingWSRequest.ningHeadersToMap(headers))
+        responseHeaders = DefaultWSResponseHeaders(statusCode, AhcWSRequest.ahcHeadersToMap(headers))
         State.CONTINUE
       }
     }

@@ -12,7 +12,7 @@ import java.io.IOException;
 import org.asynchttpclient.AsyncHttpClientConfig;
 
 import play.Application;
-import play.libs.ws.ning.NingWSClient;
+import play.libs.ws.ahc.AhcWSClient;
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -52,16 +52,16 @@ public class WS {
      * @param port The port to use on localhost when relative URLs are requested.
      * @return A running WS client.
      */
-    public static WSClient newClient(int port) {
+    public static WSClient newClient(final int port) {
         AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
                 .setMaxRequestRetry(0).setShutdownQuiet(0).setShutdownTimeout(0).build();
 
         String name = "ws-java-newClient";
-        ActorSystem system = ActorSystem.create(name);
+        final ActorSystem system = ActorSystem.create(name);
         ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        WSClient client = new NingWSClient(config, materializer);
+        final WSClient client = new AhcWSClient(config, materializer);
 
         return new WSClient() {
             public Object getUnderlying() {

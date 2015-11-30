@@ -1,4 +1,4 @@
-package play.libs.ws.ning
+package play.libs.ws.ahc
 
 import scala.collection.JavaConverters._
 
@@ -7,11 +7,11 @@ import org.specs2.mutable._
 
 import org.asynchttpclient.{ FluentCaseInsensitiveStringsMap, Response }
 
-object NingWSResponseSpec extends Specification with Mockito {
+object AhcWSResponseSpec extends Specification with Mockito {
 
   private val emptyMap = new java.util.HashMap[String, java.util.Collection[String]]
 
-  "NingWSResponse" should {
+  "AhcWSResponse" should {
 
     "should get headers map which retrieves headers case insensitively" in {
       val srcResponse = mock[Response]
@@ -21,7 +21,7 @@ object NingWSResponseSpec extends Specification with Mockito {
         .add("FOO", "b")
         .add("Bar", "baz")
       srcResponse.getHeaders returns srcHeaders
-      val response = new NingWSResponse(srcResponse)
+      val response = new AhcWSResponse(srcResponse)
       val headers = response.getAllHeaders
       headers.get("foo").asScala must_== Seq("a", "b", "b")
       headers.get("BAR").asScala must_== Seq("baz")

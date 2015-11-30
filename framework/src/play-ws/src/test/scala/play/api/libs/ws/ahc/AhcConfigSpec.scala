@@ -3,7 +3,7 @@
  *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  *
  */
-package play.api.libs.ws.ning
+package play.api.libs.ws.ahc
 
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable._
@@ -22,37 +22,37 @@ import play.api.test.WithApplication
 
 import scala.concurrent.duration._
 
-object NingConfigSpec extends Specification with Mockito {
+object AhcConfigSpec extends Specification with Mockito {
 
   val defaultWsConfig = new WSClientConfig()
-  val defaultConfig = new NingWSClientConfig(defaultWsConfig)
+  val defaultConfig = new AhcWSClientConfig(defaultWsConfig)
 
-  "NingConfigSpec" should {
+  "AhcConfigSpec" should {
 
     def parseThis(input: String)(implicit app: play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input)
         .withFallback(ConfigFactory.defaultReference()))
-      val parser = new NingWSClientConfigParser(defaultWsConfig, config, app.injector.instanceOf[Environment])
+      val parser = new AhcWSClientConfigParser(defaultWsConfig, config, app.injector.instanceOf[Environment])
       parser.parse()
     }
 
     "case class defaults must match reference.conf defaults" in new WithApplication {
-      NingWSClientConfig() must_== parseThis("")
+      AhcWSClientConfig() must_== parseThis("")
     }
 
-    "parse ws ning section" in new WithApplication {
+    "parse ws ahc section" in new WithApplication {
       val actual = parseThis("""
-                               |play.ws.ning.allowPoolingConnection = false
-                               |play.ws.ning.allowSslConnectionPool = false
-                               |play.ws.ning.ioThreadMultiplier = 5
-                               |play.ws.ning.maxConnectionsPerHost = 3
-                               |play.ws.ning.maxConnectionsTotal = 6
-                               |play.ws.ning.maxConnectionLifetime = 1 minute
-                               |play.ws.ning.idleConnectionInPoolTimeout = 30 seconds
-                               |play.ws.ning.webSocketIdleTimeout = 2 minutes
-                               |play.ws.ning.maxNumberOfRedirects = 0
-                               |play.ws.ning.maxRequestRetry = 99
-                               |play.ws.ning.disableUrlEncoding = true
+                               |play.ws.ahc.allowPoolingConnection = false
+                               |play.ws.ahc.allowSslConnectionPool = false
+                               |play.ws.ahc.ioThreadMultiplier = 5
+                               |play.ws.ahc.maxConnectionsPerHost = 3
+                               |play.ws.ahc.maxConnectionsTotal = 6
+                               |play.ws.ahc.maxConnectionLifetime = 1 minute
+                               |play.ws.ahc.idleConnectionInPoolTimeout = 30 seconds
+                               |play.ws.ahc.webSocketIdleTimeout = 2 minutes
+                               |play.ws.ahc.maxNumberOfRedirects = 0
+                               |play.ws.ahc.maxRequestRetry = 99
+                               |play.ws.ahc.disableUrlEncoding = true
                              """.stripMargin)
 
       actual.allowPoolingConnection must beFalse
@@ -72,7 +72,7 @@ object NingConfigSpec extends Specification with Mockito {
 
       "provide a basic default client with default settings" in {
         val config = defaultConfig
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
 
         actual.getReadTimeout must_== defaultWsConfig.idleTimeout.toMillis
@@ -87,7 +87,7 @@ object NingConfigSpec extends Specification with Mockito {
       "use an explicit idle timeout" in {
         val wsConfig = defaultWsConfig.copy(idleTimeout = 42.millis)
         val config = defaultConfig.copy(wsClientConfig = wsConfig)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
 
         val actual = builder.build()
         actual.getReadTimeout must_== 42L
@@ -96,7 +96,7 @@ object NingConfigSpec extends Specification with Mockito {
       "use an explicit request timeout" in {
         val wsConfig = defaultWsConfig.copy(requestTimeout = 47.millis)
         val config = defaultConfig.copy(wsClientConfig = wsConfig)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
 
         val actual = builder.build()
         actual.getRequestTimeout must_== 47L
@@ -105,7 +105,7 @@ object NingConfigSpec extends Specification with Mockito {
       "use an explicit connection timeout" in {
         val wsConfig = defaultWsConfig.copy(connectionTimeout = 99.millis)
         val config = defaultConfig.copy(wsClientConfig = wsConfig)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
 
         val actual = builder.build()
         actual.getConnectTimeout must_== 99L
@@ -114,7 +114,7 @@ object NingConfigSpec extends Specification with Mockito {
       "use an explicit followRedirects option" in {
         val wsConfig = defaultWsConfig.copy(followRedirects = true)
         val config = defaultConfig.copy(wsClientConfig = wsConfig)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
 
         val actual = builder.build()
         actual.isFollowRedirect must_== true
@@ -127,7 +127,7 @@ object NingConfigSpec extends Specification with Mockito {
         // Used in ProxyUtils.createProxyServerSelector
         try {
           System.setProperty(ProxyUtils.PROXY_HOST, "localhost")
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val actual = builder.build()
 
           val proxyServerSelector = actual.getProxyServerSelector
@@ -142,60 +142,60 @@ object NingConfigSpec extends Specification with Mockito {
       }
     }
 
-    "with ning options" should {
+    "with ahc options" should {
 
-      "allow setting ning allowPoolingConnection" in {
+      "allow setting ahc allowPoolingConnection" in {
         val config = defaultConfig.copy(allowPoolingConnection = false)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.isAllowPoolingConnections() must_== false
       }
 
-      "allow setting ning allowSslConnectionPool" in {
+      "allow setting ahc allowSslConnectionPool" in {
         val config = defaultConfig.copy(allowSslConnectionPool = false)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.isAllowPoolingSslConnections must_== false
       }
 
-      "allow setting ning ioThreadMultiplier" in {
+      "allow setting ahc ioThreadMultiplier" in {
         val config = defaultConfig.copy(ioThreadMultiplier = 5)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.getIoThreadMultiplier must_== 5
       }
 
-      "allow setting ning maximumConnectionsPerHost" in {
+      "allow setting ahc maximumConnectionsPerHost" in {
         val config = defaultConfig.copy(maxConnectionsPerHost = 3)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.getMaxConnectionsPerHost must_== 3
       }
 
-      "allow setting ning maximumConnectionsTotal" in {
+      "allow setting ahc maximumConnectionsTotal" in {
         val config = defaultConfig.copy(maxConnectionsTotal = 6)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.getMaxConnections must_== 6
       }
 
-      "allow setting ning maximumConnectionsTotal" in {
+      "allow setting ahc maximumConnectionsTotal" in {
         val config = defaultConfig.copy(maxNumberOfRedirects = 0)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.getMaxRedirects must_== 0
       }
 
-      "allow setting ning maxRequestRetry" in {
+      "allow setting ahc maxRequestRetry" in {
         val config = defaultConfig.copy(maxRequestRetry = 99)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.getMaxRequestRetry must_== 99
       }
 
-      "allow setting ning useRawUrl" in {
+      "allow setting ahc useRawUrl" in {
         val config = defaultConfig.copy(disableUrlEncoding = true)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
+        val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
         actual.isDisableUrlEncodingForBoundRequests must_== true
       }
@@ -215,7 +215,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = spy(SSLConfig(default = false))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           org.mockito.Mockito.doReturn("TLS").when(sslConfig).protocol
 
@@ -232,21 +232,21 @@ object NingConfigSpec extends Specification with Mockito {
           val tmc = TrustManagerConfig()
           val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, trustManagerConfig = tmc))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           val asyncClientConfig = builder.build()
           val sslContext = asyncClientConfig.getSSLContext
           sslContext must beEqualTo(SSLContext.getDefault)
         }
 
-        "log a warning if sslConfig.default is passed in with an weak certificate" in {
+        "log a warahc if sslConfig.default is passed in with an weak certificate" in {
           import ch.qos.logback.classic.spi._
           import ch.qos.logback.classic._
 
-          // Pass in a configuration which is guaranteed to fail, by banning RSA, DSA and EC certificates
+          // Pass in a configuration which is guaranteed to fail, by banahc RSA, DSA and EC certificates
           val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, disabledKeyAlgorithms = Seq("RSA", "DSA", "EC")))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           // this only works with test:test, has a different type in test:testQuick and test:testOnly!
           val logger = builder.logger.asInstanceOf[ch.qos.logback.classic.Logger]
           val appender = new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
@@ -258,15 +258,15 @@ object NingConfigSpec extends Specification with Mockito {
 
           builder.build()
 
-          val warnings = appender.list
-          warnings.size must beGreaterThan(0)
+          val warahcs = appender.list
+          warahcs.size must beGreaterThan(0)
         }
 
         "should validate certificates" in {
           val sslConfig = SSLConfig()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           val asyncConfig = builder.build()
           asyncConfig.isAcceptAnyCertificate must beFalse
@@ -276,7 +276,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig(loose = SSLLooseConfig(acceptAnyCertificate = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           val asyncConfig = builder.build()
           asyncConfig.isAcceptAnyCertificate must beTrue
@@ -289,7 +289,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val existingProtocols = Array("TLSv1.2", "TLSv1.1", "TLSv1")
 
           val actual = builder.configureProtocols(existingProtocols, sslConfig)
@@ -301,7 +301,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig(enabledProtocols = Some(Seq("derp", "baz", "quux")))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val existingProtocols = Array("quux", "derp", "baz")
 
           val actual = builder.configureProtocols(existingProtocols, sslConfig)
@@ -318,7 +318,7 @@ object NingConfigSpec extends Specification with Mockito {
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
 
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           // The existing protocols is larger than the enabled list, and out of order.
           val existingProtocols = Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
@@ -335,7 +335,7 @@ object NingConfigSpec extends Specification with Mockito {
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
 
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
 
           // The existing protocols is larger than the enabled list, and out of order.
           val existingProtocols = Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
@@ -354,7 +354,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val existingCiphers = Array("goodone", "goodtwo", "goodthree")
 
           val actual = builder.configureCipherSuites(existingCiphers, sslConfig)
@@ -368,7 +368,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val existingCiphers = enabledCiphers.toArray
 
           builder.configureCipherSuites(existingCiphers, sslConfig).must(throwAn[IllegalStateException])
@@ -381,7 +381,7 @@ object NingConfigSpec extends Specification with Mockito {
           val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers), loose = SSLLooseConfig(allowWeakCiphers = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val builder = new AhcConfigBuilder(config)
           val existingCiphers = Array("badone", "goodone", "goodtwo")
 
           val actual = builder.configureCipherSuites(existingCiphers, sslConfig)

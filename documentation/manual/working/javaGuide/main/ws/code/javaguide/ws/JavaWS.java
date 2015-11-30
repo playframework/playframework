@@ -36,10 +36,10 @@ import play.mvc.Http.Status;
 // #ws-custom-client-imports
 import org.asynchttpclient.*;
 import play.api.libs.ws.WSClientConfig;
-import play.api.libs.ws.ning.NingWSClientConfig;
-import play.api.libs.ws.ning.NingWSClientConfigFactory;
+import play.api.libs.ws.ahc.AhcWSClientConfig;
+import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
+import play.api.libs.ws.ahc.AhcConfigBuilder;
 import play.api.libs.ws.ssl.SSLConfigFactory;
-import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import scala.concurrent.duration.Duration;
 
 import akka.stream.Materializer;
@@ -277,10 +277,10 @@ public class JavaWS {
                     true, // compressionEnabled / enforced
                     SSLConfigFactory.defaultConfig());
 
-            NingWSClientConfig clientConfig = NingWSClientConfigFactory.forClientConfig(wsClientConfig);
+            AhcWSClientConfig clientConfig = AhcWSClientConfigFactory.forClientConfig(wsClientConfig);
 
             // Build a secure config out of the client config:
-            NingAsyncHttpClientConfigBuilder secureBuilder = new NingAsyncHttpClientConfigBuilder(clientConfig);
+            AhcConfigBuilder secureBuilder = new AhcConfigBuilder(clientConfig);
             AsyncHttpClientConfig secureDefaults = secureBuilder.build();
 
             // You can directly use the builder for specific options once you have secure TLS defaults...
@@ -289,7 +289,7 @@ public class JavaWS {
                             .setCompressionEnforced(true)
                             .build();
 
-            WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig, materializer);
+            WSClient customClient = new play.libs.ws.ahc.AhcWSClient(customConfig, materializer);
 
             CompletionStage<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
             // #ws-custom-client

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.libs.ws.ning;
+package play.libs.ws.ahc;
 
 import play.api.Configuration;
 import play.api.Environment;
@@ -15,12 +15,12 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-public class NingWSModule extends Module {
+public class AhcWSModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
-                bind(WSAPI.class).to(NingWSAPI.class),
+                bind(WSAPI.class).to(AhcWSAPI.class),
                 bind(WSClient.class).toProvider(WSClientProvider.class)
         );
     }

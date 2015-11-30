@@ -8,40 +8,40 @@ import akka.stream.Materializer;
 
 import java.io.IOException;
 
-import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.AsyncHttpClientConfig;
-import org.asynchttpclient.DefaultAsyncHttpClient;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
+import play.libs.ws.ahc.AhcWSClient;
 
 /**
- * A WS client backed by a Ning AsyncHttpClient.
+ * A WS client backed by an AsyncHttpClient.
  *
- * If you need to debug Ning, set logger.com.ning.http.client=DEBUG in your application.conf file.
+ * If you need to debug Ahc, set logger.org.asynchttpclient=DEBUG in your application.conf file.
+ *
+ * @deprecated Use AhcWSClient instead
  */
+@Deprecated
 public class NingWSClient implements WSClient {
 
-    private final AsyncHttpClient asyncHttpClient;
-    private final Materializer materializer;
+    private final AhcWSClient ahc;
 
     public NingWSClient(AsyncHttpClientConfig config, Materializer materializer) {
-        this.asyncHttpClient = new DefaultAsyncHttpClient(config);
-        this.materializer = materializer;
+        this.ahc = new AhcWSClient(config, materializer);
     }
 
     @Override
     public Object getUnderlying() {
-        return asyncHttpClient;
+        return ahc.getUnderlying();
     }
 
     @Override
     public WSRequest url(String url) {
-        return new NingWSRequest(this, url, materializer);
+        return ahc.url(url);
     }
 
     @Override
     public void close() throws IOException {
-        asyncHttpClient.close();
+        ahc.close();
     }
 }
