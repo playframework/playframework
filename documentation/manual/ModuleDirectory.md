@@ -256,11 +256,10 @@
 * **Website:** <https://github.com/koofr/play2-sprites/>
 * **Short description:** play2-sprites is an sbt plugin that generates sprites from images.
 
-## Play-Bootstrap3 (Java and Scala)
-* **Website:** <http://play-bootstrap3.herokuapp.com/>
-* **Documentation:** <http://play-bootstrap3.herokuapp.com/docs>
-* **Repository:** <https://github.com/adrianhurt/play-bootstrap3>
-* **Short description:** a collection of input helpers and field constructors for Play Framework 2.4 to render Twitter Bootstrap 3 HTML code.
+## Play-Bootstrap (Java and Scala)
+* **Website:** <https://adrianhurt.github.io/play-bootstrap/>
+* **Repository:** <https://github.com/adrianhurt/play-bootstrap>
+* **Short description:** A library for Bootstrap that gives you an out-of-the-box solution with a set of input helpers and field constructors.
 
 ## play-jaxrs (Java)
 * **Website (docs, sample):** [play-jaxrs](https://github.com/pk11/play-jaxrs/)
