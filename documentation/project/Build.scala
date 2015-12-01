@@ -5,7 +5,7 @@
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import sbt._
 import sbt.Keys._
-import play.Play.autoImport._
+import play.sbt.Play.autoImport._
 import play.core.PlayVersion
 import scala.util.Properties.isJavaAtLeast
 import com.typesafe.play.docs.sbtplugin._

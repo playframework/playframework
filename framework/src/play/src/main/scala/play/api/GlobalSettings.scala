@@ -84,23 +84,6 @@ trait GlobalSettings {
   }
 
   /**
-   * @deprecated This method does not do anything.
-   * Instead, specify configuration in your config file
-   * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-   */
-  @Deprecated
-  final def configuration: Configuration = Configuration.empty
-
-  /**
-   * @deprecated This method does not do anything.
-   * Instead, specify configuration in your config file
-   * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-   */
-  @Deprecated
-  final def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode): Configuration =
-    config ++ configuration
-
-  /**
    * Retrieve the (RequestHeader,Handler) to use to serve this request.
    * Default is: route, tag request, then apply filters
    */
@@ -202,7 +185,6 @@ trait GlobalSettings {
    */
   def onBadRequest(request: RequestHeader, error: String): Future[Result] =
     defaultErrorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
-
 }
 
 /**
