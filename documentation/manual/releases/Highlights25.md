@@ -10,5 +10,5 @@ There is now a way to log SQL statements that works across different connection 
 ## Netty native socket transport
 
 You have the possibility to configure the framework to use netty native sockets instead of the default jdk ones.
-See more information about it in [[|Netty configuration|NettyConfiguration]]
+See more information about it in [[Netty configuration|SettingsNetty]]
 
