@@ -8,6 +8,8 @@ import java.io._
 import play.api.test.Helpers._
 import org.apache.commons.io.IOUtils
 
+import scala.annotation.tailrec
+
 object BasicHttpClient {
 
   /**
@@ -22,33 +24,41 @@ object BasicHttpClient {
    * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
    */
   def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
-    val client = new BasicHttpClient(port)
-
-    try {
-      var requestNo = 0
-      val responses = requests.flatMap { request =>
-        requestNo += 1
-        client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
-      }
-
-      if (checkClosed) {
-        try {
-          val line = client.reader.readLine()
-          if (line != null) {
-            throw new RuntimeException("Unexpected data after responses received: " + line)
-          }
-        } catch {
-          case timeout: SocketTimeoutException => throw timeout
-          case io: IOException =>
-          // Ignore, the reader technically *should* return null when the connection is closed, but sometimes it
-          // throws an exception.
+    retry(10) {
+      val client = new BasicHttpClient(port)
+      try {
+        var requestNo = 0
+        val responses = requests.flatMap { request =>
+          requestNo += 1
+          client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
         }
+
+        if (checkClosed) {
+          try {
+            val line = client.reader.readLine()
+            if (line != null) {
+              throw new RuntimeException("Unexpected data after responses received: " + line)
+            }
+          } catch {
+            case timeout: SocketTimeoutException => throw timeout
+          }
+        }
+
+        responses
+
+      } finally {
+        client.close()
       }
+    }
+  }
 
-      responses
-
-    } finally {
-      client.close()
+  /** Retries the operation a number of times defined by n. */
+  def retry[T](n: Int)(fn: => T): T = {
+    try {
+      fn
+    } catch {
+      case e: IOException if n > 1 =>
+        retry(n - 1)(fn)
     }
   }
 
@@ -139,11 +149,13 @@ class BasicHttpClient(port: Int) {
    */
   def readResponse(responseDesc: String) = {
     try {
-      // Read status line
       val statusLine = reader.readLine()
       if (statusLine == null) {
-        throw new RuntimeException(s"No response $responseDesc: EOF reached")
+        // The line can be null when the CI system doesn't respond in time.
+        // so retry repeatedly by throwing IOException.
+        throw new IOException(s"No response $responseDesc: EOF reached")
       }
+
       val (version, status, reasonPhrase) = statusLine.split(" ", 3) match {
         case Array(v, s, r) => (v, s.toInt, r)
         case Array(v, s) => (v, s.toInt, "")
@@ -206,6 +218,8 @@ class BasicHttpClient(port: Int) {
 
       BasicResponse(version, status, reasonPhrase, headers, body)
     } catch {
+      case io: IOException =>
+        throw io
       case e: Exception =>
         throw new RuntimeException(
           s"Exception while reading response $responseDesc ${e.getClass.getName}: ${e.getMessage}", e)
@@ -218,8 +232,6 @@ class BasicHttpClient(port: Int) {
       IOUtils.copy(reader, writer)
     } catch {
       case timeout: SocketTimeoutException => throw timeout
-      case io: IOException =>
-      // Ignore, sometimes the reader will throw an exception instead of returning end of input
     }
     writer.toString
   }
