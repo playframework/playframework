@@ -22,6 +22,15 @@ play.server {
 }
 ```
 
+You need as well to add `netty-transport-native-epoll` as a dependency:
+
+```scala
+libraryDependencies ++= Seq(
+    "io.netty" % "netty-transport-native-epoll" % "4.0.33.final" classifier "linux-x86_64"
+)
+```
+
+
 ## Configuring channel options
 
 The available options are defined in [Netty channel option documentation](http://netty.io/4.0/api/io/netty/channel/ChannelOption.htm).
