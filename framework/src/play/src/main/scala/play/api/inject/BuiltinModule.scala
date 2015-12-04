@@ -50,7 +50,6 @@ class BuiltinModule extends Module {
       bind[ExecutionContext].toProvider[ExecutionContextProvider],
       bind[Executor].toProvider[ExecutionContextProvider],
       bind[HttpExecutionContext].toSelf,
-      bind[Plugins].toProvider[PluginsProvider],
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
       bind[Crypto].toSelf,
@@ -76,9 +75,4 @@ class RoutesProvider @Inject() (injector: Injector, environment: Environment, co
       .fold[Router](Router.empty)(injector.instanceOf(_))
     router.withPrefix(prefix)
   }
-}
-
-@Singleton
-class PluginsProvider @Inject() (environment: Environment, injector: Injector) extends Provider[Plugins] {
-  lazy val get = Plugins(environment, injector)
 }

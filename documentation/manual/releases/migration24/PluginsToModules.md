@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Migrating Plugin to Module
 
-If you have implemented a Play plugin, please consider migrating your implementation to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html), instead of the deprecated Java [`play.Plugin`](api/java/play/Plugin.html) or Scala [`play.api.Plugin`](api/scala/play/api/Plugin.html) types.
+If you have implemented a Play plugin, please consider migrating your implementation to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html), instead of the deprecated Java `play.Plugin` or Scala `play.api.Plugin` types.
 
 The main difference between the old `Plugin` API, and the new one using `Module`, is that with the latter we are going to fully embrace Dependency Injection (DI) - you can read [[here|Highlights24#Dependency-Injection]] to understand why Play became opinionated about DI.
 

@@ -4,9 +4,8 @@ package javaguide.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static play.mvc.Http.Status.OK;
-import static play.test.Helpers.GET;
-import static play.test.Helpers.contentAsString;
-import static play.test.Helpers.route;
+import static play.test.Helpers.*;
+
 import javaguide.tests.controllers.Application;
 
 import java.util.ArrayList;
@@ -24,8 +23,10 @@ public class ApplicationTest extends WithApplication {
   
   @Override
   protected FakeApplication provideFakeApplication() {
-    return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(),
-        ImmutableMap.of("play.http.router", "javaguide.tests.Routes"), new ArrayList<String>(), null);
+    return new FakeApplication(new java.io.File("."),
+                               Helpers.class.getClassLoader(),
+                               ImmutableMap.of("play.http.router", "javaguide.tests.Routes"),
+                               fakeGlobal());
   }
 
   @Test

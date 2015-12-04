@@ -28,8 +28,6 @@ public class FakeApplication implements play.Application {
      * @param path application environment root path
      * @param classloader application environment class loader
      * @param additionalConfiguration additional configuration for the application
-     * @param additionalPlugins additional plugins to load
-     * @param withoutPlugins plugins to disable
      * @param global global settings to use in place of default global
      */
     @SuppressWarnings("unchecked")
@@ -37,8 +35,6 @@ public class FakeApplication implements play.Application {
         File path,
         ClassLoader classloader,
         Map<String, ? extends Object> additionalConfiguration,
-        List<String> additionalPlugins,
-        List<String> withoutPlugins,
         play.GlobalSettings global) {
 
         play.api.GlobalSettings scalaGlobal = (global != null) ? new play.core.j.JavaGlobalSettingsAdapter(global) : null;
@@ -46,28 +42,12 @@ public class FakeApplication implements play.Application {
         this.application = new play.api.test.FakeApplication(
             path,
             classloader,
-            Scala.toSeq(additionalPlugins),
-            Scala.toSeq(withoutPlugins),
             Scala.asScala((Map<String, Object>) additionalConfiguration),
             scala.Option.apply(scalaGlobal),
             scala.PartialFunction$.MODULE$.<scala.Tuple2<String, String>, Handler>empty()
         );
         this.configuration = application.injector().instanceOf(Configuration.class);
         this.injector = application.injector().instanceOf(Injector.class);
-    }
-
-    /**
-     * Create a fake application.
-     *
-     * @param path application environment root path
-     * @param classloader application environment class loader
-     * @param additionalConfiguration additional configuration for the application
-     * @param additionalPlugins additional plugins to load
-     * @param global global settings to use in place of default global
-     */
-    public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration,
-                           List<String> additionalPlugins, play.GlobalSettings global) {
-        this(path, classloader, additionalConfiguration, additionalPlugins, Collections.<String>emptyList(), global);
     }
 
     /**

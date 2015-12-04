@@ -191,18 +191,14 @@ import play.api.Application
  *
  * @param path The application path
  * @param classloader The application classloader
- * @param additionalPlugins Additional plugins class names loaded by this application
- * @param withoutPlugins Plugins class names to disable
  * @param additionalConfiguration Additional configuration
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 case class FakeApplication(
     override val path: java.io.File = new java.io.File("."),
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-    additionalPlugins: Seq[String] = Nil,
-    withoutPlugins: Seq[String] = Nil,
     additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    withGlobal: Option[play.api.GlobalSettings] = None,
+    withGlobal: Option[GlobalSettings] = None,
     withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val app: Application = new GuiceApplicationBuilder()
@@ -210,10 +206,8 @@ case class FakeApplication(
     .global(withGlobal.orNull)
     .configure(additionalConfiguration)
     .bindings(
-      bind[FakePluginsConfig] to FakePluginsConfig(additionalPlugins, withoutPlugins),
       bind[FakeRouterConfig] to FakeRouterConfig(withRoutes))
     .overrides(
-      bind[Plugins].toProvider[FakePluginsProvider],
       bind[Router].toProvider[FakeRouterProvider])
     .build
 
@@ -222,20 +216,10 @@ case class FakeApplication(
   override def configuration: Configuration = app.configuration
   override def actorSystem: ActorSystem = app.actorSystem
   override implicit def materializer: Materializer = app.materializer
-  override def plugins: Seq[Plugin.Deprecated] = app.plugins
   override def requestHandler: HttpRequestHandler = app.requestHandler
   override def errorHandler: HttpErrorHandler = app.errorHandler
   override def stop(): Future[_] = app.stop()
   override def injector: Injector = app.injector
-}
-
-private case class FakePluginsConfig(additionalPlugins: Seq[String], withoutPlugins: Seq[String])
-
-private class FakePluginsProvider @Inject() (config: FakePluginsConfig, environment: Environment, injector: Injector) extends Provider[Plugins] {
-  lazy val get: Plugins = {
-    val pluginClasses = config.additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(config.withoutPlugins)
-    new Plugins(Plugins.loadPlugins(pluginClasses, environment, injector).toIndexedSeq)
-  }
 }
 
 private class FakeRoutes(

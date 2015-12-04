@@ -57,39 +57,10 @@ trait Application {
    */
   def mode: Mode.Mode
 
-  def global: GlobalSettings = injector.instanceOf[GlobalSettings]
+  @deprecated("Use dependency injection", "2.5.0")
+  def global: GlobalSettings.Deprecated = injector.instanceOf[GlobalSettings.Deprecated]
+
   def configuration: Configuration
-  def plugins: Seq[Plugin.Deprecated]
-
-  /**
-   * Retrieves a plugin of type `T`.
-   *
-   * For example, retrieving the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin(classOf[DBPlugin])
-   * }}}
-   *
-   * @tparam T the plugin type
-   * @param  pluginClass the plugin’s class
-   * @return the plugin instance, wrapped in an option, used by this application
-   * @throws scala.Error if no plugins of type `T` are loaded by this application
-   */
-  def plugin[T](pluginClass: Class[T]): Option[T] =
-    plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).map(_.asInstanceOf[T])
-
-  /**
-   * Retrieves a plugin of type `T`.
-   *
-   * For example, to retrieve the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(sys.error("problem with the plugin"))
-   * }}}
-   *
-   * @tparam T the plugin type
-   * @return The plugin instance used by this application.
-   * @throws scala.Error if no plugins of type `T` are loaded by this application.
-   */
-  def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
   /**
    * The default ActorSystem used by the application.
@@ -251,8 +222,7 @@ class DefaultApplication @Inject() (environment: Environment,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
-    override val materializer: Materializer,
-    override val plugins: Plugins) extends Application {
+    override val materializer: Materializer) extends Application {
 
   def path = environment.rootPath
 
@@ -274,7 +244,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration + tempFileCreator
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration + tempFileCreator + global
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -284,13 +254,15 @@ trait BuiltInComponents {
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer, Plugins.empty)
+    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)
+
+  lazy val global: GlobalSettings.Deprecated = play.api.GlobalSettings(configuration, environment)
 
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
 }
