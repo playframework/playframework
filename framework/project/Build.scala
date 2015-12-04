@@ -169,6 +169,9 @@ object PlayBuild extends Build {
   import BuildSettings._
   import Generators._
 
+  def scala211 = "2.11.7"
+  def scala210 = "2.10.5"
+
   lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
     .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
@@ -188,7 +191,15 @@ object PlayBuild extends Build {
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies,
-      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
+      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat"),
+      crossScalaVersions := Seq(scala211, scala210),
+      libraryDependencies ++= {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+            Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
+          case _ => Nil
+        }
+      }
     )
 
   lazy val IterateesProject = PlayCrossBuiltProject("Play-Iteratees", "iteratees")
