@@ -115,7 +115,8 @@ object ForkRun {
 
   // reparse args to support https urls
   def serverUrl(args: Seq[String], defaultHttpPort: Int, defaultHttpAddress: String, address: InetSocketAddress): String = {
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress)
+    val devSettings: Seq[(String, String)] = Seq.empty
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val host = if (httpAddress == "0.0.0.0") "localhost" else httpAddress
     if (httpPort.isDefined) s"http://$host:${httpPort.get}"
     else if (httpsPort.isDefined) s"https://$host:${httpsPort.get}"

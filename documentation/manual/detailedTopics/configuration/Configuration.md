@@ -32,7 +32,7 @@ There are a couple of special things to know about configuration when running yo
 You can configure extra settings for the `run` command in your `build.sbt`. These settings won't be used when you deploy your application.
 
 ```
-devSettings := Map("play.server.http.port" -> "8080")
+PlayKeys.devSettings := Seq("play.server.http.port" -> "8080")
 ```
 
 ### HTTP server settings in `application.conf`

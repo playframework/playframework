@@ -63,7 +63,10 @@ object Reloader {
     }
   }
 
-  def filterArgs(args: Seq[String], defaultHttpPort: Int, defaultHttpAddress: String): (Seq[(String, String)], Option[Int], Option[Int], String) = {
+  def filterArgs(args: Seq[String],
+    defaultHttpPort: Int,
+    defaultHttpAddress: String,
+    devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
     val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
@@ -81,15 +84,16 @@ object Reloader {
 
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
-    val httpPortString = otherArgs.headOption orElse prop("http.port")
-    val httpPort = parsePortValue(httpPortString, Option(defaultHttpPort))
+    // Or it can be defined in devSettings as "play.server.http.port"
+    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devSettings.toMap.get("play.server.http.port")
+    val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString = prop("https.port")
+    val httpsPortString: Option[String] = prop("https.port") orElse devSettings.toMap.get("play.server.https.port")
     val httpsPort = parsePortValue(httpsPortString)
 
     // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address") getOrElse defaultHttpAddress
+    val httpAddress = prop("http.address") orElse devSettings.toMap.get("play.server.http.address") getOrElse defaultHttpAddress
 
     (properties, httpPort, httpsPort, httpAddress)
   }
@@ -134,7 +138,7 @@ object Reloader {
     devSettings: Seq[(String, String)], args: Seq[String],
     runSbtTask: String => AnyRef, mainClassName: String): PlayDevServer = {
 
-    val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress)
+    val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val systemProperties = extractSystemProperties(javaOptions)
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
