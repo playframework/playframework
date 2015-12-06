@@ -59,7 +59,10 @@ object Dependencies {
   val javassist = link
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
-  val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
+  def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
+    case _ => Nil
+  }
 
   val springFrameworkVersion = "4.1.6.RELEASE"
 
@@ -134,9 +137,8 @@ object Dependencies {
       guava % Test,
 
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      scalaParserCombinators,
       scalaJava8Compat
-    ) ++
+    ) ++ scalaParserCombinators(scalaVersion) ++
     specsBuild.map(_ % Test) ++ logback.map(_ % Test) ++
     javaTestDeps
 
@@ -153,10 +155,10 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0"
   )
 
-  val routesCompilerDependencies =  Seq(
+  def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.4",
     specsMatcherExtra % Test
-  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
     moduleId.extra(
