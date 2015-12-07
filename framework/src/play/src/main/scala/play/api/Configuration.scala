@@ -105,28 +105,6 @@ object Configuration {
   }
 
   /**
-   * Loads a new `Configuration` either from the classpath or from
-   * `conf/application.conf` depending on the application's Mode.
-   *
-   * The provided mode is used if the application is not ready
-   * yet, just like when calling this method from `play.api.Application`.
-   *
-   * Defaults to Mode.Dev
-   *
-   * @param mode Application mode.
-   * @return a `Configuration` instance
-   */
-  @deprecated("Use load(Environment, Map[String,AnyRef]) instead", "2.4.0")
-  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, AnyRef] = Map.empty): Configuration = {
-    val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-    if (currentMode == Mode.Prod) {
-      load(Thread.currentThread.getContextClassLoader, System.getProperties, Map.empty, allowMissingApplicationConf = false)
-    } else {
-      load(Thread.currentThread.getContextClassLoader, System.getProperties, devSettings, allowMissingApplicationConf = true)
-    }
-  }
-
-  /**
    * Load a new Configuration from the Environment.
    */
   def load(environment: Environment, devSettings: Map[String, AnyRef]): Configuration = {
