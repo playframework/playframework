@@ -28,8 +28,7 @@ public class WS {
      */
     @Deprecated
     public static WSClient client() {
-        Application app = play.Play.application();
-        return app.injector().instanceOf(WSClient.class);
+        return play.api.Play.current().injector().instanceOf(WSClient.class);
     }
 
     /**

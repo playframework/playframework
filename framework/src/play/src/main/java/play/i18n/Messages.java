@@ -4,6 +4,8 @@
 package play.i18n;
 
 import org.apache.commons.lang3.ArrayUtils;
+import play.Application;
+import play.api.Play;
 import play.api.i18n.Messages$;
 import scala.collection.mutable.Buffer;
 
@@ -35,7 +37,7 @@ public class Messages {
     }
 
     private static MessagesApi getMessagesApi() {
-        return play.Play.application().injector().instanceOf(MessagesApi.class);
+        return Play.current().injector().instanceOf(MessagesApi.class);
     }
 
     /**

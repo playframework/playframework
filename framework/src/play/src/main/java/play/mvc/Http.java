@@ -200,7 +200,7 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            return Play.application().injector().instanceOf(MessagesApi.class).preferred(request());
+            return play.api.Play.current().injector().instanceOf(MessagesApi.class).preferred(request());
         }
 
         /**

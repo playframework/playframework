@@ -55,8 +55,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
+            final play.api.inject.Injector injector = play.api.Play.current().injector();
             return invokeHandler(
-                ((JavaHandler) handler).withComponents(Play.application().injector().instanceOf(JavaHandlerComponents.class)),
+                ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
                 requestBuilder, timeout
             );
         } else {
@@ -350,7 +351,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(RequestBuilder requestBuilder, long timeout) {
-      return route(play.Play.application(), requestBuilder, timeout);
+        final play.Application application = play.api.Play.current().injector().instanceOf(play.Application.class);
+
+        return route(application, requestBuilder, timeout);
     }
 
     public static Result route(Application app, RequestBuilder requestBuilder) {

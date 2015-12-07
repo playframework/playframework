@@ -15,12 +15,13 @@ public class ThreadPoolsJava {
 
     @Test
     public void usingAppClassLoader() throws Exception {
-        running(fakeApplication(), new Runnable() {
+        final FakeApplication app = fakeApplication();
+        running(app, new Runnable() {
             public void run() {
                 String myClassName = "java.lang.String";
                 try {
                     //#using-app-classloader
-                    Class myClass = Play.application().classloader().loadClass(myClassName);
+                    Class myClass = app.classloader().loadClass(myClassName);
                     //#using-app-classloader
                     assertThat(myClass, notNullValue());
                 } catch (ClassNotFoundException e) {

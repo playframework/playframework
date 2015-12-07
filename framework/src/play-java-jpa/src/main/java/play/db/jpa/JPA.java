@@ -4,6 +4,8 @@
 package play.db.jpa;
 
 import play.*;
+import play.api.Application;
+import play.api.Play;
 import play.libs.F;
 import play.mvc.Http;
 
@@ -59,11 +61,7 @@ public class JPA {
      * @return the JPAApi
      */
     public static JPAApi jpaApi() {
-        Application app = Play.application();
-        if (app == null) {
-            throw new RuntimeException("No application running");
-        }
-        return app.injector().instanceOf(JPAApi.class);
+        return Play.current().injector().instanceOf(JPAApi.class);
     }
 
     /**
