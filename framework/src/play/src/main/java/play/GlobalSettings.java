@@ -15,7 +15,10 @@ import java.util.concurrent.CompletionStage;
  * at start-up or shut-down.
  * <p>
  * How to use it: create a <code>Global.java</code> class in your Java application and override the methods you want.
+ *
+ * @deprecated This class is deprecated in 2.5.0.  Please use dependency injection in preference to GlobalSettings.
  */
+@Deprecated
 public class GlobalSettings {
 
     /**
@@ -120,37 +123,6 @@ public class GlobalSettings {
      */
     public CompletionStage<Result> onBadRequest(RequestHeader request, String error) {
         return null;
-    }
-
-    /**
-     * @deprecated This method does not do anything.
-     * Instead, specify configuration in your config file
-     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-     *
-     * @param config deprecated
-     * @param path deprecated
-     * @param classloader deprecated
-     * @return deprecated
-     */
-    @Deprecated
-    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
-        return null;
-    }
-
-    /**
-     * @deprecated This method does not do anything.
-     * Instead, specify configuration in your config file
-     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-     *
-     * @param config deprecated
-     * @param path deprecated
-     * @param classloader deprecated
-     * @param mode deprecated
-     * @return deprecated
-     */
-    @Deprecated
-    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
-        return onLoadConfig(config, path, classloader);
     }
 
     /**
