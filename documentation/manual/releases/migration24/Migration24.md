@@ -213,7 +213,7 @@ If you are keen to use dependency injection, we are recommending that you move o
 
 ## `Plugin` deprecated
 
-Both Java [`play.Plugin`](api/java/play/Plugin.html) and Scala [`play.api.Plugin`](api/scala/play/api/Plugin.html) types have been deprecated. Read [[migrating Plugin to Module|PluginsToModules]] to update your code to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).
+Both Java `play.Plugin` and Scala `play.api.Plugin` types have been deprecated. Read [[migrating Plugin to Module|PluginsToModules]] to update your code to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).
 
 ## Configuration changes
 

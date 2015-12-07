@@ -15,8 +15,7 @@ import java.io.File
 case class FakeApplication(config: Map[String, Any] = Map(),
     path: File = new File("."),
     mode: Mode.Mode = Mode.Test,
-    override val global: GlobalSettings = DefaultGlobal,
-    plugins: Seq[Plugin.Deprecated] = Nil) extends Application {
+    override val global: GlobalSettings.Deprecated = DefaultGlobal) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
   private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)

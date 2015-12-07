@@ -87,17 +87,6 @@ public interface Application {
     }
 
     /**
-     * Get the {@link play.Plugin} instance for the given class.
-     *
-     * @param pluginClass the Class of the plugin
-     * @param <T> the type of the plugin
-     * @return an instance of the plugin (if found, otherwise null)
-     */
-    default <T> T plugin(Class<T> pluginClass) {
-        return Scala.orNull(getWrappedApplication().plugin(pluginClass));
-    }
-
-    /**
      * Check whether the application is in {@link Mode#DEV} mode.
      *
      * @return true if the application is in DEV mode

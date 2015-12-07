@@ -22,7 +22,7 @@ final class GuiceApplicationBuilder(
   disabled: Seq[Class[_]] = Seq.empty,
   eagerly: Boolean = false,
   loadConfiguration: Environment => Configuration = Configuration.load,
-  global: Option[GlobalSettings] = None,
+  global: Option[GlobalSettings.Deprecated] = None,
   loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
   environment, configuration, modules, overrides, disabled, eagerly
 ) {
@@ -98,7 +98,7 @@ final class GuiceApplicationBuilder(
     copy(configuration = appConfiguration)
       .bindings(loadedModules: _*)
       .bindings(
-        bind[GlobalSettings] to globalSettings,
+        bind[GlobalSettings.Deprecated] to globalSettings,
         bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
         bind[WebCommands] to new DefaultWebCommands
       ).createModule

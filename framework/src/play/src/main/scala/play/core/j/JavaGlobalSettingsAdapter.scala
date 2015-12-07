@@ -10,7 +10,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
-class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {
+class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings.Deprecated {
   require(underlying != null, "underlying cannot be null")
 
   override def beforeStart(app: Application) {

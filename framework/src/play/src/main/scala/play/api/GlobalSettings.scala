@@ -5,9 +5,11 @@ package play.api
 
 import javax.inject.{ Inject, Singleton }
 
+import play.api.inject.{ BindingKey, Binding }
 import play.api.mvc._
 import java.io.File
 import play.core.j
+import play.utils.Reflect
 
 import scala.concurrent.Future
 import play.api.http._
@@ -27,6 +29,7 @@ import play.api.http.Status._
  * }
  * }}}
  */
+@deprecated("Use dependency injection", "2.5.0")
 trait GlobalSettings {
 
   private val dhehCache = Application.instanceCache[DefaultHttpErrorHandler]
@@ -200,18 +203,16 @@ trait GlobalSettings {
   def onBadRequest(request: RequestHeader, error: String): Future[Result] =
     defaultErrorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
 
-  @deprecated("onRequestCompletion is no longer invoked by Play. The same functionality can be achieved by adding a filter that attaches a onDoneEnumerating callback onto the returned Result Enumerator.", "2.4.0")
-  def onRequestCompletion(request: RequestHeader) {
-  }
-
 }
 
 /**
  * The default global settings if not defined in the application.
  */
-object DefaultGlobal extends GlobalSettings
+object DefaultGlobal extends GlobalSettings.Deprecated
 
 object GlobalSettings {
+
+  type Deprecated = GlobalSettings
 
   /**
    * Load the global object.
@@ -220,7 +221,7 @@ object GlobalSettings {
    * @param environment The environment to load the global object from.
    * @return
    */
-  def apply(configuration: Configuration, environment: Environment): GlobalSettings = {
+  def apply(configuration: Configuration, environment: Environment): GlobalSettings.Deprecated = {
     val globalClass = configuration.getString("application.global").getOrElse("Global")
 
     def javaGlobal: Option[play.GlobalSettings] = try {
@@ -233,7 +234,8 @@ object GlobalSettings {
     def scalaGlobal: GlobalSettings = try {
       environment.classLoader.loadClass(globalClass + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
     } catch {
-      case e: ClassNotFoundException if !configuration.getString("application.global").isDefined => DefaultGlobal
+      case e: ClassNotFoundException if !configuration.getString("application.global").isDefined =>
+        DefaultGlobal
       case e if configuration.getString("application.global").isDefined => {
         throw configuration.reportError("application.global",
           s"Cannot initialize the custom Global object ($globalClass) (perhaps it's a wrong reference?)", Some(e))
@@ -252,30 +254,6 @@ object GlobalSettings {
         e
       )
     }
-  }
-}
-
-/**
- * The Global plugin executes application's `globalSettings` `onStart` and `onStop`.
- */
-@Singleton
-class GlobalPlugin @Inject() (app: Application) extends Plugin.Deprecated {
-
-  // Call before start now
-  app.global.beforeStart(app)
-
-  /**
-   * Called when the application starts.
-   */
-  override def onStart() {
-    app.global.onStart(app)
-  }
-
-  /**
-   * Called when the application stops.
-   */
-  override def onStop() {
-    app.global.onStop(app)
   }
 
 }

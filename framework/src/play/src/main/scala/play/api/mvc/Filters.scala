@@ -104,6 +104,7 @@ object Filters {
   }
 }
 
+@deprecated("Use dependency injection", "2.5.0")
 class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
   override def doFilter(a: EssentialAction): EssentialAction = {
     Filters(super.doFilter(a), filters: _*)

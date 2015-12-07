@@ -86,11 +86,15 @@ object Play {
     _currentApp = app
 
     Threads.withContextClassLoader(classloader(app)) {
+      // Call before start now
+      app.global.beforeStart(app)
+
       // Ensure routes are eagerly loaded, so that the reverse routers are
       // correctly initialised before plugins are started.
       app.routes
 
-      app.plugins.foreach(_.onStart())
+      // If the global plugin is loaded, then send it a start now.
+      app.global.onStart(app)
     }
 
     app.mode match {
@@ -106,9 +110,7 @@ object Play {
   def stop(app: Application) {
     if (app != null) {
       Threads.withContextClassLoader(classloader(app)) {
-        app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => logger.warn("Error stopping plugin", e) }
-        }
+        app.global.onStop(app)
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
@@ -170,12 +172,6 @@ object Play {
    */
   @Deprecated
   def routes(implicit app: Application): play.api.routing.Router = app.routes
-
-  /**
-   * @deprecated inject the [[ play.api.GlobalSettings ]] instead
-   */
-  @Deprecated
-  def global(implicit app: Application): GlobalSettings = app.global
 
   /**
    * @deprecated inject the [[ play.api.Environment ]] instead
