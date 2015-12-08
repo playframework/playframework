@@ -425,7 +425,7 @@ object CSRFAction {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     errorHandler.handle(request, msg) map { result =>
-      CSRF.getToken(request).fold(
+      CSRF.getToken(request, config).fold(
         config.cookieName.flatMap { cookie =>
           request.cookies.get(cookie).map { token =>
             result.discardingCookies(DiscardingCookie(cookie, domain = Session.domain, path = Session.path,
