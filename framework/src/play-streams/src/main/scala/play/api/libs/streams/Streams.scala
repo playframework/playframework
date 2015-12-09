@@ -20,12 +20,12 @@ object Streams {
   /**
    * The default dispatcher used for blocking IO in Play.
    */
-  val BlockingIoDisptacher = "play.akka.blockingIoDispatcher"
+  val BlockingIoDispatcher = "play.akka.blockingIoDispatcher"
 
   /**
    * The attributes used for any Akka streams that work with blocking IO.
    */
-  val BlockingIoAttributes: Attributes = ActorAttributes.dispatcher(BlockingIoDisptacher)
+  val BlockingIoAttributes: Attributes = ActorAttributes.dispatcher(BlockingIoDispatcher)
 
   /**
    * Adapt a Future into a Publisher. For a successful Future the
@@ -224,7 +224,7 @@ object Streams {
    */
   def inputStreamToSource(is: () => InputStream, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
     InputStreamSource(is, chunkSize)
-      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
+      .withAttributes(ActorAttributes.dispatcher(BlockingIoDispatcher))
   }
 
   /**
@@ -249,7 +249,7 @@ object Streams {
    */
   def outputStreamToSink(os: () => OutputStream): Sink[ByteString, Future[Long]] = {
     OutputStreamSink(os)
-      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
+      .withAttributes(ActorAttributes.dispatcher(BlockingIoDispatcher))
   }
 
 }
