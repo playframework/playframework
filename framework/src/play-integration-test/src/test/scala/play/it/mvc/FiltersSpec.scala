@@ -50,7 +50,7 @@ trait GlobalFiltersSpec extends FiltersSpec {
     import play.api.inject.bind
 
     val app = new GuiceApplicationBuilder()
-      .configure(settings)
+      .configure(settings + ("play.http.requestHandler" -> "play.api.http.GlobalSettingsHttpRequestHandler"))
       .overrides(bind[Router].toInstance(testRouter))
       .global(
         new WithFilters(filters: _*) {

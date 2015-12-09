@@ -12,6 +12,7 @@ import play.api.http.Status._
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.j.{ JavaHandler, JavaHandlerComponents }
+import play.http
 import play.utils.Reflect
 
 /**
@@ -42,14 +43,14 @@ object HttpRequestHandler {
 
     val javaComponentsBinding = BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf
 
-    Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
+    Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, JavaCompatibleHttpRequestHandler](environment,
       PlayConfig(configuration), "play.http.requestHandler", "RequestHandler") match {
         case None => Nil
         case Some(Left(scalaImpl)) =>
           Seq(
             BindingKey(classOf[HttpRequestHandler]).to(scalaImpl),
             // Need to bind the default Java one in case the Scala one depends on JavaHandlerComponents
-            BindingKey(classOf[play.http.HttpRequestHandler]).to[play.http.GlobalSettingsHttpRequestHandler],
+            BindingKey(classOf[play.http.HttpRequestHandler]).to[play.http.DefaultHttpRequestHandler],
             javaComponentsBinding
           )
         case Some(Right(javaImpl)) =>
@@ -71,13 +72,11 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
 
 /**
  * A default implementation of the [[HttpRequestHandler]].
+ * This handler only handles Scala actions. Java-based Play applications should use or extend
+ * [[JavaCompatibleHttpRequestHandler]], which handles Java actions as well.
  *
  * This can be conveniently overridden to plug in global interception or custom routing logic into Play's existing
  * request handling infrastructure.
- *
- * Technically, this is not the default request handler that Play uses, rather, the [[GlobalSettingsHttpRequestHandler]]
- * is the default one, in order to ensure that existing legacy implementations of global request interception still
- * work. In future, this will become the default request handler.
  *
  * The default implementations of method interception methods on [[play.api.GlobalSettings]] match the implementations
  * of this, so when not providing any custom logic, whether this is used or the global settings http request handler
@@ -175,10 +174,11 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
 /**
  * An [[HttpRequestHandler]] that delegates to [[play.api.GlobalSettings]].
  *
- * This is the default request handler used by Play, in order to support legacy global settings request interception.
+ * This request handler supports legacy request interception using [[play.api.GlobalSettings]].
  *
  * Custom handlers need not extend this.
  */
+@deprecated("Use DefaultHttpRequestHandler or JavaCompatibleHttpRequestHandler instead", "2.5.0")
 class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSettings]) extends HttpRequestHandler {
   def handlerForRequest(request: RequestHeader) = global.get.onRequestReceived(request)
 }
