@@ -298,7 +298,7 @@ package object templates {
     Option(route.call.parameters.getOrElse(Nil).filter { p =>
       localNames.contains(p.name) && p.fixed.isDefined
     }.map { p =>
-      p.name + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+      localNames(p.name) + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
     }).filterNot(_.isEmpty).map(_.mkString(" && "))
   }
 
