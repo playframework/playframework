@@ -96,3 +96,15 @@ Details on how to set up Play with different logging frameworks are in [[Configu
 ## Renamed Ning components into Ahc
 
 In order to reflect the proper AsyncHttpClient library name, package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`.
+
+## Routes generated with InjectedRoutesGenerator
+
+Routes are now generated using the dependency injection aware `InjectedRoutesGenerator`, rather than the previous `StaticRoutesGenerator` which assumed controllers were singleton objects.  
+
+To revert back to the earlier behavior (if you have "object MyController" in your code, for example), please add:
+
+```
+routesGenerator := StaticRoutesGenerator
+```
+
+to your `build.sbt` file.
