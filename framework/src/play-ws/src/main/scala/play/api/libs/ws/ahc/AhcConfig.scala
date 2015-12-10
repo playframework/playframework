@@ -206,13 +206,6 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
     builder.setShutdownTimeout(0)
   }
 
-  /**
-   * Configures the global settings.
-   * For backwards compatibility with <= 2.3.X
-   */
-  @deprecated("Use configureWS(AhcWSClientConfig)", "2.4")
-  def configureWS(config: WSClientConfig): Unit = configureWS(AhcWSClientConfig(wsClientConfig = config))
-
   def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
     val definedProtocols = sslConfig.enabledProtocols match {
       case Some(configuredProtocols) =>

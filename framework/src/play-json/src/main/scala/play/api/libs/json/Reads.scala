@@ -55,13 +55,13 @@ trait Reads[A] { self =>
     Reads[A] { json => self.reads(json).filter(f) }
 
   def filter(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json => self.reads(json).filter(error)(f) }
+    Reads[A] { json => self.reads(json).filter(JsError(error))(f) }
 
   def filterNot(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filterNot(f) }
 
   def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json => self.reads(json).filterNot(error)(f) }
+    Reads[A] { json => self.reads(json).filterNot(JsError(error))(f) }
 
   def collect[B](error: ValidationError)(f: PartialFunction[A, B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
@@ -912,10 +912,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.uuid"))))
     }
   }
-
-  @deprecated(message = "Use [[UUIDReader]]", since = "2.4.3")
-  def uuidReader(checkUuuidValidity: Boolean = false) =
-    new UUIDReader(checkUuuidValidity)
 
   implicit val uuidReads: Reads[java.util.UUID] = new UUIDReader(false)
 }

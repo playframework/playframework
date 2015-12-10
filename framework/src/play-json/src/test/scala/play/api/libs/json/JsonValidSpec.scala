@@ -175,7 +175,7 @@ object JsonValidSpec extends Specification {
         } must beEqualTo("error")
       }
       "reject well-formed but incorrect UUIDS in strict mode" in {
-        JsString("0-0-0-0-0").validate[java.util.UUID](Reads.uuidReader(true)).recoverTotal {
+        JsString("0-0-0-0-0").validate[java.util.UUID](new Reads.UUIDReader(true)).recoverTotal {
           e => "error"
         } must beEqualTo("error")
       }

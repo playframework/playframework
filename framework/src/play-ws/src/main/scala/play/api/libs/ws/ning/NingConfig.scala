@@ -69,13 +69,6 @@ object NingWSClientConfigFactory {
 @deprecated("Use AhcConfigBuilder", "2.5")
 class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSClientConfig()) {
 
-  /**
-   * Constructor for backwards compatibility with <= 2.3.X
-   */
-  @deprecated("Use NingAsyncHttpClientConfigBuilder(NingWSClientConfig)", "2.4")
-  def this(config: WSClientConfig) =
-    this(NingWSClientConfig(wsClientConfig = config))
-
   protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder = identity
 
   /**
@@ -163,13 +156,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     builder.setShutdownQuiet(0)
     builder.setShutdownTimeout(0)
   }
-
-  /**
-   * Configures the global settings.
-   * For backwards compatibility with <= 2.3.X
-   */
-  @deprecated("Use configureWS(NingWSClientConfig)", "2.4")
-  def configureWS(config: WSClientConfig): Unit = configureWS(NingWSClientConfig(wsClientConfig = config))
 
   def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
     val definedProtocols = sslConfig.enabledProtocols match {

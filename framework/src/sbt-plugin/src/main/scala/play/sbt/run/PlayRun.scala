@@ -47,7 +47,7 @@ object PlayRun {
    * Do not change its signature without first consulting the Activator team.  Do not change its signature in a minor
    * release.
    */
-  def playRunTask(runHooks: TaskKey[Seq[play.PlayRunHook]],
+  def playRunTask(runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
     reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
     assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
