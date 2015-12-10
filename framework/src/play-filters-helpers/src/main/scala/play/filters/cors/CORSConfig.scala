@@ -8,7 +8,7 @@ import play.api.{ PlayConfig, Configuration }
 import scala.concurrent.duration._
 
 /**
- * Configuration for AbstractCORSPolicy
+ * Configuration for [[AbstractCORSPolicy]]
  *
  *  - allow only requests with origins from a whitelist (by default all origins are allowed)
  *  - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
@@ -57,7 +57,7 @@ object CORSConfig {
       preflightMaxAge = 0.seconds)
 
   /**
-   * Build a [[CORSConfig]] from a [[play.api.Configuration]]
+   * Build a [[CORSConfig]]from a [[play.api.Configuration]]
    *
    * @example The configuration is as follows:
    * {{{

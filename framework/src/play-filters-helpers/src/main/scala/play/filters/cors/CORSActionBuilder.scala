@@ -14,7 +14,7 @@ import play.api.mvc.{ ActionBuilder, Request, Result }
 /**
  * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
- * @see [[CORSFilter]]
+ * @see [[play.filters.cors.CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
@@ -48,7 +48,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
  * CORSActionBuilder(conf) { Ok } // an action that uses a locally defined configuration
  * }}}
  *
- * @see [[CORSFilter]]
+ * @see [[play.filters.cors.CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 object CORSActionBuilder {
@@ -77,7 +77,7 @@ object CORSActionBuilder {
    * Construct an action builder that uses locally defined configuration.
    *
    * @param  config  The local configuration to use in place of the global configuration.
-   * @see [[CORSConfig]]
+   * @see [[play.filters.cors.CORSConfig]]
    */
   def apply(config: CORSConfig, errorHandler: HttpErrorHandler): CORSActionBuilder = {
     val eh = errorHandler
