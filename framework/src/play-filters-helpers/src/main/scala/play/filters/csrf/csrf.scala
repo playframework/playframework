@@ -121,17 +121,24 @@ object CSRF {
   }
 
   /**
-   * Extract token from current request
+   * Extract token from current request using global config (required runtime DI)
    */
   def getToken(request: RequestHeader): Option[Token] = {
-    val global = CSRFConfig.global
+    getToken(request, CSRFConfig.global)
+  }
+
+  /**
+   * Extract token from current request using config.
+   * If config is not provided, the global one will be used (required runtime DI)
+   */
+  def getToken(request: RequestHeader, config: CSRFConfig): Option[Token] = {
     // First check the tags, this is where tokens are added if it's added to the current request
     val token = request.tags.get(Token.RequestTag)
       // Check cookie if cookie name is defined
-      .orElse(global.cookieName.flatMap(n => request.cookies.get(n).map(_.value)))
+      .orElse(config.cookieName.flatMap(n => request.cookies.get(n).map(_.value)))
       // Check session
-      .orElse(request.session.get(global.tokenName))
-    if (global.signTokens) {
+      .orElse(request.session.get(config.tokenName))
+    if (config.signTokens) {
       // Extract the signed token, and then resign it. This makes the token random per request, preventing the BREACH
       // vulnerability
       token.flatMap(Crypto.extractSignedToken)
