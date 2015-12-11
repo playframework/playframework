@@ -143,7 +143,7 @@ Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```scala
-addSbtPlugin("org.ensime" % "ensime-sbt" % "0.1.5-SNAPSHOT")
+addSbtPlugin("org.ensime" % "ensime-sbt" % "0.2.3")
 ```
 
 Start Play:
@@ -152,10 +152,10 @@ Start Play:
 $ activator
 ```
 
-Enter 'ensime generate' at the play console. The plugin should generate a .ensime file in the root of your Play project.
+Enter 'gen-ensime' at the play console. The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
-$ [MYPROJECT] ensime generate
+[MYPROJECT] $ gen-ensime
 [info] Gathering project information...
 [info] Processing project: ProjectRef(file:/Users/aemon/projects/www/MYPROJECT/,MYPROJECT)...
 [info]  Reading setting: name...
@@ -190,7 +190,7 @@ $ [MYPROJECT] ensime generate
 
 From Emacs, execute M-x ensime and follow the on-screen instructions.
 
-That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "ensime generate" and re-launch ENSIME.
+That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "gen-ensime" and re-launch ENSIME.
 
 ### More Information
 
