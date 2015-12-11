@@ -105,7 +105,7 @@ sealed trait JsLookupResult extends Any with JsReadable {
   def get: JsValue = toOption.get
   def getOrElse(v: => JsValue): JsValue = toOption.getOrElse(v)
 
-  def validate[A](implicit rds: Reads[A]) = this match {
+  def validate[A](implicit rds: Reads[A]): JsResult[A] = this match {
     case JsDefined(v) => v.validate[A]
     case undef: JsUndefined => JsError(undef.validationError)
   }
