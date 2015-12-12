@@ -11,7 +11,7 @@ import javax.net.ssl._
 
 import org.specs2.mock._
 import org.specs2.mutable._
-import play.core.server.ssl.FakeKeyStore
+import play.core.server.ssl.{ CertificateGenerator, FakeKeyStore }
 
 class ConfigSSLContextBuilderSpec extends Specification with Mockito {
 

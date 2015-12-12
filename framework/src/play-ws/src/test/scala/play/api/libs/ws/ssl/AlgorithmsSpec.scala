@@ -9,6 +9,7 @@ import org.specs2.mutable._
 
 import java.security.{ SecureRandom, KeyPairGenerator }
 import org.joda.time.Instant
+import play.core.server.ssl.CertificateGenerator
 import sun.security.x509.AlgorithmId
 
 object AlgorithmsSpec extends Specification {

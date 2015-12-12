@@ -3,7 +3,7 @@
  *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  *
  */
-package play.api.libs.ws.ssl
+package play.core.server.ssl
 
 import sun.security.x509._
 import java.security.cert._
