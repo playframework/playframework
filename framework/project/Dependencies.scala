@@ -19,7 +19,7 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.9.5"
 
-  val h2database = "com.h2database" % "h2" % "1.3.175"
+  val h2database = "com.h2database" % "h2" % "1.4.181"
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
