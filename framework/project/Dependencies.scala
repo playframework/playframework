@@ -25,22 +25,22 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % "2.6.0")
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12")
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.13")
   val logback = Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3")
 
-  val guava = "com.google.guava" % "guava" % "18.0"
-  val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
+  val guava = "com.google.guava" % "guava" % "19.0"
+  val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.187"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.11.1.1"
+  val h2database = "com.h2database" % "h2" % "1.4.190"
+  val derbyDatabase = "org.apache.derby" % "derby" % "10.12.1.1"
 
-  val acolyteVersion = "1.0.33-j7p"
+  val acolyteVersion = "1.0.34-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.4.2",
+    "com.zaxxer" % "HikariCP" % "2.4.3",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database,
     acolyte % Test,
@@ -50,7 +50,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "5.0.5.Final" % "test"
   )
 
   val link = Seq(
@@ -64,16 +64,14 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.1.6.RELEASE"
+  val springFrameworkVersion = "4.2.3.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    "org.yaml" % "snakeyaml" % "1.15",
-    // 5.1.0 upgrade notes: need to add JEE dependencies, eg EL
-    "org.hibernate" % "hibernate-validator" % "5.0.3.Final",
-    // This is depended on by hibernate validator, we upgrade to 3.2.0 to avoid LGPL license of 3.1.x
-    "org.jboss.logging" % "jboss-logging" % "3.2.1.Final",
+    "org.yaml" % "snakeyaml" % "1.16",
+    "org.hibernate" % "hibernate-validator" % "5.2.2.Final",
+    "javax.el"      % "javax.el-api"        % "3.0.0", // required by hibernate-validator
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -89,16 +87,16 @@ object Dependencies {
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
       .exclude("org.springframework", "spring-core"),
 
-    ("org.reflections" % "reflections" % "0.9.9")
+    ("org.reflections" % "reflections" % "0.9.10")
       .exclude("com.google.code.findbugs", "annotations"),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.3",
+    "net.jodah" % "typetools" % "0.4.4",
 
     guava,
     findBugs,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.21"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.30"
   ) ++ javassist ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -111,8 +109,8 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.8.1"
-  val jodaConvert = "org.joda" % "joda-convert" % "1.7"
+  val jodatime = "joda-time" % "joda-time" % "2.9.1"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
 
   def runtime(scalaVersion: String) =
     slf4j ++
@@ -273,7 +271,7 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-core" % "0.10.3")
+    ("org.fluentlenium" % "fluentlenium-core" % "0.10.9")
       .exclude("org.jboss.netty", "netty")
   )
 
