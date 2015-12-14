@@ -36,7 +36,7 @@ onClose(() -> {
         database.stop(); // <-- suppose this can throw an IOException
     }
     catch(IOException e) {
-        throw new RuntimeException(e);   
+        throw new RuntimeException(e);
     }
 })
 ```
@@ -74,6 +74,14 @@ Here follows a short table that should ease the migration:
 ## Replaced static methods with dependency injection
 
 If you are using `controllers.ExternalAssets` in your routes file you must either set `routesGenerator := InjectedRoutesGenerator` in your `build.sbt` or you must use the `@` symbol in front of the route like `GET /some/path @controllers.ExternalAssets.at`
+
+## Removed Plugins API
+
+Play's Plugin API was deprecated in 2.4, and has been removed.  
+
+To create reusable components that are dependency injection independent, please use Play's module system [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).  Otherwise, a singleton bound to a dependency injected module (either [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]]) is usually enough to replace the Plugin API completely.
+
+As part of this effort, the [[modules directory|ModuleDirectory]] has been refactored to only include up to date modules that do not use the Plugin API.
 
 ## Refactored Logback as an optional dependency
 
