@@ -116,7 +116,7 @@ object Dependencies {
 
   def runtime(scalaVersion: String) =
     slf4j ++
-    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.13") ++
+    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.4.1") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
