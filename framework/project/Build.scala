@@ -200,9 +200,18 @@ object PlayBuild extends Build {
       libraryDependencies ++= runSupportDependencies(sbtVersion.value, scalaVersion.value)
     ).dependsOn(BuildLinkProject)
 
-  lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
+  lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "routes-compiler")
     .enablePlugins(SbtTwirl)
     .settings(
+      addScalaModules(scalaParserCombinators),
+      libraryDependencies ++= routesCompilerDependencies,
+      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
+    )
+
+  lazy val SbtRoutesCompilerProject = PlaySbtProject("SBT-Routes-Compiler", "routes-compiler")
+    .enablePlugins(SbtTwirl)
+    .settings(
+      target := target.value / "sbt-routes-compiler",
       libraryDependencies ++= routesCompilerDependencies,
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
@@ -440,9 +449,9 @@ object PlayBuild extends Build {
       // When developing the sbt plugins, run a publishLocal in the root project first.
       scriptedDependencies := {
         val () = publishLocal.value
-        val () = (publishLocal in RoutesCompilerProject).value
+        val () = (publishLocal in SbtRoutesCompilerProject).value
       }
-    ).dependsOn(RoutesCompilerProject, SbtRunSupportProject)
+    ).dependsOn(SbtRoutesCompilerProject, SbtRunSupportProject)
 
   val ProtocolCompile = Tags.Tag("protocol-compile")
 
@@ -485,7 +494,7 @@ object PlayBuild extends Build {
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in SbtPluginProject).value
-        val () = (publishLocal in RoutesCompilerProject).value
+        val () = (publishLocal in SbtRoutesCompilerProject).value
       })
     .dependsOn(SbtForkRunProtocolProject, SbtPluginProject)
 
@@ -551,6 +560,7 @@ object PlayBuild extends Build {
     DataCommonsProject,
     JsonProject,
     RoutesCompilerProject,
+    SbtRoutesCompilerProject,
     PlayAkkaHttpServerProject,
     PlayCacheProject,
     PlayJdbcApiProject,
