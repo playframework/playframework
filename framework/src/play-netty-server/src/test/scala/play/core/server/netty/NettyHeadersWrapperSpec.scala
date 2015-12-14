@@ -1,18 +1,22 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.api.mvc
+package play.core.server.netty
 
+import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.specs2.mutable._
+import play.api.mvc._
 
-import play.core.test._
+object NettyHeadersWrapperSpec extends Specification {
 
-object HttpSpec extends Specification {
-  "HTTP" title
+  val headers: Headers = {
+    val nettyHeaders = new DefaultHttpHeaders()
+    val headersToAdd = Seq("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
+    for ((k, v) <- headersToAdd) nettyHeaders.add(k, v)
+    new NettyHeadersWrapper(nettyHeaders)
+  }
 
-  val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
-
-  "Headers" should {
+  "Netty Headers implementation" should {
     "return its headers as a sequence of name-value pairs" in {
       // Wrap sequence in a new Headers object so we can compare with Headers.equals
       new Headers(headers.headers) must_== headers
@@ -100,30 +104,4 @@ object HttpSpec extends Specification {
     }
   }
 
-  "Cookies" should {
-    "merge two cookies" in withApplication {
-      val cookies = Seq(
-        Cookie("foo", "bar"),
-        Cookie("bar", "qux"))
-
-      Cookies.mergeSetCookieHeader("", cookies) must ===("foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly")
-    }
-    "merge and remove duplicates" in withApplication {
-      val cookies = Seq(
-        Cookie("foo", "bar"),
-        Cookie("foo", "baz"),
-        Cookie("foo", "bar", domain = Some("Foo")),
-        Cookie("foo", "baz", domain = Some("FoO")),
-        Cookie("foo", "baz", secure = true),
-        Cookie("foo", "baz", httpOnly = false),
-        Cookie("foo", "bar", path = "/blah"),
-        Cookie("foo", "baz", path = "/blah"))
-
-      Cookies.mergeSetCookieHeader("", cookies) must ===(
-        "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
-          "foo=baz; Path=/" + ";;" + // Cookie("foo", "baz", httpOnly=false)
-          "foo=baz; Path=/blah; HTTPOnly" // Cookie("foo", "baz", path="/blah")
-      )
-    }
-  }
 }
