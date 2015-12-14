@@ -105,7 +105,7 @@ import implemented._
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
   
-class HelloModule extends AbstractModule {
+class Module extends AbstractModule {
   def configure() = {
 
     bind(classOf[Hello])
@@ -129,7 +129,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 import play.api.{ Configuration, Environment }
   
-class HelloModule(
+class Module(
   environment: Environment,
   configuration: Configuration) extends AbstractModule {
   def configure() = {
@@ -164,7 +164,7 @@ import implemented._
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
   
-class HelloModule extends AbstractModule {
+class Module extends AbstractModule {
   def configure() = {
 
     bind(classOf[Hello])

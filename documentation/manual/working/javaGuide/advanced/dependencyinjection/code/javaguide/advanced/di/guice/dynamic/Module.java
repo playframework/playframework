@@ -12,12 +12,12 @@ import com.google.inject.name.Names;
 import play.Configuration;
 import play.Environment;
 
-public class HelloModule extends AbstractModule {
+public class Module extends AbstractModule {
 
     private final Environment environment;
     private final Configuration configuration;
 
-    public HelloModule(
+    public Module(
           Environment environment,
           Configuration configuration) {
         this.environment = environment;
