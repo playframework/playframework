@@ -12,3 +12,6 @@ There is now a way to log SQL statements that works across different connection 
 You have the possibility to configure the framework to use netty native sockets instead of the default jdk ones.
 See more information about it in [[Netty configuration|SettingsNetty]]
 
+## Flexible Logging
+
+You now can configure Play with any SLF4J compatible logging framework, such as log4j2 or AVSL.  Please see the "Using a Custom Logging Framework" section of [[Configuring logging|SettingsLogger]] page.
