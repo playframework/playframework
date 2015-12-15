@@ -14,6 +14,7 @@ import play.api.mvc._
 import play.core.{ DefaultWebCommands, ApplicationProvider }
 
 import scala.util.{ Try, Success, Failure }
+import scala.util.control.NonFatal
 import scala.concurrent.Future
 
 trait WebSocketable {
@@ -22,45 +23,48 @@ trait WebSocketable {
 }
 
 /**
- * provides generic server behaviour for Play applications
+ * Provides generic server behaviour for Play applications.
  */
 trait Server extends ServerWithStop {
 
   def mode: Mode.Mode
 
+  /**
+   * Try to get the handler for a request and return it as a `Right`. If we
+   * can't get the handler for some reason then return a result immediately
+   * as a `Left`. Reasons to return a `Left` value:
+   *
+   * - If there's a "web command" installed that intercepts the request.
+   * - If we fail to get the `Application` from the `applicationProvider`,
+   *   i.e. if there's an error loading the application.
+   * - If an exception is thrown.
+   */
   def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
 
-    import scala.util.control.Exception
+    // Common code for handling an exception and returning an error result
+    def logExceptionAndGetResult(e: Throwable): Left[Future[Result], Nothing] = {
+      Left(DefaultHttpErrorHandler.onServerError(request, e))
+    }
 
-    def sendHandler: Try[(RequestHeader, Handler, Application)] = {
-      try {
-        applicationProvider.get.map { application =>
-          application.requestHandler.handlerForRequest(request) match {
-            case (requestHeader, handler) => (requestHeader, handler, application)
+    try {
+      applicationProvider.handleWebCommand(request) match {
+        case Some(result) =>
+          Left(Future.successful(result))
+        case None =>
+          applicationProvider.get match {
+            case Success(application) =>
+              application.requestHandler.handlerForRequest(request) match {
+                case (requestHeader, handler) => Right((requestHeader, handler, application))
+              }
+            case Failure(e) => logExceptionAndGetResult(e)
           }
-        }
-      } catch {
-        case e: ThreadDeath => throw e
-        case e: VirtualMachineError => throw e
-        case e: Throwable => Failure(e)
       }
+    } catch {
+      case e: ThreadDeath => throw e
+      case e: VirtualMachineError => throw e
+      case e: Throwable =>
+        logExceptionAndGetResult(e)
     }
-
-    def logExceptionAndGetResult(e: Throwable) = {
-      DefaultHttpErrorHandler.onServerError(request, e)
-    }
-
-    Exception
-      .allCatch[Option[Future[Result]]]
-      .either(applicationProvider.handleWebCommand(request).map(Future.successful))
-      .left.map(logExceptionAndGetResult)
-      .right.flatMap(maybeResult => maybeResult.toLeft(())).right.flatMap { _ =>
-        sendHandler match {
-          case Failure(e) => Left(logExceptionAndGetResult(e))
-          case Success(v) => Right(v)
-        }
-      }
-
   }
 
   def applicationProvider: ApplicationProvider

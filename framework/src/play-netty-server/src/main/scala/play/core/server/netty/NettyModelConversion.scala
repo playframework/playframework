@@ -16,6 +16,7 @@ import play.api.libs.streams.MaterializeOnDemandPublisher
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
 
+import scala.collection.immutable
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Try }
 import scala.util.control.{ NonFatal, Exception }
@@ -44,9 +45,14 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   /** Try to create the request. May fail if the path is invalid */
   private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean): Try[RequestHeader] = {
 
-    Exception.allCatch[RequestHeader].withTry {
+    Try {
       val uri = new QueryStringDecoder(request.getUri)
-      val parameters = Map.empty[String, Seq[String]] ++ uri.parameters().asScala.mapValues(_.asScala)
+      val parameters: Map[String, Seq[String]] = {
+        val decodedParameters = uri.parameters()
+        if (decodedParameters.isEmpty) Map.empty else {
+          decodedParameters.asScala.mapValues(_.asScala).toMap
+        }
+      }
       // wrapping into URI to handle absoluteURI
       val path = new URI(uri.path()).getRawPath
       createRequestHeader(request, requestId, path, parameters, remoteAddress, secureProtocol)
