@@ -57,18 +57,7 @@ public interface BodyParser<A> {
          * @return the class
          */
         Class<? extends BodyParser> value();
-
-        /**
-         *
-         * @deprecated maxLength is now ignored. To define the maxLength globally, set
-         * play.http.parser.maxMemoryBuffer and play.http.parser.maxDiskBuffer. To define a custom max length for a
-         * particular action, create a custom body parser, optionally extending one of the existing ones and passing
-         * the max length into their constructors.
-         *
-         * @return Deprecated
-         */
-        @Deprecated
-        long maxLength() default -1;
+      
     }
 
     /**
