@@ -375,8 +375,17 @@ package play.api.mvc {
 
   /**
    * The HTTP headers set.
+   *
+   * @param _headers The sequence of values. This value is protected and mutable
+   * since subclasses might initially set it to a `null` value and then initialize
+   * it lazily.
    */
-  class Headers(val headers: Seq[(String, String)]) {
+  class Headers(protected var _headers: Seq[(String, String)]) {
+
+    /**
+     * The headers as a sequence of name-value pairs.
+     */
+    def headers: Seq[(String, String)] = _headers
 
     /**
      * Append the given headers
