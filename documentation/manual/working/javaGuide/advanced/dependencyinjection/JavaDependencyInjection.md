@@ -87,11 +87,15 @@ The simplest way to bind an implementation to an interface is to use the Guice [
 
 In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
-@[guice-module](code/javaguide/advanced/di/guice/HelloModule.java)
+@[guice-module](code/javaguide/advanced/di/guice/Module.java)
 
-To register this module with Play, append it's fully qualified class name to the `play.modules.enabled` list in `application.conf`:
+If you call this module `Module` and place it in the root package, it will automatically be registered with Play.  Alternatively, if you want to give it a different name or put it in a different package, you can register it with Play by appending its fully qualified class name to the `play.modules.enabled` list in `application.conf`:
 
     play.modules.enabled += "modules.HelloModule"
+
+You can also disable the automatic registration of a module named `Module` in the root package by adding it to the disabled modules:
+
+    play.modules.disabled += "Module"
 
 #### Configurable bindings
 
@@ -99,7 +103,7 @@ Sometimes you might want to read the Play `Configuration` or use a `ClassLoader`
 
 In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 
-@[dynamic-guice-module](code/javaguide/advanced/di/guice/dynamic/HelloModule.java)
+@[dynamic-guice-module](code/javaguide/advanced/di/guice/dynamic/Module.java)
 
 > **Note:** In most cases, if you need to access `Configuration` when you create a component, you should inject the `Configuration` object into the component itself or into the component's `Provider`. Then you can read the `Configuration` when you create the component. You usually don't need to read `Configuration` when you create the bindings for the component.
 
@@ -107,7 +111,7 @@ In the example below, the `Hello` binding for each language is read from a confi
 
 In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
 
-@[eager-guice-module](code/javaguide/advanced/di/guice/eager/HelloModule.java)
+@[eager-guice-module](code/javaguide/advanced/di/guice/eager/Module.java)
 
 ### Play libraries
 

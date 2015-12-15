@@ -85,9 +85,13 @@ In some more complex situations, you may want to provide more complex bindings, 
 
 @[guice-module](code/RuntimeDependencyInjection.scala)
 
-To register this module with Play, append it's fully qualified class name to the `play.modules.enabled` list in `application.conf`:
+If you call this module `Module` and place it in the root package, it will automatically be registered with Play.  Alternatively, if you want to give it a different name or put it in a different package, you can register it with Play by appending its fully qualified class name to the `play.modules.enabled` list in `application.conf`:
 
     play.modules.enabled += "modules.HelloModule"
+
+You can also disable the automatic registration of a module named `Module` in the root package by adding it to the disabled modules:
+
+    play.modules.disabled += "Module"
 
 #### Configurable bindings
 

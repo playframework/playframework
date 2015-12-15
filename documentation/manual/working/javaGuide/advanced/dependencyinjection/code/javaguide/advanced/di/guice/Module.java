@@ -9,7 +9,7 @@ import javaguide.advanced.di.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
-public class HelloModule extends AbstractModule {
+public class Module extends AbstractModule {
     protected void configure() {
 
         bind(Hello.class)
