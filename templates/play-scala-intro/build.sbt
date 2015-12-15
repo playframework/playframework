@@ -6,8 +6,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "%SCALA_VERSION%"
 
-resolvers += "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
-
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "%PLAY_SLICK_VERSION%",
   "com.typesafe.play" %% "play-slick-evolutions" % "%PLAY_SLICK_VERSION%",

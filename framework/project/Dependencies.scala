@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val specsVersion = "3.6.2"
+  val specsVersion = "3.6.6"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
