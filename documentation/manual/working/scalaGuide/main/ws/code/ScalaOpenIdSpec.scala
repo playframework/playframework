@@ -40,7 +40,7 @@ object ScalaOpenIdSpec extends PlaySpecification {
     Form(single(
       "openid" -> nonEmptyText
     )).bindFromRequest.fold({ error =>
-      Logger.info("bad request " + error.toString)
+      Logger.info(s"bad request ${error.toString}")
       Future.successful(BadRequest(error.toString))
     }, { openId =>
       openIdClient.redirectURL(openId, routes.Application.openIdCallback.absoluteURL())

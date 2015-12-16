@@ -20,7 +20,7 @@ public class JavaActionsComposition extends Controller {
     // #verbose-action
     public class VerboseAction extends play.mvc.Action.Simple {
         public CompletionStage<Result> call(Http.Context ctx) {
-            Logger.info("Calling action for " + ctx);
+            Logger.info("Calling action for {}", ctx);
             return delegate.call(ctx);
         }
     }
@@ -61,7 +61,7 @@ public class JavaActionsComposition extends Controller {
     public class VerboseAnnotationAction extends Action<VerboseAnnotation> {
         public CompletionStage<Result> call(Http.Context ctx) {
             if (configuration.value()) {
-                Logger.info("Calling action for " + ctx);
+                Logger.info("Calling action for {}", ctx);
             }
             return delegate.call(ctx);
         }
