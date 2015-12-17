@@ -40,18 +40,14 @@ object FakeKeyStore {
     } finally {
       PlayIO.closeQuietly(in)
     }
-    store.aliases().asScala.foreach {
-      alias =>
-        Option(store.getCertificate(alias)).map {
-          c =>
-            val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
-            if (key.getModulus.bitLength < 2048 || key.getAlgorithm != SignatureAlgorithmName) {
-              return true
-            }
-        }
+    store.aliases().asScala.exists { alias =>
+      Option(store.getCertificate(alias)).exists(c => certificateTooWeak(c))
     }
+  }
 
-    false
+  def certificateTooWeak(c: java.security.cert.Certificate): Boolean = {
+    val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
+    key.getModulus.bitLength < 2048 || c.asInstanceOf[X509CertImpl].getSigAlgName != SignatureAlgorithmName
   }
 
   def keyManagerFactory(appPath: File): KeyManagerFactory = {

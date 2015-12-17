@@ -8,6 +8,8 @@ package play.api.libs.ws.ssl
 import java.net.Socket
 import java.security.{ Principal, PrivateKey }
 
+import play.core.server.ssl.CertificateGenerator
+
 import scala.Array
 
 import javax.net.ssl.{ X509ExtendedKeyManager, SSLEngine, X509KeyManager }

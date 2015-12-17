@@ -11,6 +11,7 @@ import java.util.Collections._
 import org.joda.time.{ DateTime, Days, Instant }
 import org.specs2.mutable._
 import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
+import play.core.server.ssl.CertificateGenerator
 
 object AlgorithmCheckerSpec extends Specification {
 
