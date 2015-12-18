@@ -18,6 +18,8 @@ import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
+import play.mvc.Http.HeaderNames;
+import play.mvc.Http.MimeTypes;
 import scala.compat.java8.FutureConverters;
 
 import javax.inject.Inject;
@@ -248,8 +250,13 @@ public interface BodyParser<A> {
 
         @Override
         protected String parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
-            return bytes.decodeString(charset);
+            // TODO: Since the first two characters of a JSON text will always be ASCII
+            // characters [RFC0020], it is possible to determine whether an octet
+            // stream is UTF-8, UTF-16 (BE or LE), or UTF-32 (BE or LE) by looking
+            // at the pattern of nulls in the first four octets. (rfc4627)
+            // We're at least adding support for UTF-8 for now, but we should support UTF-16 and UTF-32 as well
+            String defaultCharset = MimeTypes.JSON.equals(request.getHeader(HeaderNames.CONTENT_TYPE)) ? "UTF-8" : "ISO-8859-1";
+            return bytes.decodeString(request.charset().orElse(defaultCharset));
         }
     }
 
