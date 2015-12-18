@@ -13,6 +13,20 @@ trait Applicative[M[_]] {
 
 }
 
+object Applicative {
+
+  implicit val applicativeOption: Applicative[Option] = new Applicative[Option] {
+
+    def pure[A](a: A): Option[A] = Some(a)
+
+    def map[A, B](m: Option[A], f: A => B): Option[B] = m.map(f)
+
+    def apply[A, B](mf: Option[A => B], ma: Option[A]): Option[B] = mf.flatMap(f => ma.map(f))
+
+  }
+
+}
+
 class ApplicativeOps[M[_], A](ma: M[A])(implicit a: Applicative[M]) {
 
   def ~>[B](mb: M[B]): M[B] = a(a(a.pure((_: A) => (b: B) => b), ma), mb)
