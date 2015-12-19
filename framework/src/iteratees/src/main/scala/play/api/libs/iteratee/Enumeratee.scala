@@ -415,7 +415,7 @@ object Enumeratee {
       case in => Done(Cont(k), in)
     }
 
-    def continue[A](k: K[E, A]) = if (count <= 0) Done(Cont(k), Input.EOF) else Cont(step(count)(k))
+    def continue[A](k: K[E, A]) = if (count <= 0) Done(Cont(k)) else Cont(step(count)(k))
 
   }
 

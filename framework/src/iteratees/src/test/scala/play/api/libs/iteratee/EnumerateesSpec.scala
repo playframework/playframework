@@ -139,6 +139,14 @@ object EnumerateesSpec extends Specification
 
     }
 
+    "passes along what's left of chunks after taking 0" in {
+      mustExecute(1) { flatMapEC =>
+        val take0AndConsume = (Enumeratee.take[String](0) &>> Iteratee.consume()).flatMap(_ => Iteratee.consume())(flatMapEC)
+        val enumerator = Enumerator(Range(1, 20).map(_.toString): _*)
+        Await.result(enumerator |>>> take0AndConsume, Duration.Inf) must equalTo(Range(1, 20).map(_.toString).mkString)
+      }
+    }
+
     "passes along what's left of chunks after taking 3" in {
       mustExecute(1) { flatMapEC =>
         val take3AndConsume = (Enumeratee.take[String](3) &>> Iteratee.consume()).flatMap(_ => Iteratee.consume())(flatMapEC)
