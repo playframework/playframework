@@ -5,6 +5,8 @@ package play.api.libs.iteratee
 
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 import play.api.libs.iteratee.internal.{ executeIteratee, executeFuture }
+import scala.collection.TraversableLike
+import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
@@ -24,7 +26,7 @@ trait Enumeratee[From, To] {
   /**
    * Alias for `applyOn`
    */
-  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A](inner)
+  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn(inner)
 
   /**
    * Transform the given iteratee into an iteratee that accepts the input type that this enumeratee maps.
@@ -44,12 +46,8 @@ trait Enumeratee[From, To] {
   /**
    * Compose this Enumeratee with another Enumeratee
    */
-  def compose[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
-    new Enumeratee[From, To2] {
-      def applyOn[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
-        parent.applyOn(other.applyOn(iteratee)).joinI
-      }
-    }
+  def compose[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = new Enumeratee[From, To2] {
+    def applyOn[A](iteratee: Iteratee[To2, A]) = parent.applyOn(other.applyOn(iteratee)).joinI
   }
 
   /**
@@ -61,18 +59,14 @@ trait Enumeratee[From, To] {
    * Compose this Enumeratee with another Enumeratee, concatenating any input left by both Enumeratees when they
    * are done.
    */
-  def composeConcat[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = {
-    new Enumeratee[From, To] {
-      def applyOn[A](iteratee: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = {
-        parent.applyOn(other.applyOn(iteratee).joinConcatI)
-      }
-    }
+  def composeConcat[X](other: Enumeratee[To, To])(implicit p: To => TraversableLike[X, To], bf: CanBuildFrom[To, X, To]): Enumeratee[From, To] = new Enumeratee[From, To] {
+    def applyOn[A](iteratee: Iteratee[To, A]) = parent.applyOn(other.applyOn(iteratee).joinConcatI)
   }
 
   /**
    * Alias for `composeConcat`
    */
-  def >+>[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = composeConcat[X](other)
+  def >+>[X](other: Enumeratee[To, To])(implicit p: To => TraversableLike[X, To], bf: CanBuildFrom[To, X, To]): Enumeratee[From, To] = composeConcat[X](other)
 
 }
 
@@ -87,7 +81,7 @@ object Enumeratee {
    */
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
-    def continue[A](k: K[To, A]): Iteratee[From, Iteratee[To, A]]
+    protected[this] def continue[A](k: K[To, A]): Iteratee[From, Iteratee[To, A]]
 
     def applyOn[A](it: Iteratee[To, A]) =
       it.pureFlatFold[From, Iteratee[To, A]] {
@@ -101,7 +95,7 @@ object Enumeratee {
    * continues
    */
   trait ContinueCheckDone[From, To] extends CheckDone[From, To] {
-    def continue[A](k: K[To, A]) = Cont(step(k))
+    protected[this] def continue[A](k: K[To, A]) = Cont(step(k))
 
     protected[this] def step[A](k: K[To, A]): K[From, Iteratee[To, A]]
   }
@@ -134,9 +128,8 @@ object Enumeratee {
    *
    * @param futureOfEnumeratee a future of enumeratee
    */
-  def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
-      Iteratee.flatten(futureOfEnumeratee.map(_.applyOn(it))(dec))
+  def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]): Enumeratee[From, To] = new Enumeratee[From, To] {
+    def applyOn[A](it: Iteratee[To, A]) = Iteratee.flatten(futureOfEnumeratee.map(_.applyOn(it))(dec))
   }
 
   /**
@@ -237,7 +230,7 @@ object Enumeratee {
   def mapConcatInput[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = From => Seq[Input[To]]
 
-    def apply[To](f: Arg[To])(implicit ec: ExecutionContext) = mapFlatten[From](in => Enumerator.enumerateSeq2(f(in)))(ec)
+    def apply[To](f: Arg[To])(implicit ec: ExecutionContext): Result[To] = mapFlatten[From](in => Enumerator.enumerateSeq2(f(in)))(ec)
   }
 
   /**
@@ -246,7 +239,7 @@ object Enumeratee {
   def mapConcat[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = From => Seq[To]
 
-    def apply[To](f: Arg[To])(implicit ec: ExecutionContext) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))(ec)
+    def apply[To](f: Arg[To])(implicit ec: ExecutionContext): Result[To] = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))(ec)
   }
 
   /**
@@ -255,7 +248,7 @@ object Enumeratee {
   def mapFlatten[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = From => Enumerator[To]
 
-    def apply[To](f: Arg[To])(implicit ec: ExecutionContext) = new ContinueCheckDone[From, To] {
+    def apply[To](f: Arg[To])(implicit ec: ExecutionContext): Result[To] = new ContinueCheckDone[From, To] {
       val pec = ec.prepare()
 
       def step[A](k: K[To, A]) = {
@@ -272,7 +265,7 @@ object Enumeratee {
   def mapInputFlatten[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = Input[From] => Enumerator[To]
 
-    def apply[To](f: Arg[To])(implicit ec: ExecutionContext) = new ContinueCheckDone[From, To] {
+    def apply[To](f: Arg[To])(implicit ec: ExecutionContext): Result[To] = new ContinueCheckDone[From, To] {
       val pec = ec.prepare()
 
       protected[this] def step[A](k: K[To, A]) = in =>
@@ -286,7 +279,7 @@ object Enumeratee {
   def mapInputM[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = Input[From] => Future[Input[To]]
 
-    def apply[To](f: Arg[To])(implicit ec: ExecutionContext) = new ContinueCheckDone[From, To] {
+    def apply[To](f: Arg[To])(implicit ec: ExecutionContext): Result[To] = new ContinueCheckDone[From, To] {
       val pec = ec.prepare()
 
       def step[A](k: K[To, A]) = {
@@ -302,7 +295,7 @@ object Enumeratee {
   def mapM[E] = new EnumerateeProviderEc[E] {
     type Arg[NE] = E => Future[NE]
 
-    def apply[NE](f: Arg[NE])(implicit ec: ExecutionContext) = mapInputM[E] {
+    def apply[NE](f: Arg[NE])(implicit ec: ExecutionContext): Result[NE] = mapInputM[E] {
       case Input.El(e) => f(e).map(Input.El(_))(dec)
       case Input.Empty => Future.successful(Input.Empty)
       case Input.EOF => Future.successful(Input.EOF)
@@ -315,7 +308,7 @@ object Enumeratee {
   def map[E] = new EnumerateeProviderEc[E] {
     type Arg[NE] = E => NE
 
-    def apply[NE](f: Arg[NE])(implicit ec: ExecutionContext) = mapInput[E](_.map(f))(ec)
+    def apply[NE](f: Arg[NE])(implicit ec: ExecutionContext): Result[NE] = mapInput[E](_.map(f))(ec)
   }
 
   /**
@@ -379,7 +372,7 @@ object Enumeratee {
   def grouped[From] = new EnumerateeProvider[From] {
     type Arg[To] = Iteratee[From, To]
 
-    def apply[To](folder: Arg[To]) = new ContinueCheckDone[From, To] {
+    def apply[To](folder: Arg[To]): Result[To] = new ContinueCheckDone[From, To] {
       protected[this] def step[A](k: K[To, A]) = stepWithFolder(folder)(k)
 
       protected[this] def stepWithFolder[A](f: Iteratee[From, To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
@@ -433,7 +426,7 @@ object Enumeratee {
   def collect[From] = new EnumerateeProviderEc[From] {
     type Arg[To] = PartialFunction[From, To]
 
-    def apply[To](transformer: Arg[To])(implicit ec: ExecutionContext) = new ContinueCheckDone[From, To] {
+    def apply[To](transformer: Arg[To])(implicit ec: ExecutionContext): Result[To] = new ContinueCheckDone[From, To] {
       val pec = ec.prepare()
 
       protected[this] def step[A](k: K[To, A]) = {
@@ -550,9 +543,9 @@ object Enumeratee {
     }
   }
 
-  def heading[E](es: Enumerator[E]) = new Enumeratee[E, E] {
+  def heading[E](es: Enumerator[E]): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong &> Iteratee.flatten(es(it))
+    def applyOn[A](it: Iteratee[E, A]) = passAlong &> Iteratee.flatten(es(it))
 
   }
 
