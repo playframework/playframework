@@ -2207,6 +2207,16 @@ public class Http {
         String XML = "application/xml";
 
         /**
+         * Content-Type of xml-external-parsed-entity.
+         */
+        String XML_EXTERNAL_PARSED_ENTITY = "application/xml-external-parsed-entity";
+
+        /**
+         * Content-Type of xml-dtd.
+         */
+        String XML_DTD = "application/xml-dtd";
+
+        /**
          * Content-Type of css.
          */
         String CSS = "text/css";
