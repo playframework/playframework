@@ -103,31 +103,7 @@ This demonstrates a few useful features:
 
 ## Akka logging configuration
 
-Akka has its own logging system which may or may not use Play's underlying logging engine depending on how it is configured.
-
-By default, Akka will ignore Play's logging configuration and print log messages to STDOUT using its own format. You can configure the log level in `application.conf`:
-
-```properties
-akka {
-  loglevel="INFO"
-}
-```
-
-To direct Akka to use Play's logging engine, you'll need to do some careful configuration. First add the following config in `application.conf`:
-
-```properties
-akka {
-  loggers = ["akka.event.slf4j.Slf4jLogger"]
-  loglevel="DEBUG"
-}
-```
-
-A couple things to note:
-
-- Setting `akka.loggers` to `["akka.event.slf4j.Slf4jLogger"]` will cause Akka to use Play's underlying logging engine.
-- The `akka.loglevel` property sets the threshold at which Akka will forward log requests to the logging engine but does not control logging output. Once the log requests are forwarded, the Logback configuration controls log levels and appenders as normal. You should set `akka.loglevel` to the lowest threshold that you will use in Logback configuration for your Akka components.
-
-Next, refine your Akka logging settings in your Logback configuration:
+Akka system logging can be done by changing the `akka` logger to INFO.
 
 ```xml
 <!-- Set logging for all Akka library classes to INFO -->
@@ -136,9 +112,7 @@ Next, refine your Akka logging settings in your Logback configuration:
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.
-
-For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/current/scala/logging.html).
+You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.  For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/current/scala/logging.html).
 
 ## Using a Custom Logging Framework
 
@@ -162,7 +136,7 @@ libraryDependencies ++= Seq(
 
 Once the libraries and the SLF4J adapter are loaded, the `log4j.configurationFile` system property can be set on the command line as usual.
 
-If custom configuration depending on Play's mode is required, you can do additional customization with the `LoggerConfigurator`.  To do this, add a `logger-configurator.properties` to the classpath, with 
+If custom configuration depending on Play's mode is required, you can do additional customization with the `LoggerConfigurator`.  To do this, add a `logger-configurator.properties` to the classpath, with
 
 ```properties
 play.logger.configurator=Log4J2LoggerConfigurator
