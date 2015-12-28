@@ -57,13 +57,13 @@ Some components may need to be cleaned up when Play shuts down, for example, to 
 
 @[cleanup](code/RuntimeDependencyInjection.scala)
 
-The `ApplicationLifecycle` will stop all components in reverse order from when they were created.  This means any components that you depend on can still safely be used in your components stop hook, since because you depend on them, they must have been created before your component was, and therefore won't be stopped until after your component is stopped.
+The `ApplicationLifecycle` will stop all components in reverse order from when they were created.  This means any components that you depend on can still safely be used in your components stop hook, because you depend on them, they must have been created before your component was, and therefore won't be stopped until after your component is stopped.
 
 > **Note:** It's very important to ensure that all components that register a stop hook are singletons.  Any non singleton components that register stop hooks could potentially be a source of memory leaks, since a new stop hook will be registered each time the component is created.
 
 ## Providing custom bindings
 
-It is considered good practice to define an trait for a component, and have other classes depend on that trait, rather than the implementation of the component.  By doing that, you can inject different implementations, for example you inject a mock implementation when testing your application.
+It is considered good practice to define a trait for a component, and have other classes depend on that trait, rather than the implementation of the component.  By doing that, you can inject different implementations, for example you inject a mock implementation when testing your application.
 
 In this case, the DI system needs to know which implementation should be bound to that trait.  The way we recommend that you declare this depends on whether you are writing a Play application as an end user of Play, or if you are writing library that other Play applications will consume.
 
