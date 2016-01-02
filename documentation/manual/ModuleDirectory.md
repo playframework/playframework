@@ -12,7 +12,7 @@
 * **Short description:** Write a Swagger spec in your routes file
 
 ### zalando/play-swagger
-* **Website:** <https://github.com/iheartradio/play-swagger>
+* **Website:** <https://github.com/zalando/play-swagger>
 * **Short description:** Generate Play code from a Swagger spec
 
 
