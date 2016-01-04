@@ -15,14 +15,12 @@ import io.netty.util.ReferenceCountUtil
 import play.api.Logger
 import play.api.http.HeaderNames._
 import play.api.http.{ Status, HttpChunk, HttpEntity }
-import play.api.libs.streams.MaterializeOnDemandPublisher
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
 
-import scala.collection.immutable
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Try }
-import scala.util.control.{ NonFatal, Exception }
+import scala.util.control.NonFatal
 
 private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
 
@@ -127,12 +125,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       case full: FullHttpRequest =>
         Source.single(httpContentToByteString(full))
       case streamed: StreamedHttpRequest =>
-        val body = Source(streamed).map(httpContentToByteString)
-        if (HttpHeaders.is100ContinueExpected(streamed)) {
-          Source(new MaterializeOnDemandPublisher(body))
-        } else {
-          body
-        }
+        Source.fromPublisher(SynchronousMappedStreams.map(streamed, httpContentToByteString))
     }
   }
 
@@ -225,11 +218,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   /** Create a Netty streamed response. */
   private def createStreamedResponse(stream: Source[ByteString, _], httpVersion: HttpVersion,
     responseStatus: HttpResponseStatus)(implicit mat: Materializer) = {
-    val httpContentSource = stream.map[HttpContent] { bytes =>
-      new DefaultHttpContent(byteStringToByteBuf(bytes))
-    }
-    val publisher = httpContentSource.runWith(Sink.publisher)
-
+    val publisher = SynchronousMappedStreams.map(stream.runWith(Sink.asPublisher(false)), byteStringToHttpContent)
     new DefaultStreamedHttpResponse(httpVersion, responseStatus, publisher)
   }
 
@@ -237,7 +226,9 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   private def createChunkedResponse(chunks: Source[HttpChunk, _], httpVersion: HttpVersion,
     responseStatus: HttpResponseStatus)(implicit mat: Materializer) = {
 
-    val httpContentSource = chunks.map[HttpContent] {
+    val publisher = chunks.runWith(Sink.asPublisher(false))
+
+    val httpContentPublisher = SynchronousMappedStreams.map[HttpChunk, HttpContent](publisher, {
       case HttpChunk.Chunk(bytes) =>
         new DefaultHttpContent(byteStringToByteBuf(bytes))
       case HttpChunk.LastChunk(trailers) =>
@@ -247,11 +238,9 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
             lastChunk.trailingHeaders().add(name, value)
         }
         lastChunk
-    }
+    })
 
-    val publisher = httpContentSource.runWith(Sink.publisher)
-
-    val response = new DefaultStreamedHttpResponse(httpVersion, responseStatus, publisher)
+    val response = new DefaultStreamedHttpResponse(httpVersion, responseStatus, httpContentPublisher)
     HttpHeaders.setTransferEncodingChunked(response)
     response
   }
@@ -267,6 +256,10 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     } else {
       Unpooled.wrappedBuffer(bytes.asByteBuffer)
     }
+  }
+
+  private def byteStringToHttpContent(bytes: ByteString): HttpContent = {
+    new DefaultHttpContent(byteStringToByteBuf(bytes))
   }
 
   // cache the date header of the last response so we only need to compute it every second

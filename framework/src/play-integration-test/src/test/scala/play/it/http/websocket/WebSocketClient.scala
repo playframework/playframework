@@ -7,6 +7,7 @@ package play.it.http.websocket
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import akka.stream.FlowShape
 import akka.stream.scaladsl._
 import akka.stream.stage.{ Context, PushStage }
 import akka.util.ByteString
@@ -23,7 +24,6 @@ import io.netty.handler.codec.http.websocketx._
 import java.net.URI
 import io.netty.util.ReferenceCountUtil
 import play.api.http.websocket._
-import play.api.libs.streams.AkkaStreams.EagerFinishMerge
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 
 import scala.concurrent.{ Promise, Future }
@@ -149,7 +149,7 @@ object WebSocketClient {
 
           handshaker.finishHandshake(ctx.channel(), resp)
 
-          val clientConnection = Flow.wrap(Sink(subscriber), Source(publisher))(Keep.none)
+          val clientConnection = Flow.fromSinkAndSource(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))
 
           onConnected(webSocketProtocol(clientConnection))
 
@@ -194,11 +194,11 @@ object WebSocketClient {
         message
       }
 
-      messagesToFrames via captureClientClose via Flow() { implicit b =>
-        import FlowGraph.Implicits._
+      messagesToFrames via captureClientClose via Flow.fromGraph(GraphDSL.create[FlowShape[WebSocketFrame, WebSocketFrame]]() { implicit b =>
+        import GraphDSL.Implicits._
 
         val broadcast = b.add(Broadcast[WebSocketFrame](2))
-        val merge = b.add(EagerFinishMerge[WebSocketFrame](2))
+        val merge = b.add(Merge[WebSocketFrame](2, eagerClose = true))
 
         val handleServerClose = Flow[WebSocketFrame].filter { frame =>
           if (frame.isInstanceOf[CloseWebSocketFrame] && !clientInitiatedClose.get()) {
@@ -239,8 +239,8 @@ object WebSocketClient {
         merge.out ~> clientConnection ~> handleConnectionTerminated ~> retainForBroadcast ~> broadcast.in
         merge.in(0) <~ handleServerClose <~ broadcast.out(0)
 
-        (merge.in(1), broadcast.out(1))
-      } via framesToMessages
+        FlowShape(merge.in(1), broadcast.out(1))
+      }) via framesToMessages
     }
 
     def toByteString(data: ByteBufHolder) = {

@@ -25,7 +25,7 @@ trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecifi
       case ("POST", "/") => Action {
         request: Request[AnyContent] =>
           // Check precondition. This needs to be an x-www-form-urlencoded request body
-          request.headers.get("Content-Type") must beSome(contentType)
+          request.contentType must beSome(contentType)
           // The following just ingests the request body and converts it to a sequnce of strings of the form name=value
           val pairs: Seq[String] = {
             request.body.asFormUrlEncoded map {

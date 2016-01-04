@@ -137,7 +137,7 @@ class NettyServer(
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
 
-    (channel, Source(channelPublisher))
+    (channel, Source.fromPublisher(channelPublisher))
   }
 
   /**

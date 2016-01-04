@@ -81,7 +81,7 @@ object ScalaWebSockets extends PlaySpecification {
         }
 
         runWebSocket(
-          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Source(Promise[Message]().future), 0
+          WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)), Source.maybe, 0
         ) must beRight[List[Message]]
       }
 
@@ -119,7 +119,7 @@ object ScalaWebSockets extends PlaySpecification {
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Source(Promise[Message]().future), 1) must beRight.which { out =>
+        runWebSocket(Samples.Controller7.socket, Source.maybe, 1) must beRight.which { out =>
           out must_== List(TextMessage("Hello!"))
         }
       }

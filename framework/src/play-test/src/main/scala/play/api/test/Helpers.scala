@@ -3,6 +3,7 @@
  */
 package play.api.test
 
+import akka.actor.Cancellable
 import akka.stream.{ ClosedShape, Graph, Materializer }
 import akka.stream.scaladsl.Source
 import play.mvc.Http.RequestBody
@@ -378,4 +379,8 @@ private[play] object NoMaterializer extends Materializer {
   implicit def executionContext = throw new UnsupportedOperationException("NoMaterializer does not have an execution context")
   def materialize[Mat](runnable: Graph[ClosedShape, Mat]) =
     throw new UnsupportedOperationException("No materializer was provided, probably when attempting to extract a response body, but that body is a streamed body and so requires a materializer to extract it.")
+  override def scheduleOnce(delay: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer can't schedule tasks")
+  override def schedulePeriodically(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer can't schedule tasks")
 }

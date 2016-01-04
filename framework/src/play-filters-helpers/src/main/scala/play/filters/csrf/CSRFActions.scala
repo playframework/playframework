@@ -8,7 +8,7 @@ import java.util.Locale
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
-import akka.stream.stage.{ DetachedContext, DetachedStage, PushStage, Context }
+import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -135,6 +135,9 @@ class CSRFAction(next: EssentialAction,
         }
       }))
         .splitWhen(_ => false)
+        .prefixAndTail(0)
+        .map(_._2)
+        .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
         action(request).run(validatedBodySource)
@@ -335,18 +338,12 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
     } else {
       // CSRF check
       if (checkBody(buffer)) {
-        if (ctx.isHoldingDownstream) {
-          // If we have demand, push the buffer downstream.
-          // This seems like it shouldn't work, since you shouldn't be allowed to pull when finishing.  But it does.
-          // See https://github.com/akka/akka/issues/18285.
-          ctx.pushAndPull(buffer)
-        } else {
-          // Otherwise, absorb the termination, and hold the buffer, and enter the continue state.
-          next = buffer
-          buffer = null
-          continue = true
-          ctx.absorbTermination()
-        }
+        // Absorb the termination, hold the buffer, and enter the continue state.
+        // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
+        next = buffer
+        buffer = null
+        continue = true
+        ctx.absorbTermination()
       } else {
         ctx.fail(CSRFAction.NoTokenInBody)
       }

@@ -32,7 +32,7 @@ public class AccumulatorTest {
         return (any) -> { throw new RuntimeException("error"); };
     }
     private <T> Source<T, ?> errorSource() {
-        return Source.from(s -> s.onSubscribe(new Subscription() {
+        return Source.fromPublisher(s -> s.onSubscribe(new Subscription() {
             public void request(long n) {
                 s.onError(new RuntimeException("error"));
             }

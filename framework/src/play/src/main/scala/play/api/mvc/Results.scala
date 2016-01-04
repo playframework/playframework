@@ -5,11 +5,10 @@ package play.api.mvc
 
 import java.nio.file.{ Files, Path }
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ StreamConverters, FileIO, Source }
 import akka.util.ByteString
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import org.reactivestreams.Publisher
 import play.api.i18n.{ MessagesApi, Lang }
 import play.api.libs.iteratee._
 import play.api.http._
@@ -372,12 +371,12 @@ trait Results {
       )
     }
 
-    private def streamFile(publisher: Publisher[Array[Byte]], name: String, length: Long, inline: Boolean): Result = {
+    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean): Result = {
       Result(
         ResponseHeader(status,
           Map(CONTENT_DISPOSITION -> s"""${if (inline) "inline" else "attachment"}; filename="$name"""")),
         HttpEntity.Streamed(
-          Source(publisher).map(ByteString.apply),
+          file,
           Some(length),
           play.api.libs.MimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
@@ -392,9 +391,7 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromFile(content) &>
-        Enumeratee.onIterateeDone(onClose)(defaultContext))
-      streamFile(publisher, fileName(content), content.length, inline)
+      streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
     }
 
     /**
@@ -407,7 +404,8 @@ trait Results {
     def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
       val publisher = Streams.enumeratorToPublisher(Enumerator.fromPath(content) &>
         Enumeratee.onIterateeDone(onClose)(defaultContext))
-      streamFile(publisher, fileName(content), Files.size(content), inline)
+      streamFile(StreamConverters.fromInputStream(() => Files.newInputStream(content)),
+        fileName(content), Files.size(content), inline)
     }
 
     /**
@@ -421,8 +419,7 @@ trait Results {
       inline: Boolean = true): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromStream(stream))
-      streamFile(publisher, fileName, stream.available(), inline)
+      streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
     }
 
     /**
@@ -456,7 +453,7 @@ trait Results {
      */
     @deprecated("Use chunked with an Akka streams Source instead", "2.5.0")
     def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
-      chunked(Source(Streams.enumeratorToPublisher(content)))
+      chunked(Source.fromPublisher(Streams.enumeratorToPublisher(content)))
     }
 
     /**
@@ -468,7 +465,7 @@ trait Results {
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(
         header = header,
-        body = HttpEntity.Streamed(Source(Streams.enumeratorToPublisher(content)).map(writeable.transform),
+        body = HttpEntity.Streamed(Source.fromPublisher(Streams.enumeratorToPublisher(content)).map(writeable.transform),
           None, writeable.contentType)
       )
     }

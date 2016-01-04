@@ -168,7 +168,7 @@ public abstract class WebSocket {
                     } else {
                         Flow<Message, Message, ?> flow = AkkaStreams.bypassWith(
                                 Flow.<Message>create().collect(inMapper),
-                                new play.api.libs.streams.AkkaStreams.OnlyFirstCanFinishMerge(2),
+                                play.api.libs.streams.AkkaStreams.onlyFirstCanFinishMerge(2),
                                 resultOrFlow.right.get().map(outMapper::apply)
                         );
                         return F.Either.Right(flow);

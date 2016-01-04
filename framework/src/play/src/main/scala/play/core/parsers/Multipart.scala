@@ -9,7 +9,7 @@ import akka.stream.stage.{ TerminationDirective, SyncDirective, Context, PushPul
 import akka.util.ByteString
 import play.api.Play
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.MultipartFormData._
 import play.api.http.Status._
@@ -46,17 +46,15 @@ object Multipart {
       val multipartFlow = Flow[ByteString]
         .transform(() => new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer))
         .splitWhen(_.isLeft)
-        .map { source =>
-          source.prefixAndTail(1)
-            .map {
-              case (Seq(Left(part: FilePart[_])), body) =>
-                part.copy[Source[ByteString, _]](ref = body.collect {
-                  case Right(bytes) => bytes
-                })
-              case (Seq(Left(other)), _) =>
-                other.asInstanceOf[Part[Nothing]]
-            }
-        }.flatten(FlattenStrategy.concat)
+        .prefixAndTail(1)
+        .map {
+          case (Seq(Left(part: FilePart[_])), body) =>
+            part.copy[Source[ByteString, _]](ref = body.collect {
+              case Right(bytes) => bytes
+            })
+          case (Seq(Left(other)), _) =>
+            other.asInstanceOf[Part[Nothing]]
+        }.concatSubstreams
 
       partHandler.through(multipartFlow)
 
@@ -118,7 +116,7 @@ object Multipart {
   def handleFilePartAsTemporaryFile: FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-      Accumulator(Streams.outputStreamToSink(() => new java.io.FileOutputStream(tempFile.file))).map { _ =>
+      Accumulator(StreamConverters.fromOutputStream(() => new java.io.FileOutputStream(tempFile.file))).map { _ =>
         FilePart(partName, filename, contentType, tempFile)
       }
   }

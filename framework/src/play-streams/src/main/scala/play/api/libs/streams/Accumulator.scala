@@ -137,7 +137,7 @@ object Accumulator {
   def source[E]: Accumulator[E, Source[E, _]] = {
     // If Akka streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
-    Accumulator(Sink.publisher[E].mapMaterializedValue(publisher => Future.successful(Source(publisher))))
+    Accumulator(Sink.asPublisher[E](fanout = false).mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher))))
   }
 
   /**
@@ -156,12 +156,12 @@ object Accumulator {
     //})
 
     val result = Promise[A]()
-    val sink = Sink(new Subscriber[E] {
+    val sink = Sink.fromSubscriber(new Subscriber[E] {
       @volatile var subscriber: Subscriber[_ >: E] = _
 
       def onSubscribe(sub: Subscription) = future.onComplete {
         case Success(accumulator) =>
-          Source(new Publisher[E]() {
+          Source.fromPublisher(new Publisher[E]() {
             def subscribe(s: Subscriber[_ >: E]) = {
               subscriber = s
               s.onSubscribe(sub)

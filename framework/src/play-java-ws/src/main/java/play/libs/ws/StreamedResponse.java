@@ -33,7 +33,7 @@ public class StreamedResponse {
 		CompletionStage<play.api.libs.ws.StreamedResponse> res = FutureConverters.toJava(from);
 		java.util.function.Function<play.api.libs.ws.StreamedResponse, StreamedResponse> mapper = response -> {
 			WSResponseHeaders headers = toJavaHeaders(response.headers());
-			Source<ByteString, ?> source = toJavaSource(response.body());
+			Source<ByteString, ?> source = response.body().asJava();
 			return new StreamedResponse(headers, source);
 	    };
 	    return res.thenApply(mapper);	
@@ -42,7 +42,4 @@ public class StreamedResponse {
 	private static WSResponseHeaders toJavaHeaders(play.api.libs.ws.WSResponseHeaders from) {
 		return new DefaultWSResponseHeaders(from.status(), CollectionUtil.convert(from.headers()));
 	}
-	private static Source<ByteString, ?> toJavaSource(akka.stream.scaladsl.Source<ByteString, ?> source) {
-		return Source.adapt(source);
-	}	
 }

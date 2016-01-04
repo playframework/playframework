@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.{ Consumer, Function }
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
+// This is disabled while we wait for https://github.com/akka/akka/issues/19467 to be fixed
+// object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
@@ -78,9 +79,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
   // We concat with an empty source because otherwise the connection will be closed immediately after the last
   // frame is sent, but WebSockets require that the client waits for the server to echo the close back, and
   // let the server close.
-  def sendFrames(frames: ExtendedMessage*) = Source(frames.toList).concat(emptySource)
-
-  def emptySource[A] = Source(Promise[A]().future)
+  def sendFrames(frames: ExtendedMessage*) = Source(frames.toList).concat(Source.maybe)
 
   /*
    * Shared tests
@@ -105,7 +104,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
     withServer(app => webSocket(app)(List("a", "b"))) { app =>
       import app.materializer
       val frames = runWebSocket { (flow) =>
-        emptySource[ExtendedMessage].via(flow).runWith(consumeFrames)
+        Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
       }
       frames must contain(exactly(
         textFrame(be_==("a")),
@@ -156,21 +155,21 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       "allow consuming messages" in allowConsumingMessages { _ =>
         consumed =>
           WebSocket.accept[String, String] { req =>
-            Flow.wrap(onFramesConsumed[String](consumed.success(_)),
-              emptySource[String])(Keep.none)
+            Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)),
+              Source.maybe[String])
           }
       }
 
       "allow sending messages" in allowSendingMessages { _ =>
         messages =>
           WebSocket.accept[String, String] { req =>
-            Flow.wrap(Sink.ignore, Source(messages))(Keep.none)
+            Flow.fromSinkAndSource(Sink.ignore, Source(messages))
           }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
         WebSocket.accept[String, String] { req =>
-          Flow.wrap(Sink.cancelled, emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(Sink.cancelled, Source.maybe[String])
         }
       }
 
@@ -184,8 +183,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       "aggregate text frames" in {
         val consumed = Promise[List[String]]()
         withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.wrap(onFramesConsumed[String](consumed.success(_)),
-            emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)),
+            Source.maybe[String])
         }) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
@@ -207,8 +206,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         val consumed = Promise[List[ByteString]]()
 
         withServer(app => WebSocket.accept[ByteString, ByteString] { req =>
-          Flow.wrap(onFramesConsumed[ByteString](consumed.success(_)),
-            emptySource[ByteString])(Keep.none)
+          Flow.fromSinkAndSource(onFramesConsumed[ByteString](consumed.success(_)),
+            Source.maybe[ByteString])
         }) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
@@ -228,7 +227,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "close the websocket when the buffer limit is exceeded" in {
         withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.wrap(Sink.ignore, emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
         }) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -245,7 +244,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "close the websocket when the wrong type of frame is received" in {
         withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.wrap(Sink.ignore, emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
         }) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -262,7 +261,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "respond to pings" in {
         withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.wrap(Sink.ignore, emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
         }) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -280,7 +279,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "not respond to pongs" in {
         withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.wrap(Sink.ignore, emptySource[String])(Keep.none)
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
         }) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -511,6 +510,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "allow handling a websocket with an actor" in allowSendingMessages { _ =>
         messages =>
+
+
           JWebSocket.withActor[String](new Function[ActorRef, Props]() {
             def apply(out: ActorRef) = {
               Props(new Actor() {
@@ -518,7 +519,9 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                   out ! msg
                 }
                 out ! Status.Success(())
-                def receive = PartialFunction.empty
+                def receive ={
+                  case msg: Message => ()
+                }
               })
             }
           })

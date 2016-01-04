@@ -1535,7 +1535,9 @@ public class Http {
          * @return the request content as a ByteString
          */
         public ByteString asBytes() {
-            if (body instanceof Optional) {
+            if (body == null) {
+                return ByteString.empty();
+            } else if (body instanceof Optional) {
                 if (!((Optional<?>) body).isPresent()) {
                     return ByteString.empty();
                 }

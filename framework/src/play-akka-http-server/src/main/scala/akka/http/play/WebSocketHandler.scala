@@ -9,6 +9,7 @@ import akka.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.streams.AkkaStreams
 import play.core.server.common.WebSocketFlowHandler
+import play.core.server.common.WebSocketFlowHandler.{ MessageType, RawMessage }
 
 object WebSocketHandler {
 
@@ -33,9 +34,7 @@ object WebSocketHandler {
     // flow that we are wrapping, are sent to the client and the close procedure is implemented.
     Flow[FrameEvent]
       .transform(() => aggregateFrames(bufferLimit))
-      .transform(() => aggregateMessages(bufferLimit))
-      .transform(() => framesToMessages())
-      .via(handleProtocolFailures(WebSocketFlowHandler.webSocketProtocol(flow)))
+      .via(handleProtocolFailures(WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow)))
       .map(messageToFrameEvent)
   }
 
@@ -46,13 +45,13 @@ object WebSocketHandler {
    *
    * @param bufferLimit The maximum size of frame data that should be buffered.
    */
-  private def aggregateFrames(bufferLimit: Int): Stage[FrameEvent, Either[Message, Frame]] = {
-    new PushStage[FrameEvent, Either[Message, Frame]] {
+  private def aggregateFrames(bufferLimit: Int): Stage[FrameEvent, Either[Message, RawMessage]] = {
+    new PushStage[FrameEvent, Either[Message, RawMessage]] {
 
       var currentFrameData: ByteString = null
       var currentFrameHeader: FrameHeader = null
 
-      def onPush(elem: FrameEvent, ctx: Context[Either[Message, Frame]]) = elem match {
+      def onPush(elem: FrameEvent, ctx: Context[Either[Message, RawMessage]]) = elem match {
         // FrameData error handling first
         case unexpectedData: FrameData if currentFrameHeader == null =>
           // Technically impossible, this indicates a bug in Akka HTTP,
@@ -67,10 +66,10 @@ object WebSocketHandler {
           currentFrameData ++= data
           ctx.pull()
         case FrameData(data, true) =>
-          val frame = Frame(currentFrameHeader, currentFrameData ++ data)
+          val message = frameToRawMessage(currentFrameHeader, currentFrameData ++ data)
           currentFrameHeader = null
           currentFrameData = null
-          ctx.push(Right(frame))
+          ctx.push(Right(message))
 
         // Frame start error handling
         case FrameStart(header, data) if currentFrameHeader != null =>
@@ -79,9 +78,13 @@ object WebSocketHandler {
           // the previous frame.
           ctx.push(close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
 
+        // Frame start protocol errors
+        case FrameStart(header, _) if header.mask.isEmpty =>
+          ctx.push(close(Protocol.CloseCodes.ProtocolError, "Unmasked client frame"))
+
         // Frame start
         case fs @ FrameStart(header, data) if fs.lastPart =>
-          ctx.push(Right(Frame(header, data)))
+          ctx.push(Right(frameToRawMessage(header, data)))
 
         case FrameStart(header, data) =>
           currentFrameHeader = header
@@ -92,78 +95,28 @@ object WebSocketHandler {
     }
   }
 
-  /**
-   * The WebSocket protocol allows messages to be fragmented across multiple frames.
-   *
-   * This stage aggregates them so each frame is a full message. It also unmasks frames.
-   *
-   * @param bufferLimit The maximum size of frame data that should be buffered.
-   */
-  private def aggregateMessages(bufferLimit: Int): Stage[Either[Message, Frame], Either[Message, Frame]] = {
-
-    new PushStage[Either[Message, Frame], Either[Message, Frame]] {
-
-      var currentMessageData: ByteString = null
-      var currentMessageHeader: FrameHeader = null
-
-      def onPush(elem: Either[Message, Frame], ctx: Context[Either[Message, Frame]]) = elem match {
-        case close @ Left(_) => ctx.push(close)
-        case Right(frame) =>
-          // Protocol checks
-          if (frame.header.mask.isEmpty) {
-            ctx.push(close(Protocol.CloseCodes.ProtocolError, "Unmasked client frame"))
-          } else if (frame.header.opcode == Protocol.Opcode.Continuation) {
-            if (currentMessageHeader == null) {
-              ctx.push(close(Protocol.CloseCodes.ProtocolError, "Unexpected continuation frame"))
-            } else if (currentMessageData.size + frame.data.size > bufferLimit) {
-              ctx.push(close(Protocol.CloseCodes.TooBig))
-            } else if (frame.header.fin) {
-              val currentFrame = Frame(currentMessageHeader, currentMessageData ++ frame.unmaskedData)
-              currentMessageHeader = null
-              currentMessageData = null
-              ctx.push(Right(currentFrame))
-            } else {
-              currentMessageData ++= frame.unmaskedData
-              ctx.pull()
-            }
-          } else if (currentMessageHeader != null) {
-            ctx.push(close(Protocol.CloseCodes.ProtocolError, "Received non continuation frame when previous message wasn't finished"))
-          } else if (frame.header.fin) {
-            ctx.push(Right(Frame(frame.header, frame.unmaskedData)))
-          } else {
-            currentMessageHeader = frame.header
-            currentMessageData = frame.unmaskedData
-            ctx.pull()
-          }
-      }
-    }
+  private def frameToRawMessage(header: FrameHeader, data: ByteString) = {
+    val unmasked = FrameEventParser.mask(data, header.mask)
+    RawMessage(frameOpCodeToMessageType(header.opcode),
+      unmasked, header.fin)
   }
 
   /**
    * Converts frames to Play messages.
    */
-  private def framesToMessages(): Stage[Either[Message, Frame], Either[Message, Message]] = new PushStage[Either[Message, Frame], Either[Message, Message]] {
-
-    def onPush(elem: Either[Message, Frame], ctx: Context[Either[Message, Message]]) = elem match {
-      case Left(close) => ctx.push(Left(close))
-      case Right(frame) =>
-        frame.header.opcode match {
-          case Protocol.Opcode.Binary =>
-            ctx.push(Right(BinaryMessage(frame.data)))
-          case Protocol.Opcode.Text =>
-            ctx.push(Right(TextMessage(frame.data.utf8String)))
-          case Protocol.Opcode.Close =>
-            val statusCode = FrameEventParser.parseCloseCode(frame.data)
-            val reason = frame.data.drop(2).utf8String
-            ctx.push(Right(CloseMessage(statusCode, reason)))
-          case Protocol.Opcode.Ping =>
-            ctx.push(Right(PingMessage(frame.data)))
-          case Protocol.Opcode.Pong =>
-            ctx.push(Right(PongMessage(frame.data)))
-          case other =>
-            ctx.push(close(Protocol.CloseCodes.PolicyViolated))
-        }
-    }
+  private def frameOpCodeToMessageType(opcode: Protocol.Opcode): MessageType.Type = opcode match {
+    case Protocol.Opcode.Binary =>
+      MessageType.Binary
+    case Protocol.Opcode.Text =>
+      MessageType.Text
+    case Protocol.Opcode.Close =>
+      MessageType.Close
+    case Protocol.Opcode.Ping =>
+      MessageType.Ping
+    case Protocol.Opcode.Pong =>
+      MessageType.Pong
+    case Protocol.Opcode.Continuation =>
+      MessageType.Continuation
   }
 
   /**
@@ -185,10 +138,10 @@ object WebSocketHandler {
   /**
    * Handles the protocol failures by gracefully closing the connection.
    */
-  private def handleProtocolFailures: Flow[Message, Message, _] => Flow[Either[Message, Message], Message, _] = {
-    AkkaStreams.bypassWith(Flow[Either[Message, Message]].transform(() => new PushStage[Either[Message, Message], Either[Message, Message]] {
+  private def handleProtocolFailures: Flow[RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
+    AkkaStreams.bypassWith(Flow[Either[Message, RawMessage]].transform(() => new PushStage[Either[Message, RawMessage], Either[RawMessage, Message]] {
       var closing = false
-      def onPush(elem: Either[Message, Message], ctx: Context[Either[Message, Message]]) = elem match {
+      def onPush(elem: Either[Message, RawMessage], ctx: Context[Either[RawMessage, Message]]) = elem match {
         case _ if closing =>
           ctx.finish()
         case Right(message) =>
@@ -197,7 +150,7 @@ object WebSocketHandler {
           closing = true
           ctx.push(Right(close))
       }
-    }), AkkaStreams.EagerFinishMerge(2))
+    }), Merge(2, eagerClose = true))
   }
 
   private case class Frame(header: FrameHeader, data: ByteString) {

@@ -1,16 +1,15 @@
 package play.libs.streams;
 
 import akka.japi.Pair;
+import akka.stream.FlowShape;
+import akka.stream.Graph;
 import akka.stream.UniformFanInShape;
 import akka.stream.UniformFanOutShape;
-import akka.stream.scaladsl.Broadcast$;
+import akka.stream.javadsl.Broadcast;
+import akka.stream.javadsl.GraphDSL;
 import akka.stream.javadsl.Flow;
-import akka.stream.scaladsl.FlexiMerge;
-import play.api.libs.streams.AkkaStreams$;
 import play.libs.F;
 import play.libs.Scala;
-import scala.runtime.AbstractFunction0;
-import scala.runtime.BoxedUnit;
 
 import java.util.function.Function;
 
@@ -28,7 +27,7 @@ public class AkkaStreams {
     public static <In, FlowIn, Out> Flow<In, Out, ?> bypassWith(Function<In, F.Either<FlowIn, Out>> splitter,
                                                                 Flow<FlowIn, Out, ?> flow) {
         return bypassWith(Flow.<In>create().map(splitter::apply),
-                new play.api.libs.streams.AkkaStreams.OnlyFirstCanFinishMerge(2), flow);
+                play.api.libs.streams.AkkaStreams.onlyFirstCanFinishMerge(2), flow);
     }
 
     /**
@@ -38,16 +37,15 @@ public class AkkaStreams {
      * flow.
      */
     public static <In, FlowIn, Out> Flow<In, Out, ?> bypassWith(Flow<In, F.Either<FlowIn, Out>, ?> splitter,
-                                                             FlexiMerge<Out, UniformFanInShape<Out, Out>> mergeStrategy,
-                                                             Flow<FlowIn, Out, ?> flow) {
-        return splitter.via(Flow.<F.Either<FlowIn, Out>, Out>factory().create(builder -> {
+        Graph<UniformFanInShape<Out, Out>, ?> mergeStrategy, Flow<FlowIn, Out, ?> flow) {
+        return splitter.via(Flow.fromGraph(GraphDSL.<FlowShape<F.Either<FlowIn, Out>, Out>>create(builder -> {
 
             // Eager cancel must be true so that if the flow cancels, that will be propagated upstream.
             // However, that means the bypasser must block cancel, since when this flow finishes, the merge
             // will result in a cancel flowing up through the bypasser, which could lead to dropped messages.
             // Using scaladsl here because of https://github.com/akka/akka/issues/18384
-            UniformFanOutShape<F.Either<FlowIn, Out>, F.Either<FlowIn, Out>> broadcast = builder.graph(Broadcast$.MODULE$.apply(2, true));
-            UniformFanInShape<Out, Out> merge = builder.graph(mergeStrategy);
+            UniformFanOutShape<F.Either<FlowIn, Out>, F.Either<FlowIn, Out>> broadcast = builder.add(Broadcast.create(2, true));
+            UniformFanInShape<Out, Out> merge = builder.add(mergeStrategy);
 
             Flow<F.Either<FlowIn, Out>, FlowIn, ?> collectIn = Flow.<F.Either<FlowIn, Out>>create().collect(Scala.partialFunction(x -> {
                 if (x.left.isPresent()) {
@@ -66,21 +64,16 @@ public class AkkaStreams {
             }));
 
             Flow<F.Either<FlowIn, Out>, F.Either<FlowIn, Out>, ?> blockCancel =
-                    AkkaStreams$.MODULE$.<F.Either<FlowIn, Out>>blockCancel(new AbstractFunction0<BoxedUnit>() {
-                        @Override
-                        public BoxedUnit apply() {
-                            return BoxedUnit.UNIT;
-                        }
-                    }).asJava();
+                    play.api.libs.streams.AkkaStreams.<F.Either<FlowIn, Out>>ignoreAfterCancellation().asJava();
 
             // Normal flow
-            builder.from(broadcast.out(0)).via(collectIn).via(flow).to(merge.in(0));
+            builder.from(broadcast.out(0)).via(builder.add(collectIn)).via(builder.add(flow)).toInlet(merge.in(0));
 
             // Bypass flow, need to ignore downstream finish
-            builder.from(broadcast.out(1)).via(blockCancel).via(collectOut).to(merge.in(1));
+            builder.from(broadcast.out(1)).via(builder.add(blockCancel)).via(builder.add(collectOut)).toInlet(merge.in(1));
 
-            return Pair.create(broadcast.in(), merge.out());
-        }));
+            return new FlowShape<>(broadcast.in(), merge.out());
+        })));
     }
 
 }
