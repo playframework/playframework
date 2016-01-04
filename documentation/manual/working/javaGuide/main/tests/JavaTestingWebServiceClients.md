@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Testing web service clients
 
 A lot of code can go into writing a web service client - preparing the request, serializing and deserializing the bodies, setting the correct headers.  Since a lot of this code works with strings and weakly typed maps, testing it is very important.  However testing it also presents some challenges.  Some common approaches include:

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # JSON automated mapping
 
 If the JSON maps directly to a class, we provide a handy macro so that you don't have to write the `Reads[T]`, `Writes[T]`, or `Format[T]` manually. Given the following case class :

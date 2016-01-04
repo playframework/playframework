@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Protecting against Cross Site Request Forgery
 
 Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victims browser into making a request using the victims session.  Since the session token is sent with every request, if an attacker can coerce the victims browser to make a request on their behalf, the attacker can make requests on the users behalf.

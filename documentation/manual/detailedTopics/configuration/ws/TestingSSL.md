@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Testing SSL
 
 Testing an SSL client not only involves unit and integration testing, but also involves adversarial testing, which tests that an attacker cannot break or subvert a secure connection.
