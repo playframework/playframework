@@ -37,37 +37,28 @@ class HowsMySSLSpec extends PlaySpecification {
   "WS" should {
 
     "verify common behavior" in {
-      // GeoTrust SSL CA - G2 intermediate certificate not found in cert chain!
-      // See https://github.com/jmhodges/howsmyssl/issues/38 for details.
-      val geoTrustPem =
-        """-----BEGIN CERTIFICATE-----
-          |MIIEWTCCA0GgAwIBAgIDAjpjMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYT
-          |AlVTMRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVz
-          |dCBHbG9iYWwgQ0EwHhcNMTIwODI3MjA0MDQwWhcNMjIwNTIwMjA0MDQwWjBE
-          |MQswCQYDVQQGEwJVUzEWMBQGA1UEChMNR2VvVHJ1c3QgSW5jLjEdMBsGA1UE
-          |AxMUR2VvVHJ1c3QgU1NMIENBIC0gRzIwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-          |DwAwggEKAoIBAQC5J/lP2Pa3FT+Pzc7WjRxr/X/aVCFOA9jK0HJSFbjJgltY
-          |eYT/JHJv8ml/vJbZmnrDPqnPUCITDoYZ2+hJ74vm1kfy/XNFCK6PrF62+J58
-          |9xD/kkNm7xzU7qFGiBGJSXl6Jc5LavDXHHYaKTzJ5P0ehdzgMWUFRxasCgdL
-          |LnBeawanazpsrwUSxLIRJdY+lynwg2xXHNil78zs/dYS8T/bQLSuDxjTxa9A
-          |kl0HXk7+Yhc3iemLdCai7bgK52wVWzWQct3YTSHUQCNcj+6AMRaraFX0DjtU
-          |6QRN8MxOgV7pb1JpTr6mFm1C9VH/4AtWPJhPc48Obxoj8cnI2d+87FLXAgMB
-          |AAGjggFUMIIBUDAfBgNVHSMEGDAWgBTAephojYn7qwVkDBF9qn1luMrMTjAd
-          |BgNVHQ4EFgQUEUrQcznVW2kIXLo9v2SaqIscVbwwEgYDVR0TAQH/BAgwBgEB
-          |/wIBADAOBgNVHQ8BAf8EBAMCAQYwOgYDVR0fBDMwMTAvoC2gK4YpaHR0cDov
-          |L2NybC5nZW90cnVzdC5jb20vY3Jscy9ndGdsb2JhbC5jcmwwNAYIKwYBBQUH
-          |AQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5nZW90cnVzdC5jb20w
-          |TAYDVR0gBEUwQzBBBgpghkgBhvhFAQc2MDMwMQYIKwYBBQUHAgEWJWh0dHA6
-          |Ly93d3cuZ2VvdHJ1c3QuY29tL3Jlc291cmNlcy9jcHMwKgYDVR0RBCMwIaQf
-          |MB0xGzAZBgNVBAMTElZlcmlTaWduTVBLSS0yLTI1NDANBgkqhkiG9w0BAQUF
-          |AAOCAQEAPOU9WhuiNyrjRs82lhg8e/GExVeGd0CdNfAS8HgY+yKk3phLeIHm
-          |TYbjkQ9C47ncoNb/qfixeZeZ0cNsQqWSlOBdDDMYJckrlVPg5akMfUf+f1Ex
-          |RF73Kh41opQy98nuwLbGmqzemSFqI6A4ZO6jxIhzMjtQzr+t03UepvTp+UJr
-          |YLLdRf1dVwjOLVDmEjIWE4rylKKbR6iGf9mY5ffldnRk2JG8hBYo2CVEMH6C
-          |2Kyx5MDkFWzbtiQnAioBEoW6MYhYR3TjuNJkpsMyWS4pS0XxW4lJLoKaxhgV
-          |RNAuZAEVaDj59vlmAwxVG52/AECu8EgnTOCAXi25KhV6vGb4NQ==
-          |-----END CERTIFICATE-----
-        """.stripMargin
+      // Digital Signature Trust Co certificate is not in the JDK trust chain.
+      val dstRootCa = """|-----BEGIN CERTIFICATE-----
+        |MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/
+        |MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
+        |DkRTVCBSb290IENBIFgzMB4XDTAwMDkzMDIxMTIxOVoXDTIxMDkzMDE0MDExNVow
+        |PzEkMCIGA1UEChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMRcwFQYDVQQD
+        |Ew5EU1QgUm9vdCBDQSBYMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+        |AN+v6ZdQCINXtMxiZfaQguzH0yxrMMpb7NnDfcdAwRgUi+DoM3ZJKuM/IUmTrE4O
+        |rz5Iy2Xu/NMhD2XSKtkyj4zl93ewEnu1lcCJo6m67XMuegwGMoOifooUMM0RoOEq
+        |OLl5CjH9UL2AZd+3UWODyOKIYepLYYHsUmu5ouJLGiifSKOeDNoJjj4XLh7dIN9b
+        |xiqKqy69cK3FCxolkHRyxXtqqzTWMIn/5WgTe1QLyNau7Fqckh49ZLOMxt+/yUFw
+        |7BZy1SbsOFU5Q9D8/RhcQPGX69Wam40dutolucbY38EVAjqr2m7xPi71XAicPNaD
+        |aeQQmxkqtilX4+U9m5/wAl0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNV
+        |HQ8BAf8EBAMCAQYwHQYDVR0OBBYEFMSnsaR7LHH62+FLkHX/xBVghYkQMA0GCSqG
+        |SIb3DQEBBQUAA4IBAQCjGiybFwBcqR7uKGY3Or+Dxz9LwwmglSBd49lZRNI+DT69
+        |ikugdB/OEIKcdBodfpga3csTS7MgROSR6cz8faXbauX+5v3gTt23ADq1cEmv8uXr
+        |AvHRAosZy5Q6XkjEGB5YGV8eAlrwDPGxrancWYaLbumR9YbK+rlmM6pZW87ipxZz
+        |R8srzJmwN0jP41ZL9c8PDHIyh8bwRLtTcm1D9SZImlJnt1ir/md2cXjbDaJWFBM5
+        |JDGFoqgCWjBH4d1QB7wCCZAA62RjYJsWvIjJEubSfZGL+T0yjWW06XyxV3bqxbYo
+        |Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ
+        |-----END CERTIFICATE-----
+        |""".stripMargin
 
       val configString = """
          |//play.ws.ssl.debug=["certpath", "ssl", "trustmanager"]
@@ -76,12 +67,12 @@ class HowsMySSLSpec extends PlaySpecification {
          |
          |play.ws.ssl.trustManager = {
          |  stores = [
-         |    { type: "PEM", data = ${geotrust.pem} }
+         |    { type: "PEM", data = ${dstRootCa.pem} }
          |  ]
          |}
        """.stripMargin
       val rawConfig = ConfigFactory.parseString(configString)
-      val configWithPem = rawConfig.withValue("geotrust.pem", ConfigValueFactory.fromAnyRef(geoTrustPem))
+      val configWithPem = rawConfig.withValue("dstRootCa.pem", ConfigValueFactory.fromAnyRef(dstRootCa))
       val configWithSystemProperties = ConfigFactory.load(configWithPem)
       val playConfiguration = play.api.Configuration(configWithSystemProperties)
 
