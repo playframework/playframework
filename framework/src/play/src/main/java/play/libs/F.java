@@ -201,7 +201,7 @@ public class F {
         /**
          * Create a Promise which will be redeemed with the result of a given function.
          *
-         * The Function0 will be run in the default ExecutionContext.
+         * The function will be run in the default ExecutionContext.
          *
          * @param function Used to fulfill the Promise.
          * @deprecated Use {@link CompletableFuture#supplyAsync(Supplier, Executor)} instead.
@@ -212,7 +212,7 @@ public class F {
         }
 
         /**
-         * Create a Promise which will be redeemed with the result of a given Function0.
+         * Create a Promise which will be redeemed with the result of a given function.
          *
          * @param function Used to fulfill the Promise.
          * @param ec The ExecutionContext to run the function in.
