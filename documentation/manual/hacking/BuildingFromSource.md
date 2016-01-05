@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Building Play from source
 
 If you want to use some unreleased changes for Play, or you want to contribute to the development of Play yourself, you'll need to compile Play from source. You’ll need a [Git client](https://git-scm.com/) to fetch the source.

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Testing your application
 
 Writing tests for your application can be an involved process. Play supports JUnit and provides helpers and application stubs to make testing your application as easy as possible.

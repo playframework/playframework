@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Quick Start to WS SSL
 
 This section is for people who need to connect to a remote web service over HTTPS, and don't want to read through the entire manual.  If you need to set up a web service or configure client authentication, please proceed to the [[next section|CertificateGeneration]].

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # What's new in Play 2.4
 
 This page highlights the new features of Play 2.4. If you want learn about the changes you need to make to migrate to Play 2.4, check out the [[Play 2.4 Migration Guide|Migration24]].

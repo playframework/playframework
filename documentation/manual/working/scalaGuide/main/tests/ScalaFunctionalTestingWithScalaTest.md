@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing functional tests with ScalaTest
 
 Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/play/api/test/package.html) package or in the [`Helpers`](api/scala/play/api/test/Helpers$.html) object. The [_ScalaTest + Play_](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.package) integration library builds on this testing support for ScalaTest.

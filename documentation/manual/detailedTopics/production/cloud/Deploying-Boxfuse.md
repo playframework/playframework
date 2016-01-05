@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Deploying to Boxfuse and AWS
 
 Boxfuse lets you deploy your Play applications on AWS. It is based on 3 core principles: Immutable Infrastructure, Minimal Images and Blue/Green deployments.
