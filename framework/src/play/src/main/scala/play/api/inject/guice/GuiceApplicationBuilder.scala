@@ -8,8 +8,10 @@ import javax.inject.{ Provider, Inject }
 import com.google.inject.{ Module => GuiceModule }
 import play.api.routing.Router
 import play.api._
-import play.api.inject.{ Injector => PlayInjector, RoutesProvider, bind }
+import play.api.inject.{ RoutesProvider, bind }
 import play.core.{ DefaultWebCommands, WebCommands }
+
+import scala.collection.mutable
 
 /**
  * A builder for creating Applications using Guice.
@@ -89,7 +91,7 @@ final class GuiceApplicationBuilder(
       _.configure(environment)
     }
 
-    if (appConfiguration.underlying.hasPath("logger")) {
+    if (shouldDisplayLoggerDeprecationMessage(appConfiguration)) {
       Logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")
     }
 
@@ -101,13 +103,13 @@ final class GuiceApplicationBuilder(
         bind[GlobalSettings.Deprecated] to globalSettings,
         bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
         bind[WebCommands] to new DefaultWebCommands
-      ).createModule
+      ).createModule()
   }
 
   /**
    * Create a new Play Application using this configured builder.
    */
-  def build(): Application = injector.instanceOf[Application]
+  def build(): Application = injector().instanceOf[Application]
 
   /**
    * Internal copy method with defaults.
@@ -135,6 +137,45 @@ final class GuiceApplicationBuilder(
     disabled: Seq[Class[_]],
     eagerly: Boolean): GuiceApplicationBuilder =
     copy(environment, configuration, modules, overrides, disabled, eagerly)
+
+  /**
+   * Checks if the path contains the logger path
+   * and whether or not one of the keys contains a deprecated value
+   *
+   * @param appConfiguration The app configuration
+   * @return Returns true if one of the keys contains a deprecated value, otherwise false
+   */
+  def shouldDisplayLoggerDeprecationMessage(appConfiguration: Configuration): Boolean = {
+    import scala.collection.JavaConverters._
+    import scala.collection.mutable
+
+    val deprecatedValues = List("DEBUG", "WARN", "ERROR", "INFO", "TRACE", "OFF")
+
+    // Recursively checks each key to see if it contains a deprecated value
+    def hasDeprecatedValue(values: mutable.Map[String, AnyRef]): Boolean = {
+      values.exists {
+        case (_, value: String) if deprecatedValues.contains(value) =>
+          true
+        case (_, value: java.util.Map[String, AnyRef]) =>
+          hasDeprecatedValue(value.asScala)
+        case _ =>
+          false
+      }
+    }
+
+    if (appConfiguration.underlying.hasPath("logger")) {
+      appConfiguration.underlying.getAnyRef("logger") match {
+        case value: String =>
+          hasDeprecatedValue(mutable.Map("logger" -> value))
+        case value: java.util.Map[String, AnyRef] =>
+          hasDeprecatedValue(value.asScala)
+        case _ =>
+          false
+      }
+    } else {
+      false
+    }
+  }
 }
 
 private class AdditionalRouterProvider(additional: Router) extends Provider[Router] {
