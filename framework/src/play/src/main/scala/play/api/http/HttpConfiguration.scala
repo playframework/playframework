@@ -89,9 +89,12 @@ case class ParserConfiguration(
  * Configuration for action composition.
  *
  * @param controllerAnnotationsFirst If annotations put on controllers should be executed before the ones put on actions.
+ * @param executeRequestHandlerActionFirst If the action returned by the createAction method of the request handler should be
+ *                                         executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
-  controllerAnnotationsFirst: Boolean = false)
+  controllerAnnotationsFirst: Boolean = false,
+  executeRequestHandlerActionFirst: Boolean = false)
 
 object HttpConfiguration {
 
@@ -118,7 +121,8 @@ object HttpConfiguration {
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
       ),
       actionComposition = ActionCompositionConfiguration(
-        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst")
+        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
+        executeRequestHandlerActionFirst = config.get[Boolean]("play.http.actionComposition.executeRequestHandlerActionFirst")
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")
