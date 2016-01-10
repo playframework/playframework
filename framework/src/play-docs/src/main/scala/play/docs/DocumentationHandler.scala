@@ -48,7 +48,6 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
 
     // Assumes caller consumes result, closing entry
     def sendFileInline(repo: FileRepository, path: String): Option[Result] = {
-      import play.api.libs.concurrent.Execution.Implicits.defaultContext
       repo.handleFile(path) { handle =>
         Results.Ok.sendEntity(
           HttpEntity.Streamed(
