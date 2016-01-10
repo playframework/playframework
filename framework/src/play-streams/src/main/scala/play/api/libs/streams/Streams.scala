@@ -198,7 +198,7 @@ object Streams {
    * This is done by creating an Akka streams Subscriber based Source, and
    * adapting that to an Iteratee, before running the Akka streams source.
    *
-   * This method for adaptation requires a FlowMaterializer to materialize
+   * This method for adaptation requires a Materializer to materialize
    * the subscriber, however it does not materialize the subscriber until the
    * iteratees fold method has been invoked.
    */
