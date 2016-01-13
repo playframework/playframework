@@ -5,6 +5,7 @@ package play.core.server
 
 import java.io._
 import java.util.Properties
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api._
 import play.api.mvc._
@@ -12,7 +13,7 @@ import play.api.libs.concurrent.ActorSystemProvider
 import play.core._
 import play.utils.Threads
 import scala.collection.JavaConverters._
-import scala.concurrent.Await
+import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
@@ -208,9 +209,20 @@ object DevServerStart {
           properties = process.properties,
           configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
-        val (actorSystem, actorSystemStopHook) = ActorSystemProvider.start(classLoader, serverConfig.configuration)
+
+        // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
+        // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
+        // then both the dev mode and the application actor system will attempt to open that remote port, and one of
+        // them will fail.
+        val devModeAkkaConfig = serverConfig.configuration.underlying.getConfig("play.akka.dev-mode")
+        val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), actorSystemStopHook)
+          ActorMaterializer()(actorSystem), () => {
+            actorSystem.shutdown()
+            actorSystem.awaitTermination()
+            Future.successful(())
+          })
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {
