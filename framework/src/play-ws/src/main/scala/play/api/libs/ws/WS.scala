@@ -58,15 +58,21 @@ trait WSRequestMagnet {
  *
  * Usage example:
  * {{{
- * WS.url("http://example.com/feed").get()
- * WS.url("http://example.com/item").post("content")
+ * class MyService @Inject() (ws: WSClient) {
+ *   ws.url("http://example.com/feed").get()
+ *   ws.url("http://example.com/item").post("content")
+ * }
  * }}}
  *
  * When greater flexibility is needed, you can also create clients explicitly and pass them into WS:
  *
  * {{{
- * implicit val client = new AhcWSClient(builder.build())
- * WS.url("http://example.com/feed").get()
+ * import play.api.libs.ws._
+ * import play.api.libs.ws.ahc._
+ *
+ * val client = new AhcWSClient(new AhcConfigBuilder())
+ * client.url("http://example.com/feed").get()
+ * client.close() // must explicitly manage lifecycle
  * }}}
  *
  * Or call the client directly:
@@ -78,16 +84,14 @@ trait WSRequestMagnet {
  *
  * val configuration = play.api.Configuration(ConfigFactory.parseString(
  * """
- *   |ws.ssl.trustManager = ...
+ *   |play.ws.ssl.trustManager = ...
  * """.stripMargin))
  * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
  * val builder = new AhcConfigBuilder(parser.parse())
  * val secureClient: WSClient = new AhcWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
+ * secureClient.close() // must explicitly manage lifecycle
  * }}}
- *
- * Note that the resolution of URL is done through the magnet pattern defined in
- * `WSRequestMagnet`.
  *
  * The value returned is a {@code Future[WSResponse]}, and you should use Play's asynchronous mechanisms to
  * use this response.

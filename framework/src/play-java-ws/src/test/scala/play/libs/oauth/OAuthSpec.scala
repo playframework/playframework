@@ -26,27 +26,29 @@ class OAuthSpec extends PlaySpecification {
 
   "OAuth" should {
     "sign a simple get request" in {
-      val (request, body, hostUrl) = receiveRequest { hostUrl =>
-        WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { (client, hostUrl) =>
+        client.url(hostUrl + "/foo").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
+
     "sign a get request with query parameters" in {
-      val (request, body, hostUrl) = receiveRequest { hostUrl =>
-        WS.url(hostUrl + "/foo").setQueryParameter("param", "paramValue").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { (client, hostUrl) =>
+        client.url(hostUrl + "/foo").setQueryParameter("param", "paramValue").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
+
     "sign a post request with a body" in {
-      val (request, body, hostUrl) = receiveRequest { hostUrl =>
-        WS.url(hostUrl + "/foo").sign(oauthCalculator).setContentType("application/x-www-form-urlencoded")
+      val (request, body, hostUrl) = receiveRequest { (client, hostUrl) =>
+        client.url(hostUrl + "/foo").sign(oauthCalculator).setContentType("application/x-www-form-urlencoded")
           .post("param=paramValue")
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
   }
 
-  def receiveRequest(makeRequest: String => F.Promise[_]): (RequestHeader, ByteString, String) = {
+  def receiveRequest(makeRequest: (play.libs.ws.WSClient, String) => F.Promise[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
     val promise = Promise[(RequestHeader, ByteString)]()
     val app = FakeApplication(withRoutes = {
@@ -56,7 +58,8 @@ class OAuthSpec extends PlaySpecification {
       }
     })
     running(TestServer(testServerPort, app)) {
-      makeRequest(hostUrl).get(30000l)
+      val client = app.injector.instanceOf(classOf[play.libs.ws.WSClient])
+      makeRequest(client, hostUrl).get(30000l)
     }
     val (request, body) = await(promise.future)
     (request, body, hostUrl)
