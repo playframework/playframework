@@ -24,5 +24,5 @@ play.server {
 
 ## Configuring channel options
 
-The available options are defined in [Netty channel option documentation](http://netty.io/4.0/api/io/netty/channel/ChannelOption.htm).
+The available options are defined in [Netty channel option documentation](http://netty.io/4.0/api/io/netty/channel/ChannelOption.html).
 If you are using native socket transport you can set [additional options](http://netty.io/4.0/api/io/netty/channel/epoll/EpollChannelOption.html).
