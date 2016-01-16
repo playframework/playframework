@@ -161,7 +161,7 @@ play.ws.ssl {
 
 ## Certificate Management Tools
 
-If you want to examine certificates in a graphical tool than a command line tool, you can use [Keystore Explorer](http://keystore-explorer.sourceforge.net/) or [xca](http://sourceforge.net/projects/xca/).  [Keystore Explorer](http://keystore-explorer.sourceforge.net/) is especially convenient as it recognizes JKS format.  It works better as a manual installation, and requires some tweaking to the export policy.
+If you want to examine certificates in a graphical tool rather than a command line tool, you can use [Keystore Explorer](http://keystore-explorer.sourceforge.net/) or [xca](http://sourceforge.net/projects/xca/).  [Keystore Explorer](http://keystore-explorer.sourceforge.net/) is especially convenient as it recognizes JKS format.  It works better as a manual installation, and requires some tweaking to the export policy.
 
 If you want to use a command line tool with more flexibility than keytool, try [java-keyutil](https://code.google.com/p/java-keyutil/), which understands multi-part PEM formatted certificates and JKS.
 
