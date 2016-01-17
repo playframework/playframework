@@ -1745,4 +1745,25 @@ public class Results {
     public static Result temporaryRedirect(Call call) {
         return new Result(TEMPORARY_REDIRECT, Collections.singletonMap(LOCATION, call.url()));
     }
+
+    /**
+     * Generates a 308 Permanent Redirect result.
+     *
+     * @param url The url to redirect.
+     * @return the result
+     */
+    public static Result permanentRedirect(String url) {
+        return new Result(PERMANENT_REDIRECT, Collections.singletonMap(LOCATION, url));
+    }
+
+    /**
+     * Generates a 308 Permanent Redirect result.
+     *
+     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @return the result
+     */
+    public static Result permanentRedirect(Call call) {
+        return new Result(PERMANENT_REDIRECT, Collections.singletonMap(LOCATION, call.url()));
+    }
+
 }

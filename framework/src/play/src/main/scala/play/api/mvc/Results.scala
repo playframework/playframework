@@ -539,6 +539,13 @@ trait Results {
    */
   def TemporaryRedirect(url: String): Result = Redirect(url, TEMPORARY_REDIRECT)
 
+  /**
+   * Generates a ‘308 PERMANENT_REDIRECT’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def PermanentRedirect(url: String): Result = Redirect(url, PERMANENT_REDIRECT)
+
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
 
