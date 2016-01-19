@@ -1,16 +1,8 @@
 package play.it
 
-import play.api.http.HeaderNames._
-import play.api.libs.iteratee._
-import play.api.libs.ws._
 import play.api.mvc._
-import play.api.mvc.BodyParsers.parse
 import play.api.mvc.Results._
 import play.api.test._
-import play.core.server.ServerProvider
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import akka.util.Timeout
 
 object NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
   override def isAkkaHttpServer = false
@@ -57,10 +49,6 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
       response.status must equalTo(OK)
       response.body must_== expectedServerTag.toString
     }
-
-    "support pending Akka HTTP tests" in {
-      isAkkaHttpServer must beFalse
-    }.pendingUntilAkkaHttpFixed
 
   }
 }
