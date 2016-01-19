@@ -26,6 +26,9 @@
 * **Website:** <https://github.com/jlitola/play-sass>
 * **Short description:** Asset handling for [Sass](http://sass-lang.com/) files
 
+### Typescript Plugin
+* **Website:** <https://github.com/ArpNetworking/sbt-typescript>
+* **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
 
 
 ## Auth
