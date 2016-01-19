@@ -76,7 +76,7 @@ object JavaWebSocket extends JavaHelpers {
               jws.onReady(socketIn, socketOut)
             }
 
-            transformer.transform(Flow.wrap(sink, source)(Keep.none))
+            transformer.transform(Flow.fromSinkAndSource(sink, source))
           }
         )
       }

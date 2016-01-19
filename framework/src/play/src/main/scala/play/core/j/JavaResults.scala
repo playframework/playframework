@@ -52,7 +52,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked(file: java.nio.file.Path, chunkSize: Int) = enumToSource(Enumerator.fromPath(file, chunkSize)(internalContext))
   def sendFile(status: play.api.mvc.Results.Status, file: java.io.File, inline: Boolean, filename: String) = status.sendFile(file, inline, _ => filename)
   def sendPath(status: play.api.mvc.Results.Status, path: java.nio.file.Path, inline: Boolean, filename: String) = status.sendPath(path, inline, _ => filename)
-  private def enumToSource(enumerator: Enumerator[Array[Byte]]): Source[ByteString, _] = Source(Streams.enumeratorToPublisher(enumerator)).map(ByteString.apply)
+  private def enumToSource(enumerator: Enumerator[Array[Byte]]): Source[ByteString, _] = Source.fromPublisher(Streams.enumeratorToPublisher(enumerator)).map(ByteString.apply)
 }
 
 object JavaResultExtractor {

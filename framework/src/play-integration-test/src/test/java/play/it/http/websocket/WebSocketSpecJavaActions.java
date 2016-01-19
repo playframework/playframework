@@ -28,19 +28,19 @@ public class WebSocketSpecJavaActions {
     }
 
     private static <A> Source<A, ?> emptySource() {
-        return Source.from(FutureConverters.toScala(new CompletableFuture<>()));
+        return Source.fromFuture(FutureConverters.toScala(new CompletableFuture<>()));
     }
 
     public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {
-        return WebSocket.Text.accept(request -> Flow.wrap(getChunks(messages::success), emptySource(), Keep.none()));
+        return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(getChunks(messages::success), emptySource()));
     }
 
     public static WebSocket allowSendingMessages(List<String> messages) {
-        return WebSocket.Text.accept(request -> Flow.wrap(Sink.ignore(), Source.from(messages), Keep.none()));
+        return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), Source.from(messages)));
     }
 
     public static WebSocket closeWhenTheConsumerIsDone() {
-        return WebSocket.Text.accept(request -> Flow.wrap(Sink.cancelled(), emptySource(), Keep.none()));
+        return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.cancelled(), emptySource()));
     }
 
     public static WebSocket allowRejectingAWebSocketWithAResult(int statusCode) {

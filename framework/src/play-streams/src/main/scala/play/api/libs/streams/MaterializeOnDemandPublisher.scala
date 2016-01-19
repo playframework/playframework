@@ -62,7 +62,7 @@ private[play] class MaterializeOnDemandPublisher[T](source: Source[T, _])(implic
     def request(n: Long) = exclusive {
       case AwaitingDemand =>
         state = CachingDemand(n)
-        source.runWith(Sink(new ForwardingSubscriber(subscriber)))
+        source.runWith(Sink.fromSubscriber(new ForwardingSubscriber(subscriber)))
       case CachingDemand(demand) =>
         state = CachingDemand(n + demand)
       case Cancelled =>

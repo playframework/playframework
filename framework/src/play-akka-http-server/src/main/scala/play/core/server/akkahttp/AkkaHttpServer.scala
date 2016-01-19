@@ -192,7 +192,7 @@ class AkkaHttpServer(
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      Source(new MaterializeOnDemandPublisher(requestBodySource))
+      Source.fromPublisher(new MaterializeOnDemandPublisher(requestBodySource))
     } else {
       requestBodySource
     }

@@ -143,14 +143,14 @@ object Dependencies {
   val nettyVersion = "4.0.33.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.1",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.2",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64"
   ) ++ specsBuild.map(_ % Test)++ logback.map(_ % Test)
 
   val nettyUtilsDependencies = slf4j
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "2.0.2"
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
@@ -247,7 +247,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
-    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
+    "com.typesafe.akka" %% "akka-stream-experimental" % "2.0.2",
     scalaJava8Compat
   ) ++ specsBuild.map(_ % "test") ++ logback.map(_ % Test) ++ javaTestDeps
 

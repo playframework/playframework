@@ -5,7 +5,7 @@ package play.api.mvc
 
 import akka.util.ByteString
 import play.api.data.Form
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.libs.streams.Accumulator
 import play.core.parsers.Multipart
 import scala.language.reflectiveCalls
 import java.io._
@@ -21,7 +21,7 @@ import play.api.http.{ LazyHttpErrorHandler, ParserConfiguration, HttpConfigurat
 import play.utils.PlayIO
 import play.api.http.Status._
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Flow, Sink }
+import akka.stream.scaladsl.{ StreamConverters, Flow, Sink }
 import akka.stream.stage.{ Context, PushStage, SyncDirective }
 
 /**
@@ -528,7 +528,7 @@ trait BodyParsers {
      */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Accumulator(Streams.outputStreamToSink(() => new FileOutputStream(to))).map(_ => Right(to))
+      Accumulator(StreamConverters.fromOutputStream(() => new FileOutputStream(to))).map(_ => Right(to))
     }
 
     /**

@@ -1,6 +1,8 @@
 package play.mvc;
 
+import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
+import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
 import akka.util.ByteString$;
 import akka.util.ByteStringBuilder;
@@ -11,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.api.libs.streams.Streams;
 import play.http.HttpEntity;
 import play.libs.Json;
-import scala.None$;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 
@@ -48,7 +49,7 @@ public class StatusHeader extends Result {
         if (stream == null) {
             throw new NullPointerException("Null stream");
         }
-        return new Result(status(), HttpEntity.chunked(Streams.inputStreamToSource(stream, defaultChunkSize).asJava(),
+        return new Result(status(), HttpEntity.chunked(StreamConverters.fromInputStream(() -> stream, defaultChunkSize),
                 Optional.empty()));
     }
 
@@ -63,7 +64,7 @@ public class StatusHeader extends Result {
         if (stream == null) {
             throw new NullPointerException("Null content");
         }
-        return new Result(status(), new HttpEntity.Streamed(Streams.inputStreamToSource(stream, defaultChunkSize).asJava(),
+        return new Result(status(), new HttpEntity.Streamed(StreamConverters.fromInputStream(() -> stream, defaultChunkSize),
                 Optional.of(contentLength), Optional.empty()));
     }
 
@@ -112,7 +113,7 @@ public class StatusHeader extends Result {
      * @return a '200 OK' result containing the resource in the body.
      */
     public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline) {
-        return doSendResource(Streams.resourceToSource(classLoader, resourceName, 8192).asJava(),
+        return doSendResource(StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
                 Optional.empty(), Optional.of(resourceName), inline);
     }
 
@@ -150,7 +151,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null content");
         }
         try {
-            return doSendResource(Streams.fileToSource(path.toFile(), 8192).asJava(), Optional.of(Files.size(path)),
+            return doSendResource(FileIO.fromFile(path.toFile()), Optional.of(Files.size(path)),
                     Optional.of(filename), inline);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -177,7 +178,7 @@ public class StatusHeader extends Result {
         if (file == null) {
             throw new NullPointerException("null file");
         }
-        return doSendResource(Streams.fileToSource(file, 8192).asJava(), Optional.of(file.length()),
+        return doSendResource(FileIO.fromFile(file), Optional.of(file.length()),
                 Optional.of(file.getName()), inline);
     }
 
@@ -192,7 +193,7 @@ public class StatusHeader extends Result {
         if (file == null) {
             throw new NullPointerException("null file");
         }
-        return doSendResource(Streams.fileToSource(file, 8192).asJava(), Optional.of(file.length()),
+        return doSendResource(FileIO.fromFile(file), Optional.of(file.length()),
                 Optional.of(fileName), true);
     }
 
@@ -230,7 +231,7 @@ public class StatusHeader extends Result {
      */
     public <T> Result chunked(Results.Chunks<T> chunks) {
         return new Result(status(), HttpEntity.chunked(
-                Source.from(Streams.<T>enumeratorToPublisher(chunks.enumerator, Option.<T>empty()))
+                Source.fromPublisher(Streams.<T>enumeratorToPublisher(chunks.enumerator, Option.<T>empty()))
                         .<ByteString>map(t -> chunks.writable.transform().apply(t)),
                 OptionConverters.toJava(chunks.writable.contentType())
         ));

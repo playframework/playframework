@@ -24,41 +24,29 @@ object BasicHttpClient {
    * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
    */
   def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
-    retry(10) {
-      val client = new BasicHttpClient(port)
-      try {
-        var requestNo = 0
-        val responses = requests.flatMap { request =>
-          requestNo += 1
-          client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
-        }
-
-        if (checkClosed) {
-          try {
-            val line = client.reader.readLine()
-            if (line != null) {
-              throw new RuntimeException("Unexpected data after responses received: " + line)
-            }
-          } catch {
-            case timeout: SocketTimeoutException => throw timeout
-          }
-        }
-
-        responses
-
-      } finally {
-        client.close()
-      }
-    }
-  }
-
-  /** Retries the operation a number of times defined by n. */
-  def retry[T](n: Int)(fn: => T): T = {
+    val client = new BasicHttpClient(port)
     try {
-      fn
-    } catch {
-      case e: IOException if n > 1 =>
-        retry(n - 1)(fn)
+      var requestNo = 0
+      val responses = requests.flatMap { request =>
+        requestNo += 1
+        client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
+      }
+
+      if (checkClosed) {
+        try {
+          val line = client.reader.readLine()
+          if (line != null) {
+            throw new RuntimeException("Unexpected data after responses received: " + line)
+          }
+        } catch {
+          case timeout: SocketTimeoutException => throw timeout
+        }
+      }
+
+      responses
+
+    } finally {
+      client.close()
     }
   }
 

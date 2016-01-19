@@ -287,7 +287,7 @@ case class AhcWSRequest(client: AhcWSClient,
 
         builder
       case StreamedBody(source) =>
-        builder.setBody(source.map(_.toByteBuffer).runWith(Sink.publisher))
+        builder.setBody(source.map(_.toByteBuffer).runWith(Sink.asPublisher(false)))
     }
 
     // headers

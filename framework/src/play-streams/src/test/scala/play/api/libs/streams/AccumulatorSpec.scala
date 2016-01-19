@@ -1,7 +1,5 @@
 package play.api.libs.streams
 
-import java.lang
-
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{ Flow, Source, Sink }
 import akka.stream.{ ActorMaterializer, Materializer }
@@ -29,7 +27,7 @@ object AccumulatorSpec extends Specification {
   def source = Source(1 to 3)
   def await[T](f: Future[T]) = Await.result(f, 10.seconds)
   def error[T](any: Any): T = throw sys.error("error")
-  def errorSource[T] = Source(new Publisher[T] {
+  def errorSource[T] = Source.fromPublisher(new Publisher[T] {
     def subscribe(s: Subscriber[_ >: T]) = {
       s.onSubscribe(new Subscription {
         def cancel() = s.onComplete()

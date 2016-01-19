@@ -60,7 +60,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       override def path = request.uri.path.toString
       override def method = request.method.name
       override def version = request.protocol.value
-      override def queryString = request.uri.query.toMultiMap
+      override def queryString = request.uri.query().toMultiMap
       override val headers = convertRequestHeaders(request)
       private lazy val remoteConnection: ConnectionInfo = {
         forwardedHeaderHandler.remoteConnection(remoteAddressArg.getAddress, secureProtocol, headers)
@@ -135,14 +135,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     result: Result,
     protocol: HttpProtocol): ResponseEntity = {
 
-    import Execution.Implicits.trampoline
-
-    def dataSource(enum: Enumerator[Array[Byte]]): Source[ByteString, Unit] = {
-      val dataEnum: Enumerator[ByteString] = enum.map(ByteString(_)) >>> Enumerator.eof
-      AkkaStreamsConversion.enumeratorToSource(dataEnum)
-    }
-
-    val contentType = result.body.contentType.fold(ContentTypes.NoContentType) { ct =>
+    val contentType = result.body.contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
       HttpHeader.parse(CONTENT_TYPE, ct) match {
         case HttpHeader.ParsingResult.Ok(`Content-Type`(akkaCt), _) => akkaCt
         case _ => ContentTypes.NoContentType

@@ -54,7 +54,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
     "wait for the first response body to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
         case "/long" => Accumulator.done(
-          Results.Ok.chunked(Source(initialDelay = 50.milliseconds, interval = 50.milliseconds, tick = "chunk").take(3))
+          Results.Ok.chunked(Source.tick(initialDelay = 50.milliseconds, interval = 50.milliseconds, tick = "chunk").take(3))
         )
         case "/short" => Accumulator.done(Results.Ok("short"))
         case _ => Accumulator.done(Results.NotFound)

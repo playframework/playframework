@@ -116,8 +116,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
             handleAction(action, requestHeader, request, Some(app))
           case Right(flow) =>
             import app.materializer
-            val processor = WebSocketHandler.messageFlowToFrameFlow(flow, bufferLimit)
-              .toProcessor.run()
+            val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
             Future.successful(new DefaultWebSocketHttpResponse(request.getProtocolVersion, HttpResponseStatus.OK,
               processor, factory))
 

@@ -142,7 +142,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       }
 
     "streaming a request body" in withEchoServer { ws =>
-      val source = akka.stream.javadsl.Source.adapt(Source(List("a", "b", "c").map(ByteString.apply)))
+      val source = Source(List("a", "b", "c").map(ByteString.apply)).asJava
       val res = ws.url("/post").setMethod("POST").setBody(source).execute()
       val body = await(res.wrapped).getBody
 

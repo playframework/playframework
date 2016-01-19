@@ -6,7 +6,7 @@ package play.filters.gzip
 import java.util.zip.GZIPOutputStream
 import javax.inject.{ Provider, Inject, Singleton }
 
-import akka.stream.Materializer
+import akka.stream.{ OverflowStrategy, FlowShape, Materializer }
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
@@ -40,7 +40,6 @@ import play.api.libs.concurrent.Execution.Implicits._
 class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
 
   import play.api.http.HeaderNames._
-  import play.api.http.HttpProtocol._
 
   def this(bufferSize: Int = 8192, chunkedThreshold: Int = 102400,
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true)(implicit mat: Materializer) =
@@ -77,12 +76,17 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
           Future.successful(Result(header, HttpEntity.Chunked(gzipped, contentType)))
 
         case HttpEntity.Chunked(chunks, contentType) =>
-          val gzipFlow = Flow() { implicit builder =>
-            import FlowGraph.Implicits._
+          val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
+            import GraphDSL.Implicits._
 
             val extractChunks = Flow[HttpChunk] collect { case HttpChunk.Chunk(data) => data }
             val createChunks = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
-            val filterLastChunk = Flow[HttpChunk].filter(_.isInstanceOf[HttpChunk.LastChunk])
+            val filterLastChunk = Flow[HttpChunk]
+              .filter(_.isInstanceOf[HttpChunk.LastChunk])
+              // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip
+              // flow is finished. But the broadcast won't start broadcasting until both flows start demanding. So we
+              // put a buffer of one in to ensure the filter last chunk flow demands from the broadcast.
+              .buffer(1, OverflowStrategy.backpressure)
 
             val broadcast = builder.add(Broadcast[HttpChunk](2))
             val concat = builder.add(Concat[HttpChunk]())
@@ -93,8 +97,8 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
             broadcast.out(0) ~> extractChunks ~> GzipFlow.gzip(config.bufferSize) ~> createChunks ~> concat.in(0)
             broadcast.out(1) ~> filterLastChunk ~> concat.in(1)
 
-            (broadcast.in, concat.out)
-          }
+            new FlowShape(broadcast.in, concat.out)
+          })
 
           Future.successful(Result(header, HttpEntity.Chunked(chunks via gzipFlow, contentType)))
       }
