@@ -36,6 +36,30 @@ class AhcWSRequestSpec extends Specification with Mockito {
     "should not support setting a request timeout > Integer.MAX_VALUE" in {
       requestWithTimeout(Int.MaxValue.toLong + 1) must throwA[IllegalArgumentException]
     }
+
+    "Only send first content type header and add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in {
+      import scala.collection.JavaConverters._
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
+      request.setBody("HELLO WORLD")
+      request.setHeader("Content-Type", "application/json")
+      request.setHeader("Content-Type", "application/xml")
+      val req = request.buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=utf-8"))
+      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+    }
+
+    "Only send first content type header and keep the charset if it has been set manually with a charset" in {
+      import scala.collection.JavaConverters._
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
+      request.setBody("HELLO WORLD")
+      request.setHeader("Content-Type", "application/json; charset=US-ASCII")
+      request.setHeader("Content-Type", "application/xml")
+      var req = request.buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=US-ASCII"))
+      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+    }
   }
 
   def requestWithTimeout(timeout: Long) = {
