@@ -2153,6 +2153,7 @@ public class Http {
         int NOT_MODIFIED = 304;
         int USE_PROXY = 305;
         int TEMPORARY_REDIRECT = 307;
+        int PERMANENT_REDIRECT = 308;
         int BAD_REQUEST = 400;
         int UNAUTHORIZED = 401;
         int PAYMENT_REQUIRED = 402;
