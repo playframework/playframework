@@ -219,7 +219,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
           val humanScript = "# --- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
 
-          throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision)
+          throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision, autocommit)
         } else {
           updateLastProblem(message, applying)
         }
@@ -253,7 +253,8 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       }
     }
 
-    implicit val connection = database.getConnection(autocommit = true)
+    val autocommit = true
+    implicit val connection = database.getConnection(autocommit = autocommit)
 
     try {
       val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'")
@@ -272,7 +273,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
         val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
 
-        throw InconsistentDatabase(database.name, humanScript, error, revision)
+        throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
       }
 
     } catch {
@@ -535,21 +536,26 @@ object SimpleEvolutionsReader {
  * @param error an inconsistent state error
  * @param rev the revision
  */
-case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException.RichDescription(
+case class InconsistentDatabase(db: String, script: String, error: String, rev: Int, autocommit: Boolean) extends PlayException.RichDescription(
   "Database '" + db + "' is in an inconsistent state!",
-  "An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved.") {
+  "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit) " before marking it as resolved." else ".")) {
 
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
   def content = script
 
-  private val javascript = """
-        document.location = '/@evolutions/resolve/%s/%s?redirect=' + encodeURIComponent(location)
-    """.format(db, rev).trim
+  private val resolvePathJavascript =
+    if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
+    else "'/@evolutions'"
+  private val redirectJavascript = s"""window.location = $resolvePathJavascript"""
+
+  private val sentenceEnd = if (autocommit) " before marking it as resolved." else "."
+
+  private val buttonLabel = if (autocommit) """Mark it resolved""" else """Try again"""
 
   def htmlDescription: String = {
 
-    <span>An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved -</span>
-    <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{ sentenceEnd } -</span>
+    <input name="evolution-button" type="button" value={ buttonLabel } onclick={ redirectJavascript }/>
 
   }.mkString
 
