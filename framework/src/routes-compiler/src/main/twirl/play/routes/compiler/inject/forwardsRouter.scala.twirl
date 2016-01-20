@@ -10,6 +10,7 @@
 
 @for(p <- pkg) {package @p}
 
+// format: OFF
 import play.core.routing._
 import play.core.routing.HandlerInvokerFactory._
 import play.core.j._
