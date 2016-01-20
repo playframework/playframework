@@ -120,12 +120,17 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   }
 
   /** Create the source for the request body */
-  def convertRequestBody(request: HttpRequest)(implicit mat: Materializer): Source[ByteString, Any] = {
+  def convertRequestBody(request: HttpRequest)(implicit mat: Materializer): Option[Source[ByteString, Any]] = {
     request match {
       case full: FullHttpRequest =>
-        Source.single(httpContentToByteString(full))
+        val content = httpContentToByteString(full)
+        if (content.isEmpty) {
+          None
+        } else {
+          Some(Source.single(content))
+        }
       case streamed: StreamedHttpRequest =>
-        Source.fromPublisher(SynchronousMappedStreams.map(streamed, httpContentToByteString))
+        Some(Source.fromPublisher(SynchronousMappedStreams.map(streamed, httpContentToByteString)))
     }
   }
 

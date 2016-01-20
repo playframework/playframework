@@ -29,7 +29,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Source[ByteString, Any]) = {
+    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -91,20 +91,20 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: Materializer): Source[ByteString, Any] = {
+    request: HttpRequest)(implicit fm: Materializer): Option[Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
-        Source.empty
+        None
       case HttpEntity.Strict(_, data) =>
-        Source.single(data)
+        Some(Source.single(data))
       case HttpEntity.Default(_, 0, _) =>
-        Source.empty
+        None
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        pubr
+        Some(pubr)
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: do something with trailing headers?
-        chunks.takeWhile(!_.isLastChunk).map(_.data())
+        Some(chunks.takeWhile(!_.isLastChunk).map(_.data()))
     }
   }
 

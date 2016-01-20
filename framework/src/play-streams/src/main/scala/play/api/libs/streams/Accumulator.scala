@@ -6,6 +6,7 @@ import org.reactivestreams.{ Publisher, Subscription, Subscriber }
 
 import scala.concurrent.{ Promise, ExecutionContext, Future }
 import scala.util.{ Failure, Success }
+import scala.compat.java8.FutureConverters._
 
 /**
  * An accumulator of elements into a future of a result.
@@ -13,37 +14,32 @@ import scala.util.{ Failure, Success }
  * This is essentially a lightweight wrapper around a Sink that gets materialised to a Future, but provides convenient
  * methods for working directly with that future as well as transforming the input.
  */
-final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
+sealed trait Accumulator[-E, +A] {
 
   /**
    * Map the result of this accumulator to something else.
    */
-  def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
-    new Accumulator(sink.mapMaterializedValue(_.map(f)))
+  def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B]
 
   /**
    * Map the result of this accumulator to a future of something else.
    */
-  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B] =
-    new Accumulator(sink.mapMaterializedValue(_.flatMap(f)))
+  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B]
 
   /**
    * Recover from errors encountered by this accumulator.
    */
-  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
-    new Accumulator(sink.mapMaterializedValue(_.recover(pf)))
+  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B]
 
   /**
    * Recover from errors encountered by this accumulator.
    */
-  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B] =
-    new Accumulator(sink.mapMaterializedValue(_.recoverWith(pf)))
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B]
 
   /**
    * Return a new accumulator that first feeds the input through the given flow before it goes through this accumulator.
    */
-  def through[F](flow: Flow[F, E, _]): Accumulator[F, A] =
-    new Accumulator(flow.toMat(sink)(Keep.right))
+  def through[F](flow: Flow[F, E, _]): Accumulator[F, A]
 
   /**
    * Right associative operator alias for through.
@@ -61,16 +57,12 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
   /**
    * Run this accumulator by feeding in the given source.
    */
-  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
-    source.toMat(sink)(Keep.right).run()
-  }
+  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A]
 
   /**
-   * Run this accumulator by feeding a completed source into it.
+   * Run this accumulator by feeding nothing into it.
    */
-  def run()(implicit materializer: Materializer): Future[A] = {
-    run(Source.empty)
-  }
+  def run()(implicit materializer: Materializer): Future[A]
 
   /**
    * Right associative operator alias for run.
@@ -88,16 +80,89 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
   /**
    * Convert this accumulator to a Sink that gets materialised to a Future.
    */
-  def toSink: Sink[E, Future[A]] = sink
+  def toSink: Sink[E, Future[A]]
 
   import scala.annotation.unchecked.{ uncheckedVariance => uV }
+
   /**
    * Convert this accumulator to a Java Accumulator.
    *
    * @return The Java accumulator.
    */
+  def asJava: play.libs.streams.Accumulator[E @uV, A @uV]
+}
+
+/**
+ * An accumulator backed by a sink.
+ *
+ * This is essentially a lightweight wrapper around a Sink that gets materialised to a Future, but provides convenient
+ * methods for working directly with that future as well as transforming the input.
+ */
+private class SinkAccumulator[-E, +A](sink: Sink[E, Future[A]]) extends Accumulator[E, A] {
+
+  def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
+    new SinkAccumulator(sink.mapMaterializedValue(_.map(f)))
+
+  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    new SinkAccumulator(sink.mapMaterializedValue(_.flatMap(f)))
+
+  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    new SinkAccumulator(sink.mapMaterializedValue(_.recover(pf)))
+
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    new SinkAccumulator(sink.mapMaterializedValue(_.recoverWith(pf)))
+
+  def through[F](flow: Flow[F, E, _]): Accumulator[F, A] =
+    new SinkAccumulator(flow.toMat(sink)(Keep.right))
+
+  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
+    source.toMat(sink)(Keep.right).run()
+  }
+
+  def run()(implicit materializer: Materializer): Future[A] = {
+    run(Source.empty)
+  }
+
+  def toSink: Sink[E, Future[A]] = sink
+
+  import scala.annotation.unchecked.{ uncheckedVariance => uV }
+
   def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
     play.libs.streams.Accumulator.fromSink(sink.asJava)
+  }
+}
+
+/**
+ * An accumulator that ignores the body passed in, and is immediately available.
+ */
+private class DoneAccumulator[+A](future: Future[A]) extends Accumulator[Any, A] {
+
+  def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[Any, B] =
+    new DoneAccumulator(future.map(f))
+
+  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
+    new DoneAccumulator(future.flatMap(f))
+
+  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
+    new DoneAccumulator(future.recover(pf))
+
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[Any, B] =
+    new DoneAccumulator(future.recoverWith(pf))
+
+  def through[F](flow: Flow[F, Any, _]): Accumulator[F, A] = this
+
+  def run(source: Source[Any, _])(implicit materializer: Materializer): Future[A] = {
+    source.toMat(Sink.cancelled)((_, _) => future).run()
+  }
+
+  def run()(implicit materializer: Materializer): Future[A] = future
+
+  def toSink: Sink[Any, Future[A]] = Sink.cancelled.mapMaterializedValue(_ => future)
+
+  import scala.annotation.unchecked.{ uncheckedVariance => uV }
+
+  def asJava: play.libs.streams.Accumulator[Any @uV, A @uV] = {
+    play.libs.streams.Accumulator.done(future.toJava)
   }
 }
 
@@ -106,7 +171,7 @@ object Accumulator {
   /**
    * Create a new accumulator from the given Sink.
    */
-  def apply[E, A](sink: Sink[E, Future[A]]): Accumulator[E, A] = new Accumulator(sink)
+  def apply[E, A](sink: Sink[E, Future[A]]): Accumulator[E, A] = new SinkAccumulator(sink)
 
   /**
    * Create a done accumulator.
@@ -114,7 +179,7 @@ object Accumulator {
    * The underlying sink will cancel as soon as its onSubscribe method is called, and the materialized value will be
    * an immediately available future of `a`.
    */
-  def done[A](a: A): Accumulator[Any, A] = new Accumulator(Sink.cancelled[Any].mapMaterializedValue(_ => Future.successful(a)))
+  def done[A](a: A): Accumulator[Any, A] = new DoneAccumulator[A](Future.successful(a))
 
   /**
    * Create a done accumulator.
@@ -122,7 +187,7 @@ object Accumulator {
    * The underlying sink will cancel as soon as its onSubscribe method is called, and the materialized value will be
    * the passed in future.
    */
-  def done[A](a: Future[A]): Accumulator[Any, A] = new Accumulator(Sink.cancelled[Any].mapMaterializedValue(_ => a))
+  def done[A](a: Future[A]): Accumulator[Any, A] = new DoneAccumulator(a)
 
   /**
    * Create an accumulator that forwards the stream fed into it to the source it produces.
@@ -137,7 +202,7 @@ object Accumulator {
   def source[E]: Accumulator[E, Source[E, _]] = {
     // If Akka streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
-    Accumulator(Sink.asPublisher[E](fanout = false).mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher))))
+    new SinkAccumulator(Sink.asPublisher[E](fanout = false).mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher))))
   }
 
   /**
@@ -179,7 +244,7 @@ object Accumulator {
       def onNext(t: E) = subscriber.onNext(t)
     })
 
-    new Accumulator(sink.mapMaterializedValue(_ => result.future))
+    new SinkAccumulator(sink.mapMaterializedValue(_ => result.future))
   }
 
 }
