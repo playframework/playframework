@@ -74,17 +74,28 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
     }
 
     val baseAction = components.requestHandler.createAction(javaContext.request, annotations.method)
-    baseAction.delegate = rootAction
 
-    val finalAction = components.requestHandler.wrapAction(
-      annotations.actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
-        case (delegate, (annotation, actionClass)) =>
-          val action = components.injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
-          action.configuration = annotation
-          action.delegate = delegate
-          action
-      }
-    )
+    val endOfChainAction = if (HttpConfiguration.current.actionComposition.executeRequestHandlerActionFirst) {
+      rootAction
+    } else {
+      baseAction.delegate = rootAction
+      baseAction
+    }
+
+    val finalUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
+      case (delegate, (annotation, actionClass)) =>
+        val action = components.injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
+        action.configuration = annotation
+        action.delegate = delegate
+        action
+    }
+
+    val finalAction = components.requestHandler.wrapAction(if (HttpConfiguration.current.actionComposition.executeRequestHandlerActionFirst) {
+      baseAction.delegate = finalUserDeclaredAction
+      baseAction
+    } else {
+      finalUserDeclaredAction
+    })
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
