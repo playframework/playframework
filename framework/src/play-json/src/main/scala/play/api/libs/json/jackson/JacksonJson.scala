@@ -201,7 +201,7 @@ private[jackson] class PlaySerializers extends Serializers.Base {
   }
 }
 
-private[json] object JacksonJson {
+object JacksonJson {
 
   private val mapper = (new ObjectMapper).registerModule(PlayJsonModule)
 
