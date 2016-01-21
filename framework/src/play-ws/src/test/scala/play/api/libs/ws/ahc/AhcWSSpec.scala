@@ -113,14 +113,12 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("fake/contenttype; charset=utf-8"))
     }
 
-    // Commented out until further discussion about charsets.
     "Add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in new WithApplication {
-      //      import scala.collection.JavaConverters._
-      //      val req: client.Request = WS.url("http://playframework.com/")
-      //        .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[AhcWSRequest]
-      //        .buildRequest()
-      //      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain"))
-      pending("disabled until discussion about charset handling")
+      import scala.collection.JavaConverters._
+      val req: AHCRequest = WS.url("http://playframework.com/")
+        .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[AhcWSRequest]
+        .buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=utf-8"))
     }
 
     "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
@@ -142,6 +140,24 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
         .buildRequest()
       req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=US-ASCII"))
+    }
+
+    "Only send first content type header and add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/json").withHeaders("Content-Type" -> "application/xml")
+        .withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
+        .buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=utf-8"))
+      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+    }
+
+    "Only send first content type header and keep the charset if it has been set manually with a charset" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/json; charset=US-ASCII").withHeaders("Content-Type" -> "application/xml")
+        .withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
+        .buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=US-ASCII"))
+      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
     }
 
     "POST binary data as is" in new WithApplication {
