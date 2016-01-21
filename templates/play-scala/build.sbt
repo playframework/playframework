@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  specs2 % Test
+  "org.scalatestplus" %% "play" % "1.5.0-SNAPSHOT" % Test
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
