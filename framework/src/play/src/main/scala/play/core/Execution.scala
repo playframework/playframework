@@ -5,14 +5,14 @@ package play.core
 
 import java.util.concurrent.ForkJoinPool
 import play.api.{ Application, Play }
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 /**
  * Provides access to Play's internal ExecutionContext.
  */
 private[play] object Execution {
 
-  def internalContext: ExecutionContext = {
+  def internalContext: ExecutionContextExecutor = {
     val appOrNull: Application = Play._currentApp
     appOrNull match {
       case null => common

@@ -111,6 +111,44 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       }
     }
 
+    "handle errors in Java" in {
+      "ErrorHandlingFilter has no effect on a GET that returns a 200 OK" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/ok").get(), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter has no effect on a POST that returns a 200 OK" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter recovers from a GET that throws a synchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error").get(), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedErrorText
+      }
+
+      "ErrorHandlingFilter recovers from a GET that throws an asynchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error-async").get(), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedErrorText
+      }
+
+      "ErrorHandlingFilter recovers from a POST that throws a synchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error").post(expectedOkText), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter recovers from a POST that throws an asynchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error-async").post(expectedOkText), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedOkText
+      }
+    }
+
     "Filters are not applied when the request is outside the application.context" in withServer(
       Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
         val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
@@ -178,6 +216,28 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         }(play.api.libs.concurrent.Execution.Implicits.defaultContext)
       } catch {
         case t: Throwable => Accumulator.done(Results.InternalServerError(t.getMessage))
+      }
+    }
+  }
+
+  object JavaErrorHandlingFilter extends play.mvc.EssentialFilter {
+    import play.mvc._
+    import play.libs.streams.Accumulator
+
+    private def getResult(t: Throwable): Result = {
+      // Get the cause of the CompletionException
+      Results.internalServerError(t.getCause.getMessage)
+    }
+
+    def apply(next: EssentialAction) = new EssentialAction {
+      override def apply(request: Http.RequestHeader) = {
+        try {
+          next.apply(request).recover(new java.util.function.Function[Throwable, Result]() {
+            def apply(t: Throwable) = getResult(t)
+          }, play.core.Execution.internalContext)
+        } catch {
+          case t: Throwable => Accumulator.done(getResult(t))
+        }
       }
     }
   }

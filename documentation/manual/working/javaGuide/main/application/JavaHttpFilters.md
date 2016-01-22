@@ -13,6 +13,18 @@ The filter API is intended for cross cutting concerns that are applied indiscrim
 
 In contrast, [[action composition|JavaActionsComposition]] is intended for route specific concerns, such as authentication and authorisation, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimise boilerplate.
 
+## A simple logging filter
+
+The following is a simple filter that times and logs how long a request takes to execute in Play framework, which implements the [`Filter`](api/java/play/mvc/Filter.html) trait:
+
+@[simple-filter](code/javaguide/application/httpfilters/LoggingFilter.java)
+
+Let's understand what's happening here.  The first thing to notice is the signature of the `apply` method.  The first parameter, `nextFilter`, is a function that takes a request header and produces a result. The second parameter, `requestHeader`, is the actual request header of the incoming request.
+
+The `nextFilter` parameter represents the next action in the filter chain. Invoking it will cause the action to be invoked. In most cases you will want to invoke this at some point in your future. You may decide to not invoke it if for some reason you want to block the request.
+
+We save a timestamp before invoking the next filter in the chain. Invoking the next filter returns a `CompletionStage<Result>` that will redeemed eventually. Take a look at the [[Handling asynchronous results|JavaAsync]] chapter for more details on asynchronous results. We then manipulate the `Result` in the future by calling the `thenApply` method with a closure that takes a `Result`. We calculate the time it took for the request, log it and send it back to the client in the response headers by calling `result.withHeader("Request-Time", "" + requestTime)`.
+
 ## Using filters
 
 The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/java/play/http/HttpFilters.html) interface in the root package called `Filters`:
@@ -25,14 +37,22 @@ If you want to have different filters in different environments, or would prefer
 
 ## Where do filters fit in?
 
-Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router.  However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain.  If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in `Global.onRouteRequest` instead.
+Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router. However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain. If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in `Global.onRouteRequest` instead.
 
-Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`.  For example, you might want to log the time against the action method.  In that case, you might update the `logTime` method to look like this:
+Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`. For example, you might want to log the time against the action method. In that case, you might update the filter to look like this:
+
+@[routing-info-access](code/javaguide/application/httpfilters/RoutedLoggingFilter.java)
 
 > Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Global.onRouteRequest`, these parameters may not be available.
 
-## Creating a filter
+## More powerful filters
 
-Creating a filter using Java is currently not ideal because you will need to work with Scala types such as `Iteratee`, which have been originally designed to be consumed from Scala code, and can be quite cumbersome to use in Java. Our recommendation is to create your custom filters using Scala, and then use them from Java as explained in [[this section|JavaHttpFilters#Using-filters]].
+Play provides a lower level filter API called [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) that gives you full access to the body of the request. This API allows you to wrap [[EssentialAction|JavaEssentialAction]] with another action.
 
-Read [[here|ScalaHttpFilters]] to learn how to create a custom filter in Scala.
+Here is the above filter example rewritten as an `EssentialFilter`:
+
+@[essential-filter-example](code/javaguide/application/httpfilters/EssentialLoggingFilter.java)
+
+The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/java/play/libs/streams/Accumulator.html).  You could compose this with an Akka streams Flow using the `through` method some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
+
+> Although it may seem that there are two different filter APIs, there is only one, `EssentialFilter`.  The simpler `Filter` API in the earlier examples extends `EssentialFilter`, and implements it by creating a new `EssentialAction`.  The passed in callback makes it appear to skip the body parsing by creating a promise for the `Result`, while the body parsing and the rest of the action are executed asynchronously.

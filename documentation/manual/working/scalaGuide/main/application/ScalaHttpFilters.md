@@ -37,9 +37,9 @@ If you want to have different filters in different environments, or would prefer
 
 ## Where do filters fit in?
 
-Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router.  However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain.  If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in [[`HttpRequestHandler`|ScalaHttpRequestHandlers]] instead.
+Filters wrap the action after the action has been looked up by the router. This means you cannot use a filter to transform a path, method or query parameter to impact the router. However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain. If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in [[`HttpRequestHandler`|ScalaHttpRequestHandlers]] instead.
 
-Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`.  For example, you might want to log the time against the action method.  In that case, you might update the `logTime` method to look like this:
+Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`. For example, you might want to log the time against the action method. In that case, you might update the filter to look like this:
 
 @[routing-info-access](code/FiltersRouting.scala)
 
@@ -47,7 +47,7 @@ Since filters are applied after routing is done, it is possible to access routin
 
 ## More powerful filters
 
-Play provides a lower level filter API called [`EssentialFilter`](api/scala/play/api/mvc/EssentialFilter.html) which gives you full access to the body of the request.  This API allows you to wrap [[EssentialAction|ScalaEssentialAction]] with another action.
+Play provides a lower level filter API called [`EssentialFilter`](api/scala/play/api/mvc/EssentialFilter.html) which gives you full access to the body of the request. This API allows you to wrap [[EssentialAction|ScalaEssentialAction]] with another action.
 
 Here is the above filter example rewritten as an `EssentialFilter`:
 

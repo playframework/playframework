@@ -583,6 +583,11 @@ public class Http {
         Optional<String> charset();
 
         /**
+         * @return the tags for the request
+         */
+        Map<String, String> tags();
+
+        /**
          * For internal Play-use only
          *
          * @return the underlying request
