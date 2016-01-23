@@ -10,5 +10,7 @@ cache:Using the Cache
 ws:Calling WebServices
 akka:Integrating with Akka
 i18n:Internationalization
+dependencyinjection:Dependency injection
+application:Application Settings
 tests:Testing your application
 logging:Logging

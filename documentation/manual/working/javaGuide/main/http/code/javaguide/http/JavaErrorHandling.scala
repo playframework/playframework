@@ -3,6 +3,8 @@
  */
 package javaguide.http
 
+import javaguide.application.`def`.ErrorHandler
+
 import play.api.mvc.Action
 import play.api.test._
 
@@ -20,11 +22,11 @@ object JavaErrorHandling extends PlaySpecification with WsTestClient {
   }
 
   "java error handling" should {
-    "allow providing a custom error handler" in new WithServer(fakeApp[root.ErrorHandler]) {
+    "allow providing a custom error handler" in new WithServer(fakeApp[javaguide.application.root.ErrorHandler]) {
       await(wsUrl("/error").get()).body must startWith("A server error occurred: ")
     }
 
-    "allow providing a custom error handler" in new WithServer(fakeApp[`def`.ErrorHandler]) {
+    "allow providing a custom error handler" in new WithServer(fakeApp[ErrorHandler]) {
       await(wsUrl("/error").get()).body must not startWith("A server error occurred: ")
     }
   }

@@ -1,6 +1,4 @@
 iteratees:Handling data streams reactively
-http:HTTP architecture
-dependencyinjection:Dependency injection
 routing:Advanced routing
 extending:Extending Play
 embedding:Embedding Play
