@@ -238,7 +238,12 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
     val body = modelConversion.convertRequestBody(request)
     val bodyParser = action(requestHeader)
-    val resultFuture = bodyParser.run(body)
+    val resultFuture = body match {
+      case None =>
+        bodyParser.run()
+      case Some(source) =>
+        bodyParser.run(source)
+    }
 
     resultFuture.recoverWith {
       case error =>

@@ -12,7 +12,7 @@ The [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html) interface
 
 There is also a [`DefaultHttpRequestHandler`](api/java/play/http/DefaultHttpRequestHandler.html) class that can be used if you don't want to implement both methods.
 
->> Note: If you are providing an implementation of `wrapAction` because you need to apply a cross cutting concern to an action before is executed, creating a [[filter|JavaHttpFilters]] is a more idiomatic way of achieving the same.
+> **Note:** If you are providing an implementation of `wrapAction` because you need to apply a cross cutting concern to an action before is executed, creating a [[filter|JavaHttpFilters]] is a more idiomatic way of achieving the same.
 
 ## Configuring the http request handler
 
@@ -29,3 +29,5 @@ If you don’t want to place your request handler in the root package, or if you
 The http request handler that Play uses if none is configured is one that delegates to the legacy `GlobalSettings` methods.  This may have a performance impact as it will mean your application has to do many lookups out of Guice to handle a single request.  If you are not using a `Global` object, then you don't need this, instead you can configure Play to use the default http request handler:
 
     play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
+
+> **Note:** If you are also using [[action composition|JavaActionsComposition]] then the action returned by the ```createAction``` method of the request handler is executed **after** the action composition ones by default. If you want to change this order set ```play.http.actionComposition.executeRequestHandlerActionFirst = true``` in ```application.conf```.

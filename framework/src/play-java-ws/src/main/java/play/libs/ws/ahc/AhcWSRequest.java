@@ -422,30 +422,33 @@ public class AhcWSRequest implements WSRequest {
     }
 
     Request buildRequest() {
+        FluentCaseInsensitiveStringsMap possiblyModifiedHeaders = new FluentCaseInsensitiveStringsMap(this.headers);
+
         RequestBuilder builder = new RequestBuilder(method);
 
         builder.setUrl(url);
         builder.setQueryParams(new FluentStringsMap(queryParameters));
-        builder.setHeaders(headers);
 
         if (body == null) {
             // do nothing
         } else if (body instanceof String) {
             String stringBody = ((String) body);
-            FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap(this.headers);
 
             // Detect and maybe add charset
-            String contentType = headers.getFirstValue(HttpHeaders.Names.CONTENT_TYPE);
+            String contentType = possiblyModifiedHeaders.getFirstValue(HttpHeaders.Names.CONTENT_TYPE);
             if (contentType == null) {
                 contentType = "text/plain";
             }
             Charset charset = HttpUtils.parseCharset(contentType);
+            List<String> contentTypeList = new ArrayList<String>();
             if (charset == null) {
                 charset = StandardCharsets.UTF_8;
-                List<String> contentTypeList = new ArrayList<String>();
-                contentTypeList.add(contentType + "; charset=utf-8");
-                headers.replace(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
+                contentTypeList.add(contentType + "; charset=" + charset.name().toLowerCase());
+            } else {
+                contentTypeList.add(contentType);
             }
+            // Always replace the content type header to make sure exactly one exists
+            possiblyModifiedHeaders.replace(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
 
             byte[] bodyBytes;
             bodyBytes = stringBody.getBytes(charset);
@@ -465,14 +468,12 @@ public class AhcWSRequest implements WSRequest {
                 builder.setBody(stringBody);
             }
 
-            builder.setHeaders(headers);
             builder.setBodyCharset(charset);
         } else if (body instanceof JsonNode) {
             JsonNode jsonBody = (JsonNode) body;
-            FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap(this.headers);
             List<String> contentType = new ArrayList<String>();
             contentType.add("application/json; charset=utf-8");
-            headers.replace(HttpHeaders.Names.CONTENT_TYPE, contentType);
+            possiblyModifiedHeaders.replace(HttpHeaders.Names.CONTENT_TYPE, contentType);
             String bodyStr = Json.stringify(jsonBody);
             byte[] bodyBytes;
             try {
@@ -482,7 +483,6 @@ public class AhcWSRequest implements WSRequest {
             }
 
             builder.setBody(bodyStr);
-            builder.setHeaders(headers);
             builder.setBodyCharset(StandardCharsets.UTF_8);
         } else if (body instanceof File) {
             File fileBody = (File) body;
@@ -493,12 +493,14 @@ public class AhcWSRequest implements WSRequest {
             InputStreamBodyGenerator bodyGenerator = new InputStreamBodyGenerator(inputStreamBody);
             builder.setBody(bodyGenerator);
         } else if (body instanceof Source) {
-          Source<ByteString,?> sourceBody = (Source<ByteString,?>) body;
-          Publisher<ByteBuffer> publisher = sourceBody.map(ByteString::toByteBuffer).runWith(Sink.asPublisher(false), materializer);
-          builder.setBody(publisher);
+            Source<ByteString,?> sourceBody = (Source<ByteString,?>) body;
+            Publisher<ByteBuffer> publisher = sourceBody.map(ByteString::toByteBuffer).runWith(Sink.asPublisher(false), materializer);
+            builder.setBody(publisher);
         } else {
             throw new IllegalStateException("Impossible body: " + body);
         }
+
+        builder.setHeaders(possiblyModifiedHeaders);
 
         if (this.timeout == -1 || this.timeout > 0) {
             builder.setRequestTimeout(this.timeout);

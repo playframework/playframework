@@ -135,7 +135,7 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Source[ByteString, _],
+    requestBodySource: Option[Source[ByteString, _]],
     handler: Handler): Future[HttpResponse] = {
 
     val upgradeToWebSocket = request.header[UpgradeToWebsocket]
@@ -181,7 +181,7 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Source[ByteString, _],
+    requestBodySource: Option[Source[ByteString, _]],
     action: EssentialAction): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
@@ -192,12 +192,16 @@ class AkkaHttpServer(
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      Source.fromPublisher(new MaterializeOnDemandPublisher(requestBodySource))
+      requestBodySource.map(source => Source.fromPublisher(new MaterializeOnDemandPublisher(source)))
+        .orElse(Some(Source.empty))
     } else {
       requestBodySource
     }
 
-    val resultFuture: Future[Result] = actionAccumulator.run(source)
+    val resultFuture: Future[Result] = source match {
+      case None => actionAccumulator.run()
+      case Some(s) => actionAccumulator.run(s)
+    }
     val responseFuture: Future[HttpResponse] = resultFuture.map { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
       modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol)
