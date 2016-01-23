@@ -93,15 +93,34 @@ Common.settings
 libraryDependencies += Common.fooDependency
 ```
 
+One thing to note is that if you have a mix of Play and non-Play projects, you may need to share Play configuration explicitly.  For example, you may want to share the `InjectedRoutesGenerator` and specs2 for every Play project:
+
+```scala
+object Common {
+ 
+  val playSettings = settings ++ Seq(
+    routesGenerator := InjectedRoutesGenerator,
+    libraryDependencies += specs2 % Test,
+    resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+  )
+}
+```
+
+And in the sub-project's `build.sbt` file, you would have the following:
+
+```scala
+Common.playSettings
+```
+
 ## Splitting your web application into several parts
 
 As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application.  You can make any sub module a Play application by adding the `PlayJava` or `PlayScala` plugins, depending on whether your project is a Java or Scala project, in its corresponding `build.sbt` file.
 
-> **Note:** In order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
+> **Note:** In order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project.  For example, controllers in the `admin` module should have the fully qualified package name of `admin.MyController`.
 
 ## Splitting the route file
 
-It's also possible to split the route file into smaller pieces. This is a very handy feature if you want to create a robust, reusable multi-module play application
+It's also possible to split the route file into smaller pieces. This is a very handy feature if you want to create a robust, reusable multi-module play application.
 
 ### Consider the following build configuration
 
