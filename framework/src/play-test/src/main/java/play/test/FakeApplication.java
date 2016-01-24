@@ -25,12 +25,15 @@ public class FakeApplication implements play.Application {
     /**
      * Create a fake application.
      *
+     * @deprecated Use the version without GlobalSettings, since 2.5.0
+     *
      * @param path application environment root path
      * @param classloader application environment class loader
      * @param additionalConfiguration additional configuration for the application
      * @param global global settings to use in place of default global
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     public FakeApplication(
         File path,
         ClassLoader classloader,
@@ -48,6 +51,21 @@ public class FakeApplication implements play.Application {
         );
         this.configuration = application.injector().instanceOf(Configuration.class);
         this.injector = application.injector().instanceOf(Injector.class);
+    }
+
+    /**
+     * Create a fake application.
+     *
+     * @param path application environment root path
+     * @param classloader application environment class loader
+     * @param additionalConfiguration additional configuration for the application
+     */
+    @SuppressWarnings("unchecked")
+    public FakeApplication(
+            File path,
+            ClassLoader classloader,
+            Map<String, ? extends Object> additionalConfiguration) {
+        this(path, classloader, additionalConfiguration, null);
     }
 
     /**
