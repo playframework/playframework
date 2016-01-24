@@ -179,6 +179,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  *
  * Custom handlers need not extend this.
  */
+@deprecated("Use dependency injection", "2.5.0")
 class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSettings]) extends HttpRequestHandler {
   def handlerForRequest(request: RequestHeader) = global.get.onRequestReceived(request)
 }

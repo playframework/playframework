@@ -203,6 +203,7 @@ object GlobalSettings {
    * @param environment The environment to load the global object from.
    * @return
    */
+  @deprecated("Use dependency injection", "2.5.0")
   def apply(configuration: Configuration, environment: Environment): GlobalSettings.Deprecated = {
     val globalClass = configuration.getString("application.global").getOrElse("Global")
 

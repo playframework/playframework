@@ -198,7 +198,7 @@ case class FakeApplication(
     override val path: java.io.File = new java.io.File("."),
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
     additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    withGlobal: Option[GlobalSettings] = None,
+    @deprecated("Use dependency injection", "2.5.0") withGlobal: Option[GlobalSettings] = None,
     withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val app: Application = new GuiceApplicationBuilder()
@@ -212,7 +212,7 @@ case class FakeApplication(
     .build
 
   override def mode: Mode.Mode = app.mode
-  override def global: GlobalSettings = app.global
+  @deprecated("Use dependency injection", "2.5.0") override def global: GlobalSettings = app.global
   override def configuration: Configuration = app.configuration
   override def actorSystem: ActorSystem = app.actorSystem
   override implicit def materializer: Materializer = app.materializer
