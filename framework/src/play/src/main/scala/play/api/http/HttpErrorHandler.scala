@@ -59,8 +59,9 @@ object HttpErrorHandler {
 /**
  * HTTP error handler that delegates to legacy GlobalSettings methods.
  *
- * This is the default error handler, and ensures that applications that provide custom onHandlerNotFound, onBadRequest,
- * and onError implementations on GlobalSettings still work.
+ * This is an internal error handler that ensures that applications that provide custom onHandlerNotFound, onBadRequest,
+ * and onError implementations on GlobalSettings still work.  It is package private to Play, and is only referenced from the
+ * HttpErrorHandler.bindingsFromConfiguration method as the default.  It should go away when GlobalSettings is removed.
  *
  * The dependency on GlobalSettings is wrapped in a Provider to avoid a circular dependency, since other methods on
  * GlobalSettings also require invoking this.
