@@ -278,7 +278,7 @@ trait BodyParsers {
 
     private[play] val ApplicationXmlMatcher = """application/.*\+xml.*""".r
 
-    private def config = Play.maybeApplication.map(app => hcCache(app).parser)
+    private def config = Play.privateMaybeApplication.map(app => hcCache(app).parser)
       .getOrElse(ParserConfiguration())
 
     /**
@@ -651,7 +651,8 @@ trait BodyParsers {
      */
     def multipartFormData[A](filePartHandler: Multipart.FilePartHandler[A], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
       BodyParser("multipartFormData") { request =>
-        implicit val mat = Play.current.materializer
+        val app = Play.privateMaybeApplication.get // throw exception
+        implicit val mat = app.materializer
         val bodyAccumulator = Multipart.multipartParser(DefaultMaxTextLength, filePartHandler).apply(request)
         enforceMaxLength(request, maxLength, bodyAccumulator)
       }

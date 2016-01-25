@@ -208,7 +208,7 @@ object Multipart {
   }
 
   private def createBadResult[A](msg: String, status: Int = BAD_REQUEST): RequestHeader => Future[Either[Result, A]] = { request =>
-    Play.maybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
+    Play.privateMaybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
       _.errorHandler.onClientError(request, status, msg).map(Left(_)))
   }
 

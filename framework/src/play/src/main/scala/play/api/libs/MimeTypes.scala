@@ -31,7 +31,7 @@ object MimeTypes {
   /**
    * Mimetypes defined in the current application, as declared in application.conf
    */
-  def applicationTypes: Map[String, String] = play.api.Play.maybeApplication.flatMap { application =>
+  def applicationTypes: Map[String, String] = play.api.Play.privateMaybeApplication.flatMap { application =>
     application.configuration.getConfig("mimetype").map { config =>
       config.subKeys.map { key =>
         (key, config.getString(key))

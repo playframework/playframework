@@ -122,7 +122,7 @@ object Files {
      * instance or the SingletonTemporaryFileCreator if no application
      * is currently running.
      */
-    private def currentCreator: TemporaryFileCreator = Play.maybeApplication.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(creatorCache)
+    private def currentCreator: TemporaryFileCreator = Play.privateMaybeApplication.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(creatorCache)
 
     /**
      * Create a new temporary file.

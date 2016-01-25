@@ -101,7 +101,7 @@ trait Action[A] extends EssentialAction {
     case Right(a) =>
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
-      Play.maybeApplication.map { app =>
+      Play.privateMaybeApplication.map { app =>
         play.utils.Threads.withContextClassLoader(app.classloader) {
           apply(request)
         }
