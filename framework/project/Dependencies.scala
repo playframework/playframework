@@ -282,7 +282,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.0-alpha14"
+    "org.asynchttpclient" % "async-http-client" % "2.0.0-RC7"
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
     logback.map(_ % Test) ++

@@ -3,11 +3,14 @@
  */
 package play.api.libs.ws.ahc
 
+import java.util
+import java.util.Map.Entry
+
 import akka.stream.Materializer
 import akka.util.ByteString
 import org.asynchttpclient.{ Response => AHCResponse, _ }
 import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
-import org.asynchttpclient.Realm.{ RealmBuilder, AuthScheme }
+import org.asynchttpclient.Realm
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
 import org.asynchttpclient.util.HttpUtils
 import java.io.IOException
@@ -52,7 +55,7 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 object AhcWSClient {
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of
-   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
+   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
    *
@@ -75,10 +78,12 @@ object AhcWSClient {
 }
 
 case object AhcWSRequest {
-  private[libs] def ahcHeadersToMap(headers: FluentCaseInsensitiveStringsMap): TreeMap[String, Seq[String]] = {
-    val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-    //todo: wrap the case insensitive ahc map instead of creating a new one (unless perhaps immutabilty is important)
-    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
+  private[libs] def ahcHeadersToMap(headers: HttpHeaders): TreeMap[String, Seq[String]] = {
+    val mutableMap = scala.collection.mutable.HashMap[String, Seq[String]]()
+    headers.names().asScala.foreach { name =>
+      mutableMap.put(name, headers.getAll(name).asScala)
+    }
+    TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered) ++ mutableMap
   }
 }
 
@@ -182,24 +187,21 @@ case class AhcWSRequest(client: AhcWSClient,
     }
   }
 
-  private[libs] def authScheme(scheme: WSAuthScheme): AuthScheme = scheme match {
-    case WSAuthScheme.DIGEST => AuthScheme.DIGEST
-    case WSAuthScheme.BASIC => AuthScheme.BASIC
-    case WSAuthScheme.NTLM => AuthScheme.NTLM
-    case WSAuthScheme.SPNEGO => AuthScheme.SPNEGO
-    case WSAuthScheme.KERBEROS => AuthScheme.KERBEROS
-    case WSAuthScheme.NONE => AuthScheme.NONE
+  private[libs] def authScheme(scheme: WSAuthScheme): Realm.AuthScheme = scheme match {
+    case WSAuthScheme.DIGEST => Realm.AuthScheme.DIGEST
+    case WSAuthScheme.BASIC => Realm.AuthScheme.BASIC
+    case WSAuthScheme.NTLM => Realm.AuthScheme.NTLM
+    case WSAuthScheme.SPNEGO => Realm.AuthScheme.SPNEGO
+    case WSAuthScheme.KERBEROS => Realm.AuthScheme.KERBEROS
     case _ => throw new RuntimeException("Unknown scheme " + scheme)
   }
 
   /**
    * Add http auth headers. Defaults to HTTP Basic.
    */
-  private[libs] def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): Realm = {
-    (new RealmBuilder)
+  private[libs] def auth(username: String, password: String, scheme: Realm.AuthScheme = Realm.AuthScheme.BASIC): Realm = {
+    new Realm.Builder(username, password)
       .setScheme(scheme)
-      .setPrincipal(username)
-      .setPassword(password)
       .setUsePreemptiveAuth(true)
       .build()
   }
@@ -327,32 +329,27 @@ case class AhcWSRequest(client: AhcWSClient,
   }
 
   private[libs] def createProxy(wsProxyServer: WSProxyServer): AHCProxyServer = {
-
-    import org.asynchttpclient.proxy.ProxyServer.Protocol
-
-    val protocol: Protocol = wsProxyServer.protocol.getOrElse("http").toLowerCase(java.util.Locale.ENGLISH) match {
-      case "http" | "https" => Protocol.HTTP
-      case "kerberos" => Protocol.KERBEROS
-      case "ntlm" => Protocol.NTLM
-      case "spnego" => Protocol.SPNEGO
-      case _ => scala.sys.error("Unrecognized protocol!")
+    val proxyBuilder = new AHCProxyServer.Builder(wsProxyServer.host, wsProxyServer.port)
+    if (wsProxyServer.principal.isDefined) {
+      val realmBuilder = new Realm.Builder(wsProxyServer.principal.orNull, wsProxyServer.password.orNull)
+      val scheme: Realm.AuthScheme = wsProxyServer.protocol.getOrElse("http").toLowerCase(java.util.Locale.ENGLISH) match {
+        case "http" | "https" => Realm.AuthScheme.BASIC
+        case "kerberos" => Realm.AuthScheme.KERBEROS
+        case "ntlm" => Realm.AuthScheme.NTLM
+        case "spnego" => Realm.AuthScheme.SPNEGO
+        case _ => scala.sys.error("Unrecognized protocol!")
+      }
+      realmBuilder.setScheme(scheme)
+      wsProxyServer.encoding.foreach(enc => realmBuilder.setCharset(Charset.forName(enc)))
+      wsProxyServer.ntlmDomain.foreach(realmBuilder.setNtlmDomain)
+      proxyBuilder.setRealm(realmBuilder)
     }
 
-    val ahcProxyServer = new AHCProxyServer(
-      protocol,
-      wsProxyServer.host,
-      wsProxyServer.port,
-      wsProxyServer.principal.orNull,
-      wsProxyServer.password.orNull)
-
-    wsProxyServer.encoding.foreach(enc => ahcProxyServer.setCharset(Charset.forName(enc)))
-    wsProxyServer.ntlmDomain.foreach(ahcProxyServer.setNtlmDomain)
-    for {
-      hosts <- wsProxyServer.nonProxyHosts
-      host <- hosts
-    } ahcProxyServer.addNonProxyHost(host)
-
-    ahcProxyServer
+    wsProxyServer.nonProxyHosts.foreach { nonProxyHosts =>
+      import scala.collection.JavaConverters._
+      proxyBuilder.setNonProxyHosts(nonProxyHosts.asJava)
+    }
+    proxyBuilder.build()
   }
 
 }
@@ -464,8 +461,8 @@ case class AhcWSResponse(ahcResponse: AHCResponse) extends WSResponse {
    * Return the headers of the response as a case-insensitive map
    */
   lazy val allHeaders: Map[String, Seq[String]] = {
-    TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered) ++
-      mapAsScalaMapConverter(ahcResponse.getHeaders).asScala.mapValues(_.asScala)
+    val headers: HttpHeaders = ahcResponse.getHeaders
+    AhcWSRequest.ahcHeadersToMap(headers)
   }
 
   /**

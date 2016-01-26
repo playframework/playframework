@@ -73,17 +73,15 @@ trait NingWSComponents {
   lazy val ningWsClientConfig: NingWSClientConfig =
     NingWSClientConfig(
       wsClientConfig = wsClientConfig,
-      allowPoolingConnection = ahcWsClientConfig.allowPoolingConnection,
-      allowSslConnectionPool = ahcWsClientConfig.allowSslConnectionPool,
-      ioThreadMultiplier = ahcWsClientConfig.ioThreadMultiplier,
       maxConnectionsPerHost = ahcWsClientConfig.maxConnectionsPerHost,
       maxConnectionsTotal = ahcWsClientConfig.maxConnectionsTotal,
       maxConnectionLifetime = ahcWsClientConfig.maxConnectionLifetime,
       idleConnectionInPoolTimeout = ahcWsClientConfig.idleConnectionInPoolTimeout,
-      webSocketIdleTimeout = ahcWsClientConfig.webSocketIdleTimeout,
       maxNumberOfRedirects = ahcWsClientConfig.maxNumberOfRedirects,
       maxRequestRetry = ahcWsClientConfig.maxRequestRetry,
-      disableUrlEncoding = ahcWsClientConfig.disableUrlEncoding)
+      disableUrlEncoding = ahcWsClientConfig.disableUrlEncoding,
+      keepAlive = ahcWsClientConfig.keepAlive
+    )
 
   lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle)(materializer)
   lazy val wsClient: WSClient = wsApi.client

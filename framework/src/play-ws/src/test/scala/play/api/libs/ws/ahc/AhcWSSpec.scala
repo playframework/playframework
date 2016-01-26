@@ -4,8 +4,10 @@
 package play.api.libs.ws.ahc
 
 import akka.util.{ ByteString, Timeout }
+import io.netty.handler.codec.http.{ DefaultHttpHeaders, HttpHeaders }
+import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.{ AsyncHttpClient, AsyncHttpClientConfig, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse, Request => AHCRequest }
+import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Response => AHCResponse, Request => AHCRequest }
 import org.asynchttpclient.proxy.ProxyServer
 import org.specs2.mock.Mockito
 import scala.concurrent.duration._
@@ -43,7 +45,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
     }
 
     "support direct client instantiation" in new WithApplication {
-      val sslBuilder = new AsyncHttpClientConfig.Builder().setShutdownQuiet(0).setShutdownTimeout(0)
+      val sslBuilder = new DefaultAsyncHttpClientConfig.Builder().setShutdownQuietPeriod(0).setShutdownTimeout(0)
       implicit val sslClient = new play.api.libs.ws.ahc.AhcWSClient(sslBuilder.build())
       try WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
       finally sslClient.close()
@@ -97,12 +99,11 @@ object AhcWSSpec extends PlaySpecification with Mockito {
     */
 
     "support http headers" in new WithApplication {
+      import scala.collection.JavaConverters._
       val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("key").contains("value1") must beTrue
-      req.getHeaders.get("key").contains("value2") must beTrue
-      req.getHeaders.get("key").size must equalTo(2)
+      req.getHeaders.getAll("key").asScala must containTheSameElementsAs(Seq("value1", "value2"))
     }
 
     "not make Content-Type header if there is Content-Type in headers already" in new WithApplication {
@@ -110,7 +111,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("Content-Type" -> "fake/contenttype; charset=utf-8").withBody(<aaa>value1</aaa>).asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("fake/contenttype; charset=utf-8"))
+      req.getHeaders.get("Content-Type") must_== ("fake/contenttype; charset=utf-8")
     }
 
     "Add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in new WithApplication {
@@ -118,7 +119,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=utf-8"))
+      req.getHeaders.get("Content-Type") must_== ("text/plain; charset=utf-8")
     }
 
     "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
@@ -139,7 +140,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       import scala.collection.JavaConverters._
       val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=US-ASCII"))
+      req.getHeaders.get("Content-Type") must_== ("text/plain; charset=US-ASCII")
     }
 
     "Only send first content type header and add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in new WithApplication {
@@ -147,8 +148,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/json").withHeaders("Content-Type" -> "application/xml")
         .withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=utf-8"))
-      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+      req.getHeaders.get("Content-Type") must_== ("application/json; charset=utf-8")
     }
 
     "Only send first content type header and keep the charset if it has been set manually with a charset" in new WithApplication {
@@ -156,8 +156,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/json; charset=US-ASCII").withHeaders("Content-Type" -> "application/xml")
         .withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=US-ASCII"))
-      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+      req.getHeaders.get("Content-Type") must_== ("application/json; charset=US-ASCII")
     }
 
     "POST binary data as is" in new WithApplication {
@@ -204,16 +203,29 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       WS.url("http://playframework.com/").withRequestTimeout((Int.MaxValue.toLong + 1).millis) should throwAn[IllegalArgumentException]
     }
 
-    "support a proxy server" in new WithApplication {
+    "support a proxy server with basic" in new WithApplication {
       val proxy = DefaultWSProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
       val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[AhcWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
-      actual.getPrincipal must be equalTo "principal"
-      actual.getPassword must be equalTo "password"
+      actual.getRealm.getPrincipal must be equalTo "principal"
+      actual.getRealm.getPassword must be equalTo "password"
+      actual.getRealm.getScheme must be equalTo AuthScheme.BASIC
+    }
+
+    "support a proxy server with NTLM" in new WithApplication {
+      val proxy = DefaultWSProxyServer(protocol = Some("ntlm"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"), ntlmDomain = Some("somentlmdomain"))
+      val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[AhcWSRequest].buildRequest()
+      val actual = req.getProxyServer
+
+      actual.getHost must be equalTo "localhost"
+      actual.getPort must be equalTo 8080
+      actual.getRealm.getPrincipal must be equalTo "principal"
+      actual.getRealm.getPassword must be equalTo "password"
+      actual.getRealm.getNtlmDomain must be equalTo "somentlmdomain"
+      actual.getRealm.getScheme must be equalTo AuthScheme.NTLM
     }
 
     "support a proxy server" in new WithApplication {
@@ -221,11 +233,9 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       val req: AHCRequest = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[AhcWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocol.getProtocol must be equalTo ProxyServer.Protocol.HTTP.getProtocol
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
-      actual.getPrincipal must beNull
-      actual.getPassword must beNull
+      actual.getRealm must beNull
     }
 
     val patchFakeApp = FakeApplication(withRoutes = {
@@ -349,7 +359,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
 
     "get headers from an AHC response in a case insensitive map" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val ahcHeaders = new FluentCaseInsensitiveStringsMap()
+      val ahcHeaders = new DefaultHttpHeaders(true)
       ahcHeaders.add("Foo", "bar")
       ahcHeaders.add("Foo", "baz")
       ahcHeaders.add("Bar", "baz")

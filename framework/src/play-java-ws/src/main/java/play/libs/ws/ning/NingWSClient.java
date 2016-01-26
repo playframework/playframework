@@ -17,7 +17,7 @@ import play.libs.ws.ahc.AhcWSClient;
 /**
  * A WS client backed by an AsyncHttpClient.
  *
- * If you need to debug Ahc, set logger.org.asynchttpclient=DEBUG in your application.conf file.
+ * If you need to debug AHC, set org.asynchttpclient=DEBUG in your logging framework.
  *
  * @deprecated Use AhcWSClient instead
  */

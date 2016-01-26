@@ -45,8 +45,7 @@ class AhcWSRequestSpec extends Specification with Mockito {
       request.setHeader("Content-Type", "application/json")
       request.setHeader("Content-Type", "application/xml")
       val req = request.buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=utf-8"))
-      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+      req.getHeaders.get("Content-Type") must be_==("application/json; charset=utf-8")
     }
 
     "Only send first content type header and keep the charset if it has been set manually with a charset" in {
@@ -56,9 +55,8 @@ class AhcWSRequestSpec extends Specification with Mockito {
       request.setBody("HELLO WORLD")
       request.setHeader("Content-Type", "application/json; charset=US-ASCII")
       request.setHeader("Content-Type", "application/xml")
-      var req = request.buildRequest()
-      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("application/json; charset=US-ASCII"))
-      req.getHeaders.get("Content-Type").asScala.size must equalTo(1)
+      val req = request.buildRequest()
+      req.getHeaders.get("Content-Type") must be_==("application/json; charset=US-ASCII")
     }
   }
 

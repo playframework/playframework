@@ -3,7 +3,7 @@ package play.api.libs.ws
 import org.specs2.mutable.Specification
 import play.api.test.WithApplication
 
-class WSRequestHolderSpec extends Specification {
+class WSRequestSpec extends Specification {
 
   "WSRequestHolder" should {
 

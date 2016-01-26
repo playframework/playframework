@@ -155,12 +155,10 @@ public class JavaBodyParsers extends WithApplication {
 
             return forwarder.mapFuture(source -> {
                 // TODO: when streaming upload has been implemented, pass the source as the body
-                return FutureConverters.toJava(ws.url(url)
+                return ws.url(url)
                         .setMethod("POST")
                             // .setBody(source)
-                        .execute()
-                        .wrapped()
-                ).thenApply(F.Either::Right);
+                        .execute().thenApply(F.Either::Right);
             }, executor);
         }
     }

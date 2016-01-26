@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the `WSClient`:
+Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the `WSClient` type to use dependency injection:
 
 @[ws-controller](code/javaguide/ws/Application.java)
 
@@ -61,7 +61,7 @@ For example, if you are sending plain text in a particular format, you may want 
 
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout. 
+If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout.
 
 @[ws-timeout](code/javaguide/ws/JavaWS.java)
 
@@ -154,27 +154,31 @@ You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that 
 
 ## Using WSClient
 
-WSClient is a wrapper around the underlying [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client). It is useful for defining multiple clients with different profiles, or using a mock.
+We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
-The default client can be called from the WSClient class:
-
-@[ws-client](code/javaguide/ws/JavaWS.java)
-
-You can instantiate a WSClient directly from code and use this for making requests.  Note that you must follow a particular series of steps to use HTTPS correctly if you are defining a client directly:
+However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
 
 @[ws-custom-client-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
-> NOTE: if you instantiate a AhcWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+@[ws-client](code/javaguide/ws/JavaWS.java)
 
-You can also get access to the underlying `AsyncHttpClient`.
+Once you are done with your custom client work, you **must** close the client:
+
+@[ws-close-client](code/javaguide/ws/JavaWS.java)
+
+Ideally, you should only close a client after you know all requests have been completed.  You should not use try-with-resources to automatically close a WSClient instance, because WSClient logic is asynchronous and try-with-resources only supports synchronous code in its body.
+
+## Accessing AsyncHttpClient
+
+You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
-This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
+This is important in a couple of cases.  WS has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS
@@ -203,16 +207,16 @@ To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring
 ### Configuring AsyncClientConfig
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
-* `play.ws.ahc.allowPoolingConnection`
-* `play.ws.ahc.allowSslConnectionPool`
-* `play.ws.ahc.ioThreadMultiplier`
+Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+
+> *NOTE*: `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
+
+* `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`
 * `play.ws.ahc.maxConnectionsTotal`
 * `play.ws.ahc.maxConnectionLifeTime`
 * `play.ws.ahc.idleConnectionInPoolTimeout`
-* `play.ws.ahc.webSocketIdleTimeout`
 * `play.ws.ahc.maxNumberOfRedirects`
 * `play.ws.ahc.maxRequestRetry`
 * `play.ws.ahc.disableUrlEncoding`

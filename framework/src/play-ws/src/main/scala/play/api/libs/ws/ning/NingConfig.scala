@@ -7,16 +7,14 @@ package play.api.libs.ws.ning
 
 import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
-import javax.inject.{ Singleton, Inject, Provider }
-
-import org.slf4j.LoggerFactory
-
-import org.asynchttpclient.AsyncHttpClientConfig
-
 import javax.net.ssl._
-import play.api.{ PlayConfig, Environment, Configuration }
-import play.api.libs.ws.ssl._
+
+import io.netty.handler.ssl.SslContextBuilder
+import org.asynchttpclient.netty.ssl.JsseSslEngineFactory
+import org.asynchttpclient.{ AsyncHttpClientConfig, DefaultAsyncHttpClientConfig }
+import org.slf4j.LoggerFactory
 import play.api.libs.ws.WSClientConfig
+import play.api.libs.ws.ssl._
 
 import scala.concurrent.duration._
 
@@ -24,31 +22,25 @@ import scala.concurrent.duration._
  * Ning client config.
  *
  * @param wsClientConfig The general WS client config.
- * @param allowPoolingConnection Whether connection pooling should be allowed.
- * @param allowSslConnectionPool Whether connection pooling should be allowed for SSL connections.
- * @param ioThreadMultiplier The multiplier to use for the number of IO threads.
  * @param maxConnectionsPerHost The maximum number of connections to make per host. -1 means no maximum.
  * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum.
  * @param maxConnectionLifetime The maximum time that a connection should live for in the pool.
  * @param idleConnectionInPoolTimeout The time after which a connection that has been idle in the pool should be closed.
- * @param webSocketIdleTimeout The time after which a websocket connection should be closed.
  * @param maxNumberOfRedirects The maximum number of redirects.
  * @param maxRequestRetry The maximum number of times to retry a request if it fails.
  * @param disableUrlEncoding Whether the raw URL should be used.
+ * @param keepAlive whether connection pooling should be used.
  */
 @deprecated("Use AhcWSClientConfig", "2.5")
 case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
-  allowPoolingConnection: Boolean = true,
-  allowSslConnectionPool: Boolean = true,
-  ioThreadMultiplier: Int = 2,
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
   maxConnectionLifetime: Duration = Duration.Inf,
   idleConnectionInPoolTimeout: Duration = 1.minute,
-  webSocketIdleTimeout: Duration = 15.minutes,
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
-  disableUrlEncoding: Boolean = false)
+  disableUrlEncoding: Boolean = false,
+  keepAlive: Boolean = true)
 
 /**
  * Factory for creating NingWSClientConfig, for use from Java.
@@ -69,12 +61,12 @@ object NingWSClientConfigFactory {
 @deprecated("Use AhcConfigBuilder", "2.5")
 class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSClientConfig()) {
 
-  protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder = identity
+  protected val addCustomSettings: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder = identity
 
   /**
-   * The underlying `AsyncHttpClientConfig.Builder` used by this instance.
+   * The underlying `DefaultAsyncHttpClientConfig.Builder` used by this instance.
    */
-  val builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()
+  val builder: DefaultAsyncHttpClientConfig.Builder = new DefaultAsyncHttpClientConfig.Builder()
 
   private[ning] val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -83,7 +75,7 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
    *
    * @return the resulting builder
    */
-  def configure(): AsyncHttpClientConfig.Builder = {
+  def configure(): DefaultAsyncHttpClientConfig.Builder = {
     val config = ningConfig.wsClientConfig
 
     configureWS(ningConfig)
@@ -103,12 +95,13 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
   }
 
   /**
-   * Modify the underlying `AsyncHttpClientConfig.Builder` using the provided function, after defaults are set.
+   * Modify the underlying `DefaultAsyncHttpClientConfig.Builder` using the provided function, after defaults are set.
+   *
    * @param modify function with custom settings to apply to this builder before the client is built
    * @return the new builder
    */
   def modifyUnderlying(
-    modify: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder): NingAsyncHttpClientConfigBuilder = {
+    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder): NingAsyncHttpClientConfigBuilder = {
     new NingAsyncHttpClientConfigBuilder(ningConfig) {
       override val addCustomSettings = modify compose NingAsyncHttpClientConfigBuilder.this.addCustomSettings
       override val builder = NingAsyncHttpClientConfigBuilder.this.builder
@@ -135,14 +128,14 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     config.userAgent foreach builder.setUserAgent
 
-    builder.setAllowPoolingConnections(ningConfig.allowPoolingConnection)
-    builder.setAllowPoolingSslConnections(ningConfig.allowSslConnectionPool)
-    builder.setIOThreadMultiplier(ningConfig.ioThreadMultiplier)
+    // setAllowPoolingConnections and setAllowPoolingSslConnections were merged into isKeepAlive
+    val keepAlive = ningConfig.keepAlive
+    builder.setKeepAlive(keepAlive)
+
     builder.setMaxConnectionsPerHost(ningConfig.maxConnectionsPerHost)
     builder.setMaxConnections(ningConfig.maxConnectionsTotal)
-    builder.setConnectionTTL(toMillis(ningConfig.maxConnectionLifetime))
+    builder.setConnectionTtl(toMillis(ningConfig.maxConnectionLifetime))
     builder.setPooledConnectionIdleTimeout(toMillis(ningConfig.idleConnectionInPoolTimeout))
-    builder.setWebSocketTimeout(toMillis(ningConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
     builder.setDisableUrlEncodingForBoundRequests(ningConfig.disableUrlEncoding)
@@ -153,7 +146,7 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     // The proper solution is to make these parameters configurable, so that they can be set 
     // to 0 when running tests, and keep sensible defaults otherwise. AHC defaults are 
     // shutdownQuiet=2000 (milliseconds) and shutdownTimeout=15000 (milliseconds).
-    builder.setShutdownQuiet(0)
+    builder.setShutdownQuietPeriod(0)
     builder.setShutdownTimeout(0)
   }
 
@@ -233,7 +226,7 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
-    builder.setSSLContext(sslContext)
+    builder.setSslEngineFactory(new JsseSslEngineFactory(sslContext))
   }
 
   def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {
