@@ -1,0 +1,5 @@
+JavaApplication:Application settings
+JavaHttpFilters:HTTP filters
+JavaErrorHandling:Error handling
+JavaGlobal:Global settings
+JavaInterceptors:Intercepting requests
