@@ -35,7 +35,7 @@ class AkkaHttpServer(
     val applicationProvider: ApplicationProvider,
     actorSystem: ActorSystem,
     materializer: Materializer,
-    stopHook: () => Future[Unit]) extends Server {
+    stopHook: () => Future[_]) extends Server {
 
   import AkkaHttpServer._
 
