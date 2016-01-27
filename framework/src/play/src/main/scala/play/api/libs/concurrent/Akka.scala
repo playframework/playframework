@@ -279,7 +279,7 @@ class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Prov
 
 object ActorSystemProvider {
 
-  type StopHook = () => Future[Unit]
+  type StopHook = () => Future[_]
 
   private val logger = Logger(classOf[ActorSystemProvider])
 
@@ -328,8 +328,8 @@ object ActorSystemProvider {
    * A lazy wrapper around `start`. Useful when the `ActorSystem` may
    * not be needed.
    */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[Unit]] = {
-    new ClosableLazy[ActorSystem, Future[Unit]] {
+  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
+    new ClosableLazy[ActorSystem, Future[_]] {
       protected def create() = start(classLoader, configuration)
       protected def closeNotNeeded = Future.successful(())
     }
