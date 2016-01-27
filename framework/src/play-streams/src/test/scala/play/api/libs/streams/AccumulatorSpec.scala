@@ -102,7 +102,7 @@ object AccumulatorSpec extends Specification {
 
     "be compatible with Java accumulator" in {
       "Java asScala" in withMaterializer { implicit m =>
-        await(play.libs.streams.Accumulator.fromSink(sum.toSink.asJava).asScala().run(source)) must_== 6
+        await(play.libs.streams.Accumulator.fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava).asScala().run(source)) must_== 6
       }
 
       "Scala asJava" in withMaterializer { implicit m =>

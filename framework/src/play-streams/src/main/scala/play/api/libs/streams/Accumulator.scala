@@ -4,6 +4,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{ Source, Keep, Flow, Sink }
 import org.reactivestreams.{ Publisher, Subscription, Subscriber }
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.{ Promise, ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 import scala.compat.java8.FutureConverters._
@@ -128,7 +129,7 @@ private class SinkAccumulator[-E, +A](sink: Sink[E, Future[A]]) extends Accumula
   import scala.annotation.unchecked.{ uncheckedVariance => uV }
 
   def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
-    play.libs.streams.Accumulator.fromSink(sink.asJava)
+    play.libs.streams.Accumulator.fromSink(sink.mapMaterializedValue(FutureConverters.toJava).asJava)
   }
 }
 

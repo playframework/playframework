@@ -1,6 +1,5 @@
 package play.libs.streams;
 
-import akka.japi.Pair;
 import akka.stream.FlowShape;
 import akka.stream.Graph;
 import akka.stream.UniformFanInShape;

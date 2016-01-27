@@ -25,7 +25,8 @@ import scala.concurrent.Future
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
-object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
+// Disabled while we wait for https://github.com/akka/akka/issues/19623 to be fixed
+// object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
 trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 

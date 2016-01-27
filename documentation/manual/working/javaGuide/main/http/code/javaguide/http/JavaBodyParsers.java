@@ -23,6 +23,7 @@ import akka.stream.javadsl.*;
 import play.mvc.*;
 import play.mvc.Http.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.CompletionStage;
 
 import scala.compat.java8.FutureConverters;
 
@@ -173,7 +174,7 @@ public class JavaBodyParsers extends WithApplication {
         @Override
         public Accumulator<ByteString, F.Either<Result, List<List<String>>>> apply(RequestHeader request) {
             // A flow that splits the stream into CSV lines
-            Sink<ByteString, scala.concurrent.Future<List<List<String>>>> sink = Flow.<ByteString>create()
+            Sink<ByteString, CompletionStage<List<List<String>>>> sink = Flow.<ByteString>create()
                 // We split by the new line character, allowing a maximum of 1000 characters per line
                 .via(Framing.delimiter(ByteString.fromString("\n"), 1000, true))
                 // Turn each line to a String and split it by commas

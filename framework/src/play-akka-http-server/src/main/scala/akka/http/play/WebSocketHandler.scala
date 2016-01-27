@@ -1,7 +1,7 @@
 package akka.http.play
 
 import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.ws.UpgradeToWebsocket
+import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.impl.engine.ws._
 import akka.stream.scaladsl._
 import akka.stream.stage.{ Context, Stage, PushStage }
@@ -16,8 +16,8 @@ object WebSocketHandler {
   /**
    * Handle a WebSocket
    */
-  def handleWebSocket(upgrade: UpgradeToWebsocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse = upgrade match {
-    case lowLevel: UpgradeToWebsocketLowLevel =>
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse = upgrade match {
+    case lowLevel: UpgradeToWebSocketLowLevel =>
       lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit))
     case other => throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
@@ -150,7 +150,7 @@ object WebSocketHandler {
           closing = true
           ctx.push(Right(close))
       }
-    }), Merge(2, eagerClose = true))
+    }), Merge(2, eagerComplete = true))
   }
 
   private case class Frame(header: FrameHeader, data: ByteString) {

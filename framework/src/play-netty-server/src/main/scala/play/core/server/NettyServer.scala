@@ -6,6 +6,7 @@ package play.core.server
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
+import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Flow, Sink, Source }
@@ -143,7 +144,7 @@ class NettyServer(
   /**
    * Create a sink for the incoming connection channels.
    */
-  private def channelSink(secure: Boolean): Sink[Channel, Future[Unit]] = {
+  private def channelSink(secure: Boolean): Sink[Channel, Future[Done]] = {
     Sink.foreach[Channel] { (connChannel: Channel) =>
 
       // Setup the channel for explicit reads

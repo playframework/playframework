@@ -5,6 +5,7 @@
 package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
+import akka.stream.javadsl.AsPublisher;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
@@ -494,7 +495,8 @@ public class AhcWSRequest implements WSRequest {
             builder.setBody(bodyGenerator);
         } else if (body instanceof Source) {
             Source<ByteString,?> sourceBody = (Source<ByteString,?>) body;
-            Publisher<ByteBuffer> publisher = sourceBody.map(ByteString::toByteBuffer).runWith(Sink.asPublisher(false), materializer);
+            Publisher<ByteBuffer> publisher = sourceBody.map(ByteString::toByteBuffer)
+                .runWith(Sink.asPublisher(AsPublisher.WITHOUT_FANOUT), materializer);
             builder.setBody(publisher);
         } else {
             throw new IllegalStateException("Impossible body: " + body);

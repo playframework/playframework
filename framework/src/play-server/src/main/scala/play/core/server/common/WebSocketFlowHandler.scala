@@ -1,5 +1,6 @@
 package play.core.server.common
 
+import akka.NotUsed
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.stream.stage._
@@ -13,7 +14,7 @@ object WebSocketFlowHandler {
    * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
    * other control frames like ping/pong.
    */
-  def webSocketProtocol(bufferLimit: Int): BidiFlow[RawMessage, Message, Message, Message, Unit] = {
+  def webSocketProtocol(bufferLimit: Int): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
     BidiFlow.fromGraph(new GraphStage[BidiShape[RawMessage, Message, Message, Message]] {
       // The stream of incoming messages from the websocket connection
       val remoteIn = Inlet[RawMessage]("WebSocketIn")
