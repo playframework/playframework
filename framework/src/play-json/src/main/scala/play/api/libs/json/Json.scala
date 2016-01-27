@@ -184,7 +184,7 @@ object Json {
   import language.experimental.macros
 
   /**
-   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time.
+   * Creates a Reads[T] by resolving case class fields & required implicits at COMPILE-time.
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
@@ -204,7 +204,7 @@ object Json {
   def reads[A]: Reads[A] = macro JsMacroImpl.readsImpl[A]
 
   /**
-   * Creates a Writes[T] by resolving case class fields & required implcits at COMPILE-time
+   * Creates a Writes[T] by resolving case class fields & required implicits at COMPILE-time
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
