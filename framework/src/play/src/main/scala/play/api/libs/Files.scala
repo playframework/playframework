@@ -7,10 +7,10 @@ import java.io._
 import java.nio.file.{ FileAlreadyExistsException, StandardCopyOption, SimpleFileVisitor, Path, FileVisitResult }
 import java.nio.file.attribute.BasicFileAttributes
 
-import javax.inject.{ Inject, Singleton };
+import javax.inject.{ Inject, Singleton }
 
-import play.api.{ Application, Play };
-import play.api.inject.ApplicationLifecycle;
+import play.api.{ Application, Play }
+import play.api.inject.ApplicationLifecycle
 import java.nio.file.{ Files => JFiles }
 
 import scala.concurrent.Future

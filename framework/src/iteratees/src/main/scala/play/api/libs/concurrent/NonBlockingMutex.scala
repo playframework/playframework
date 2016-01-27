@@ -4,7 +4,6 @@
 package play.api.libs.concurrent
 
 import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, Future }
 import java.util.concurrent.atomic.AtomicReference
 
 /**
