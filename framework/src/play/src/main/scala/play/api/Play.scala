@@ -132,7 +132,7 @@ object Play {
   }
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
@@ -140,7 +140,7 @@ object Play {
   }
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
@@ -148,7 +148,7 @@ object Play {
   }
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def getFile(relativePath: String)(implicit app: Application): File = {
@@ -156,7 +156,7 @@ object Play {
   }
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
@@ -164,49 +164,49 @@ object Play {
   }
 
   /**
-   * @deprecated inject the [[ play.api.Application ]] instead
+   * @deprecated inject the [[play.api.Application]] instead
    */
   @Deprecated
   def application(implicit app: Application): Application = app
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def classloader(implicit app: Application): ClassLoader = app.classloader
 
   /**
-   * @deprecated inject the [[ play.api.Configuration ]] instead
+   * @deprecated inject the [[play.api.Configuration]] instead
    */
   @Deprecated
   def configuration(implicit app: Application): Configuration = app.configuration
 
   /**
-   * @deprecated inject the [[ play.api.routing.Router ]] instead
+   * @deprecated inject the [[play.api.routing.Router]] instead
    */
   @Deprecated
   def routes(implicit app: Application): play.api.routing.Router = app.routes
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def mode(implicit app: Application): Mode.Mode = app.mode
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
 
   /**
-   * @deprecated inject the [[ play.api.Environment ]] instead
+   * @deprecated inject the [[play.api.Environment]] instead
    */
   @Deprecated
   def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
