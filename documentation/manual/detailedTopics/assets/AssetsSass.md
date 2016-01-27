@@ -3,7 +3,7 @@
 
 [Sass](http://sass-lang.com/) is a dynamic stylesheet language. It allows considerable flexibility in the way you write CSS files including support for variables, mixins and more.
 
-Compilable assets in Play must be defined in the `app/assets` directory. They are handled by the build process, and Sass sources are compiled into standard CSS files. The generated CSS files are distributed as standard resources into the same `public/` folder as the unmanaged assets, meaning that there is no difference in the way you use them once compiled.
+Compilable assets in Play are typically defined in the `app/assets` directory. They are handled by the build process, and Sass sources are compiled into standard CSS files. The generated CSS files are distributed as standard resources into the same `public/` folder as the unmanaged assets, meaning that there is no difference in the way you use them once compiled.
 
 For example, Sass source file `app/assets/stylesheets/main.scss` will be available as standard CSS resource, at `public/stylesheets/main.css`.
 
@@ -17,7 +17,7 @@ Any Sass file (`*.scss`/`*.sass`) will automatically be compiled. The Sass plugi
 
 ## Layout
 
-Here is an example layout for using Sass in your project:
+Below an example layout for using Sass in your project is given:
 
 ```
 app
@@ -29,7 +29,7 @@ app
        └ _layout.scss
 ```
 
-With the following `main.scss` source:
+Given the following `main.scss` source:
 
 ```scss
 @import "utils/reset";
@@ -40,7 +40,7 @@ h1 {
 }
 ```
 
-The Sass file outlined above, will be compiled into `public/stylesheets/main.css`. This file can be used in your template as any regular public asset:
+The Sass file outlined above, will be compiled into `public/stylesheets/main.css`. Hence, this file can be used in your template as any regular public asset:
 
 ```html
 <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
@@ -58,7 +58,7 @@ To include these compass mixins in your project is as easy as including the web-
 libraryDependencies += "org.webjars.bower" % "compass-mixins" % "0.12.7"
 ```
 
-sbt-web will automatically extract WebJars into a lib folder relative to your asset's target folder. Therefore to use the Compass mixins you can import the mixins by:
+sbt-web will automatically extract WebJars into a `lib` directory relative to your asset's target directory. Therefore to use the Compass mixins you can import the mixins by:
 
 ```scss
 @import "lib/compass-mixins/lib/compass";
@@ -72,11 +72,13 @@ table.ellipsed-table {
 ```
 
 The same idea can be used to include other Sass libraries, for instance the [official Sass port of bootstrap](https://github.com/twbs/bootstrap-sass). To include the WebJar use:
+
 ```scala
 libraryDependencies += "org.webjars.bower" % "bootstrap-sass" % "3.3.6"
 ```
 
 Then to use it in your project, you can use:
+
 ```scss
 @import "lib/bootstrap-sass/assets/stylesheets/bootstrap";
 ```
@@ -86,8 +88,8 @@ Then to use it in your project, you can use:
 Sass compilation is enabled by simply adding the sbt-sassify plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.3.2")
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.2")
 ```
 
-The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured.
+The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured as well as its latest version.
 
