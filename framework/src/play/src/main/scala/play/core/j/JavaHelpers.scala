@@ -220,6 +220,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def charset() = OptionConverters.toJava(header.charset)
 
+  def tags = header.tags.asJava
+
   override def toString = header.toString
 
 }
