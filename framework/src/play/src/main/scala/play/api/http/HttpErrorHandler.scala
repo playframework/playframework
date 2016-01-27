@@ -288,7 +288,7 @@ object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simpl
  */
 object LazyHttpErrorHandler extends HttpErrorHandler {
 
-  private def errorHandler = Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+  private def errorHandler = Play.privateMaybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
 
   def onClientError(request: RequestHeader, statusCode: Int, message: String) =
     errorHandler.onClientError(request, statusCode, message)

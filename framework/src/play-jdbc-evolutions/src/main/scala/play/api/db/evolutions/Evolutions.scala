@@ -239,7 +239,7 @@ object OfflineEvolutions {
 
   private val logger = Logger(this.getClass)
 
-  private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
+  private def isTest: Boolean = Play.privateMaybeApplication.exists(_.mode == Mode.Test)
 
   private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
     val _dbApi = dbApi

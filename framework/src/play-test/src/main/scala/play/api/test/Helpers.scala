@@ -237,7 +237,10 @@ trait RouteInvokers extends EssentialActionCaller {
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   *
+   * @deprecated Use the version that takes an application, since 2.5.0
    */
+  @deprecated("Use the version that takes an application", "2.5.0")
   def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, rh, body)
 
   /**
@@ -251,7 +254,10 @@ trait RouteInvokers extends EssentialActionCaller {
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   *
+   * @deprecated Use the version that takes an application, since 2.5.0
    */
+  @deprecated("Use the version that takes an application", "2.5.0")
   def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, req)
 }
 

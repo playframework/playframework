@@ -36,7 +36,7 @@ object Crypto {
 
   private val cryptoCache = Application.instanceCache[Crypto]
   private def crypto = {
-    Play.maybeApplication.fold(
+    Play.privateMaybeApplication.fold(
       new Crypto(new CryptoConfigParser(
         Environment.simple(), Configuration.from(Map("play.crypto.aes.transformation" -> "AES/CTR/NoPadding"))
       ).get)
