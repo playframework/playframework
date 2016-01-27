@@ -68,10 +68,33 @@ public class Evolutions {
      * @param database The database to apply the evolutions to.
      * @param reader The reader to read the evolutions.
      * @param autocommit Whether autocommit should be used.
+     * @param schema The schema where all the play evolution tables are saved in
+     */
+    public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit, String schema) {
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala(), schema);
+        evolutions.evolve(evolutions.scripts(reader), autocommit);
+    }
+
+    /**
+     * Apply evolutions for the given database.
+     *
+     * @param database The database to apply the evolutions to.
+     * @param reader The reader to read the evolutions.
+     * @param schema The schema where all the play evolution tables are saved in
+     */
+    public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, String schema) {
+        applyEvolutions(database, reader, true, schema);
+    }
+
+    /**
+     * Apply evolutions for the given database.
+     *
+     * @param database The database to apply the evolutions to.
+     * @param reader The reader to read the evolutions.
+     * @param autocommit Whether autocommit should be used.
      */
     public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala());
-        evolutions.evolve(evolutions.scripts(reader), autocommit);
+        applyEvolutions(database, reader, autocommit, "");
     }
 
     /**
@@ -88,9 +111,33 @@ public class Evolutions {
      * Apply evolutions for the given database.
      *
      * @param database The database to apply the evolutions to.
+     * @param schema The schema where all the play evolution tables are saved in
+     */
+    public static void applyEvolutions(Database database, String schema) {
+        applyEvolutions(database, fromClassLoader(), schema);
+    }
+
+    /**
+     * Apply evolutions for the given database.
+     *
+     * @param database The database to apply the evolutions to.
      */
     public static void applyEvolutions(Database database) {
-        applyEvolutions(database, fromClassLoader());
+        applyEvolutions(database, "");
+    }
+
+    /**
+     * Cleanup evolutions for the given database.
+     *
+     * This will run the down scripts for all the applied evolutions.
+     *
+     * @param database The database to apply the evolutions to.
+     * @param autocommit Whether autocommit should be used.
+     * @param schema The schema where all the play evolution tables are saved in
+     */
+    public static void cleanupEvolutions(Database database, boolean autocommit, String schema) {
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala(), schema);
+        evolutions.evolve(evolutions.resetScripts(), autocommit);
     }
 
     /**
@@ -102,8 +149,19 @@ public class Evolutions {
      * @param autocommit Whether autocommit should be used.
      */
     public static void cleanupEvolutions(Database database, boolean autocommit) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala());
-        evolutions.evolve(evolutions.resetScripts(), autocommit);
+        cleanupEvolutions(database, autocommit, "");
+    }
+
+    /**
+     * Cleanup evolutions for the given database.
+     *
+     * This will run the down scripts for all the applied evolutions.
+     *
+     * @param database The database to apply the evolutions to.
+     * @param schema The schema where all the play evolution tables are saved in
+     */
+    public static void cleanupEvolutions(Database database, String schema) {
+        cleanupEvolutions(database, true, schema);
     }
 
     /**
@@ -114,6 +172,6 @@ public class Evolutions {
      * @param database The database to apply the evolutions to.
      */
     public static void cleanupEvolutions(Database database) {
-        cleanupEvolutions(database, true);
+        cleanupEvolutions(database, "");
     }
 }

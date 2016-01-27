@@ -24,6 +24,13 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
     read(parse(s"play.evolutions.$key" -> false, fooConfig).forDatasource("default")) must_== false
   }
 
+  def testNString(key: String)(read: EvolutionsDatasourceConfig => String) = {
+    // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
+    val fooConfig = "play.evolutions.db.default.foo" -> "foo"
+    read(parse(s"play.evolutions.$key" -> "", fooConfig).forDatasource("default")) must_== ""
+    read(parse(s"play.evolutions.$key" -> "something", fooConfig).forDatasource("default")) must_== "something"
+  }
+
   val default = parse().forDatasource("default")
 
   "The evolutions config parser" should {
@@ -45,6 +52,9 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
       "enabled" in {
         testN("enabled")(_.enabled)
       }
+      "schema" in {
+        testNString("schema")(_.schema)
+      }
       "autocommit" in {
         testN("autocommit")(_.autocommit)
       }
@@ -62,6 +72,9 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
       "enabled" in {
         testN("db.default.enabled")(_.enabled)
       }
+      "schema" in {
+        testNString("db.default.schema")(_.schema)
+      }
       "autocommit" in {
         testN("db.default.autocommit")(_.autocommit)
       }
@@ -78,6 +91,9 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
     "parse defaults" in {
       "enabled" in {
         default.enabled must_== true
+      }
+      "schema" in {
+        default.schema must_== ""
       }
       "autocommit" in {
         default.autocommit must_== true

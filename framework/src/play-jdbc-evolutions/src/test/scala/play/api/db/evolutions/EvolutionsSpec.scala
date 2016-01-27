@@ -18,6 +18,10 @@ object EvolutionsSpec extends Specification {
 
   "Evolutions" should {
 
+    trait CreateSchema { this: WithEvolutions =>
+      execute("create schema testschema")
+    }
+
     trait UpScripts { this: WithEvolutions =>
       val scripts = evolutions.scripts(Seq(a1, a2, a3))
 
@@ -94,6 +98,13 @@ object EvolutionsSpec extends Specification {
       executeQuery("select * from test") must throwA[SQLException]
     }
 
+    trait ProvideHelperForTestingSchema { this: WithEvolutions =>
+      // Check if the play_evolutions table was created within the testschema
+      val resultSet = executeQuery("select count(0) from testschema.play_evolutions")
+      resultSet.next must beTrue
+      resultSet.close()
+    }
+
     "apply up scripts" in new UpScripts with WithEvolutions
     "apply up scripts derby" in new UpScripts with WithDerbyEvolutions
 
@@ -108,6 +119,11 @@ object EvolutionsSpec extends Specification {
 
     "provide a helper for testing" in new ProvideHelperForTesting with WithEvolutions
     "provide a helper for testing derby" in new ProvideHelperForTesting with WithDerbyEvolutions
+
+    // Test if the play_evolutions table gets created within a schema
+    "create test schema derby" in new CreateSchema with WithDerbyEvolutionsSchema
+    "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase with WithDerbyEvolutionsSchema
+    "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
   }
 
   trait WithEvolutions extends After {
@@ -119,6 +135,8 @@ object EvolutionsSpec extends Specification {
 
     def executeQuery(sql: String): ResultSet = connection.createStatement.executeQuery(sql)
 
+    def execute(sql: String): Boolean = connection.createStatement.execute(sql)
+
     def after = {
       connection.close()
       database.shutdown()
@@ -129,6 +147,13 @@ object EvolutionsSpec extends Specification {
     override lazy val database: Database = Databases(
       driver = "org.apache.derby.jdbc.EmbeddedDriver",
       url = "jdbc:derby:memory:default;create=true"
+    )
+  }
+
+  trait WithDerbyEvolutionsSchema extends WithDerbyEvolutions {
+    override lazy val evolutions: DatabaseEvolutions = new DatabaseEvolutions(
+      database = database,
+      schema = "testschema"
     )
   }
 
