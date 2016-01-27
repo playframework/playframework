@@ -5,10 +5,10 @@ import javax.net.ssl._
 
 import akka.actor.ActorSystem
 import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.{ HttpsContext, Http }
+import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Expect
-import akka.http.scaladsl.model.ws.UpgradeToWebsocket
+import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
@@ -48,15 +48,15 @@ class AkkaHttpServer(
   implicit val system = actorSystem
   implicit val mat = materializer
 
-  private def createServerBinding(port: Int, httpsContext: Option[HttpsContext]): Http.ServerBinding = {
+  private def createServerBinding(port: Int, connectionContext: ConnectionContext): Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
     // TODO: pass in Inet.SocketOption, ServerSettings and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
-      Http().bind(interface = config.address, port = port, httpsContext = httpsContext)
+      Http().bind(interface = config.address, port = port, connectionContext = connectionContext)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
-      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, httpsContext.isDefined))
+      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, connectionContext.isSecure))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
@@ -65,23 +65,23 @@ class AkkaHttpServer(
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = config.port.map(port => createServerBinding(port, None))
+  private val httpServerBinding = config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption()))
 
   private val httpsServerBinding = config.sslPort.map { port =>
-    val httpsContext = try {
+    val connectionContext = try {
       val engineProvider = ServerSSLEngine.createSSLEngineProvider(config, applicationProvider)
       // There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
       // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
       val sslContext = mockSslContext(engineProvider)
-      Some(HttpsContext(sslContext = sslContext))
+      ConnectionContext.https(sslContext = sslContext)
     } catch {
       case NonFatal(e) =>
         logger.error(s"Cannot load SSL context", e)
-        None
+        ConnectionContext.noEncryption()
     }
-    createServerBinding(port, httpsContext)
+    createServerBinding(port, connectionContext)
   }
 
   // Each request needs an id
@@ -138,7 +138,7 @@ class AkkaHttpServer(
     requestBodySource: Option[Source[ByteString, _]],
     handler: Handler): Future[HttpResponse] = {
 
-    val upgradeToWebSocket = request.header[UpgradeToWebsocket]
+    val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
     (handler, upgradeToWebSocket) match {
       //execute normal action

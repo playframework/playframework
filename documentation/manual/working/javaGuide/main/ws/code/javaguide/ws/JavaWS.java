@@ -147,14 +147,10 @@ public class JavaWS {
                 Source<ByteString, ?> responseBody = res.getBody();
 
                 // Count the number of bytes returned
-                Sink<ByteString, scala.concurrent.Future<Long>> bytesSum =
+                Sink<ByteString, CompletionStage<Long>> bytesSum =
                     Sink.fold(0L, (total, bytes) -> total + bytes.length());
 
-                // Converts the materialized Scala Future into a Java8 `CompletionStage`
-                Sink<ByteString, CompletionStage<Long>> convertedBytesSum =
-                    bytesSum.mapMaterializedValue(FutureConverters::toJava);
-
-                return responseBody.runWith(convertedBytesSum, materializer);
+                return responseBody.runWith(bytesSum, materializer);
             });
             // #stream-count-bytes
         }
@@ -173,15 +169,11 @@ public class JavaWS {
                 Source<ByteString, ?> responseBody = res.getBody();
 
                 // The sink that writes to the output stream
-                Sink<ByteString,scala.concurrent.Future<scala.runtime.BoxedUnit>> outputWriter = 
+                Sink<ByteString, CompletionStage<akka.Done>> outputWriter =
                     Sink.<ByteString>foreach(bytes -> outputStream.write(bytes.toArray()));
 
-                // Converts the materialized Scala Future into a Java8 `CompletionStage`
-                Sink<ByteString, CompletionStage<?>> convertedOutputWriter =
-                    outputWriter.mapMaterializedValue(FutureConverters::toJava);
-
                 // materialize and run the stream
-                CompletionStage<File> result = responseBody.runWith(convertedOutputWriter, materializer)
+                CompletionStage<File> result = responseBody.runWith(outputWriter, materializer)
                     .whenComplete((value, error) -> {
                         // Close the output stream whether there was an error or not
                         try { outputStream.close(); }

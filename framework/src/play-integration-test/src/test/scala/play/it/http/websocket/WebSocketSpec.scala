@@ -23,8 +23,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.{ Consumer, Function }
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-// This is disabled while we wait for https://github.com/akka/akka/issues/19467 to be fixed
-// object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
+object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 

@@ -198,7 +198,7 @@ object WebSocketClient {
         import GraphDSL.Implicits._
 
         val broadcast = b.add(Broadcast[WebSocketFrame](2))
-        val merge = b.add(Merge[WebSocketFrame](2, eagerClose = true))
+        val merge = b.add(Merge[WebSocketFrame](2, eagerComplete = true))
 
         val handleServerClose = Flow[WebSocketFrame].filter { frame =>
           if (frame.isInstanceOf[CloseWebSocketFrame] && !clientInitiatedClose.get()) {

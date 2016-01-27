@@ -24,7 +24,7 @@ public class WebSocketSpecJavaActions {
         return Sink.<List<A>, A>fold(new ArrayList<A>(), (result, next) -> {
             result.add(next);
             return result;
-        }).mapMaterializedValue(future -> FutureConverters.toJava(future).thenAccept(onDone));
+        }).mapMaterializedValue(future -> future.thenAccept(onDone));
     }
 
     private static <A> Source<A, ?> emptySource() {

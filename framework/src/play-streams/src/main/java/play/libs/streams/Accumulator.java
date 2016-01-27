@@ -1,13 +1,9 @@
 package play.libs.streams;
 
 import akka.stream.Materializer;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Keep;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
+import akka.stream.javadsl.*;
 import play.api.libs.streams.Accumulator$;
 import scala.compat.java8.FutureConverters;
-import scala.concurrent.Future;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -110,14 +106,11 @@ public abstract class Accumulator<E, A> {
     /**
      * Create an accumulator from an Akka streams sink.
      *
-     * The passed in Sink must materialize to a Scala Future. This is useful for when working with the built in Akka
-     * streams Sinks, such as Sink.fold, which materialize to Scala Futures.
-     *
      * @param sink The sink.
      * @return An accumulator created from the sink.
      */
-    public static <E, A> Accumulator<E, A> fromSink(Sink<E, Future<A>> sink) {
-        return new SinkAccumulator<>(sink.mapMaterializedValue(FutureConverters::toJava));
+    public static <E, A> Accumulator<E, A> fromSink(Sink<E, CompletionStage<A>> sink) {
+        return new SinkAccumulator<>(sink);
     }
 
 
@@ -134,7 +127,7 @@ public abstract class Accumulator<E, A> {
     public static <E> Accumulator<E, Source<E, ?>> source() {
         // If Akka streams ever provides Sink.source(), we should use that instead.
         // https://github.com/akka/akka/issues/18406
-        return new SinkAccumulator<>(Sink.<E>asPublisher(false).mapMaterializedValue(publisher ->
+        return new SinkAccumulator<>(Sink.<E>asPublisher(AsPublisher.WITHOUT_FANOUT).mapMaterializedValue(publisher ->
                         CompletableFuture.completedFuture(Source.fromPublisher(publisher))
         ));
     }

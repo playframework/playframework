@@ -3,6 +3,7 @@
  */
 package scalaguide.ws.scalaws
 
+import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.libs.ws.ahc._
@@ -81,7 +82,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
    */
   val largeSource: Source[ByteString, _] = {
     val source = Source.single(ByteString("abcdefghij" * 100))
-    (1 to 9).foldLeft(source){(acc, _) => (acc ++ source).mapMaterializedValue(_=> ())}
+    (1 to 9).foldLeft(source){(acc, _) => (acc ++ source)}
   }
 
   "WS" should {
