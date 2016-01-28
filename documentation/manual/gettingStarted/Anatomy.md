@@ -131,7 +131,8 @@ src                        → Application sources
     └ resources            → Configurations files and other non-compiled resources (on classpath)
        └ application.conf  → Main configuration file
        └ routes            → Routes definition
-    └ twirl                → Templates
+    └ twirl
+       └ views             → Templates
     └ assets               → Compiled asset sources
        └ css               → Typically LESS CSS sources
        └ js                → Typically CoffeeScript sources
