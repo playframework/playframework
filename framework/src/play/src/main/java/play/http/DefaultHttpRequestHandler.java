@@ -3,27 +3,25 @@
  */
 package play.http;
 
-import play.mvc.Action;
-import play.mvc.Http;
-import play.mvc.Result;
+import javax.inject.Inject;
 
-import java.lang.reflect.Method;
-import java.util.concurrent.CompletionStage;
+import play.api.mvc.Handler;
+import play.core.j.RequestHeaderImpl;
+import play.mvc.Http.RequestHeader;
+import scala.Tuple2;
 
 public class DefaultHttpRequestHandler implements HttpRequestHandler {
 
-    @Override
-    public Action createAction(Http.Request request, Method actionMethod) {
-        return new Action.Simple() {
-            @Override
-            public CompletionStage<Result> call(Http.Context ctx) {
-                return delegate.call(ctx);
-            }
-        };
+    private final play.api.http.HttpRequestHandler underlying;
+
+    @Inject
+    public DefaultHttpRequestHandler(play.api.http.HttpRequestHandler underlying) {
+        this.underlying = underlying;
     }
 
     @Override
-    public Action wrapAction(Action action) {
-        return action;
+    public HandlerForRequest handlerForRequest(RequestHeader request) {
+        Tuple2<play.api.mvc.RequestHeader, Handler> result = underlying.handlerForRequest(request._underlyingHeader());
+        return new HandlerForRequest(new RequestHeaderImpl(result._1()), result._2());
     }
 }

@@ -4,7 +4,7 @@
 package play.routing;
 
 import org.junit.Test;
-import play.api.routing.Router;
+import play.routing.Router;
 import play.libs.F;
 import play.mvc.PathBindable;
 import play.mvc.Result;

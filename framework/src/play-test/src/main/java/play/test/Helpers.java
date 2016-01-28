@@ -8,7 +8,7 @@ import akka.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
-import play.api.routing.Router;
+import play.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
@@ -298,11 +298,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         try {
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
-            if(routes.routes().isDefinedAt(request._underlyingRequest())) {
-                return invokeHandler(routes.routes().apply(request._underlyingRequest()), request, timeout);
-            } else {
-                return null;
-            }
+            return routes.route(request).map(handler ->
+                invokeHandler(handler, request, timeout)
+            ).orElse(null);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -317,11 +315,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
-            if(router.routes().isDefinedAt(request._underlyingRequest())) {
-                return invokeHandler(router.routes().apply(request._underlyingRequest()), request, timeout);
-            } else {
-                return null;
-            }
+            return router.route(request).map(handler ->
+                invokeHandler(handler, request, timeout)
+            ).orElse(null);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -468,7 +464,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 startedServer = server;
                 browser = testBrowser(webDriver, server.port());
                 block.accept(browser);
-            } 
+            }
             finally {
                 if (browser != null) {
                     browser.quit();

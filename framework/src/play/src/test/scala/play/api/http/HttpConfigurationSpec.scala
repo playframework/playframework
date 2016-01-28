@@ -20,7 +20,7 @@ object HttpConfigurationSpec extends Specification {
         "play.http.parser.maxMemoryBuffer" -> "10k",
         "play.http.parser.maxDiskBuffer" -> "20k",
         "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-        "play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.cookies.strict" -> "true",
         "play.http.session.cookieName" -> "PLAY_SESSION",
         "play.http.session.secure" -> "true",
@@ -116,7 +116,7 @@ object HttpConfigurationSpec extends Specification {
 
       "execute request handler action first" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
-        httpConfiguration.actionComposition.executeRequestHandlerActionFirst must beTrue
+        httpConfiguration.actionComposition.executeActionCreatorActionFirst must beTrue
       }
     }
   }

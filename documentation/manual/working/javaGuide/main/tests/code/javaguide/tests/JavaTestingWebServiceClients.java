@@ -2,7 +2,7 @@ package javaguide.tests;
 
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
-import play.api.routing.Router;
+import play.routing.Router;
 import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSClient;

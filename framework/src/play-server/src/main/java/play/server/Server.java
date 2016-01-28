@@ -4,7 +4,7 @@
 package play.server;
 
 import play.Mode;
-import play.api.routing.Router;
+import play.routing.Router;
 import play.core.j.JavaModeConverter;
 import play.core.server.JavaServerHelper;
 import scala.Int;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import scala.compat.java8.OptionConverters;
-        
+
 /**
  * A Play server.
  */
@@ -204,7 +204,7 @@ public class Server {
             Server.Config config = _buildConfig();
             return new Server(
                     JavaServerHelper.forRouter(
-                            router,
+                            router.asScala(),
                             JavaModeConverter.asScalaMode(config.mode()),
                             OptionConverters.toScala(config.maybeHttpPort()),
                             OptionConverters.toScala(config.maybeHttpsPort())

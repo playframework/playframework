@@ -3,14 +3,14 @@
  */
 package play.api.http
 
-import javax.inject.{ Provider, Inject }
+import javax.inject.{ Inject, Provider }
 
-import play.api.inject.{ BindingKey, Binding }
-import play.api.libs.streams.Accumulator
-import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
+import play.api.inject.{ Binding, BindingKey }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
+import play.api.{ Configuration, Environment, GlobalSettings, PlayConfig }
 import play.core.j.{ JavaHandler, JavaHandlerComponents }
 import play.utils.Reflect
 
@@ -40,24 +40,23 @@ object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    val javaComponentsBinding = BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.GlobalSettingsHttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
+      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler")
 
-    Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
-      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler") match {
-        case None => Nil
-        case Some(Left(scalaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to(scalaImpl),
-            // Need to bind the default Java one in case the Scala one depends on JavaHandlerComponents
-            BindingKey(classOf[play.http.HttpRequestHandler]).to[play.http.GlobalSettingsHttpRequestHandler],
-            javaComponentsBinding
-          )
-        case Some(Right(javaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to[JavaCompatibleHttpRequestHandler],
-            BindingKey(classOf[play.http.HttpRequestHandler]).to(javaImpl),
-            javaComponentsBinding
-          )
+    val javaComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf)
+
+    fromConfiguration ++ javaComponentsBindings
+  }
+}
+
+object ActionCreator {
+  import play.http.{ ActionCreator, HttpRequestHandlerActionCreator }
+
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    Reflect.configuredClass[ActionCreator, ActionCreator, HttpRequestHandlerActionCreator](environment,
+      PlayConfig(configuration), "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+        val impl = either.fold(identity, identity)
+        Seq(BindingKey(classOf[ActionCreator]).to(impl))
       }
   }
 }

@@ -3,14 +3,15 @@
  */
 package play.http;
 
+import java.lang.reflect.Method;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import play.api.GlobalSettings;
 import play.core.j.JavaGlobalSettingsAdapter;
 import play.mvc.Action;
 import play.mvc.Http;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.lang.reflect.Method;
 
 /**
  * Request handler that delegates to global
@@ -21,7 +22,8 @@ public class GlobalSettingsHttpRequestHandler extends DefaultHttpRequestHandler 
     private final GlobalSettings global;
 
     @Inject
-    public GlobalSettingsHttpRequestHandler(GlobalSettings global) {
+    public GlobalSettingsHttpRequestHandler(GlobalSettings global, play.api.http.HttpRequestHandler underlying) {
+        super(underlying);
         this.global = global;
     }
 

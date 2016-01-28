@@ -77,9 +77,9 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
       }
     }
 
-    val baseAction = components.requestHandler.createAction(javaContext.request, annotations.method)
+    val baseAction = components.actionCreator.createAction(javaContext.request, annotations.method)
 
-    val endOfChainAction = if (config.executeRequestHandlerActionFirst) {
+    val endOfChainAction = if (config.executeActionCreatorActionFirst) {
       rootAction
     } else {
       baseAction.delegate = rootAction
@@ -94,7 +94,7 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
         action
     }
 
-    val finalAction = components.requestHandler.wrapAction(if (config.executeRequestHandlerActionFirst) {
+    val finalAction = components.actionCreator.wrapAction(if (config.executeActionCreatorActionFirst) {
       baseAction.delegate = finalUserDeclaredAction
       baseAction
     } else {
@@ -131,6 +131,5 @@ trait JavaHandler extends Handler {
 /**
  * The components necessary to handle a Java handler.
  */
-class JavaHandlerComponents @Inject() (val injector: Injector,
-  val requestHandler: play.http.HttpRequestHandler)
+class JavaHandlerComponents @Inject() (val injector: Injector, val actionCreator: play.http.ActionCreator)
 
