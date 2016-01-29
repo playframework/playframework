@@ -6,7 +6,7 @@ package play.api.mvc {
   import java.util.Locale
 
   import play.api._
-  import play.api.http.{ HttpConfiguration, MediaType, MediaRange, HeaderNames }
+  import play.api.http._
   import play.api.i18n.Lang
   import play.api.libs.Crypto
   import play.core.utils.CaseInsensitiveOrdered
@@ -16,6 +16,12 @@ package play.api.mvc {
   import scala.util.control.NonFatal
   import scala.util.Try
   import java.net.{ URI, URLDecoder, URLEncoder }
+
+  private[mvc] object GlobalStateHttpConfiguration {
+    def httpConfiguration: HttpConfiguration = HttpConfiguration.current
+  }
+
+  import GlobalStateHttpConfiguration._
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -122,6 +128,7 @@ package play.api.mvc {
 
     /**
      * Check if this request accepts a given media type.
+     *
      * @return true if `mimeType` matches the Accept header, otherwise false
      */
     def accepts(mimeType: String): Boolean = {
@@ -667,14 +674,17 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    def COOKIE_NAME = HttpConfiguration.current.session.cookieName
+    private def config: SessionConfiguration = httpConfiguration.session
+
+    def COOKIE_NAME = config.cookieName
+
     val emptyCookie = new Session
     override val isSigned = true
-    override def secure = HttpConfiguration.current.session.secure
-    override def maxAge = HttpConfiguration.current.session.maxAge.map(_.toSeconds.toInt)
-    override def httpOnly = HttpConfiguration.current.session.httpOnly
-    override def path = HttpConfiguration.current.context
-    override def domain = HttpConfiguration.current.session.domain
+    override def secure = config.secure
+    override def maxAge = config.maxAge.map(_.toSeconds.toInt)
+    override def httpOnly = config.httpOnly
+    override def path = httpConfiguration.context
+    override def domain = config.domain
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -738,12 +748,15 @@ package play.api.mvc {
    * Helper utilities to manage the Flash cookie.
    */
   object Flash extends CookieBaker[Flash] {
+    private def config: FlashConfiguration = httpConfiguration.flash
+    private def sessionConfig: SessionConfiguration = httpConfiguration.session
 
-    def COOKIE_NAME = HttpConfiguration.current.flash.cookieName
-    override def path = HttpConfiguration.current.context
-    override def secure = HttpConfiguration.current.flash.secure
-    override def httpOnly = HttpConfiguration.current.flash.httpOnly
-    override def domain = HttpConfiguration.current.session.domain
+    def COOKIE_NAME = config.cookieName
+
+    override def path = httpConfiguration.context
+    override def secure = config.secure
+    override def httpOnly = config.httpOnly
+    override def domain = sessionConfig.domain
 
     val emptyCookie = new Flash
 
@@ -792,13 +805,13 @@ package play.api.mvc {
      * Retrieves the cookie that is associated with the given key.
      */
     def apply(name: String): Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
-
   }
 
   /**
    * Helper utilities to encode Cookies.
    */
   object Cookies {
+    private def config: CookiesConfiguration = httpConfiguration.cookies
 
     /**
      * Play doesn't support multiple values per header, so has to compress cookies into one header. The problem is,
@@ -850,7 +863,7 @@ package play.api.mvc {
      * @return a valid Set-Cookie header value
      */
     def encodeSetCookieHeader(cookies: Seq[Cookie]): String = {
-      val encoder = HttpConfiguration.current.cookies.serverEncoder
+      val encoder = config.serverEncoder
       val newCookies = cookies.map { c =>
         val nc = new DefaultCookie(c.name, c.value)
         nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
@@ -870,7 +883,7 @@ package play.api.mvc {
      * @return a valid Set-Cookie header value
      */
     def encodeCookieHeader(cookies: Seq[Cookie]): String = {
-      val encoder = HttpConfiguration.current.cookies.clientEncoder
+      val encoder = config.clientEncoder
       encoder.encode(cookies.map { cookie =>
         new DefaultCookie(cookie.name, cookie.value)
       }.asJava)
@@ -884,7 +897,7 @@ package play.api.mvc {
      */
     def decodeSetCookieHeader(cookieHeader: String): Seq[Cookie] = {
       Try {
-        val decoder = HttpConfiguration.current.cookies.clientDecoder
+        val decoder = config.clientDecoder
         SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq.map { cookieString =>
           val cookie = decoder.decode(cookieString.trim)
           Cookie(
@@ -911,7 +924,7 @@ package play.api.mvc {
      */
     def decodeCookieHeader(cookieHeader: String): Seq[Cookie] = {
       Try {
-        HttpConfiguration.current.cookies.serverDecoder.decode(cookieHeader).asScala.map { cookie =>
+        config.serverDecoder.decode(cookieHeader).asScala.map { cookie =>
           Cookie(
             cookie.name,
             cookie.value
