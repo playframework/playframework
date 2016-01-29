@@ -13,7 +13,7 @@ import javax.net.ssl.SSLContext
  * The JSSE list of cipher suites is different from the RFC defined list, with some cipher suites prefixed with "SSL_"
  * instead of "TLS_".  A full list is available from the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SupportedCipherSuites">SunJSSE provider list</a>
  *
- * Please see https://www.playframework.com/documentation/current/CipherSuites for more details.
+ * Please see https://www.playframework.com/documentation/2.4.x/CipherSuites for more details.
  */
 object Ciphers {
 
