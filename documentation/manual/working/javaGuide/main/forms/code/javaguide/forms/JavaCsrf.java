@@ -23,12 +23,12 @@ import static play.test.Helpers.*;
 
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
-import javaguide.forms.html.form;
 
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Optional;
+import javax.inject.Inject;
 
 public class JavaCsrf extends WithApplication {
 
@@ -40,6 +40,7 @@ public class JavaCsrf extends WithApplication {
     public void getToken() {
         String token = crypto().generateSignedToken();
         String body = contentAsString(MockJavaActionHelper.call(new MockJavaAction() {
+            @AddCSRFToken
             public Result index() {
                 //#get-token
                 Optional<CSRF.Token> token = CSRF.getToken(request());
@@ -53,22 +54,23 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void templates() {
-        String token = crypto().generateSignedToken();
+        CSRF.Token token = new CSRF.Token("csrfToken", crypto().generateSignedToken());
         String body = contentAsString(MockJavaActionHelper.call(new MockJavaAction() {
+            @AddCSRFToken
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
             }
-        }, fakeRequest("GET", "/").session("csrfToken", token), mat));
+        }, fakeRequest("GET", "/").session("csrfToken", token.value()), mat));
 
         Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token.value())));
 
         matcher = Pattern.compile("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token.value())));
     }
 
     @Test
@@ -96,10 +98,11 @@ public class JavaCsrf extends WithApplication {
     }
 
     public static class Controller2 extends MockJavaAction {
+
         //#csrf-add-token
         @AddCSRFToken
         public Result get() {
-            return ok(form.render());
+            return ok(CSRF.getToken(request()).map(t -> t.value()).orElse("no token"));
         }
         //#csrf-add-token
     }

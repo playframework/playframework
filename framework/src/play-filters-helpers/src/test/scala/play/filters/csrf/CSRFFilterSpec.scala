@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.http.HttpFilters
+import play.filters.csrf.CSRFConfig
 import play.mvc.Http
 
 import scala.concurrent.Future

@@ -3,17 +3,17 @@
  */
 package play.filters.csrf;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 
+import play.api.libs.Crypto;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
-import play.libs.Scala;
 import play.mvc.Action;
 import play.mvc.Http;
+import play.mvc.Http.Request;
+import play.mvc.Http.RequestImpl;
 import play.mvc.Result;
 import scala.Option;
-import scala.Tuple2;
 
 import javax.inject.Inject;
 
@@ -21,44 +21,32 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
     private final CSRFConfig config;
     private final CSRF.TokenProvider tokenProvider;
+    private final Crypto crypto;
 
     @Inject
-    public AddCSRFTokenAction(CSRFConfig config, CSRF.TokenProvider tokenProvider) {
+    public AddCSRFTokenAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Crypto crypto) {
         this.config = config;
         this.tokenProvider = tokenProvider;
+        this.crypto = crypto;
     }
 
-    private final String requestTag = CSRF.Token$.MODULE$.RequestTag();
+    private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
-        RequestHeader request = ctx._requestHeader();
+        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
 
-        if (CSRFAction.getTokenFromHeader(request, config).isEmpty()) {
+        if (CSRFAction.getTokenToValidate(request, config, crypto).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
             String newToken = tokenProvider.generateToken();
 
             // Place this token into the context
-            ctx.args.put(requestTag, newToken);
+            ctx.args.put(Token.RequestTag(), newToken);
+            ctx.args.put(Token.NameRequestTag(), config.tokenName());
 
             // Create a new Scala RequestHeader with the token
-            final RequestHeader newRequest = request.copy(request.id(),
-                    request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
-                    request.uri(), request.path(), request.method(), request.version(), request.queryString(),
-                    request.headers(), Scala.asScala((Callable<String>) () -> request.remoteAddress()),
-                    Scala.asScala((Callable<Object>) () -> request.secure()));
-
-            // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
-            // used in templates will find the token.
-            Http.Context newCtx = new Http.WrappedContext(ctx) {
-                @Override
-                public RequestHeader _requestHeader() {
-                    return newRequest;
-                }
-            };
-
-            Http.Context.current.set(newCtx);
+            request = CSRFAction.tagRequest(request, new CSRF.Token(config.tokenName(), newToken));
 
             // Also add it to the response
             if (config.cookieName().isDefined()) {
@@ -68,11 +56,23 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             } else {
                 ctx.session().put(config.tokenName(), newToken);
             }
-
-            return delegate.call(newCtx);
-        } else {
-            return delegate.call(ctx);
         }
 
+        final RequestHeader newRequest = request;
+        // Methods returning requests should return the tagged request
+        Http.Context newCtx = new Http.WrappedContext(ctx) {
+            @Override
+            public Request request() {
+                return new RequestImpl(newRequest);
+            }
+
+            @Override
+            public RequestHeader _requestHeader() {
+                return newRequest;
+            }
+        };
+
+        Http.Context.current.set(newCtx);
+        return delegate.call(newCtx);
     }
 }
