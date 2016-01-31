@@ -175,6 +175,14 @@ package play.api.mvc {
     } yield charset
 
     /**
+      * Convenience method for adding a single tag to this request
+      * @return the tagged request
+      */
+    def withTag(tagName: String, tagValue: String): RequestHeader = {
+      copy(tags = tags + (tagName -> tagValue))
+    }
+
+    /**
      * Copy the request.
      */
     def copy(

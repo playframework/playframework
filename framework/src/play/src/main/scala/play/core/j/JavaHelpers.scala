@@ -222,6 +222,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def tags = header.tags.asJava
 
+  def withTag(name: String, value: String) = header.withTag(name, value)
+
   override def toString = header.toString
 
 }
