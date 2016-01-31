@@ -89,7 +89,7 @@ object HelpersSpec extends Specification {
       body must contain("name=\"foo\"")
 
       body must contain("""<option value="0" selected="selected">""")
-      body must contain("""<option value="1" >""")
+      body must contain("""<option value="1">""")
     }
 
     "Work as a multiple select" in {
@@ -102,6 +102,20 @@ object HelpersSpec extends Specification {
 
       body must contain("""<option value="0" selected="selected">""")
       body must contain("""<option value="1" selected="selected">""")
+    }
+
+    "allow disabled options" in {
+      val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
+      val body = select.apply(form("foo"), Seq(
+        "0" -> "test0",
+        "1" -> "test1",
+        "2" -> "test2"),
+        '_disabled -> Seq("0", "2")
+      ).body
+
+      body must contain("""<option value="0" disabled>test0</option>""")
+      body must contain("""<option value="1">test1</option>""")
+      body must contain("""<option value="2" disabled>test2</option>""")
     }
   }
 
