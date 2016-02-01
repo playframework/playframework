@@ -96,3 +96,31 @@ Details on how to set up Play with different logging frameworks are in [[Configu
 ## Renamed Ning components into Ahc
 
 In order to reflect the proper AsyncHttpClient library name, package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`.
+
+## CSRF filter changes
+
+In order to make Play's CSRF filter more resilient to browser plugin vulnerabilities and new extensions, the default configuration for the CSRF filter has been made far more conservative.  The changes include:
+
+* Instead of blacklisting `POST` requests, now only `GET`, `HEAD` and `OPTIONS` requests are whitelisted, and all other requests require a CSRF check.  This means `DELETE` and `PUT` requests are now checked.
+* Instead of blacklisting `application/x-www-form-urlencoded`, `multipart/form-data` and `text/plain` requests, requests of all content types, including no content type, require a CSRF check.  One consequence of this is that AJAX requests that use `application/json` now need to include a valid CSRF token in the `Csrf-Token` header.
+* Stateless header based bypasses, such as the `X-Request-With`, are disabled by default.
+
+In order to facilitate users moving to this new configuration, a new configuration option for accepting requests without cookies has been added.  This is turned on by default, and means REST clients that don't use session authentication will still work.  However, this means that that sites using non cookie based authentication in browsers, such as HTTP Basic, NTLM and TLS client certificates will be vulnerable to CSRF attacks, and so this option must be disabled by users using this configuration.
+
+Play's old default behaviour can be restored by adding the following configuration to `application.conf`:
+
+```
+play.filters.csrf {
+  header {
+    bypass = true
+    bypassNoCookies = false
+  }
+  method {
+    whiteList = []
+    blackList = ["POST"]
+  }
+  contentType.blackList = ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"]
+}
+```
+
+For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [[Scala|ScalaCsrf]].

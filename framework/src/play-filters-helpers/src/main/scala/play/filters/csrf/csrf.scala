@@ -44,15 +44,14 @@ case class CSRFConfig(tokenName: String = "csrfToken",
   createIfNotFound: (RequestHeader) => Boolean = CSRFConfig.defaultCreateIfNotFound,
   postBodyBuffer: Long = 102400,
   signTokens: Boolean = true,
-  checkMethod: String => Boolean = CSRFConfig.UnsafeMethods,
-  checkContentType: Option[String] => Boolean = _.exists(CSRFConfig.UnsafeContentTypes),
+  checkMethod: String => Boolean = !CSRFConfig.SafeMethods.contains(_),
+  checkContentType: Option[String] => Boolean = _ => true,
   headerName: String = "Csrf-Token",
-  headerBypass: Boolean = true)
+  headerBypass: Boolean = false,
+  noCookieBypass: Boolean = true)
 
 object CSRFConfig {
-  private val UnsafeContentTypes = Set("application/x-www-form-urlencoded", "text/plain", "multipart/form-data")
-
-  private val UnsafeMethods = Set("POST")
+  private val SafeMethods = Set("GET", "HEAD", "OPTIONS")
 
   private def defaultCreateIfNotFound(request: RequestHeader) = {
     // If the request isn't accepting HTML, then it won't be rendering a form, so there's no point in generating a
@@ -73,16 +72,24 @@ object CSRFConfig {
     val checkMethod: String => Boolean = if (methodWhiteList.nonEmpty) {
       !methodWhiteList.contains(_)
     } else {
-      methodBlackList.contains
+      if (methodBlackList.isEmpty) {
+        _ => true
+      } else {
+        methodBlackList.contains
+      }
     }
 
     val contentTypeWhiteList = config.get[Seq[String]]("contentType.whiteList").toSet
     val contentTypeBlackList = config.get[Seq[String]]("contentType.blackList").toSet
 
-    val checkContentType: String => Boolean = if (contentTypeWhiteList.nonEmpty) {
-      !contentTypeWhiteList.contains(_)
+    val checkContentType: Option[String] => Boolean = if (contentTypeWhiteList.nonEmpty) {
+      _.forall(!contentTypeWhiteList.contains(_))
     } else {
-      contentTypeBlackList.contains
+      if (contentTypeBlackList.isEmpty) {
+        _ => true
+      } else {
+        _.exists(contentTypeBlackList.contains)
+      }
     }
 
     CSRFConfig(
@@ -93,7 +100,7 @@ object CSRFConfig {
       postBodyBuffer = config.get[ConfigMemorySize]("body.bufferSize").toBytes,
       signTokens = config.get[Boolean]("token.sign"),
       checkMethod = checkMethod,
-      checkContentType = _.exists(checkContentType),
+      checkContentType = checkContentType,
       headerName = config.get[String]("header.name"),
       headerBypass = config.get[Boolean]("header.bypass")
     )
