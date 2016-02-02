@@ -183,11 +183,16 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 ```java
 // Assets.java
 package controllers.admin;
+
+import com.google.inject.Inject;
 import play.api.mvc.*;
 
 public class Assets {
+  @Inject
+  controllers.Assets assets;
+  
   public static Action<AnyContent> at(String path, String file) {
-    return controllers.Assets.at(path, file);
+    return assets.at(path, file, false);
   }
 }
 ```
