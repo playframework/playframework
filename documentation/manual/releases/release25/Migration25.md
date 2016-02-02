@@ -53,31 +53,31 @@ If you are using the java8 lambda syntax and the lambda's body does not throw a 
 
 Last but not least, if you are using `F.Callback3<A,B,C>` in your application, since there is no Java8 replacement for it, you may want to use `akka.japi.function.Function3`.
 
-## Replaced `F.Option` with Java8 `Optional`
+## Replaced `F.Option` with Java8 `java.util.Optional`
 
-`F.Option` has been discontinued and we embraced the Java8 `Optional` type. The two types are similar, but their API is different, so you will need to update your code. The main difference between the two types is that while `F.Option` inherited from `java.util.Collection`, `Optional` doesn't.
+`F.Option` has been discontinued and we embraced the Java8 [`java.util.Optional`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) type. The two types are similar, but their API is different, so you will need to update your code. The main difference between the two types is that while `F.Option` inherited from `java.util.Collection`, `java.util.Optional` doesn't.
 
 Here follows a short table that should ease the migration:
 
-|  F.Option  |  Optional  |
-| ---------- | ---------- |
-| None       | empty      |
-| Some       | ofNullable |
-| isDefined  | isPresent  |
-| isEmpty    | !isPresent |
-| get        | get        |
-| getOrElse  | ifPresent  |
-| map        | map        |
+|  F.Option   |  Optional        |
+| ----------- | ---------------- |
+| `None`      | [`empty`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#empty--) |
+| `Some`      | [`ofNullable`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#ofNullable-T-) |
+| `isDefined` | [`isPresent`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#isPresent--) |
+| `isEmpty`   | [!isPresent`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#isPresent--) |
+| `get`       | [`get`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#get--) |
+| `getOrElse` | [`orElse`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#orElse-T-) |
+| `map`       | [`map`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html#map-java.util.function.Function-) |
 
-`Optional` has a lot more combinators, so we highly encourage you to discover its API if you are not familiar with it already.
+`Optional` has a lot more combinators, so we highly encourage you to [discover its API](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) if you are not familiar with it already.
 
 ## Replaced static methods with dependency injection
 
-If you are using `controllers.ExternalAssets` in your routes file you must either set `routesGenerator := InjectedRoutesGenerator` in your `build.sbt` or you must use the `@` symbol in front of the route like `GET /some/path @controllers.ExternalAssets.at`
+If you are using `controllers.ExternalAssets` in your routes file you must either set `routesGenerator := InjectedRoutesGenerator` in your `build.sbt` or you must use the `@` symbol in front of the route like `GET /some/path @controllers.ExternalAssets.at`.
 
 ## Removed Plugins API
 
-Play's Plugin API was deprecated in 2.4, and has been removed.  
+Play's Plugin API was deprecated in 2.4, and has been removed.
 
 To create reusable components that are dependency injection independent, please use Play's module system [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).  Otherwise, a singleton bound to a dependency injected module (either [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]]) is usually enough to replace the Plugin API completely.
 
@@ -85,9 +85,9 @@ As part of this effort, the [[modules directory|ModuleDirectory]] has been refac
 
 ## Refactored Logback as an optional dependency
 
-The runtime dependency on Logback has been removed, and Play can now use any SLF4J compatible logging framework.  Logback is included by default, but because it exists as a separate module outside of Play (and is not part of the Logger class), the `play.api.Logger$ColoredLevel` converter in logback.xml has changed to `play.api.libs.logback.ColoredLevel`:
+The runtime dependency on Logback has been removed, and Play can now use any SLF4J compatible logging framework.  Logback is included by default, but because it exists as a separate module outside of Play (and is not part of the Logger class), the `play.api.Logger$ColoredLevel` converter in `logback.xml` has changed to `play.api.libs.logback.ColoredLevel`:
 
-```
+```xml
 <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 ```
 
