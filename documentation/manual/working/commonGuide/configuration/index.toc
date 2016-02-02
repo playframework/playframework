@@ -1,0 +1,8 @@
+Configuration:Configuration
+ConfigFile:Configuration file syntax and features
+ApplicationSecret:Configuring the application secret
+SettingsJDBC:Configuring the JDBC connection pool
+SettingsNetty:Configuring Netty server
+ThreadPools:Configuring Play's thread pools
+SettingsLogger:Configuring logging
+!ws:Configuring WS SSL

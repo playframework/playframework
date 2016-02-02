@@ -4,4 +4,3 @@ PlayConsole:Using the Play console
 IDE:Setting-up your preferred IDE
 Anatomy:Anatomy of a Play application
 Tutorials:Play Tutorials
-Modules:Play Modules
