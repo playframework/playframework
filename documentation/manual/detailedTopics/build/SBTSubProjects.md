@@ -191,7 +191,7 @@ public class Assets {
   @Inject
   controllers.Assets assets;
   
-  public static Action<AnyContent> at(String path, String file) {
+  public Action<AnyContent> at(String path, String file) {
     return assets.at(path, file, false);
   }
 }
