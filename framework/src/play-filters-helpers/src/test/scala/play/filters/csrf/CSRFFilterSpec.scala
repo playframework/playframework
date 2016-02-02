@@ -53,12 +53,18 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").head())(_.status must_== OK)
     }
 
-    // extra conditions for not doing a check
-    "not check non form bodies" in {
-      buildCsrfCheckRequest(false)(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
+    // extra conditions for doing a check
+    "check non form bodies" in {
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
+    }
+    "check all methods" in {
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
     }
     "not check safe methods" in {
-      buildCsrfCheckRequest(false)(_.put(Map("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").options())(_.status must_== OK)
+    }
+    "not check requests with no cookies" in {
+      buildCsrfCheckRequest(false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
     }
 
     // other

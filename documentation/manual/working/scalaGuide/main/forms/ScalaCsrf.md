@@ -5,28 +5,25 @@ Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks
 
 It is recommended that you familiarise yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
 
-Simply put, an attacker can coerce a victims browser to make the following types of requests:
+There is no simple answer to what requests are safe and what are vulnerable to CSRF requests, the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
 
-* All `GET` requests
-* `POST` requests with bodies of type `application/x-www-form-urlencoded`, `multipart/form-data` and `text/plain`
+* The request method is not `GET`, `HEAD` or `OPTIONS`.
+* The request has one or more `Cookie` headers.
 
-An attacker can not:
-
-* Coerce the browser to use other request methods such as `PUT` and `DELETE`
-* Coerce the browser to post other content types, such as `application/json`
-* Coerce the browser to send new cookies, other than those that the server has already set
-* Coerce the browser to set arbitrary headers, other than the normal headers the browser adds to requests
-
-Since `GET` requests are not meant to be mutative, there is no danger to an application that follows this best practice.  So the only requests that need CSRF protection are `POST` requests with the above mentioned content types.
+> **Note:** If you use non `Cookie` browser based authentication, such as HTTP Basic, NTLM, or client certificate based authentication, then requests without `Cookie` headers may also be vulnerable to CSRF attacks.  In this case, you **must** set `play.filters.csrf.header.bypassNoCookies` to `false`.
 
 ### Play's CSRF protection
 
 Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the users session.  Play then verifies that both tokens are present and match.
 
-To allow simple protection for non browser requests, such as requests made through AJAX, Play also supports the following:
+To allow simple protection for non browser requests, Play does not check requests with no cookies in the header.  If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
+
+Alternatively, you can set `play.filters.csrf.header.bypass` to `true`, and this will disable the check under the following conditions:
 
 * If an `X-Requested-With` header is present, Play will consider the request safe.  `X-Requested-With` is added to requests by many popular Javascript libraries, such as jQuery.
 * If a `Csrf-Token` header with value `nocheck` is present, or with a valid CSRF token, Play will consider the request safe.
+
+Caution should be taken when using this configuration option, as historically browser plugins have undermined this type of CSRF defence.
 
 ## Applying a global CSRF filter
 

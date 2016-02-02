@@ -66,15 +66,17 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
-    "accept requests with nocheck header" in {
-      csrfCheckRequest(_.withHeaders(HeaderName -> "nocheck")
+    "reject requests with nocheck header" in {
+      csrfCheckRequest(_.withCookies("foo" -> "bar")
+        .withHeaders(HeaderName -> "nocheck")
         .post(Map("foo" -> "bar"))
-      )(_.status must_== OK)
+      )(_.status must_== errorStatusCode)
     }
-    "accept requests with ajax header" in {
-      csrfCheckRequest(_.withHeaders("X-Requested-With" -> "a spoon")
+    "reject requests with ajax header" in {
+      csrfCheckRequest(_.withCookies("foo" -> "bar")
+        .withHeaders("X-Requested-With" -> "a spoon")
         .post(Map("foo" -> "bar"))
-      )(_.status must_== OK)
+      )(_.status must_== errorStatusCode)
     }
     "reject requests with different token in body" in {
       csrfCheckRequest(req => addToken(req, generate)
@@ -88,7 +90,8 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     }
     "reject requests with token in body but not in session" in {
       csrfCheckRequest(
-        _.post(Map("foo" -> "bar", TokenName -> generate))
+        _.withSession("foo" -> "bar")
+          .post(Map("foo" -> "bar", TokenName -> generate))
       )(_.status must_== errorStatusCode)
     }
 
@@ -217,6 +220,23 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
+    }
+
+    "allow configuring a header bypass" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "play.filters.csrf.header.bypass" -> "true")
+
+      "accept requests with nocheck header" in {
+        csrfCheckRequest(_.withCookies("foo" -> "bar")
+          .withHeaders(HeaderName -> "nocheck")
+          .post(Map("foo" -> "bar"))
+        )(_.status must_== OK)
+      }
+      "accept requests with ajax header" in {
+        csrfCheckRequest(_.withCookies("foo" -> "bar")
+          .withHeaders("X-Requested-With" -> "a spoon")
+          .post(Map("foo" -> "bar"))
+        )(_.status must_== OK)
+      }
     }
   }
 

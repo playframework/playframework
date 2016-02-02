@@ -10,6 +10,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
 import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
+import play.api.http.HeaderNames
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.http.HeaderNames._
@@ -388,6 +389,8 @@ object CSRFAction {
       } else {
         false
       }
+    } else if (config.noCookieBypass) {
+      request.headers.get(HeaderNames.COOKIE).isEmpty
     } else {
       false
     }
