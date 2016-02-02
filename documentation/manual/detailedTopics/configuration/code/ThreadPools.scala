@@ -26,17 +26,21 @@ object ThreadPoolsSpec extends PlaySpecification {
     "have a global configuration" in {
       val config = """#default-config
         akka {
-          fork-join-executor {
-            # Settings this to 1 instead of 3 seems to improve performance.
-            parallelism-factor = 1.0
+          actor {
+            default-dispatcher {
+              fork-join-executor {
+                # Settings this to 1 instead of 3 seems to improve performance.
+                parallelism-factor = 1.0
 
-            parallelism-max = 24
+                parallelism-max = 24
 
-            # Setting this to LIFO changes the fork-join-executor
-            # to use a stack discipline for task scheduling. This usually
-            # improves throughput at the cost of possibly increasing
-            # latency and risking task starvation (which should be rare).
-            task-peeking-mode = LIFO
+                # Setting this to LIFO changes the fork-join-executor
+                # to use a stack discipline for task scheduling. This usually
+                # improves throughput at the cost of possibly increasing
+                # latency and risking task starvation (which should be rare).
+                task-peeking-mode = LIFO
+              }
+            }
           }
         }
       #default-config """
@@ -49,17 +53,21 @@ object ThreadPoolsSpec extends PlaySpecification {
     "use akka default thread pool configuration" in {
       val config = """#akka-default-config
         akka {
-          fork-join-executor {
-            # The parallelism factor is used to determine thread pool size using the
-            # following formula: ceil(available processors * factor). Resulting size
-            # is then bounded by the parallelism-min and parallelism-max values.
-            parallelism-factor = 3.0
+          actor {
+            default-dispatcher {
+              fork-join-executor {
+                # The parallelism factor is used to determine thread pool size using the
+                # following formula: ceil(available processors * factor). Resulting size
+                # is then bounded by the parallelism-min and parallelism-max values.
+                parallelism-factor = 3.0
 
-            # Min number of threads to cap factor-based parallelism number to
-            parallelism-min = 8
+                # Min number of threads to cap factor-based parallelism number to
+                parallelism-min = 8
 
-            # Max number of threads to cap factor-based parallelism number to
-            parallelism-max = 64
+                # Max number of threads to cap factor-based parallelism number to
+                parallelism-max = 64
+              }
+            }
           }
         }
       #akka-default-config """
