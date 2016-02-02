@@ -17,20 +17,6 @@ Play comes with `play.api.test.WsTestClient`, which provides two methods, `wsCal
 wsUrl("https://example.com").get()
 ```
 
-
-
-## Integration Testing
-
-If you want confirmation that your client is correctly configured, you can call out to [HowsMySSL](https://www.howsmyssl.com/s/api.html), which has an API to check JSSE settings.
-
-@[context](code/HowsMySSLSpec.scala)
-
-Note that if you are writing tests that involve custom configuration such as revocation checking or disabled algorithms, you may need to pass system properties into SBT:
-
-```
-javaOptions in Test ++= Seq("-Dcom.sun.security.enableCRLDP=true", "-Dcom.sun.net.ssl.checkRevocation=true", "-Djavax.net.debug=all")
-```
-
 ## Adversarial Testing
 
 There are several points of where a connection can be attacked.  Writing these tests is fairly easy, and running these adversarial tests against unsuspecting programmers can be extremely satisfying.  
