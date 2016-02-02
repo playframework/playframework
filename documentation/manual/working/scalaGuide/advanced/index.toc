@@ -1,3 +1,4 @@
+ScalaAdvanced:Section contents
 iteratees:Handling data streams reactively
 routing:Advanced routing
 extending:Extending Play

@@ -1,0 +1,7 @@
+!build:The build system
+!configuration:Configuration
+!assets:Static assets
+!filters:Built-in HTTP filters
+!Modules:Extending Play with modules
+!database:Databases
+!production:Deploying your application
