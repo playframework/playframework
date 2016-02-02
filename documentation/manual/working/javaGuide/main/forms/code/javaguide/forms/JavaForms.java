@@ -204,7 +204,7 @@ public class JavaForms extends WithApplication {
             );
 
             @Override
-            public LocalTime parse(String input, Locale l) throws ParseException {
+            public LocalTime parse(String input) throws ParseException {
                 Matcher m = timePattern.matcher(input);
                 if (!m.find()) throw new ParseException("No valid Input", 0);
                 int hour = Integer.valueOf(m.group(1));
@@ -213,7 +213,7 @@ public class JavaForms extends WithApplication {
             }
 
             @Override
-            public String print(LocalTime localTime, Locale l) {
+            public String print(LocalTime localTime) {
                 return localTime.toString("HH:mm");
             }
 

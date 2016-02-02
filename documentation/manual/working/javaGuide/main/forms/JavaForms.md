@@ -81,6 +81,8 @@ For an object like JodaTime's `LocalTime` it could look like this:
 
 @[register-formatter](code/javaguide/forms/JavaForms.java)
 
+> **Tip:** If you need the current `Locale` (of the current request) to parse or format dates, numbers, etc. within the `parse` or `print` methods you can access it via `play.mvc.Http.Context.current().lang().toLocale()`.
+
 When the binding fails an array of errors keys is created, the first one defined in the messages file will be used. This array will generally contain:
 
     ["error.invalid.<fieldName>", "error.invalid.<type>", "error.invalid"]
