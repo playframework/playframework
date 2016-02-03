@@ -36,7 +36,7 @@ trait RequestTaggingHandler extends Handler {
  * An `EssentialAction` is a `Handler`, which means it is one of the objects
  * that Play uses to handle requests.
  */
-trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler { self =>
 
   /**
    * Returns itself, for better support in the routes file.
@@ -44,6 +44,12 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
    * @return itself
    */
   def apply() = this
+
+  def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
+    import play.api.libs.concurrent.Execution.Implicits.defaultContext
+    def apply(rh: play.mvc.Http.RequestHeader) = self(rh._underlyingHeader).map(_.asJava).asJava
+    override def apply(rh: RequestHeader) = self(rh)
+  }
 
 }
 
