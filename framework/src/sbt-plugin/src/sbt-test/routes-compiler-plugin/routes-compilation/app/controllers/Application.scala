@@ -6,7 +6,7 @@ package controllers
 import play.api.mvc._
 import scala.collection.JavaConversions._
 
-object Application extends Controller {
+class Application extends Controller {
   def index = Action {
     Ok
   }

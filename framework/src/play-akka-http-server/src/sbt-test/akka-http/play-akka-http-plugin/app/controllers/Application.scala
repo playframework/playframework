@@ -5,7 +5,7 @@ package controllers
 
 import play.api.mvc._
 
-object Application extends Controller {
+class Application extends Controller {
 
   /**
    * This action echoes the value of the HTTP_SERVER tag so that we

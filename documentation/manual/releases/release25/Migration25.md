@@ -111,4 +111,14 @@ In addition, there are number of small changes:
 * The `play.libs.ws.play.WSRequest` interface now returns `java.util.concurrent.CompletionStage` instead of `F.Promise`.
 * Static methods that rely on `Play.current` or `Play.application` have been deprecated.
 
+## Routes generated with InjectedRoutesGenerator
 
+Routes are now generated using the dependency injection aware `InjectedRoutesGenerator`, rather than the previous `StaticRoutesGenerator` which assumed controllers were singleton objects.  
+
+To revert back to the earlier behavior (if you have "object MyController" in your code, for example), please add:
+
+```
+routesGenerator := StaticRoutesGenerator
+```
+
+to your `build.sbt` file.

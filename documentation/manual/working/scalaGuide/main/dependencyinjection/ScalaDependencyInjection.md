@@ -21,17 +21,22 @@ There are two ways to make Play use dependency injected controllers.
 
 ### Injected routes generator
 
-By default, Play will generate a static router, that assumes that all actions are static methods.  By configuring Play to use the injected routes generator, you can get Play to generate a router that will declare all the controllers that it routes to as dependencies, allowing your controllers to be dependency injected themselves.
+By default (since 2.5.0), Play will generate a router that will declare all the controllers that it routes to as dependencies, allowing your controllers to be dependency injected themselves.
 
-We recommend always using the injected routes generator, the static routes generator exists primarily as a tool to aid migration so that existing projects don't have to make all their controllers non static at once.
 
-To enable the injected routes generator, add the following to your build settings in `build.sbt`:
+To enable the injected routes generator specifically, add the following to your build settings in `build.sbt`:
 
 @[content](code/injected.sbt)
 
 When using the injected routes generator, prefixing the action with an `@` symbol takes on a special meaning, it means instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
 
-### Injected actions
+### Static routes generator
+
+You can configure Play to use the legacy (pre 2.5.0) static routes generator, that assumes that all actions are static methods.  To configure the project, add the following to build.sbt:
+
+@[content](code/static.sbt)
+
+We recommend always using the injected routes generator.  The static routes generator exists primarily as a tool to aid migration so that existing projects don't have to make all their controllers non static at once.
 
 If using the static routes generator, you can indicate that an action has an injected controller by prefixing the action with `@`, like so:
 

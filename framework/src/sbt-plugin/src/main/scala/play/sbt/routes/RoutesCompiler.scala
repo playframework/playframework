@@ -119,7 +119,7 @@ object RoutesCompiler extends AutoPlugin {
     },
 
     namespaceReverseRouter := false,
-    routesGenerator := StaticRoutesGenerator,
+    routesGenerator := InjectedRoutesGenerator, // changed from StaticRoutesGenerator in 2.5.0
     sourcePositionMappers += routesPositionMapper
   )
 
