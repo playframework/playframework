@@ -89,8 +89,7 @@ public class JavaEmbeddingPlay {
     }
 
     private void withClient(Consumer<WSClient> callback) throws IOException {
-        Materializer materializer = Play.current().materializer();
-        try (WSClient client = new AhcWSClient(new AsyncHttpClientConfig.Builder().build(), materializer)) {
+        try (WSClient client = play.libs.ws.WS.newClient(19000)) {
             callback.accept(client);
         }
     }

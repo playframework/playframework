@@ -5,6 +5,7 @@
 package play.it.action
 
 import akka.stream.scaladsl.Source
+import io.netty.handler.codec.http.HttpHeaders
 import org.specs2.mutable.Specification
 import play.api.Play
 import play.api.http.HeaderNames._
@@ -87,10 +88,24 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       val responses = await(collectedFutures)
 
       val headHeaders = responses(0).underlying[NettyResponse].getHeaders
-      val getHeaders = responses(1).underlying[NettyResponse].getHeaders
+      val getHeaders: HttpHeaders = responses(1).underlying[NettyResponse].getHeaders
 
       // Exclude `Date` header because it can vary between requests
-      headHeaders.delete(DATE) must_== getHeaders.delete(DATE)
+      import scala.collection.JavaConverters._
+      val firstHeaders = headHeaders.remove(DATE)
+      val secondHeaders = getHeaders.remove(DATE)
+
+      // HTTPHeaders doesn't seem to be anything as simple as an equals method, so let's compare A !< B && B >! A
+      val notInFirst = secondHeaders.asScala.collectFirst {
+        case entry if !firstHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      val notInSecond = firstHeaders.asScala.collectFirst {
+        case entry if !secondHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      notInFirst must beEmpty
+      notInSecond must beEmpty
     }
 
     "return 404 in response to a URL without an associated GET handler" in withServer { client =>

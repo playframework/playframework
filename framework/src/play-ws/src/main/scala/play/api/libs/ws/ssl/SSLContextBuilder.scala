@@ -97,24 +97,24 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   def build: SSLContext = {
-
-    val revocationLists = certificateRevocationList(info)
-    val signatureConstraints = info.disabledSignatureAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
-
-    val keySizeConstraints = info.disabledKeyAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
-
-    val algorithmChecker = new AlgorithmChecker(signatureConstraints, keySizeConstraints)
-
-    val keyManagers: Seq[KeyManager] = if (info.keyManagerConfig.keyStoreConfigs.nonEmpty) {
-      Seq(buildCompositeKeyManager(info.keyManagerConfig, algorithmChecker))
-    } else Nil
-
-    val trustManagers: Seq[TrustManager] = if (info.trustManagerConfig.trustStoreConfigs.nonEmpty) {
-      Seq(buildCompositeTrustManager(info.trustManagerConfig, info.checkRevocation.getOrElse(false), revocationLists, algorithmChecker))
-    } else Nil
-
     buildSSLContext(info.protocol, keyManagers, trustManagers, info.secureRandom)
   }
+
+  lazy val revocationLists = certificateRevocationList(info)
+
+  lazy val signatureConstraints = info.disabledSignatureAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
+
+  lazy val keySizeConstraints = info.disabledKeyAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
+
+  lazy val algorithmChecker = new AlgorithmChecker(signatureConstraints, keySizeConstraints)
+
+  lazy val keyManagers: Seq[KeyManager] = if (info.keyManagerConfig.keyStoreConfigs.nonEmpty) {
+    Seq(buildCompositeKeyManager(info.keyManagerConfig, algorithmChecker))
+  } else Nil
+
+  lazy val trustManagers: Seq[TrustManager] = if (info.trustManagerConfig.trustStoreConfigs.nonEmpty) {
+    Seq(buildCompositeTrustManager(info.trustManagerConfig, info.checkRevocation.getOrElse(false), revocationLists, algorithmChecker))
+  } else Nil
 
   def buildSSLContext(protocol: String,
     keyManagers: Seq[KeyManager],

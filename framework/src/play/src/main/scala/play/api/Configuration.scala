@@ -779,7 +779,8 @@ case class Configuration(underlying: Config) {
    * val configuration = Configuration.load()
    * val subKeys = configuration.subKeys
    * }}}
-   * @return the set of direct sub-keys available in this configuration
+    *
+    * @return the set of direct sub-keys available in this configuration
    */
   def subKeys: Set[String] = underlying.root().keySet().asScala.toSet
 
@@ -911,17 +912,17 @@ case class Configuration(underlying: Config) {
 private[play] class PlayConfig(val underlying: Config) {
 
   /**
-   * Get the config at the given path.
-   */
+    * Get the config at the given path.
+    */
   def get[A](path: String)(implicit loader: ConfigLoader[A]): A = {
     loader.load(underlying, path)
   }
 
   /**
-   * Get a prototyped sequence of objects.
-   *
-   * Each object in the sequence will fallback to the object loaded from prototype.$path.
-   */
+    * Get a prototyped sequence of objects.
+    *
+    * Each object in the sequence will fallback to the object loaded from prototype.$path.
+    */
   def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Seq[Config]](path).map { config =>
@@ -930,10 +931,10 @@ private[play] class PlayConfig(val underlying: Config) {
   }
 
   /**
-   * Get a prototyped map of objects.
-   *
-   * Each value in the map will fallback to the object loaded from prototype.$path.
-   */
+    * Get a prototyped map of objects.
+    *
+    * Each value in the map will fallback to the object loaded from prototype.$path.
+    */
   def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
     val prototype = if (prototypePath.isEmpty) {
       underlying
@@ -946,17 +947,18 @@ private[play] class PlayConfig(val underlying: Config) {
   }
 
   /**
-   * Get a deprecated configuration item.
-   *
-   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
-   *
-   * Otherwise, the configuration from path will be looked up.
-   */
-  def getDeprecated[A: ConfigLoader](path: String, deprecated: String): A = {
-    if (underlying.hasPath(deprecated)) {
-      reportDeprecation(path, deprecated)
-      get[A](deprecated)
-    } else {
+    * Get a deprecated configuration item.
+    *
+    * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
+    *
+    * Otherwise, the configuration from path will be looked up.
+    */
+  def getDeprecated[A: ConfigLoader](path: String, deprecatedPaths: String*): A = {
+    deprecatedPaths.collectFirst {
+      case deprecated if underlying.hasPath(deprecated) =>
+        reportDeprecation(path, deprecated)
+        get[A](deprecated)
+    }.getOrElse {
       get[A](path)
     }
   }

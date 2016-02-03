@@ -168,7 +168,7 @@ object WS {
 }
 
 /**
- * The base WS API trait.  Plugins should extend this.
+ * The base WS API trait.
  */
 trait WSAPI {
 
@@ -566,8 +566,6 @@ object WSAuthScheme {
 
   case object KERBEROS extends WSAuthScheme
 
-  case object NONE extends WSAuthScheme
-
 }
 
 /**
@@ -632,6 +630,7 @@ trait WSProxyServer {
 
   def ntlmDomain: Option[String]
 
+  /** The realm's charset. */
   def encoding: Option[String]
 
   def nonProxyHosts: Option[Seq[String]]
@@ -658,6 +657,7 @@ case class DefaultWSProxyServer(
 
   ntlmDomain: Option[String] = None,
 
+  /** The realm's charset. */
   encoding: Option[String] = None,
 
   nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer

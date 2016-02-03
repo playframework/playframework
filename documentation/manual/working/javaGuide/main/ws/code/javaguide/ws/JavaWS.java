@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 // #json-imports
 
+import play.libs.ws.ahc.AhcWSClient;
 import scala.compat.java8.FutureConverters;
 
 import java.io.*;
@@ -252,10 +253,6 @@ public class JavaWS {
         }
 
         public void clientExamples() {
-            // #ws-client
-            WSClient client = WS.client();
-            // #ws-client
-
             // #ws-custom-client
             // Set up the client config (you can also use a parser here):
             scala.Option<String> noneString = scala.None$.empty();
@@ -271,20 +268,30 @@ public class JavaWS {
 
             AhcWSClientConfig clientConfig = AhcWSClientConfigFactory.forClientConfig(wsClientConfig);
 
-            // Build a secure config out of the client config:
-            AhcConfigBuilder secureBuilder = new AhcConfigBuilder(clientConfig);
-            AsyncHttpClientConfig secureDefaults = secureBuilder.build();
-
-            // You can directly use the builder for specific options once you have secure TLS defaults...
-            AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
-                            .setProxyServer(new org.asynchttpclient.proxy.ProxyServer("127.0.0.1", 38080))
-                            .setCompressionEnforced(true)
-                            .build();
-
-            WSClient customClient = new play.libs.ws.ahc.AhcWSClient(customConfig, materializer);
-
-            CompletionStage<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();
+            // Add underlying asynchttpclient options to WSClient
+            AhcConfigBuilder builder = new AhcConfigBuilder(clientConfig);
+            DefaultAsyncHttpClientConfig.Builder ahcBuilder = builder.configure();
+            AsyncHttpClientConfig.AdditionalChannelInitializer logging = new AsyncHttpClientConfig.AdditionalChannelInitializer() {
+                @Override
+                public void initChannel(io.netty.channel.Channel channel) throws IOException {
+                    channel.pipeline().addFirst("log", new io.netty.handler.logging.LoggingHandler("debug"));
+                }
+            };
+            ahcBuilder.setHttpAdditionalChannelInitializer(logging);
             // #ws-custom-client
+
+            // #ws-client
+            WSClient customWSClient = new play.libs.ws.ahc.AhcWSClient(ahcBuilder.build(), materializer);
+            // #ws-client
+
+            org.slf4j.Logger logger = play.Logger.underlying();
+            // #ws-close-client
+            try {
+                customWSClient.close();
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+            // #ws-close-client
 
             // #ws-underlying-client
             org.asynchttpclient.AsyncHttpClient underlyingClient =

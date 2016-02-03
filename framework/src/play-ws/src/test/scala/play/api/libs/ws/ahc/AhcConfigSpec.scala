@@ -42,30 +42,48 @@ object AhcConfigSpec extends Specification with Mockito {
 
     "parse ws ahc section" in new WithApplication {
       val actual = parseThis("""
-                               |play.ws.ahc.allowPoolingConnection = false
-                               |play.ws.ahc.allowSslConnectionPool = false
-                               |play.ws.ahc.ioThreadMultiplier = 5
                                |play.ws.ahc.maxConnectionsPerHost = 3
                                |play.ws.ahc.maxConnectionsTotal = 6
                                |play.ws.ahc.maxConnectionLifetime = 1 minute
                                |play.ws.ahc.idleConnectionInPoolTimeout = 30 seconds
-                               |play.ws.ahc.webSocketIdleTimeout = 2 minutes
                                |play.ws.ahc.maxNumberOfRedirects = 0
                                |play.ws.ahc.maxRequestRetry = 99
                                |play.ws.ahc.disableUrlEncoding = true
+                               |play.ws.ahc.keepAlive = false
                              """.stripMargin)
 
-      actual.allowPoolingConnection must beFalse
-      actual.allowSslConnectionPool must beFalse
-      actual.ioThreadMultiplier must_== 5
       actual.maxConnectionsPerHost must_== 3
       actual.maxConnectionsTotal must_== 6
       actual.maxConnectionLifetime must_== 1.minute
       actual.idleConnectionInPoolTimeout must_== 30.seconds
-      actual.webSocketIdleTimeout must_== 2.minutes
       actual.maxNumberOfRedirects must_== 0
       actual.maxRequestRetry must_== 99
       actual.disableUrlEncoding must beTrue
+      actual.keepAlive must beFalse
+    }
+
+    "with keepAlive" should {
+      "parse keepAlive default as true" in new WithApplication {
+        val actual = parseThis("""""".stripMargin)
+
+        actual.keepAlive must beTrue
+      }
+
+      "throw exception on play.ws.ning.allowPoolingConnection" in new WithApplication {
+        {
+          parseThis("""
+                      |play.ws.ning.allowPoolingConnection = false
+                    """.stripMargin)
+        }.must(throwAn[play.api.PlayException])
+      }
+
+      "throw exception on play.ws.ning.allowSslConnectionPool" in new WithApplication {
+        {
+          parseThis("""
+                      |play.ws.ning.allowSslConnectionPool = false
+                    """.stripMargin)
+        }.must(throwAn[play.api.PlayException])
+      }
     }
 
     "with basic options" should {
@@ -144,25 +162,11 @@ object AhcConfigSpec extends Specification with Mockito {
 
     "with ahc options" should {
 
-      "allow setting ahc allowPoolingConnection" in {
-        val config = defaultConfig.copy(allowPoolingConnection = false)
+      "allow setting ahc keepAlive" in {
+        val config = defaultConfig.copy(keepAlive = false)
         val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
-        actual.isAllowPoolingConnections() must_== false
-      }
-
-      "allow setting ahc allowSslConnectionPool" in {
-        val config = defaultConfig.copy(allowSslConnectionPool = false)
-        val builder = new AhcConfigBuilder(config)
-        val actual = builder.build()
-        actual.isAllowPoolingSslConnections must_== false
-      }
-
-      "allow setting ahc ioThreadMultiplier" in {
-        val config = defaultConfig.copy(ioThreadMultiplier = 5)
-        val builder = new AhcConfigBuilder(config)
-        val actual = builder.build()
-        actual.getIoThreadMultiplier must_== 5
+        actual.isKeepAlive must_== false
       }
 
       "allow setting ahc maximumConnectionsPerHost" in {
@@ -193,7 +197,7 @@ object AhcConfigSpec extends Specification with Mockito {
         actual.getMaxRequestRetry must_== 99
       }
 
-      "allow setting ahc useRawUrl" in {
+      "allow setting ahc disableUrlEncoding" in {
         val config = defaultConfig.copy(disableUrlEncoding = true)
         val builder = new AhcConfigBuilder(config)
         val actual = builder.build()
@@ -225,25 +229,29 @@ object AhcConfigSpec extends Specification with Mockito {
           org.mockito.Mockito.verify(sslConfig)
 
           // ...and return a result so specs2 is happy.
-          asyncClientConfig.getSSLContext must not(beNull)
+          asyncClientConfig.getSslEngineFactory must not(beNull)
         }
 
         "use the default with a current certificate" in {
-          val tmc = TrustManagerConfig()
-          val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, trustManagerConfig = tmc))
-          val config = defaultConfig.copy(wsClientConfig = wsConfig)
-          val builder = new AhcConfigBuilder(config)
+          // You can't get the value of SSLContext out from the JSSE SSL engine factory, so
+          // checking SSLContext.getDefault from a default = true is hard.
+          // Unless we can mock this, it doesn't seem like it's easy to unit test.
+          pending("AHC 2.0 does not provide a reference to a configured SSLContext")
 
-          val asyncClientConfig = builder.build()
-          val sslContext = asyncClientConfig.getSSLContext
-          sslContext must beEqualTo(SSLContext.getDefault)
+          //val tmc = TrustManagerConfig()
+          //val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, trustManagerConfig = tmc))
+          //val config = defaultConfig.copy(wsClientConfig = wsConfig)
+          //val builder = new AhcConfigBuilder(config)
+          //
+          //val asyncClientConfig = builder.build()
+          //val sslEngineFactory = asyncClientConfig.getSslEngineFactory
         }
 
-        "log a warahc if sslConfig.default is passed in with an weak certificate" in {
+        "log a warning if sslConfig.default is passed in with an weak certificate" in {
           import ch.qos.logback.classic.spi._
           import ch.qos.logback.classic._
 
-          // Pass in a configuration which is guaranteed to fail, by banahc RSA, DSA and EC certificates
+          // Pass in a configuration which is guaranteed to fail, by banning RSA, DSA and EC certificates
           val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, disabledKeyAlgorithms = Seq("RSA", "DSA", "EC")))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)

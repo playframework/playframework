@@ -3,6 +3,8 @@
  */
 package play.libs.oauth
 
+import java.util.concurrent.CompletionStage
+
 import akka.util.ByteString
 import play.api.mvc._
 import play.api.test._
@@ -48,7 +50,7 @@ class OAuthSpec extends PlaySpecification {
     }
   }
 
-  def receiveRequest(makeRequest: (play.libs.ws.WSClient, String) => F.Promise[_]): (RequestHeader, ByteString, String) = {
+  def receiveRequest(makeRequest: (play.libs.ws.WSClient, String) => CompletionStage[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
     val promise = Promise[(RequestHeader, ByteString)]()
     val app = FakeApplication(withRoutes = {
@@ -59,7 +61,7 @@ class OAuthSpec extends PlaySpecification {
     })
     running(TestServer(testServerPort, app)) {
       val client = app.injector.instanceOf(classOf[play.libs.ws.WSClient])
-      makeRequest(client, hostUrl).get(30000l)
+      makeRequest(client, hostUrl).toCompletableFuture.get()
     }
     val (request, body) = await(promise.future)
     (request, body, hostUrl)

@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import org.asynchttpclient.AsyncHttpClientConfig;
 
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import play.Application;
 import play.libs.ws.ahc.AhcWSClient;
 
@@ -57,8 +58,8 @@ public class WS {
      * @return A running WS client.
      */
     public static WSClient newClient(final int port) {
-        AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
-                .setMaxRequestRetry(0).setShutdownQuiet(0).setShutdownTimeout(0).build();
+        AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
+                .setMaxRequestRetry(0).setShutdownQuietPeriod(0).setShutdownTimeout(0).build();
 
         String name = "ws-java-newClient";
         final ActorSystem system = ActorSystem.create(name);

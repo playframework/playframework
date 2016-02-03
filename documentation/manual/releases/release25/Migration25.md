@@ -93,6 +93,22 @@ The runtime dependency on Logback has been removed, and Play can now use any SLF
 
 Details on how to set up Play with different logging frameworks are in [[Configuring logging|SettingsLogger]] section.
 
-## Renamed Ning components into Ahc
+## Upgraded WS to use AsyncHttpClient 2.0.0
 
-In order to reflect the proper AsyncHttpClient library name, package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`.
+Play WS has been upgraded to use AsyncHttpClient 2.0.0.  This is a major upgrade that uses Netty 4.0. Most of the changes in AHC 2.0 are under the hood, but AHC has some significant refactorings which require breaking changes to the WS API:
+
+* [`AsyncHttpClientConfig`] replaced by [`DefaultAsyncHttpClientConfig`](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.html).
+* [`allowPoolingConnection`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#allowPoolingConnections) and `allowSslConnectionPool` are combined in AsyncHttpClient into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.  
+* [`webSocketIdleTimeout`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#webSocketTimeout) has been removed, so is no longer available in `AhcWSClientConfig`.
+* [`ioThreadMultiplier`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#ioThreadMultiplier) has been removed, so is no longer available in `AhcWSClientConfig`.
+* [`FluentCaseInsensitiveStringsMap`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/FluentCaseInsensitiveStringsMap.html) class is removed and replaced by Netty's `HttpHeader` class.
+* [`Realm.AuthScheme.None`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/Realm.AuthScheme.html#NONE) has been removed, so is no longer available in `WSAuthScheme`.
+
+In addition, there are number of small changes:
+
+* In order to reflect the proper AsyncHttpClient library name, package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`.  In addition, the AHC configuration settings have been changed to `play.ws.ahc` prefix, i.e. `play.ws.ning.maxConnectionsPerHost` is now `play.ws.ahc.maxConnectionsPerHost`.
+* The deprecated interface `play.libs.ws.WSRequestHolder` has been removed.
+* The `play.libs.ws.play.WSRequest` interface now returns `java.util.concurrent.CompletionStage` instead of `F.Promise`.
+* Static methods that rely on `Play.current` or `Play.application` have been deprecated.
+
+

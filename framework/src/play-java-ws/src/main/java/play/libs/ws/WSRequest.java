@@ -35,7 +35,7 @@ public interface WSRequest {
      *
      * @return a promise to the response
      */
-    F.Promise<WSResponse> get();
+    CompletionStage<WSResponse> get();
 
     //-------------------------------------------------------------------------
     // "PATCH"
@@ -47,7 +47,7 @@ public interface WSRequest {
      * @param body represented as String
      * @return a promise to the response
      */
-    F.Promise<WSResponse> patch(String body);
+    CompletionStage<WSResponse> patch(String body);
 
     /**
      * Perform a PATCH on the request asynchronously.
@@ -55,7 +55,7 @@ public interface WSRequest {
      * @param body represented as JSON
      * @return a promise to the response
      */
-    F.Promise<WSResponse> patch(JsonNode body);
+    CompletionStage<WSResponse> patch(JsonNode body);
 
     /**
      * Perform a PATCH on the request asynchronously.
@@ -63,7 +63,7 @@ public interface WSRequest {
      * @param body represented as an InputStream
      * @return a promise to the response
      */
-    F.Promise<WSResponse> patch(InputStream body);
+    CompletionStage<WSResponse> patch(InputStream body);
 
     /**
      * Perform a PATCH on the request asynchronously.
@@ -71,7 +71,7 @@ public interface WSRequest {
      * @param body represented as a File
      * @return a promise to the response
      */
-    F.Promise<WSResponse> patch(File body);
+    CompletionStage<WSResponse> patch(File body);
 
     //-------------------------------------------------------------------------
     // "POST"
@@ -83,7 +83,7 @@ public interface WSRequest {
      * @param body represented as String
      * @return a promise to the response
      */
-    F.Promise<WSResponse> post(String body);
+    CompletionStage<WSResponse> post(String body);
 
     /**
      * Perform a POST on the request asynchronously.
@@ -91,7 +91,7 @@ public interface WSRequest {
      * @param body represented as JSON
      * @return a promise to the response
      */
-    F.Promise<WSResponse> post(JsonNode body);
+    CompletionStage<WSResponse> post(JsonNode body);
 
     /**
      * Perform a POST on the request asynchronously.
@@ -99,7 +99,7 @@ public interface WSRequest {
      * @param body represented as an InputStream
      * @return a promise to the response
      */
-    F.Promise<WSResponse> post(InputStream body);
+    CompletionStage<WSResponse> post(InputStream body);
 
     /**
      * Perform a POST on the request asynchronously.
@@ -107,7 +107,7 @@ public interface WSRequest {
      * @param body represented as a File
      * @return a promise to the response
      */
-    F.Promise<WSResponse> post(File body);
+    CompletionStage<WSResponse> post(File body);
 
     //-------------------------------------------------------------------------
     // "PUT"
@@ -119,7 +119,7 @@ public interface WSRequest {
      * @param body represented as String
      * @return a promise to the response
      */
-    F.Promise<WSResponse> put(String body);
+    CompletionStage<WSResponse> put(String body);
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -127,7 +127,7 @@ public interface WSRequest {
      * @param body represented as JSON
      * @return a promise to the response
      */
-    F.Promise<WSResponse> put(JsonNode body);
+    CompletionStage<WSResponse> put(JsonNode body);
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -135,7 +135,7 @@ public interface WSRequest {
      * @param body represented as an InputStream
      * @return a promise to the response
      */
-    F.Promise<WSResponse> put(InputStream body);
+    CompletionStage<WSResponse> put(InputStream body);
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -143,7 +143,7 @@ public interface WSRequest {
      * @param body represented as a File
      * @return a promise to the response
      */
-    F.Promise<WSResponse> put(File body);
+    CompletionStage<WSResponse> put(File body);
 
     //-------------------------------------------------------------------------
     // Miscellaneous execution methods
@@ -154,21 +154,21 @@ public interface WSRequest {
      *
      * @return a promise to the response
      */
-    F.Promise<WSResponse> delete();
+    CompletionStage<WSResponse> delete();
 
     /**
      * Perform a HEAD on the request asynchronously.
      *
      * @return a promise to the response
      */
-    F.Promise<WSResponse> head();
+    CompletionStage<WSResponse> head();
 
     /**
      * Perform an OPTIONS on the request asynchronously.
      *
      * @return a promise to the response
      */
-    F.Promise<WSResponse> options();
+    CompletionStage<WSResponse> options();
 
     /**
      * Execute an arbitrary method on the request asynchronously.
@@ -176,14 +176,14 @@ public interface WSRequest {
      * @param method The method to execute
      * @return a promise to the response
      */
-    F.Promise<WSResponse> execute(String method);
+    CompletionStage<WSResponse> execute(String method);
 
     /**
      * Execute an arbitrary method on the request asynchronously.  Should be used with setMethod().
      *
      * @return a promise to the response
      */
-    F.Promise<WSResponse> execute();
+    CompletionStage<WSResponse> execute();
 
     /**
      * Execute this request and stream the response body.

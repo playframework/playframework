@@ -10,6 +10,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.asynchttpclient.*;
 import org.asynchttpclient.oauth.OAuthSignatureCalculator;
@@ -44,7 +45,7 @@ public class AhcWSRequest implements WSRequest {
     private String method = "GET";
     private Object body = null;
     private Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
-    private Map<String, Collection<String>> queryParameters = new HashMap<String, Collection<String>>();
+    private Map<String, List<String>> queryParameters = new HashMap<String, List<String>>();
 
     private String username;
     private String password;
@@ -288,7 +289,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public F.Promise<WSResponse> get() {
+    public CompletionStage<WSResponse> get() {
         return execute("GET");
     }
 
@@ -297,28 +298,28 @@ public class AhcWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<WSResponse> patch(String body) {
+    public CompletionStage<WSResponse> patch(String body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> patch(JsonNode body) {
+    public CompletionStage<WSResponse> patch(JsonNode body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> patch(InputStream body) {
+    public CompletionStage<WSResponse> patch(InputStream body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> patch(File body) {
+    public CompletionStage<WSResponse> patch(File body) {
         setMethod("PATCH");
         setBody(body);
         return execute();
@@ -329,28 +330,28 @@ public class AhcWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<WSResponse> post(String body) {
+    public CompletionStage<WSResponse> post(String body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> post(JsonNode body) {
+    public CompletionStage<WSResponse> post(JsonNode body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> post(InputStream body) {
+    public CompletionStage<WSResponse> post(InputStream body) {
         setMethod("POST");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> post(File body) {
+    public CompletionStage<WSResponse> post(File body) {
         setMethod("POST");
         setBody(body);
         return execute();
@@ -361,56 +362,56 @@ public class AhcWSRequest implements WSRequest {
     //-------------------------------------------------------------------------
 
     @Override
-    public F.Promise<WSResponse> put(String body) {
+    public CompletionStage<WSResponse> put(String body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> put(JsonNode body) {
+    public CompletionStage<WSResponse> put(JsonNode body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> put(InputStream body) {
+    public CompletionStage<WSResponse> put(InputStream body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> put(File body) {
+    public CompletionStage<WSResponse> put(File body) {
         setMethod("PUT");
         setBody(body);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> delete() {
+    public CompletionStage<WSResponse> delete() {
         return execute("DELETE");
     }
 
     @Override
-    public F.Promise<WSResponse> head() {
+    public CompletionStage<WSResponse> head() {
         return execute("HEAD");
     }
 
     @Override
-    public F.Promise<WSResponse> options() {
+    public CompletionStage<WSResponse> options() {
         return execute("OPTIONS");
     }
 
     @Override
-    public F.Promise<WSResponse> execute(String method) {
+    public CompletionStage<WSResponse> execute(String method) {
         setMethod(method);
         return execute();
     }
 
     @Override
-    public F.Promise<WSResponse> execute() {
+    public CompletionStage<WSResponse> execute() {
         Request request = buildRequest();
         return execute(request);
     }
@@ -423,12 +424,14 @@ public class AhcWSRequest implements WSRequest {
     }
 
     Request buildRequest() {
-        FluentCaseInsensitiveStringsMap possiblyModifiedHeaders = new FluentCaseInsensitiveStringsMap(this.headers);
+        boolean validate = true;
+        HttpHeaders possiblyModifiedHeaders = new DefaultHttpHeaders(validate);
+        this.headers.forEach(possiblyModifiedHeaders::add);
 
         RequestBuilder builder = new RequestBuilder(method);
 
         builder.setUrl(url);
-        builder.setQueryParams(new FluentStringsMap(queryParameters));
+        builder.setQueryParams(queryParameters);
 
         if (body == null) {
             // do nothing
@@ -436,7 +439,7 @@ public class AhcWSRequest implements WSRequest {
             String stringBody = ((String) body);
 
             // Detect and maybe add charset
-            String contentType = possiblyModifiedHeaders.getFirstValue(HttpHeaders.Names.CONTENT_TYPE);
+            String contentType = possiblyModifiedHeaders.get(HttpHeaders.Names.CONTENT_TYPE);
             if (contentType == null) {
                 contentType = "text/plain";
             }
@@ -449,7 +452,7 @@ public class AhcWSRequest implements WSRequest {
                 contentTypeList.add(contentType);
             }
             // Always replace the content type header to make sure exactly one exists
-            possiblyModifiedHeaders.replace(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
+            possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
 
             byte[] bodyBytes;
             bodyBytes = stringBody.getBytes(charset);
@@ -469,12 +472,12 @@ public class AhcWSRequest implements WSRequest {
                 builder.setBody(stringBody);
             }
 
-            builder.setBodyCharset(charset);
+            builder.setCharset(charset);
         } else if (body instanceof JsonNode) {
             JsonNode jsonBody = (JsonNode) body;
             List<String> contentType = new ArrayList<String>();
             contentType.add("application/json; charset=utf-8");
-            possiblyModifiedHeaders.replace(HttpHeaders.Names.CONTENT_TYPE, contentType);
+            possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentType);
             String bodyStr = Json.stringify(jsonBody);
             byte[] bodyBytes;
             try {
@@ -484,7 +487,7 @@ public class AhcWSRequest implements WSRequest {
             }
 
             builder.setBody(bodyStr);
-            builder.setBodyCharset(StandardCharsets.UTF_8);
+            builder.setCharset(StandardCharsets.UTF_8);
         } else if (body instanceof File) {
             File fileBody = (File) body;
             FileBodyGenerator bodyGenerator = new FileBodyGenerator(fileBody);
@@ -531,7 +534,7 @@ public class AhcWSRequest implements WSRequest {
         return builder.build();
     }
 
-    private F.Promise<WSResponse> execute(Request request) {
+    private CompletionStage<WSResponse> execute(Request request) {
 
         final scala.concurrent.Promise<WSResponse> scalaPromise = scala.concurrent.Promise$.MODULE$.<WSResponse>apply();
         try {
@@ -557,10 +560,8 @@ public class AhcWSRequest implements WSRequest {
 
     Realm auth(String username, String password, WSAuthScheme scheme) {
         Realm.AuthScheme authScheme = Realm.AuthScheme.valueOf(scheme.name());
-        return (new Realm.RealmBuilder())
+        return (new Realm.Builder(username, password))
                 .setScheme(authScheme)
-                .setPrincipal(username)
-                .setPassword(password)
                 .setUsePreemptiveAuth(true)
                 .build();
     }

@@ -9,9 +9,10 @@ import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
 import javax.inject.{ Singleton, Inject, Provider }
 
+import org.asynchttpclient.netty.ssl.JsseSslEngineFactory
 import org.slf4j.LoggerFactory
 
-import org.asynchttpclient.AsyncHttpClientConfig
+import org.asynchttpclient.{ DefaultAsyncHttpClientConfig, AsyncHttpClientConfig }
 
 import javax.net.ssl._
 import play.api.{ ConfigLoader, PlayConfig, Environment, Configuration }
@@ -24,30 +25,24 @@ import scala.concurrent.duration._
  * Ahc client config.
  *
  * @param wsClientConfig The general WS client config.
- * @param allowPoolingConnection Whether connection pooling should be allowed.
- * @param allowSslConnectionPool Whether connection pooling should be allowed for SSL connections.
- * @param ioThreadMultiplier The multiplier to use for the number of IO threads.
  * @param maxConnectionsPerHost The maximum number of connections to make per host. -1 means no maximum.
  * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum.
  * @param maxConnectionLifetime The maximum time that a connection should live for in the pool.
  * @param idleConnectionInPoolTimeout The time after which a connection that has been idle in the pool should be closed.
- * @param webSocketIdleTimeout The time after which a websocket connection should be closed.
  * @param maxNumberOfRedirects The maximum number of redirects.
  * @param maxRequestRetry The maximum number of times to retry a request if it fails.
  * @param disableUrlEncoding Whether the raw URL should be used.
+ * @param keepAlive keeps thread pool active, replaces allowPoolingConnection and allowSslConnectionPool
  */
 case class AhcWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
-  allowPoolingConnection: Boolean = true,
-  allowSslConnectionPool: Boolean = true,
-  ioThreadMultiplier: Int = 2,
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
   maxConnectionLifetime: Duration = Duration.Inf,
   idleConnectionInPoolTimeout: Duration = 1.minute,
-  webSocketIdleTimeout: Duration = 15.minutes,
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
-  disableUrlEncoding: Boolean = false)
+  disableUrlEncoding: Boolean = false,
+  keepAlive: Boolean = true)
 
 /**
  * Factory for creating AhcWSClientConfig, for use from Java.
@@ -75,31 +70,36 @@ class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
     def get[A: ConfigLoader](name: String): A =
       playConfig.getDeprecated[A](s"play.ws.ahc.$name", s"play.ws.ning.$name")
 
-    val allowPoolingConnection = get[Boolean]("allowPoolingConnection")
-    val allowSslConnectionPool = get[Boolean]("allowSslConnectionPool")
-    val ioThreadMultiplier = get[Int]("ioThreadMultiplier")
     val maximumConnectionsPerHost = get[Int]("maxConnectionsPerHost")
     val maximumConnectionsTotal = get[Int]("maxConnectionsTotal")
     val maxConnectionLifetime = get[Duration]("maxConnectionLifetime")
     val idleConnectionInPoolTimeout = get[Duration]("idleConnectionInPoolTimeout")
-    val webSocketIdleTimeout = get[Duration]("webSocketIdleTimeout")
     val maximumNumberOfRedirects = get[Int]("maxNumberOfRedirects")
     val maxRequestRetry = get[Int]("maxRequestRetry")
     val disableUrlEncoding = get[Boolean]("disableUrlEncoding")
+    val keepAlive = get[Boolean]("keepAlive")
 
+    // allowPoolingConnection and allowSslConnectionPool were merged into keepAlive in AHC 2.0
+    // We want one value, keepAlive, and we don't want to confuse anyone who has to migrate.
+    // keepAlive
+    if (playConfig.underlying.hasPath("play.ws.ahc.keepAlive")) {
+      val msg = "Both allowPoolingConnection and allowSslConnectionPool have been replaced by keepAlive!"
+      Seq("play.ws.ning.allowPoolingConnection", "play.ws.ning.allowSslConnectionPool").foreach { s =>
+        if (playConfig.underlying.hasPath(s)) {
+          throw playConfig.reportError(s, msg)
+        }
+      }
+    }
     AhcWSClientConfig(
       wsClientConfig = wsClientConfig,
-      allowPoolingConnection = allowPoolingConnection,
-      allowSslConnectionPool = allowSslConnectionPool,
-      ioThreadMultiplier = ioThreadMultiplier,
       maxConnectionsPerHost = maximumConnectionsPerHost,
       maxConnectionsTotal = maximumConnectionsTotal,
       maxConnectionLifetime = maxConnectionLifetime,
       idleConnectionInPoolTimeout = idleConnectionInPoolTimeout,
-      webSocketIdleTimeout = webSocketIdleTimeout,
       maxNumberOfRedirects = maximumNumberOfRedirects,
       maxRequestRetry = maxRequestRetry,
-      disableUrlEncoding = disableUrlEncoding
+      disableUrlEncoding = disableUrlEncoding,
+      keepAlive = keepAlive
     )
   }
 }
@@ -118,12 +118,12 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
   def this(config: WSClientConfig) =
     this(AhcWSClientConfig(wsClientConfig = config))
 
-  protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder = identity
+  protected val addCustomSettings: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder = identity
 
   /**
-   * The underlying `AsyncHttpClientConfig.Builder` used by this instance.
+   * The underlying `DefaultAsyncHttpClientConfig.Builder` used by this instance.
    */
-  val builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()
+  val builder: DefaultAsyncHttpClientConfig.Builder = new DefaultAsyncHttpClientConfig.Builder()
 
   private[ahc] val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -132,7 +132,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
    *
    * @return the resulting builder
    */
-  def configure(): AsyncHttpClientConfig.Builder = {
+  def configure(): DefaultAsyncHttpClientConfig.Builder = {
     val config = ahcConfig.wsClientConfig
 
     configureWS(ahcConfig)
@@ -152,12 +152,13 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
   }
 
   /**
-   * Modify the underlying `AsyncHttpClientConfig.Builder` using the provided function, after defaults are set.
+   * Modify the underlying `DefaultAsyncHttpClientConfig.Builder` using the provided function, after defaults are set.
+   *
    * @param modify function with custom settings to apply to this builder before the client is built
    * @return the new builder
    */
   def modifyUnderlying(
-    modify: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder): AhcConfigBuilder = {
+    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder): AhcConfigBuilder = {
     new AhcConfigBuilder(ahcConfig) {
       override val addCustomSettings = modify compose AhcConfigBuilder.this.addCustomSettings
       override val builder = AhcConfigBuilder.this.builder
@@ -184,25 +185,22 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
 
     config.userAgent foreach builder.setUserAgent
 
-    builder.setAllowPoolingConnections(ahcConfig.allowPoolingConnection)
-    builder.setAllowPoolingSslConnections(ahcConfig.allowSslConnectionPool)
-    builder.setIOThreadMultiplier(ahcConfig.ioThreadMultiplier)
     builder.setMaxConnectionsPerHost(ahcConfig.maxConnectionsPerHost)
     builder.setMaxConnections(ahcConfig.maxConnectionsTotal)
-    builder.setConnectionTTL(toMillis(ahcConfig.maxConnectionLifetime))
+    builder.setConnectionTtl(toMillis(ahcConfig.maxConnectionLifetime))
     builder.setPooledConnectionIdleTimeout(toMillis(ahcConfig.idleConnectionInPoolTimeout))
-    builder.setWebSocketTimeout(toMillis(ahcConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ahcConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ahcConfig.maxRequestRetry)
     builder.setDisableUrlEncodingForBoundRequests(ahcConfig.disableUrlEncoding)
-    // forcing shutdown of the AHC event loop because otherwise the test suite fails with a 
-    // OutOfMemoryException: cannot create new native thread. This is because when executing 
-    // tests in parallel there can be many threads pool that are left around because AHC is 
+    builder.setKeepAlive(ahcConfig.keepAlive)
+    // forcing shutdown of the AHC event loop because otherwise the test suite fails with a
+    // OutOfMemoryException: cannot create new native thread. This is because when executing
+    // tests in parallel there can be many threads pool that are left around because AHC is
     // shutting them down gracefully.
-    // The proper solution is to make these parameters configurable, so that they can be set 
-    // to 0 when running tests, and keep sensible defaults otherwise. AHC defaults are 
+    // The proper solution is to make these parameters configurable, so that they can be set
+    // to 0 when running tests, and keep sensible defaults otherwise. AHC defaults are
     // shutdownQuiet=2000 (milliseconds) and shutdownTimeout=15000 (milliseconds).
-    builder.setShutdownQuiet(0)
+    builder.setShutdownQuietPeriod(0)
     builder.setShutdownTimeout(0)
   }
 
@@ -282,7 +280,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
 
     builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
-    builder.setSSLContext(sslContext)
+    builder.setSslEngineFactory(new JsseSslEngineFactory(sslContext))
   }
 
   def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {

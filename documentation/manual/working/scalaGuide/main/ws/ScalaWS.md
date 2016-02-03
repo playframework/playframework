@@ -177,33 +177,27 @@ When making a request from a controller, you can map the response to a `Future[R
 
 ## Using WSClient
 
-WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
+We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
-You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`:
+However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
 
-@[implicit-client](code/ScalaWSSpec.scala)
+@[ws-custom-client](code/ScalaWSSpec.scala)
 
-> NOTE: if you instantiate a AhcWSClient object, it does not use the WS module lifecycle, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed. This will release the underlying ThreadPoolExecutor used by AsyncHttpClient. Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+Once you are done with your custom client work, you **must** close the client:
 
-or directly:
+@[close-client](code/ScalaWSSpec.scala)
 
-@[direct-client](code/ScalaWSSpec.scala)
+Ideally, you should close a client after you know all requests have been completed.  Be careful of using an automatic resource management pattern to close the client, because WSClient logic is asynchronous and many ARM solutions may be designed for a single threaded synchronous solution.
 
-Or use a magnet pattern to match up certain clients automatically:
+## Accessing AsyncHttpClient
 
-@[pair-magnet](code/ScalaWSSpec.scala)
-
-By default, configuration happens in `application.conf`, but you can also set up the builder directly from configuration:
-
-@[programmatic-config](code/ScalaWSSpec.scala)
-
-You can also get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/AsyncHttpClient.html).
+You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[underlying](code/ScalaWSSpec.scala)
 
-This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
+This is important in a couple of cases.  WS has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS
@@ -211,7 +205,7 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 Use the following properties in `application.conf` to configure the WS client:
 
 * `play.ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
-* `play.ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*.
+* `play.ws.useProxyProperties`: To use the JVM system's HTTP proxy settings (http.proxyHost, http.proxyPort) *(default is **true**)*.
 * `play.ws.useragent`: To configure the User-Agent header field.
 * `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
@@ -232,16 +226,16 @@ The request timeout can be overridden for a specific connection with `withReques
 ### Configuring AsyncHttpClientConfig
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-alpha27/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
-* `play.ws.ahc.allowPoolingConnection`
-* `play.ws.ahc.allowSslConnectionPool`
-* `play.ws.ahc.ioThreadMultiplier`
+Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+
+> *NOTE*: `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
+
+* `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`
 * `play.ws.ahc.maxConnectionsTotal`
 * `play.ws.ahc.maxConnectionLifeTime`
 * `play.ws.ahc.idleConnectionInPoolTimeout`
-* `play.ws.ahc.webSocketIdleTimeout`
 * `play.ws.ahc.maxNumberOfRedirects`
 * `play.ws.ahc.maxRequestRetry`
 * `play.ws.ahc.disableUrlEncoding`
