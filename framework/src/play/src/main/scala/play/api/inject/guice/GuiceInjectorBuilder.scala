@@ -10,6 +10,7 @@ import java.io.File
 import javax.inject.Inject
 import play.api.inject.{ Binding => PlayBinding, BindingKey, Injector => PlayInjector, Module => PlayModule }
 import play.api.{ Configuration, Environment, Mode, PlayException }
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
@@ -140,7 +141,13 @@ abstract class GuiceBuilder[Self] protected (
     } catch {
       case e: CreationException => e.getCause match {
         case p: PlayException => throw p
-        case _ => throw e
+        case _ => {
+          e.getErrorMessages.asScala.foreach(_.getCause match {
+            case p: PlayException => throw p
+            case _ => // do nothing
+          })
+          throw e
+        }
       }
     }
   }
