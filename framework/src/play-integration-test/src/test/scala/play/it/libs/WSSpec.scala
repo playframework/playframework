@@ -3,6 +3,8 @@
  */
 package play.it.libs
 
+import java.util.concurrent.TimeUnit
+
 import akka.util.ByteString
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
@@ -25,8 +27,7 @@ import scala.concurrent.Future
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
-// Disabled while we wait for https://github.com/akka/akka/issues/19623 to be fixed
-// object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
+object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
 trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
@@ -84,14 +85,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
     "make GET Requests" in withServer { ws =>
       val req = ws.url("/get").get
-      val rep = req.get(1000) // AWait result
+      val rep = req.toCompletableFuture.get(10, TimeUnit.SECONDS) // AWait result
 
       rep.getStatus aka "status" must_== 200 and (
         rep.asJson.path("origin").textValue must not beNull)
     }
 
     "use queryString in url" in withServer { ws =>
-      val rep = ws.url("/get?foo=bar").get().get(1000)
+      val rep = ws.url("/get?foo=bar").get().toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       rep.getStatus aka "status" must_== 200 and (
         rep.asJson().path("args").path("foo").textValue() must_== "bar")
@@ -99,7 +100,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
     "use user:password in url" in Server.withApplication(app) { implicit port =>
       withClient { ws =>
-        val rep = ws.url(s"http://user:password@localhost:$port/basic-auth/user/password").get().get(1000)
+        val rep = ws.url(s"http://user:password@localhost:$port/basic-auth/user/password").get()
+          .toCompletableFuture.get(10, TimeUnit.SECONDS)
 
         rep.getStatus aka "status" must_== 200 and (
           rep.asJson().path("authenticated").booleanValue() must beTrue)
@@ -127,8 +129,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     "consider query string in JSON conversion" in withServer { ws =>
-      val empty = ws.url("/get?foo").get.get(1000)
-      val bar = ws.url("/get?foo=bar").get.get(1000)
+      val empty = ws.url("/get?foo").get.toCompletableFuture.get(10, TimeUnit.SECONDS)
+      val bar = ws.url("/get?foo=bar").get.toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       empty.asJson.path("args").path("foo").textValue() must_== "" and (
         bar.asJson.path("args").path("foo").textValue() must_== "bar")
