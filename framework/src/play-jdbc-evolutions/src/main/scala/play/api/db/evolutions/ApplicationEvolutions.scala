@@ -352,7 +352,8 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
 
     lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_.head).getOrElse("/")
 
-    request.path match {
+    // Regex removes all parent directories from request path
+    request.path.replaceFirst("^((?!/@evolutions).)*(/@evolutions.*$)", "$2") match {
 
       case applyEvolutions(db) => {
         Some {
@@ -391,7 +392,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
   def content = script
 
   private val javascript = """
-        document.location = '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
+        window.location = window.location.href.replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
     """.format(db).trim
 
   def htmlDescription = {

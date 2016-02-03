@@ -546,7 +546,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   private val resolvePathJavascript =
     if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
     else "'/@evolutions'"
-  private val redirectJavascript = s"""window.location = $resolvePathJavascript"""
+  private val redirectJavascript = s"""window.location = window.location.href.replace(/\\/@evolutions.*$$|\\/$$/, '') + $resolvePathJavascript"""
 
   private val sentenceEnd = if (autocommit) " before marking it as resolved." else "."
 
