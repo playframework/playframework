@@ -22,7 +22,7 @@ public abstract class Filter extends EssentialFilter {
 
     @Override
     public EssentialAction apply(EssentialAction next) {
-        return EssentialAction.fromScala(asScala().apply(next));
+        return asScala().apply(next).asJava();
     }
 
     public play.api.mvc.Filter asScala() {
@@ -49,7 +49,11 @@ public abstract class Filter extends EssentialFilter {
                     ).thenApply(r -> r.asScala())
                 );
             }
+
+            @Override
+            public EssentialFilter asJava() {
+                return Filter.this;
+            }
         };
     }
-
 }

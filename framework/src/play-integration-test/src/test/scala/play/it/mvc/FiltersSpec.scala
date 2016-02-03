@@ -226,7 +226,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
     private def getResult(t: Throwable): Result = {
       // Get the cause of the CompletionException
-      Results.internalServerError(t.getCause.getMessage)
+      Results.internalServerError(Option(t.getCause).getOrElse(t).getMessage)
     }
 
     def apply(next: EssentialAction) = new EssentialAction {
