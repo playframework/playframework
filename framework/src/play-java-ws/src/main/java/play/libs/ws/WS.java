@@ -84,7 +84,7 @@ public class WS {
                     client.close();
                 }
                 finally {
-                    system.shutdown();
+                    system.terminate();
                 }
             }
         };

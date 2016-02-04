@@ -18,8 +18,8 @@ object AccumulatorSpec extends Specification {
     try {
       block(ActorMaterializer()(system))
     } finally {
-      system.shutdown()
-      system.awaitTermination()
+      system.terminate()
+      Await.result(system.whenTerminated, Duration.Inf)
     }
   }
 

@@ -32,7 +32,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
         }
       }
     } finally {
-      system.shutdown()
+      system.terminate()
     }
   }
 
