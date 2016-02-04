@@ -11,7 +11,7 @@ import play.api.libs.json._
 
 import play.test.Helpers._
 
-import play.api.test.FakeApplication
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsObject
 import javaguide.testhelpers.MockJavaActionHelper
 import play.api.http.Status
@@ -20,7 +20,7 @@ object JavaWSSpec extends Specification with Results with Status {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  def fakeApplication = FakeApplication(withRoutes = {
+  def fakeApplication = GuiceApplicationBuilder().routes {
     case ("GET", "/feed") =>
       Action {
         val obj: JsObject = Json.obj(
@@ -40,7 +40,7 @@ object JavaWSSpec extends Specification with Results with Status {
       Action {
         BadRequest("no binding found")
       }
-  })
+  }.build()
 
   "The Java WS class" should {
     "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {

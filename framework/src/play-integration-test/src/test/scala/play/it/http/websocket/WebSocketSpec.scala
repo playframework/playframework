@@ -8,6 +8,7 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
 import play.api.http.websocket._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.Application
 import play.api.mvc.{ Handler, Results, WebSocket }
@@ -32,12 +33,10 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
   override implicit def defaultAwaitTimeout = 5.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
-    val currentApp = new AtomicReference[FakeApplication]
-    val app = FakeApplication(
-      withRoutes = {
-        case (_, _) => webSocket(currentApp.get())
-      }
-    )
+    val currentApp = new AtomicReference[Application]
+    val app = GuiceApplicationBuilder().routes {
+      case _ => webSocket(currentApp.get())
+    }.build()
     currentApp.set(app)
     running(TestServer(testServerPort, app))(block(app))
   }

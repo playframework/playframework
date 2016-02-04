@@ -12,7 +12,6 @@ import play.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
-import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
 import play.mvc.*;
 import play.api.test.Helpers$;
@@ -121,7 +120,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication() {
+    public static Application fakeApplication() {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), null);
     }
 
@@ -131,7 +130,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @deprecated Use dependency injection (since 2.5.0)
      */
     @Deprecated
-    public static FakeApplication fakeApplication(GlobalSettings global) {
+    public static Application fakeApplication(GlobalSettings global) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), global);
     }
 
@@ -146,21 +145,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase(String name) {
         return inMemoryDatabase(name, Collections.<String, String>emptyMap());
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
@@ -169,7 +168,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
+    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
     }
 
@@ -179,7 +178,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @deprecated Use the version without GlobalSettings (since 2.5.0)
      */
     @Deprecated
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
+    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, global);
     }
 
@@ -400,7 +399,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given FakeApplication.
+     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given Application.
      */
     public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);

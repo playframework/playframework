@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
@@ -83,8 +84,8 @@ object ScalaResultsSpec extends PlaySpecification {
   }
 
   def withApplication[T](config: (String, Any)*)(block: => T): T = running(
-    FakeApplication(additionalConfiguration = Map(config: _*) + ("play.crypto.secret" -> "foo"))
-  )(block)
+    _.configure(Map(config: _*) + ("play.crypto.secret" -> "foo"))
+  )(_ => block)
 
   def withFooPath[T](block: => T) = withApplication("application.context" -> "/foo")(block)
 

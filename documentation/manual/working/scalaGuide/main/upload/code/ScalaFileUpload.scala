@@ -3,6 +3,7 @@
  */
 package scalaguide.upload.fileupload {
 
+  import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.mvc._
   import play.api.test._
   import org.junit.runner.RunWith
@@ -67,7 +68,7 @@ package scalaguide.upload.fileupload {
     }
 
     def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      running(FakeApplication()) {
+      running(GuiceApplicationBuilder().build()) {
 
         val result = action(request)
 

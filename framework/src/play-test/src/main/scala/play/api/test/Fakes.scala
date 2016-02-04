@@ -194,6 +194,7 @@ import play.api.Application
  * @param additionalConfiguration Additional configuration
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
+@deprecated("Use GuiceApplicationBuilder instead.", "2.5.0")
 case class FakeApplication(
     override val path: java.io.File = new java.io.File("."),
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
@@ -205,10 +206,7 @@ case class FakeApplication(
     .in(Environment(path, classloader, Mode.Test))
     .global(withGlobal.orNull)
     .configure(additionalConfiguration)
-    .bindings(
-      bind[FakeRouterConfig] to FakeRouterConfig(withRoutes))
-    .overrides(
-      bind[Router].toProvider[FakeRouterProvider])
+    .routes(withRoutes)
     .build
 
   override def mode: Mode.Mode = app.mode
@@ -222,26 +220,3 @@ case class FakeApplication(
   override def injector: Injector = app.injector
 }
 
-private class FakeRoutes(
-    injected: PartialFunction[(String, String), Handler], fallback: Router) extends Router {
-  def documentation = fallback.documentation
-  // Use withRoutes first, then delegate to the parentRoutes if no route is defined
-  val routes = new AbstractPartialFunction[RequestHeader, Handler] {
-    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-      injected.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
-    def isDefinedAt(rh: RequestHeader) = injected.isDefinedAt((rh.method, rh.path))
-  } orElse new AbstractPartialFunction[RequestHeader, Handler] {
-    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-      fallback.routes.applyOrElse(rh, default)
-    def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
-  }
-  def withPrefix(prefix: String) = {
-    new FakeRoutes(injected, fallback.withPrefix(prefix))
-  }
-}
-
-private case class FakeRouterConfig(withRoutes: PartialFunction[(String, String), Handler])
-
-private class FakeRouterProvider @Inject() (config: FakeRouterConfig, parent: RoutesProvider) extends Provider[Router] {
-  lazy val get: Router = new FakeRoutes(config.withRoutes, parent.get)
-}

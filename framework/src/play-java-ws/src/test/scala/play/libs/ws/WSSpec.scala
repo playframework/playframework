@@ -1,5 +1,6 @@
 package play.libs.ws
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{ Result, Action }
 import play.api.mvc.Results._
 import play.api.test._
@@ -8,7 +9,7 @@ object WSSpec extends PlaySpecification {
 
   sequential
 
-  val uploadApp = FakeApplication(withRoutes = {
+  val uploadApp = GuiceApplicationBuilder().routes {
     case ("POST", "/") =>
       Action { request =>
         request.body.asRaw.fold[Result](BadRequest) { raw =>
@@ -16,7 +17,7 @@ object WSSpec extends PlaySpecification {
           Ok(s"size=$size")
         }
       }
-  })
+  }.build()
 
   "post(InputStream)" should {
     "upload the stream" in new WithServer(app = uploadApp, port = 3333) {

@@ -4,8 +4,6 @@
 package play.test;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import play.api.mvc.Handler;
@@ -15,7 +13,10 @@ import play.libs.Scala;
 
 /**
  * A fake application for testing.
+ *
+ * @deprecated as of 2.5.0. Use GuiceApplicationBuilder to build your application instance.
  */
+@Deprecated
 public class FakeApplication implements play.Application {
 
     private final play.api.test.FakeApplication application;

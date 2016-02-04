@@ -7,7 +7,9 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.asynchttpclient.AsyncHttpClientConfig
+
 import play.api.{Mode, Environment}
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc._
 import play.api.test._
 
@@ -44,7 +46,7 @@ case class Person(name: String, age: Int)
 // #scalaws-person
 
 /**
- * NOTE: the format here is because we cannot define FakeApplication in a new WithServer at once, as we run into a
+ * NOTE: the format here is because we cannot define a fake application in a new WithServer at once, as we run into a
  * JVM implementation issue.
  */
 @RunWith(classOf[JUnitRunner])
@@ -71,9 +73,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   }(block)
 
   def withServer[T](routes: (String, String) => Handler)(block: WSClient => T): T = {
-    val app = FakeApplication(withRoutes = {
+    val app = GuiceApplicationBuilder().routes({
       case (method, path) => routes(method, path)
-    })
+    }).build()
     running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
   }
 

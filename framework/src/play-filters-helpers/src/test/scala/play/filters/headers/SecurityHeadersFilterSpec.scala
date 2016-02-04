@@ -9,7 +9,6 @@ import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
 import play.api.http.HttpFilters
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing.Router
 import play.api.test.{ WithApplication, FakeRequest, PlaySpecification }
 import play.api.mvc.{ Action, Result }
@@ -33,15 +32,15 @@ object SecurityHeadersFilterSpec extends PlaySpecification {
   }
 
   def withApplication[T](result: Result, config: String)(block: => T): T = {
-    running(new GuiceApplicationBuilder()
+    running(_
       .configure(configure(config))
       .overrides(
         bind[Router].to(Router.from {
           case _ => Action(result)
         }),
         bind[HttpFilters].to[Filters]
-      ).build
-    )(block)
+      )
+    )(_ => block)
   }
 
   "security headers" should {

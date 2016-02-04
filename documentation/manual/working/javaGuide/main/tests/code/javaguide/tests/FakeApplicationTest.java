@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import play.Application;
 import play.GlobalSettings;
-import play.test.FakeApplication;
 import play.test.Helpers;
 
 public class FakeApplicationTest {

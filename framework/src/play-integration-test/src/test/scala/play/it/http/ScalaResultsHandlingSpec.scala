@@ -6,6 +6,7 @@ package play.it.http
 import java.util.Locale.ENGLISH
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
@@ -33,11 +34,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
     def withServer[T](result: Result)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => Action(result)
-        }
-      ))) {
+      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => Action(result) }.build())) {
         block(port)
       }
     }

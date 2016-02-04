@@ -84,8 +84,7 @@ import org.specs2.execute.AsResult
       }
 
       "body parser limit file" in {
-        val app = FakeApplication()
-        running(app) {
+        running() { app =>
           implicit val mat = ActorMaterializer()(app.actorSystem)
           val storeInUserFile = scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
           //#body-parser-limit-file
@@ -166,8 +165,7 @@ import org.specs2.execute.AsResult
     }
 
     def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
         val result = call(action, request)
         status(result) must_== expectedResponse

@@ -5,7 +5,6 @@ package detailedtopics;
 
 import org.junit.Test;
 import play.Play;
-import play.test.FakeApplication;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;

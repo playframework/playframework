@@ -10,13 +10,11 @@ class NamedDatabaseSpec extends PlaySpecification {
 
   "DBModule" should {
 
-    "bind databases by name" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map(
-        "db.default.driver" -> "org.h2.Driver",
-        "db.default.url" -> "jdbc:h2:mem:default",
-        "db.other.driver" -> "org.h2.Driver",
-        "db.other.url" -> "jdbc:h2:mem:other"
-      )
+    "bind databases by name" in new WithApplication(_.configure(
+      "db.default.driver" -> "org.h2.Driver",
+      "db.default.url" -> "jdbc:h2:mem:default",
+      "db.other.driver" -> "org.h2.Driver",
+      "db.other.url" -> "jdbc:h2:mem:other"
     )) {
       app.injector.instanceOf[DBApi].databases must have size (2)
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
@@ -24,11 +22,9 @@ class NamedDatabaseSpec extends PlaySpecification {
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
     }
 
-    "not bind default databases without configuration" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map(
-        "db.other.driver" -> "org.h2.Driver",
-        "db.other.url" -> "jdbc:h2:mem:other"
-      )
+    "not bind default databases without configuration" in new WithApplication(_.configure(
+      "db.other.driver" -> "org.h2.Driver",
+      "db.other.url" -> "jdbc:h2:mem:other"
     )) {
       app.injector.instanceOf[DBApi].databases must have size (1)
       app.injector.instanceOf[DefaultComponent] must throwA[com.google.inject.ConfigurationException]
@@ -36,34 +32,30 @@ class NamedDatabaseSpec extends PlaySpecification {
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
     }
 
-    "not bind databases without configuration" in new WithApplication(FakeApplication()) {
+    "not bind databases without configuration" in new WithApplication() {
       app.injector.instanceOf[DBApi].databases must beEmpty
       app.injector.instanceOf[DefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedOtherComponent] must throwA[com.google.inject.ConfigurationException]
     }
 
-    "allow default database name to be configured" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map(
-        "play.db.default" -> "other",
-        "db.other.driver" -> "org.h2.Driver",
-        "db.other.url" -> "jdbc:h2:mem:other"
-      )
+    "allow default database name to be configured" in new WithApplication(_.configure(
+      "play.db.default" -> "other",
+      "db.other.driver" -> "org.h2.Driver",
+      "db.other.url" -> "jdbc:h2:mem:other"
     )) {
-      app.injector.instanceOf[DBApi].databases must have size (1)
+      app.injector.instanceOf[DBApi].databases must have size 1
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:other"
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
     }
 
-    "allow db config key to be configured" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map(
-        "play.db.config" -> "databases",
-        "databases.default.driver" -> "org.h2.Driver",
-        "databases.default.url" -> "jdbc:h2:mem:default"
-      )
+    "allow db config key to be configured" in new WithApplication(_.configure(
+      "play.db.config" -> "databases",
+      "databases.default.driver" -> "org.h2.Driver",
+      "databases.default.url" -> "jdbc:h2:mem:default"
     )) {
-      app.injector.instanceOf[DBApi].databases must have size (1)
+      app.injector.instanceOf[DBApi].databases must have size 1
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
       app.injector.instanceOf[NamedDefaultComponent].db.url must_== "jdbc:h2:mem:default"
     }

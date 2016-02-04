@@ -5,6 +5,7 @@ package play.it.http
 
 import java.io.ByteArrayInputStream
 import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.it._
@@ -23,11 +24,9 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
   "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = FakeApplication(
-        withRoutes = {
-          case _ => JAction(app, controller)
-        }
-      )
+      lazy val app: Application = GuiceApplicationBuilder().routes {
+        case _ => JAction(app, controller)
+      }.build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").get())

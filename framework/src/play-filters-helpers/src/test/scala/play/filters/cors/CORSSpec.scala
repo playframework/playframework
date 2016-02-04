@@ -14,7 +14,7 @@ import scala.concurrent.Future
 
 import play.api.Configuration
 import play.api.mvc.{ Action, Result, Results }
-import play.api.test.{ FakeRequest, FakeApplication, PlaySpecification }
+import play.api.test.{ FakeRequest, PlaySpecification }
 import play.api.inject.bind
 
 object CORSFilterSpec extends CORSCommonSpec {
@@ -24,15 +24,13 @@ object CORSFilterSpec extends CORSCommonSpec {
   }
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
-    running(new GuiceApplicationBuilder()
-      .configure(conf)
-      .overrides(
-        bind[Router].to(Router.from {
-          case p"/error" => Action { req => throw sys.error("error") }
-          case _ => Action(Results.Ok)
-        }),
-        bind[HttpFilters].to[Filters]
-      ).build())(block)
+    running(_.configure(conf).overrides(
+      bind[Router].to(Router.from {
+        case p"/error" => Action { req => throw sys.error("error") }
+        case _ => Action(Results.Ok)
+      }),
+      bind[HttpFilters].to[Filters]
+    ))(_ => block)
   }
 
   "The CORSFilter" should {
@@ -53,26 +51,21 @@ object CORSFilterSpec extends CORSCommonSpec {
 object CORSActionBuilderSpec extends CORSCommonSpec {
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
-    running(FakeApplication(
-      withRoutes = {
-        case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)) { req =>
-          throw sys.error("error")
-        }
-        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf))(Results.Ok)
+    running(_.routes {
+      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)) { req =>
+        throw sys.error("error")
       }
-    ))(block)
+      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf))(Results.Ok)
+    })(_ => block)
   }
 
   def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
-    running(FakeApplication(
-      additionalConfiguration = conf,
-      withRoutes = {
-        case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath) { req =>
-          throw sys.error("error")
-        }
-        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)(Results.Ok)
+    running(_.configure(conf).routes {
+      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath) { req =>
+        throw sys.error("error")
       }
-    ))(block)
+      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)(Results.Ok)
+    })(_ => block)
   }
 
   "The CORSActionBuilder with" should {

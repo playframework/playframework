@@ -5,6 +5,7 @@ package javaguide.http
 
 import javaguide.application.`def`.ErrorHandler
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Action
 import play.api.test._
 
@@ -13,12 +14,12 @@ import scala.reflect.ClassTag
 object JavaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
-    FakeApplication(
-      additionalConfiguration = Map("play.http.errorHandler" -> ct.runtimeClass.getName),
-      withRoutes = {
+    GuiceApplicationBuilder()
+      .configure("play.http.errorHandler" -> ct.runtimeClass.getName)
+      .routes {
         case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
       }
-    )
+      .build()
   }
 
   "java error handling" should {

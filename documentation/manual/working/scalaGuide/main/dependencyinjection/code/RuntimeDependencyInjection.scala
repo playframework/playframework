@@ -3,6 +3,7 @@
  */
 package scalaguide.dependencyinjection
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
 object RuntimeDependencyInjection extends PlaySpecification {
@@ -16,8 +17,7 @@ object RuntimeDependencyInjection extends PlaySpecification {
       app.injector.instanceOf[singleton.CurrentSharePrice].get must_== 10
     }
     "support stopping" in {
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         app.injector.instanceOf[cleanup.MessageQueueConnection]
       }
       cleanup.MessageQueue.stopped must_== true

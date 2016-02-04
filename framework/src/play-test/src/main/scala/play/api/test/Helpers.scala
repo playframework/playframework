@@ -6,6 +6,7 @@ package play.api.test
 import akka.actor.Cancellable
 import akka.stream.{ ClosedShape, Graph, Materializer }
 import akka.stream.scaladsl.Source
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.mvc.Http.RequestBody
 
 import scala.language.reflectiveCalls
@@ -37,6 +38,16 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
+    * The base builder used in the running method.
+    */
+  lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
+
+  def running[T]()(block: Application => T): T = {
+    val app = baseApplicationBuilder.build()
+    running(app)(block(app))
+  }
+
+  /**
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
@@ -48,6 +59,11 @@ trait PlayRunners extends HttpVerbs {
         Play.stop(app)
       }
     }
+  }
+
+  def running[T](builder: GuiceApplicationBuilder => GuiceApplicationBuilder)(block: Application => T): T = {
+    val app = builder(baseApplicationBuilder).build()
+    running(app)(block(app))
   }
 
   /**

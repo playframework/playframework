@@ -6,17 +6,18 @@ package play.api.inject.guice
 import javax.inject.{ Provider, Inject }
 
 import com.google.inject.{ Module => GuiceModule }
+import play.api.mvc.{RequestHeader, Handler}
 import play.api.routing.Router
 import play.api._
 import play.api.inject.{ RoutesProvider, bind }
 import play.core.{ DefaultWebCommands, WebCommands }
 
-import scala.collection.mutable
+import scala.runtime.AbstractPartialFunction
 
 /**
  * A builder for creating Applications using Guice.
  */
-final class GuiceApplicationBuilder(
+final case class GuiceApplicationBuilder(
   environment: Environment = Environment.simple(),
   configuration: Configuration = Configuration.empty,
   modules: Seq[GuiceableModule] = Seq.empty,
@@ -67,6 +68,13 @@ final class GuiceApplicationBuilder(
    */
   def load(modules: GuiceableModule*): GuiceApplicationBuilder =
     load((env, conf) => modules)
+
+  /**
+    * Override the router with a fake router having the given routes, before falling back to the default router
+    */
+  def routes(routes: PartialFunction[(String, String), Handler]): GuiceApplicationBuilder =
+    bindings(bind[FakeRouterConfig] to FakeRouterConfig(routes))
+      .overrides(bind[Router].toProvider[FakeRouterProvider])
 
   /**
    * Override the router with the given router.
@@ -183,4 +191,29 @@ final class GuiceApplicationBuilder(
 private class AdditionalRouterProvider(additional: Router) extends Provider[Router] {
   @Inject private var fallback: RoutesProvider = _
   lazy val get = Router.from(additional.routes.orElse(fallback.get.routes))
+}
+
+
+private class FakeRoutes(
+    injected: PartialFunction[(String, String), Handler], fallback: Router) extends Router {
+  def documentation = fallback.documentation
+  // Use withRoutes first, then delegate to the parentRoutes if no route is defined
+  val routes = new AbstractPartialFunction[RequestHeader, Handler] {
+    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+      injected.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
+    def isDefinedAt(rh: RequestHeader) = injected.isDefinedAt((rh.method, rh.path))
+  } orElse new AbstractPartialFunction[RequestHeader, Handler] {
+    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+      fallback.routes.applyOrElse(rh, default)
+    def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
+  }
+  def withPrefix(prefix: String) = {
+    new FakeRoutes(injected, fallback.withPrefix(prefix))
+  }
+}
+
+private case class FakeRouterConfig(withRoutes: PartialFunction[(String, String), Handler])
+
+private class FakeRouterProvider @Inject() (config: FakeRouterConfig, parent: RoutesProvider) extends Provider[Router] {
+  lazy val get: Router = new FakeRoutes(config.withRoutes, parent.get)
 }

@@ -580,7 +580,7 @@ The session timeout configuration item, `session.maxAge`, used to be an integer,
 
 ## Java JUnit superclasses
 
-The Java `WithApplication`, `WithServer` and `WithBrowser` JUnit test superclasses have been modified to define an `@Before` annotated method.  This means, previously where you had to explicitly start a fake application by defining:
+The Java `WithApplication`, `WithServer` and `WithBrowser` JUnit test superclasses have been modified to define an `@Before` annotated method.  This means, previously where you had to explicitly start an application by defining:
 
 ```java
 @Before
@@ -589,11 +589,11 @@ public void setUp() {
 }
 ```
 
-Now you don't need to. If you need to provide a custom fake application, you can do so by overriding the `provideFakeApplication` method:
+Now you don't need to. If you need to provide a custom application, you can do so by overriding the `provideFakeApplication` method:
 
 ```java
 @Override
-protected FakeApplication provideFakeApplication() {
+protected Application provideFakeApplication() {
     return Helpers.fakeApplication(Helpers.inMemoryDatabase());
 }
 ```
