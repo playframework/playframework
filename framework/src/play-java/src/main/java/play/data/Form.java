@@ -7,6 +7,7 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
 
@@ -23,6 +24,7 @@ import play.libs.F.Tuple;
 import play.data.validation.*;
 
 import org.springframework.beans.*;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.*;
 import org.springframework.context.support.*;
@@ -351,7 +353,8 @@ public class Form<T> {
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
-        dataBinder.bind(new MutablePropertyValues(objectData));
+        final Map<String, String> objectDataFinal = objectData;
+        withRequestLocale(() -> { dataBinder.bind(new MutablePropertyValues(objectDataFinal)); return null; });
         Set<ConstraintViolation<Object>> validationErrors;
         if (groups != null) {
             validationErrors = validator.validate(dataBinder.getTarget(), groups);
@@ -697,7 +700,8 @@ public class Form<T> {
                 if(beanWrapper.isReadableProperty(objectKey)) {
                     Object oValue = beanWrapper.getPropertyValue(objectKey);
                     if(oValue != null) {
-                        fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKey), oValue);
+                        final String objectKeyFinal = objectKey;
+                        fieldValue = withRequestLocale(() -> play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
                     }
                 }
             }
@@ -764,6 +768,25 @@ public class Form<T> {
 
     public String toString() {
         return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
+    }
+
+    /**
+     * Set the locale of the current request (if there is one) into Spring's LocaleContextHolder.
+     *
+     * @param code The code to execute while the locale is set
+     * @return the result of the code block
+     */
+    private static <T> T withRequestLocale(Supplier<T> code) {
+        try {
+            LocaleContextHolder.setLocale(Http.Context.current().lang().toLocale());
+        } catch(Exception e) {
+            // Just continue (Maybe there is no context or some internal error in LocaleContextHolder). System default locale will be used.
+        }
+        try {
+            return code.get();
+        } finally {
+            LocaleContextHolder.resetLocaleContext(); // Clean up ThreadLocal
+        }
     }
 
     /**

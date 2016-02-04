@@ -1,9 +1,17 @@
 package play.mvc;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.typesafe.config.ConfigFactory;
 import play.Application;
 import play.Configuration;
 import play.Environment;
+import play.data.Form;
+import play.data.Formats;
+import play.data.Money;
+import play.data.format.Formatters;
 import play.Play;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.*;
@@ -143,5 +151,66 @@ public class HttpTest {
         });
     }
 
+    @Test
+    public void testLangDataBinder() {
+        withApplication(() -> {
+            // Register Formatter
+            Formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
+
+            // Prepare Request and Context with french number
+            Map<String, String> data = new HashMap<>();
+            data.put("amount", "1234567,89");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse french input with french formatter
+            ctx.changeLang("fr");
+            Form<Money> myForm = Form.form(Money.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            Money money = myForm.get();
+            assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+            assertThat(myForm.field("amount").value()).isEqualTo("1 234 567,89");
+            // Parse french input with english formatter
+            ctx.changeLang("en");
+            myForm = Form.form(Money.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            money = myForm.get();
+            assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
+            assertThat(myForm.field("amount").value()).isEqualTo("123,456,789");
+
+            // Prepare Request and Context with english number
+            data = new HashMap<>();
+            data.put("amount", "1234567.89");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse english input with french formatter
+            ctx.changeLang("fr");
+            myForm = Form.form(Money.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            money = myForm.get();
+            assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
+            assertThat(myForm.field("amount").value()).isEqualTo("1 234 567");
+            // Parse english input with english formatter
+            ctx.changeLang("en");
+            myForm = Form.form(Money.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            money = myForm.get();
+            assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+            assertThat(myForm.field("amount").value()).isEqualTo("1,234,567.89");
+
+            // Clean up
+            Formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
+            Formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
+        });
+    }
 
 }
