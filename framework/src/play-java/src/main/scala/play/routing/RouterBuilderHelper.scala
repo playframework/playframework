@@ -21,7 +21,7 @@ import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 private[routing] object RouterBuilderHelper {
-  def build(router: RoutingDsl): play.api.routing.Router = {
+  def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.toList
 
     // Create the router
@@ -90,6 +90,6 @@ private[routing] object RouterBuilderHelper {
           } else None
         } else None
       ))
-    })
+    }).asJava
   }
 }

@@ -89,12 +89,12 @@ case class ParserConfiguration(
  * Configuration for action composition.
  *
  * @param controllerAnnotationsFirst If annotations put on controllers should be executed before the ones put on actions.
- * @param executeRequestHandlerActionFirst If the action returned by the createAction method of the request handler should be
+ * @param executeActionCreatorActionFirst If the action returned by the action creator should be
  *                                         executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
   controllerAnnotationsFirst: Boolean = false,
-  executeRequestHandlerActionFirst: Boolean = false)
+  executeActionCreatorActionFirst: Boolean = false)
 
 object HttpConfiguration {
 
@@ -122,7 +122,7 @@ object HttpConfiguration {
       ),
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
-        executeRequestHandlerActionFirst = config.get[Boolean]("play.http.actionComposition.executeRequestHandlerActionFirst")
+        executeActionCreatorActionFirst = config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")

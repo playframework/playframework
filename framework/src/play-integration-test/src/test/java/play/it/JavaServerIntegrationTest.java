@@ -6,8 +6,7 @@ package play.it;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import play.api.routing.Router;
-import play.test.Helpers;
+import play.routing.Router;
 import play.server.Server;
 
 import javax.net.ssl.SSLException;
@@ -146,7 +145,7 @@ public class JavaServerIntegrationTest {
     }
 
     private Router _emptyRouter() {
-        return Helpers.fakeApplication().getWrappedApplication().routes();
+        return Router.empty();
     }
 
     private boolean _isPortOccupied(int port) {

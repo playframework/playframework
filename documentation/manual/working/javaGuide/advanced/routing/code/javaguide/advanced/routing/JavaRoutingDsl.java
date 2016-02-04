@@ -6,7 +6,7 @@ package javaguide.advanced.routing;
 import org.junit.Test;
 
 //#imports
-import play.api.routing.Router;
+import play.routing.Router;
 import play.routing.RoutingDsl;
 import java.util.concurrent.CompletableFuture;
 

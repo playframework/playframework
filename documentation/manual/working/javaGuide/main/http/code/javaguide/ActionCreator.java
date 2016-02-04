@@ -3,7 +3,6 @@
  */
 
 //#default
-import play.http.HttpRequestHandler;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -11,8 +10,7 @@ import java.util.concurrent.CompletionStage;
 
 import java.lang.reflect.Method;
 
-public class RequestHandler implements HttpRequestHandler {
-
+public class ActionCreator implements play.http.ActionCreator {
     @Override
     public Action createAction(Http.Request request, Method actionMethod) {
         return new Action.Simple() {
@@ -21,11 +19,6 @@ public class RequestHandler implements HttpRequestHandler {
                 return delegate.call(ctx);
             }
         };
-    }
-
-    @Override
-    public Action wrapAction(Action action) {
-        return action;
     }
 }
 //#default

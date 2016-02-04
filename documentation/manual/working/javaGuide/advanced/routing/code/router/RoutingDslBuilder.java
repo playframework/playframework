@@ -1,6 +1,6 @@
 package router;
 
-import play.api.routing.Router;
+import play.routing.Router;
 import play.mvc.Controller;
 import play.routing.RoutingDsl;
 

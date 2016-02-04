@@ -5,6 +5,7 @@ package play.api.routing
 
 import play.api.{ PlayConfig, Configuration, Environment }
 import play.api.mvc.{ RequestHeader, Handler }
+import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
 /**
@@ -37,6 +38,8 @@ trait Router {
   def handlerFor(request: RequestHeader): Option[Handler] = {
     routes.lift(request)
   }
+
+  def asJava: play.routing.Router = new JavaRouterAdapter(this)
 }
 
 /**

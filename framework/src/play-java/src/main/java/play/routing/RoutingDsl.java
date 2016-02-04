@@ -158,7 +158,7 @@ public class RoutingDsl {
      *
      * @return The built router.
      */
-    public play.api.routing.Router build() {
+    public play.routing.Router build() {
         return RouterBuilderHelper.build(this);
     }
 
@@ -216,12 +216,12 @@ public class RoutingDsl {
         Method actionMethod = null;
         for (Method m : actionFunction.getMethods()) {
         	// Here I assume that we are always passing a `actionFunction` type that:
-        	// 1) defines exactly one abstract method, and 
+        	// 1) defines exactly one abstract method, and
         	// 2) the abstract method is the method that we want to invoke.
-        	// This works fine with the current implementation of `PathPatternMatcher`, but I wouldn't be 
+        	// This works fine with the current implementation of `PathPatternMatcher`, but I wouldn't be
         	// surprised if it breaks in the future, which is why this comment exists.
-        	// Also, the former implementation (which was checking for the first non default method), was 
-        	// not working when using a `java.util.function.Function` type (Function.identity was being 
+        	// Also, the former implementation (which was checking for the first non default method), was
+        	// not working when using a `java.util.function.Function` type (Function.identity was being
         	// returned, instead of Function.apply).
             if (Modifier.isAbstract(m.getModifiers())) {
                 actionMethod = m;

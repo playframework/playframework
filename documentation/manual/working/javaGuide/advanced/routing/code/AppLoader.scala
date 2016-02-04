@@ -19,7 +19,7 @@ class AppLoader extends ApplicationLoader {
 
 class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) {
   lazy val router = Router.from {
-       RoutingDslBuilder.getRouter().routes
+       RoutingDslBuilder.getRouter.asScala.routes
   }
 }
 //#load

@@ -75,33 +75,33 @@ object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-           "play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandleractioncontroller")
+           "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreatoractioncontroller")
     }
 
     "execute request handler action first and controller composition before action composition" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-           "play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandlercontrolleraction")
+           "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreatorcontrolleraction")
     }
 
     "execute request handler action first with only controller composition" in makeRequest(new ComposedController {
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandlercontroller")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreatorcontroller")
     }
 
     "execute request handler action first with only action composition" in makeRequest(new MockController {
       @ActionAnnotation
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandleraction")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreatoraction")
     }
   }
 
@@ -110,65 +110,65 @@ object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-           "play.http.actionComposition.executeRequestHandlerActionFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("actioncontrollerrequesthandler")
+           "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncontrolleractioncreator")
     }
 
     "execute request handler action last and controller composition before action composition" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-           "play.http.actionComposition.executeRequestHandlerActionFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("controlleractionrequesthandler")
+           "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("controlleractionactioncreator")
     }
 
     "execute request handler action last with only controller composition" in makeRequest(new ComposedController {
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("controllerrequesthandler")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("controlleractioncreator")
     }
 
     "execute request handler action last with only action composition" in makeRequest(new MockController {
       @ActionAnnotation
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("actionrequesthandler")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actionactioncreator")
     }
 
     "execute request handler action last is the default and controller composition before action composition" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("controlleractionrequesthandler")
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("controlleractionactioncreator")
     }
 
     "execute request handler action last is the default and action composition before controller composition" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action: Result = Results.ok()
     }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("actioncontrollerrequesthandler")
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncontrolleractioncreator")
     }
   }
 
   "When request handler is configured without action composition" should {
     "execute request handler action last without action composition" in makeRequest(new MockController {
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "false",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandler")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreator")
     }
 
     "execute request handler action first without action composition" in makeRequest(new MockController {
       override def action: Result = Results.ok()
-    }, Map("play.http.actionComposition.executeRequestHandlerActionFirst" -> "true",
-           "play.http.requestHandler" -> "play.it.http.ActionCompositionRequestHandler")) { response =>
-      response.body must beEqualTo("requesthandler")
+    }, Map("play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+           "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+      response.body must beEqualTo("actioncreator")
     }
   }
 
