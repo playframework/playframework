@@ -55,11 +55,6 @@ object Dependencies {
     "org.hibernate" % "hibernate-entitymanager" % "5.0.5.Final" % "test"
   )
 
-  val link = Seq(
-    "org.javassist" % "javassist" % "3.20.0-GA"
-  )
-  val javassist = link
-
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
@@ -99,7 +94,7 @@ object Dependencies {
     findBugs,
 
     "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.30"
-  ) ++ javassist ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
+  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit = "junit" % "junit" % "4.12"
@@ -218,10 +213,6 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
 
-      guava,
-
-      h2database,
-
       jnotify,
 
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
@@ -230,7 +221,7 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.2"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
-    ) ++ javassist ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
+    ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
   }
 
   val playdocWebjarDependencies = Seq(

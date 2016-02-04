@@ -170,7 +170,6 @@ object PlayBuild extends Build {
   import Generators._
 
   lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
-    .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
 
   lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
