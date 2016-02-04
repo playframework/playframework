@@ -12,10 +12,8 @@ import com.typesafe.config.impl.ConfigImpl
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.io.Source
-import scala.util.Try
 import scala.util.control.NonFatal
-import play.utils.{ PlayIO, Threads }
+import play.utils.PlayIO
 
 /**
  * This object provides a set of operations to create `Configuration` values.

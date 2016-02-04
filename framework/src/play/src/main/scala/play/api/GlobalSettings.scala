@@ -3,13 +3,8 @@
  */
 package play.api
 
-import javax.inject.{ Inject, Singleton }
-
-import play.api.inject.{ BindingKey, Binding }
 import play.api.mvc._
-import java.io.File
 import play.core.j
-import play.utils.Reflect
 
 import scala.concurrent.Future
 import play.api.http._

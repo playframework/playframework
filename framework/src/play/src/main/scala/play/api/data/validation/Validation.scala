@@ -3,8 +3,6 @@
  */
 package play.api.data.validation
 
-import play.api.data._
-
 /**
  * A form constraint.
  *

@@ -8,7 +8,7 @@ import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProvi
 import com.google.inject.{ Module => GuiceModule, Stage, CreationException, Guice }
 import java.io.File
 import javax.inject.Inject
-import play.api.inject.{ Binding => PlayBinding, BindingKey, Injector => PlayInjector, Module => PlayModule }
+import play.api.inject.{ Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule }
 import play.api.{ Configuration, Environment, Mode, PlayException }
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag

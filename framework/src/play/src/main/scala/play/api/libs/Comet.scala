@@ -5,7 +5,6 @@ package play.api.libs
 
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json.Json
-import play.api.mvc._
 import play.api.libs.iteratee._
 import play.twirl.api._
 

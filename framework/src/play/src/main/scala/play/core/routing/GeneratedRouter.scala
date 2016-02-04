@@ -7,8 +7,6 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
 
-import play.utils.UriEncoding
-
 /**
  * A route
  */
