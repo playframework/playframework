@@ -51,6 +51,22 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       }
     }
 
+    "use BoneCP with 'bonecp' specific settings" in new WithApplication(FakeApplication(
+      additionalConfiguration = Map(
+        "play.db.pool" -> "bonecp",
+        "db.default.url" -> "jdbc:h2:mem:default",
+        "db.other.driver" -> "org.h2.Driver",
+        "db.other.url" -> "jdbc:h2:mem:other",
+        "play.db.prototype.bonecp.maxConnectionsPerPartition" -> "50"
+      )
+    )) {
+      import com.jolbox.bonecp.BoneCPDataSource
+      val db = app.injector.instanceOf[DBApi]
+      val bonecpDataSource: BoneCPDataSource = db.database("default").dataSource.asInstanceOf[BoneCPDataSource]
+      val bonecpConfig = bonecpDataSource.getConfig
+      bonecpConfig.getMaxConnectionsPerPartition must be_==(50)
+    }
+
     "use BoneCP when database-specific pool is 'bonecp'" in new WithApplication(FakeApplication(
       additionalConfiguration = Map(
         "db.default.pool" -> "bonecp",
