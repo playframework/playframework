@@ -7,7 +7,7 @@ import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.{
-  previousArtifact, binaryIssueFilters, reportBinaryIssues
+  previousArtifacts, binaryIssueFilters, reportBinaryIssues
 }
 import com.typesafe.tools.mima.core._
 
@@ -70,11 +70,11 @@ object BuildSettings {
    * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
    */
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
-    previousArtifact := {
+    previousArtifacts := {
       if (crossPaths.value) {
-        Some(organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion)
+        Set(organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion)
       } else {
-        Some(organization.value % moduleName.value % previousVersion)
+        Set(organization.value % moduleName.value % previousVersion)
       }
     },
     Docs.apiDocsInclude := true
@@ -400,7 +400,7 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
     .settings(
       parallelExecution in Test := false,
-      previousArtifact := None
+      previousArtifacts := Set.empty
     )
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
