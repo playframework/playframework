@@ -3,7 +3,7 @@
 
 ## What is an Action?
 
-Most of the requests received by a Play application are handled by an `Action`. 
+Most of the requests received by a Play application are handled by an *action*. 
 
 An action is basically a Java method that processes the request parameters, and produces a result to be sent to the client.
 

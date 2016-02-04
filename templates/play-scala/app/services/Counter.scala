@@ -2,7 +2,6 @@ package services
 
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject._
-import play.api.Logger
 
 /**
  * This trait demonstrates how to create a component that is injected

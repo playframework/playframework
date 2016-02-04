@@ -16,7 +16,7 @@ import play.api.libs.concurrent.{ MaterializerProvider, ExecutionContextProvider
 import play.api.routing.Router
 import play.libs.concurrent.HttpExecutionContext
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 /**
  * The Play BuiltinModule.
@@ -47,8 +47,9 @@ class BuiltinModule extends Module {
       bind[Router].toProvider[RoutesProvider],
       bind[ActorSystem].toProvider[ActorSystemProvider],
       bind[Materializer].toProvider[MaterializerProvider],
-      bind[ExecutionContext].toProvider[ExecutionContextProvider],
-      bind[Executor].toProvider[ExecutionContextProvider],
+      bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
+      bind[ExecutionContext].to[ExecutionContextExecutor],
+      bind[Executor].to[ExecutionContextExecutor],
       bind[HttpExecutionContext].toSelf,
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],

@@ -7,13 +7,24 @@ scalaVersion := "2.11.7"
 crossScalaVersions := Seq("2.11.7")
 
 templates := {
-  val dir = baseDirectory.value
+  def template(name: String, lang: String, includeDirNames: String*): TemplateSources = {
+    val dir = baseDirectory.value
+    TemplateSources(
+      name = name,
+      mainDir = dir / name,
+      includeDirs = includeDirNames.map(dir / _),
+      params = Map(
+        "LANG_FILE_SUFFIX" -> lang,
+        "LANG_TITLE_CASE" -> (lang.substring(0, 1).toUpperCase + lang.substring(1).toLowerCase)
+      )
+    )
+  }
   Seq(
-    "play-scala",
-    "play-java",
-    "play-scala-intro",
-    "play-java-intro"
-  ).map(template => dir / template)
+    template("play-scala", "scala", "play-common"),
+    template("play-java", "java", "play-common"),
+    template("play-scala-intro", "scala"),
+    template("play-java-intro", "java")
+  )
 }
 
 version := sys.props.getOrElse("play.version", version.value)
@@ -47,3 +58,6 @@ templateParameters := Map(
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )
+
+// Ignore Mac OS files contained in templates
+ignoreTemplateFiles += ".DS_Store"
