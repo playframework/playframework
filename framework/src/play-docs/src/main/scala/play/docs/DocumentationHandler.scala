@@ -3,6 +3,8 @@
  */
 package play.docs
 
+import java.io.Closeable
+
 import akka.stream.scaladsl.StreamConverters
 import play.api.libs.MimeTypes
 import play.api.mvc._
@@ -15,8 +17,10 @@ import play.doc.{ FileRepository, PlayDoc, RenderedPage, PageIndex }
  * Documentation is located in the given repository - either a JAR file or directly from
  * the filesystem.
  */
-class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extends BuildDocHandler {
+class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClose: Closeable) extends BuildDocHandler with Closeable {
 
+  def this(repo: FileRepository, toClose: Closeable) = this(repo, repo, toClose)
+  def this(repo: FileRepository, apiRepo: FileRepository) = this(repo, apiRepo, new Closeable() { def close() = () })
   def this(repo: FileRepository) = this(repo, repo)
 
   /**
@@ -80,6 +84,8 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
       case _ => None
     }
   }
+
+  def close() = toClose.close()
 }
 
 /**

@@ -3,8 +3,8 @@
  */
 package com.typesafe.play.docs.sbtplugin
 
+import java.io.Closeable
 import java.util.concurrent.Callable
-import java.util.jar.JarFile
 
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ ValidationConfig, CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
@@ -26,6 +26,7 @@ object Imports {
     val docsVersion = SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
     val docsName = SettingKey[String]("playDocsName", "The name of the documentation artifact", KeyRanks.BSetting)
     val docsJarFile = TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
+    val resources = TaskKey[Seq[PlayDocsResource]]("playDocsResources", "Resource files to add to the file repository for running docs and validation", KeyRanks.CTask)
     val docsJarScalaBinaryVersion = SettingKey[String]("playDocsScalaVersion", "The binary scala version of the documentation", KeyRanks.BSetting)
     val validateDocs = TaskKey[Unit]("validateDocs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
     val validateExternalLinks = TaskKey[Seq[String]]("validateExternalLinks", "Validates that all the external links are valid, by checking that they return 200.", KeyRanks.APlusTask)
@@ -45,10 +46,18 @@ object Imports {
 
     val evaluateSbtFiles = TaskKey[Unit]("evaluateSbtFiles", "Evaluate all the sbt files in the project")
   }
+
+  sealed trait PlayDocsResource {
+    def file: File
+  }
+  case class PlayDocsDirectoryResource(file: File) extends PlayDocsResource
+  case class PlayDocsJarFileResource(file: File, base: Option[String]) extends PlayDocsResource
+
 }
 
 object PlayDocsPlugin extends AutoPlugin {
 
+  import Imports._
   import Imports.PlayDocsKeys._
 
   val autoImport = Imports
@@ -69,6 +78,8 @@ object PlayDocsPlugin extends AutoPlugin {
     docsVersion := PlayVersion.current,
     docsName := "play-docs",
     docsJarFile <<= docsJarFileSetting,
+    PlayDocsKeys.resources := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
+      docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
     docsJarScalaBinaryVersion <<= scalaBinaryVersion,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% docsName.value % PlayVersion.current,
@@ -188,17 +199,18 @@ object PlayDocsPlugin extends AutoPlugin {
       }
     }
 
-    val maybeDocsJar = docsJarFile.value map { f => new JarFile(f) }
+    val allResources = PlayDocsKeys.resources.value
 
     val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
-    val buildDocHandler = maybeDocsJar match {
-      case Some(docsJar) =>
-        val fromDirectoryAndJarMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String], classOf[Boolean])
-        fromDirectoryAndJarMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", true: java.lang.Boolean)
-      case None =>
-        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
-        fromDirectoryMethod.invoke(null, manualPath.value)
-    }
+    val fromResourcesMethod = docHandlerFactoryClass.getMethod("fromResources", classOf[Array[java.io.File]], classOf[Array[String]])
+
+    val files = allResources.map(_.file).toArray[File]
+    val baseDirs = allResources.map {
+      case PlayDocsJarFileResource(_, base) => base.orNull
+      case PlayDocsDirectoryResource(_) => null
+    }.toArray[String]
+
+    val buildDocHandler = fromResourcesMethod.invoke(null, files, baseDirs)
 
     val clazz = classloader.loadClass("play.docs.DocServerStart")
     val constructor = clazz.getConstructor()
@@ -222,7 +234,7 @@ object PlayDocsPlugin extends AutoPlugin {
     waitForKey()
 
     server.stop()
-    maybeDocsJar.foreach(_.close())
+    buildDocHandler.asInstanceOf[Closeable].close()
   }
 
   private lazy val consoleReader = {

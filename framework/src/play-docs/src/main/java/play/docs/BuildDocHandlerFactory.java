@@ -4,6 +4,9 @@
 package play.docs;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import play.core.BuildDocHandler;
@@ -24,6 +27,42 @@ import scala.Option;
  * are built with different versions of Scala.
  */
 public class BuildDocHandlerFactory {
+
+    /**
+     * Create a BuildDocHandler that serves documentation from the given files, which could either be directories
+     * or jar files.  The baseDir array must be the same length as the files array, and the corresponding entry in there
+     * for jar files is used as a base directory to use resources from in the jar.
+     *
+     * @param files The directories or jar files to serve documentation from.
+     * @param baseDirs The base directories for the jar files.  Entries may be null.
+     */
+    public static BuildDocHandler fromResources(File[] files, String[] baseDirs) throws IOException {
+        assert(files.length == baseDirs.length);
+
+        FileRepository[] repositories = new FileRepository[files.length];
+        List<JarFile> jarFiles = new ArrayList<>();
+
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            String baseDir = baseDirs[i];
+
+
+            if (file.isDirectory()) {
+                repositories[i] = new FilesystemRepository(file);
+            } else {
+                // Assume it's a jar file
+                JarFile jarFile = new JarFile(file);
+                jarFiles.add(jarFile);
+                repositories[i] = new JarRepository(jarFile, Option.apply(baseDir));
+            }
+        }
+
+        return new DocumentationHandler(new AggregateFileRepository(repositories), () -> {
+            for (JarFile jarFile: jarFiles) {
+                jarFile.close();
+            }
+        });
+    }
 
     /**
      * Create an BuildDocHandler that serves documentation from a given directory by
