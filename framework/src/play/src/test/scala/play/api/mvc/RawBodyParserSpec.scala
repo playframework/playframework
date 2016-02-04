@@ -27,7 +27,7 @@ object RawBodyParserSpec extends Specification with AfterAll {
 
   def afterAll(): Unit = {
     materializer.shutdown()
-    system.shutdown()
+    system.terminate()
   }
 
   val config = ParserConfiguration()

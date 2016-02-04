@@ -64,7 +64,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   val system = ActorSystem()
   implicit val materializer = ActorMaterializer()(system)
 
-  def afterAll(): Unit = system.shutdown()
+  def afterAll(): Unit = system.terminate()
 
   def withSimpleServer[T](block: WSClient => T): T = withServer {
     case _ => Action(Ok)

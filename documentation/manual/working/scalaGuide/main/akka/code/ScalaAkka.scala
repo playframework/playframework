@@ -7,7 +7,8 @@ import akka.actor.ActorSystem
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.inject.guice.GuiceApplicationBuilder
-import scala.concurrent.duration._
+  import scala.concurrent.Await
+  import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.test._
@@ -22,8 +23,8 @@ class ScalaAkkaSpec extends PlaySpecification {
     try {
       block(system)
     } finally {
-      system.shutdown()
-      system.awaitTermination()
+      system.terminate()
+      Await.result(system.whenTerminated, Duration.Inf)
     }
   }
   

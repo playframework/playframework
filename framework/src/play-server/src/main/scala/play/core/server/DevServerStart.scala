@@ -219,8 +219,8 @@ object DevServerStart {
 
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
           ActorMaterializer()(actorSystem), () => {
-            actorSystem.shutdown()
-            actorSystem.awaitTermination()
+            actorSystem.terminate()
+            Await.result(actorSystem.whenTerminated, Duration.Inf)
             Future.successful(())
           })
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)

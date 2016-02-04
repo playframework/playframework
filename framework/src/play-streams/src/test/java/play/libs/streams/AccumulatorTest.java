@@ -107,6 +107,6 @@ public class AccumulatorTest {
 
     @After
     public void tearDown() {
-        system.shutdown();
+        system.terminate();
     }
 }

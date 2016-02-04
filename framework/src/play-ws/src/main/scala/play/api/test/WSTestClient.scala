@@ -76,7 +76,7 @@ trait WsTestClient {
       block(wrappedClient)
     } finally {
       client.close()
-      system.shutdown()
+      system.terminate()
     }
   }
 }

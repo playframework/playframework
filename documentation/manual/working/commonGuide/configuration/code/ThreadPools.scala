@@ -42,7 +42,7 @@ object ThreadPoolsSpec extends PlaySpecification {
       #default-config """
       val parsed = ConfigFactory.parseString(config)
       val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
-      actorSystem.shutdown()
+      actorSystem.terminate()
       success
     }
 
@@ -65,7 +65,7 @@ object ThreadPoolsSpec extends PlaySpecification {
       #akka-default-config """
       val parsed = ConfigFactory.parseString(config)
       val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
-      actorSystem.shutdown()
+      actorSystem.terminate()
       success
     }
 
@@ -128,7 +128,7 @@ object ThreadPoolsSpec extends PlaySpecification {
       #highly-synchronous """)
 
       val actorSystem = ActorSystem("test", config.getConfig("akka"))
-      actorSystem.shutdown()
+      actorSystem.terminate()
       success
     }
 
