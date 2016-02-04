@@ -4,15 +4,10 @@
 package play.core
 
 import java.io._
-import play.utils.Threads
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.util.{ Try, Success, Failure }
+import scala.util.{ Try, Success }
 
 import play.api._
 import play.api.mvc._
-import scala.util.control.NonFatal
 
 /**
  * provides source code to be displayed on error pages

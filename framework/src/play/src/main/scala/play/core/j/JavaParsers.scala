@@ -7,7 +7,6 @@ import java.io.File
 import java.util.concurrent.Executor
 
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.BodyParsers.TakeUpTo
 
 import scala.collection.JavaConverters._
 import play.api.mvc._

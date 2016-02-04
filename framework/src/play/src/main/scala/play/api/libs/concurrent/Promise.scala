@@ -5,20 +5,12 @@ package play.api.libs.concurrent
 
 import scala.language.higherKinds
 
-import play.core._
-import play.api._
+import scala.concurrent.duration.FiniteDuration
 
-import scala.concurrent.duration.{ FiniteDuration, Duration }
-
-import java.util.concurrent.{ TimeUnit }
+import java.util.concurrent.TimeUnit
 
 import scala.concurrent.{ Future, ExecutionContext, Promise => SPromise }
-import scala.collection.mutable.Builder
-import scala.collection._
-import scala.collection.generic.CanBuildFrom
-import play.core.Execution.internalContext
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
  * useful helper methods to create and compose Promises

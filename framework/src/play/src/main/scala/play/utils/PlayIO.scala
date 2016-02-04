@@ -9,7 +9,7 @@ import java.net.URL
 import play.api.Logger
 
 /**
- * IO utilites for internal use by Play projects.
+ * IO utilities for internal use by Play projects.
  *
  * This is intentionally not public API.
  */

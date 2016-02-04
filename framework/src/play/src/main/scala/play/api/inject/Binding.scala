@@ -4,13 +4,12 @@
 package play.api.inject
 
 import java.lang.annotation.Annotation
-import javax.inject.{ Named, Provider }
+import javax.inject.Provider
 import scala.language.existentials
 import scala.reflect.ClassTag
 
 import play.inject.SourceProvider
 
-import com.google.inject.name.Names
 
 /**
  * A binding.

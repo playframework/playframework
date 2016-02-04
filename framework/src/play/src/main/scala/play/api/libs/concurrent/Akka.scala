@@ -6,17 +6,16 @@ package play.api.libs.concurrent
 import java.lang.reflect.Method
 
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.google.inject.util.Types
-import com.google.inject.{ Binder, Key, AbstractModule }
+import com.google.inject.{ Binder, AbstractModule }
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.typesafe.config.Config
-import java.util.concurrent.{Executor, TimeoutException}
+import java.util.concurrent.TimeoutException
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ Binding, Injector, ApplicationLifecycle, bind }
 import play.core.ClosableLazy
 import akka.actor._
-import scala.concurrent.{Await, ExecutionContextExecutor, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 

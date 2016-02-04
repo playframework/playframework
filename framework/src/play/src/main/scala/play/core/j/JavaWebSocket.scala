@@ -7,7 +7,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.actor.Status
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
+import akka.stream.scaladsl.{ Source, Flow, Sink }
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._

@@ -1,7 +1,6 @@
 package play.server.api
 
-import javax.net.ssl.{ SSLEngine, SSLContext }
-import play.core.ApplicationProvider
+import javax.net.ssl.SSLEngine
 
 /**
  * To configure the SSLEngine used by Play as a server, extend this class.  In particular, if you want to call

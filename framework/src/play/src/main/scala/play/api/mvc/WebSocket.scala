@@ -4,7 +4,7 @@
 package play.api.mvc
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
+import akka.stream.scaladsl.{ Source, Sink, Flow }
 import akka.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.iteratee._
@@ -17,7 +17,6 @@ import scala.concurrent.{ ExecutionContext, Promise, Future }
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 import akka.actor.{ Props, ActorRef }
 import play.api.Application
-import scala.reflect.ClassTag
 
 import scala.util.control.NonFatal
 
