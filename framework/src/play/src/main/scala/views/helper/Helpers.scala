@@ -53,7 +53,7 @@ package views.html.helper {
 
   }
 
-  trait FieldConstructor extends NotNull {
+  trait FieldConstructor {
     def apply(elts: FieldElements): Html
   }
 

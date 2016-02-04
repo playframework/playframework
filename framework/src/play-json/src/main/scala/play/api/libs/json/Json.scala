@@ -140,11 +140,8 @@ object Json {
    *
    * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper
    * which is an empty trait that shouldn't end into unexpected implicit conversions.
-   *
-   * Something to note due to `JsValueWrapper` extending `NotNull` :
-   * `null` or `None` will end into compiling error : use JsNull instead.
    */
-  sealed trait JsValueWrapper extends NotNull
+  sealed trait JsValueWrapper
 
   private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
 
