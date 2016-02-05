@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 public class Cache {
 
     private static CacheApi cacheApi() {
-        return play.Play.application().injector().instanceOf(CacheApi.class);
+        return play.api.Play.current().injector().instanceOf(CacheApi.class);
     }
 
     /**

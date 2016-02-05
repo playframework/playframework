@@ -21,7 +21,7 @@ import play.mvc.Http.Request;
 public class OpenID {
 
     private static OpenIdClient client() {
-        return Play.application().injector().instanceOf(OpenIdClient.class);
+        return play.api.Play.current().injector().instanceOf(OpenIdClient.class);
     }
 
     /**

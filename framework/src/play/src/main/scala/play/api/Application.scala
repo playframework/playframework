@@ -57,6 +57,10 @@ trait Application {
    */
   def mode: Mode.Mode
 
+  private[play] def isDev = (mode == Mode.Dev)
+  private[play] def isTest = (mode == Mode.Test)
+  private[play] def isProd = (mode == Mode.Prod)
+
   @deprecated("Use dependency injection", "2.5.0")
   def global: GlobalSettings.Deprecated = injector.instanceOf[GlobalSettings.Deprecated]
 

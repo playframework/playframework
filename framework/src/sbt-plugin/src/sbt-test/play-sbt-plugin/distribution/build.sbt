@@ -6,6 +6,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 
+routesGenerator := InjectedRoutesGenerator
+
 val checkStartScript = InputKey[Unit]("checkStartScript")
 
 checkStartScript := {

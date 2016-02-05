@@ -91,9 +91,7 @@ public interface Application {
      *
      * @return true if the application is in DEV mode
      */
-    default boolean isDev() {
-        return play.api.Play.isDev(getWrappedApplication());
-    }
+    default boolean isDev() { return getWrappedApplication().isDev(); }
 
     /**
      * Check whether the application is in {@link Mode#PROD} mode.
@@ -101,7 +99,7 @@ public interface Application {
      * @return true if the application is in PROD mode
      */
     default boolean isProd() {
-        return play.api.Play.isProd(getWrappedApplication());
+        return getWrappedApplication().isProd();
     }
 
     /**
@@ -110,7 +108,7 @@ public interface Application {
      * @return true if the application is in TEST mode
      */
     default boolean isTest() {
-        return play.api.Play.isTest(getWrappedApplication());
+        return getWrappedApplication().isTest();
     }
 
 }

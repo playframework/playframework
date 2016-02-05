@@ -11,7 +11,7 @@ import play.core.j.JavaModeConverter$;
 public class Play {
 
     /**
-     * @deprecated inject the {@link play.Application} instead
+     * @deprecated inject the {@link play.Application} instead.   Deprecated since 2.5.0.
      * @return Deprecated
      */
     @Deprecated
@@ -20,7 +20,7 @@ public class Play {
     }
 
     /**
-     * @deprecated inject the {@link play.Environment} instead
+     * @deprecated inject the {@link play.Environment} instead.   Deprecated since 2.5.0.
      * @return Deprecated
      */
     @Deprecated
@@ -29,7 +29,7 @@ public class Play {
     }
 
     /**
-     * @deprecated inject the {@link play.Environment} instead
+     * @deprecated inject the {@link play.Environment} instead.   Deprecated since 2.5.0.
      * @return Deprecated
      */
     @Deprecated
@@ -38,7 +38,7 @@ public class Play {
     }
 
     /**
-     * @deprecated inject the {@link play.Environment} instead
+     * @deprecated inject the {@link play.Environment} instead.   Deprecated since 2.5.0.
      * @return Deprecated
      */
     @Deprecated
@@ -47,7 +47,7 @@ public class Play {
     }
 
     /**
-     * @deprecated inject the {@link play.Environment} instead
+     * @deprecated inject the {@link play.Environment} instead.   Deprecated since 2.5.0.
      * @return Deprecated
      */
     @Deprecated
