@@ -41,6 +41,7 @@ object Imports {
 
     val javaManualSourceDirectories = SettingKey[Seq[File]]("javaManualSourceDirectories")
     val scalaManualSourceDirectories = SettingKey[Seq[File]]("scalaManualSourceDirectories")
+    val commonManualSourceDirectories = SettingKey[Seq[File]]("commonManualSourceDirectories")
     val javaTwirlSourceManaged = SettingKey[File]("javaRoutesSourceManaged")
     val scalaTwirlSourceManaged = SettingKey[File]("scalaRoutesSourceManaged")
 
@@ -128,7 +129,8 @@ object PlayDocsPlugin extends AutoPlugin {
     routesCompilerTasks in Test := {
       val javaRoutes = (javaManualSourceDirectories.value * "*.routes").get
       val scalaRoutes = (scalaManualSourceDirectories.value * "*.routes").get
-      (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil)).map {
+      val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get
+      (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil) ++ commonRoutes.map(_ -> Nil)).map {
         case (file, imports) => RoutesCompilerTask(file, imports, true, true, true)
       }
     },
