@@ -3,6 +3,9 @@
  */
 package play.it.mvc
 
+import akka.stream.Materializer
+import java.util.concurrent.CompletionStage
+import java.util.function.{ Function => JFunction }
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -23,14 +26,21 @@ object NettyGlobalFiltersSpec extends GlobalFiltersSpec with NettyIntegrationSpe
 object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
+
+  // Easy to use `withServer` method
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(block: WSClient => T) = {
+    withFlexibleServer(settings, errorHandler, (_: Materializer) => filters)(block)
+  }
+
+  // `withServer` method that allows filters to be constructed with a Materializer
+  def withFlexibleServer[T](settings: Map[String, String], errorHandler: Option[HttpErrorHandler], makeFilters: Materializer => Seq[EssentialFilter])(block: WSClient => T) = {
 
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
     )) {
       lazy val router = testRouter
-      override lazy val httpFilters: Seq[EssentialFilter] = filters
+      override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
         new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
       )
@@ -42,6 +52,34 @@ trait DefaultFiltersSpec extends FiltersSpec {
     }
 
   }
+
+  // Only run this test for injected filters; we can't use it for GlobalSettings
+  // filters because we can't get the Materializer that we need
+  "Java filters" should {
+    "work with a simple nop filter" in withFlexibleServer(
+      Map.empty, None,
+      (mat: Materializer) => Seq(new JavaSimpleFilter(mat))) { ws =>
+        val response = Await.result(ws.url("/ok").get(), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+  }
+
+  // A Java filter that extends Filter, not EssentialFilter
+  class JavaSimpleFilter(mat: Materializer) extends play.mvc.Filter(mat) {
+    println("Creating JavaSimpleFilter")
+    import play.mvc._
+    import play.libs.streams.Accumulator
+
+    override def apply(
+      next: JFunction[Http.RequestHeader, CompletionStage[Result]],
+      rh: Http.RequestHeader): CompletionStage[Result] = {
+      println("Calling JavaSimpleFilter.apply")
+      next(rh)
+    }
+
+  }
+
 }
 
 trait GlobalFiltersSpec extends FiltersSpec {

@@ -34,7 +34,8 @@ public abstract class Filter extends EssentialFilter {
 
             @Override
             public play.api.mvc.EssentialAction apply(play.api.mvc.EssentialAction next) {
-                return Filter.this.apply(next);
+                // Manually mix in the implementation from the EssentialAction trait
+                return play.api.mvc.Filter$class.apply(this, next);
             }
 
             @Override
