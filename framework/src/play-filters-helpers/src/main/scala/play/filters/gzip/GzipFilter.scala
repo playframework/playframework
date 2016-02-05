@@ -3,6 +3,7 @@
  */
 package play.filters.gzip
 
+import java.util.function.BiFunction
 import java.util.zip.GZIPOutputStream
 import javax.inject.{ Provider, Inject, Singleton }
 
@@ -14,10 +15,12 @@ import play.api.inject.Module
 import play.api.libs.streams.GzipFlow
 import play.api.{ Environment, PlayConfig, Configuration }
 import play.api.mvc._
+import play.core.j
 import scala.concurrent.Future
 import play.api.mvc.RequestHeader.acceptHeader
 import play.api.http.{ HttpChunk, HttpEntity, Status }
 import play.api.libs.concurrent.Execution.Implicits._
+import scala.compat.java8.FunctionConverters._
 
 /**
  * A gzip filter.
@@ -177,9 +180,22 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
 case class GzipFilterConfig(bufferSize: Int = 8192,
     chunkedThreshold: Int = 102400,
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true) {
+
+  // alternate constructor and builder methods for Java
+  def this() = this(shouldGzip = (_, _) => true)
+
+  def withShouldGzip(shouldGzip: (RequestHeader, Result) => Boolean): GzipFilterConfig = copy(shouldGzip = shouldGzip)
+
+  def withShouldGzip(shouldGzip: BiFunction[play.mvc.Http.RequestHeader, play.mvc.Result, Boolean]): GzipFilterConfig =
+    withShouldGzip((req, res) => shouldGzip.asScala(new j.RequestHeaderImpl(req), res.asJava))
+
+  def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
+
+  def withBufferSize(size: Int): GzipFilterConfig = copy(bufferSize = size)
 }
 
 object GzipFilterConfig {
+
   def fromConfiguration(conf: Configuration) = {
     val config = PlayConfig(conf).get[PlayConfig]("play.filters.gzip")
 
