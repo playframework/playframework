@@ -1,6 +1,10 @@
 <!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Play modules
 
+Play uses public modules to augment built-in functionality.  
+
+To create your own public module or to migrate from a `play.api.Plugin`, please see [[ScalaPlayModules]] or [[JavaPlayModules]].
+
 ## API hosting
 
 ### swagger-play
