@@ -22,6 +22,6 @@ public class WithApplicationTest extends WithApplication {
     public void withApplicationShouldCleanUpApplication() {
         stopPlay();
         assertNull(app);
-        assertTrue(play.api.Play.privateMaybeApplication().isEmpty());
+        assertTrue(play.api.Play.maybeApplication().isEmpty());
     }
 }
