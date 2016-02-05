@@ -186,7 +186,7 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 
 `modules/admin/conf/admin.routes`:
 
-@[assets-routes](code/detailedtopics.build.subprojects.assets.routes)
+@[assets-routes](code/routes)
 
 > **Note:** Resources are served from a unique classloader, and thus resource path must be relative from project classpath root.
 > Subprojects resources are generated in `target/web/public/main/lib/{module-name}`, so the resources are accessible from `/public/lib/{module-name}` when using `play.api.Application#resources(uri)` method, which is what the `Assets.at` method does.
