@@ -44,7 +44,7 @@ test                     → source folder for unit or functional tests
 
 The `app` directory contains all executable artifacts: Java and Scala source code, templates and compiled assets’ sources.
 
-There are three packages in the `app` directory, one for each component of the MVC architectural pattern: 
+There are three packages in the `app` directory, one for each component of the MVC architectural pattern:
 
 - `app/controllers`
 - `app/models`
@@ -116,7 +116,14 @@ dist
 
 ## Default SBT layout
 
-You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, use `disablePlugins(PlayLayoutPlugin)`. This will stop Play from overriding the default SBT layout, which looks like this:
+You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
+
+```
+disablePlugins(PlayLayoutPlugin)
+PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value
+```
+
+This will stop Play from overriding the default SBT layout, which looks like this:
 
 ```
 build.sbt                  → Application build script
@@ -152,8 +159,8 @@ lib                        → Unmanaged libraries dependencies
 logs                       → Logs folder
  └ application.log         → Default log file
 target                     → Generated stuff
- └ scala-2.10.0            
-    └ cache              
+ └ scala-2.11.7
+    └ cache
     └ classes              → Compiled class files
     └ classes_managed      → Managed class files (templates, ...)
     └ resource_managed     → Managed resources (less, ...)
