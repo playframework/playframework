@@ -456,9 +456,9 @@ Due to the recent spate of TLS vulnerabilities, there has been more activity to 
 
 ## Crypto APIs
 
-Play 2.4's AES encryption now uses [initialization vectors](http://en.wikipedia.org/wiki/Initialization_vector) to randomize each encryption. The Play encryption format has been changed to add support for initialization vectors.
+Play 2.4's AES encryption now uses [initialization vectors](https://en.wikipedia.org/wiki/Initialization_vector) to randomize each encryption. The Play encryption format has been changed to add support for initialization vectors.
 
-The full name of the new AES transformation used by Play 2.4 is `AES/CTR/NoPadding`. The old transformation was `AES/ECB/PKCS5Padding`. The [`CTR`](http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_.28CTR.29) mode is much more secure than the `ECB` mode. As before, you can override Play's encryption transformation by setting the `play.crypto.aes.transformation` configuration option. In Play 2.4, any [transformation supported by your JRE](http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher) can be used, including transformations that use an initialization vector.
+The full name of the new AES transformation used by Play 2.4 is `AES/CTR/NoPadding`. The old transformation was `AES/ECB/PKCS5Padding`. The [`CTR`](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_.28CTR.29) mode is much more secure than the `ECB` mode. As before, you can override Play's encryption transformation by setting the `play.crypto.aes.transformation` configuration option. In Play 2.4, any [transformation supported by your JRE](http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher) can be used, including transformations that use an initialization vector.
 
 Play 2.4 uses a new encryption format, but it can read data encrypted by earlier versions of Play. However, earlier versions of Play **will not** be able to read data encrypted by Play 2.4. If your Play 2.4 application needs to produce data in the old format then you may want to copy the algorithm from the [Play 2.3 Crypto code](https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277).
 

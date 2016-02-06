@@ -22,10 +22,6 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 http://www.meetup.com/play-argentina/
 
-## Stockholm
-
-http://www.meetup.com/play-stockholm/
-
 ## Belgium
 
 http://www.play-be.org

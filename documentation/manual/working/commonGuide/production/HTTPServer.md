@@ -41,7 +41,7 @@ $HTTP["host"] =~ "www.loadbalancedapp.com" {
 
 ## Set up with nginx
 
-This example shows you how to configure [nginx](http://wiki.nginx.org/Main) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
+This example shows you how to configure [nginx](https://www.nginx.com/resources/wiki/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
 
 The `/etc/nginx/nginx.conf` file should define things like this:
 
