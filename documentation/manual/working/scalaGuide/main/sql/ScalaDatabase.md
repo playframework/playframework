@@ -156,7 +156,7 @@ For a database other than the default:
 
 ## Selecting and configuring the connection pool
 
-Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/). **The default is HikariCP**, but this can be changed by setting the `play.db.pool` property:
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://www.jolbox.com/). **The default is HikariCP**, but this can be changed by setting the `play.db.pool` property:
 
 ```
 play.db.pool=bonecp

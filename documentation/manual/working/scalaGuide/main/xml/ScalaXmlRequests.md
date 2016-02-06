@@ -15,7 +15,7 @@ It’s way better (and simpler) to specify our own `BodyParser` to ask Play to p
 
 > **Note:** When using an XML body parser, the `request.body` value is directly a valid `NodeSeq`. 
 
-You can test it with [cURL](http://curl.haxx.se/) from a command line:
+You can test it with [cURL](https://curl.haxx.se/) from a command line:
 
 ```
 curl 

@@ -30,8 +30,8 @@ Scaladoc is available in the [play.filters.headers](api/scala/play/filters/heade
 The filter will set headers in the HTTP response automatically.  The settings can can be configured through the following settings in `application.conf`
 
 * `play.filters.headers.frameOptions` - sets [X-Frame-Options](https://developer.mozilla.org/en-US/docs/HTTP/X-Frame-Options), "DENY" by default.
-* `play.filters.headers.xssProtection` - sets [X-XSS-Protection](http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx), "1; mode=block" by default.
-* `play.filters.headers.contentTypeOptions` - sets [X-Content-Type-Options](http://blogs.msdn.com/b/ie/archive/2008/09/02/ie8-security-part-vi-beta-2-update.aspx), "nosniff" by default.
+* `play.filters.headers.xssProtection` - sets [X-XSS-Protection](https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/), "1; mode=block" by default.
+* `play.filters.headers.contentTypeOptions` - sets [X-Content-Type-Options](https://blogs.msdn.microsoft.com/ie/2008/09/02/ie8-security-part-vi-beta-2-update/), "nosniff" by default.
 * `play.filters.headers.permittedCrossDomainPolicies` - sets [X-Permitted-Cross-Domain-Policies](https://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html), "master-only" by default.
 * `play.filters.headers.contentSecurityPolicy` - sets [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/), "default-src 'self'" by default.
 

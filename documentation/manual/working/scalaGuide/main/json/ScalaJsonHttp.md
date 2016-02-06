@@ -33,7 +33,7 @@ The last step is to add a route for our `Action` in `conf/routes`:
 GET   /places               controllers.Application.listPlaces
 ```
 
-We can test the action by making a request with a browser or HTTP tool. This example uses the unix command line tool [cURL](http://curl.haxx.se/).
+We can test the action by making a request with a browser or HTTP tool. This example uses the unix command line tool [cURL](https://curl.haxx.se/).
 
 ```
 curl --include http://localhost:9000/places
