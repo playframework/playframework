@@ -3,8 +3,8 @@
  */
 package play.api.routing
 
-import play.api.{ PlayConfig, Configuration, Environment }
-import play.api.mvc.{ RequestHeader, Handler }
+import play.api.mvc.{Handler, RequestHeader}
+import play.api.{Configuration, Environment, PlayConfig}
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
@@ -119,6 +119,7 @@ trait SimpleRouter extends Router { self =>
         def routes = {
           val p = if (prefix.endsWith("/")) prefix else prefix + "/"
           val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
+            case rh: RequestHeader if rh.path == prefix => rh.copy(path = "/")
             case rh: RequestHeader if rh.path.startsWith(p) => rh.copy(path = rh.path.drop(p.length - 1))
           }
           Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
