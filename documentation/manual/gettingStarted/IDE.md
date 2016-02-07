@@ -75,14 +75,13 @@ The generated configuration files contain absolute references to your framework 
 
 [Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
-Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](http://www.jetbrains.com/idea/features/scala.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
+Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](https://www.jetbrains.com/idea/help/creating-and-running-your-scala-application.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
 
 To create a Play application:
 
-1. Open ***New Project*** wizard, select ***Play 2.x*** under ***Scala*** section and click ***Next***.
-2. Enter your project's information and click ***Finish***.
-
-IntelliJ IDEA creates an empty application using SBT.
+1. Open ***New Project*** wizard, select ***Activator*** under ***Scala*** section and click ***Next***.
+2. Select one of the templates suitable. For the basic empty application you can select [Play Scala Seed](https://www.typesafe.com/activator/template/play-scala). The full list of templates can be found on [TypeSafe page](https://www.typesafe.com/activator/templates).
+3. Enter your project's information and click ***Finish***.
 
 Currently, for Play 2.4.x, instead of using the IntelliJ wizard to create a new project, we suggest that you create it using Activator and then Import it to IntelliJ.
 
@@ -92,7 +91,7 @@ To import a Play project:
 
 1. Open Project wizard, select ***Import Project***.
 2. In the window that opens, select a project you want to import and click ***OK***.
-3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***. 
+3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***. 
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
@@ -110,7 +109,7 @@ You can easily start a debugger session for a Play application using default Run
 
 For more detailed information, see the Play Framework 2.x tutorial at the following URL:
 
-<https://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
+<https://www.jetbrains.com/idea/help/getting-started-with-play-2-x.html> 
 
 ### Navigate from an error page to the source code
 
