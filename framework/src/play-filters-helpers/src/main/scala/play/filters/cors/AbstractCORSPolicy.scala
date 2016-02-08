@@ -94,7 +94,7 @@ private[cors] trait AbstractCORSPolicy {
      * any of the values in list of origins, do not set any additional
      * headers and terminate this set of steps.
      */
-    if (!isOriginAllowed(origin)) {
+    if (!corsConfig.allowedOrigins(origin)) {
       handleInvalidCORSRequest(request)
     } else {
       val headerBuilder = Seq.newBuilder[(String, String)]
@@ -170,7 +170,7 @@ private[cors] trait AbstractCORSPolicy {
      * any of the values in list of origins, do not set any additional
      * headers and terminate this set of steps.
      */
-    if (!isOriginAllowed(origin)) {
+    if (!corsConfig.allowedOrigins(origin)) {
       handleInvalidCORSRequest(request)
     } else {
       request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
@@ -306,10 +306,6 @@ private[cors] trait AbstractCORSPolicy {
   private def handleInvalidCORSRequest(request: RequestHeader): Future[Result] = {
     logger.trace(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")
     Future.successful(Results.Forbidden)
-  }
-
-  private def isOriginAllowed(origin: String): Boolean = {
-    corsConfig.anyOriginAllowed || corsConfig.allowedOrigins.contains(origin)
   }
 
   // http://tools.ietf.org/html/rfc6454#section-7.1
