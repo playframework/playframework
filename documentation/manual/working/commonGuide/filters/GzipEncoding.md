@@ -33,4 +33,8 @@ To control which responses are and aren't implemented, use the `shouldGzip` para
 
 For example, the code below only gzips HTML responses:
 
-@[should-gzip](code/GzipEncoding.scala)
+Scala
+: @[should-gzip](code/GzipEncoding.scala)
+
+Java
+: @[gzip-filter](code/detailedtopics/configuration/gzipencoding/CustomFilters.java)
