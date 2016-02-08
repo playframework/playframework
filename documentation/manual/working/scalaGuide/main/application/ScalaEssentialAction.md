@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
-# Introduction to Play HTTP API
+# Essential Action
 
 ## What is EssentialAction?
 
