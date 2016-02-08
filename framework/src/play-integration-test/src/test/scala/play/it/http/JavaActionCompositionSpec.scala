@@ -1,21 +1,19 @@
 package play.it.http
 
 import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
-import play.api.test.{ WsTestClient, TestServer, FakeApplication, PlaySpecification }
-import play.it.http.ActionCompositionOrderTest.{ WithUsername, ActionAnnotation, ControllerAnnotation }
-import play.mvc.{ Results, Result }
+import play.api.test.{PlaySpecification, TestServer, WsTestClient}
+import play.it.http.ActionCompositionOrderTest.{ActionAnnotation, ControllerAnnotation, WithUsername}
+import play.mvc.{Result, Results}
 
 object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
   def makeRequest[T](controller: MockController, configuration: Map[String, _ <: Any] = Map.empty)(block: WSResponse => T) = {
     implicit val port = testServerPort
-    lazy val app: Application = FakeApplication(
-      withRoutes = {
-        case _ => JAction(app, controller)
-      },
-      additionalConfiguration = configuration
-    )
+    lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
+      case _ => JAction(app, controller)
+    }.build()
 
     running(TestServer(port, app)) {
       val response = await(wsUrl("/").get())

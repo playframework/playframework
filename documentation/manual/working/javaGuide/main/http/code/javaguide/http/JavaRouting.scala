@@ -3,13 +3,14 @@
  */
 package javaguide.http
 
+import play.api.Application
 import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.mvc.{EssentialAction, RequestHeader}
 import play.api.routing.Router
 import javaguide.http.routing._
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, FakeApplication}
+import play.api.test.FakeRequest
 import javaguide.testhelpers.MockJavaAction
 import play.libs.F
 
@@ -50,8 +51,7 @@ object JavaRouting extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version 3.0"
     }
     "support reverse routing" in {
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
         header("Location", call(new MockJavaAction {
           override def invocation = F.Promise.pure(new javaguide.http.routing.controllers.Application().index())
@@ -62,8 +62,7 @@ object JavaRouting extends Specification {
   }
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
-    val app = FakeApplication(additionalConfiguration = Map("play.http.router" -> router.getName))
-    running(app) {
+    running(_.configure("play.http.router" -> router.getName)) { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run()

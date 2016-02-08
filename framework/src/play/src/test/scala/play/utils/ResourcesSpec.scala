@@ -1,11 +1,11 @@
 package play.utils
 
 import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }
-import java.net.{ URI, URLEncoder, URL, URLConnection, URLStreamHandler }
+import java.net.{ URL, URLConnection, URLStreamHandler }
 import java.util.zip.{ ZipEntry, ZipOutputStream }
 import org.specs2.mutable.Specification
 
-import play.api.FakeApplication
+import play.api.PlayCoreTestApplication
 
 /**
  * Tests for Resources object
@@ -13,7 +13,7 @@ import play.api.FakeApplication
 object ResourcesSpec extends Specification {
   import Resources._
 
-  lazy val app = FakeApplication()
+  lazy val app = PlayCoreTestApplication()
   lazy val tmpDir = createTempDir("resources-", ".tmp")
   lazy val jar = File.createTempFile("jar-", ".tmp", tmpDir)
   lazy val fileRes = File.createTempFile("file-", ".tmp", tmpDir)

@@ -157,7 +157,7 @@ object ScalaActionsSpec extends Specification with Controller {
   }
 
   def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
-    running(FakeApplication()) {
+    running() { _ =>
       val result = action(request)
       status(result) must_== expectedResponse
       assertions(result)

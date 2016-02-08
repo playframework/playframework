@@ -16,7 +16,7 @@ import play.api.libs.json.Json
 import play.api.test._
 import scala.util.Random
 import play.api.libs.Crypto
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Mode, Configuration, Environment }
 import play.api.ApplicationLoader.Context
 import play.core.DefaultWebCommands
@@ -80,13 +80,13 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       }
     }
 
-    val notBufferedFakeApp = FakeApplication(
-      additionalConfiguration = Map(
+    val notBufferedFakeApp = GuiceApplicationBuilder()
+      .configure(
         "play.crypto.secret" -> "foobar",
         "play.filters.csrf.body.bufferSize" -> "200",
         "play.http.filters" -> classOf[CsrfFilters].getName
-      ),
-      withRoutes = {
+      )
+      .routes {
         case _ => Action { req =>
           (for {
             body <- req.body.asFormUrlEncoded
@@ -99,7 +99,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
           }).getOrElse(Results.NotFound)
         }
       }
-    )
+      .build()
 
     "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
       val token = Crypto.generateSignedToken

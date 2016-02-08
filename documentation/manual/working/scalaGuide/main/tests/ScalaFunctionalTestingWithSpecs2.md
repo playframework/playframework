@@ -10,17 +10,15 @@ import play.api.test._
 import play.api.test.Helpers._
 ```
 
-## FakeApplication
+## Creating `Application` instances for testing
 
-Play frequently requires a running [`Application`](api/scala/play/api/Application.html) as context: it is usually provided from [`play.api.Play.current`](api/scala/play/api/Play$.html).
-
-To provide an environment for tests, Play provides a [`FakeApplication`](api/scala/play/api/test/FakeApplication.html) class which can be configured with a different Global object, additional configuration, or even additional plugins.
+Play frequently requires a running [`Application`](api/scala/play/api/Application.html) as context. If you're using the default Guice dependency injection, you can use the [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) class which can be configured with different configuration, routes, or even additional modules.
 
 @[scalafunctionaltest-fakeApplication](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## WithApplication
 
-To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default [`FakeApplication`](api/scala/play/api/test/FakeApplication.html) is provided for convenience.
+To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default `GuiceApplicationBulider`) is provided for convenience.
 
 Because [`WithApplication`](api/scala/play/api/test/WithApplication.html) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
 
@@ -34,7 +32,7 @@ Sometimes you want to test the real HTTP stack from within your test, in which c
 
 The `port` value contains the port number the server is running on.  By default this is 19001, however you can change this either by passing the port into [`WithServer`](api/scala/play/api/test/WithServer.html), or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
 
-A [`FakeApplication`](api/scala/play/api/test/FakeApplication.html) can also be passed to the test server, which is useful for setting up custom routes and testing WS calls:
+An application can also be passed to the test server, which is useful for setting up custom routes and testing WS calls:
 
 @[scalafunctionaltest-testws](code/specs2/ScalaFunctionalTestSpec.scala)
 

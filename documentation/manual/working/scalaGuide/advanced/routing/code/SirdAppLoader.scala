@@ -6,7 +6,6 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
 import scala.concurrent.Future
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.bind
 
 //#load

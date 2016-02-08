@@ -6,9 +6,8 @@ package scalaguide.akka {
 import akka.actor.ActorSystem
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import play.api.inject.guice.GuiceApplicationBuilder
-  import scala.concurrent.Await
-  import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.test._
@@ -55,21 +54,19 @@ class ScalaAkkaSpec extends PlaySpecification {
       contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
     }
 
-    "allow binding actors" in new WithApplication(new GuiceApplicationBuilder()
+    "allow binding actors" in new WithApplication(_
       .bindings(new modules.MyModule)
       .configure("my.config" -> "foo")
-      .build()
-    ) {
+    ) { _ =>
       import injection._
       val controller = app.injector.instanceOf[Application]
       contentAsString(controller.getConfig(FakeRequest())) must_== "foo"
     }
 
-    "allow binding actor factories" in new WithApplication(new GuiceApplicationBuilder()
+    "allow binding actor factories" in new WithApplication(_
       .bindings(new factorymodules.MyModule)
       .configure("my.config" -> "foo")
-      .build()
-    ) {
+    ) { _ =>
       import play.api.inject.bind
       import akka.actor._
       import play.api.libs.concurrent.Execution.Implicits.defaultContext

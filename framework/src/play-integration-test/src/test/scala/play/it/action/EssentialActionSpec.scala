@@ -3,9 +3,12 @@
  */
 package play.it.action
 
-import play.api.mvc.{ Action, EssentialAction }
+import play.api.Environment
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Results._
-import play.api.test.{ FakeApplication, PlaySpecification, FakeRequest }
+import play.api.mvc.{ Action, EssentialAction }
+import play.api.test.{ FakeRequest, PlaySpecification }
+
 import scala.concurrent.Promise
 
 object EssentialActionSpec extends PlaySpecification {
@@ -22,10 +25,9 @@ object EssentialActionSpec extends PlaySpecification {
 
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
-      val fakeApplication = FakeApplication(classloader = applicationClassLoader)
-      import fakeApplication.materializer
 
-      running(fakeApplication) {
+      running(_.in(Environment.simple().copy(classLoader = applicationClassLoader))) { app =>
+        import app.materializer
         // run the test with the classloader of the current thread
         Thread.currentThread.getContextClassLoader must not be applicationClassLoader
         call(action, FakeRequest())

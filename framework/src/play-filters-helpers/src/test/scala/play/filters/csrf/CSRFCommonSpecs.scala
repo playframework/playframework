@@ -4,6 +4,7 @@
 package play.filters.csrf
 
 import org.specs2.mutable.Specification
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 import scala.concurrent.Future
 import play.api.mvc.{ Handler, Session }
@@ -247,8 +248,11 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormWriteable: Writeable[Map[String, String]] = Writeable.writeableOf_urlEncodedForm.map[Map[String, String]](_.mapValues(v => Seq(v)))
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
-  def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = running(TestServer(testServerPort, FakeApplication(
-    additionalConfiguration = Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"),
-    withRoutes = router
-  )))(block)
+  def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = {
+    running(TestServer(testServerPort, GuiceApplicationBuilder()
+      .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
+      .routes(router)
+      .build()
+    ))(block)
+  }
 }

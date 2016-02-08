@@ -25,8 +25,7 @@ object GzipEncoding extends PlaySpecification {
     "allow custom strategies for when to gzip (Scala)" in {
 
       import play.api.mvc._
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
 
         val filter =

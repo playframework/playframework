@@ -89,9 +89,9 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       }
     }
 
-    "validate the full length of the body" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.http.parser.maxDiskBuffer" -> "100")
-    )) {
+    "validate the full length of the body" in new WithApplication(
+      _.configure("play.http.parser.maxDiskBuffer" -> "100")
+    ) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
@@ -103,9 +103,9 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       }
     }
 
-    "not parse more than the max data length" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.http.parser.maxMemoryBuffer" -> "30")
-    )) {
+    "not parse more than the max data length" in new WithApplication(
+      _.configure("play.http.parser.maxMemoryBuffer" -> "30")
+    ) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))

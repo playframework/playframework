@@ -4,6 +4,7 @@
 package play.core.server.akkahttp
 
 import play.api.http.HeaderNames._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.iteratee._
 import play.api.libs.ws._
 import play.api.mvc._
@@ -28,7 +29,8 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
         routes: PartialFunction[(String, String), Handler])(
           check: WSResponse => T)(
             implicit awaitTimeout: Timeout): T = {
-    running(TestServer(testServerPort, FakeApplication(withRoutes = routes), serverProvider = Some(AkkaHttpServer.provider))) {
+    val app = GuiceApplicationBuilder().routes(routes).build()
+    running(TestServer(testServerPort, app, serverProvider = Some(AkkaHttpServer.provider))) {
       val plainRequest = wsUrl(path)(testServerPort)
       val responseFuture = exec(plainRequest)
       val response = await(responseFuture)(awaitTimeout)
@@ -151,7 +153,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
     }
 
     "support WithServer form" in new WithServer(
-      app = FakeApplication(withRoutes = httpServerTagRoutes),
+      app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build(),
       serverProvider = Some(AkkaHttpServer.provider)) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
@@ -162,9 +164,9 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       PlayRunners.mutex.synchronized {
         def testStartAndStop(i: Int) = {
           val resultString = s"result-$i"
-          val app = FakeApplication(withRoutes = {
+          val app = GuiceApplicationBuilder().routes {
             case ("GET", "/") => Action(Ok(resultString))
-          })
+          }.build()
           val server = TestServer(testServerPort, app, serverProvider = Some(AkkaHttpServer.provider))
           server.start()
           try {

@@ -10,6 +10,7 @@ import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
 import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Response => AHCResponse, Request => AHCRequest }
 import org.asynchttpclient.proxy.ProxyServer
 import org.specs2.mock.Mockito
+import play.api.inject.guice.GuiceApplicationBuilder
 import scala.concurrent.duration._
 
 import play.api.mvc._
@@ -238,7 +239,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       actual.getRealm must beNull
     }
 
-    val patchFakeApp = FakeApplication(withRoutes = {
+    val patchFakeApp = GuiceApplicationBuilder().routes {
       case ("PATCH", "/") => Action {
         Results.Ok(play.api.libs.json.Json.parse(
           """{
@@ -246,7 +247,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
             |}
           """.stripMargin))
       }
-    })
+    }.build()
 
     "support patch method" in new WithServer(patchFakeApp) {
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
@@ -263,8 +264,9 @@ object AhcWSSpec extends PlaySpecification with Mockito {
     def gzipFakeApp = {
       import java.io._
       import java.util.zip._
-      FakeApplication(
-        withRoutes = {
+      GuiceApplicationBuilder()
+        .configure("play.ws.compressionEnabled" -> true)
+        .routes({
           case ("GET", "/") => Action { request =>
             request.headers.get("Accept-Encoding") match {
               case Some(encoding) if encoding.contains("gzip") =>
@@ -277,9 +279,8 @@ object AhcWSSpec extends PlaySpecification with Mockito {
                 Results.Ok("plain response")
             }
           }
-        },
-        additionalConfiguration = Map("play.ws.compressionEnabled" -> true)
-      )
+        })
+        .build()
     }
 
     "support gziped encoding" in new WithServer(gzipFakeApp) {

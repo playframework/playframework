@@ -1,1 +1,1 @@
-GET  /          controllers.Application.index()
+GET  /          controllers.HomeController.index()

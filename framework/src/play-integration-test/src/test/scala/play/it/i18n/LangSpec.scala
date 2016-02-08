@@ -4,12 +4,13 @@
 package play.it.i18n
 
 import play.api.i18n.Lang
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
 class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
-      implicit val app = FakeApplication(additionalConfiguration = Map("play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
+      implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en-US", "es-ES", "de")).build()
       val esEs = Lang("es", "ES")
       val es = Lang("es")
       val deDe = Lang("de", "DE")
@@ -77,7 +78,7 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        implicit val app = FakeApplication(additionalConfiguration = Map("application.langs" -> "crh-UA,ber,ast-ES"))
+        implicit val app = GuiceApplicationBuilder().configure("application.langs" -> "crh-UA,ber,ast-ES").build()
 
         val crhUA = Lang("crh", "UA")
         val crh = Lang("crh")

@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
@@ -33,11 +34,10 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
   def withServer[T](action: EssentialAction, sslPort: Option[Int] = None)(block: Port => T) = {
     val port = testServerPort
-    running(TestServer(port, sslPort = sslPort, application = FakeApplication(
-      withRoutes = {
-        case _ => action
-      }
-    ))) {
+    running(TestServer(port, sslPort = sslPort, application = GuiceApplicationBuilder()
+      .routes { case _ => action }
+      .build()
+    )) {
       block(port)
     }
   }
