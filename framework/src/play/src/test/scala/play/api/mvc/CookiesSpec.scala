@@ -86,6 +86,13 @@ object CookiesSpec extends Specification {
     }
   }
 
+  "object Cookies#decodeSetCookieHeader" should {
+    "parse empty string without exception " in {
+      val decoded = Cookies.decodeSetCookieHeader("")
+      decoded must beEqualTo(Seq.empty)
+    }
+  }
+
   "merging cookies" should {
     "replace old cookies with new cookies of the same name" in {
       val originalRequest = FakeRequest().withCookies(Cookie("foo", "fooValue1"), Cookie("bar", "barValue2"))
