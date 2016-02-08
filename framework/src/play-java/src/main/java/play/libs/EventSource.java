@@ -3,96 +3,56 @@
  */
 package play.libs;
 
-import java.util.function.Consumer;
-
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
-import play.mvc.Results.*;
 
 /**
- * Implementation of Server-Sent Events.
- * @see <a href="http://dev.w3.org/html5/eventsource/">Server-Sent Events specification</a>
+ * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Akka Source.
+ *
+ * Please see the <a href="http://dev.w3.org/html5/eventsource/">Server-Sent Events specification</a> for details.
+ *
+ * Example implementation of EventSource in a Controller:
+ *
+ * {{{
+ *     //import akka.stream.javadsl.Source;
+ *     //import play.mvc.*;
+ *     //import play.libs.*;
+ *     //import java.time.ZonedDateTime;
+ *     //import java.time.format.*;
+ *     //import scala.concurrent.duration.Duration;
+ *     //import static java.util.concurrent.TimeUnit.*;
+ *     //import static play.libs.EventSource.Event.event;
+ *
+ *     public Result liveClock() {
+ *         Source<String, ?> tickSource = Source.from(Duration.Zero(), Duration.create(100, MILLISECONDS), "TICK");
+ *         Source<EventSource.Event, ?> eventSource = tickSource.map((tick) -> event(df.format(ZonedDateTime.now())));
+ *         return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
+ *     }
+ * }}}
  */
-public abstract class EventSource extends Chunks<String> {
-    private Chunks.Out<String> out;
+public class EventSource {
 
     /**
-     * Create a new EventSource socket
+     * Maps from a Source of String to a Source of EventSource.Event.
      *
-     */
-    public EventSource() {
-        super(play.core.j.JavaResults.writeString("text/event-stream", play.api.mvc.Codec.javaSupported("utf-8")));
-    }
-
-    public void onReady(Chunks.Out<String> out) {
-        this.out = out;
-        onConnected();
-    }
-
-    /**
-     * Send an event. On the client, a 'message' event listener can be setup to listen to this event.
+     * Useful when id and name are not required.
      *
-     * @param event Event content
+     * @param source input event source.
+     * @return a Source of EventSource.Event.
      */
-    public void send(Event event) {
-        out.write(event.formatted());
+    public static Source<EventSource.Event, ?> apply(Source<String, ?> source) {
+        return source.map(Event::event);
     }
 
     /**
-     * The socket is ready, you can start sending messages.
-     */
-    public abstract void onConnected();
-
-    /**
-     * Add a callback to be notified when the client has disconnected.
-     */
-    public void onDisconnected(Runnable callback) {
-        out.onDisconnected(callback);
-    }
-
-    /**
-     * Close the channel
-     */
-    public void close() {
-        out.close();
-    }
-
-    /**
-     * Creates an EventSource. The abstract {@code onConnected} method is
-     * implemented using the specified {@code F.Callback<EventSource>} and
-     * is invoked with {@code EventSource.this}.
+     * Maps from a Source of EventSource.Event to a Source of ByteString.
      *
-     * @param callback the callback used to implement onConnected
-     * @return a new EventSource
-     * @throws NullPointerException if the specified callback is null
+     * @param source input event source.
+     * @return a Source of ByteStream.
      */
-    public static EventSource whenConnected(Consumer<EventSource> callback) {
-        return new WhenConnectedEventSource(callback);
-    }
-
-    /**
-     * An extension of EventSource that obtains its onConnected from
-     * the specified {@code F.Callback<EventSource>}.
-     */
-    static final class WhenConnectedEventSource extends EventSource {
-
-        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenConnectedEventSource.class);
-
-        private final Consumer<EventSource> callback;
-
-        WhenConnectedEventSource(Consumer<EventSource> callback) {
-            super();
-            if (callback == null) throw new NullPointerException("EventSource onConnected callback cannot be null");
-            this.callback = callback;
-        }
-
-        @Override
-        public void onConnected() {
-            try {
-                callback.accept(this);
-            } catch (Throwable e) {
-                logger.error("Exception in EventSource.onConnected", e);
-            }
-        }
+    public static Source<ByteString, ?> chunked(Source<EventSource.Event, ?> source) {
+        return source.map(event -> ByteString.fromString(event.formatted()));
     }
 
     /**

@@ -9,7 +9,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.it._
-import play.libs.EventSource
+import play.libs.{ LegacyEventSource, EventSource }
 import play.libs.EventSource.Event
 import play.mvc.Results
 import play.mvc.Results.Chunks
@@ -70,12 +70,12 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "abc"
     }
 
-    "chunk event source results" in makeRequest(new MockController {
+    "chunk legacy event source results" in makeRequest(new MockController {
       def action = {
-        Results.ok(new EventSource() {
+        Results.ok(new LegacyEventSource() {
           def onConnected(): Unit = {
-            send(Event.event("a"))
-            send(Event.event("b"))
+            send(LegacyEventSource.Event.event("a"))
+            send(LegacyEventSource.Event.event("b"))
             close()
           }
         })
@@ -83,6 +83,22 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(CONTENT_TYPE) must beSome.like {
         case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream; charset=utf-8"
+      }
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "data: a\n\ndata: b\n\n"
+    }
+
+    "chunk event source results" in makeRequest(new MockController {
+      def action = {
+        import scala.collection.JavaConverters._
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava)
+        val eventSource = EventSource.apply(dataSource)
+        Results.ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream")
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome.like {
+        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
       }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
