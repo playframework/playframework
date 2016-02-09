@@ -19,7 +19,7 @@ import scala.compat.java8.FutureConverters
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.libs.concurrent.Akka
 
-import play.api.Play.current
+
 import play.core.Execution.Implicits.internalContext
 
 /**
@@ -45,8 +45,8 @@ object JavaWebSocket extends JavaHelpers {
         Left(createResult(javaContext, result))
 
       } getOrElse {
-
-        implicit val system = Akka.system
+        val current = play.api.Play.privateMaybeApplication.get
+        implicit val system = current.actorSystem
         implicit val mat = current.materializer
 
         Right(
