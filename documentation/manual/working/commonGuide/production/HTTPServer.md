@@ -198,10 +198,13 @@ ProxyPassReverse / http://localhost:9998
 
 To determine the client IP address Play has to know which are the trusted proxies in your network.
 
-Those can be configured with `play.http.forwarded.trustedProxies`. You can define a list of proxies
-and/or subnet masks that Play recognizes as belonging to your network.
+Those can be configured with `play.http.forwarded.trustedProxies`. You can define a list of proxies and/or subnet masks that Play recognizes as belonging to your network like:
 
-Default is `127.0.0.1` and `::FF`
+```
+play.http.forwarded.trustedProxies=["192.168.0.0/24", "::1", "127.0.0.1"]
+```
+
+Default is `::1` and `127.0.0.1`
 
 There exists two possibilities how proxies are set in the HTTP-headers:
 
