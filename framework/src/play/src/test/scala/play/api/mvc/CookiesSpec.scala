@@ -89,7 +89,7 @@ object CookiesSpec extends Specification {
   "object Cookies#decodeSetCookieHeader" should {
     "parse empty string without exception " in {
       val decoded = Cookies.decodeSetCookieHeader("")
-      decoded must beEqualTo(Seq.empty)
+      decoded must be empty
     }
   }
 
