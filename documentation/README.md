@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Build documentation
 
 This is the Play documentation project.  It does not build with the rest of the Play projects, and uses its own sbt

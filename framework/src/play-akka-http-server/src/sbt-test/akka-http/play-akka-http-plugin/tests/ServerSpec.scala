@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+ */
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.junit.runner._

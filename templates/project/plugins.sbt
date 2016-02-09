@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-s3" % "0.5")
 
 // Depend on hard coded play-ws version, since we don't need/want the latest, and the system

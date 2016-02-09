@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 //#rpm
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, RpmPlugin)

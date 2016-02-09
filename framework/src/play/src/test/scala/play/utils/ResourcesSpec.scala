@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.utils
 
 import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }

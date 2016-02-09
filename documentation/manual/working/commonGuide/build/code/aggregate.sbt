@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 //#content
 lazy val common: Project = (project in file("common"))
   .enablePlugins(PlayScala)

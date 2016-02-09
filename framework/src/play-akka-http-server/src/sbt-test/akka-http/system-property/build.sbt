@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 name := "system-property"
