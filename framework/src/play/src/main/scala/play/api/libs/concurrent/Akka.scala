@@ -27,7 +27,7 @@ object Akka {
   private val actorSystemCache = Application.instanceCache[ActorSystem]
 
   /**
-   * Retrieve the application Akka Actor system.
+   * Retrieve the application Akka Actor system, using an implicit application.
    *
    * Example:
    * {{{
