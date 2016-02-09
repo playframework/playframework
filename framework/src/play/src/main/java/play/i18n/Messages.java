@@ -4,9 +4,7 @@
 package play.i18n;
 
 import org.apache.commons.lang3.ArrayUtils;
-import play.Application;
-import play.api.Play;
-import play.api.i18n.Messages$;
+import play.api.Application;
 import scala.collection.mutable.Buffer;
 
 import java.util.Arrays;
@@ -36,8 +34,10 @@ public class Messages {
         return lang;
     }
 
-    private static MessagesApi getMessagesApi() {
-        return Play.current().injector().instanceOf(MessagesApi.class);
+    private static Messages getMessages(Lang lang) {
+        Application app = play.api.Play.current();
+        MessagesApi scalaApi = app.injector().instanceOf(MessagesApi.class);
+        return new Messages(lang, scalaApi);
     }
 
     /**
@@ -79,9 +79,11 @@ public class Messages {
     * @param key the message key
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
+     * @deprecated Please use messages.at(key, args). since 2.5.0
     */
+    @Deprecated
     public static String get(Lang lang, String key, Object... args) {
-        return getMessagesApi().get(lang, key, args);
+        return getMessages(lang).at(key, args);
     }
 
     /**
@@ -93,9 +95,11 @@ public class Messages {
     * @param keys the messages keys
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
+     * @deprecated Please use messages.at(keys, args)
     */
+    @Deprecated
     public static String get(Lang lang, List<String> keys, Object... args) {
-        return getMessagesApi().get(lang, keys, args);
+        return getMessages(lang).at(keys, args);
     }
 
     /**
@@ -106,9 +110,11 @@ public class Messages {
     * @param key the message key
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
+     * @deprecated use messages.at(key, args).  Deprecated since 2.5.0
     */
+    @Deprecated
     public static String get(String key, Object... args) {
-        return getMessagesApi().get(getLang(), key, args);
+        return getMessages(getLang()).at(key, args);
     }
 
     /**
@@ -119,9 +125,11 @@ public class Messages {
     * @param keys the messages keys
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
+     * @deprecated use messages.at(keys, args).  Deprecated since 2.5.0
     */
+    @Deprecated
     public static String get(List<String> keys, Object... args) {
-        return getMessagesApi().get(getLang(), keys, args);
+        return getMessages(getLang()).at(keys, args);
     }
 
     /**
@@ -129,18 +137,22 @@ public class Messages {
     * @param lang the message lang
     * @param key the message key
     * @return a Boolean
+     * @deprecated Use messages.isDefinedAt(key).  Deprecated since 2.5.0
     */
+    @Deprecated
     public static Boolean isDefined(Lang lang, String key) {
-        return getMessagesApi().isDefinedAt(lang, key);
+        return getMessages(lang).isDefinedAt(key);
     }
 
     /**
     * Check if a message key is defined.
     * @param key the message key
     * @return a Boolean
+     * @deprecated Use messages.isDefinedAt(key).  Deprecated since 2.5.0
     */
+    @Deprecated
     public static Boolean isDefined(String key) {
-        return getMessagesApi().isDefinedAt(getLang(), key);
+        return getMessages(getLang()).isDefinedAt(key);
     }
 
     // All these methods are the new API

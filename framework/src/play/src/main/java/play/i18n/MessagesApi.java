@@ -135,4 +135,16 @@ public class MessagesApi {
         return new Messages(new Lang(msgs.lang()), this);
     }
 
+    public String langCookieName() {
+        return messages.langCookieName();
+    }
+
+    public boolean langCookieSecure() {
+        return messages.langCookieSecure();
+    }
+
+    public boolean langCookieHttpOnly() {
+        return messages.langCookieHttpOnly();
+    }
+
 }
