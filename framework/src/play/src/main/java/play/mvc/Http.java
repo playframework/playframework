@@ -3,49 +3,34 @@
  */
 package play.mvc;
 
-import static play.libs.Scala.asScala;
+import akka.util.ByteString;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import play.api.libs.json.JsValue;
+import play.api.mvc.Headers;
+import play.core.j.JavaParsers;
+import play.core.system.RequestIdProvider;
+import play.i18n.Lang;
+import play.i18n.Messages;
+import play.i18n.MessagesApi;
+import play.libs.Json;
+import play.libs.XML;
+import scala.Tuple2;
+import scala.collection.JavaConversions;
+import scala.collection.Seq;
 
-import java.io.*;
-import java.net.URISyntaxException;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import akka.util.ByteString;
-import akka.util.ByteString$;
-import akka.util.ByteStringBuilder;
-import akka.util.CompactByteString;
-import play.core.j.JavaParsers;
-import play.libs.Json;
-import play.libs.XML;
-import scala.Predef;
-import scala.Tuple2;
-import scala.collection.JavaConversions;
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
-
-import org.w3c.dom.*;
-import org.xml.sax.InputSource;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import play.api.libs.json.JsValue;
-import play.api.libs.json.jackson.JacksonJson;
-import play.api.mvc.AnyContent;
-import play.api.mvc.AnyContentAsFormUrlEncoded;
-import play.api.mvc.AnyContentAsJson;
-import play.api.mvc.AnyContentAsRaw;
-import play.api.mvc.AnyContentAsText;
-import play.api.mvc.AnyContentAsXml;
-import play.api.mvc.Headers;
-import play.core.system.RequestIdProvider;
-import play.Play;
-import play.i18n.Lang;
-import play.i18n.Messages;
-import play.i18n.MessagesApi;
-import scala.deprecated;
+import static play.libs.Scala.asScala;
 
 /**
  * Defines HTTP standard objects.
@@ -200,7 +185,7 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            return play.api.Play.current().injector().instanceOf(MessagesApi.class).preferred(request());
+            return messagesApi().preferred(request());
         }
 
         /**
@@ -220,11 +205,11 @@ public class Http {
          * @return true if the requested lang was supported by the application, otherwise false
          */
         public boolean changeLang(Lang lang) {
-            if (Lang.availables().contains(lang)) {
+            if (Lang.availables(currentApp()).contains(lang)) {
                 this.lang = lang;
                 scala.Option<String> domain = play.api.mvc.Session.domain();
-                response.setCookie(Play.langCookieName(), lang.code(), null, play.api.mvc.Session.path(),
-                    domain.isDefined() ? domain.get() : null, Play.langCookieSecure(), Play.langCookieHttpOnly());
+                response.setCookie(messagesApi().langCookieName(), lang.code(), null, play.api.mvc.Session.path(),
+                    domain.isDefined() ? domain.get() : null, messagesApi().langCookieSecure(), messagesApi().langCookieHttpOnly());
                 return true;
             } else {
                 return false;
@@ -237,8 +222,8 @@ public class Http {
         public void clearLang() {
             this.lang = null;
             scala.Option<String> domain = play.api.mvc.Session.domain();
-            response.discardCookie(Play.langCookieName(), play.api.mvc.Session.path(),
-                domain.isDefined() ? domain.get() : null, Play.langCookieSecure());
+            response.discardCookie(messagesApi().langCookieName(), play.api.mvc.Session.path(),
+                domain.isDefined() ? domain.get() : null, messagesApi().langCookieSecure());
         }
 
         /**
@@ -266,7 +251,7 @@ public class Http {
          * is not supported by the application.
          */
         public void setTransientLang(Lang lang) {
-            if (Lang.availables().contains(lang)) {
+            if (Lang.availables(currentApp()).contains(lang)) {
                 this.lang = lang;
             } else {
                 throw new IllegalArgumentException("Language not supported in this application: " + lang + " not in Lang.availables()");
@@ -375,6 +360,20 @@ public class Http {
          */
         public Context withRequest(Request request) {
             return new Context(id, header, request, session, flash, args);
+        }
+
+        private play.i18n.MessagesApi messagesApi() {
+            // This is a real problem -- to avoid global state, you have to put messagesApi in the
+            // HTTP.Context thread local, or in the request itself.
+            //
+            // It would arguably be cleaner to apply messagesApi.lang(request) rather than the reverse
+            // but this is core API here.
+            play.api.i18n.MessagesApi scalaMessagesApi = currentApp().injector().instanceOf(play.api.i18n.MessagesApi.class);
+            return new MessagesApi(scalaMessagesApi);
+        }
+
+        private play.api.Application currentApp() {
+            return play.api.Play.current();
         }
     }
 
