@@ -10,10 +10,12 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
 import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
+import play.api.http.HeaderNames
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.http.HeaderNames._
 import play.core.parsers.Multipart
+import play.filters.cors.CORSFilter
 import play.filters.csrf.CSRF._
 import scala.concurrent.Future
 
@@ -44,7 +46,7 @@ class CSRFAction(next: EssentialAction,
     // Only filter unsafe methods and content types
     if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
 
-      if (checkCsrfBypass(request, config)) {
+      if (!requiresCsrfCheck(request, config)) {
         continue
       } else {
 
@@ -371,25 +373,12 @@ object CSRFAction {
     queryStringToken orElse headerToken
   }
 
-  private[csrf] def checkCsrfBypass(request: RequestHeader, config: CSRFConfig): Boolean = {
-    if (config.headerBypass) {
-      if (request.headers.get(config.headerName).exists(_ == CSRFConfig.HeaderNoCheck)) {
-
-        // Since injecting arbitrary header values is not possible with a CSRF attack, the presence of this header
-        // indicates that this is not a CSRF attack
-        filterLogger.trace("[CSRF] Bypassing check because " + config.headerName + ": " + CSRFConfig.HeaderNoCheck + " header found")
-        true
-
-      } else if (request.headers.get("X-Requested-With").isDefined) {
-
-        // AJAX requests are not CSRF attacks either because they are restricted to same origin policy
-        filterLogger.trace("[CSRF] Bypassing check because X-Requested-With header found")
-        true
-      } else {
-        false
-      }
-    } else {
+  private[csrf] def requiresCsrfCheck(request: RequestHeader, config: CSRFConfig): Boolean = {
+    if (config.bypassCorsTrustedOrigins && request.tags.contains(CORSFilter.RequestTag)) {
+      filterLogger.trace("[CSRF] Bypassing check because CORSFilter request tag found")
       false
+    } else {
+      config.shouldProtect(request)
     }
   }
 
@@ -449,7 +438,7 @@ object CSRFCheck {
     def apply(request: Request[A]) = {
 
       // Maybe bypass
-      if (CSRFAction.checkCsrfBypass(request, config) || !config.checkContentType(request.contentType)) {
+      if (!CSRFAction.requiresCsrfCheck(request, config) || !config.checkContentType(request.contentType)) {
         wrapped(request)
       } else {
         // Get token from header

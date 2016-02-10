@@ -15,6 +15,7 @@ import play.filters.csrf.CSRFFilter;
 import play.filters.csrf.RequireCSRFCheck;
 import play.filters.csrf.CSRF;
 import play.libs.Crypto;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
 
@@ -73,6 +74,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfCheck() {
         assertThat(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
+            .cookie(Http.Cookie.builder("foo", "bar").build())
             .bodyForm(Collections.singletonMap("foo", "bar")), mat).status(), equalTo(FORBIDDEN));
     }
 

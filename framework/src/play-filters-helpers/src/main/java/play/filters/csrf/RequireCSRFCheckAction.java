@@ -34,7 +34,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     public CompletionStage<Result> call(Http.Context ctx) {
         RequestHeader request = ctx._requestHeader();
         // Check for bypass
-        if (CSRFAction.checkCsrfBypass(request, config)) {
+        if (!CSRFAction.requiresCsrfCheck(request, config)) {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
