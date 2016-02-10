@@ -34,8 +34,24 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
 * **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
 
+## Authentication (Login & Registration) and Authorization (Restricted Access)
 
-## Auth
+### Silhouette (Scala)
+
+* **Website:** <http://silhouette.mohiva.com/>
+* **Documentation:** <http://silhouette.mohiva.com/docs/>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
+
+### Deadbolt 2 Plugin
+
+* **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
+* **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
+
+### Play-pac4j (Java and Scala)
+
+* **Website:** <https://github.com/pac4j/play-pac4j>
+* **Documentation:** <https://github.com/pac4j/play-pac4j/blob/master/README.md>
+* **Short description:** Play client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
 
 ### Authentication and Authorization module (Scala)
 
@@ -44,37 +60,16 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation(ja):** <https://github.com/t2v/play20-auth/blob/master/README.ja.md>
 * **Short description** This module provides an authentication and authorization way
 
-### Deadbolt 2 Plugin
-* **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
-* **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
-
 ### Play! Authenticate (Java)
 
 * **Website:** <https://joscha.github.io/play-authenticate/>
 * **Documentation:** <https://github.com/joscha/play-authenticate/blob/master/README.md>
 * **Short description:** A highly customizable authentication module for Play
 
-### Play-pac4j (Java and Scala)
-* **Website:** <https://github.com/pac4j/play-pac4j>
-* **Documentation:** <https://github.com/pac4j/play-pac4j/blob/master/README.md>
-* **Short description:** Play client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
-
-### play-shiro
-* **Website:** <https://github.com/wsargent/play-shiro>
-* **Documentation:** <https://github.com/wsargent/play-shiro/blob/master/README.md>
-* **Short description:** Use Apache Shiro for authorization.
-
 ### SecureSocial (Java and Scala)
 
 * **Website:** <http://securesocial.ws/>
 * **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
-
-### Silhouette (Scala)
-
-* **Website:** <http://silhouette.mohiva.com/>
-* **Documentation:** <http://silhouette.mohiva.com/docs/>
-* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
-
 
 
 ## Datastore
