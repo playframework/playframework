@@ -225,7 +225,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.1.4"    % "webjars",
+    "org.webjars" % "jquery"   % "2.2.0"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
