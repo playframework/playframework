@@ -10,21 +10,29 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 
+import javax.inject.Inject;
+
 /**
  * Cache another action.
  */
 public class CachedAction extends Action<Cached> {
 
+    private CacheApi cacheApi;
+
+    @Inject
+    public CachedAction(CacheApi cacheApi) {
+        this.cacheApi = cacheApi;
+    }
+
     public CompletionStage<Result> call(Context ctx) {
         try {
             final String key = configuration.key();
             final Integer duration = configuration.duration();
-
-            Result cacheResult = (Result) Cache.get(key);
+            Result cacheResult = cacheApi.get(key);
 
             if (cacheResult == null) {
                 return delegate.call(ctx).thenApply(result -> {
-                    Cache.set(key, result, duration);
+                    cacheApi.set(key, result, duration);
                     return result;
                 });
             } else {
