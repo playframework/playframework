@@ -276,3 +276,39 @@ class HomeController @Inject() (app: play.api.Application, configuration: play.a
   }
 }
 ```
+
+## CSRF filter changes
+
+In order to make Play's CSRF filter more resilient to browser plugin vulnerabilities and new extensions, the default configuration for the CSRF filter has been made far more conservative.  The changes include:
+
+* Instead of blacklisting `POST` requests, now only `GET`, `HEAD` and `OPTIONS` requests are whitelisted, and all other requests require a CSRF check.  This means `DELETE` and `PUT` requests are now checked.
+* Instead of blacklisting `application/x-www-form-urlencoded`, `multipart/form-data` and `text/plain` requests, requests of all content types, including no content type, require a CSRF check.  One consequence of this is that AJAX requests that use `application/json` now need to include a valid CSRF token in the `Csrf-Token` header.
+* Stateless header-based bypasses, such as the `X-Request-With`, are disabled by default.
+
+There's a new config option to bypass the new CSRF protection for requests with certain headers. This config option is turned on by default for the Cookie and Authorization headers, so that REST clients, which typically don't use session authentication, will still work without having to send a CSRF token.
+
+However, since the config option allows through *all* requests without those headers, applications that use other authentication schemes (NTLM, TLS client certificates) will be vulnerable to CSRF. These applications should disable the config option so that their authenticated (cookieless) requests are protected by the CSRF filter.
+
+Finally, an additional option has been added to disable the CSRF check for origins trusted by the CORS filter. Please note that the CORS filter must come *before* the CSRF filter in your filter chain for this to work!
+
+Play's old default behaviour can be restored by adding the following configuration to `application.conf`:
+
+```
+play.filters.csrf {
+  header {
+    bypassHeaders {
+      X-Requested-With = "*"
+      Csrf-Token = "nocheck"
+    }
+    protectHeaders = null
+  }
+  bypassCorsTrustedOrigins = false
+  method {
+    whiteList = []
+    blackList = ["POST"]
+  }
+  contentType.blackList = ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"]
+}
+```
+
+For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [[Scala|ScalaCsrf]].

@@ -10,7 +10,7 @@ import play.core.j.JavaHttpErrorHandlerAdapter
 import scala.concurrent.Future
 
 import play.api.Logger
-import play.api.mvc.{ Filter, RequestHeader, Result }
+import play.api.mvc.{ EssentialAction, Filter, RequestHeader, Result }
 
 /**
  * A [[play.api.mvc.Filter]] that implements Cross-Origin Resource Sharing (CORS)
@@ -46,8 +46,8 @@ class CORSFilter(
   override protected val logger = Logger(classOf[CORSFilter])
 
   override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
-    if (pathPrefixes.exists(request.path startsWith _)) {
-      filterRequest(() => f(request), request)
+    if (pathPrefixes.exists(request.path.startsWith)) {
+      filterRequest(f, request)
     } else {
       f(request)
     }
@@ -55,6 +55,8 @@ class CORSFilter(
 }
 
 object CORSFilter {
+
+  val RequestTag = "CORS_REQUEST"
 
   def apply(corsConfig: CORSConfig = CORSConfig(), errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
     pathPrefixes: Seq[String] = Seq("/"))(implicit mat: Materializer) =

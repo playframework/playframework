@@ -34,14 +34,14 @@ private[cors] trait AbstractCORSPolicy {
     immutable.HashSet(GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
   }
 
-  protected def filterRequest(f: () => Future[Result], request: RequestHeader): Future[Result] = {
+  protected def filterRequest(next: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
     request.headers.get(HeaderNames.ORIGIN) match {
       case None =>
         /* http://www.w3.org/TR/cors/#resource-requests
          * § 6.1.1
          * If the Origin header is not present terminate this set of steps.
          */
-        f()
+        next(request)
       case Some(originHeader) =>
         if (originHeader.isEmpty || !isValidOrigin(originHeader)) {
           handleInvalidCORSRequest(request)
@@ -51,14 +51,14 @@ private[cors] trait AbstractCORSPolicy {
           originUri.getHost == hostUri.getHost && originUri.getPort == hostUri.getPort
         }) {
           // HOST and ORIGIN match, so this is a same-origin request, pass through.
-          f()
+          next(request)
         } else {
           val method = request.method
           if (HttpMethods.contains(method)) {
             if (method == HttpVerbs.OPTIONS) {
               request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
                 case None =>
-                  handleCORSRequest(f, request)
+                  handleCORSRequest(next, request)
                 case Some(requestMethod) =>
                   if (requestMethod.isEmpty) {
                     handleInvalidCORSRequest(request)
@@ -67,7 +67,7 @@ private[cors] trait AbstractCORSPolicy {
                   }
               }
             } else {
-              handleCORSRequest(f, request)
+              handleCORSRequest(next, request)
             }
           } else {
             // unrecognized method so invalid request
@@ -81,7 +81,7 @@ private[cors] trait AbstractCORSPolicy {
    *
    * @see [[http://www.w3.org/TR/cors/#resource-requests Simple Cross-Origin Request, Actual Request, and Redirects]]
    */
-  private def handleCORSRequest(f: () => Future[Result], request: RequestHeader): Future[Result] = {
+  private def handleCORSRequest(next: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
     val origin = {
       val originOpt = request.headers.get(HeaderNames.ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
@@ -145,13 +145,14 @@ private[cors] trait AbstractCORSPolicy {
 
       import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+      val taggedRequest = request.copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {
-        f().recoverWith {
-          case e: Throwable => errorHandler.onServerError(request, e)
+        next(taggedRequest).recoverWith {
+          case e: Throwable => errorHandler.onServerError(taggedRequest, e)
         }
       } catch {
-        case e: Throwable => errorHandler.onServerError(request, e)
+        case e: Throwable => errorHandler.onServerError(taggedRequest, e)
       }
       result.map(_.withHeaders(headerBuilder.result(): _*))
     }

@@ -5,14 +5,14 @@ package play.filters.cors
 
 import javax.inject.Inject
 
-import play.api.http.HttpFilters
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.http.{ContentTypes, HttpFilters}
 import play.api.routing.Router
 import play.api.routing.sird._
+import play.filters.csrf.{CSRFCheck, CSRFFilter}
 
 import scala.concurrent.Future
 
-import play.api.Configuration
+import play.api.{Application, Configuration}
 import play.api.mvc.{ Action, Result, Results }
 import play.api.test.{ FakeRequest, PlaySpecification }
 import play.api.inject.bind
@@ -42,6 +42,57 @@ object CORSFilterSpec extends CORSCommonSpec {
 
       status(result) must_== OK
       mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    commonTests
+  }
+}
+
+object CORSWithCSRFSpec extends CORSCommonSpec {
+  class Filters @Inject() (corsFilter: CORSFilter, csrfFilter: CSRFFilter) extends HttpFilters {
+    def filters = Seq(corsFilter, csrfFilter)
+  }
+
+  class FiltersWithoutCors @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
+    def filters = Seq(csrfFilter)
+  }
+
+  def withApp[T](filters: Class[_ <: HttpFilters] = classOf[Filters], conf: Map[String, _ <: Any] = Map())(block: Application => T): T = {
+    running(_.configure(conf).overrides(
+      bind[Router].to(Router.from {
+        case p"/error" => Action { req => throw sys.error("error") }
+        case _ => CSRFCheck(Action(Results.Ok))
+      }),
+      bind[HttpFilters].to(filters)
+    ))(block)
+  }
+
+  def withApplication[T](conf: Map[String, _] = Map.empty)(block: => T) =
+    withApp(classOf[Filters], conf)(_ => block)
+
+  private def corsRequest =
+    fakeRequest("POST", "/baz")
+      .withHeaders(
+        ORIGIN -> "http://localhost",
+        CONTENT_TYPE -> ContentTypes.FORM,
+        COOKIE -> "foo=bar"
+      )
+      .withBody("foo=1&bar=2")
+
+  "The CORSFilter" should {
+
+    "Mark CORS requests so the CSRF filter will let them through" in withApp() { app =>
+      val result = route(app, corsRequest).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome
+    }
+
+    "Forbid CSRF requests when CORS filter is not installed" in withApp(classOf[FiltersWithoutCors]) { app =>
+      val result = route(app, corsRequest).get
+
+      status(result) must_== FORBIDDEN
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beNone
     }
 
     commonTests

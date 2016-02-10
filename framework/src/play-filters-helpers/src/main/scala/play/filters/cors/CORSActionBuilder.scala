@@ -8,7 +8,7 @@ import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 
 import scala.concurrent.Future
 
-import play.api.{ PlayConfig, Logger, Configuration, Play }
+import play.api.{ PlayConfig, Logger, Configuration }
 import play.api.mvc.{ ActionBuilder, Request, Result }
 
 /**
@@ -22,7 +22,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
   override protected val logger = Logger.apply(classOf[CORSActionBuilder])
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-    filterRequest(() => block(request), request)
+    filterRequest(rh => block(Request(rh, request.body)), request)
   }
 }
 
