@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -611,7 +612,7 @@ public class Form<T> {
                 List<String> messages = new ArrayList<String>();
                 for (ValidationError error : errs) {
                     if(messagesApi != null && lang != null) {
-                        messages.add(messagesApi.get(lang, error.messages(), error.arguments()));
+                        messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
                     } else {
                         messages.add(error.message());
                     }
@@ -620,6 +621,22 @@ public class Form<T> {
             }
         }
         return play.libs.Json.toJson(allMessages);
+    }
+
+    private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
+        if(arguments != null) {
+            return arguments.stream().map(arg -> {
+                    if(arg instanceof String) {
+                        return messagesApi.get(lang, (String)arg);
+                    }
+                    if(arg instanceof List) {
+                        return ((List<?>) arg).stream().map(key -> messagesApi.get(lang, (String)key)).collect(Collectors.toList());
+                    }
+                    return arg;
+                }).collect(Collectors.toList());
+        } else {
+            return null;
+       }
     }
 
     /**
