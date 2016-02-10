@@ -42,6 +42,7 @@ object Imports {
     val javaManualSourceDirectories = SettingKey[Seq[File]]("javaManualSourceDirectories")
     val scalaManualSourceDirectories = SettingKey[Seq[File]]("scalaManualSourceDirectories")
     val commonManualSourceDirectories = SettingKey[Seq[File]]("commonManualSourceDirectories")
+    val migrationManualSources = SettingKey[Seq[File]]("migrationManualSources")
     val javaTwirlSourceManaged = SettingKey[File]("javaRoutesSourceManaged")
     val scalaTwirlSourceManaged = SettingKey[File]("scalaRoutesSourceManaged")
 
@@ -56,6 +57,13 @@ object Imports {
 
 }
 
+/**
+ * This plugin is used by all Play modules that themselves have compiled and tested markdown documentation, for example,
+ * anorm, play-ebean, scalatestplus-play, etc. It's also used by translators translating the Play docs.  And of course,
+ * it's used by the main Play documentation.
+ *
+ * Any changes to this plugin need to be made in consideration of the downstream projects that depend on it.
+ */
 object PlayDocsPlugin extends AutoPlugin {
 
   import Imports._
@@ -96,19 +104,15 @@ object PlayDocsPlugin extends AutoPlugin {
     cachedTranslationCodeSamplesReport <<= PlayDocsValidation.cachedTranslationCodeSamplesReportTask
   )
 
-  private val migrationManualSources = SettingKey[Seq[File]]("migrationManualSources")
-  migrationManualSources := {
-    val playVersion = PlayVersion.current
-    val Version(era, major, _, _) = Version.from(playVersion)
-    val shortVersion = s"${era}${major}"
-    (baseDirectory.value / "manual" / "releases" / s"migration${shortVersion}" / s"code${shortVersion}").get
-  }
-
   def docsTestSettings = Seq(
-    javaManualSourceDirectories := migrationManualSources.value,
-    scalaManualSourceDirectories := migrationManualSources.value,
-    unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
-    unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
+    migrationManualSources := Nil,
+    javaManualSourceDirectories := Nil,
+    scalaManualSourceDirectories := Nil,
+    commonManualSourceDirectories := Nil,
+    unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
+      commonManualSourceDirectories.value ++ migrationManualSources.value,
+    unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
+      commonManualSourceDirectories.value ++ migrationManualSources.value,
 
     javaTwirlSourceManaged := target.value / "twirl" / "java",
     scalaTwirlSourceManaged := target.value / "twirl" / "scala",

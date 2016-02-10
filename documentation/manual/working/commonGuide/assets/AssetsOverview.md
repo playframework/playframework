@@ -52,7 +52,7 @@ The `path` parameter must be fixed and defines the directory managed by the acti
 
 Here is the typical mapping of the `Assets` controller in your `conf/routes` file:
 
-@[assets-wildcard](code/routes)
+@[assets-wildcard](code/common.assets.routes)
 
 Note that we define the `*file` dynamic part that will match the `.*` regular expression. So for example, if you send this request to the server:
 
@@ -68,7 +68,7 @@ controllers.Assets.at("/public", "javascripts/jquery.js")
 
 To route to a single static file, both the path and file has to be specified:
 
-@[assets-single-static-file](code/routes)
+@[assets-single-static-file](code/common.assets.routes)
 
 ## Reverse routing for public assets
 
@@ -88,7 +88,7 @@ Note that we don’t specify the first `folder` parameter when we reverse the ro
 
 However, if you define two mappings for the `Assets.at` action, like this:
 
-@[assets-two-mappings](code/routes)
+@[assets-two-mappings](code/common.assets.routes)
 
 You will then need to specify both parameters when using the reverse router:
 
