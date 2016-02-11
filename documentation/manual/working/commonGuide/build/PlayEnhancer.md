@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Play enhancer
 
 The [Play enhancer](https://github.com/playframework/play-enhancer) is an sbt plugin that generates getters and setters for Java beans, and rewrites the code that accesses those fields to use the getters and setters.

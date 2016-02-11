@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Play contributor guidelines
 
 The canonical version of this document can be found on the [Play contributor guidelines](https://playframework.com/contributing) page of the Play website.

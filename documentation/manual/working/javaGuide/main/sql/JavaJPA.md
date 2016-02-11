@@ -57,7 +57,7 @@ jpa.default=defaultPersistenceUnit
 
 Running Play in development mode while using JPA will work fine, but in order to deploy the application you will need to add this to your `build.sbt` file.
 
-@[](code/jpa.sbt)
+@[jpa-externalize-resources](code/jpa.sbt)
 
 Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. Note that the content of conf directory will still be available in the classpath due to it being inclued in the applications jar file.
 

@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 // You can't define objects at the root level of an SBT file, so we do it inside a def
 def Grunt(base: File) = {
   //#grunt-before-started

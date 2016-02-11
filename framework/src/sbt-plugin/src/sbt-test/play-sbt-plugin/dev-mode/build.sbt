@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
