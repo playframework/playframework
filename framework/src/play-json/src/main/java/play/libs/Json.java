@@ -160,7 +160,7 @@ public class Json {
      * Inject the object mapper to use.
      *
      * This is intended to be used when Play starts up.  By default, Play will inject its own object mapper here,
-     * but this mapper can be overridden either by a custom plugin or from Global.onStart.
+     * but this mapper can be overridden either by a custom module.
      */
     public static void setObjectMapper(ObjectMapper mapper) {
         objectMapper = mapper;
