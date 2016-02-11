@@ -64,7 +64,7 @@ trait Filter extends EssentialFilter {
 
         result.onComplete({ resultTry =>
           // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter.
-          // Therefore, as a fallback, we try to redeem the bodyIteratee Promise here with an iteratee that consumes
+          // Therefore, as a fallback, we try to redeem the bodyAccumulator Promise here with an iteratee that consumes
           // the request body.
           bodyAccumulator.tryComplete(resultTry.map(simpleResult => Accumulator.done(simpleResult)))
         })

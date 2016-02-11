@@ -30,6 +30,10 @@ This page highlights the new features of Play 2.5. If you want learn about the c
 
 - link to information in migration docs
 
+### Better control over WebSocket frames
+
+The Play 2.5 WebSocket API gives you direct control over WebSocket frames. You can now send and receives binary, text, ping, pong and close frames. If you don't want to worry about this level of detail, Play will still automatically convert your JSON or XML data into the right kind of frame.
+
 ## Java API updated to use Java 8 classes
 
 When Play 2.0 was released in 2012 Java had little support for Play's style of asynchronous functional programming. There were no lambdas, futures only had a blocking interface and common functional classes didn't exist. Play provided its own classes to fill the gap.
