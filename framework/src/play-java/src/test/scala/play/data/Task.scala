@@ -29,5 +29,8 @@ class Task {
   @DateTime(pattern = "dd/MM/yyyy")
   var dueDate: Date = _
 
+  @BeanProperty
+  var endDate: Date = _
+
 }
 

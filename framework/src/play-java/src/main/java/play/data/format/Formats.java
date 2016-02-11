@@ -26,15 +26,43 @@ public class Formats {
      */
     public static class DateFormatter extends Formatters.SimpleFormatter<Date> {
 
+        private final MessagesApi messagesApi;
+
         private final String pattern;
+
+        private final String patternNoApp;
+
+        /**
+         * Creates a date formatter.
+         * The value defined for the message file key "formats.dateFormat" will be used as the default pattern.
+         *
+         * @param messagesApi messages to look up the pattern
+         */
+        public DateFormatter(MessagesApi messagesApi) {
+            this(messagesApi, "formats.dateFormat");
+        }
 
         /**
          * Creates a date formatter.
          *
-         * @param pattern date pattern, as specified for {@link SimpleDateFormat}.
+         * @param messagesApi messages to look up the pattern
+         * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file key.
          */
-        public DateFormatter(String pattern) {
+        public DateFormatter(MessagesApi messagesApi, String pattern) {
+            this(messagesApi, pattern, "yyyy-MM-dd");
+        }
+
+        /**
+         * Creates a date formatter.
+         *
+         * @param messagesApi messages to look up the pattern
+         * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file key.
+         * @param patternNoApp date pattern to use as fallback when no app is started.
+         */
+        public DateFormatter(MessagesApi messagesApi, String pattern, String patternNoApp) {
+            this.messagesApi = messagesApi;
             this.pattern = pattern;
+            this.patternNoApp = patternNoApp;
         }
 
         /**
@@ -48,7 +76,10 @@ public class Formats {
             if(text == null || text.trim().isEmpty()) {
                 return null;
             }
-            SimpleDateFormat sdf = new SimpleDateFormat(pattern, locale);
+            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            SimpleDateFormat sdf = new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
+                .map(messages -> messages.get(lang, pattern))
+                .orElse(patternNoApp), locale);
             sdf.setLenient(false);
             return sdf.parse(text);
         }
@@ -64,7 +95,10 @@ public class Formats {
             if(value == null) {
                 return "";
             }
-            return new SimpleDateFormat(pattern, locale).format(value);
+            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            return new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
+                .map(messages -> messages.get(lang, pattern))
+                .orElse(patternNoApp), locale).format(value);
         }
 
     }

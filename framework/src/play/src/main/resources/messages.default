@@ -19,6 +19,9 @@ format.numeric=Numeric
 format.real=Real
 format.uuid=UUID
 
+# --- Patterns for Formats
+formats.dateFormat=yyyy-MM-dd
+
 # --- Errors
 error.invalid=Invalid value
 error.invalid.java.util.Date=Invalid date value
