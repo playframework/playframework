@@ -43,7 +43,10 @@ object FormSpec extends Specification {
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-      myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
+      myForm.errors.get("dueDate").get(0).messages().size() must beEqualTo(2)
+      myForm.errors.get("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
+      myForm.errors.get("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
+      myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
     }
     "have an error due to missing required value" in {
       val req = dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))

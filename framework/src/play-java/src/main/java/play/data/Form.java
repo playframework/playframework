@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.i18n.Lang;
 import play.mvc.Http;
 
 import static play.libs.F.*;
@@ -422,10 +424,14 @@ public class Form<T> {
                 ValidationError validationError;
                 if (error.isBindingFailure()) {
                     ImmutableList.Builder<String> builder = ImmutableList.builder();
+                    Optional<Messages> msgs = Optional.of(Http.Context.current.get()).map(c -> messagesApi.preferred(c.request()));
                     for (String code: error.getCodes()) {
-                        builder.add( code.replace("typeMismatch", "error.invalid") );
+                        code = code.replace("typeMismatch", "error.invalid");
+                        if(!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                            builder.add( code );
+                        }
                     }
-                    validationError = new ValidationError(key, builder.build(),
+                    validationError = new ValidationError(key, builder.build().reverse(),
                             convertErrorArguments(error.getArguments()));
                 } else {
                     validationError = new ValidationError(key, error.getDefaultMessage(),
