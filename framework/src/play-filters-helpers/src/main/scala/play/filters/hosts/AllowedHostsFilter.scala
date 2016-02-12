@@ -5,19 +5,23 @@ package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import akka.stream.scaladsl.Sink
 import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject.Module
-import play.api.libs.iteratee.Iteratee
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
 import play.api.{ Configuration, Environment, PlayConfig }
+import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
  */
 case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
     extends EssentialFilter {
+
+  // Java API
+  def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler) {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
+  }
 
   private val hostMatchers: Seq[HostMatcher] = config.allowed map HostMatcher.apply
 
@@ -56,7 +60,14 @@ private[hosts] case class HostMatcher(pattern: String) {
   }
 }
 
-case class AllowedHostsConfig(allowed: Seq[String])
+case class AllowedHostsConfig(allowed: Seq[String]) {
+  def this() {
+    this(Seq.empty)
+  }
+
+  import scala.collection.JavaConverters._
+  def withHostPatterns(hosts: java.util.List[String]): AllowedHostsConfig = copy(hosts.asScala.toSeq)
+}
 
 object AllowedHostsConfig {
   /**
