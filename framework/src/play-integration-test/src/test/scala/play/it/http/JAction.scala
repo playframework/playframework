@@ -30,7 +30,7 @@ object JAction {
     val components = app.injector.instanceOf[JavaHandlerComponents]
     new JavaAction(components) {
       val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
-      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.injector.instanceOf(annotations.parser))
+      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.getBodyParser(annotations.parser))
       def invocation = c.invocation
     }
   }

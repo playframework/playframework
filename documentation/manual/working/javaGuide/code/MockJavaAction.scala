@@ -7,7 +7,7 @@ import java.util.concurrent.{CompletionStage, CompletableFuture}
 
 import akka.stream.Materializer
 import play.api.mvc.{Action, Request}
-import play.core.j.{JavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
+import play.core.j.{DefaultJavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultActionCreator
 import play.mvc.{Controller, Http, Result}
 import play.api.test.Helpers
@@ -16,7 +16,7 @@ import java.lang.reflect.Method
 abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   self =>
 
-  private lazy val components = new JavaHandlerComponents(
+  private lazy val components = new DefaultJavaHandlerComponents(
     play.api.Play.current.injector, new DefaultActionCreator
   )
 
@@ -25,7 +25,7 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
 
     def parser = {
       play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
-        components.injector.instanceOf(annotations.parser)
+        components.getBodyParser(annotations.parser)
       )
     }
 

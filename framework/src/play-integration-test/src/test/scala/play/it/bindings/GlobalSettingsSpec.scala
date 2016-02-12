@@ -27,7 +27,7 @@ trait GlobalSettingsSpec extends PlaySpecification with WsTestClient with Server
     implicit val port = testServerPort
     val additionalSettings = applicationGlobal.fold(Map.empty[String, String]) { s: String =>
       Map("application.global" -> s"play.it.bindings.$s")
-    }
+    } + ("play.http.requestHandler" -> "play.http.GlobalSettingsHttpRequestHandler")
     import play.api.inject._
     import play.api.routing.sird._
     lazy val app: Application = new GuiceApplicationBuilder()

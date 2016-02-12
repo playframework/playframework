@@ -6,6 +6,7 @@ package play.http;
 import java.lang.reflect.Method;
 import java.util.concurrent.CompletionStage;
 
+import play.core.j.JavaHttpRequestHandlerAdapter;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Request;
@@ -69,5 +70,12 @@ public interface HttpRequestHandler {
     @Deprecated
     default Action wrapAction(Action action) {
         return action;
+    }
+
+    /**
+     * Adapt this to a Scala HttpRequestHandler
+     */
+    default play.api.http.HttpRequestHandler asScala() {
+        return new JavaHttpRequestHandlerAdapter(this);
     }
 }

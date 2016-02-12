@@ -130,7 +130,7 @@ object HandlerInvokerFactory {
         def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
           val annotations = cachedAnnotations
           val parser = {
-            val javaParser = components.injector.instanceOf(cachedAnnotations.parser)
+            val javaParser = components.getBodyParser(cachedAnnotations.parser)
             javaBodyParserToScala(javaParser)
           }
           def invocation: CompletionStage[JResult] = resultCall(call)
