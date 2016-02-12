@@ -4,7 +4,7 @@
 package detailedtopics.configuration.gzipencoding;
 
 import akka.stream.Materializer;
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.http.HttpFilters;
@@ -24,6 +24,6 @@ public class CustomFilters implements HttpFilters {
     //#gzip-filter
 
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { gzipFilter };
+        return new EssentialFilter[] { gzipFilter.asJava() };
     }
 }

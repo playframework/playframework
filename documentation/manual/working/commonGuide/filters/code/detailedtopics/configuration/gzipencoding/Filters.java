@@ -4,7 +4,7 @@
 package detailedtopics.configuration.gzipencoding;
 
 //#filters
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
 import play.http.HttpFilters;
 
@@ -16,7 +16,7 @@ public class Filters implements HttpFilters {
     GzipFilter gzipFilter;
 
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { gzipFilter };
+        return new EssentialFilter[] { gzipFilter.asJava() };
     }
 }
 //#filters

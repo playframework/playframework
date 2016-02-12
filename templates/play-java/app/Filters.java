@@ -1,6 +1,6 @@
 import javax.inject.*;
 import play.*;
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.http.HttpFilters;
 import play.mvc.*;
 
