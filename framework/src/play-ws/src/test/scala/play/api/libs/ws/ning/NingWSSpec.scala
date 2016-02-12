@@ -270,7 +270,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val (name, value, wrap, domain, path, expires, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 2000L, 1000, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -282,7 +282,6 @@ object NingWSSpec extends PlaySpecification with Mockito {
       cookie.name must beSome(name)
       cookie.value must beSome(value)
       cookie.path must ===(path)
-      cookie.expires must beSome(expires)
       cookie.maxAge must beSome(maxAge)
       cookie.secure must beFalse
     }
@@ -292,7 +291,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val (name, value, wrap, domain, path, expires, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 2000L, 1000, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -304,7 +303,6 @@ object NingWSSpec extends PlaySpecification with Mockito {
           cookie.value must beSome(value)
           cookie.domain must ===(domain)
           cookie.path must ===(path)
-          cookie.expires must beSome(expires)
           cookie.maxAge must beSome(maxAge)
           cookie.secure must beFalse
       }
@@ -313,14 +311,13 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "return -1 values of expires and maxAge as None" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
 
-      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1L, -1, false, false)
+      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1, false, false)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
 
       val optionCookie = response.cookie("someName")
       optionCookie must beSome[WSCookie].which { cookie =>
-        cookie.expires must beNone
         cookie.maxAge must beNone
       }
     }

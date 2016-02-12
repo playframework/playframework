@@ -578,6 +578,7 @@ trait WSCookie {
   /**
    * The expiry date.
    */
+  @deprecated("AHC 1.9.33 no longer supports expires, please use maxAge", "2.4.7")
   def expires: Option[Long]
 
   /**
