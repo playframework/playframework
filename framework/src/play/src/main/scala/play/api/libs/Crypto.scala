@@ -35,7 +35,7 @@ object Crypto {
   class CryptoException(val message: String = null, val throwable: Throwable = null) extends RuntimeException(message, throwable)
 
   private val cryptoCache = Application.instanceCache[Crypto]
-  private def crypto = {
+  private[play] def crypto = {
     Play.privateMaybeApplication.fold(
       new Crypto(new CryptoConfigParser(
         Environment.simple(), Configuration.from(Map("play.crypto.aes.transformation" -> "AES/CTR/NoPadding"))

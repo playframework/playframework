@@ -3,15 +3,19 @@
  */
 package play.filters.csrf
 
-import org.specs2.mutable.Specification
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws._
-import scala.concurrent.Future
-import play.api.mvc.{ Handler, Session }
-import play.api.libs.Crypto
-import play.api.test.{ FakeApplication, TestServer, PlaySpecification }
-import play.api.http.{ ContentTypes, ContentTypeOf, Writeable }
+import javax.inject.Inject
+
 import org.specs2.matcher.MatchResult
+import org.specs2.mutable.Specification
+import play.api.Play._
+import play.api.http.{ ContentTypeOf, ContentTypes, HttpFilters, Writeable }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.Crypto
+import play.api.libs.ws._
+import play.api.mvc.{ Handler, Session }
+import play.api.test.{ PlaySpecification, TestServer }
+
+import scala.concurrent.Future
 
 /**
  * Specs for functionality that each CSRF filter/action shares in common
@@ -20,6 +24,10 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   val TokenName = "csrfToken"
   val HeaderName = "Csrf-Token"
+
+  // TODO: rewrite tests so they don't require Play.current
+  def csrfAddToken = current.injector.instanceOf[CSRFAddToken]
+  def csrfCheck = current.injector.instanceOf[CSRFCheck]
 
   val Boundary = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
@@ -144,9 +152,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar", TokenName -> generate))
         ) { response =>
           response.status must_== FORBIDDEN
-          response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)) must beSome.like {
-            case cookie => cookie.value must beNone
-          }
+          response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)) must beNone
         }
       }
       "return a different token on each request" in {
@@ -272,6 +278,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = {
+    import play.api.inject._
     running(TestServer(testServerPort, GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
       .routes(router)

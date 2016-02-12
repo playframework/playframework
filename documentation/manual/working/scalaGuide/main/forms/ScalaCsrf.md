@@ -59,9 +59,13 @@ play.http.filters = "filters.MyFilters"
 
 ### Getting the current token
 
-The current CSRF token can be accessed using the `getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
+The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
 
 @[get-token](code/ScalaCsrf.scala)
+
+You may also want to inject the `CSRFAddToken` and `CSRFCheck` action wrappers to force adding a token or a CSRF check on a specific action: 
+
+@[csrf-controller](code/ScalaCsrf.scala)
 
 To help in adding CSRF tokens to forms, Play provides some template helpers.  The first one adds it to the query string of the action URL:
 
@@ -77,6 +81,8 @@ This might render a form that looks like this:
 
 If it is undesirable to have the token in the query string, Play also provides a helper for adding the CSRF token as hidden field in the form:
 
+Note that this requires an implicit `Token` to be in scope. Generally this is passed as a template parameter.
+
 @[csrf-input](code/scalaguide/forms/csrf.scala.html)
 
 This might render a form that looks like this:
@@ -88,7 +94,7 @@ This might render a form that looks like this:
 </form>
 ```
 
-The form helper methods all require an implicit token or request to be available in scope.  This will typically be provided by adding an implicit `RequestHeader` parameter to your template, if it doesn't have one already.
+The form helper methods all require an implicit `RequestHeader` to be available in scope. This will typically be provided by adding an implicit `RequestHeader` parameter to your template, if it doesn't have one already.
 
 ### Adding a CSRF token to the session
 

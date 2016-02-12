@@ -59,7 +59,7 @@ play.http.filters = "filters.MyFilters"
 
 ### Getting the current token
 
-The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:
+Then, the token can be obtained through the CSRF instance using the `CSRF.getToken` method. It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:
 
 @[get-token](code/javaguide/forms/JavaCsrf.java)
 

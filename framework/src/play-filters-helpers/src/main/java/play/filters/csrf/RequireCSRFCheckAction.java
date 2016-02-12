@@ -3,6 +3,7 @@
  */
 package play.filters.csrf;
 
+import play.api.libs.Crypto;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.inject.Injector;
@@ -19,12 +20,14 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     private final CSRFConfig config;
     private final CSRF.TokenProvider tokenProvider;
+    private final Crypto crypto;
     private final Injector injector;
 
     @Inject
-    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Injector injector) {
+    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Crypto crypto, Injector injector) {
         this.config = config;
         this.tokenProvider = tokenProvider;
+        this.crypto = crypto;
         this.injector = injector;
     }
 
@@ -32,13 +35,13 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
-        RequestHeader request = ctx._requestHeader();
+        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
         // Check for bypass
         if (!CSRFAction.requiresCsrfCheck(request, config)) {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
-            Option<String> headerToken = CSRFAction.getTokenFromHeader(request, config);
+            Option<String> headerToken = CSRFAction.getTokenToValidate(request, config);
             if (headerToken.isDefined()) {
                 String tokenToCheck = null;
 

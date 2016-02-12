@@ -5,6 +5,7 @@ package play.filters.csrf
 
 import javax.inject.{ Provider, Inject }
 import akka.stream.Materializer
+import play.api.libs.Crypto
 import play.api.mvc._
 import play.filters.csrf.CSRF._
 
@@ -21,27 +22,30 @@ import play.filters.csrf.CSRF._
  */
 class CSRFFilter(
     config: => CSRFConfig,
+    crypto: => Crypto,
     val tokenProvider: TokenProvider = SignedTokenProvider,
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialFilter {
 
   @Inject
-  def this(config: Provider[CSRFConfig], tokenProvider: TokenProvider, errorHandler: ErrorHandler, mat: Materializer) = {
-    this(config.get, tokenProvider, errorHandler)(mat)
+  def this(config: Provider[CSRFConfig], crypto: Provider[Crypto], tokenProvider: TokenProvider, errorHandler: ErrorHandler, mat: Materializer) = {
+    this(config.get, crypto.get, tokenProvider, errorHandler)(mat)
   }
 
   /**
    * Default constructor, useful from Java
    */
-  def this()(implicit mat: Materializer) = this(CSRFConfig.global, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
+  def this()(implicit mat: Materializer) = this(CSRFConfig.global, Crypto.crypto, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
 
-  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenProvider, errorHandler)
+  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, crypto, tokenProvider, errorHandler)
 }
 
 object CSRFFilter {
+  @deprecated("Use dependency injection", "2.5.0")
   def apply(
     config: => CSRFConfig = CSRFConfig.global,
+    crypto: => Crypto = Crypto.crypto,
     tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global),
     errorHandler: ErrorHandler = DefaultErrorHandler)(implicit mat: Materializer): CSRFFilter = {
-    new CSRFFilter(config, tokenProvider, errorHandler)
+    new CSRFFilter(config, crypto, tokenProvider, errorHandler)
   }
 }
