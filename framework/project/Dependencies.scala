@@ -27,7 +27,7 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % "2.6.0")
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.13")
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.16")
   val logback = Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3")
 
   val guava = "com.google.guava" % "guava" % "19.0"
