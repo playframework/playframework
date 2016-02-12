@@ -69,10 +69,20 @@ trait WSRequestMagnet {
  * {{{
  * import play.api.libs.ws._
  * import play.api.libs.ws.ahc._
+ * import akka.stream.Materializer
+ * import play.api.ApplicationLifecycle
+ * import javax.inject.Inject
+ * import scala.concurrent.Future
  *
- * val client = new AhcWSClient(new AhcConfigBuilder())
- * client.url("http://example.com/feed").get()
- * client.close() // must explicitly manage lifecycle
+ * class MyService @Inject() (lifecycle: ApplicationLifecycle)(implicit mat: Materializer) {
+ *   private val client = new AhcWSClient(new AhcConfigBuilder().build())
+ *   client.url("http://example.com/feed").get()
+ *   lifecycle.addStopHook(() =>
+ *     // Make sure you close the client after use, otherwise you'll leak threads and connections
+ *     client.close()
+ *     Future.successful(())
+ *   }
+ * }
  * }}}
  *
  * Or call the client directly:
