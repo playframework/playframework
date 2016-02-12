@@ -12,7 +12,7 @@ import akka.actor.ActorSystem
 import play.api.libs.concurrent.Akka
 import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.convert.JavaConversions._
+import scala.collection.JavaConverters._
 import java.io.File
 import org.specs2.execute.AsResult
 
@@ -180,7 +180,7 @@ object ThreadPoolsSpec extends PlaySpecification {
 
   def runningWithConfig[T: AsResult](config: String )(block: Application => T) = {
     val parsed: java.util.Map[String,Object] = ConfigFactory.parseString(config).root.unwrapped
-    running(_.configure(parsed.asScala))(block)
+    running(_.configure(Configuration(ConfigFactory.parseString(config))))(block)
   }
 }
 

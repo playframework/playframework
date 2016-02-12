@@ -5,6 +5,7 @@ package detailedtopics;
 
 import org.junit.Test;
 import play.Play;
+import play.Application;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -14,7 +15,7 @@ public class ThreadPoolsJava {
 
     @Test
     public void usingAppClassLoader() throws Exception {
-        final FakeApplication app = fakeApplication();
+        final Application app = fakeApplication();
         running(app, new Runnable() {
             public void run() {
                 String myClassName = "java.lang.String";

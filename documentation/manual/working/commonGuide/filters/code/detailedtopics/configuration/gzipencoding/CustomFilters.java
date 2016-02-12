@@ -3,6 +3,7 @@
  */
 package detailedtopics.configuration.gzipencoding;
 
+import akka.stream.Materializer;
 import play.api.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
@@ -12,11 +13,13 @@ import javax.inject.Inject;
 
 public class CustomFilters implements HttpFilters {
 
+    @Inject Materializer materializer;
+
     //#gzip-filter
     GzipFilter gzipFilter = new GzipFilter(
       new GzipFilterConfig().withShouldGzip((req, res) ->
         res.body().contentType().orElse("").startsWith("text/html")
-      )
+      ), materializer
     );
     //#gzip-filter
 
