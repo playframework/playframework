@@ -3,6 +3,8 @@
  */
 package play.core.parsers
 
+import java.net.URLDecoder
+
 /** An object for parsing application/x-www-form-urlencoded data */
 object FormUrlEncodedParser {
 
@@ -63,6 +65,8 @@ object FormUrlEncodedParser {
     }.asJava
   }
 
+  private[this] val parameterDelimiter = "[&;]".r
+
   /**
    * Do the basic parsing into a sequence of key/value pairs
    * @param data The data to parse
@@ -70,19 +74,11 @@ object FormUrlEncodedParser {
    * @return The sequence of key/value pairs
    */
   private def parseToPairs(data: String, encoding: String): Seq[(String, String)] = {
-
-    import java.net._
-
-    // Generate all the pairs, with potentially redundant key values, by parsing the body content.
-    data.split('&').flatMap { param =>
-      if (param.contains("=") && !param.startsWith("=")) {
-        val parts = param.split("=")
-        val key = URLDecoder.decode(parts.head, encoding)
-        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), encoding)
-        Seq(key -> value)
-      } else {
-        Nil
-      }
-    }.toSeq
+    parameterDelimiter.split(data).map { param =>
+      val parts = param.split("=", -1)
+      val key = URLDecoder.decode(parts(0), encoding)
+      val value = URLDecoder.decode(parts.lift(1).getOrElse(""), encoding)
+      key -> value
+    }
   }
 }
