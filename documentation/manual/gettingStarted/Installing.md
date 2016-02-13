@@ -1,73 +1,100 @@
 <!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Installing Play
 
+This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
+
 ## Prerequisites
 
-You need to have a JDK 1.8 (or later) installed on your machine (see [General Installation Tasks](#JDK-installation)).
-
-## Quick Start
-
-1. **Download** the latest [Typesafe Activator](https://typesafe.com/get-started).
-2. **Extract** the archive on a location where you have write access.
-3. **Change** dir with cmd `cd activator*` (or with the file-manager)
-4. **Start** it with cmd `activator ui` (or with the file-manager)
-5. **Access** it at [http://localhost:8888](http://localhost:8888)
-
-You'll find documentation and a list of application samples which get you going immediately. For a simple start, try the **play-java** sample.
-
-
-### Command Line
-
-To use play from any location on your file-system, add the **activator** directory to your path (see [General Installation Tasks](#Add-Executables-to-Path)).
-
-Creating `my-first-app` based on the `play-java` template is as simple as:
-
-```bash
-activator new my-first-app play-java
-cd my-first-app
-activator run
-```
-
-[http://localhost:9000](http://localhost:9000) - access your application here.
-
-You are now ready to work with Play!
-
-## General Installation Tasks
-
-You may need to deal with those general tasks in order to install Play! on your system. 
-
-### JDK installation
-
-Verify if you have a JDK (Java Development Kit) Version 1.8 or later on your machine. Simply use those commands to verify:
+Play requires Java 1.8.  To check that you have the latest JDK, please run:
 
 ```bash
 java -version
-javac -version
 ```
 
-If you don't have the JDK, you have to install it:
+If you don't have the JDK, you have to install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
-1. **MacOS**, Java is built-in, but you may have to [Update to the latest](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-2. **Linux**, use either the latest Oracle JDK or OpenJDK (do not use not gcj). 
-3. **Windows** just download and install the [latest JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) package.
+## Installing Play
 
+Play is a series of libraries available in [Maven Repository](http://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project.  
 
-### Add Executables to Path
+For getting started, we'll install Play though [Typesafe Activator](https://www.typesafe.com/activator/docs).  
 
-For convenience, you should add the Activator installation directory to your system `PATH`.
+Activator can be described as "sbt plus templates" -- it combines [sbt](http://www.scala-sbt.org/0.13/docs/index.html) (a build tool) plus a means of downloading [project templates](https://www.typesafe.com/activator/templates) (like Maven archetypes) and a web interface for managing those projects.  Templates can be examples, or they can be "seed" templates that provide a starting point for your own projects.  
 
-On **Unix**, use `export PATH=/path/to/activator:$PATH`
+Activator comes with a couple of seed templates for Play that we recommend for getting started, [play-scala](https://www.typesafe.com/activator/template/play-scala) and [play-java](https://www.typesafe.com/activator/template/play-java).
 
-On **Windows**, add `;C:\path\to\activator` to your `PATH` environment variable. Do not use a path with spaces.
+### Downloading Activator
 
-### File Permissions
+Activator is distributed as a single archive file that expands out to its own subdirectory.
 
-#### Unix
+You can download Activator from [https://playframework.com/download](https://playframework.com/download) and click on the "offline distribution" link:
 
-Running `activator` writes some files to directories within the distribution, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.
+[[images/download.png]]
 
-Make sure that the `activator` script is executable. If it's not, do a `chmod u+x /path/to/activator`.
+The "offline distribution" comes with all of Activator's possible dependencies included.  It's a much larger initial download, but installing the offline distribution means that that starting up a new Play project is **much** faster, as all the dependencies are already resolved.
 
-### Proxy Setup
+### Extracting Activator
 
-If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
+Extract the archive on a location where you have write access.  Running `activator` writes some files to directories within the distribution, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.
+
+### Adding Activator to your Path
+
+For convenience, you should add the Activator installation directory to your system `PATH`:
+
+#### MacOS / Unix
+
+Add to your login profile.  Usually, this is `$HOME/.profile`:
+
+```
+export PATH=/path/to/activator-x.x.x:$PATH
+```  
+
+Make sure that the `activator` script is executable. If it's not:
+
+```
+chmod u+x /path/to/activator-x.x.x/activator
+```
+
+#### Windows
+
+In a command prompt, type:
+
+```
+setx PATH=%PATH%;"C:\path\to\activator-x.x.x"
+```
+
+Note that [setx](https://technet.microsoft.com/en-us/library/cc755104.aspx) is only available on Windows 8 or later -- before that, and you will have to use the [System Properties dialog](https://java.com/en/download/help/path.xml).
+
+## Create a Project
+
+Activator comes with a couple of different "seeds" that can be used to start off a Play project: `play-java` and `play-scala`.  You can create a project based off a template either from Activator's Web Interface, or directly from the command line.
+
+Open a command prompt, and type `activator ui` to bring up the GUI interface.  A browser window will open with the Web UI at [http://localhost:8888](http://localhost:8888).
+
+> *NOTE*: If you're behind a proxy, make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
+
+Follow the arrows to create a new project:
+
+[[images/webTemplate.png]]
+
+You can read the [Activator documentation](https://www.typesafe.com/activator/docs) for more information on how to use the Web Interface.
+
+## Accessing the Built-in Tutorial
+
+Activator's Web Interface contains a built in tutorial section that will walk you through your new application:
+
+[[images/webTutorial.png]]
+
+## Running Play
+
+Play has an easy to use "development mode" that will let you make changes to code and see your results immediate on the page.
+
+You can run Play in development mode from within Activator's Web Interface by going to the Run tab and clicking the Run button:
+
+[[images/webRunning.png]]
+
+This will bring up the Play application at [http://localhost:9000](http://localhost:9000).
+
+## Congratulations!
+
+You are now ready to work with Play!  The next page will show you how to create projects from the command line and some more detail about creating new applications.
