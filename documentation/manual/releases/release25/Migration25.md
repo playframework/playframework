@@ -31,18 +31,11 @@ Play 2.3 and 2.4 supported both Scala 2.10 and 2.11. Play 2.5 has dropped suppor
 **TODO: Describe changes to build.sbt needed to upgrade a Play project from Scala 2.10 to Scala 2.11, emphasize that both Java and Scala users may need to change this setting, link to any docs that describe what's new in Scala 2.11**
 
 
-## Replaced `F.Promise` with Java 8's `CompletionStage`
-
-**TODO: Fill in intro and rationale for this change. Might want to take some text from the section on 'replacing functional types'.**
-
-### How to migrate
-
-**TODO: Fill in concrete migration steps. Explain how `F.Promise` extends `CompletionStage` and what that means for code that creates a promise, code that takes a promise as an argument, etc**
-
-
 ## Replaced functional types with Java 8 functional types
 
-A big change in Scala 2.5 is the change to use standard Java 8 classes where possible. All functional types have been replaced with their Java 8 counterparts, for example `F.Function1<A,R>` has been replaced with `java.util.function.Function<A,R>`.
+A big change in Play 2.5 is the change to use standard Java 8 classes where possible. All functional types have been replaced with their Java 8 counterparts, for example `F.Function1<A,R>` has been replaced with `java.util.function.Function<A,R>`.
+
+The move to Java 8 types should enable better integration with other Java libraries as well as with built-in functionality in Java 8.
 
 ### How to migrate
 
@@ -109,6 +102,39 @@ onClose(Errors.rethrow().wrap(database::stop));
 
 Durian provides other behaviors too, such as [logging an exception](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#log--) or writing [your own exception handler](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#createHandling-java.util.function.Consumer-). If you want to use Durian you can either include it as a [dependency in your project](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.durian%22%20AND%20a%3A%22durian%22) or by copy the source from [two](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Errors.java) [classes](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Throwing.java) into your project.
 
+## Replaced `F.Promise` with Java 8's `CompletionStage`
+
+APIs that use `F.Promise` now use the standard Java 8 [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) class.
+
+### How to migrate
+
+**Step 1:** Change all code that returns `F.Promise` to return `CompletionStage` instead. To aid with migration, `F.Promise` also implements the `CompletionStage` interface.
+
+**Step 2** Replace relevant static methods in `F.Promise` with an equivalent method (many of these use the `play.libs.concurrent.Futures` helpers, or the statics on [`CompletableFuture`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)):
+
+* `Promise.wrap`       -> `scala.compat.java8.FutureConverters.toJava`
+* `Promise.sequence    -> `Futures.sequence`
+* `Promise.timeout`    -> `Futures.timeout`
+* `Promise.pure`       -> `CompletableFuture.completedFuture`
+* `Promise.throwing`   -> Construct `CompletableFuture` and use `completeExceptionally`
+* `Promise.promise`    -> `CompletableFuture.supplyAsync`
+* `Promise.delayed`    -> `Futures.delayed`
+
+**Step 3** Replace existing instance methods with their equivalent on `CompletionStage`:
+
+* `promise.or`          -> `future.applyToEither`
+* `promise.onRedeem`    -> `future.thenAcceptAsync`
+* `promise.map`         -> `future.thenApplyAsync`
+* `promise.transform`   -> `future.handleAsync`
+* `promise.zip`         -> `future.thenCombine` (and manually construct a tuple)
+* `promise.fallbackTo`  -> `future.handleAsync` followed by `thenCompose(Function.identity())`
+* `promise.recover`     -> `future.exceptionally` (or `future.handleAsync` with `HttpExecution#defaultContext()` if you want `Http.Context` captured).
+* `promise.recoverWith` -> same as `recover`, then use `.thenCompose(Function.identity())`
+* `promise.onFailure`   -> `future.whenCompleteAsync` (use `HttpExecution#defaultContext()` if needed)
+* `promise.flatMap`     -> `future.thenComposeAsync` (use `HttpExecution#defaultContext()` if needed)
+* `promise.filter`      -> `future.thenApplyAsync` and implement the filter manually (use `HttpExecution#defaultContext()` if needed)
+
+These migrations are explained in more detail in the [Javadoc for `F.Promise`](api/java/play/libs/F.Promise.html).
 
 ## Replaced `F.Option` with Java 8's `Optional`
 
@@ -133,25 +159,6 @@ Here follows a short table that should ease the migration:
 **TODO: Add links to javadoc**
 
 `Optional` has a lot more combinators, so we highly encourage you to [learn its API](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) if you are not familiar with it already.
-
-
-## Replaced static methods with dependency injection
-
-**TODO: Explain what this change is and why it was made. I don't really understand the heading! Does it mean that ExternalAssets is no longer a singleton object with static methods, but now a class that's created with dependency injection? Is it just ExternalAssets?**
-
-### How to migrate
-
-If you are using `controllers.ExternalAssets` in your routes file you must either set
-
-```scala
-routesGenerator := InjectedRoutesGenerator
-```
-
-in your `build.sbt` or you must use the `@` symbol in front of the route in the `routes` file, e.g.
-
-```
-GET /some/path @controllers.ExternalAssets.at
-```
 
 ## Change to Logback configuration
 
@@ -217,7 +224,7 @@ The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The
 
 ### How to migrate
 
-Read about how to create reusable components using dependency injection independent in either [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]].
+Read about how to create reusable components using dependency injection in either [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]].
 
 A plugin will usually be a class that is:
 
@@ -241,6 +248,20 @@ routesGenerator := StaticRoutesGenerator
 
 to your `build.sbt` file.
 
+## Replaced static controllers with dependency injection
+
+`controllers.ExternalAssets` is now a class, and has no static equivalent. `controllers.Assets` and `controllers.Default` are also classes, and while static equivalents exist, it is recommended that you use the class version.
+
+### How to migrate
+
+The recommended solution is to use classes for all your controllers. The `InjectedRoutesGenerator` is now the default, so the controllers in the routes file are assumed to be classes instead of objects.
+
+If you still have static controllers, you can use `StaticRoutesGenerator` (described above) and add the `@` symbol in front of the route in the `routes` file, e.g.
+
+```
+GET  /assets/*file  @controllers.ExternalAssets.at(path = "/public", file)
+```
+
 ## Deprecated play.Play and play.api.Play methods
 
 The following methods have been deprecated in `play.Play`:
@@ -257,10 +278,12 @@ Likewise, methods in `play.api.Play` that take an implicit `Application` and del
 
 These methods delegate to either `play.Application` or `play.Environment` -- code that uses them should use dependency injection to inject the relevant class.
 
-For example, the following code injects an application into a Controller in Scala:
+You should refer to the list of dependency injected components in the [[Play 2.4 Migration Guide|Migration24#Dependency-Injected-Components]] to migrate built-in play components.
+
+For example, the following code injects an environment and configuration into a Controller in Scala:
 
 ```
-class HomeController @Inject() (app: play.api.Application, configuration: play.api.Configuration) extends Controller {
+class HomeController @Inject() (environment: play.api.Environment, configuration: play.api.Configuration) extends Controller {
 
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
@@ -271,11 +294,34 @@ class HomeController @Inject() (app: play.api.Application, configuration: play.a
   }
 
   def count = Action {
-    val num = app.resource("application.conf").toSeq.size
+    val num = environment.resource("application.conf").toSeq.size
     Ok(num.toString)
   }
 }
 ```
+
+### Handling legacy components
+
+Generally the components you use should not need to depend on the entire application, but sometimes you have to deal with legacy components that require one. You can handle this by injecting the application into one of your components:
+
+```
+class FooController @Inject() (implicit app: Application) extends Controller {
+  def bar = Action {
+    Ok(Foo.bar(app))
+  }
+}
+```
+
+Even better, you can make your own `*Api` class that turns the static methods into instance methods:
+
+```
+class FooApi @Inject() (implicit app: Application) {
+  def bar = Foo.bar(app)
+  def baz = Foo.baz(app)
+}
+```
+
+This allows you to benefit from the testability you get with DI and still use your library that uses global state.
 
 ## CSRF filter changes
 
