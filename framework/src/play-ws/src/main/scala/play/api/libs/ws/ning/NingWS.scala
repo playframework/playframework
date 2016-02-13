@@ -531,7 +531,7 @@ private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
   /**
    * The maximum age.
    */
-  def maxAge: Option[Int] = if (ahcCookie.getMaxAge <= -1) None else Some(ahcCookie.getMaxAge)
+  def maxAge: Option[Int] = if (ahcCookie.getMaxAge <= -1) None else Some(ahcCookie.getMaxAge.toInt)
 
   /**
    * If the cookie is secure.

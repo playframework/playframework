@@ -45,7 +45,7 @@ public class NingWSCookie implements WSCookie {
     }
 
     public Integer getMaxAge() {
-        return ahcCookie.getMaxAge();
+        return ((int) ahcCookie.getMaxAge());
     }
 
     public Boolean isSecure() {

@@ -22,6 +22,10 @@ public interface WSCookie {
 
     public String getPath();
 
+    /**
+     * @deprecated "AHC 1.9.33 no longer supports expires, please use maxAge.
+     */
+    @Deprecated
     public Long getExpires();
 
     public Integer getMaxAge();
