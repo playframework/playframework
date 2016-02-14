@@ -15,7 +15,7 @@ In contrast, [[action composition|JavaActionsComposition]] is intended for route
 
 ## A simple logging filter
 
-The following is a simple filter that times and logs how long a request takes to execute in Play framework, which implements the [`Filter`](api/java/play/mvc/Filter.html) trait:
+The following is a simple filter that times and logs how long a request takes to execute in Play Framework, which implements the [`Filter`](api/java/play/mvc/Filter.html) trait:
 
 @[simple-filter](code/javaguide/application/httpfilters/LoggingFilter.java)
 
