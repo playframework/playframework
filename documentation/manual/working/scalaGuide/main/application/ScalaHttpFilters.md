@@ -15,7 +15,7 @@ In contrast, [[action composition|ScalaActionsComposition]] is intended for rout
 
 ## A simple logging filter
 
-The following is a simple filter that times and logs how long a request takes to execute in Play framework, which implements the [`Filter`](api/scala/play/api/mvc/Filter.html) trait:
+The following is a simple filter that times and logs how long a request takes to execute in Play Framework, which implements the [`Filter`](api/scala/play/api/mvc/Filter.html) trait:
 
 @[simple-filter](code/ScalaHttpFilters.scala)
 
