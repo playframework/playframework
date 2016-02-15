@@ -106,6 +106,7 @@ trait WSRequestMagnet {
  * The value returned is a {@code Future[WSResponse]}, and you should use Play's asynchronous mechanisms to
  * use this response.
  */
+@deprecated("Inject WSClient into your component", "2.5.0")
 object WS {
 
   private val wsapiCache = Application.instanceCache[WSAPI]
@@ -122,6 +123,7 @@ object WS {
    * val client = WS.client
    * }}}
    */
+  @deprecated("Inject WSClient into your component", "2.5.0")
   def client(implicit app: Application): WSClient = wsapi.client
 
   /**
@@ -136,6 +138,7 @@ object WS {
    * @param url the URL to request
    * @param app the implicit application to use.
    */
+  @deprecated("Inject WSClient into your component", "2.5.0")
   def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest = wsapi(app).url(url)
 
   /**
