@@ -11,6 +11,7 @@ constraint.max=Maximum value: {0}
 constraint.minLength=Minimum length: {0}
 constraint.maxLength=Maximum length: {0}
 constraint.email=Email
+constraint.pattern=Required pattern: {0}
 
 # --- Formats
 format.date=Date (''{0}'')
