@@ -7,7 +7,7 @@ import akka.stream.Materializer
 import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ GlobalSettingsHttpRequestHandler, HttpRequestHandler, DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
@@ -89,7 +89,10 @@ trait GlobalFiltersSpec extends FiltersSpec {
 
     val app = new GuiceApplicationBuilder()
       .configure(settings)
-      .overrides(bind[Router].toInstance(testRouter))
+      .overrides(
+        bind[Router].toInstance(testRouter),
+        bind[HttpRequestHandler].to[GlobalSettingsHttpRequestHandler]
+      )
       .global(
         new WithFilters(filters: _*) {
           override def onHandlerNotFound(request: RequestHeader) = {
