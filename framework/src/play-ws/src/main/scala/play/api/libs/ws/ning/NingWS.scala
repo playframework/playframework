@@ -235,19 +235,23 @@ case class NingWSRequest(client: NingWSClient,
     proxyServer.foreach(p => builder.setProxyServer(createProxy(p)))
     requestTimeout.foreach(builder.setRequestTimeout)
 
-    // Set the body.
-    val possiblyModifiedHeaders = this.headers
-    val builderWithBody = body match {
-      case EmptyBody => builder
+    val (builderWithBody, updatedHeaders) = body match {
+      case EmptyBody => (builder, this.headers)
       case FileBody(file) =>
         import com.ning.http.client.generators.FileBodyGenerator
         val bodyGenerator = new FileBodyGenerator(file)
         builder.setBody(bodyGenerator)
+        (builder, this.headers)
       case InMemoryBody(bytes) =>
         val ct: String = contentType.getOrElse("text/plain")
 
-        try {
-          if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+        val h = try {
+          // Only parse out the form body if we are doing the signature calculation.
+          if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED) && calc.isDefined) {
+            // If we are taking responsibility for setting the request body, we should block any
+            // externally defined Content-Length field (see #5221 for the details)
+            val filteredHeaders = this.headers.filterNot { case (k, v) => k.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH) }
+
             // extract the content type and the charset
             val charset = Charset.forName(
               Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
@@ -268,22 +272,24 @@ case class NingWSRequest(client: NingWSClient,
               value <- values
             } yield new Param(key, value)
             builder.setFormParams(params.asJava)
+            filteredHeaders
           } else {
             builder.setBody(bytes)
+            this.headers
           }
         } catch {
           case e: UnsupportedEncodingException =>
             throw new RuntimeException(e)
         }
 
-        builder
+        (builder, h)
       case StreamedBody(bytes) =>
-        builder
+        (builder, this.headers)
     }
 
     // headers
     for {
-      header <- possiblyModifiedHeaders
+      header <- updatedHeaders
       value <- header._2
     } builder.addHeader(header._1, value)
 

@@ -431,7 +431,9 @@ public class NingWSRequest implements WSRequest {
             // If using a POST with OAuth signing, the builder looks at
             // getFormParams() rather than getBody() and constructs the signature
             // based on the form params.
-            if (contentType.equals(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+            if (contentType.equals(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED) && calculator != null) {
+                headers.remove(HttpHeaders.Names.CONTENT_LENGTH);
+
                 Map<String, List<String>> stringListMap = FormUrlEncodedParser.parseAsJava(stringBody, "utf-8");
                 for (String key : stringListMap.keySet()) {
                     List<String> values = stringListMap.get(key);
