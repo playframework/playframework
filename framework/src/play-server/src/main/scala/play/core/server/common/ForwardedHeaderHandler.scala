@@ -4,7 +4,7 @@
 package play.core.server.common
 
 import java.net.InetAddress
-import play.api.{ Configuration, Logger, PlayException }
+import play.api.{ PlayConfig, Configuration, Logger }
 import play.api.mvc.Headers
 import play.core.server.common.NodeIdentifierParser.Ip
 import scala.annotation.tailrec
@@ -211,19 +211,17 @@ private[server] object ForwardedHeaderHandler {
     }
   }
 
-  val ForwardingVersionConfigPath = "play.http.forwarded.version"
-  val TrustedProxiesConfigPath = "play.http.forwarded.trustedProxies"
-
   object ForwardedHeaderHandlerConfig {
-    private def defaultTrustedProxies = List("::1", "127.0.0.1")
-    def apply(configuration: Option[Configuration]): ForwardedHeaderHandlerConfig = configuration.map { c =>
-      ForwardedHeaderHandlerConfig(
-        c.getString(ForwardingVersionConfigPath, Some(Set("x-forwarded", "rfc7239")))
-          .fold[ForwardedHeaderVersion](Xforwarded)(version => if (version == "rfc7239") Rfc7239 else Xforwarded),
-        c.getStringSeq(TrustedProxiesConfigPath)
-          .getOrElse(defaultTrustedProxies)
-          .map(Subnet.apply).toList
-      )
-    }.getOrElse(ForwardedHeaderHandlerConfig(Xforwarded, defaultTrustedProxies.map(Subnet.apply)))
+    def apply(configuration: Option[Configuration]): ForwardedHeaderHandlerConfig = {
+      val config = PlayConfig(configuration.getOrElse(Configuration.reference)).get[PlayConfig]("play.http.forwarded")
+
+      val version = config.get[String]("version") match {
+        case "x-forwarded" => Xforwarded
+        case "rfc7239" => Rfc7239
+        case _ => throw config.reportError("version", "Forwarded header version must be either x-forwarded or rfc7239")
+      }
+
+      ForwardedHeaderHandlerConfig(version, config.get[Seq[String]]("trustedProxies").map(Subnet.apply).toList)
+    }
   }
 }

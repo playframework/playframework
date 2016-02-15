@@ -194,24 +194,37 @@ ProxyPassReverse / http://localhost:9999
 ProxyPassReverse / http://localhost:9998
 ```
 
-## Configure trusted proxies
+## Configuring trusted proxies
 
-To determine the client IP address Play has to know which are the trusted proxies in your network.
+Play supports various forwarded headers used by proxies to indicate the incoming IP address and protocol of requests. Play uses this configuration to calculate the correct value for the `remoteAddress` and `secure` fields of `RequestHeader`.
 
-Those can be configured with `play.http.forwarded.trustedProxies`. You can define a list of proxies and/or subnet masks that Play recognizes as belonging to your network like:
+It is trivial for an HTTP client, whether it's a browser or other client, to forge forwarded headers, thereby spoofing the IP address and protocol that Play reports, consequently, Play needs to know which proxies are trusted. Play provides a configuration option to configure a list of trusted proxies, and will validate the incoming forwarded headers to verify that they are trusted, taking the first untrusted IP address that it finds as the reported user remote address (or the the last IP address if all proxies are trusted.)
+
+To configure the list of trusted proxies, you can configure `play.http.forwarded.trustedProxies`.  This takes a list of IP address or CIDR subnet ranges.  Both IPv4 and IPv6 are supported.  For example:
 
 ```
 play.http.forwarded.trustedProxies=["192.168.0.0/24", "::1", "127.0.0.1"]
 ```
 
-Default is `::1` and `127.0.0.1`
+This says all IP addresses that start with `192.168.0`, as well as the IPv6 and IPv4 loopback addresses, are trusted.  By default, Play will just trust the loopback address, that is `::1` and `127.0.0.1`.
 
-There exists two possibilities how proxies are set in the HTTP-headers:
+### Trusting all proxies
+
+Many cloud providers, most notably AWS, provide no guarantees for which IP addresses their load balancer proxies will use.  Consequently, the only way to support forwarded headers with these services is to trust all IP addresses.  This can be done by configuring the trusted proxies like so:
+
+```
+play.http.forwarded.trustedProxies=["0.0.0.0/0", "::/0"]
+```
+
+### Forwarded header version
+
+Play supports two different versions of forwarded headers:
 
   * the legacy method with X-Forwarded headers
   * the RFC 7239 with Forwarded headers
 
-The type of header to parse is set via `play.http.forwarded.version`. Valid values are `x-forwarded` or `rfc7239`.
-The default is `x-forwarded`.
+This is configured using `play.http.forwarded.version`, with valid values being `x-forwarded` or `rfc7239`. The default is `x-forwarded`.
 
-For more information, please read the [RFC 7239](https://tools.ietf.org/html/rfc7239).
+`x-forwarded` uses the de facto standard `X-Forwarded-For` and `X-Forwarded-Proto` headers to determine the correct remote address and protocol for the request. These headers are widely used, however, they have some serious limitations, for example, if you have multiple proxies, and only one of them adds the `X-Forwarded-Proto` header, it's impossible to reliably determine which proxy added it and therefore whether the request from the client was made using https or http. `rfc7239` uses the new `Forwarded` header standard, and solves many of the limitations of the `X-Forwarded-*` headers.
+
+For more information, please read the [RFC 7239](https://tools.ietf.org/html/rfc7239) specification.
