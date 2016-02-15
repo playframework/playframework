@@ -20,10 +20,10 @@ import org.asynchttpclient.util.HttpUtils;
 import org.reactivestreams.Publisher;
 import play.api.libs.ws.ahc.Streamed;
 import play.core.parsers.FormUrlEncodedParser;
-import play.libs.F;
 import play.libs.Json;
 import play.libs.oauth.OAuth;
 import play.libs.ws.*;
+import scala.compat.java8.FutureConverters;
 
 import java.io.File;
 import java.io.InputStream;
@@ -555,7 +555,7 @@ public class AhcWSRequest implements WSRequest {
         } catch (RuntimeException exception) {
             scalaPromise.failure(exception);
         }
-        return F.Promise.wrap(scalaPromise.future());
+        return FutureConverters.toJava(scalaPromise.future());
     }
 
     Realm auth(String username, String password, WSAuthScheme scheme) {
