@@ -2,29 +2,21 @@
 
 # Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
 
-set -e
-
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-BASEDIR=$DIR/../..
-FRAMEWORK=$BASEDIR/framework
-TEMPLATES=$BASEDIR/templates
-BUILD="$FRAMEWORK/build --warn"
-
-export FILTER_LOGGING=true
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
 cd $FRAMEWORK
 
 echo "[info]"
 echo "[info] ---- BUILDING PLAY "
 echo "[info]"
-$BUILD "$@" quickPublish publishLocal
+build "$@" quickPublish publishLocal
 
 echo "[info]"
 echo "[info] ---- TESTING TEMPLATES"
 echo "[info]"
 
 cd $TEMPLATES
-$BUILD "$@" testTemplates
+build "$@" testTemplates
 
 echo "[info]"
 echo "[info] ALL TESTS PASSED"

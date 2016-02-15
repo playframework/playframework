@@ -17,6 +17,6 @@ then
     activator $@ 
 else
     echo "Template not found: $template"
-    echo "Did you run ./build ~syncTemplates first?"
+    echo "Did you run sbt ~syncTemplates first?"
     exit 1
 fi
