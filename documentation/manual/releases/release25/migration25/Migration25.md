@@ -8,12 +8,6 @@ As well as the information contained on this page, there are is more detailed mi
 - [[Streams Migration Guide|StreamsMigration25]] – Migrating to Play's new streaming library.
 - [[Java Migration Guide|JavaMigration25]] - Migrating Java applications.
 
-**TODO: Review all headings to make them clear, succinct and consistent. If heading names change, check that backlinks from the Higlights still work.**
-
-**TODO: Review all sections and make sure they have the following structure: a high level description at the start and then a practical *How to migrate* section explaining concrete steps that are needed.**
-
-**TODO: Arrange sections into priority order so that the bits that most people need to know about come first. Migration that's necessary can come first, migration that's optional (e.g. deprecation) can come later. Consider putting large sections (e.g. Java 8 migration, Akka streams migration) onto separate pages.**
-
 ## sbt upgrade to 0.13.9
 
 Play 2.5 now requires a minimum of sbt 0.13.9. The 0.13.9 release of sbt has a number of [improvements and bug fixes](https://github.com/sbt/sbt/releases/tag/v0.13.9).
@@ -36,8 +30,29 @@ Play 2.3 and 2.4 supported both Scala 2.10 and 2.11. Play 2.5 has dropped suppor
 
 ### How to migrate
 
-**TODO: Describe changes to build.sbt needed to upgrade a Play project from Scala 2.10 to Scala 2.11, emphasize that both Java and Scala users may need to change this setting, link to any docs that describe what's new in Scala 2.11**
+**Both Scala and Java users** must configure sbt to use Scala 2.11.  Even if you have no Scala code in your project, Play itself uses Scala and must be configured to use the right Scala libraries.
 
+To set the Scala version in sbt, simply set the `scalaVersion` key, eg:
+
+```scala
+scalaVersion := "2.11.7"
+```
+
+If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi project build, then the scala version setting must be set on each project.  Typically, in a multi project build, you will have some common settings shared by every project, this is the best place to put the setting, eg:
+
+```scala
+def common = Seq(
+  scalaVersion := "2.11.7"
+)
+
+lazy val projectA = (project in file("projectA"))
+  .enablePlugins(PlayJava)
+  .settings(common: _*)
+
+lazy val projectB = (project in file("projectB"))
+  .enablePlugins(PlayJava)
+  .settings(common: _*)
+```
 
 ## Change to Logback configuration
 
@@ -60,7 +75,7 @@ You can find more details on how to set up Play with different logging framework
 
 Play WS has been upgraded to use [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client) 2.  This is a major upgrade that uses Netty 4.0. Most of the changes in AHC 2.0 are under the hood, but AHC has some significant refactorings which require breaking changes to the WS API:
 
-* [`AsyncHttpClientConfig`] replaced by [`DefaultAsyncHttpClientConfig`](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.html).
+* `AsyncHttpClientConfig` replaced by [`DefaultAsyncHttpClientConfig`](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.html).
 * [`allowPoolingConnection`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#allowPoolingConnections) and `allowSslConnectionPool` are combined in AsyncHttpClient into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.  
 * [`webSocketIdleTimeout`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#webSocketTimeout) has been removed, so is no longer available in `AhcWSClientConfig`.
 * [`ioThreadMultiplier`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#ioThreadMultiplier) has been removed, so is no longer available in `AhcWSClientConfig`.
@@ -74,42 +89,13 @@ In addition, there are number of small changes:
 * The `play.libs.ws.play.WSRequest` interface now returns `java.util.concurrent.CompletionStage` instead of `F.Promise`.
 * Static methods that rely on `Play.current` or `Play.application` have been deprecated.
 
-### How to migrate
-
-**TODO: Check the list of classes and config settings that have changed and document them here. Check which bits are deprecated. I think config using the old name will give a warning at runtime.** More info in the PR: https://github.com/playframework/playframework/pull/5224. **Some text we might want to use:** "package `play.api.libs.ws.ning` was renamed into `play.api.libs.ws.ahc` and `Ning*` classes were renamed into `Ahc*`."
-
-
 ## Deprecated `GlobalSettings`
 
-**TODO: Describe deprecation and the rationale**
-
-### Migration
-
-**TODO: Explain how to migrate to a DI alternative, providing links**
-
-
-### How to migrate
-
-**TODO: Explain how to change iteratees to streams. Explain the deprecation/removal plan for iteratees. Do we need separate sections for result streaming and HttpEntities, body parsers and Accumulators, WS and WebSockets?**
-
+As part of the on going efforts to move away from global state in Play, `GlobalSettings` and the application `Global` object have been deprecated.  For more details, see the [[Play 2.4 migration guide|GlobalSettings]] for how to migrate away from using `GlobalSettings`.
 
 ## Removed Plugins API
 
-The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The Plugins API has been superceded by Play's dependency injection and module system which provides a cleaner and more flexible way to build reusable components.
-
-### How to migrate
-
-Read about how to create reusable components using dependency injection in either [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]].
-
-A plugin will usually be a class that is:
-
-* a singleton ([[Java|JavaDependencyInjection#Singletons]] / [[Scala|ScalaDependencyInjection#Singletons]])
-* is a dependency for some classes and has dependencies on other components ([[Java|JavaDependencyInjection#Declaring-dependencies]] / [[Scala|ScalaDependencyInjection#Declaring-dependencies]])
-* optionally bound in a module ([[Java|JavaDependencyInjection#Programmatic-bindings]] / [[Scala|ScalaDependencyInjection#Programmatic-bindings]])
-* optionally started when the application starts ([[Java|JavaDependencyInjection#Eager-bindings]] / [[Scala|ScalaDependencyInjection#Eager-bindings]])
-* optionally stopped when the application stops ([[Java|JavaDependencyInjection#Stopping/cleaning-up]] / [[Scala|ScalaDependencyInjection#Stopping/cleaning-up]])
-
-> Note: As part of this effort, the [[modules directory|ModuleDirectory]] has been updated to only include up-to-date modules that do not use the Plugin API. If you have any corrections to make to the module directory please let us know.
+The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The Plugins API has been superceded by Play's dependency injection and module system which provides a cleaner and more flexible way to build reusable components.  For details on how to migrate from plugins to dependency injection see the [[Play 2.4 migration guide|PluginsToModules]].
 
 ## Routes generated with InjectedRoutesGenerator
 

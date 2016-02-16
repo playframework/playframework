@@ -47,8 +47,7 @@ If you choose to migrate to the new API, you can create a chunked result by call
 
 More advanced users may prefer to explicitly create an `HttpEntity.Chunked` object and pass it into the `Result` object constructor.
 
-* To learn how to migrate an Enumerator to a Source, see XXXX.
-* To learn how to migrate a `Results.Chunked` to a Source, see XXXX.
+* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
 #### Migrating streamed results (`feed`, `stream`) (Scala only)
 
@@ -58,7 +57,7 @@ In Play 2.5, the `stream` method has been removed and the `feed` method has been
 
 The new API is to create a `Result` object directly and choose an `HttpEntity` to represent its body. For streamed results, you can use the `HttpEntity.Streamed` class. The `Streamed` class takes a `Source` as a body and an optional `Content-Length` header value. The `Source`'s content will be sent to the client. If the entity has a `Content-Length` header then the connection will be left open, otherwise it will be closed to signal the end of the stream.
 
-* To learn how to migrate an Enumerator to a Source, see XXXX.
+* To learn how to migrate an Enumerator to a Source, see  [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
 #### Migrating WebSockets (`WebSocket`)
 
@@ -69,8 +68,6 @@ To migrate your WebSockets code in Play 2.5 you have two options.
 The first option is to use the old Play API, which has been deprecated and renamed to `LegacyWebSocket`. This is the easiest option. You just need to change your code that refers to `WebSocket` to refer to `LegacyWebSocket` instead. The `LegacyWebSocket` class gives you an easy migration path from Play 2.4 to Play 2.5.
 
 The second option is to change to the new Play API. To do this you'll need to change your WebSocket code to use an Akka Streams `Flow` object.
-
-**TODO: Figure out WebSocket actor migration, if any**
 
 ##### Migrating Scala WebSockets
 
@@ -88,13 +85,13 @@ trait FrameFormatter[A] {
 
 The Play 2.5's Scala WebSocket API is built around a `Flow` of `Message`s. A `Message` (**TODO: link to `play.api.http.websocket.Message`) represents an [WebSocket frame](https://tools.ietf.org/html/rfc6455#section-5). The `MessageFlowTransformer` type handles transforming high-level objects, like JSON, XML and bytes into `Message` frames. A set of built-in implicit `MessageFlowTransformer`s are provided, and you can also write your own.
 
-```
+```scala
 trait WebSocket extends Handler {
   def apply(request: RequestHeader): Future[Either[Result, Flow[Message, Message, _]]]
 }
 ```
 
-```
+```scala
 sealed trait Message
 case class TextMessage(data: String) extends Message
 case class BinaryMessage(data: ByteString) extends Message
@@ -111,9 +108,8 @@ trait MessageFlowTransformer[+In, -Out] { self =>
 
 To migrate, you'll need to translate the bidirectional `Enumerator`/`Iteratee` stream into a `Flow`. You may also need to convert your `In`/`Out` objects into `Message`s using a `MessageFlowTransformer`, although this is not necessary for common types like JSON, since some built-in implicit conversions are provided.
 
-* To learn how to combine a Source and Sink into a Flow, see XXXX.
-* To learn how to migrate an Enumerator to a Source, see XXXX.
-* To learn how to migrate an Iteratee to a Sink, see XXXX.
+* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources].
+* To learn how to migrate an Iteratee to a Sink, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
 
 ##### Migrating Java WebSockets
 
@@ -144,13 +140,20 @@ return WebSocket.Text.accept(requestHeader -> {
 
 You can also create your own `MappedWebSocketAcceptor` by defining how to convert incoming outgoing messages.
 
-* To learn how to combine a Source and Sink into a Flow, see XXXX.
 * To learn how to migrate a `WebSocket.In` to a Sink, see XXXX.
 * To learn how to migrate a `WebSocket.Out` to a Source, see XXXX.
 
 #### Migrating Server-Sent events (`EventSource`)
 
-**TODO**
+##### Scala
+
+Previously, `EventSource` returned an `Enumerator`, it now provides a `flow` method that returns a `Flow`.  See [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources) for how to migrate the enumerator that feeds the `EventSource` flow to a source.
+
+##### Java
+
+Previously, to implement SSE, you had to extend `play.libs.EventSource`.  This class has been renamed to `play.libs.LegacyEventSource` and has been deprecated, but can still be used in the interim.
+
+`LegacyEventSource` can be replaced with Akka streams - for an imperative API in Akka streams that looks like `LegacyEventSource`, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2-RC2/java/stream-customize.html#custom-processing-with-graphstage).
 
 #### Migrating Comet
 
@@ -174,8 +177,8 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
 
 To migrate, you'll need to replace your `Iteratee` with an `Accumulator` and your `Array[Byte]` with a `ByteString`.
 
-* To learn how to migrate an Iteratee to an Accumulator, see XXXX.
-* To learn how to migrate an `Array[Byte]` to a `ByteString` see XXXX.
+* To learn how to migrate an Iteratee to an Accumulator, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
+* To learn how to migrate an `Array[Byte]` to a `ByteString` see [Migrating byte arrays to ByteStrings](#Migrating-byte-arrays-\(byte[]/Array[Byte]\)-to-ByteStrings).
 
 #### Migrating custom body parsers (`BodyParser`) (Scala only)
 
@@ -193,8 +196,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
 
 To migrate, you'll need to replace your `Iteratee` with an `Accumulator` and your `Array[Byte]` with a `ByteString`.
 
-* To learn how to migrate an Iteratee to an Accumulator, see XXXX.
-* To learn how to migrate an `Array[Byte]` to a `ByteString` see XXXX.
+* To learn how to migrate an Iteratee to an Accumulator, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
+* To learn how to migrate an `Array[Byte]` to a `ByteString` see [Migrating byte arrays to ByteStrings](#Migrating-byte-arrays-\(byte[]/Array[Byte]\)-to-ByteStrings).
 
 #### Migrating `Result` bodies (Scala only)
 
@@ -211,8 +214,8 @@ new Result(headers, entity)
 
 See the section on migrating `Enumerator`s and migrating to `ByteString` for more information on migrating to these types.
 
-* To learn how to migrate an Iteratee to an Accumulator, see XXXX.
-* To learn how to migrate an `Array[Byte]` to a `ByteString` see XXXX.
+* To learn how to migrate an Iteratee to an Accumulator, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
+* To learn how to migrate an `Array[Byte]` to a `ByteString` see [Migrating byte arrays to ByteStrings](#Migrating-byte-arrays-\(byte[]/Array[Byte]\)-to-ByteStrings).
 
 You may find that you don't need a stream for the `Result` body at all. If that's the case you might want to use a `Strict` entity for the body.
 
@@ -239,13 +242,11 @@ When you're first getting started with Akka Streams, the *Basics and working wit
 * [Basics for Java](http://doc.akka.io/docs/akka/2.4.2-RC2/java/stream/stream-flows-and-basics.html)
 * [Basics for Scala](http://doc.akka.io/docs/akka/2.4.2-RC2/scala/stream/stream-flows-and-basics.html)
 
-You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use 
-
-**TODO: Explain how to change iteratees to streams. Explain the deprecation/removal plan for iteratees. Do we need separate sections for result streaming and HttpEntities, body parsers and Accumulators, WS and WebSockets?**
+You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka streams.  Akka streams provides a [reactive streams](http://reactivestreams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka streams and vice versa.
 
 #### Migrating byte arrays (`byte[]`/`Array[Byte]`) to `ByteString`s
 
-Refer to the [Java](http://doc.akka.io/japi/akka/2.4.2-RC2/index.html) and [Scala](http://doc.akka.io/api/akka/2.4.2-RC2/index.html#akka.util.ByteString) API documentation for `ByteString`.
+Refer to the [Java](http://doc.akka.io/japi/akka/2.4.2-RC2/index.html) and [Scala](http://doc.akka.io/api/akka/2.4.2-RC2/akka/util/ByteString.html) API documentation for `ByteString`.
 
 Examples:
 
@@ -302,20 +303,79 @@ If you use `Results.chunked` or `Results.feed` you can continue to use the exist
 
 **Step 2:** Convert `Enumerator` to `Source` with an adapter
 
-You can convert your existing `Enumerator to ` 
+You can convert your existing `Enumerator` to a `Source` by first converting it to a reactive streams `Publisher` using [`Streams.enumeratorToPublisher`](api/scala/play/api/libs/streams/Streams$.html#enumeratorToPublisher[T]\(Enumerator[T],Option[T]\):Publisher[T]), and then you can convert the publisher to a source using [`Source.fromPublisher`](http://doc.akka.io/api/akka/2.4.2-RC2/akka/stream/scaladsl/Source$.html#fromPublisher[T]\(Publisher[T]\):Source[T,NotUsed]), for example:
+
+```scala
+val enumerator: Enumerator[T] = ...
+val source = Source.fromPublisher(Streams.enumeratorToPublisher(enumerator))
+```
 
 **Step 3:** (Optional) Rewrite to a `Source`
 
-#### Migrating `Iteratee`s
+Here's a list of some common mappings for enumerator factory methods:
+
+| **Iteratees** | **Akka Streams** | **Notes** |
+| --------
+| `Enumerator.apply(a)` | `Source.single(a)` | |
+| `Enumerator.apply(a, b)` | `Source.apply(List(a, b)))` | |
+| `Enumerator.enumerate(seq)` | `Source.apply(seq)` | `seq` must be immutable |
+| `Enumerator.repeat` | `Source.repeat` | The repeated element is not evaluated each time in Akka streams |
+| `Enumerator.empty` | `Source.empty` | |
+| `Enumerator.unfold` | `Source.unfold` | |
+| `Enumerator.generateM` | `Source.unfoldAsync` | |
+| `Enumerator.fromStream` | `StreamConverters.fromInputStream` | |
+| `Enumerator.fromFile` | `FileIO.fromFile` | |
+
+#### Migrating `Iteratee`s to `Sink`s and `Accumulator`s
 
 **Step 1:** Convert using an adapter
 
+You can convert your existing `Iteratee` to a `Sink` by first converting it to a reactive streams `Subscriber` using [`Streams.iterateeToSubscriber`](api/scala/play/api/libs/streams/Streams$.html#iterateeToSubscriber[T,U]\(Iteratee[T,U]\):\(Subscriber[T],Iteratee[T,U]\)), and then you can convert the subscriber to a sink using [`Sink.fromSubscriber`](http://doc.akka.io/api/akka/2.4.2-RC2/akka/stream/scaladsl/Sink$.html#fromSubscriber[T]\(Subscriber[T]\):Sink[T,NotUsed]), for example:
+
+```scala
+val iteratee: Iteratee[T, U] = ...
+val (subscriber, resultIteratee) = Streams.iterateeToSubscriber(iteratee)
+val sink = Sink.fromSubscriber(subscriber)
+```
+
+If you need to return an `Accumulator`, you can instead use the [`Streams.iterateeToAccumulator`](api/scala/play/api/libs/streams/Streams$.html#iterateeToAccumulator[T,U]\(Iteratee[T,U]\):Accumulator[T,U]) method.
+
 **Step 2:** (Optional) Rewrite to a `Sink`
 
-#### Migrating `Enumeratees`s
+Here's a list of some common mappings for iteratee factory methods:
 
-- Server-Sent Events (`EventSource`)
+| **Iteratees** | **Akka Streams** | **Notes** |
+| --------
+| `Iteratee.fold` | `Sink.fold` | |
+| `Iteratee.head` | `Sink.headOption` | |
+| `Iteratee.getChunks` | `Sink.seq` | |
+| `Iteratee.foreach` | `Sink.foreach` | |
+| `Iteratee.ignore` | `Sink.ignore` | |
+| `Done` | `Sink.cancelled` | The materialized value can be mapped to produce the result, or if using accumulators, `Accumulator.done` can be used instead. |
+
+#### Migrating `Enumeratees`s to `Processor`s
 
 **Step 1:** Convert using an adapter
 
-**Step 2:** (Optional) Rewrite to a `Sink`
+You can convert your existing `Enumeratee` to a `Flow` by first converting it to a reactive streams `Processor` using [`Streams.enumerateeToProcessor`](api/scala/play/api/libs/streams/Streams$.html#enumerateeToProcessor[A,B]\(Enumeratee[A,B]\):Processor[A,B]), and then you can convert the processor to a flow using [`Flow.fromProcessor`](http://doc.akka.io/api/akka/2.4.2-RC2/akka/stream/scaladsl/Flow$.html#fromProcessor[I,O]\(\(\)⇒Processor[I,O]\):Flow[I,O,NotUsed]), for example:
+
+```scala
+val enumeratee: Enumeratee[A, B] = ...
+val flow = Flow.fromProcessor(() => Streams.enumerateeToProcessor(enumeratee))
+```
+
+**Step 2:** (Optional) Rewrite to a `Flow`
+
+Here's a list of some common mappings for enumeratee factory methods:
+
+| **Iteratees** | **Akka Streams** | **Notes** |
+| --------
+| `Enumeratee.map` | `Flow.map` | |
+| `Enumeratee.mapM` | `Flow.mapAsync` | You have to specify the parallelism in Akka streams, ie how many elements will be mapped in parallel at a time. |
+| `Enumeratee.mapConcat` | `Flow.mapConcat` | |
+| `Enumeratee.filter` | `Flow.filter` | |
+| `Enumeratee.take` | `Flow.take` | |
+| `Enumeratee.takeWhile` | `Flow.takeWhile` | |
+| `Enumeratee.drop` | `Flow.drop` | |
+| `Enumeratee.dropWhile` | `Flow.dropWhile` | |
+| `Enumeratee.collect` | `Flow.collect` | |
