@@ -4,16 +4,7 @@
 package play.libs.openid;
 
 import java.util.Map;
-import java.util.HashMap;
-
-import play.Play;
-import play.libs.Scala;
-import scala.runtime.AbstractFunction1;
-import scala.collection.JavaConversions;
-
-import play.libs.F;
-import play.mvc.Http;
-import play.mvc.Http.Request;
+import java.util.concurrent.CompletionStage;
 
 /**
  * provides support for OpenID
@@ -26,43 +17,53 @@ public class OpenID {
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+     *
+     * @deprecated Inject an OpenIdClient into your component.
      */
-    public static F.Promise<String> redirectURL(String openID, String callbackURL) {
+    @Deprecated
+    public static CompletionStage<String> redirectURL(String openID, String callbackURL) {
         return client().redirectURL(openID, callbackURL);
     }
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+     *
+     * @deprecated Inject an OpenIdClient into your component.
      */
-    public static F.Promise<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
+    @Deprecated
+    public static CompletionStage<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
         return client().redirectURL(openID, callbackURL, axRequired);
     }
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+     *
+     * @deprecated Inject an OpenIdClient into your component.
      */
-    public static F.Promise<String> redirectURL(String openID,
-            String callbackURL,
-            Map<String, String> axRequired,
-            Map<String, String> axOptional) {
+    @Deprecated
+    public static CompletionStage<String> redirectURL(
+            String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional) {
         return client().redirectURL(openID, callbackURL, axRequired, axOptional);
     }
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+     *
+     * @deprecated Inject an OpenIdClient into your component.
      */
-    public static F.Promise<String> redirectURL(String openID,
-            String callbackURL,
-            Map<String, String> axRequired,
-            Map<String, String> axOptional,
-            String realm) {
+    @Deprecated
+    public static CompletionStage<String> redirectURL(
+            String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional, String realm) {
         return client().redirectURL(openID, callbackURL, axRequired, axOptional, realm);
     }
 
     /**
      * Check the identity of the user from the current request, that should be the callback from the OpenID server
+     *
+     * @deprecated Inject an OpenIdClient into your component.
      */
-    public static F.Promise<UserInfo> verifiedId() {
+    @Deprecated
+    public static CompletionStage<UserInfo> verifiedId() {
         return client().verifiedId();
     }
 
