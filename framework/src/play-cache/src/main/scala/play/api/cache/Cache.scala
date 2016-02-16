@@ -70,6 +70,7 @@ object Cache {
    * @param value Item value.
    * @param expiration Expiration time as a [[scala.concurrent.duration.Duration]].
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def set(key: String, value: Any, expiration: Duration = Duration.Inf)(implicit app: Application): Unit = {
     cacheApi.set(key, value, expiration)
   }
@@ -81,6 +82,7 @@ object Cache {
    * @param value Item value.
    * @param expiration Expiration time in seconds (0 second means eternity).
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def set(key: String, value: Any, expiration: Int)(implicit app: Application): Unit = {
     set(key, value, intToDuration(expiration))
   }
@@ -90,6 +92,7 @@ object Cache {
    *
    * @param key Item key.
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def get(key: String)(implicit app: Application): Option[Any] = {
     cacheApi.get[Any](key)
   }
@@ -101,6 +104,7 @@ object Cache {
    * @param expiration expiration period as a [[scala.concurrent.duration.Duration]].
    * @param orElse The default function to invoke if the value was not found in cache.
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def getOrElse[A](key: String, expiration: Duration = Duration.Inf)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     cacheApi.getOrElse(key, expiration)(orElse)
   }
@@ -112,6 +116,7 @@ object Cache {
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def getOrElse[A](key: String, expiration: Int)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     getOrElse(key, intToDuration(expiration))(orElse)
   }
@@ -122,10 +127,12 @@ object Cache {
    * @param key Item key.
    * @return result as Option[T]
    */
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def getAs[T](key: String)(implicit app: Application, ct: ClassTag[T]): Option[T] = {
     cacheApi.get[T](key)
   }
 
+  @deprecated("Inject CacheApi into your component", "2.5.0")
   def remove(key: String)(implicit app: Application): Unit = {
     cacheApi.remove(key)
   }

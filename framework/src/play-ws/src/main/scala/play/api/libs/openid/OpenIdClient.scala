@@ -68,6 +68,7 @@ object OpenID {
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
+  @deprecated("Inject OpenIdClient into your component", "2.5.0")
   def redirectURL(openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
@@ -78,6 +79,7 @@ object OpenID {
   /**
    * From a request corresponding to the callback from the OpenID server, check the identity of the current user
    */
+  @deprecated("Inject OpenIdClient into your component", "2.5.0")
   def verifiedId(implicit request: Request[_], app: Application): Future[UserInfo] =
     app.injector.instanceOf[OpenIdClient].verifiedId(request)
 }
