@@ -305,7 +305,7 @@ object WebSocket {
   def tryAcceptWithActor[In, Out](f: RequestHeader => Future[Either[Result, HandlerProps]])(implicit transformer: MessageFlowTransformer[In, Out],
     app: Application, mat: Materializer): WebSocket = {
 
-    implicit val system = Akka.system
+    implicit val system = app.actorSystem
 
     acceptOrResult(f.andThen(_.map(_.right.map { props =>
       ActorFlow.actorRef(props)
