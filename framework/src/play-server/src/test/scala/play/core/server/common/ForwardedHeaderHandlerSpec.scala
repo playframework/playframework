@@ -368,7 +368,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
     new ForwardedHeaderHandler(ForwardedHeaderHandlerConfig(None))
 
   def handler(config: Map[String, Any]) =
-    new ForwardedHeaderHandler(ForwardedHeaderHandlerConfig(Some(Configuration.from(config))))
+    new ForwardedHeaderHandler(ForwardedHeaderHandlerConfig(Some(Configuration.reference ++ Configuration.from(config))))
 
   def version(s: String) = {
     Map("play.http.forwarded.version" -> s)
