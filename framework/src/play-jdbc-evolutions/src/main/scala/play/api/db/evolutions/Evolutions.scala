@@ -4,13 +4,13 @@
 package play.api.db.evolutions
 
 import java.io.File
-import java.nio.file._
 import java.nio.charset.Charset
+import java.nio.file._
 
-import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
 import play.api.db.{ DBApi, Database }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
+import play.api.{ Configuration, Environment, Logger, Mode, Play }
 import play.core.DefaultWebCommands
 import play.utils.PlayIO
 
@@ -119,9 +119,7 @@ object Evolutions {
   /**
    * Updates a local (file-based) evolution script.
    */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
-    val environment = application.injector.instanceOf[Environment]
-
+  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment) {
     val evolutions = environment.getFile(fileName(db, revision))
     Files.createDirectory(environment.getFile(directoryName(db)).toPath)
     writeFileIfChanged(evolutions,

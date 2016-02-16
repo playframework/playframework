@@ -112,6 +112,7 @@ object Lang {
    * play.i18n.langs = ["fr", "en", "de"]
    * }}}
    */
+  @deprecated("Inject Langs into your component", "2.5.0")
   def availables(implicit app: Application): Seq[Lang] = {
     langsCache(app).availables
   }
@@ -120,6 +121,7 @@ object Lang {
    * Guess the preferred lang in the langs set passed as argument.
    * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
    */
+  @deprecated("Inject Langs into your component", "2.5.0")
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     langsCache(app).preferred(langs)
   }
