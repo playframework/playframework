@@ -108,7 +108,7 @@ object ThreadPoolsSpec extends PlaySpecification {
     "allow access to the application classloader" in new WithApplication() {
       val myClassName = "java.lang.String"
       //#using-app-classloader
-      val myClass = Play.current.classloader.loadClass(myClassName)
+      val myClass = app.classloader.loadClass(myClassName)
       //#using-app-classloader
     }
 

@@ -96,7 +96,7 @@ trait WSRequestMagnet {
  * """
  *   |play.ws.ssl.trustManager = ...
  * """.stripMargin))
- * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
+ * val parser = new DefaultWSConfigParser(configuration, app.classloader)
  * val builder = new AhcConfigBuilder(parser.parse())
  * val secureClient: WSClient = new AhcWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
@@ -119,8 +119,7 @@ object WS {
    * implicit application must be in scope.  Most of the time you will want the current app:
    *
    * {{{
-   * import play.api.Play.current
-   * val client = WS.client
+   * val client = WS.client(app)
    * }}}
    */
   @deprecated("Inject WSClient into your component", "2.5.0")
@@ -131,8 +130,7 @@ object WS {
    * use to construct a request.
    *
    * {{{
-   *   import play.api.Play.current
-   *   WS.url("http://localhost/").get()
+   *   WS.url("http://localhost/")(app).get()
    * }}}
    *
    * @param url the URL to request

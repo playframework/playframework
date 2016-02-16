@@ -25,7 +25,6 @@ package consoleapp {
       val loader = ApplicationLoader(context)
       val app = loader.load(context)
       Play.start(app)
-      import Play.current 
 //#consoleapp
       Play.current
     }
