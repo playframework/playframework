@@ -7,7 +7,7 @@ import akka.stream.{ Materializer }
 import akka.stream.scaladsl._
 import org.reactivestreams._
 import play.api.libs.iteratee._
-import play.api.libs.streams.impl.SubscriberIteratee
+import play.api.libs.streams.impl.{ SubscriberPublisherProcessor, SubscriberIteratee }
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
@@ -157,6 +157,32 @@ object Streams {
    */
   def publisherToEnumerator[T](pubr: Publisher[T]): Enumerator[T] =
     new impl.PublisherEnumerator(pubr)
+
+  /**
+   * Adapt an Enumeratee to a Processor.
+   */
+  def enumerateeToProcessor[A, B](enumeratee: Enumeratee[A, B]): Processor[A, B] = {
+    val (iter, enum) = Concurrent.joined[A]
+    val (subr, _) = iterateeToSubscriber(iter)
+    val pubr = enumeratorToPublisher(enum &> enumeratee)
+    new SubscriberPublisherProcessor(subr, pubr)
+  }
+
+  /**
+   * Adapt a Processor to an Enumeratee.
+   */
+  def processorToEnumeratee[A, B](processor: Processor[A, B]): Enumeratee[A, B] = {
+    val iter = subscriberToIteratee(processor)
+    val enum = publisherToEnumerator(processor)
+    new Enumeratee[A, B] {
+      override def applyOn[U](inner: Iteratee[B, U]): Iteratee[A, Iteratee[B, U]] = {
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        iter.map { _ =>
+          Iteratee.flatten(enum(inner))
+        }
+      }
+    }
+  }
 
   /**
    * Join a Subscriber and Publisher together to make a Processor.

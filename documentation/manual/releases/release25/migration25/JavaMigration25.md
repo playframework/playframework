@@ -1,8 +1,6 @@
 # Java Migration Guide
 
-**TODO: Write intro here**
-
-
+In order to better fit in to the Java 8 ecosystem, and to allow Play Java users to make more idiomatic use of Java in their applications, Play has switched to using a number of Java 8 types.
 
 ## Replaced functional types with Java 8 functional types
 
@@ -81,7 +79,7 @@ APIs that use `F.Promise` now use the standard Java 8 [`CompletionStage`](https:
 
 ### How to migrate
 
-**Step 1:** Change all code that returns `F.Promise` to return `CompletionStage` instead. To aid with migration, `F.Promise` also implements the `CompletionStage` interface.
+**Step 1:** Change all code that returns `F.Promise` to return `CompletionStage` instead. To aid with migration, `F.Promise` also implements the `CompletionStage` interface, which means any existing code that returns `Promise` can still be invoked from code that has been migrated to use `CompletionStage`.
 
 **Step 2** Replace relevant static methods in `F.Promise` with an equivalent method (many of these use the `play.libs.concurrent.Futures` helpers, or the statics on [`CompletableFuture`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)):
 
@@ -128,7 +126,5 @@ Here follows a short table that should ease the migration:
 | `o.get()`          | `o.get()`                         |
 | `o.getOrElse(f)`   | `o.orElseGet(f)` or `o.orElse(v)` |
 | `o.map(f)`         | `o.map(f)`                        |
-
-**TODO: Add links to javadoc**
 
 `Optional` has a lot more combinators, so we highly encourage you to [learn its API](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) if you are not familiar with it already.
