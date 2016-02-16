@@ -374,7 +374,13 @@ trait Results {
     private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean): Result = {
       Result(
         ResponseHeader(status,
-          Map(CONTENT_DISPOSITION -> s"""${if (inline) "inline" else "attachment"}; filename="$name"""")),
+          Map(
+            CONTENT_DISPOSITION -> {
+              val dispositionType = if (inline) "inline" else "attachment"
+              dispositionType + "; filename=\"" + name + "\""
+            }
+          )
+        ),
         HttpEntity.Streamed(
           file,
           Some(length),
