@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *     //import static play.libs.EventSource.Event.event;
  *
  *     public Result liveClock() {
- *         Source<String, ?> tickSource = Source.from(Duration.Zero(), Duration.create(100, MILLISECONDS), "TICK");
- *         Source<EventSource.Event, ?> eventSource = tickSource.map((tick) -> event(df.format(ZonedDateTime.now())));
+ *         Source&lt;String, ?&gt; tickSource = Source.from(Duration.Zero(), Duration.create(100, MILLISECONDS), "TICK");
+ *         Source&lt;EventSource.Event, ?&gt; eventSource = tickSource.map((tick) -&gt; event(df.format(ZonedDateTime.now())));
  *         return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
  *     }
  * }}}
