@@ -108,7 +108,7 @@ trait MessageFlowTransformer[+In, -Out] { self =>
 
 To migrate, you'll need to translate the bidirectional `Enumerator`/`Iteratee` stream into a `Flow`. You may also need to convert your `In`/`Out` objects into `Message`s using a `MessageFlowTransformer`, although this is not necessary for common types like JSON, since some built-in implicit conversions are provided.
 
-* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources].
+* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 * To learn how to migrate an Iteratee to a Sink, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
 
 ##### Migrating Java WebSockets
@@ -145,15 +145,53 @@ You can also create your own `MappedWebSocketAcceptor` by defining how to conver
 
 #### Migrating Server-Sent events (`EventSource`)
 
-##### Scala
+To use [Server-Sent Events](http://www.html5rocks.com/en/tutorials/eventsource/basics/) in Play you need to produce a chunked HTTP response with specially formatted chunks. Play has an `EventSource` interface to help produce events on the server that can be sent to the browser. In Play 2.4 Java and Scala each had quite different APIs, but in Play 2.5 they have been changed so they're both based on Akka Streams.
 
-Previously, `EventSource` returned an `Enumerator`, it now provides a `flow` method that returns a `Flow`.  See [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources) for how to migrate the enumerator that feeds the `EventSource` flow to a source.
+##### Migrating Java Server-Sent events
 
-##### Java
+In Play 2.4's Java API you produce your stream of chunks with `EventSource`, which is a class that extends `Chunks<String>`. You can construct `Event` objects from strings or JSON objects and then send them in the response by calling `EventSource`'s `send` method.
 
-Previously, to implement SSE, you had to extend `play.libs.EventSource`.  This class has been renamed to `play.libs.LegacyEventSource` and has been deprecated, but can still be used in the interim.
+```java
+EventSource eventSource = new EventSource() {
+    @Override
+    public void onConnected() {
+        send(Event.event("hello"));
+        send(Event.event("world"));
+        ...
+    }
+};
+return ok(eventSource);
+```
 
-`LegacyEventSource` can be replaced with Akka streams - for an imperative API in Akka streams that looks like `LegacyEventSource`, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2-RC2/java/stream-customize.html#custom-processing-with-graphstage).
+In Play 2.5 you'll typically create an Akka Streams `Source` for your application objects, use `Source.map` to convert your objects to `Event`s then finally use `EventSource.chunked` to convert the `Event`s into chunked values. The example below shows how this works for sending a stream of strings.
+
+```java
+Source<String, ?> stringSource = ...;
+Source<EventSource.Event, ?> eventSource = myStrings.map(Event::event);
+return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
+```
+
+* To learn how to migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, see XXXX.
+
+If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2-RC2/java/stream-customize.html#custom-processing-with-graphstage).
+
+##### Migrating Scala Server-Sent events
+
+To use Play 2.4's Scala API you provide an `Enumerator` of application objects then use the `EventSource` `Enumeratee` to convert them into `Event`s. Finally you pass the `Event`s to the `chunked` method where they're converted into chunks.
+
+```scala
+val someDataStream: Enumerator[SomeData] = ???
+Ok.chunked(someDataStream &> EventSource())
+```
+
+In Play 2.5 using `EventSource` with `Enumerator`s and `Enumeratee`s has been deprecated. You can still use an `Enumerator` and `Enumeratee`, but it is recommended that you convert your code to use a `Source` and a `Flow` instead. The `Source` produces the stream of objects and `EventSource.flow`'s `Flow` converts them into `Event`s. For example, code above would be rewritten as:
+
+```scala
+val someDataStream: Source[SomeData, Unit] = ???
+Ok.chunked(someDataStream via EventSource.flow).as("text/event-stream")
+```
+
+* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
 #### Migrating Comet
 
