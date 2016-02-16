@@ -29,11 +29,14 @@ object Akka {
   /**
    * Retrieve the application Akka Actor system, using an implicit application.
    *
+   * @deprecated Please use a dependency injected ActorSystem, since 2.5.0
+   *
    * Example:
    * {{{
    * val newActor = Akka.system.actorOf[Props[MyActor]]
    * }}}
    */
+  @deprecated("Please use a dependency injected ActorSystem", "2.5.0")
   def system(implicit app: Application): ActorSystem = actorSystemCache(app)
 
   /**

@@ -39,8 +39,8 @@ object Promise {
   @deprecated("Use akka.pattern.after(duration, actorSystem.scheduler)(Future(message)) instead", since = "2.5.0")
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
     val p = SPromise[A]()
-    import play.api.Play.current
-    Akka.system.scheduler.scheduleOnce(FiniteDuration(duration, unit)) {
+    val app = play.api.Play.privateMaybeApplication.get
+    app.actorSystem.scheduler.scheduleOnce(FiniteDuration(duration, unit)) {
       p.complete(Try(message))
     }
     p.future
