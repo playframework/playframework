@@ -1,6 +1,20 @@
 # Java Migration Guide
 
-In order to better fit in to the Java 8 ecosystem, and to allow Play Java users to make more idiomatic use of Java in their applications, Play has switched to using a number of Java 8 types.
+In order to better fit in to the Java 8 ecosystem, and to allow Play Java users to make more idiomatic use of Java in their applications, Play has switched to using a number of Java 8 types. Play also has new Java APIs for `EssentialAction`, `EssentialFilter`, `Router` and `HttpRequestHandler`.
+
+## New Java APIs
+
+There are several API changes to accomodate writing filters and HTTP request handlers in Java, in particular with the `HttpRequestHandler` interface. If you are using Scala for these components you are still free to use the Scala API if you wish.
+
+### Filter API
+
+You will most likely use `EssentialAction` when creating a filter. You can either use the [`Filter`](api/java/play/mvc/Filter.html) API or the lower-level [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) API that operates on `[`EssentialAction`](api/java/play/mvc/EssentialAction.html)`s.
+
+### HttpRequestHandler and ActionCreator
+
+The [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html) actually existed in Play 2.5, but now it serves a different purpose. The `createAction` and `wrapAction` methods have been moved to a new interface called [`ActionCreator`](api/java/play/http/ActionCreator.html), and are deprecated in `HttpRequestHandler`. These methods are only applied to Java actions, and are used to intercept requests to the controller's method call, but not all requests.
+
+In 2.5, `HttpRequestHandler`'s main purpose is to provide a handler for the request right after it comes in. This is now consistent with what the Scala implementation does, and provides a way for Java users to intercept the handling of all HTTP requests. Normally, the `HttpRequestHandler` will call the router to find an action for the request, so the new API allows you to intercept that request in Java before it goes to the router.
 
 ## Replaced functional types with Java 8 functional types
 
