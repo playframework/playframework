@@ -7,7 +7,7 @@ import java.util.Optional
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.stream.Materializer
-import com.typesafe.config.{ ConfigMemorySize, ConfigValue }
+import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.HttpErrorHandler
 import play.api.inject.{ Binding, Module }
@@ -15,7 +15,7 @@ import play.api.libs.Crypto
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.core.j.JavaHelpers
-import play.filters.csrf.CSRF._
+import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, Token, _ }
 import play.mvc.Http
 import play.utils.Reflect
 
@@ -61,6 +61,7 @@ object CSRFConfig {
 
   private[play] val HeaderNoCheck = "nocheck"
 
+  @deprecated("Use dependency injection", "2.5.0")
   def global = Play.privateMaybeApplication.map(_.injector.instanceOf[CSRFConfig]).getOrElse(CSRFConfig())
 
   def fromConfiguration(conf: Configuration): CSRFConfig = {
@@ -134,42 +135,23 @@ object CSRF {
   /**
    * A CSRF token
    */
-  case class Token(value: String)
+  case class Token(name: String, value: String)
 
   object Token {
+    val NameRequestTag = "CSRF_TOKEN_NAME"
     val RequestTag = "CSRF_TOKEN"
-
-    implicit def getToken(implicit request: RequestHeader): Token = {
-      CSRF.getToken(request).getOrElse(sys.error("Missing CSRF Token"))
-    }
+    val ReSignedRequestTag = "CSRF_TOKEN_RE_SIGNED"
   }
 
   /**
-   * Extract token from current request using global config (required runtime DI)
+   * Extract token from current request
    */
-  def getToken(request: RequestHeader): Option[Token] = {
-    getToken(request, CSRFConfig.global)
-  }
-
-  /**
-   * Extract token from current request using config.
-   * If config is not provided, the global one will be used (required runtime DI)
-   */
-  def getToken(request: RequestHeader, config: CSRFConfig): Option[Token] = {
-    // First check the tags, this is where tokens are added if it's added to the current request
-    val token = request.tags.get(Token.RequestTag)
-      // Check cookie if cookie name is defined
-      .orElse(config.cookieName.flatMap(n => request.cookies.get(n).map(_.value)))
-      // Check session
-      .orElse(request.session.get(config.tokenName))
-    if (config.signTokens) {
-      // Extract the signed token, and then resign it. This makes the token random per request, preventing the BREACH
-      // vulnerability
-      token.flatMap(Crypto.extractSignedToken)
-        .map(token => Token(Crypto.signToken(token)))
-    } else {
-      token.map(Token.apply)
-    }
+  def getToken(implicit request: RequestHeader): Option[Token] = {
+    // Try to get the re-signed token first, then get the "new" token.
+    for {
+      name <- request.tags.get(Token.NameRequestTag)
+      value <- request.tags.get(Token.ReSignedRequestTag) orElse request.tags.get(Token.RequestTag)
+    } yield Token(name, value)
   }
 
   /**
@@ -178,7 +160,7 @@ object CSRF {
    * @param request The request to extract the token from
    * @return The token, if found.
    */
-  def getToken(request: play.mvc.Http.Request): Optional[Token] = {
+  def getToken(request: play.mvc.Http.RequestHeader): Optional[Token] = {
     Optional.ofNullable(getToken(request._underlyingHeader()).orNull)
   }
 
@@ -273,11 +255,13 @@ class CSRFModule extends Module {
  */
 trait CSRFComponents {
   def configuration: Configuration
+  def crypto: Crypto
   def httpErrorHandler: HttpErrorHandler
   implicit def materializer: Materializer
 
   lazy val csrfConfig: CSRFConfig = CSRFConfig.fromConfiguration(configuration)
   lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig).get
   lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRFHttpErrorHandler(httpErrorHandler)
-  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, csrfTokenProvider, csrfErrorHandler)
+  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, crypto, csrfTokenProvider, csrfErrorHandler)
+
 }
