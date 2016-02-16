@@ -4,7 +4,7 @@
 package detailedtopics.configuration.headers;
 
 //#filters
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.headers.SecurityHeadersFilter;
 import play.http.HttpFilters;
 
@@ -16,7 +16,7 @@ public class Filters implements HttpFilters {
     SecurityHeadersFilter securityHeadersFilter;
 
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { securityHeadersFilter };
+        return new EssentialFilter[] { securityHeadersFilter.asJava() };
     }
 }
 //#filters

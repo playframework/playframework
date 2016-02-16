@@ -18,6 +18,8 @@ trait HttpFilters {
    * Return the filters that should filter every request
    */
   def filters: Seq[EssentialFilter]
+
+  def asJava: play.http.HttpFilters = new JavaHttpFiltersDelegate(this)
 }
 
 object HttpFilters {
@@ -51,5 +53,5 @@ class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters) exten
 }
 
 class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters) extends play.http.HttpFilters {
-  def filters() = delegate.filters.toArray
+  def filters() = delegate.filters.map(_.asJava).toArray
 }

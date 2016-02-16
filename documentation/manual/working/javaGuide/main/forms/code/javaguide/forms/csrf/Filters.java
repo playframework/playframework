@@ -5,7 +5,7 @@ package javaguide.forms.csrf;
 
 //#filters
 import play.http.HttpFilters;
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.csrf.CSRFFilter;
 import javax.inject.Inject;
 
@@ -15,7 +15,7 @@ public class Filters implements HttpFilters {
 
     @Override
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { csrfFilter };
+        return new EssentialFilter[] { csrfFilter.asJava() };
     }
 }
 //#filters

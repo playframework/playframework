@@ -4,7 +4,7 @@
 package detailedtopics.configuration.hosts;
 
 //#filters
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.hosts.AllowedHostsFilter;
 import play.http.HttpFilters;
 
@@ -16,7 +16,7 @@ public class Filters implements HttpFilters {
     AllowedHostsFilter allowedHostsFilter;
 
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { allowedHostsFilter };
+        return new EssentialFilter[] { allowedHostsFilter.asJava() };
     }
 }
 //#filters

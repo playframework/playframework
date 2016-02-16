@@ -4,7 +4,7 @@
 package detailedtopics.configuration.cors;
 
 //#filters
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.filters.cors.CORSFilter;
 import play.http.HttpFilters;
 
@@ -16,7 +16,7 @@ public class Filters implements HttpFilters {
     CORSFilter corsFilter;
 
     public EssentialFilter[] filters() {
-        return new EssentialFilter[] { corsFilter };
+        return new EssentialFilter[] { corsFilter.asJava() };
     }
 }
 //#filters

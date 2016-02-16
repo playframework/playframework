@@ -4,7 +4,7 @@
 package javaguide.application.httpfilters;
 
 // #filters
-import play.api.mvc.EssentialFilter;
+import play.mvc.EssentialFilter;
 import play.http.HttpFilters;
 import play.filters.gzip.GzipFilter;
 import javax.inject.Inject;
@@ -22,7 +22,7 @@ public class Filters implements HttpFilters {
 
   @Override
   public EssentialFilter[] filters() {
-    return new EssentialFilter[] { gzip, logging };
+    return new EssentialFilter[] { gzip.asJava(), logging.asJava() };
   }
 }
 //#filters
