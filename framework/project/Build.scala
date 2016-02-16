@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
  */
 
@@ -394,7 +394,7 @@ object PlayBuild extends Build {
   lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
       parallelExecution in Test := false
-    ).dependsOn(PlayProject, PlaySpecs2Project % "test", PlayJavaProject % "test", PlayWsProject % "test")
+    ).dependsOn(PlayProject, PlayJavaProject, PlaySpecs2Project % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")

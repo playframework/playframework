@@ -28,6 +28,10 @@ public class Crypto {
         this.crypto = crypto;
     }
 
+    public play.api.libs.Crypto asScala() {
+        return this.crypto;
+    }
+
     /**
      * Signs the given String with HMAC-SHA1 using the given key.
      * <br>
