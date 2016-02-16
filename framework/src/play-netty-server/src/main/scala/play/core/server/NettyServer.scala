@@ -99,7 +99,7 @@ class NettyServer(
       case number: Number => number.intValue().asInstanceOf[Integer]
       case other => other
     }
-    config.entrySet().asScala.filterNot(_.getKey == "child").foreach { option =>
+    config.entrySet().asScala.filterNot(_.getKey.startsWith("child.")).foreach { option =>
       if (ChannelOption.exists(option.getKey)) {
         setOption(ChannelOption.valueOf(option.getKey), unwrap(option.getValue))
       } else {
