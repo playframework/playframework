@@ -49,8 +49,6 @@ The table below shows all the changes:
 * `F.Function1<A,R>`   -> `java.util.function.Function<A,R>`
 * `F.Function2<A,B,R>` -> `java.util.function.BiFunction<A,B,R>`
 
-**TODO: Change this to a table, link to javadoc for each class**
-
 **Step 2:** Fix any errors caused by checked exceptions that are thrown inside your lambdas.
 
 Unlike the Play functional interfaces, the Java 8 functional interfaces don't permit checked exceptions to be thrown. If your lambda expressions throw a checked exception then you'll need to change the code. (If you don't throw checked exceptions then you can leave the code unchanged.)
