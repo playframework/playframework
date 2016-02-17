@@ -272,7 +272,7 @@ object WebSocket {
    *   }
    * }}}
    */
-  @deprecated("Use accept with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.actorFlow", "2.5.0")
+  @deprecated("Use accept with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.ActorFlow.actorRef", "2.5.0")
   def acceptWithActor[In, Out](f: RequestHeader => HandlerProps)(implicit transformer: MessageFlowTransformer[In, Out],
     app: Application, mat: Materializer): WebSocket = {
     tryAcceptWithActor { req =>
@@ -301,7 +301,7 @@ object WebSocket {
    *   }
    * }}}
    */
-  @deprecated("Use acceptOrResult with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.actorFlow", "2.5.0")
+  @deprecated("Use acceptOrResult with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.ActorFlow.actorRef", "2.5.0")
   def tryAcceptWithActor[In, Out](f: RequestHeader => Future[Either[Result, HandlerProps]])(implicit transformer: MessageFlowTransformer[In, Out],
     app: Application, mat: Materializer): WebSocket = {
 
