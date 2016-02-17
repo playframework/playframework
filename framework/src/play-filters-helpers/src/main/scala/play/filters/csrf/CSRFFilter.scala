@@ -27,13 +27,21 @@ class CSRFFilter(
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialFilter {
 
   @Inject
-  def this(config: Provider[CSRFConfig], crypto: Provider[Crypto], tokenProvider: TokenProvider, errorHandler: ErrorHandler, mat: Materializer) = {
+  def this(config: Provider[CSRFConfig], crypto: Provider[Crypto], tokenProvider: TokenProvider, errorHandler: ErrorHandler)(mat: Materializer) = {
     this(config.get, crypto.get, tokenProvider, errorHandler)(mat)
+  }
+
+  // Java constructor for manually constructing the filter
+  def this(config: CSRFConfig, crypto: play.libs.Crypto, tokenProvider: TokenProvider, errorHandler: CSRFErrorHandler)(mat: Materializer) = {
+    this(config, crypto.asScala, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler))(mat)
   }
 
   /**
    * Default constructor, useful from Java
+   *
+   * @deprecated in 2.5.0. This constructor uses global state.
    */
+  @Deprecated
   def this()(implicit mat: Materializer) = this(CSRFConfig.global, Crypto.crypto, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, crypto, tokenProvider, errorHandler)

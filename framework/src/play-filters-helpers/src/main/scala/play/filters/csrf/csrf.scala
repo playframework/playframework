@@ -38,17 +38,43 @@ import scala.concurrent.Future
  * @param bypassCorsTrustedOrigins Whether to bypass the CSRF check if the CORS filter trusts this origin
  */
 case class CSRFConfig(tokenName: String = "csrfToken",
-  cookieName: Option[String] = None,
-  secureCookie: Boolean = false,
-  httpOnlyCookie: Boolean = false,
-  createIfNotFound: RequestHeader => Boolean = CSRFConfig.defaultCreateIfNotFound,
-  postBodyBuffer: Long = 102400,
-  signTokens: Boolean = true,
-  checkMethod: String => Boolean = !CSRFConfig.SafeMethods.contains(_),
-  checkContentType: Option[String] => Boolean = _ => true,
-  headerName: String = "Csrf-Token",
-  shouldProtect: RequestHeader => Boolean = _ => false,
-  bypassCorsTrustedOrigins: Boolean = true)
+    cookieName: Option[String] = None,
+    secureCookie: Boolean = false,
+    httpOnlyCookie: Boolean = false,
+    createIfNotFound: RequestHeader => Boolean = CSRFConfig.defaultCreateIfNotFound,
+    postBodyBuffer: Long = 102400,
+    signTokens: Boolean = true,
+    checkMethod: String => Boolean = !CSRFConfig.SafeMethods.contains(_),
+    checkContentType: Option[String] => Boolean = _ => true,
+    headerName: String = "Csrf-Token",
+    shouldProtect: RequestHeader => Boolean = _ => false,
+    bypassCorsTrustedOrigins: Boolean = true) {
+
+  // Java builder methods
+  def this() = this(cookieName = None)
+
+  import scala.compat.java8.FunctionConverters._
+  import scala.compat.java8.OptionConverters._
+  import java.{ util => ju }
+  import play.mvc.Http.{ RequestHeader => JRequestHeader }
+  import play.core.j.{ RequestHeaderImpl => JRequestHeaderImpl }
+
+  def withTokenName(tokenName: String) = copy(tokenName = tokenName)
+  def withHeaderName(headerName: String) = copy(headerName = headerName)
+  def withCookieName(cookieName: ju.Optional[String]) = copy(cookieName = cookieName.asScala)
+  def withSecureCookie(isSecure: Boolean) = copy(secureCookie = isSecure)
+  def withHttpOnlyCookie(isHttpOnly: Boolean) = copy(httpOnlyCookie = isHttpOnly)
+  def withCreateIfNotFound(pred: ju.function.Predicate[JRequestHeader]) =
+    copy(createIfNotFound = pred.asScala.compose(new JRequestHeaderImpl(_)))
+  def withPostBodyBuffer(bufsize: Long) = copy(postBodyBuffer = bufsize)
+  def withSignTokens(signTokens: Boolean) = copy(signTokens = signTokens)
+  def withMethods(checkMethod: ju.function.Predicate[String]) = copy(checkMethod = checkMethod.asScala)
+  def withContentTypes(checkContentType: ju.function.Predicate[Optional[String]]) =
+    copy(checkContentType = checkContentType.asScala.compose(_.asJava))
+  def withShouldProtect(shouldProtect: ju.function.Predicate[JRequestHeader]) =
+    copy(shouldProtect = shouldProtect.asScala.compose(new JRequestHeaderImpl(_)))
+  def withBypassCorsTrustedOrigins(bypass: Boolean) = copy(bypassCorsTrustedOrigins = bypass)
+}
 
 object CSRFConfig {
   private val SafeMethods = Set("GET", "HEAD", "OPTIONS")
