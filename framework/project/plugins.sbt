@@ -16,7 +16,7 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.1.0"))
+addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.1.1"))
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.8")
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
