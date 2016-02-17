@@ -204,7 +204,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a {@link akka.util.ByteString}.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @return The content of the result as a ByteString.
      */
     public static ByteString contentAsBytes(Result result, Materializer mat) {
@@ -215,7 +215,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a {@link akka.util.ByteString}.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a ByteString.
      */
@@ -262,7 +262,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @return The content of the result as a String.
      */
     public static String contentAsString(Result result, Materializer mat) {
@@ -274,7 +274,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a String.
      */
