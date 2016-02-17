@@ -5,11 +5,9 @@ A running instance of Play is built around the `Application` class, the starting
 
 > **NOTE**: Application configuration has changed in Play 2.5.x so that [[dependency injection|JavaDependencyInjection]] is the primary method of configuration.  
 >
-> Configuring the application through `GlobalSettings` class is still available through [[Global Settings|JavaGlobal]], but is deprecated and may be removed in future versions.  Please see the [[Removing `GlobalSettings`|GlobalSettings]] page for how to migrate away from GlobalSettings. 
+> Configuring the application through `GlobalSettings` class is still available through [[Global Settings|JavaGlobal]], but is deprecated and may be removed in future versions.  Please see the [[Removing `GlobalSettings`|GlobalSettings]] page for how to migrate away from GlobalSettings.
 
+* [[Essential Actions|JavaEssentialAction]]
 * [[HTTP filters|JavaHttpFilters]]
-* Request Handling
 * [[Error handling|JavaErrorHandling]]
-
-
-
+* [[Global settings|JavaGlobal]]
