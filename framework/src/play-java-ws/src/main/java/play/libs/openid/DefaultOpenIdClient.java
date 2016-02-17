@@ -4,15 +4,16 @@
 package play.libs.openid;
 
 import play.core.Execution;
-import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.collection.JavaConversions;
+import scala.compat.java8.FutureConverters;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 public class DefaultOpenIdClient implements OpenIdClient {
 
@@ -27,7 +28,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     @Override
-    public F.Promise<String> redirectURL(String openID, String callbackURL) {
+    public CompletionStage<String> redirectURL(String openID, String callbackURL) {
         return redirectURL(openID, callbackURL, null, null, null);
     }
 
@@ -35,7 +36,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     @Override
-    public F.Promise<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
+    public CompletionStage<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
         return redirectURL(openID, callbackURL, axRequired, null, null);
     }
 
@@ -43,10 +44,8 @@ public class DefaultOpenIdClient implements OpenIdClient {
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     @Override
-    public F.Promise<String> redirectURL(String openID,
-                                         String callbackURL,
-                                         Map<String, String> axRequired,
-                                         Map<String, String> axOptional) {
+    public CompletionStage<String> redirectURL(
+            String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional) {
         return redirectURL(openID, callbackURL, axRequired, axOptional, null);
     }
 
@@ -54,14 +53,11 @@ public class DefaultOpenIdClient implements OpenIdClient {
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     @Override
-    public F.Promise<String> redirectURL(String openID,
-                                         String callbackURL,
-                                         Map<String, String> axRequired,
-                                         Map<String, String> axOptional,
-                                         String realm) {
-        if (axRequired == null) axRequired = new HashMap<String, String>();
-        if (axOptional == null) axOptional = new HashMap<String, String>();
-        return F.Promise.wrap(client.redirectURL(openID,
+    public CompletionStage<String> redirectURL(
+            String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional, String realm) {
+        if (axRequired == null) axRequired = new HashMap<>();
+        if (axOptional == null) axOptional = new HashMap<>();
+        return FutureConverters.toJava(client.redirectURL(openID,
                 callbackURL,
                 JavaConversions.mapAsScalaMap(axRequired).toSeq(),
                 JavaConversions.mapAsScalaMap(axOptional).toSeq(),
@@ -72,7 +68,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
      * Check the identity of the user from the current request, that should be the callback from the OpenID server
      */
     @Override
-    public F.Promise<UserInfo> verifiedId(Http.RequestHeader request) {
+    public CompletionStage<UserInfo> verifiedId(Http.RequestHeader request) {
         scala.concurrent.Future<UserInfo> scalaPromise = client.verifiedId(request.queryString()).map(
                 new AbstractFunction1<play.api.libs.openid.UserInfo, UserInfo>() {
                     @Override
@@ -80,14 +76,14 @@ public class DefaultOpenIdClient implements OpenIdClient {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
                 }, Execution.internalContext());
-        return F.Promise.wrap(scalaPromise);
+        return FutureConverters.toJava(scalaPromise);
     }
 
     /**
      * Check the identity of the user from the current request, that should be the callback from the OpenID server
      */
     @Override
-    public F.Promise<UserInfo> verifiedId() {
+    public CompletionStage<UserInfo> verifiedId() {
         return verifiedId(Http.Context.current().request());
     }
 }
