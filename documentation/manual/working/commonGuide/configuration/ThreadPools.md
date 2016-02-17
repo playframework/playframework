@@ -39,11 +39,13 @@ Play uses a number of different thread pools for different purposes:
 
 All actions in Play Framework use the default thread pool.  When doing certain asynchronous operations, for example, calling `map` or `flatMap` on a future, you may need to provide an implicit execution context to execute the given functions in.  An execution context is basically another name for a `ThreadPool`.
 
-In most situations, the appropriate execution context to use will be the **Play default thread pool**.  This can be used by importing it into your Scala source file:
+In most situations, the appropriate execution context to use will be the **Play default thread pool**.   This is accessible through `play.api.libs.concurrent.Execution.Implicits._` This can be used by importing it into your Scala source file:
 
 @[global-thread-pool](code/ThreadPools.scala)
 
-### Configuring the Play default thread pool
+The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.2-RC2/scala/dispatchers.html).
+
+### Configuring the default thread pool
 
 The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace. Here is default configuration for Play's thread pool:
 
@@ -55,7 +57,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.2-RC2/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
@@ -109,7 +111,9 @@ If you have a custom executor, you can wrap it in an `HttpExecutionContext` simp
 
 How you should best divide work in your application between different thread pools greatly depends on the types of work that your application is doing, and the control you want to have over how much of which work can be done in parallel.  There is no one size fits all solution to the problem, and the best decision for you will come from understanding the blocking-IO requirements of your application and the implications they have on your thread pools. It may help to do load testing on your application to tune and verify your configuration.
 
-> Given the fact that JDBC is blocking thread pools can be sized to the # of connections available to a db pool assuming that the thread pool is used exclusively for database access. Any lesser amount of threads will not consume the number of connections available. Any more threads than the number of connections available could be wasteful given contention for the connections.
+> **NOTE**: In a blocking environment, `thread-pool-executor` is better than `fork-join` because no work-stealing is possible, and a `fixed-pool-size` size should be used and set to the maximum size of the underlying resource.
+>
+> Given the fact that JDBC is blocking, thread pools can be sized to the number of connections available to a database pool, assuming that the thread pool is used exclusively for database access.  Fewer threads will not consume the number of connections available.  Any more threads than the number of connections available could be wasteful given contention for the connections.
 
 Below we outline a few common profiles that people may want to use in Play Framework:
 
@@ -121,18 +125,11 @@ In this case, you are doing no blocking IO in your application.  Since you are n
 
 This profile matches that of a traditional synchronous IO based web framework, such as a Java servlet container.  It uses large thread pools to handle blocking IO.  It is useful for applications where most actions are doing database synchronous IO calls, such as accessing a database, and you don't want or need control over concurrency for different types of work.  This profile is the simplest for handling blocking IO.
 
-In this profile, you would simply use the default execution context everywhere, but configure it to have a very large number of threads in its pool, like so:
+In this profile, you would use the default execution context everywhere, but configure it to have a very large number of threads in its pool.  Because the default thread pool is used for both servicing Play requests and database requests, the fixed pool size should be the maximum size of database connection pool, plus the number of cores, plus a couple extra for housekeeping, like so:
 
 @[highly-synchronous](code/ThreadPools.scala)
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
-
-Note that we use the same value for `parallelism-min` and `parallelism-max`. The reason is that the number of threads is defined by the following formulas :
-
->base-nb-threads = nb-processors * parallelism-factor
- parallelism-min <= actual-nb-threads <= parallelism-max
-
-So if you don't have enough available processors, you will never be able to reach the `parallelism-max` setting.
 
 ### Many specific thread pools
 
@@ -148,8 +145,39 @@ These might then be configured like so:
 
 Then in your code, you would create `Future`s and pass the relevant `ExecutionContext` for the type of work that `Future` was doing.
 
-> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `Akka.system.dispatchers.lookup`.
+> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `app.actorSystem.dispatchers.lookup`.
 
 ### Few specific thread pools
 
 This is a combination between the many specific thread pools and the highly synchronized profile.  You would do most simple IO in the default execution context and set the number of threads there to be reasonably high (say 100), but then dispatch certain expensive operations to specific contexts, where you can limit the number of them that are done at one time.
+
+## Debugging Thread Pools
+
+There are many possible settings for a dispatcher, and it can be hard to see which ones have been applied and what the defaults are, particularly when overriding the default dispatcher.  The `akka.log-config-on-start` configuration option shows the entire applied configuration when the application is loaded:
+
+
+```
+akka.log-config-on-start = on
+```
+
+Note that you must have Akka logging set to a debug level to see output, so you should add the following to `logback.xml`:
+
+```
+<logger name="akka" level="DEBUG" />
+```
+
+Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should se your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
+
+```
+{ 
+  # Elided HOCON... 
+  "actor" : {
+    "default-dispatcher" : {
+      # application.conf @ file:/Users/wsargent/work/catapi/target/universal/stage/conf/application.conf: 19
+      "executor" : "thread-pool-executor"
+    }
+  }
+}
+```
+
+Note also that Play has different configuration settings for development mode than it does for production.  To ensure that the thread pool settings are correct, you should run Play in a [production configuration](https://www.playframework.com/documentation/2.5.x/Deploying#Running-a-test-instance).

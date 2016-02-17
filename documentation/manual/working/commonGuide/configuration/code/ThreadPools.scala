@@ -3,7 +3,9 @@
  */
 package detailedtopics.configuration.threadpools
 
-import play.api.libs.ws.WS
+import javax.inject.Inject
+
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.test._
 import play.api._
@@ -21,23 +23,30 @@ object ThreadPoolsSpec extends PlaySpecification {
   "Play's thread pools" should {
 
     "make a global thread pool available" in new WithApplication() {
-      contentAsString(Samples.someAsyncAction(FakeRequest())) must startWith("The response code was")
+      val controller = app.injector.instanceOf[Samples]
+      contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The response code was")
     }
 
     "have a global configuration" in {
       val config = """#default-config
         akka {
-          fork-join-executor {
-            # Settings this to 1 instead of 3 seems to improve performance.
-            parallelism-factor = 1.0
+          actor {
+            default-dispatcher {
+              fork-join-executor {
+                # Settings this to 1 instead of 3 seems to improve performance.
+                parallelism-factor = 1.0
 
-            parallelism-max = 24
+                # @richdougherty: Not sure why this is set below the Akka
+                # default.
+                parallelism-max = 24
 
-            # Setting this to LIFO changes the fork-join-executor
-            # to use a stack discipline for task scheduling. This usually
-            # improves throughput at the cost of possibly increasing
-            # latency and risking task starvation (which should be rare).
-            task-peeking-mode = LIFO
+                # Setting this to LIFO changes the fork-join-executor
+                # to use a stack discipline for task scheduling. This usually
+                # improves throughput at the cost of possibly increasing
+                # latency and risking task starvation (which should be rare).
+                task-peeking-mode = LIFO
+              }
+            }
           }
         }
       #default-config """
@@ -50,17 +59,26 @@ object ThreadPoolsSpec extends PlaySpecification {
     "use akka default thread pool configuration" in {
       val config = """#akka-default-config
         akka {
-          fork-join-executor {
-            # The parallelism factor is used to determine thread pool size using the
-            # following formula: ceil(available processors * factor). Resulting size
-            # is then bounded by the parallelism-min and parallelism-max values.
-            parallelism-factor = 3.0
+          actor {
+            default-dispatcher {
+              # This will be used if you have set "executor = "fork-join-executor""
+              fork-join-executor {
+                # Min number of threads to cap factor-based parallelism number to
+                parallelism-min = 8
 
-            # Min number of threads to cap factor-based parallelism number to
-            parallelism-min = 8
+                # The parallelism factor is used to determine thread pool size using the
+                # following formula: ceil(available processors * factor). Resulting size
+                # is then bounded by the parallelism-min and parallelism-max values.
+                parallelism-factor = 3.0
 
-            # Max number of threads to cap factor-based parallelism number to
-            parallelism-max = 64
+                # Max number of threads to cap factor-based parallelism number to
+                parallelism-max = 64
+
+                # Setting to "FIFO" to use queue like peeking mode which "poll" or "LIFO" to use stack
+                # like peeking mode which "pop".
+                task-peeking-mode = "FIFO"
+              }
+            }
           }
         }
       #akka-default-config """
@@ -80,22 +98,21 @@ object ThreadPoolsSpec extends PlaySpecification {
         }
       #my-context-config """
     ) { implicit app =>
+      val akkaSystem = app.actorSystem
       //#my-context-usage
-      object Contexts {
-        implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-context")
-      }
+      val myExecutionContext: ExecutionContext = akkaSystem.dispatchers.lookup("my-context")
       //#my-context-usage
-      await(Future(Thread.currentThread().getName)(Contexts.myExecutionContext)) must startWith("application-my-context")
+      await(Future(Thread.currentThread().getName)(myExecutionContext)) must startWith("application-my-context")
 
       //#my-context-explicit
       Future {
         // Some blocking or expensive code here
-      }(Contexts.myExecutionContext)
+      }(myExecutionContext)
       //#my-context-explicit
 
       {
         //#my-context-implicit
-        import Contexts.myExecutionContext
+        implicit val ec = myExecutionContext
 
         Future {
           // Some blocking or expensive code here
@@ -112,16 +129,15 @@ object ThreadPoolsSpec extends PlaySpecification {
       //#using-app-classloader
     }
 
-    "allow changing the default thread pool" in {
+    "allow a synchronous thread pool" in {
       val config = ConfigFactory.parseString("""#highly-synchronous
       akka {
-        akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
-        loglevel = WARNING
         actor {
-          default-dispatcher = {
-            fork-join-executor {
-              parallelism-min = 300
-              parallelism-max = 300
+          default-dispatcher {
+            executor = "thread-pool-executor"
+            throughput = 1
+            thread-pool-executor {
+              fixed-pool-size = 55 # db conn pool (50) + number of cores (4) + housekeeping (1)
             }
           }
         }
@@ -137,18 +153,24 @@ object ThreadPoolsSpec extends PlaySpecification {
     """ #many-specific-config
       contexts {
         simple-db-lookups {
-          fork-join-executor {
-            parallelism-factor = 10.0
+          executor = "thread-pool-executor"
+          throughput = 1
+          thread-pool-executor {
+            fixed-pool-size = 20
           }
         }
         expensive-db-lookups {
-          fork-join-executor {
-            parallelism-max = 4
+          executor = "thread-pool-executor"
+          throughput = 1
+          thread-pool-executor {
+            fixed-pool-size = 20
           }
         }
         db-write-operations {
-          fork-join-executor {
-            parallelism-factor = 2.0
+          executor = "thread-pool-executor"
+          throughput = 1
+          thread-pool-executor {
+            fixed-pool-size = 10
           }
         }
         expensive-cpu-operations {
@@ -159,12 +181,13 @@ object ThreadPoolsSpec extends PlaySpecification {
       }
     #many-specific-config """
     ) { implicit app =>
+      val akkaSystem = app.actorSystem
       //#many-specific-contexts
       object Contexts {
-        implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.simple-db-lookups")
-        implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-db-lookups")
-        implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.db-write-operations")
-        implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-cpu-operations")
+        implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
+        implicit val expensiveDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.expensive-db-lookups")
+        implicit val dbWriteOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.db-write-operations")
+        implicit val expensiveCpuOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }
       //#many-specific-contexts
       def test(context: ExecutionContext, name: String) = {
@@ -185,14 +208,13 @@ object ThreadPoolsSpec extends PlaySpecification {
 }
 
 // since specs provides defaultContext, implicitly importing it doesn't work
-object Samples {
+class Samples @Inject() (wsClient: WSClient) {
 
   //#global-thread-pool
   import play.api.libs.concurrent.Execution.Implicits._
 
   def someAsyncAction = Action.async {
-    import play.api.Play.current
-    WS.url("http://www.playframework.com").get().map { response =>
+    wsClient.url("http://www.playframework.com").get().map { response =>
       // This code block is executed in the imported default execution context
       // which happens to be the same thread pool in which the outer block of
       // code in this action will be executed.
