@@ -61,6 +61,7 @@ java.lang.ArithmeticException: / by zero
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
 #### Creating your own loggers
+
 Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexibile configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.of` factory method with a name argument:
@@ -72,17 +73,15 @@ A common strategy for logging application events is to use a distinct logger per
 @[logging-create-logger-class](code/javaguide/logging/JavaLogging.java)
 
 #### Logging patterns
+
 Effective use of loggers can help you achieve many goals with the same tool:
 
 @[logging-pattern-mix](code/javaguide/logging/Application.java)
 
 This example uses [[action composition|JavaActionsComposition]] to define an `AccessLoggingAction` that will log request data to a logger named "access." The `Application` controller uses this action and it also uses its own logger (named after its class) for application events. In configuration you could then route these loggers to different appenders, such as an access log and an application log.
 
-The above design works well if you want to log request data for only specific actions. To log all requests, it's better to [[intercept requests|JavaInterceptors]] in global settings:
-
-@[logging-pattern-filter](code/javaguide/logging/Global.java)
-
-Note that the [[Global class|JavaGlobal]] is also a sensible place to use the default logger for events like application start and stop.
+The above design works well if you want to log request data for only specific actions. To log all requests, it's better to use a [[filter|JavaHttpFilters]] or extend [`play.http.DefaultHttpRequestHandler`](api/java/play/http/DefaultHttpRequestHandler.html).
 
 ## Configuration
-See [[configuring logging|SettingsLogger]] for details on configuration. 
+
+See [[configuring logging|SettingsLogger]] for details on configuration.
