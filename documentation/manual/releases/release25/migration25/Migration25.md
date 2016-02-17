@@ -184,7 +184,7 @@ class FooApi @Inject() (implicit app: Application) {
 
 This allows you to benefit from the testability you get with DI and still use your library that uses global state.
 
-## CSRF filter changes
+## CSRF changes
 
 In order to make Play's CSRF filter more resilient to browser plugin vulnerabilities and new extensions, the default configuration for the CSRF filter has been made far more conservative.  The changes include:
 
@@ -217,5 +217,11 @@ play.filters.csrf {
   contentType.blackList = ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"]
 }
 ```
+
+### Getting the CSRF token
+
+Previously, a CSRF token could be retrieved from the HTTP request in any action. Now you must have either a CSRF filter or a CSRF action for `CRSF.getToken` to work. If you're not using a filter, you can use the `CSRFAddToken` action in Scala or `AddCSRFToken` Java annotation to ensure a token is in the session.
+
+We also fixed a minor bug in this release in which the CSRF token would be empty (throwing an exception in the template helper) if its signature was invalid. Now it will be regenerated on the same request.
 
 For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [[Scala|ScalaCsrf]].
