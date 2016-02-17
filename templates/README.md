@@ -24,7 +24,7 @@ There is a `syncTemplates` command that will build the templates and keep them i
 with the sources as they change. The most convenvient way to use this is to use triggered
 execution:
 
-    ./build ~syncTemplates
+    sbt ~syncTemplates
 
 Then in another window, you can test/run the template, for example, to run the
 `play-scala` template:
@@ -44,8 +44,8 @@ Publishing
 
 You can publish templates by running
 
-    ./build publishTemplates
+    sbt publishTemplates
 
 You can publish specific templates by using the templates command:
 
-    ./build templates play-scala publishTemplates
+    sbt templates play-scala publishTemplates

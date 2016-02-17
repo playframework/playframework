@@ -14,7 +14,7 @@ You need to have `activator` or `sbt` installed.  It will also be very useful to
 If you're translating an unreleased version of the Play documentation, then you'll need to build that version of Play and publish it locally on your machine first.  This can be done by running:
 
 ```bash
-./build publishLocal
+sbt publishLocal
 ```
 
 in the `framework` directory of the Play project.

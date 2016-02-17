@@ -139,14 +139,13 @@ object Templates {
     testTemplates := {
       val preparedTemplates = syncTemplates.value
       val testDir = target.value / "template-tests"
-      val build = (baseDirectory.value.getParentFile / "framework" / "build").getCanonicalPath
       preparedTemplates.foreach { template =>
         val templateDir = testDir / template.getName
         IO.delete(templateDir)
         IO.copyDirectory(template, templateDir)
         streams.value.log.info("Testing template: " + template.getName)
         @volatile var out = List.empty[String]
-        val rc = Process(build + " test", templateDir).!(StdOutLogger { s => out = s :: out })
+        val rc = Process("sbt test", templateDir).!(StdOutLogger { s => out = s :: out })
         if (rc != 0) {
           out.reverse.foreach(println)
           streams.value.log.error("Template " + template.getName + " failed to build")

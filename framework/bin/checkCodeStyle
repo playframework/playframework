@@ -2,16 +2,11 @@
 
 # This script checks that the code is formatted correctly
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-BASEDIR=$DIR/../..
-FRAMEWORK=$BASEDIR/framework
-BUILD="$FRAMEWORK/build --warn"
-
-export FILTER_LOGGING=true
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
 cd $FRAMEWORK
 
-$BUILD clean scalariformFormat test:scalariformFormat
+build clean scalariformFormat test:scalariformFormat
 git diff --exit-code || (
   echo "ERROR: Scalariform check failed, see differences above."
   echo "To fix, format your sources using ./build scalariformFormat test:scalariformFormat before submitting a pull request."

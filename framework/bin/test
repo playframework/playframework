@@ -2,14 +2,7 @@
 
 # Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
 
-set -e
-
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-BASEDIR=$DIR/../..
-FRAMEWORK=$BASEDIR/framework
-BUILD="$FRAMEWORK/build --warn"
-
-export FILTER_LOGGING=true
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
 CROSSBUILD=""
 # If first argument starts with +, it's a crossbuild argument, eg "+" or "+++2.11.7"
@@ -26,13 +19,13 @@ cd $FRAMEWORK
 echo "[info]"
 echo "[info] ---- BUILDING PLAY"
 echo "[info]"
-$BUILD "$@" quickPublish "${CROSSBUILD} publishLocal"
+build "$@" quickPublish "${CROSSBUILD} publishLocal"
 
 echo "[info]"
 echo "[info] ---- RUNNING TESTS"
 echo "[info]"
 
-$BUILD "$@" "${CROSSBUILD} test"
+build "$@" "${CROSSBUILD} test"
 
 echo "[info]"
 echo "[info] ALL TESTS PASSED"

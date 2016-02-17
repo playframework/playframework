@@ -2,22 +2,14 @@
 
 # Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
 
-set -e
-
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-BASEDIR=$DIR/../..
-FRAMEWORK=$BASEDIR/framework
-DOCUMENTATION=$BASEDIR/documentation
-BUILD="$FRAMEWORK/build --warn"
-
-export FILTER_LOGGING=true
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
 echo "[info]"
 echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd $DOCUMENTATION
-$BUILD "$@" clean test evaluateSbtFiles validateDocs
+build "$@" clean test evaluateSbtFiles validateDocs
 
 echo "[info]"
 echo "[info] ALL TESTS PASSED"

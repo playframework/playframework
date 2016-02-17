@@ -3,6 +3,10 @@
 
 If you want to use some unreleased changes for Play, or you want to contribute to the development of Play yourself, you'll need to compile Play from source. You’ll need a [Git client](https://git-scm.com/) to fetch the source.
 
+## Prerequisites
+
+To build Play, you need to have [sbt](http://www.scala-sbt.org/) installed.  Activator (which is just a wrapper around sbt) is also fine.
+
 ## Grab the source
 
 From the shell, first checkout the Play source:
@@ -13,10 +17,10 @@ $ git clone git://github.com/playframework/playframework.git
 
 Checkout the the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.4.x`.
 
-Now go to the `framework` directory.  If you already have sbt or activator installed, you can use that, or you can use the `build` script that comes with Play:
+Now go to the `framework` directory and run `sbt`:
 
 ```bash
-$ ./build
+$ sbt
 ```
 
 To build and publish Play, run `publishLocal`:
@@ -43,7 +47,7 @@ The documentation is available at `playframework/documentation` as Markdown file
 
 ```bash
 $ cd playframework/documentation
-$ ./build run
+$ sbt run
 ```
 
 You can now see the documentation at [http://localhost:9000/@documentation](http://localhost:9000/@documentation).
