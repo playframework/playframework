@@ -4,7 +4,6 @@
 package javaguide.http;
 
 import akka.stream.Materializer;
-import akka.stream.io.Framing;
 import akka.util.ByteString;
 import org.junit.Before;
 import org.junit.Test;
@@ -174,7 +173,7 @@ public class JavaBodyParsers extends WithApplication {
             // A flow that splits the stream into CSV lines
             Sink<ByteString, CompletionStage<List<List<String>>>> sink = Flow.<ByteString>create()
                 // We split by the new line character, allowing a maximum of 1000 characters per line
-                .via(Framing.delimiter(ByteString.fromString("\n"), 1000, true))
+                .via(Framing.delimiter(ByteString.fromString("\n"), 1000, FramingTruncation.ALLOW))
                 // Turn each line to a String and split it by commas
                 .map(bytes -> {
                     String[] values = bytes.utf8String().trim().split(",");

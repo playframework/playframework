@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.4.2-RC3"
+  val akkaVersion = "2.4.2"
 
   val specsVersion = "3.6.6"
   val specsBuild = Seq(

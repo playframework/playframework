@@ -3,34 +3,45 @@
 
 This page highlights the new features of Play 2.5. If you want learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
 
-**TODO: Write introduction that summarises the main themes of this release.**
-
-**TODO: Review all headings to make them clear, succinct and consistent. If heading names change, check that backlinks from the Migration Guide still work.**
-
 ## New streaming API based on Akka Streams
 
-**TODO: write this section**
+The main theme of Play 2.5 has been moving from Play's iteratee based asynchronous IO API to [Akka streams](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-introduction.html).
 
-- may want to break this into several sections
+At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, while at the application level, the framework exposes communications as in memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
 
-- talk about what a streaming API is and does
+Traditionally, on the JVM, streaming is done using the blocking `InputStream` and `OutputStream` APIs.  These APIs require a dedicated thread to use them - when reading, that thread must block and wait for data, when writing, that thread must block and wait for the data to be flushed.  An asynchronous framework, such as Play, offers many advantages because it limits the resources it requires by not using blocking APIs such as these.  Instead, for streaming, an asynchronous API needs to be used, where the framework is notified that there's data to read or that data has been written, rather than having to have a thread block and wait for it.
 
-- talk about change to use Akka Streams
+Prior to Play 2.5, Play used Iteratees as this asynchronous streaming mechanism, but now it uses Akka Streams.
 
-- talk about benefits vs iteratees
+### Why not iteratees
 
-- can finally write streams use from Java code
-  - iteratees not compatible with Java
+Iteratees are a functional approach to handling asynchronous streaming.  They are incredibly powerful, while also offering an incredibly small API surface area - the Iteratee API consists of one method, `fold`, the rest is just helpers built on top of this method.  Iteratees also provide a very high degree of safety, as long as your code compiles, it's very unlikely that you would have any bugs related to the implementation of an iteratee itself, such as concurrency or error handling, most bugs would be in the "business" logic of the iteratee.
 
-- talk about any plans to deprecate/remove iteratees in the future
+While this safety and simplicity is great, the consequence of it was that it has a very steep learning curve.  Programming using iteratees requires a shift in thinking from traditional IO handling, and many developers find that the investment required to make this shift is too high for their IO needs.  Another disadvantage of iteratees is that they are practically unimplementable in Java, due to their reliance on many high level functional programming features.
 
-- body parsers, filters, WS, WebSockets
+### Why Akka Streams
 
-- explain performance improvements for no-body request and chunked responses
+Akka streams provides a good balance between safety, simplicity and familiarity.  Akka streams intentionally constrains you in what you can do so that you can only do things correctly, but not as much as iteratees do.  Conceptually they are much more familiar to most developers, offering both functional and imperative ways of working with them.  Akka streams also has a first class Java API, making it simple to implement any streaming requirements in Java that are needed.
 
-- link to information in migration docs
+### Where is Akka streams used
 
-### Better control over WebSocket frames
+The places where you will come across Akka streams in your Play applications include:
+
+* Filters
+* Streaming response bodies
+* Request body parsers
+* WebSockets
+* Streaming WS client responses
+
+### Reactive Streams
+
+[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9, and available as a stand alone library for JDK6 and above.  In general, it is not an end user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
+
+### The future of iteratees
+
+Iteratees still have some use cases where they shine.  At current, there is no plan to deprecate or remove them from Play, though they may be moved to a stand alone library. Since iteratees provide a reactive streams implementation, they will always be usable in Play.
+
+## Better control over WebSocket frames
 
 The Play 2.5 WebSocket API gives you direct control over WebSocket frames. You can now send and receives binary, text, ping, pong and close frames. If you don't want to worry about this level of detail, Play will still automatically convert your JSON or XML data into the right kind of frame.
 
@@ -67,19 +78,8 @@ Play now has an easy way to log SQL statements, built on [jdbcdslog](https://git
 
 For more information about how to use SQL logging, see the Play [[Java|JavaDatabase#How-to-configure-SQL-log-statement]] and [[Scala|ScalaDatabase#How-to-configure-SQL-log-statement]] database documentation.
 
-**TODO: Thank person who contributed this feature and link to their Github page.**
 ## Netty native socket transport
 
 If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introdued in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].
-
-**TODO: Thank person who contributed this feature and link to their Github page.**
-
-## Improved seed template
-
-**TODO: Explain what a seed template is and the changes that have been made.**
-
-## ScalaTest is default test framework
-
-**TODO: Explain reasons, benefits. Talk about plans for Specs. Do we need a section in migration?**

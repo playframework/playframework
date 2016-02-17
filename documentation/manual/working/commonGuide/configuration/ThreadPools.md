@@ -43,7 +43,7 @@ In most situations, the appropriate execution context to use will be the **Play 
 
 @[global-thread-pool](code/ThreadPools.scala)
 
-The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.2-RC2/scala/dispatchers.html).
+The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.2/scala/dispatchers.html).
 
 ### Configuring the default thread pool
 
@@ -57,7 +57,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.2-RC2/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.2/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 

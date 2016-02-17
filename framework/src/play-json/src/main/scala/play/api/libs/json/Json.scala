@@ -161,6 +161,7 @@ object Json {
    *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
    * }}}
    */
+  @deprecated("Use Enumeratee.map[A](Json.toJson(_)) instead", "2.5.0")
   def toJson[A: Writes]: Enumeratee[A, JsValue] = Enumeratee.map[A](Json.toJson(_))
   /**
    * Transform a stream of JsValue to a stream of A, keeping only successful results
@@ -169,6 +170,7 @@ object Json {
    *   val fooStream: Enumerator[Foo] = jsonStream &> Json.fromJson
    * }}}
    */
+  @deprecated("Use Enumeratee.map[JsValue]((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect[JsResult[A]] { case JsSuccess(value, _) => value } instead", "2.5.0")
   def fromJson[A: Reads]: Enumeratee[JsValue, A] =
     Enumeratee.map[JsValue]((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect[JsResult[A]] { case JsSuccess(value, _) => value }
 
