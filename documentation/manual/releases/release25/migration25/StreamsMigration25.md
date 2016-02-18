@@ -317,6 +317,7 @@ You can replace your `*.Out` class with any `Source` that produces a stream. The
 If you want to replace your `*.Out` with a simple object that you can write messages to and then close, without worrying about back pressure, then you can use the `Source.actorRef` method:
 
 Java:
+
 ```java
 Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy.dropNew)
   .mapMaterializerValue(sourceActor -> {
@@ -327,6 +328,7 @@ Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy
 ```
 
 Scala:
+
 ```scala
 val source = Source.actorRef[ByteString](256, OverflowStrategy.dropNew).mapMaterializedValue { sourceActor =>
   sourceActor ! ByteString("hello")
