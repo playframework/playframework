@@ -12,7 +12,7 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
   "Routes" should {
 
     "send 404 on a bad request" in  {
-      route(FakeRequest(GET, "/boum")).map(status(_)) mustBe Some(NOT_FOUND)
+      route(app, FakeRequest(GET, "/boum")).map(status(_)) mustBe Some(NOT_FOUND)
     }
 
   }
@@ -20,7 +20,7 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
   "HomeController" should {
 
     "render the index page" in {
-      val home = route(FakeRequest(GET, "/")).get
+      val home = route(app, FakeRequest(GET, "/")).get
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
@@ -32,9 +32,9 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
   "CountController" should {
 
     "return an increasing count" in {
-      contentAsString(route(FakeRequest(GET, "/count")).get) mustBe "0"
-      contentAsString(route(FakeRequest(GET, "/count")).get) mustBe "1"
-      contentAsString(route(FakeRequest(GET, "/count")).get) mustBe "2"
+      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "0"
+      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "1"
+      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "2"
     }
 
   }
