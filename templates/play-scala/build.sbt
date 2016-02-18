@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0-SNAP1" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "%SCALATESTPLUS_PLAY_VERSION%" % Test
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
