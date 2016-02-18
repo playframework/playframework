@@ -16,13 +16,13 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 ## Dependency Injection
 
-Play supports generating two types of routers, one is a dependency injected router, the other is a static router.  The default is the static router, but if you created a new Play application using the Play seed Activator templates, your project will include the following configuration in `build.sbt` telling it to use the injected router:
+Play supports generating two types of routers, one is a dependency injected router, the other is a static router. The default is the dependency injected router, and that is also the case in the Play seed Activator templates, since we recommend you use dependency-injected controllers. If you need to use static controllers you can switch to the static routes generator by adding the following configuration to your `build.sbt`:
 
 ```scala
-routesGenerator := InjectedRoutesGenerator
+routesGenerator := StaticRoutesGenerator
 ```
 
-The code samples in Play's documentation assumes that you are using the injected routes generator.  If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+The code samples in Play's documentation assumes that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
 
 ## The routes file syntax
 
@@ -54,7 +54,7 @@ For example, to exactly match `GET /clients/all` incoming requests, you can defi
 
 @[static-path](code/javaguide.http.routing.routes)
 
-### Dynamic parts 
+### Dynamic parts
 
 If you want to define a route that, say, retrieves a client by id, you need to add a dynamic part:
 
@@ -75,7 +75,7 @@ Here, for a request like `GET /files/images/logo.png`, the `name` dynamic part w
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for a dynamic part, using the `$id<regex>` syntax:
-    
+
 @[regex-path](code/javaguide.http.routing.routes)
 
 ## Call to action generator method
@@ -136,7 +136,7 @@ Many routes can match the same request. If there is a conflict, the first route 
 
 The router can be used to generate a URL from within a Java call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`. 
+For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`.
 
 The `play.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
 

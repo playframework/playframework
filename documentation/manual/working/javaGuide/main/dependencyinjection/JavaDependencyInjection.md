@@ -3,11 +3,11 @@
 
 Dependency injection is a way that you can separate your components so that they are not directly dependent on each other, rather, they get injected into each other.
 
-Out of the box, Play provides dependency injection support based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in.
+Out of the box, Play provides dependency injection support based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
 ## Declaring dependencies
 
-If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](https://docs.oracle.com/javaee/7/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors, which you decide to use is up to you.  For example, to use field injection:
+If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](https://docs.oracle.com/javaee/7/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors.  For example, to use field injection:
 
 @[field](code/javaguide/di/field/MyComponent.java)
 
@@ -15,7 +15,9 @@ To use constructor injection:
 
 @[constructor](code/javaguide/di/constructor/MyComponent.java)
 
-Each of these have their own benefits, and which is best is a matter of hot debate.  For brevity, in the Play documentation, we use field injection, but in Play itself, we use constructor injection.
+For brevity, in the Play documentation, we use field injection, but in Play itself, we use constructor injection.
+
+Constructor injection is the most testable, since all the dependencies are required up front to construct an instance of the class, but it is also more verbose. Guice also has several other [types of injections](https://github.com/google/guice/wiki/Injections) which may be useful in some cases.
 
 ## Dependency injecting controllers
 
