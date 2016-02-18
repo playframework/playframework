@@ -171,7 +171,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Play Dok
 
-* **Website:** <http://fudok.com/>
+* **Website:** <https://go.fudok.com/en/>
 * **Documentation:** <https://github.com/cchantep/play-dok/>
 * **Short description:** Library to integrate Fukdok PDF templating service with your Play application.
 

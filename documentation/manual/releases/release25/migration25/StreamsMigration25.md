@@ -173,7 +173,7 @@ return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
 
 * To learn how to migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, see XXXX.
 
-If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2/java/stream-customize.html#custom-processing-with-graphstage).
+If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-customize.html#custom-processing-with-graphstage).
 
 ##### Migrating Scala Server-Sent events
 

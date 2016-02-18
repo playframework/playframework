@@ -33,13 +33,13 @@ Reactive Stocks shows several stock prices displayed on a single page web applic
 
 Reactive Maps shows the Typesafe Platform with a series of moving actors updated in real time.
 
-* [Reactive Maps in Scala](https://typesafe.com/activator/template/reactive-maps)
-* [Reactive Maps in Java](https://typesafe.com/activator/template/reactive-maps-java)
+* [Reactive Maps in Scala](https://www.typesafe.com/activator/template/reactive-maps)
+* [Reactive Maps in Java](https://www.typesafe.com/activator/template/reactive-maps-java)
 
 ### Database
 
-* [Play Java with Spring Data JPA](https://typesafe.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).
-* [Play Scala with Slick](https://typesafe.com/activator/template/play-slick): This template combines Play Framework with [Slick](http://slick.typesafe.com/).
+* [Play Java with Spring Data JPA](https://www.typesafe.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).
+* [Play Scala with Slick](https://www.typesafe.com/activator/template/play-slick): This template combines Play Framework with [Slick](http://slick.typesafe.com/).
 * [Play Scala with Isolated Slick](https://github.com/wsargent/play-slick-3.0): This template creates module that hides Slick behind a DAO object.
 * [Play Java with Ebean](https://github.com/typesafehub/activator-computer-database-java): This is a Play example that uses [EBean](https://ebean-orm.github.io/).
 * [Play Scala with Anorm](https://github.com/typesafehub/activator-computer-database-scala): This is a Play example that uses [Anorm](https://github.com/playframework/anorm).
@@ -78,7 +78,7 @@ Semisafe has an excellent series on Play in general:
 #### Dependency Injection
 
 * [Playframework 2.4 Dependency Injection (DI)](http://mariussoutier.com/blog/2015/12/06/playframework-2-4-dependency-injection-di/) by Marius Soutier.
-* [Testing with Dependency Injection](http://www.michaelpollmeier.com/2015/09/25/playframework-guice-di/) by Michael Pollmeier.
+* [Testing with Dependency Injection](http://www.michaelpollmeier.com/2015/09/25/playframework-guice-di) by Michael Pollmeier.
 * [Compile Time Dependency Injection with Play 2.4](https://loicdescotte.github.io/posts/play24-compile-time-di/) by Loïc Descotte.
 
 #### REST APIs

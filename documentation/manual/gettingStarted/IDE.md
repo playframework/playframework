@@ -28,7 +28,7 @@ If you do not want to install Scala IDE and have only Java sources in your proje
 
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
-EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes 
+EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes
 ```
 
 ### Generate configuration
@@ -59,7 +59,7 @@ or from the play console, type:
 
 You then need to import the application into your Workspace with the **File/Import/General/Existing project…** menu (compile your project first).
 
-[[images/eclipse.png]] 
+[[images/eclipse.png]]
 
 To debug, start your application with `activator -jvm-debug 9999 run` and in Eclipse right-click on the project and select **Debug As**, **Debug Configurations**. In the **Debug Configurations** dialog, right-click on **Remote Java Application** and select **New**. Change **Port** to 9999 and click **Apply**. From now on you can click on **Debug** to connect to the running application. Stopping the debugging session will not stop the server.
 
@@ -92,7 +92,7 @@ To import a Play project:
 1. Open Project wizard, select ***Import Project***.
 2. In the window that opens, select a project you want to import and click ***OK***.
 3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***.
-4. On the next page of the wizard, select additional import options and click ***Finish***. 
+4. On the next page of the wizard, select additional import options and click ***Finish***.
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
@@ -109,7 +109,7 @@ You can easily start a debugger session for a Play application using default Run
 
 For more detailed information, see the Play Framework 2.x tutorial at the following URL:
 
-<https://www.jetbrains.com/idea/help/getting-started-with-play-2-x.html> 
+<https://www.jetbrains.com/idea/help/getting-started-with-play-2-x.html>
 
 ### Navigate from an error page to the source code
 
@@ -201,7 +201,7 @@ Scala is a newer programming language, so the functionality is provided in plugi
 
 1. Eclipse Scala IDE: <http://scala-ide.org/>
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
-3. IntelliJ IDEA Scala Plugin: <http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
+3. IntelliJ IDEA Scala Plugin: <https://confluence.jetbrains.com/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
 4. IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
 5. Nika (11.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
 6. Leda (12.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
