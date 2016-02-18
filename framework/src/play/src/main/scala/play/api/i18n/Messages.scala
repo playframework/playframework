@@ -506,7 +506,7 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
     }.getOrElse(noMatch(keys.last, args))
   }
 
-  private def noMatch(key: String, args: Seq[Any]) = key
+  protected def noMatch(key: String, args: Seq[Any])(implicit lang: Lang) = key
 
   def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
     val langsToTry: List[Lang] =
