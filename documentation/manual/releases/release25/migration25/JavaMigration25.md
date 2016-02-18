@@ -12,7 +12,7 @@ You will most likely use `EssentialAction` when creating a filter. You can eithe
 
 ### HttpRequestHandler and ActionCreator
 
-The [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html) actually existed in Play 2.5, but now it serves a different purpose. The `createAction` and `wrapAction` methods have been moved to a new interface called [`ActionCreator`](api/java/play/http/ActionCreator.html), and are deprecated in `HttpRequestHandler`. These methods are only applied to Java actions, and are used to intercept requests to the controller's method call, but not all requests.
+The [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html) actually existed in Play 2.4, but now it serves a different purpose. The `createAction` and `wrapAction` methods have been moved to a new interface called [`ActionCreator`](api/java/play/http/ActionCreator.html), and are deprecated in `HttpRequestHandler`. These methods are only applied to Java actions, and are used to intercept requests to the controller's method call, but not all requests.
 
 In 2.5, `HttpRequestHandler`'s main purpose is to provide a handler for the request right after it comes in. This is now consistent with what the Scala implementation does, and provides a way for Java users to intercept the handling of all HTTP requests. Normally, the `HttpRequestHandler` will call the router to find an action for the request, so the new API allows you to intercept that request in Java before it goes to the router.
 
