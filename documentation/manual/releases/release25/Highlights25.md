@@ -5,15 +5,15 @@ This page highlights the new features of Play 2.5. If you want learn about the c
 
 ## New streaming API based on Akka Streams
 
-The main theme of Play 2.5 has been moving from Play's iteratee based asynchronous IO API to [Akka streams](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-introduction.html).
+The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka streams](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-introduction.html).
 
-At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, while at the application level, the framework exposes communications as in memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
+At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, and the framework exposes the materialized values to your application as in-memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
 
 Traditionally, on the JVM, streaming is done using the blocking `InputStream` and `OutputStream` APIs.  These APIs require a dedicated thread to use them - when reading, that thread must block and wait for data, when writing, that thread must block and wait for the data to be flushed.  An asynchronous framework, such as Play, offers many advantages because it limits the resources it requires by not using blocking APIs such as these.  Instead, for streaming, an asynchronous API needs to be used, where the framework is notified that there's data to read or that data has been written, rather than having to have a thread block and wait for it.
 
 Prior to Play 2.5, Play used Iteratees as this asynchronous streaming mechanism, but now it uses Akka Streams.
 
-### Why not iteratees
+### Why not iteratees?
 
 Iteratees are a functional approach to handling asynchronous streaming.  They are incredibly powerful, while also offering an incredibly small API surface area - the Iteratee API consists of one method, `fold`, the rest is just helpers built on top of this method.  Iteratees also provide a very high degree of safety, as long as your code compiles, it's very unlikely that you would have any bugs related to the implementation of an iteratee itself, such as concurrency or error handling, most bugs would be in the "business" logic of the iteratee.
 
@@ -23,7 +23,7 @@ While this safety and simplicity is great, the consequence of it was that it has
 
 Akka streams provides a good balance between safety, simplicity and familiarity.  Akka streams intentionally constrains you in what you can do so that you can only do things correctly, but not as much as iteratees do.  Conceptually they are much more familiar to most developers, offering both functional and imperative ways of working with them.  Akka streams also has a first class Java API, making it simple to implement any streaming requirements in Java that are needed.
 
-### Where is Akka streams used
+### Where are Akka streams used?
 
 The places where you will come across Akka streams in your Play applications include:
 
@@ -35,28 +35,28 @@ The places where you will come across Akka streams in your Play applications inc
 
 ### Reactive Streams
 
-[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9, and available as a stand alone library for JDK6 and above.  In general, it is not an end user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
+[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9, and available as a standalone library for JDK6 and above.  In general, it is not an end-user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
 
 ### The future of iteratees
 
-Iteratees still have some use cases where they shine.  At current, there is no plan to deprecate or remove them from Play, though they may be moved to a stand alone library. Since iteratees provide a reactive streams implementation, they will always be usable in Play.
+Iteratees still have some use cases where they shine.  At current, there is no plan to deprecate or remove them from Play, though they may be moved to a standalone library. Since iteratees provide a reactive streams implementation, they will always be usable in Play.
 
 ## Better control over WebSocket frames
 
-The Play 2.5 WebSocket API gives you direct control over WebSocket frames. You can now send and receives binary, text, ping, pong and close frames. If you don't want to worry about this level of detail, Play will still automatically convert your JSON or XML data into the right kind of frame.
+The Play 2.5 WebSocket API gives you direct control over WebSocket frames. You can now send and receive binary, text, ping, pong and close frames. If you don't want to worry about this level of detail, Play will still automatically convert your JSON or XML data into the right kind of frame.
 
 ## New Java APIs
 
-Play 2.5's Java APIs provide feature-parity with the Scala APIs. We have introduced several new Java APIs to do this:
+Play 2.5's Java APIs provide feature parity with the Scala APIs. We have introduced several new Java APIs to do this:
 
 * [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), which allows interception of requests as they come in, before they are sent to the router.
 * [`EssentialAction`](api/java/play/mvc/EssentialAction.html), a low level action used in `EssentialFilter` and `HttpRequestHandler`s.
 * [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html)/[`Filter`](api/java/play/mvc/Filter.html) for writing filters in Java.
-* [`BodyParser`](api/java/play/mvc/EssentialFilter.html), which allows writing custom body parsers in Java.
+* [`BodyParser`](api/java/play/mvc/BodyParser.html), which allows writing custom body parsers in Java.
 
 ## Java API updated to use Java 8 classes
 
-When Play 2.0 was released in 2012 Java had little support for Play's style of asynchronous functional programming. There were no lambdas, futures only had a blocking interface and common functional classes didn't exist. Play provided its own classes to fill the gap.
+When Play 2.0 was released in 2012, Java had little support for Play's style of asynchronous functional programming. There were no lambdas, futures only had a blocking interface and common functional classes didn't exist. Play provided its own classes to fill the gap.
 
 With Play 2.5 that situation has changed. Java 8 now ships with much better support for Play's style of programming. In Play 2.5 the Java APIs have been revamped to use standard Java 8 classes. This means that Play applications will integrate better with other Java libraries and look more like idiomatic Java.
 

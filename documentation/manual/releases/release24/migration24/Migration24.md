@@ -569,7 +569,7 @@ serverLoading in Debian := SystemV
 
 The mysterious `OrderedExecutionContext` had [[been retained|Migration22#Concurrent-F.Promise-execution]] in Play for several versions in order to support legacy applications. It was rarely used and has now been removed. If you still need the `OrderedExecutionContext` for some reason, you can create your own implementation based on the [Play 2.3 source](https://github.com/playframework/playframework/blob/2.3.x/framework/src/play/src/main/scala/play/core/j/OrderedExecutionContext.scala). If you haven't heard of this class, then there's nothing you need to do.
 
-### SubProject Assets
+### Subproject Assets
 
 Any assets in sub projects are now by default placed into /lib/[subproject] to allow files with the same name in the root project / different subprojects without causing them to interfere with each other.
 
