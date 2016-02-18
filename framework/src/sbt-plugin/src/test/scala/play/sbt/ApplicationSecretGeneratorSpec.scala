@@ -6,9 +6,6 @@ package play.sbt
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable._
 
-/**
- * Created by mtrovo on 10/18/15.
- */
 object ApplicationSecretGeneratorSpec extends Specification {
   "ApplicationSecretGenerator" should {
     "override literal secret" in {
