@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
-import play.i18n.Messages;
+import play.i18n.MessagesApi;
 import play.mvc.Http;
 
 import static java.util.stream.Collectors.toList;
@@ -573,22 +573,46 @@ public class Form<T> {
 
     /**
      * Returns the form errors serialized as Json.
+     *
+     * @deprecated use {@link #errorsAsJson(MessagesApi)} instead, since 2.5.0
      */
+    @Deprecated
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
-        return errorsAsJson(Http.Context.Implicit.lang());
+        return errorsAsJson(play.api.Play.current().injector().instanceOf(MessagesApi.class));
+    }
+
+    /**
+     * Returns the form errors serialized as Json.
+     */
+    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(MessagesApi messagesApi) {
+        return errorsAsJson(messagesApi, Http.Context.current() != null ? Http.Context.current().lang() : null);
+    }
+
+    /**
+     * Returns the form errors serialized as Json using the given Lang.
+     *
+     * @deprecated use {@link #errorsAsJson(MessagesApi, play.i18n.Lang)} instead, since 2.5.0
+     */
+    @Deprecated
+    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
+        return errorsAsJson(play.api.Play.current().injector().instanceOf(MessagesApi.class), lang);
     }
 
     /**
      * Returns the form errors serialized as Json using the given Lang.
      */
-    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
+    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(MessagesApi messagesApi, play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
         for (String key : errors.keySet()) {
             List<ValidationError> errs = errors.get(key);
             if (errs != null && !errs.isEmpty()) {
                 List<String> messages = new ArrayList<String>();
                 for (ValidationError error : errs) {
-                    messages.add(play.i18n.Messages.get(lang, error.messages(), error.arguments()));
+                    if(messagesApi != null && lang != null) {
+                        messages.add(messagesApi.get(lang, error.messages(), error.arguments()));
+                    } else {
+                        messages.add(error.message());
+                    }
                 }
                 allMessages.put(key, messages);
             }
