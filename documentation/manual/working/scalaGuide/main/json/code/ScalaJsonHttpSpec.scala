@@ -74,7 +74,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
           val placeResult = json.validate[Place] 
           placeResult.fold(
             errors => {
-              BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(errors)))
+              BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toJson(errors)))
             },
             place => { 
               Place.save(place)
@@ -124,7 +124,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         val placeResult = request.body.validate[Place]
         placeResult.fold(
           errors => {
-            BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(errors)))
+            BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toJson(errors)))
           },
           place => { 
             Place.save(place)
