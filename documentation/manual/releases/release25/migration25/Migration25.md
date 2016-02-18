@@ -3,10 +3,10 @@
 
 This is a guide for migrating from Play 2.4 to Play 2.5. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.4 Migration Guide|Migration24]].
 
-As well as the information contained on this page, there are is more detailed migration information for some topics:
+As well as the information contained on this page, there is more detailed migration information for some topics:
 
-- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Play's new streaming library.
-- [[Java Migration Guide|JavaMigration25]] - Migrating Java applications.
+- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka streams, now used in place of iteratees in many Play APIs 
+- [[Java Migration Guide|JavaMigration25]] - Migrating Java applications. Play now uses native Java types for functional types and offers several new customizable components in Java.
 
 ## sbt upgrade to 0.13.9
 
@@ -109,6 +109,8 @@ routesGenerator := StaticRoutesGenerator
 
 to your `build.sbt` file.
 
+Using static controllers with the static routes generator is not deprecated, but it is recommended that you migrate to using classes with dependency injection.
+
 ## Replaced static controllers with dependency injection
 
 `controllers.ExternalAssets` is now a class, and has no static equivalent. `controllers.Assets` and `controllers.Default` are also classes, and while static equivalents exist, it is recommended that you use the class version.
@@ -139,7 +141,7 @@ Likewise, methods in `play.api.Play` that take an implicit `Application` and del
 
 These methods delegate to either `play.Application` or `play.Environment` -- code that uses them should use dependency injection to inject the relevant class.
 
-You should refer to the list of dependency injected components in the [[Play 2.4 Migration Guide|Migration24#Dependency-Injected-Components]] to migrate built-in play components.
+You should refer to the list of dependency injected components in the [[Play 2.4 Migration Guide|Migration24#Dependency-Injected-Components]] to migrate built-in Play components.
 
 For example, the following code injects an environment and configuration into a Controller in Scala:
 
@@ -222,6 +224,6 @@ play.filters.csrf {
 
 Previously, a CSRF token could be retrieved from the HTTP request in any action. Now you must have either a CSRF filter or a CSRF action for `CRSF.getToken` to work. If you're not using a filter, you can use the `CSRFAddToken` action in Scala or `AddCSRFToken` Java annotation to ensure a token is in the session.
 
-We also fixed a minor bug in this release in which the CSRF token would be empty (throwing an exception in the template helper) if its signature was invalid. Now it will be regenerated on the same request.
+Also, a minor bug was fixed in this release in which the CSRF token would be empty (throwing an exception in the template helper) if its signature was invalid. Now it will be regenerated on the same request so a token is still available from the template helpers and `CSRF.getToken`.
 
 For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [[Scala|ScalaCsrf]].

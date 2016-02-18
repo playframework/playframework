@@ -4,9 +4,9 @@ Play 2.5 has made several major changes to how it streams data and response bodi
 
 1. Play 2.5 uses **Akka Streams for streaming**. Previous versions of Play used iteratees for streaming as well as several other ad-hoc types of streaming, such as `WebSocket`, `Chunks`, etc.
 
-    There are two main benefits of the change to use Akka Streams. First, Java users can now access the full features of Play, e.g. writing body parsers and filters. Second, the streaming library is now more consistent across Play.
+    There are two main benefits of the change to use Akka Streams. First, Java users can now access the full feature set of Play, e.g. writing body parsers and filters. Second, the streaming library is now more consistent across Play.
 
-2. Play 2.5 uses **`ByteString` to hold packets of bytes**. Previously, Play usied byte arrays (`byte[]`/`ArrayByte`) to hold bytes.
+2. Play 2.5 uses **`ByteString` to hold packets of bytes**. Previously, Play used byte arrays (`byte[]`/`ArrayByte`) to hold bytes.
 
     The `ByteString` class is immutable like Java's `String`, so it's safer and easier to use. Like `String` it does have a small performance cost, because it copies its data when it is constructed, but this is balanced by its cheap concatenation and substring operations.
 
@@ -57,7 +57,7 @@ In Play 2.5, the `stream` method has been removed and the `feed` method has been
 
 The new API is to create a `Result` object directly and choose an `HttpEntity` to represent its body. For streamed results, you can use the `HttpEntity.Streamed` class. The `Streamed` class takes a `Source` as a body and an optional `Content-Length` header value. The `Source`'s content will be sent to the client. If the entity has a `Content-Length` header then the connection will be left open, otherwise it will be closed to signal the end of the stream.
 
-* To learn how to migrate an Enumerator to a Source, see  [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
+* To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
 #### Migrating WebSockets (`WebSocket`)
 
@@ -83,7 +83,7 @@ trait FrameFormatter[A] {
 }
 ```
 
-The Play 2.5's Scala WebSocket API is built around a `Flow` of `Message`s. A [`Message`](api/scala/play/api/http/websocket/Message.html) represents an [WebSocket frame](https://tools.ietf.org/html/rfc6455#section-5). The `MessageFlowTransformer` type handles transforming high-level objects, like JSON, XML and bytes into `Message` frames. A set of built-in implicit `MessageFlowTransformer`s are provided, and you can also write your own.
+The Play 2.5 Scala WebSocket API is built around a `Flow` of `Message`s. A [`Message`](api/scala/play/api/http/websocket/Message.html) represents a [WebSocket frame](https://tools.ietf.org/html/rfc6455#section-5). The `MessageFlowTransformer` type handles transforming high-level objects, like JSON, XML and bytes into `Message` frames. A set of built-in implicit `MessageFlowTransformer`s are provided, and you can also write your own.
 
 ```scala
 trait WebSocket extends Handler {
@@ -276,7 +276,7 @@ When you're first getting started with Akka Streams, the *Basics and working wit
 * [Basics for Java](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-flows-and-basics.html)
 * [Basics for Scala](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-flows-and-basics.html)
 
-You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka streams.  Akka streams provides a [reactive streams](http://reactivestreams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka streams and vice versa.
+You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka streams.  Akka streams provides a [reactive streams](http://reactive-streams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka streams and vice versa.
 
 #### Migrating byte arrays (`byte[]`/`Array[Byte]`) to `ByteString`s
 
