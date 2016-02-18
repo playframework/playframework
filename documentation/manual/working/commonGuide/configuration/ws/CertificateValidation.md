@@ -7,9 +7,9 @@ The JSSE implementation of X.509 certificates is defined in the [PKI Programmer'
 
 Some X.509 certificates that are used by servers are old, and are using signatures that can be forged by an attacker.  Because of this, it may not be possible to verify the identity of the server if that signature algorithm is being used.  Fortunately, this is rare -- over 95% of trusted leaf certificates and 95% of trusted signing certificates use [NIST recommended key sizes](http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf).
 
-WS automatically disables weak signature algorithms and weak keys for you, according to the [current standards](http://sim.ivi.co/2012/04/nist-security-strength-time-frames.html).
+WS automatically disables weak signature algorithms and weak keys for you, according to the [current standards](http://simsmi.blogspot.com/2012/04/nist-security-strength-time-frames.html).
 
-This feature is similar to [jdk.certpath.disabledAlgorithms](http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html), but is specific to the WS client and can be set dynamically, whereas jdk.certpath.disabledAlgorithms is global across the JVM, must be set via a security property, and is only available in JDK 1.7 and later.
+This feature is similar to [jdk.certpath.disabledAlgorithms](http://simsmi.blogspot.com/2013/11/harness-ssl-and-jsse-key-size-control.html), but is specific to the WS client and can be set dynamically, whereas jdk.certpath.disabledAlgorithms is global across the JVM, must be set via a security property, and is only available in JDK 1.7 and later.
 
 You can override this to your tastes, but it is recommended to be at least as strict as the defaults.  The appropriate signature names can be looked up in the [Providers Documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html).
 
@@ -37,7 +37,7 @@ WS defines the default list of weak key sizes as follows:
 play.ws.ssl.disabledKeyAlgorithms = "DHE keySize < 2048, ECDH keySize < 2048, ECDHE keySize < 2048, RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
 ```
 
-These settings are based in part on [keylength.com](http://www.keylength.com/), and in part on the Mozilla recommendations:
+These settings are based in part on [keylength.com](https://www.keylength.com/), and in part on the Mozilla recommendations:
 
 > The NIST recommendation is to discontinue 1024-bit RSA certificates by December 31, 2010. Therefore, CAs have been advised that they should not sign any more certificates under their 1024-bit roots by the end of this year.
 >
@@ -49,7 +49,7 @@ Over 95% of trusted leaf certificates and 95% of trusted signing certificates us
 
 ## Disabling Weak Certificates Globally
 
-To disable signature algorithms and weak key sizes globally across the JVM, use the `jdk.certpath.disabledAlgorithms` [security property](http://sim.ivi.co/2011/07/java-se-7-release-security-enhancements.html).  Setting security properties is covered in more depth in [[Configuring Cipher Suites|CipherSuites]] section.
+To disable signature algorithms and weak key sizes globally across the JVM, use the `jdk.certpath.disabledAlgorithms` [security property](http://simsmi.blogspot.com/2011/07/java-se-7-release-security-enhancements.html).  Setting security properties is covered in more depth in [[Configuring Cipher Suites|CipherSuites]] section.
 
 > **NOTE** if configured, the `jdk.certpath.disabledAlgorithms` property should contain the settings from both `disabledKeyAlgorithms` and `disabledSignatureAlgorithms`.
 

@@ -443,7 +443,7 @@ object PlayDocsValidation {
 
     val grouped = report.externalLinks
       .groupBy { _.link }
-      .filterNot { e => e._1.startsWith("http://localhost:") || e._1.contains("example.com") }
+      .filterNot { e => e._1.startsWith("http://localhost:") || e._1.contains("example.com") || e._1.startsWith("http://127.0.0.1") }
       .toSeq.sortBy { _._1 }
 
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(50))
