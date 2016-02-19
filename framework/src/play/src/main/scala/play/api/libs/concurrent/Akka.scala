@@ -24,8 +24,6 @@ import scala.reflect.ClassTag
  */
 object Akka {
 
-  private val actorSystemCache = Application.instanceCache[ActorSystem]
-
   /**
    * Retrieve the application Akka Actor system.
    *
@@ -34,7 +32,7 @@ object Akka {
    * val newActor = Akka.system.actorOf[Props[MyActor]]
    * }}}
    */
-  def system(implicit app: Application): ActorSystem = actorSystemCache(app)
+  def system(implicit app: Application): ActorSystem = app.actorSystem
 
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
