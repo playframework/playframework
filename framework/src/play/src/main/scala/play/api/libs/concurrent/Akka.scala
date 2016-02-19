@@ -24,8 +24,6 @@ import scala.reflect.ClassTag
  */
 object Akka {
 
-  private val actorSystemCache = Application.instanceCache[ActorSystem]
-
   /**
    * Retrieve the application Akka Actor system, using an implicit application.
    *
@@ -37,7 +35,7 @@ object Akka {
    * }}}
    */
   @deprecated("Please use a dependency injected ActorSystem", "2.5.0")
-  def system(implicit app: Application): ActorSystem = actorSystemCache(app)
+  def system(implicit app: Application): ActorSystem = app.actorSystem
 
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
