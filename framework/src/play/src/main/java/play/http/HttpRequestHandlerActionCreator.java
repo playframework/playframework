@@ -6,6 +6,7 @@ package play.http;
 import java.lang.reflect.Method;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import play.mvc.Action;
 import play.mvc.Http.Request;
@@ -18,20 +19,20 @@ import play.mvc.Http.Request;
  */
 public class HttpRequestHandlerActionCreator implements ActionCreator {
 
-  private final HttpRequestHandler httpRequestHandler;
+  private final Provider<HttpRequestHandler> httpRequestHandler;
 
   @Inject
-  public HttpRequestHandlerActionCreator(HttpRequestHandler httpRequestHandler) {
+  public HttpRequestHandlerActionCreator(Provider<HttpRequestHandler> httpRequestHandler) {
     this.httpRequestHandler = httpRequestHandler;
   }
 
   @Override
   public Action createAction(Request request, Method actionMethod) {
-    return httpRequestHandler.createAction(request, actionMethod);
+    return httpRequestHandler.get().createAction(request, actionMethod);
   }
 
   @Override
   public Action wrapAction(Action action) {
-    return httpRequestHandler.wrapAction(action);
+    return httpRequestHandler.get().wrapAction(action);
   }
 }
