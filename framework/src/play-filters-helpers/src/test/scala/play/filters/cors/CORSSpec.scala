@@ -6,16 +6,15 @@ package play.filters.cors
 import javax.inject.Inject
 
 import play.api.http.{ContentTypes, HttpFilters}
+import play.api.inject.bind
+import play.api.mvc.{Action, Result, Results}
 import play.api.routing.Router
 import play.api.routing.sird._
+import play.api.test.{FakeRequest, PlaySpecification}
+import play.api.{Application, Configuration}
 import play.filters.csrf.{CSRFCheck, CSRFFilter}
 
 import scala.concurrent.Future
-
-import play.api.{Application, Configuration}
-import play.api.mvc.{ Action, Result, Results }
-import play.api.test.{ FakeRequest, PlaySpecification }
-import play.api.inject.bind
 
 object CORSFilterSpec extends CORSCommonSpec {
 
@@ -205,6 +204,16 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com:9000")
+    }
+
+    "not consider different protocols to be the same origin" in withApplication() {
+      val result = route(fakeRequest().withHeaders(
+        ORIGIN -> "https://www.example.com:9000",
+        HOST -> "www.example.com:9000"
+      )).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("https://www.example.com:9000")
     }
 
     "forbid an empty origin header" in withApplication() {
