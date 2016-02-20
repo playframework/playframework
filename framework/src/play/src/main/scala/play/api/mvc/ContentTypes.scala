@@ -661,7 +661,10 @@ trait BodyParsers {
     // -- Parsing utilities
 
     /**
-     * Wrap an existing BodyParser with a maxLength constraints.
+     * Apply a *lower* max length constraint to an existing BodyParser.
+     * Note that if a max length constraint already exists on the underlying
+     * parser that is equal to that provided it will be evaluated first and
+     * return an EntityTooLarge HTTP response.
      *
      * @param maxLength The max length allowed
      * @param parser The BodyParser to wrap
@@ -721,7 +724,9 @@ trait BodyParsers {
       val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
       accumulator.through(takeUpToFlow).recoverWith {
-        case _: BodyParsers.MaxLengthLimitAttained =>
+        // Check the max length error has the expected limit.
+        // If not, it should be handled elsewhere.
+        case BodyParsers.MaxLengthLimitAttained(limit) if limit == maxLength =>
           val badResult = createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request)
           badResult.map(Left(_))
       }
@@ -767,12 +772,12 @@ object BodyParsers extends BodyParsers {
 
     override def onPush(chunk: ByteString, ctx: Context[ByteString]): SyncDirective = {
       pushedBytes += chunk.size
-      if (pushedBytes > maxLength) ctx.fail(new MaxLengthLimitAttained)
+      if (pushedBytes > maxLength) ctx.fail(new MaxLengthLimitAttained(maxLength))
       else ctx.push(chunk)
     }
   }
 
-  private[play] class MaxLengthLimitAttained extends RuntimeException(null, null, false, false)
+  private[play] case class MaxLengthLimitAttained(limit: Long) extends RuntimeException(null, null, false, false)
 }
 
 /**
