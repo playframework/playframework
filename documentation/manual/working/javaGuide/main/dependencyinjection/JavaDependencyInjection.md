@@ -145,6 +145,20 @@ If there is a module that you don't want to be loaded, you can exclude it by app
 
     play.modules.disabled += "play.api.db.evolutions.EvolutionsModule"
 
+## Managing circular dependencies
+
+Circular dependencies happen when one of your components depends on another component that depends on the original component (either directly or indirectly). For example:
+
+@[circular](code/javaguide/di/guice/CircularDependencies.java)
+
+In this case, `Foo` depends on `Bar`, which depends on `Baz`, which depends on `Foo`. So you won't be able to instantate any of these classes. You can work around this problem by using a `Provider`:
+
+@[circular-provider](code/javaguide/di/guice/CircularDependencies.java)
+
+Note that if you're using constructor injection it will be much more clear when you have a circular dependency, since it will be impossible to instantiate the component manually.
+
+Generally, circular dependencies can be resolved by breaking up your components in a more atomic way, or finding a more specific component to depend on. A common problem is a dependency on `Application`. When your component depends on `Application` it's saying that it needs a complete application to do its job; typically that's not the case. Your dependencies should be on more specific components (e.g. `Environment`) that have the specific functionality you need. As a last resort you can work around the problem by injecting a `Provider<Application>`.
+
 ## Advanced: Extending the GuiceApplicationLoader
 
 Play's runtime dependency injection is bootstrapped by the [`GuiceApplicationLoader`](api/java/play/inject/guice/GuiceApplicationLoader.html) class. This class loads all the modules, feeds the modules into Guice, then uses Guice to create the application. If you want to control how Guice initializes the application then you can extend the `GuiceApplicationLoader` class.
