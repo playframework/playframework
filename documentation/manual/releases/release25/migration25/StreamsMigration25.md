@@ -144,6 +144,20 @@ You can also create your own `MappedWebSocketAcceptor` by defining how to conver
 * To learn how to migrate a `WebSocket.In` to a Sink, see XXXX.
 * To learn how to migrate a `WebSocket.Out` to a Source, see XXXX.
 
+#### Migrating Comet
+
+To use [Comet](https://en.wikipedia.org/wiki/Comet_(programming)) in Play you need to produce a chunked HTTP response with specially formatted chunks. Play has a `Comet` class to help produce events on the server that can be sent to the browser.  In Play 2.4.x, a new Comet instance had to be created and used callbacks for Java, and an Enumeratee was used for Scala.  In Play 2.5, there are new APIs added based on Akka Streams.
+
+##### Migrating Java Comet
+
+Create an Akka Streams source for your objects, and convert them into either `String` or `JsonNode` objects.  From there, you can use `play.libs.Comet.string` or `play.libs.Comet.json` to convert your objects into a format suitable for `Results.ok().chunked()`.  There is additional documentation in [[JavaComet]].
+
+Because the Java Comet helper is based around callbacks, it may be easier to turn the callback based class into a `org.reactivestreams.Publisher` directly and use `Source.fromPublisher` to create a source.
+
+##### Migrating Scala Comet
+
+Create an Akka Streams source for your objects, and convert them into either `String` or `JsValue` objects.  From there, you can use `play.api.libs.Comet.string` or `play.api.libs.Comet.json` to convert your objects into a format suitable for `Ok.chunked()`.  There is additional documentation in [[ScalaComet]].
+
 #### Migrating Server-Sent events (`EventSource`)
 
 To use [Server-Sent Events](http://www.html5rocks.com/en/tutorials/eventsource/basics/) in Play you need to produce a chunked HTTP response with specially formatted chunks. Play has an `EventSource` interface to help produce events on the server that can be sent to the browser. In Play 2.4 Java and Scala each had quite different APIs, but in Play 2.5 they have been changed so they're both based on Akka Streams.
@@ -172,7 +186,7 @@ Source<EventSource.Event, ?> eventSource = myStrings.map(Event::event);
 return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
 ```
 
-* To learn how to migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, see XXXX.
+* To migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, implement `org.reactivestreams.Publisher` on the class and use `Source.fromPublisher` to create a source from the callbacks.
 
 If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-customize.html#custom-processing-with-graphstage).
 
