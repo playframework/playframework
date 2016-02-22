@@ -5,7 +5,7 @@ This is a guide for migrating from Play 2.4 to Play 2.5. If you need to migrate 
 
 As well as the information contained on this page, there is more detailed migration information for some topics:
 
-- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka streams, now used in place of iteratees in many Play APIs 
+- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka streams, now used in place of iteratees in many Play APIs
 - [[Java Migration Guide|JavaMigration25]] - Migrating Java applications. Play now uses native Java types for functional types and offers several new customizable components in Java.
 
 ## sbt upgrade to 0.13.9
@@ -76,7 +76,7 @@ You can find more details on how to set up Play with different logging framework
 Play WS has been upgraded to use [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client) 2.  This is a major upgrade that uses Netty 4.0. Most of the changes in AHC 2.0 are under the hood, but AHC has some significant refactorings which require breaking changes to the WS API:
 
 * `AsyncHttpClientConfig` replaced by [`DefaultAsyncHttpClientConfig`](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.html).
-* [`allowPoolingConnection`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#allowPoolingConnections) and `allowSslConnectionPool` are combined in AsyncHttpClient into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.  
+* [`allowPoolingConnection`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#allowPoolingConnections) and `allowSslConnectionPool` are combined in AsyncHttpClient into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 * [`webSocketIdleTimeout`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#webSocketTimeout) has been removed, so is no longer available in `AhcWSClientConfig`.
 * [`ioThreadMultiplier`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#ioThreadMultiplier) has been removed, so is no longer available in `AhcWSClientConfig`.
 * [`FluentCaseInsensitiveStringsMap`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/FluentCaseInsensitiveStringsMap.html) class is removed and replaced by Netty's `HttpHeader` class.
@@ -99,7 +99,7 @@ The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The
 
 ## Routes generated with InjectedRoutesGenerator
 
-Routes are now generated using the dependency injection aware `InjectedRoutesGenerator`, rather than the previous `StaticRoutesGenerator` which assumed controllers were singleton objects.  
+Routes are now generated using the dependency injection aware `InjectedRoutesGenerator`, rather than the previous `StaticRoutesGenerator` which assumed controllers were singleton objects.
 
 To revert back to the earlier behavior (if you have "object MyController" in your code, for example), please add:
 
@@ -168,23 +168,37 @@ class HomeController @Inject() (environment: play.api.Environment, configuration
 Generally the components you use should not need to depend on the entire application, but sometimes you have to deal with legacy components that require one. You can handle this by injecting the application into one of your components:
 
 ```
-class FooController @Inject() (implicit app: Application) extends Controller {
+class FooController @Inject() (appProvider: Provider[Application]) extends Controller {
+  implicit lazy val app = appProvider.get()
   def bar = Action {
     Ok(Foo.bar(app))
   }
 }
 ```
 
+Note that you usually want to use a `Provider[Application]` in this case to avoid circular dependencies.
+
 Even better, you can make your own `*Api` class that turns the static methods into instance methods:
 
 ```
-class FooApi @Inject() (implicit app: Application) {
+class FooApi @Inject() (appProvider: Provider[Application]) {
+  implicit lazy val app = appProvider.get()
   def bar = Foo.bar(app)
   def baz = Foo.baz(app)
 }
 ```
 
 This allows you to benefit from the testability you get with DI and still use your library that uses global state.
+
+## Guice injector and Guice builder changes
+
+By default, Guice can resolve your circular dependency by proxying an interface in the cycle. Since circular dependencies are generally a code smell, and you can also inject Providers to break the cycle, we have chosen to disable this feature on the default Guice injector. Other DI frameworks also are not likely to have this feature, so it can lead to problems when writing Play modules.
+
+Now there are four new methods on the Guice builders (`GuiceInjectorBuilder` and `GuiceApplicationBuilder`) for customizing how Guice injects your classes:
+* `disableCircularProxies`: disables the above-mentioned behaviour of proxying interfaces to resolve circular dependencies. To allow proxying use `disableCircularProxies(false)`.
+* `requireExplicitBindings`: instructs the injector to only inject classes that are explicitly bound in a module. Can be useful in testing for verifying bindings.
+* `requireAtInjectOnConstructors`: requires a constructor annotated with @Inject to instantiate a class.
+* `requireExactBindingAnnotations`: disables the error-prone feature in Guice where it can substitute a binding for @Named Foo when injecting @Named("foo") Foo.
 
 ## CSRF changes
 

@@ -26,6 +26,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
    */
   protected def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
     initialBuilder
+      .disableCircularProxies()
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
       .overrides(overrides(context): _*)
