@@ -5,10 +5,11 @@ package play.api.libs.json
 
 import java.util.{ Calendar, Date, TimeZone }
 
-import com.fasterxml.jackson.databind.{ ObjectMapper, JsonMappingException, JsonNode }
-
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
+
+import scala.collection.immutable.ListMap
 
 object JsonSpec extends org.specs2.mutable.Specification {
 
@@ -469,6 +470,37 @@ object JsonSpec extends org.specs2.mutable.Specification {
       )(unlift(TestCase.unapply))
 
       Json.toJson(TestCase("my-id", "foo", "bar")) must beEqualTo(js)
+    }
+
+    "keep the insertion order on ListMap" in {
+      val test = Json.toJson(
+        ListMap(
+          "name" -> "foo",
+          "zip" -> "foo",
+          "city" -> "foo"
+        ))
+      val req = """{"name":"foo", "zip":"foo", "city":"foo"}"""
+      test.toString must beEqualTo(Json.parse(req).toString).ignoreSpace
+    }
+    "keep insertion order on large ListMap" in {
+      val test = Json.toJson(
+        ListMap(
+          "name" -> "a", "zip" -> "foo", "city" -> "foo",
+          "address" -> "foo", "phone" -> "foo", "latitude" -> "foo",
+          "longitude" -> "foo", "hny" -> "foo", "hz" -> "foo",
+          "hek" -> "foo", "hev" -> "foo", "kny" -> "foo",
+          "kz" -> "foo", "kek" -> "foo", "kev" -> "foo",
+          "szeny" -> "foo", "szez" -> "foo", "szeek" -> "foo",
+          "szeev" -> "foo", "csny" -> "foo", "csz" -> "foo",
+          "csek" -> "foo", "csev" -> "foo", "pny" -> "foo",
+          "pz" -> "foo", "pek" -> "foo", "pev" -> "foo",
+          "szony" -> "foo", "szoz" -> "foo", "szoek" -> "foo",
+          "szoev" -> "foo", "vny" -> "foo", "vz" -> "foo",
+          "vek" -> "foo", "vev" -> "foo"
+        )
+      )
+      val req = """{"name": "a", "zip": "foo", "city": "foo", "address": "foo", "phone": "foo", "latitude": "foo", "longitude": "foo", "hny": "foo", "hz": "foo", "hek": "foo", "hev": "foo", "kny": "foo", "kz": "foo", "kek": "foo", "kev": "foo", "szeny": "foo", "szez": "foo", "szeek": "foo", "szeev": "foo", "csny": "foo", "csz": "foo", "csek": "foo", "csev": "foo", "pny": "foo", "pz": "foo", "pek": "foo", "pev": "foo", "szony": "foo", "szoz": "foo", "szoek": "foo", "szoev": "foo", "vny": "foo", "vz": "foo", "vek": "foo", "vev": "foo"}"""
+      test.toString must beEqualTo(Json.parse(req).toString).ignoreSpace
     }
   }
 }
