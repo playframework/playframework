@@ -14,6 +14,6 @@ class Assets @Inject() (errorHandler: HttpErrorHandler) extends controllers.Asse
 
 import play.api.mvc._
 
-class Application extends Controller {
+class HomeController extends Controller {
   def index = Action(Ok)
 }
