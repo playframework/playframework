@@ -64,7 +64,7 @@ Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. I
 
 ```scala
 // Typesafe snapshots
-resolvers += "Typesafe Snapshots" at "https://repo.typesafe.com/typesafe/snapshots/"
+resolvers += "Typesafe Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 ```
 
 To ensure the proper sbt version is used, make sure you have the following in `project/build.properties`:
