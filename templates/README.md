@@ -21,7 +21,7 @@ The templates sources are partly generated, which means you need to "build" them
 you can run them.
 
 There is a `syncTemplates` command that will build the templates and keep them in sync
-with the sources as they change. The most convenvient way to use this is to use triggered
+with the sources as they change. The most convenient way to use this is to use triggered
 execution:
 
     sbt ~syncTemplates
