@@ -12,10 +12,10 @@ import scala.Tuple2;
 
 public class DefaultHttpRequestHandler implements HttpRequestHandler {
 
-    private final play.api.http.HttpRequestHandler underlying;
+    private final play.api.http.JavaCompatibleHttpRequestHandler underlying;
 
     @Inject
-    public DefaultHttpRequestHandler(play.api.http.HttpRequestHandler underlying) {
+    public DefaultHttpRequestHandler(play.api.http.JavaCompatibleHttpRequestHandler underlying) {
         this.underlying = underlying;
     }
 
