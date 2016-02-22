@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing Play Modules
 
-> **NOTE**: This page covers the new [[module system|ScalaDependencyInjection#Play-libraries]] to add functionality to Play.   
+> **Note:** This page covers the new [[module system|ScalaDependencyInjection#Play-libraries]] to add functionality to Play.
 >
 > The deprecated `play.api.Plugin` system is removed as of 2.5.x.  
 

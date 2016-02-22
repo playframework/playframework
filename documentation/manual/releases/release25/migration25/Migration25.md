@@ -95,7 +95,7 @@ As part of the on going efforts to move away from global state in Play, `GlobalS
 
 ## Removed Plugins API
 
-The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The Plugins API has been superceded by Play's dependency injection and module system which provides a cleaner and more flexible way to build reusable components.  For details on how to migrate from plugins to dependency injection see the [[Play 2.4 migration guide|PluginsToModules]].
+The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The Plugins API has been superseded by Play's dependency injection and module system which provides a cleaner and more flexible way to build reusable components.  For details on how to migrate from plugins to dependency injection see the [[Play 2.4 migration guide|PluginsToModules]].
 
 ## Routes generated with InjectedRoutesGenerator
 
