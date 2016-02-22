@@ -4,7 +4,7 @@ In order to better fit in to the Java 8 ecosystem, and to allow Play Java users 
 
 ## New Java APIs
 
-There are several API changes to accomodate writing filters and HTTP request handlers in Java, in particular with the `HttpRequestHandler` interface. If you are using Scala for these components you are still free to use the Scala API if you wish.
+There are several API changes to accommodate writing filters and HTTP request handlers in Java, in particular with the `HttpRequestHandler` interface. If you are using Scala for these components you are still free to use the Scala API if you wish.
 
 ### Filter API
 

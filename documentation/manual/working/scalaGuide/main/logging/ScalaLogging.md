@@ -61,7 +61,7 @@ java.lang.ArithmeticException: / by zero
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
 #### Creating your own loggers
-Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexibile configuration, filtering of log output, and pinpointing the source of log messages.
+Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.apply` factory method with a name argument:
 

@@ -25,7 +25,7 @@ Since `ActionBuilder` provides all the different methods of building actions, th
 
 ### Composing actions
 
-In most applications, we will want to have multiple action builders, some that do different types of authentication, some that provide different types of generic functionality, etc.  In which case, we won't want to rewrite our logging action code for each type of action builder, we will want to define it in a reuseable way.
+In most applications, we will want to have multiple action builders, some that do different types of authentication, some that provide different types of generic functionality, etc.  In which case, we won't want to rewrite our logging action code for each type of action builder, we will want to define it in a reusable way.
 
 Reusable action code can be implemented by wrapping actions:
 
