@@ -8,16 +8,16 @@ As well as the information contained on this page, there is more detailed migrat
 - [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka streams, now used in place of iteratees in many Play APIs
 - [[Java Migration Guide|JavaMigration25]] - Migrating Java applications. Play now uses native Java types for functional types and offers several new customizable components in Java.
 
-## sbt upgrade to 0.13.9
+## sbt upgrade to 0.13.11
 
-Play 2.5 now requires a minimum of sbt 0.13.9. The 0.13.9 release of sbt has a number of [improvements and bug fixes](https://github.com/sbt/sbt/releases/tag/v0.13.9).
+Although Play 2.5 will still work with sbt 0.13.8, we recommend upgrading to the latest sbt version, 0.13.11.  The 0.13.11 release of sbt has a number of [improvements and bug fixes](https://github.com/sbt/sbt/releases/tag/v0.13.11).
 
 ### How to migrate
 
 Update your `project/build.properties` so that it reads:
 
 ```
-sbt.version=0.13.9
+sbt.version=0.13.11
 ```
 
 ## Scala 2.10 support discontinued
