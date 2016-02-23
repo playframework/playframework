@@ -39,37 +39,52 @@ public class Form<T> {
     
     /**
      * Instantiates a dynamic form.
+     *
+     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static DynamicForm form() {
-        return new DynamicForm();
+        return new DynamicForm(play.api.Play.current().injector().instanceOf(MessagesApi.class));
     }
     
     /**
      * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<>(clazz);
+        return new Form<>(clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class));
     }
     
     /**
      * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<>(name, clazz);
+        return new Form<>(name, clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class));
     }
     
     /**
      * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group);
+        return new Form<>(name, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class));
     }
 
     /**
      * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group);
+        return new Form<>(null, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class));
     }
 
     // ---
@@ -92,8 +107,13 @@ public class Form<T> {
     private final Map<String,List<ValidationError>> errors;
     private final Optional<T> value;
     private final Class<?> groups;
+    final MessagesApi messagesApi;
 
-    private T blankInstance() {
+    public Class<T> getBackedType() {
+        return backedType;
+    }
+
+    protected T blankInstance() {
         try {
             return backedType.newInstance();
         } catch(Exception e) {
@@ -106,22 +126,22 @@ public class Form<T> {
      *
      * @param clazz wrapped class
      */
-    public Form(Class<T> clazz) {
-        this(null, clazz);
+    public Form(Class<T> clazz, MessagesApi messagesApi) {
+        this(null, clazz, messagesApi);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(),  null);
+    public Form(String name, Class<T> clazz, MessagesApi messagesApi) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, Class<?> groups) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups);
+    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value) {
-        this(rootName, clazz, data, errors, value, null);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi) {
+        this(rootName, clazz, data, errors, value, null, messagesApi);
     }
 
     /**
@@ -131,14 +151,16 @@ public class Form<T> {
      * @param data the current form data (used to display the form)
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param messagesApi needed to look up various messages
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
         this.errors = errors;
         this.value = value;
         this.groups = groups;
+        this.messagesApi = messagesApi;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -418,7 +440,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
+            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -447,9 +469,9 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
+                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi);
         }
     }
 
@@ -504,7 +526,8 @@ public class Form<T> {
                 new HashMap<>(),
                 new HashMap<String,ValidationError>(),
                 Optional.ofNullable(value),
-                groups
+                groups,
+                messagesApi
         );
     }
 
@@ -572,35 +595,15 @@ public class Form<T> {
 
     /**
      * Returns the form errors serialized as Json.
-     *
-     * @deprecated use {@link #errorsAsJson(MessagesApi)} instead, since 2.5.0
      */
-    @Deprecated
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
-        return errorsAsJson(play.api.Play.current().injector().instanceOf(MessagesApi.class));
-    }
-
-    /**
-     * Returns the form errors serialized as Json.
-     */
-    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(MessagesApi messagesApi) {
-        return errorsAsJson(messagesApi, Http.Context.current() != null ? Http.Context.current().lang() : null);
+        return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
     }
 
     /**
      * Returns the form errors serialized as Json using the given Lang.
-     *
-     * @deprecated use {@link #errorsAsJson(MessagesApi, play.i18n.Lang)} instead, since 2.5.0
      */
-    @Deprecated
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
-        return errorsAsJson(play.api.Play.current().injector().instanceOf(MessagesApi.class), lang);
-    }
-
-    /**
-     * Returns the form errors serialized as Json using the given Lang.
-     */
-    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(MessagesApi messagesApi, play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
         for (String key : errors.keySet()) {
             List<ValidationError> errs = errors.get(key);

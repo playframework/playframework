@@ -7,23 +7,30 @@ import validation.Constraints.{ MaxLength, Required }
 import beans.BeanProperty
 import org.specs2.mutable.Specification
 import scala.collection.JavaConverters._
+import play.api.{ Configuration, Environment }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.data.FormFactory
 
 class PartialValidationSpec extends Specification {
+
+  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+  val formFactory = new FormFactory(new play.i18n.MessagesApi(messagesApi))
+
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {
-      val form = Form.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
+      val form = formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
       form.errors().asScala must beEmpty
     }
 
     "fail when a field in the group fails validation" in {
-      val form = Form.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop3" -> "abc").asJava)
+      val form = formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop3" -> "abc").asJava)
       form.hasErrors must_== true
     }
 
     "support multiple validations for the same group" in {
-      val form1 = Form.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello").asJava)
+      val form1 = formFactory.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello").asJava)
       form1.hasErrors must_== true
-      val form2 = Form.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello", "prop3" -> "abcd").asJava)
+      val form2 = formFactory.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello", "prop3" -> "abcd").asJava)
       form2.hasErrors must_== true
     }
   }

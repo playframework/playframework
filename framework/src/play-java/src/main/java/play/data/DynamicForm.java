@@ -6,6 +6,7 @@ package play.data;
 import java.util.*;
 
 import play.data.validation.*;
+import play.i18n.MessagesApi;
 
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code>
@@ -17,8 +18,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Creates a new empty dynamic form.
      */
-    public DynamicForm() {
-        super(DynamicForm.Dynamic.class);
+    public DynamicForm(MessagesApi messagesApi) {
+        super(DynamicForm.Dynamic.class, messagesApi);
         rawData = new HashMap<>();
     }
     
@@ -29,8 +30,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value if the form submission was successful
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value);
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
@@ -59,7 +60,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value());
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi);
     }
 
     /**
@@ -99,7 +100,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value());
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi);
     }
     
     /**

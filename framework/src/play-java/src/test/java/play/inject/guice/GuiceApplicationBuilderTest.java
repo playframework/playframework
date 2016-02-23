@@ -71,6 +71,7 @@ public class GuiceApplicationBuilderTest {
     public void disableLoadedModules() {
         Injector injector = new GuiceApplicationBuilder()
             .disable(play.api.i18n.I18nModule.class)
+            .disable(play.data.FormFactoryModule.class)
             .injector();
 
         exception.expect(com.google.inject.ConfigurationException.class);
