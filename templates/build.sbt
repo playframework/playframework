@@ -49,7 +49,7 @@ templateParameters := Map(
   "PLAY_VERSION" -> version.value,
   "SCALA_VERSION" -> scalaVersion.value,
   "PLAY_DOCS_URL" -> playDocsUrl(version.value),
-  "SBT_VERSION" -> "0.13.9",
+  "SBT_VERSION" -> "0.13.11",
   "COFFEESCRIPT_VERSION" -> "1.0.0",
   "LESS_VERSION" -> "1.1.0",
   "JSHINT_VERSION" -> "1.0.3",
