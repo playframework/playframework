@@ -16,7 +16,8 @@ object Resources {
 
   def isDirectory(url: URL) = url.getProtocol match {
     case "file" => new File(url.toURI).isDirectory
-    case "jar" => isJarResourceDirectory(url)
+    case "jar" => isZipResourceDirectory(url)
+    case "zip" => isZipResourceDirectory(url)
     case _ => throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
@@ -61,13 +62,18 @@ object Resources {
     }
   }
 
-  private def isJarResourceDirectory(url: URL): Boolean = {
+  private def isZipResourceDirectory(url: URL): Boolean = {
     val path = url.getPath
     val bangIndex = url.getFile.indexOf("!")
 
-    val jarFile: File = new File(URI.create(path.substring(0, bangIndex)))
+    val startIndex = if (path.startsWith("zip:")) 4 else 0
+    val fileUri = path.substring(startIndex, bangIndex)
+    val fileProtocol = if (fileUri.startsWith("/")) "file://" else ""
+    val absoluteFileUri = fileProtocol + fileUri
+
+    val zipFile: File = new File(URI.create(absoluteFileUri))
     val resourcePath = URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
-    val zip = new ZipFile(jarFile)
+    val zip = new ZipFile(zipFile)
 
     try {
       val entry = zip.getEntry(resourcePath)

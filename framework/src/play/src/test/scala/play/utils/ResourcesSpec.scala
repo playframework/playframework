@@ -1,7 +1,7 @@
 package play.utils
 
 import java.io.{FileInputStream, BufferedInputStream, File, FileOutputStream}
-import java.net.{URI, URLEncoder, URL}
+import java.net.{URI, URLEncoder, URL, URLStreamHandler, URLConnection}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import org.specs2.mutable.Specification
 
@@ -62,7 +62,27 @@ object ResourcesSpec extends Specification {
       isDirectory(url) must beFalse
     }
 
-    "throw an exception for a URL with a protocol other than 'file'/'jar'" in {
+    "return true for a directory resource URL with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, dirRes), EmptyURLStreamHandler)
+      isDirectory(url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the zip path with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(spacesJar, dirRes), EmptyURLStreamHandler)
+      isDirectory(url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the file path with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, dirSpacesRes), EmptyURLStreamHandler)
+      isDirectory(url) must beTrue
+    }
+
+    "return false for a file resource URL with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, fileRes), EmptyURLStreamHandler)
+      isDirectory(url) must beFalse
+    }
+
+    "throw an exception for a URL with a protocol other than 'file'/'jar'/'zip'" in {
       val url = new URL("ftp", "", "/some/path")
       isDirectory(url) must throwAn[IllegalArgumentException]
     }
@@ -76,8 +96,18 @@ object ResourcesSpec extends Specification {
     }
   }
 
+  object EmptyURLStreamHandler extends URLStreamHandler {
+    def openConnection(u: URL) = new URLConnection(u) {
+      def connect() {}
+    }
+  }
+
   private def createJarUrl(jarFile: File, file: File) = {
     s"${jarFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
+  }
+
+  private def createZipUrl(zipFile: File, file: File) = {
+    s"zip:${zipFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
   }
 
   private def createTempDir(prefix: String, suffix: String, parent: File = null) = {
