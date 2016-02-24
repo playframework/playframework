@@ -17,7 +17,6 @@ import static java.lang.annotation.RetentionPolicy.*;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 
-import static java.util.stream.Collectors.toList;
 import static play.libs.F.*;
 
 import play.libs.F.Tuple;

@@ -8,7 +8,6 @@ import play.api.http.Status$;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.streams.Accumulator;
-import scala.compat.java8.FutureConverters;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;

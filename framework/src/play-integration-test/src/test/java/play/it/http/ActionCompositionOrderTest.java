@@ -3,7 +3,6 @@
  */
 package play.it.http;
 
-import play.libs.F;
 import play.mvc.*;
 import play.test.Helpers;
 

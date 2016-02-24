@@ -12,9 +12,6 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.api.{ Configuration, Environment, GlobalSettings, PlayConfig }
 import play.core.j.{ JavaHttpRequestHandlerDelegate, JavaHandler, JavaHandlerComponents }
-import play.http
-import play.http.HandlerForRequest
-import play.mvc.Http
 import play.utils.Reflect
 
 /**

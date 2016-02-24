@@ -9,7 +9,6 @@ import akka.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.iteratee._
 import play.api.libs.json._
-import play.api.libs.concurrent.Akka
 import play.api.libs.streams.{ AkkaStreams, ActorFlow, Streams }
 
 import scala.concurrent.{ ExecutionContext, Promise, Future }

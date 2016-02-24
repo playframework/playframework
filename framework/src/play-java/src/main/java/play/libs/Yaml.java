@@ -4,9 +4,6 @@
 package play.libs;
 
 import java.io.*;
-import java.util.*;
-
-import org.yaml.snakeyaml.*;
 import org.yaml.snakeyaml.constructor.*;
 import play.Application;
 import play.api.Play;

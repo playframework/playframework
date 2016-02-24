@@ -4,7 +4,6 @@
 package play.it.http;
 
 import play.http.ActionCreator;
-import play.http.HttpRequestHandler;
 import play.mvc.*;
 import play.test.Helpers;
 

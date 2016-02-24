@@ -4,12 +4,10 @@
 package play.core.server
 
 import java.io._
-import java.util.Properties
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api._
 import play.api.mvc._
-import play.api.libs.concurrent.ActorSystemProvider
 import play.core._
 import play.utils.Threads
 import scala.collection.JavaConverters._

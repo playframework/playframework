@@ -9,7 +9,6 @@ import play.mvc.Http.RequestHeader
 import play.routing.Router.RouteDocumentation
 
 import scala.collection.JavaConverters._
-import scala.compat.java8.FunctionConverters._
 import scala.compat.java8.OptionConverters._
 
 /**

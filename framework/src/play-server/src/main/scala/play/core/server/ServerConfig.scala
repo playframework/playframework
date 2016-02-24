@@ -3,7 +3,6 @@
  */
 package play.core.server
 
-import com.typesafe.config._
 import java.io.File
 import java.util.Properties
 import play.api.{ Configuration, Mode }

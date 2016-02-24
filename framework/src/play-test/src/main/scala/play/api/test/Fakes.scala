@@ -3,8 +3,6 @@
  */
 package play.api.test
 
-import javax.inject.{ Inject, Provider }
-
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.util.ByteString
@@ -14,10 +12,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.api.routing.Router
 import scala.concurrent.Future
 import xml.NodeSeq
-import scala.runtime.AbstractPartialFunction
 import play.api.libs.Files.TemporaryFile
 
 /**

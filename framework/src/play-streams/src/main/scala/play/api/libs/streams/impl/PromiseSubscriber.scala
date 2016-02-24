@@ -5,10 +5,7 @@ package play.api.libs.streams.impl
 
 import org.reactivestreams._
 import play.api.libs.concurrent.StateMachine
-import play.api.libs.iteratee.Execution
-import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, Promise }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.Promise
 
 private[streams] object PromiseSubscriber {
   /**
