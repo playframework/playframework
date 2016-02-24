@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring Cipher Suites
 
 A [cipher suite](https://en.wikipedia.org/wiki/Cipher_suite) is really four different ciphers in one, describing the key exchange, bulk encryption, message authentication and random number function.  There is [no official naming convention](https://utcc.utoronto.ca/~cks/space/blog/tech/SSLCipherNames) of cipher suites, but most cipher suites are described in order -- for example, "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" uses DHE for key exchange, RSA for server certificate authentication, 256-bit key AES in CBC mode for the stream cipher, and SHA for the message authentication.

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 //
 
 // You can't define objects at the root level of an SBT file, so we do it inside a def

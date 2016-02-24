@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 // This is in its own package so that the UrlContext.q interpolator in the sird package doesn't make the
 // Quasiquote.q interpolator ambiguous.

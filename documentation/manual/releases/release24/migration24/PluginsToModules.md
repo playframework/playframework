@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Migrating Plugin to Module
 
 If you have implemented a Play plugin, please consider migrating your implementation to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html), instead of the deprecated Java `play.Plugin` or Scala `play.api.Plugin` types.

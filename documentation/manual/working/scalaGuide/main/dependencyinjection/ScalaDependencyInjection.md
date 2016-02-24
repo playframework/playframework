@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Runtime Dependency Injection
 
 Dependency injection is a way that you can separate your components so that they are not directly dependent on each other, rather, they get injected into each other.

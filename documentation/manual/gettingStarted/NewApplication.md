@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Creating a new application
 
 ## Create a new application with the activator command
@@ -40,7 +40,7 @@ New Play applications can also be created with the Activator UI.  To use the Act
 $ activator ui
 ```
 
-You can read the documentation for using the Activator UI [here](https://typesafe.com/activator/docs).
+You can read the documentation for using the Activator UI [here](https://lightbend.com/activator/docs).
 
 ## Create a new application without Activator
 
@@ -54,7 +54,7 @@ In `project/plugins.sbt`, add:
 
 ```scala
 // The Typesafe repository
-resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
+resolvers += "Typesafe repository" at "https://dl.bintray.com/typesafe/maven-releases/"
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
