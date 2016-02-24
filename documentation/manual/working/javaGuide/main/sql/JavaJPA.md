@@ -59,7 +59,7 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 @[jpa-externalize-resources](code/jpa.sbt)
 
-Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. Note that the content of conf directory will still be available in the classpath due to it being inclued in the applications jar file.
+Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. Note that the content of conf directory will still be available in the classpath due to it being included in the applications jar file.
 
 
 ## Annotating JPA actions with `@Transactional`

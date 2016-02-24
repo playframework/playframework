@@ -9,6 +9,8 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[user](code/javaguide/forms/u1/User.java)
 
+To wrap a class you have to inject a `play.data.FormFactory` into your Controller which then allows you to create the form:
+
 @[create](code/javaguide/forms/JavaForms.java)
 
 > **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/3.0.x/reference/validation.html).

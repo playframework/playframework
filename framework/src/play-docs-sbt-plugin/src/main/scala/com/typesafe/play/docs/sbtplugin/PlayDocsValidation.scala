@@ -3,7 +3,7 @@
  */
 package com.typesafe.play.docs.sbtplugin
 
-import java.io.{ Closeable, BufferedReader, InputStreamReader, InputStream }
+import java.io.{ BufferedReader, InputStreamReader, InputStream }
 import java.net.HttpURLConnection
 import java.util.concurrent.Executors
 import java.util.jar.JarFile

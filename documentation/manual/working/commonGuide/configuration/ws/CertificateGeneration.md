@@ -49,7 +49,7 @@ Owner: CN=example.com, OU=Example Org, O=Example Company, L=San Francisco, ST=Ca
 Issuer: CN=exampleCA, OU=Example Org, O=Example Company, L=San Francisco, ST=California, C=US
 ```
 
-> **NOTE**: Also see the [[Configuring HTTPS|ConfiguringHttps]] section for more information.
+> **Note:** Also see the [[Configuring HTTPS|ConfiguringHttps]] section for more information.
 
 ### Configuring example.com certificates in Nginx
 
@@ -81,7 +81,7 @@ You can check the certificate is what you expect by checking the server:
 keytool -printcert -sslserver example.com
 ```
 
-> **NOTE**: Also see the [[Setting up a front end HTTP server|HTTPServer]] section for more information.
+> **Note:** Also see the [[Setting up a front end HTTP server|HTTPServer]] section for more information.
 
 ## Client Configuration
 
@@ -116,7 +116,7 @@ play.ws.ssl {
 }
 ```
 
-> **NOTE**: Also see the [[Configuring Key Stores and Trust Stores|KeyStores]] section for more information.
+> **Note:** Also see the [[Configuring Key Stores and Trust Stores|KeyStores]] section for more information.
 
 ### Configure Client Authentication
 
@@ -157,7 +157,7 @@ play.ws.ssl {
 }
 ```
 
-> **NOTE**: Also see the [[Configuring Key Stores and Trust Stores|KeyStores]] section for more information.
+> **Note:** Also see the [[Configuring Key Stores and Trust Stores|KeyStores]] section for more information.
 
 ## Certificate Management Tools
 

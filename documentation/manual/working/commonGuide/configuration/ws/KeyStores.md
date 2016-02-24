@@ -25,7 +25,7 @@ play.ws.ssl {
 ```
 
 
-> **NOTE**: Trust stores should only contain CA certificates with public keys, usually JKS or PEM.  PKCS12 format is supported, but PKCS12 should not contain private keys in a trust store, as noted in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
+> **Note:** Trust stores should only contain CA certificates with public keys, usually JKS or PEM.  PKCS12 format is supported, but PKCS12 should not contain private keys in a trust store, as noted in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
 
 ## Configuring a Key Manager
 
@@ -47,7 +47,7 @@ play.ws.ssl {
 }
 ```
 
-> **NOTE**: A key store that holds private keys should use PKCS12 format, as indicated in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
+> **Note:** A key store that holds private keys should use PKCS12 format, as indicated in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
 
 ## Configuring a Store
 

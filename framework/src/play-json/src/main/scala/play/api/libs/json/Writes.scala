@@ -3,28 +3,18 @@
  */
 package play.api.libs.json
 
-import java.time.{
-  Instant,
-  LocalDate,
-  LocalDateTime,
-  OffsetDateTime,
-  ZoneId,
-  ZoneOffset,
-  ZonedDateTime
-}
-import java.time.temporal.Temporal
 import java.time.format.DateTimeFormatter
+import java.time.temporal.Temporal
+import java.time.{ Instant, LocalDate, LocalDateTime, OffsetDateTime, ZoneOffset, ZonedDateTime }
 
+import com.fasterxml.jackson.databind.JsonNode
 import play.api.libs.functional.ContravariantFunctor
+import play.api.libs.json.Json._
 import play.api.libs.json.jackson.JacksonJson
 
 import scala.annotation.implicitNotFound
 import scala.collection._
 import scala.reflect.ClassTag
-
-import com.fasterxml.jackson.databind.JsonNode
-
-import Json._
 
 /**
  * Json serializer: write an implicit to define a serializer for any type
@@ -188,22 +178,22 @@ trait DefaultWrites {
   /**
    * Serializer for Array[T] types.
    */
-  implicit def arrayWrites[T: ClassTag](implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
-    def writes(ts: Array[T]) = JsArray(ts.map(t => toJson(t)(fmt)).toList)
+  implicit def arrayWrites[T: ClassTag: Writes]: Writes[Array[T]] = Writes[Array[T]] { ts =>
+    JsArray(ts.map(toJson(_)).toSeq)
   }
 
   /**
    * Serializer for Map[String,V] types.
    */
-  implicit def mapWrites[V](implicit fmtv: Writes[V]): OWrites[collection.immutable.Map[String, V]] = OWrites[collection.immutable.Map[String, V]] { ts =>
-    JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) }.toList)
+  implicit def mapWrites[V: Writes]: OWrites[Map[String, V]] = OWrites[Map[String, V]] { ts =>
+    JsObject(ts.mapValues(toJson(_)).toSeq)
   }
 
   /**
    * Serializer for Traversables types.
    */
-  implicit def traversableWrites[A: Writes] = new Writes[Traversable[A]] {
-    def writes(as: Traversable[A]) = JsArray(as.map(toJson(_)).toSeq)
+  implicit def traversableWrites[A: Writes] = Writes[Traversable[A]] { as =>
+    JsArray(as.map(toJson(_)).toSeq)
   }
 
   /**

@@ -3,21 +3,12 @@
  */
 package play.libs.oauth;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 
-import oauth.signpost.AbstractOAuthConsumer;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthProvider;
 import oauth.signpost.exception.OAuthException;
-import oauth.signpost.http.HttpRequest;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 
 import org.asynchttpclient.oauth.OAuthSignatureCalculator;
 import play.libs.ws.WSSignatureCalculator;

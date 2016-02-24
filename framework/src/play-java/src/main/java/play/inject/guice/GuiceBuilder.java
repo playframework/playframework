@@ -5,15 +5,15 @@ package play.inject.guice;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
-import java.io.File;
-import java.util.Map;
-import play.api.inject.guice.GuiceableModule;
 import play.Configuration;
 import play.Environment;
-import play.inject.DelegateInjector;
+import play.Mode;
+import play.api.inject.guice.GuiceableModule;
 import play.inject.Injector;
 import play.libs.Scala;
-import play.Mode;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * A builder for creating Guice-backed Play Injectors.

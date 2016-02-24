@@ -3,7 +3,7 @@
  */
 package play.api.libs
 
-import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.scaladsl.Flow
 import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
 import play.api.mvc._
 import play.api.libs.iteratee._

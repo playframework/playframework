@@ -43,7 +43,7 @@ These settings are based in part on [keylength.com](https://www.keylength.com/),
 >
 > The date for disabling/removing 1024-bit root certificates will be dependent on the state of the art in public key cryptography, but under no circumstances should any party expect continued support for this modulus size past December 31, 2013. As mentioned above, this date could get moved up substantially if new attacks are discovered. We recommend all parties involved in secure transactions on the web move away from 1024-bit moduli as soon as possible.
 
-**NOTE:** because weak key sizes also apply to root certificates (which is not included in the certificate chain available to the PKIX certpath checker included in JSSE), setting this option will check the accepted issuers in any configured trustmanagers and keymanagers, including the default.
+> **Note:** because weak key sizes also apply to root certificates (which is not included in the certificate chain available to the PKIX certpath checker included in JSSE), setting this option will check the accepted issuers in any configured trustmanagers and keymanagers, including the default.
 
 Over 95% of trusted leaf certificates and 95% of trusted signing certificates use [NIST recommended key sizes](http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf), so this is considered a safe default.
 
@@ -51,7 +51,7 @@ Over 95% of trusted leaf certificates and 95% of trusted signing certificates us
 
 To disable signature algorithms and weak key sizes globally across the JVM, use the `jdk.certpath.disabledAlgorithms` [security property](http://simsmi.blogspot.com/2011/07/java-se-7-release-security-enhancements.html).  Setting security properties is covered in more depth in [[Configuring Cipher Suites|CipherSuites]] section.
 
-> **NOTE** if configured, the `jdk.certpath.disabledAlgorithms` property should contain the settings from both `disabledKeyAlgorithms` and `disabledSignatureAlgorithms`.
+> **Note:** if configured, the `jdk.certpath.disabledAlgorithms` property should contain the settings from both `disabledKeyAlgorithms` and `disabledSignatureAlgorithms`.
 
 ## Debugging Certificate Validation
 

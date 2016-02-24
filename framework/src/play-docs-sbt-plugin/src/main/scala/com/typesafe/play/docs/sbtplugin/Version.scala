@@ -3,8 +3,6 @@
  */
 package com.typesafe.play.docs.sbtplugin
 
-import util.control.Exception
-
 private[sbtplugin] object Version {
   private val versionRegex = """(\d+)\.(\d+)\.(\d+)(-\S+)?""".r
   def from(version: String): Version = version match {

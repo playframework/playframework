@@ -3,8 +3,7 @@
  */
 package play.api.test
 
-import javax.inject.{ Inject, Provider }
-
+import javax.net.ssl.SSLSession
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.util.ByteString
@@ -14,10 +13,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.api.routing.Router
 import scala.concurrent.Future
 import xml.NodeSeq
-import scala.runtime.AbstractPartialFunction
 import play.api.libs.Files.TemporaryFile
 
 /**
@@ -37,9 +34,9 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, sslSession: Option[SSLSession] = None) extends Request[A] {
 
-  private def _copy[B](
+  def copyFakeRequest[B](
     id: Long = this.id,
     tags: Map[String, String] = this.tags,
     uri: String = this.uri,
@@ -49,6 +46,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     headers: Headers = this.headers,
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
+    sslSession: Option[SSLSession] = this.sslSession,
     body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
       method, uri, headers, body, remoteAddress, version, id, tags, secure
@@ -70,7 +68,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = headers.replace(newHeaders: _*))
+    copyFakeRequest(headers = headers.replace(newHeaders: _*))
   }
 
   /**
@@ -108,7 +106,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
+    copyFakeRequest(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   def certs = Future.successful(IndexedSeq.empty)
@@ -117,42 +115,42 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    * Adds a JSON body to the request.
    */
   def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
-    _copy(body = AnyContentAsJson(json))
+    copyFakeRequest(body = AnyContentAsJson(json))
   }
 
   /**
    * Adds an XML body to the request.
    */
   def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
-    _copy(body = AnyContentAsXml(xml))
+    copyFakeRequest(body = AnyContentAsXml(xml))
   }
 
   /**
    * Adds a text body to the request.
    */
   def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
-    _copy(body = AnyContentAsText(text))
+    copyFakeRequest(body = AnyContentAsText(text))
   }
 
   /**
    * Adds a raw body to the request
    */
   def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
+    copyFakeRequest(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
   }
 
   /**
    * Adds a multipart form data body to the request
    */
   def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
-    _copy(body = AnyContentAsMultipartFormData(form))
+    copyFakeRequest(body = AnyContentAsMultipartFormData(form))
   }
 
   /**
    * Adds a body to the request.
    */
   def withBody[B](body: B): FakeRequest[B] = {
-    _copy(body = body)
+    copyFakeRequest(body = body)
   }
 
   /**

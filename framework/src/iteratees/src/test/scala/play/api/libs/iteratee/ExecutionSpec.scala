@@ -6,11 +6,9 @@ package play.api.libs.iteratee
 import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
-import java.io.OutputStream
-import java.util.concurrent.{ CountDownLatch, TimeUnit }
-import scala.concurrent.{ ExecutionContext, Promise, Future, Await }
+import scala.concurrent.{ ExecutionContext, Future, Await }
 import scala.concurrent.duration.{ Duration, SECONDS }
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 object ExecutionSpec extends Specification {
   import Execution.trampoline

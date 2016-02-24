@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
 # Global Settings
 
-> **NOTE**: The `GlobalSettings` class is deprecated in 2.5.x.  Please see the [[Removing `GlobalSettings`|GlobalSettings]] page for how to migrate away from GlobalSettings. 
+> **Note:** The `GlobalSettings` class is deprecated in 2.5.x.  Please see the [[Removing `GlobalSettings`|GlobalSettings]] page for how to migrate away from GlobalSettings.
 
 ## The Global object
 

@@ -6,7 +6,7 @@ package play.api.libs.streams.impl
 import org.reactivestreams._
 import play.api.libs.concurrent.StateMachine
 import play.api.libs.iteratee.Execution
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 /*

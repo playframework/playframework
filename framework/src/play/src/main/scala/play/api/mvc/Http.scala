@@ -4,6 +4,7 @@
 package play.api.mvc {
 
   import java.util.Locale
+  import javax.net.ssl.SSLSession
 
   import play.api._
   import play.api.http._
@@ -86,6 +87,11 @@ package play.api.mvc {
      * Is the client using SSL?
      */
     def secure: Boolean
+
+    /**
+     * The SSLSession used during SSL requests.
+     */
+    def sslSession: Option[SSLSession]
 
     // -- Computed
 
@@ -196,7 +202,7 @@ package play.api.mvc {
       headers: Headers = this.headers,
       remoteAddress: => String = this.remoteAddress,
       secure: => Boolean = this.secure): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure)
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _sslSession) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, sslSession)
       new RequestHeader {
         override val id = _id
         override val tags = _tags
@@ -208,6 +214,7 @@ package play.api.mvc {
         override val headers = _headers
         override lazy val remoteAddress = _remoteAddress()
         override lazy val secure = _secure()
+        override val sslSession = _sslSession
       }
     }
 
@@ -248,7 +255,8 @@ package play.api.mvc {
       override val queryString: Map[String, Seq[String]],
       override val headers: Headers,
       override val remoteAddress: String,
-      override val secure: Boolean) extends RequestHeader {
+      override val secure: Boolean,
+      override val sslSession: Option[SSLSession]) extends RequestHeader {
   }
 
   /**
@@ -279,6 +287,8 @@ package play.api.mvc {
       override def headers = self.headers
       override def remoteAddress = self.remoteAddress
       override def secure = self.secure
+      override def sslSession = self.sslSession
+
       override lazy val body = f(self.body)
     }
 
@@ -296,7 +306,8 @@ package play.api.mvc {
       override val queryString: Map[String, Seq[String]],
       override val headers: Headers,
       override val remoteAddress: String,
-      override val secure: Boolean) extends Request[A] {
+      override val secure: Boolean,
+      override val sslSession: Option[SSLSession]) extends Request[A] {
   }
 
   object Request {
@@ -312,6 +323,8 @@ package play.api.mvc {
       override def headers = rh.headers
       override lazy val remoteAddress = rh.remoteAddress
       override lazy val secure = rh.secure
+      override def sslSession = rh.sslSession
+
       override val body = a
     }
   }
@@ -331,6 +344,7 @@ package play.api.mvc {
     override def version = request.version
     override def remoteAddress = request.remoteAddress
     override def secure = request.secure
+    override def sslSession = request.sslSession
   }
 
   /**

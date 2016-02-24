@@ -12,7 +12,6 @@ import java.net.InetSocketAddress
 import play.api.Logger
 import play.api.http.{ HttpEntity => PlayHttpEntity, HttpChunk }
 import play.api.http.HeaderNames._
-import play.api.libs.iteratee._
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 import scala.collection.immutable
@@ -70,6 +69,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       }
       override def remoteAddress = remoteConnection.address.getHostAddress
       override def secure = remoteConnection.secure
+      override def sslSession = None // TODO - Akka does not yet expose the SSLEngine used for the request
     }
   }
 

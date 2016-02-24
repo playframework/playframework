@@ -3,7 +3,6 @@
  */
 package play.api.libs.iteratee
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import Parsing._
 
 import org.specs2.mutable._

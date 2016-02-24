@@ -11,6 +11,7 @@ import akka.util.ByteString
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
 import io.netty.handler.codec.http._
+import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
 import play.api.http.HeaderNames._
@@ -33,18 +34,18 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
    */
   def convertRequest(requestId: Long,
     remoteAddress: InetSocketAddress,
-    secureProtocol: Boolean,
+    sslHandler: Option[SslHandler],
     request: HttpRequest): Try[RequestHeader] = {
 
     if (request.getDecoderResult.isFailure) {
       Failure(request.getDecoderResult.cause())
     } else {
-      tryToCreateRequest(request, requestId, remoteAddress, secureProtocol)
+      tryToCreateRequest(request, requestId, remoteAddress, sslHandler)
     }
   }
 
   /** Try to create the request. May fail if the path is invalid */
-  private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean): Try[RequestHeader] = {
+  private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
 
     Try {
       val uri = new QueryStringDecoder(request.getUri)
@@ -56,14 +57,14 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       }
       // wrapping into URI to handle absoluteURI
       val path = new URI(uri.path()).getRawPath
-      createRequestHeader(request, requestId, path, parameters, remoteAddress, secureProtocol)
+      createRequestHeader(request, requestId, path, parameters, remoteAddress, sslHandler)
     }
   }
 
   /** Create the request header */
   private def createRequestHeader(request: HttpRequest, requestId: Long, parsedPath: String,
     parameters: Map[String, Seq[String]], _remoteAddress: InetSocketAddress,
-    secureProtocol: Boolean): RequestHeader = {
+    sslHandler: Option[SslHandler]): RequestHeader = {
 
     new RequestHeader {
       override val id = requestId
@@ -75,15 +76,16 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override def queryString = parameters
       override val headers = new NettyHeadersWrapper(request.headers)
       private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, secureProtocol, headers)
+        forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, sslHandler.isDefined, headers)
       }
       override def remoteAddress = remoteConnection.address.getHostAddress
       override def secure = remoteConnection.secure
+      override def sslSession = sslHandler.map(_.engine().getSession)
     }
   }
 
   /** Create an unparsed request header. Used when even Netty couldn't parse the request. */
-  def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, secureProtocol: Boolean) = {
+  def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]) = {
 
     new RequestHeader {
       override def id = requestId
@@ -115,7 +117,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       }
       override val headers = new NettyHeadersWrapper(request.headers)
       override def remoteAddress = _remoteAddress.getAddress.toString
-      override def secure = secureProtocol
+      override def secure = sslHandler.isDefined
+      override def sslSession = sslHandler.map(_.engine().getSession)
     }
   }
 

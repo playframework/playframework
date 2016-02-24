@@ -55,7 +55,7 @@ Finally, here are the options themselves.
 
 ### Disabling Certificate Verification
 
-> **NOTE**: In most cases, people turn off certificate verification because they haven't generated certificates.  **There are other options besides disabling certificate verification.**
+> **Note:** In most cases, people turn off certificate verification because they haven't generated certificates.  **There are other options besides disabling certificate verification.**
 >
 > * [[Quick Start to WS SSL|WSQuickStart]] shows how to connect directly to a server using a self signed certificate.
 > * [[Generating X.509 Certificates|CertificateGeneration]] lists a number of GUI applications that will generate certificates for you.

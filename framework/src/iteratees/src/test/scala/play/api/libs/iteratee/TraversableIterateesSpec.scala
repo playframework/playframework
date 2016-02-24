@@ -4,8 +4,6 @@
 package play.api.libs.iteratee
 
 import org.specs2.mutable._
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.Duration
 
 object TraversableIterateesSpec extends Specification
     with IterateeSpecification with ExecutionSpecification {

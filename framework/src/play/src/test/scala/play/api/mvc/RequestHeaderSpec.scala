@@ -4,6 +4,7 @@
 package play.api.mvc
 
 import java.net.URI
+import javax.net.ssl.SSLSession
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
@@ -77,5 +78,6 @@ class RequestHeaderSpec extends Specification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    override def sslSession = None
   }
 }

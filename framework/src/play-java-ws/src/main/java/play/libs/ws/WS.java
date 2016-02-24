@@ -12,7 +12,6 @@ import java.io.IOException;
 import org.asynchttpclient.AsyncHttpClientConfig;
 
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
-import play.Application;
 import play.libs.ws.ahc.AhcWSClient;
 
 /**

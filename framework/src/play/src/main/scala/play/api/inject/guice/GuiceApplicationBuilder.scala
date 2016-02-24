@@ -6,7 +6,7 @@ package play.api.inject.guice
 import javax.inject.{ Provider, Inject }
 
 import com.google.inject.{ Module => GuiceModule }
-import play.api.mvc.{RequestHeader, Handler}
+import play.api.mvc.{ RequestHeader, Handler }
 import play.api.routing.Router
 import play.api._
 import play.api.inject.{ RoutesProvider, bind }
@@ -23,12 +23,13 @@ final case class GuiceApplicationBuilder(
   modules: Seq[GuiceableModule] = Seq.empty,
   overrides: Seq[GuiceableModule] = Seq.empty,
   disabled: Seq[Class[_]] = Seq.empty,
+  binderOptions: Set[BinderOption] = BinderOption.defaults,
   eagerly: Boolean = false,
   loadConfiguration: Environment => Configuration = Configuration.load,
   global: Option[GlobalSettings.Deprecated] = None,
   loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
-  environment, configuration, modules, overrides, disabled, eagerly
-) {
+    environment, configuration, modules, overrides, disabled, binderOptions, eagerly
+  ) {
 
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
@@ -130,11 +131,12 @@ final case class GuiceApplicationBuilder(
     modules: Seq[GuiceableModule] = modules,
     overrides: Seq[GuiceableModule] = overrides,
     disabled: Seq[Class[_]] = disabled,
+    binderOptions: Set[BinderOption] = binderOptions,
     eagerly: Boolean = eagerly,
     loadConfiguration: Environment => Configuration = loadConfiguration,
     global: Option[GlobalSettings] = global,
     loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, eagerly, loadConfiguration, global, loadModules)
+    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly, loadConfiguration, global, loadModules)
 
   /**
    * Implementation of Self creation for GuiceBuilder.
@@ -145,8 +147,9 @@ final case class GuiceApplicationBuilder(
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
     disabled: Seq[Class[_]],
+    binderOptions: Set[BinderOption] = binderOptions,
     eagerly: Boolean): GuiceApplicationBuilder =
-    copy(environment, configuration, modules, overrides, disabled, eagerly)
+    copy(environment, configuration, modules, overrides, disabled, binderOptions, eagerly)
 
   /**
    * Checks if the path contains the logger path

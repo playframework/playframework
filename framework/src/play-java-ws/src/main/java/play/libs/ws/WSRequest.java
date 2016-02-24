@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 
-import play.libs.F;
 
 import java.io.File;
 import java.io.InputStream;

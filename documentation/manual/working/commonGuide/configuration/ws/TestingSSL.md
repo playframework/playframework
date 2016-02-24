@@ -21,7 +21,7 @@ wsUrl("https://example.com").get()
 
 There are several points of where a connection can be attacked.  Writing these tests is fairly easy, and running these adversarial tests against unsuspecting programmers can be extremely satisfying.  
 
-> **NOTE**:This should not be taken as a complete list, but as a guide.  In situations where security is paramount, a review should be done by professional info-sec consultants.
+> **Note:**This should not be taken as a complete list, but as a guide.  In situations where security is paramount, a review should be done by professional info-sec consultants.
 
 ### Testing Certificate Verification
 
@@ -33,7 +33,7 @@ This is a very common failure.  There are a number of proxies like [mitmproxy](h
 
 The server should send a cipher suite that includes NULL or ANON cipher suites in the handshake.  If the client accepts it, it is sending unencrypted data.
 
-> **NOTE**: For a more in depth test of a server's cipher suites, see [sslyze](https://github.com/iSECPartners/sslyze).
+> **Note:** For a more in depth test of a server's cipher suites, see [sslyze](https://github.com/iSECPartners/sslyze).
 
 ### Testing Certificate Validation
 
@@ -41,11 +41,11 @@ To test for weak signatures, the server should send the client a certificate whi
 
 To test for weak certificate, The server should send the client a certificate which contains a public key with a key size under 1024 bits.  The client should reject it as being too weak.
 
-> **NOTE**: For a more in depth test of certification validation, see [tlspretense](https://github.com/iSECPartners/tlspretense) and [frankencert](https://github.com/sumanj/frankencert).
+> **Note:** For a more in depth test of certification validation, see [tlspretense](https://github.com/iSECPartners/tlspretense) and [frankencert](https://github.com/sumanj/frankencert).
 
 ### Testing Hostname Verification
 
 Write a test to "https://example.com".  If the server presents a certificate where the subjectAltName's dnsName is not example.com, the connection should terminate.
 
-> **NOTE**: For a more in depth test, see [dnschef](https://tersesystems.com/2014/03/31/testing-hostname-verification/). 
+> **Note:** For a more in depth test, see [dnschef](https://tersesystems.com/2014/03/31/testing-hostname-verification/).
 

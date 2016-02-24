@@ -13,8 +13,7 @@ import play.api._
 import play.api.mvc._
 import play.core.{ DefaultWebCommands, ApplicationProvider }
 
-import scala.util.{ Try, Success, Failure }
-import scala.util.control.NonFatal
+import scala.util.{ Success, Failure }
 import scala.concurrent.Future
 
 trait WebSocketable {

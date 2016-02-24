@@ -3,7 +3,6 @@
  */
 package play.db.jpa;
 
-import javax.inject.Singleton;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;

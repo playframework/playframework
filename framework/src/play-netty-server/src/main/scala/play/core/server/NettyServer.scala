@@ -4,15 +4,14 @@
 package play.core.server
 
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicLong
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.{ ConfigValue, Config, ConfigFactory }
 import java.net.InetSocketAddress
-import com.typesafe.netty.{ HandlerSubscriber, HandlerPublisher }
+import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.group.DefaultChannelGroup
@@ -157,6 +156,12 @@ class NettyServer(
         sslEngineProvider.map { sslEngineProvider =>
           val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
+          if (config.configuration.getBoolean("play.server.https.wantClientAuth").getOrElse(false)) {
+            sslEngine.setWantClientAuth(true)
+          }
+          if (config.configuration.getBoolean("play.server.https.needClientAuth").getOrElse(false)) {
+            sslEngine.setNeedClientAuth(true)
+          }
           pipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }

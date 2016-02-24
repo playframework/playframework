@@ -9,8 +9,6 @@ import java.security.KeyStore
 
 import java.io._
 import java.security.cert._
-import org.apache.commons.codec.binary.Base64
-import scala.collection.JavaConverters
 
 trait KeyStoreBuilder {
   def build(): KeyStore
