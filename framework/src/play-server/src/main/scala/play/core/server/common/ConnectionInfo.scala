@@ -4,7 +4,6 @@
 package play.core.server.common
 
 import java.net.InetAddress
-import play.api.mvc.Headers
 
 /**
  * Basic information about an HTTP connection.

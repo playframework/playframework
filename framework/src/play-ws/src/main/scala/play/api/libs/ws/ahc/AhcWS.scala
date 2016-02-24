@@ -3,9 +3,6 @@
  */
 package play.api.libs.ws.ahc
 
-import java.util
-import java.util.Map.Entry
-
 import akka.stream.Materializer
 import akka.util.ByteString
 import org.asynchttpclient.{ Response => AHCResponse, _ }

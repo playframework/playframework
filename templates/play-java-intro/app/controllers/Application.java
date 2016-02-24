@@ -5,12 +5,16 @@ import play.mvc.*;
 import play.db.jpa.*;
 import views.html.*;
 import models.Person;
-import play.data.Form;
+import play.data.FormFactory;
+import javax.inject.Inject;
 import java.util.List;
 
 import static play.libs.Json.*;
 
 public class Application extends Controller {
+
+    @Inject
+    FormFactory formFactory;
 
     public Result index() {
         return ok(index.render());
@@ -18,7 +22,7 @@ public class Application extends Controller {
 
     @Transactional
     public Result addPerson() {
-        Person person = Form.form(Person.class).bindFromRequest().get();
+        Person person = formFactory.form(Person.class).bindFromRequest().get();
         JPA.em().persist(person);
         return redirect(routes.Application.index());
     }

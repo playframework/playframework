@@ -3,9 +3,11 @@
  */
 package play.api.data
 
+import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.data.format.Formats._
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
 import org.joda.time.{ DateTime, LocalDate }
@@ -282,6 +284,14 @@ object FormSpec extends Specification {
   "reject boolean binding from an invalid json" in {
     val f = ScalaForms.booleanForm.bind(Json.obj("accepted" -> "foo"))
     f.errors must not be 'empty
+  }
+
+  "correctly lookup error messages when using errorsAsJson" in {
+    val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+    implicit val messages = messagesApi.preferred(Seq.empty)
+
+    val form = Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
+    (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This is a custom error")
   }
 }
 

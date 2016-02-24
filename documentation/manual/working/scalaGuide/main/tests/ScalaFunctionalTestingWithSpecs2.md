@@ -18,7 +18,7 @@ Play frequently requires a running [`Application`](api/scala/play/api/Applicatio
 
 ## WithApplication
 
-To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default `GuiceApplicationBulider`) is provided for convenience.
+To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default `GuiceApplicationBuilder`) is provided for convenience.
 
 Because [`WithApplication`](api/scala/play/api/test/WithApplication.html) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
 

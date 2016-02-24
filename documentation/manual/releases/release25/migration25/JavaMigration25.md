@@ -4,11 +4,11 @@ In order to better fit in to the Java 8 ecosystem, and to allow Play Java users 
 
 ## New Java APIs
 
-There are several API changes to accomodate writing filters and HTTP request handlers in Java, in particular with the `HttpRequestHandler` interface. If you are using Scala for these components you are still free to use the Scala API if you wish.
+There are several API changes to accommodate writing filters and HTTP request handlers in Java, in particular with the `HttpRequestHandler` interface. If you are using Scala for these components you are still free to use the Scala API if you wish.
 
 ### Filter API
 
-You will most likely use `EssentialAction` when creating a filter. You can either use the [`Filter`](api/java/play/mvc/Filter.html) API or the lower-level [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) API that operates on `[`EssentialAction`](api/java/play/mvc/EssentialAction.html)`s.
+You will most likely use `EssentialAction` when creating a filter. You can either use the [`Filter`](api/java/play/mvc/Filter.html) API or the lower-level [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) API that operates on [`EssentialAction`](api/java/play/mvc/EssentialAction.html)s.
 
 ### HttpRequestHandler and ActionCreator
 

@@ -168,7 +168,7 @@ object Dependencies {
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.9" % "provided"
+    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.11" % "provided"
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
@@ -219,7 +219,7 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.3"),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.3.0"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
     ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
   }

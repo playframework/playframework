@@ -4,9 +4,7 @@
 package play.db.jpa;
 
 import play.mvc.*;
-import play.mvc.Http.*;
 
-import java.util.*;
 import java.lang.annotation.*;
 
 /**

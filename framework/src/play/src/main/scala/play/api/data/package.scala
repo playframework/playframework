@@ -3,9 +3,6 @@
  */
 package play.api
 
-import data.format._
-import data.validation._
-
 /**
  * Contains data manipulation helpers (typically HTTP form handling)
  *

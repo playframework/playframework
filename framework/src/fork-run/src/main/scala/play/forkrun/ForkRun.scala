@@ -8,13 +8,13 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.{ Config, ConfigFactory }
 import java.io.File
-import java.lang.{ Runtime, Thread }
+import java.lang.Runtime
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.TimeoutException
 import play.forkrun.protocol.{ ForkConfig, Serializers }
 import play.runsupport.Reloader.{ CompileResult, PlayDevServer }
-import play.runsupport.{ Colors, LoggerProxy, RunHook, FileWatchService, Reloader }
+import play.runsupport.{ Colors, RunHook, FileWatchService, Reloader }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{ Success, Failure, Properties }

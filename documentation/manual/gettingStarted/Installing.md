@@ -71,7 +71,7 @@ Activator comes with a couple of different "seeds" that can be used to start off
 
 Open a command prompt, and type `activator ui` to bring up the GUI interface.  A browser window will open with the Web UI at [http://localhost:8888](http://localhost:8888).
 
-> *NOTE*: If you're behind a proxy, make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
+> **Note:** If you're behind a proxy, make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
 
 Follow the arrows to create a new project:
 

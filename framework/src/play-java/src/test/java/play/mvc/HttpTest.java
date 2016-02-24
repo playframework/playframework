@@ -4,17 +4,24 @@
 package play.mvc;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.typesafe.config.ConfigFactory;
 import play.Application;
 import play.Configuration;
 import play.Environment;
 import play.data.Form;
+import play.data.FormFactory;
 import play.data.Formats;
 import play.data.Money;
 import play.data.format.Formatters;
+import play.data.validation.ValidationError;
+import play.i18n.MessagesApi;
 import play.Play;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.*;
@@ -47,13 +54,13 @@ public class HttpTest {
       return langOverrides.withFallback(loaded);
     }
 
-    private static void withApplication(Runnable r) {
+    private static void withApplication(Consumer<Application> r) {
         Application app = new GuiceApplicationBuilder()
           .loadConfig(HttpTest::addLangs)
           .build();
         play.api.Play.start(app.getWrappedApplication());
         try {
-            r.run();
+            r.accept(app);
         } finally {
             play.api.Play.stop(app.getWrappedApplication());
         }
@@ -61,7 +68,7 @@ public class HttpTest {
 
     @Test
     public void testChangeLang() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder());
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
@@ -76,7 +83,7 @@ public class HttpTest {
 
     @Test
     public void testChangeLangFailure() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder());
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
@@ -91,7 +98,7 @@ public class HttpTest {
 
     @Test
     public void testClearLang() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder());
             // Set 'fr' as our initial language
             assertThat(ctx.changeLang("fr")).isTrue();
@@ -107,7 +114,7 @@ public class HttpTest {
 
     @Test
     public void testSetTransientLang() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder());
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
@@ -122,7 +129,7 @@ public class HttpTest {
 
     @Test(expected=IllegalArgumentException.class)
     public void testSetTransientLangFailure() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder());
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
@@ -134,7 +141,7 @@ public class HttpTest {
 
     @Test
     public void testClearTransientLang() {
-        withApplication(() -> {
+        withApplication((app) -> {
             Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
             RequestBuilder rb = new RequestBuilder().cookie(frCookie);
             Context ctx = new Context(rb);
@@ -156,7 +163,9 @@ public class HttpTest {
 
     @Test
     public void testLangDataBinder() {
-        withApplication(() -> {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
             // Register Formatter
             Formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
 
@@ -168,7 +177,7 @@ public class HttpTest {
             Context.current.set(ctx);
             // Parse french input with french formatter
             ctx.changeLang("fr");
-            Form<Money> myForm = Form.form(Money.class).bindFromRequest();
+            Form<Money> myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             myForm.data().clear();
@@ -177,7 +186,7 @@ public class HttpTest {
             assertThat(myForm.field("amount").value()).isEqualTo("1 234 567,89");
             // Parse french input with english formatter
             ctx.changeLang("en");
-            myForm = Form.form(Money.class).bindFromRequest();
+            myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             myForm.data().clear();
@@ -193,7 +202,7 @@ public class HttpTest {
             Context.current.set(ctx);
             // Parse english input with french formatter
             ctx.changeLang("fr");
-            myForm = Form.form(Money.class).bindFromRequest();
+            myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             myForm.data().clear();
@@ -202,7 +211,7 @@ public class HttpTest {
             assertThat(myForm.field("amount").value()).isEqualTo("1 234 567");
             // Parse english input with english formatter
             ctx.changeLang("en");
-            myForm = Form.form(Money.class).bindFromRequest();
+            myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             myForm.data().clear();
@@ -213,6 +222,27 @@ public class HttpTest {
             // Clean up
             Formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
             Formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
+        });
+    }
+
+    @Test
+    public void testLangErrorsAsJson() {
+        withApplication((app) -> {
+            MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+
+            RequestBuilder rb = new RequestBuilder();
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+
+            List<Object> args = new ArrayList<>();
+            args.add("error.customarg");
+            List<ValidationError> error = new ArrayList<>();
+            error.add(new ValidationError("key", "error.custom", args));
+            Map<String,List<ValidationError>> errors = new HashMap<>();
+            errors.put("foo", error);
+            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi);
+
+            assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });
     }
 

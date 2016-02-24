@@ -104,7 +104,7 @@ import implemented._
 //#guice-module
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-  
+
 class Module extends AbstractModule {
   def configure() = {
 
@@ -128,7 +128,7 @@ import implemented._
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 import play.api.{ Configuration, Environment }
-  
+
 class Module(
   environment: Environment,
   configuration: Configuration) extends AbstractModule {
@@ -163,7 +163,7 @@ import implemented._
 //#eager-guice-module
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-  
+
 class Module extends AbstractModule {
   def configure() = {
 
@@ -245,4 +245,28 @@ class CustomApplicationLoader extends GuiceApplicationLoader() {
   }
 }
 //#custom-application-loader
+}
+
+package circular {
+
+//#circular
+import javax.inject.Inject
+
+class Foo @Inject() (bar: Bar)
+class Bar @Inject() (baz: Baz)
+class Baz @Inject() (foo: Foo)
+//#circular
+
+}
+
+package circularProvider {
+
+//#circular-provider
+import javax.inject.{ Inject, Provider }
+
+class Foo @Inject() (bar: Bar)
+class Bar @Inject() (baz: Baz)
+class Baz @Inject() (foo: Provider[Foo])
+//#circular-provider
+
 }

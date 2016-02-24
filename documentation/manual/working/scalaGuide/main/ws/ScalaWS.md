@@ -117,7 +117,7 @@ If you are not using DI, you can still access the default Play execution context
 
 @[scalaws-context](code/ScalaWSSpec.scala)
 
-The examples also use the folowing case class for serialization / deserialization:
+The examples also use the following case class for serialization/deserialization:
 
 @[scalaws-person](code/ScalaWSSpec.scala)
 
@@ -229,7 +229,7 @@ The following advanced settings can be configured on the underlying AsyncHttpCli
 
 Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
-> *NOTE*: `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
+> **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

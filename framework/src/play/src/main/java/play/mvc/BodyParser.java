@@ -12,6 +12,9 @@ import play.api.http.HttpConfiguration;
 import play.api.http.Status$;
 import play.api.libs.Files;
 import play.api.mvc.BodyParsers$;
+import play.api.mvc.MaxSizeNotExceeded;
+import play.api.mvc.MaxSizeNotExceeded$;
+import play.api.mvc.MaxSizeStatus;
 import play.core.j.JavaParsers;
 import play.core.parsers.FormUrlEncodedParser;
 import play.http.HttpErrorHandler;
@@ -19,6 +22,7 @@ import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
 import scala.compat.java8.FutureConverters;
+import scala.concurrent.Future;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -27,6 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
@@ -347,19 +352,19 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            return apply1(request).through(
-                    Flow.<ByteString>create()
-                            .transform(() -> new BodyParsers$.TakeUpTo(maxLength))
-            ).recoverWith(exception -> {
-                if (exception instanceof play.api.mvc.BodyParsers$.MaxLengthLimitAttained) {
-                    return errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
-                            .thenApply(F.Either::<Result, A>Left);
-                } else {
-                    CompletableFuture<F.Either<Result, A>> cf = new CompletableFuture<>();
-                    cf.completeExceptionally(exception);
-                    return cf;
-                }
-            }, JavaParsers.trampoline());
+            Flow<ByteString, ByteString, Future<MaxSizeStatus>> takeUpToFlow = Flow.fromGraph(play.api.mvc.BodyParsers$.MODULE$.takeUpTo(maxLength));
+            Sink<ByteString, CompletionStage<F.Either<Result, A>>> result = apply1(request).toSink();
+
+            return Accumulator.fromSink(takeUpToFlow.toMat(result, (statusFuture, resultFuture) ->
+               FutureConverters.toJava(statusFuture).thenCompose(status -> {
+                  if (status instanceof MaxSizeNotExceeded$) {
+                      return resultFuture;
+                  } else {
+                      return errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
+                              .thenApply(F.Either::<Result, A>Left);
+                  }
+               })
+            ));
         }
 
         /**

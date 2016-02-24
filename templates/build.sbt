@@ -49,7 +49,7 @@ templateParameters := Map(
   "PLAY_VERSION" -> version.value,
   "SCALA_VERSION" -> scalaVersion.value,
   "PLAY_DOCS_URL" -> playDocsUrl(version.value),
-  "SBT_VERSION" -> "0.13.9",
+  "SBT_VERSION" -> "0.13.11",
   "COFFEESCRIPT_VERSION" -> "1.0.0",
   "LESS_VERSION" -> "1.1.0",
   "JSHINT_VERSION" -> "1.0.3",
@@ -59,6 +59,7 @@ templateParameters := Map(
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
   "PLAY_SLICK_VERSION" -> "1.1.0",
+  "SCALATESTPLUS_PLAY_VERSION" -> "1.5.0-RC1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )

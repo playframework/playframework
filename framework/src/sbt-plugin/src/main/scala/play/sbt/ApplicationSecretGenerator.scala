@@ -3,7 +3,6 @@
  */
 package play.sbt
 
-import PlayImport.PlayKeys._
 import java.security.SecureRandom
 import com.typesafe.config.{ ConfigValue, ConfigOrigin, Config, ConfigFactory }
 import sbt._

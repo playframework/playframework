@@ -110,4 +110,4 @@ To ensure that the docs render correctly, run `sbt run` from within the `documen
 
 To ensure that the code samples compile, run and tests pass, run `sbt test`.
 
-To validate that the documentation is structurely sound, run `sbt validateDocs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.
+To validate that the documentation is structurally sound, run `sbt validateDocs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.

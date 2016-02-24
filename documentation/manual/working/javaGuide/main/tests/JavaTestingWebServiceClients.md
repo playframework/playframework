@@ -17,7 +17,7 @@ This approach gives the least confidence in the test code - often this kind of t
 
 ### Mock the web service
 
-This approach is a good compromise between testing against the actual web service and mocking the http client.  Your tests will show that all the requests it makes are valid HTTP requests, that serialisation/deserialisation of bodies work, etc, but they will be entirely self contained, not depending on any third party services.
+This approach is a good compromise between testing against the actual web service and mocking the http client.  Your tests will show that all the requests it makes are valid HTTP requests, that serialization/deserialization of bodies work, etc, but they will be entirely self contained, not depending on any third party services.
 
 Play provides some helper utilities for mocking a web service in tests, making this approach to testing a very viable and attractive option.
 

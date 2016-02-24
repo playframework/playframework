@@ -74,12 +74,12 @@ Play applications will need to make a small change to their configuration becaus
 
 ## Logging SQL statements
 
-Play now has an easy way to log SQL statements, built on [jdbcdslog](https://github.com/jdbcdslog/jdbcdslog), that works across all JDBC databases, connection pool implementations and persisence frameworks (Anorm, Ebean, JPA, Slick, etc). When you enable logging you will see each SQL statement sent to your database as well as performance information about how long the statement takes to run.
+Play now has an easy way to log SQL statements, built on [jdbcdslog](https://github.com/jdbcdslog/jdbcdslog), that works across all JDBC databases, connection pool implementations and persistence frameworks (Anorm, Ebean, JPA, Slick, etc). When you enable logging you will see each SQL statement sent to your database as well as performance information about how long the statement takes to run.
 
 For more information about how to use SQL logging, see the Play [[Java|JavaDatabase#How-to-configure-SQL-log-statement]] and [[Scala|ScalaDatabase#How-to-configure-SQL-log-statement]] database documentation.
 
 ## Netty native socket transport
 
-If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introdued in Netty 4.0.
+If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].

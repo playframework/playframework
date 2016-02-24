@@ -17,7 +17,6 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
 
 import com.fasterxml.jackson.databind.JsonNode
-import play.api.libs.concurrent.Akka
 
 import play.core.Execution.Implicits.internalContext
 

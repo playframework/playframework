@@ -8,6 +8,7 @@ import org.joda.time.LocalTime;
 import org.junit.Test;
 import play.data.DynamicForm;
 import play.data.Form;
+import play.data.FormFactory;
 import play.data.format.Formatters;
 import play.data.format.Formatters.SimpleFormatter;
 import play.data.validation.ValidationError;
@@ -29,11 +30,17 @@ import static play.test.Helpers.*;
 
 public class JavaForms extends WithApplication {
 
+    public FormFactory formFactory() {
+      return app.injector().instanceOf(FormFactory.class);
+    }
+
     @Test
     public void usingForm() {
+        FormFactory formFactory = formFactory();
+
         final // sneaky final
         //#create
-        Form<User> userForm = Form.form(User.class);
+        Form<User> userForm = formFactory.form(User.class);
         //#create
 
         //#bind
@@ -55,9 +62,9 @@ public class JavaForms extends WithApplication {
         assertThat(contentAsString(result), equalTo("e"));
     }
 
-    public static class Controller1 extends MockJavaAction {
+    public class Controller1 extends MockJavaAction {
         public Result index() {
-            Form<User> userForm = Form.form(User.class);
+            Form<User> userForm = formFactory().form(User.class);
             //#bind-from-request
             User user = userForm.bindFromRequest().get();
             //#bind-from-request
@@ -68,13 +75,13 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void constrants() {
-        Form<javaguide.forms.u2.User> userForm = Form.form(javaguide.forms.u2.User.class);
+        Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
         assertThat(userForm.bind(ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }
 
     @Test
     public void adhocValidation() {
-        Form<javaguide.forms.u3.User> userForm = Form.form(javaguide.forms.u3.User.class);
+        Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class);
         Form<javaguide.forms.u3.User> bound = userForm.bind(ImmutableMap.of("email", "e", "password", "p"));
         assertThat(bound.hasGlobalErrors(), equalTo(true));
         assertThat(bound.globalError().message(), equalTo("Invalid email or password"));
@@ -89,7 +96,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void listValidation() {
-        Form<UserForm> userForm = Form.form(UserForm.class).bind(ImmutableMap.of("email", "e"));
+        Form<UserForm> userForm = formFactory().form(UserForm.class).bind(ImmutableMap.of("email", "e"));
         assertThat(userForm.errors().get("email"), notNullValue());
         assertThat(userForm.errors().get("email").get(0).message(), equalTo("This e-mail is already registered."));
 
@@ -132,22 +139,22 @@ public class JavaForms extends WithApplication {
         assertThat(contentAsString(result), startsWith("Got user"));
     }
 
-    public static class Controller2 extends MockJavaAction {
-        static Pviews views = new Pviews();
-        static class Pviews {
+    public class Controller2 extends MockJavaAction {
+        Pviews views = new Pviews();
+        class Pviews {
             Phtml html = new Phtml();
         }
-        static class Phtml {
+        class Phtml {
             Pform form = new Pform();
         }
-        static class Pform {
+        class Pform {
             String render(Form<?> form) {
                 return "rendered";
             }
         }
 
         public Result index() {
-            Form<User> userForm = Form.form(User.class).bindFromRequest();
+            Form<User> userForm = formFactory().form(User.class).bindFromRequest();
             //#handle-errors
             if (userForm.hasErrors()) {
                 return badRequest(views.html.form.render(userForm));
@@ -168,7 +175,7 @@ public class JavaForms extends WithApplication {
                 this.password = password;
             }
         }
-        Form<javaguide.forms.u1.User> userForm = Form.form(javaguide.forms.u1.User.class);
+        Form<javaguide.forms.u1.User> userForm = formFactory().form(javaguide.forms.u1.User.class);
         //#fill
         userForm = userForm.fill(new User("bob@gmail.com", "secret"));
         //#fill
@@ -183,10 +190,11 @@ public class JavaForms extends WithApplication {
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }
 
-    public static class Controller3 extends MockJavaAction {
+    public class Controller3 extends MockJavaAction {
+        FormFactory formFactory = formFactory();
         //#dynamic
         public Result hello() {
-            DynamicForm requestData = Form.form().bindFromRequest();
+            DynamicForm requestData = formFactory.form().bindFromRequest();
             String firstname = requestData.get("firstname");
             String lastname = requestData.get("lastname");
             return ok("Hello " + firstname + " " + lastname);
@@ -220,7 +228,7 @@ public class JavaForms extends WithApplication {
         });
         //#register-formatter
 
-        Form<WithLocalTime> form = Form.form(WithLocalTime.class);
+        Form<WithLocalTime> form = formFactory().form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(new LocalTime(23, 45)));
         assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));
