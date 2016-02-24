@@ -7,7 +7,6 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.inject.Module
 import play.api.mvc._
-import scala.concurrent.Future
 import play.api.{ Environment, PlayConfig, Configuration }
 
 /**

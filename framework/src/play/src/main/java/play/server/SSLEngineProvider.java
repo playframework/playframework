@@ -3,7 +3,6 @@
  */
 package play.server;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 public interface SSLEngineProvider {

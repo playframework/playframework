@@ -4,7 +4,6 @@
 package play.it.action
 
 import play.api.Environment
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Results._
 import play.api.mvc.{ Action, EssentialAction }
 import play.api.test.{ FakeRequest, PlaySpecification }

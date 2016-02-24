@@ -4,9 +4,9 @@
 package play.core.j
 
 import java.util.concurrent.CompletionStage
-import javax.inject.{Provider, Inject}
+import javax.inject.Inject
 
-import play.api.http.{ActionCompositionConfiguration, HttpConfiguration}
+import play.api.http.{ ActionCompositionConfiguration, HttpConfiguration }
 import play.api.inject.Injector
 
 import scala.compat.java8.FutureConverters

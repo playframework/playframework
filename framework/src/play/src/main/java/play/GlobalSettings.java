@@ -6,7 +6,6 @@ package play;
 import play.mvc.*;
 import play.mvc.Http.*;
 
-import java.io.File;
 import java.lang.reflect.*;
 import java.util.concurrent.CompletionStage;
 

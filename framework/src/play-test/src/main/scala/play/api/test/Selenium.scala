@@ -3,7 +3,6 @@
  */
 package play.api.test
 
-import play.api._
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._

@@ -3,7 +3,7 @@
  */
 package play.api.libs.streams
 
-import akka.stream.{ Materializer }
+import akka.stream.Materializer
 import akka.stream.scaladsl._
 import org.reactivestreams._
 import play.api.libs.iteratee._

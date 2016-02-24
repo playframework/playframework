@@ -10,7 +10,7 @@ import play.core.j.JavaHttpErrorHandlerAdapter
 import scala.concurrent.Future
 
 import play.api.Logger
-import play.api.mvc.{ EssentialAction, Filter, RequestHeader, Result }
+import play.api.mvc.{ Filter, RequestHeader, Result }
 
 /**
  * A [[play.api.mvc.Filter]] that implements Cross-Origin Resource Sharing (CORS)

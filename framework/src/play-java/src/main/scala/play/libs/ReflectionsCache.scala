@@ -3,8 +3,6 @@
  */
 package play.libs
 
-import org.reflections.util.FilterBuilder
-
 /**
  * Provides a cache for reflections, so that classloader scanning over the same classloader for the same package
  * multiple times doesn't need to be done.

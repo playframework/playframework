@@ -5,8 +5,8 @@ package play.api.inject.guice
 
 import javax.inject.{ Provider, Inject }
 
-import com.google.inject.{Module => GuiceModule, Binder}
-import play.api.mvc.{RequestHeader, Handler}
+import com.google.inject.{ Module => GuiceModule }
+import play.api.mvc.{ RequestHeader, Handler }
 import play.api.routing.Router
 import play.api._
 import play.api.inject.{ RoutesProvider, bind }

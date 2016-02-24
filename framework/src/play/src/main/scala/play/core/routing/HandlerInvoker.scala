@@ -4,7 +4,7 @@
 package play.core.routing
 
 import java.util.Optional
-import java.util.concurrent.{CompletableFuture, CompletionStage}
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
@@ -13,7 +13,7 @@ import play.core.j
 import play.core.j.{ JavaHandlerComponents, JavaHandler, JavaActionAnnotations }
 import play.mvc.Http.RequestBody
 
-import scala.compat.java8.{OptionConverters, FutureConverters}
+import scala.compat.java8.{ OptionConverters, FutureConverters }
 import scala.util.control.NonFatal
 
 /**

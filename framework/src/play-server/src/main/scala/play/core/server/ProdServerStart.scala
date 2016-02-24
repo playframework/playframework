@@ -4,13 +4,8 @@
 package play.core.server
 
 import java.io._
-import java.util.Properties
 import play.api._
-import play.core._
-import play.core.server._
-import play.utils.Threads
 import scala.util.control.NonFatal
-import scala.util.Success
 
 /**
  * Used to start servers in 'prod' mode, the mode that is

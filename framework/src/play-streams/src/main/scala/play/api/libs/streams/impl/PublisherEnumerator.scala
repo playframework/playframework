@@ -5,7 +5,7 @@ package play.api.libs.streams.impl
 
 import org.reactivestreams._
 import play.api.libs.iteratee._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.Future
 
 /**
  * Adapts a Publisher to an Enumerator.

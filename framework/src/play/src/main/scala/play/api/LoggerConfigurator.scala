@@ -3,11 +3,8 @@
  */
 package play.api
 
-import java.io.File
 import java.net.URL
 import java.util.Properties
-
-import play.api.Mode.Mode
 
 /**
  * Runs through underlying logger configuration.
@@ -25,7 +22,7 @@ trait LoggerConfigurator {
   def configure(env: Environment): Unit
 
   /**
-   * Reconfigures the underlying  loggerinfrastructure.
+   * Reconfigures the underlying  logger infrastructure.
    */
   def configure(properties: Map[String, String], config: Option[URL]): Unit
 

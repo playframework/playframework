@@ -7,9 +7,9 @@ import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceApplicationLoader}
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Application, ApplicationLoader, Environment, Mode }
-import play.core.server.{ ServerProvider }
+import play.core.server.ServerProvider
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals

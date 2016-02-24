@@ -3,8 +3,8 @@
  */
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper }
-import play.api.inject.{ bind, Injector => PlayInjector }
+import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
+import play.api.inject.bind
 import play.core.WebCommands
 
 /**
