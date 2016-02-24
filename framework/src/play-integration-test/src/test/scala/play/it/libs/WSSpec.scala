@@ -3,15 +3,17 @@
  */
 package play.it.libs
 
+import java.io.File
+import java.util
 import java.util.concurrent.TimeUnit
 
+import akka.stream.scaladsl.FileIO
 import akka.util.ByteString
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
-
 import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
-
 import play.api.http.Port
+import play.api.libs.json.JsString
 import play.api.libs.oauth._
 import play.api.mvc._
 import play.api.test._
@@ -21,6 +23,7 @@ import play.it.tools.HttpBinApplication
 import play.api.mvc.Results.Ok
 import play.api.libs.streams.Accumulator
 import play.libs.ws.WSResponse
+import play.mvc.Http
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -153,6 +156,27 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       body must_== "abc"
     }
 
+    "sending a simple multipart form body" in withServer { ws =>
+      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava
+      val res = ws.url("/post").post(source)
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+    }
+
+    "sending a multipart form body" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
+      val dp = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromFile(file).asJava)
+      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+
+      val res = ws.url("/post").post(source)
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+      body.path("file").textValue() must_== "This is a test asset."
+    }
+
     class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
       def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
@@ -241,6 +265,18 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val body = await(res).body
 
       body must_== "abc"
+    }
+
+    "send a multipart request body" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
+      val dp = MultipartFormData.DataPart("hello", "world")
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromFile(file))
+      val source = Source(List(dp, fp))
+      val res = ws.url("/post").post(source)
+      val body = await(res).json
+
+      (body \ "form" \ "hello").toOption must beSome(JsString("world"))
+      (body \ "file").toOption must beSome(JsString("This is a test asset."))
     }
 
     class CustomSigner extends WSSignatureCalculator with SignatureCalculator {

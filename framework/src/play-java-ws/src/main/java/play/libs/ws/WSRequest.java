@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import play.mvc.Http;
 
 
 import java.io.File;
@@ -72,6 +73,14 @@ public interface WSRequest {
      */
     CompletionStage<WSResponse> patch(File body);
 
+    /**
+     * Perform a PATCH on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
     //-------------------------------------------------------------------------
     // "POST"
     //-------------------------------------------------------------------------
@@ -108,6 +117,14 @@ public interface WSRequest {
      */
     CompletionStage<WSResponse> post(File body);
 
+    /**
+     * Perform a POST on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
     //-------------------------------------------------------------------------
     // "PUT"
     //-------------------------------------------------------------------------
@@ -143,6 +160,14 @@ public interface WSRequest {
      * @return a promise to the response
      */
     CompletionStage<WSResponse> put(File body);
+
+    /**
+     * Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
     // Miscellaneous execution methods

@@ -21,10 +21,13 @@ import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;
 import org.asynchttpclient.util.HttpUtils;
 import org.reactivestreams.Publisher;
 import play.api.libs.ws.ahc.Streamed;
+import play.core.formatters.Multipart;
 import play.core.parsers.FormUrlEncodedParser;
 import play.libs.Json;
 import play.libs.oauth.OAuth;
 import play.libs.ws.*;
+import play.mvc.Http;
+import play.mvc.MultipartFormatter;
 import scala.compat.java8.FutureConverters;
 
 import java.io.File;
@@ -331,6 +334,12 @@ public class AhcWSRequest implements WSRequest {
         return execute();
     }
 
+    @Override
+    public CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+        setMethod("PATCH");
+        return executeWithBody(body);
+    }
+
     //-------------------------------------------------------------------------
     // POST
     //-------------------------------------------------------------------------
@@ -361,6 +370,12 @@ public class AhcWSRequest implements WSRequest {
         setMethod("POST");
         setBody(body);
         return execute();
+    }
+
+    @Override
+    public CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+        setMethod("POST");
+        return executeWithBody(body);
     }
 
     //-------------------------------------------------------------------------
@@ -396,6 +411,12 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+        setMethod("PUT");
+        return executeWithBody(body);
+    }
+
+    @Override
     public CompletionStage<WSResponse> delete() {
         return execute("DELETE");
     }
@@ -426,6 +447,15 @@ public class AhcWSRequest implements WSRequest {
 
         CompletionStage<WSResponse> futureResponse = executor.apply(this);
         return futureResponse;
+    }
+
+
+    private CompletionStage<WSResponse> executeWithBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+        String boundary = MultipartFormatter.randomBoundary();
+        Source<ByteString, ?> innerBody = MultipartFormatter.transform(body, boundary);
+        setBody(innerBody);
+        setHeader("Content-Type", MultipartFormatter.boundaryToContentType(boundary));
+        return execute();
     }
 
     @Override
