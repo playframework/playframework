@@ -112,7 +112,7 @@ public class AhcWSRequest implements WSRequest {
             String[] keyValue = param.split("=");
             if (keyValue.length > 2) {
                 throw new RuntimeException(new MalformedURLException("QueryString parameter should not have more than 2 = per part"));
-            } else if (keyValue.length >= 2) {
+            } else if (keyValue.length == 2) {
                 this.setQueryParameter(keyValue[0], keyValue[1]);
             } else if (keyValue.length == 1 && param.charAt(0) != '=') {
                 this.setQueryParameter(keyValue[0], null);
