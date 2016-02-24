@@ -8,7 +8,7 @@ There are several API changes to accommodate writing filters and HTTP request ha
 
 ### Filter API
 
-You will most likely use `EssentialAction` when creating a filter. You can either use the [`Filter`](api/java/play/mvc/Filter.html) API or the lower-level [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) API that operates on `[`EssentialAction`](api/java/play/mvc/EssentialAction.html)`s.
+You will most likely use `EssentialAction` when creating a filter. You can either use the [`Filter`](api/java/play/mvc/Filter.html) API or the lower-level [`EssentialFilter`](api/java/play/mvc/EssentialFilter.html) API that operates on [`EssentialAction`](api/java/play/mvc/EssentialAction.html)s.
 
 ### HttpRequestHandler and ActionCreator
 
