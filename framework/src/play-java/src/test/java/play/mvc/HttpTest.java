@@ -4,8 +4,11 @@
 package play.mvc;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.typesafe.config.ConfigFactory;
@@ -17,6 +20,8 @@ import play.data.FormFactory;
 import play.data.Formats;
 import play.data.Money;
 import play.data.format.Formatters;
+import play.data.validation.ValidationError;
+import play.i18n.MessagesApi;
 import play.Play;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.*;
@@ -217,6 +222,27 @@ public class HttpTest {
             // Clean up
             Formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
             Formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
+        });
+    }
+
+    @Test
+    public void testLangErrorsAsJson() {
+        withApplication((app) -> {
+            MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+
+            RequestBuilder rb = new RequestBuilder();
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+
+            List<Object> args = new ArrayList<>();
+            args.add("error.customarg");
+            List<ValidationError> error = new ArrayList<>();
+            error.add(new ValidationError("key", "error.custom", args));
+            Map<String,List<ValidationError>> errors = new HashMap<>();
+            errors.put("foo", error);
+            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi);
+
+            assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });
     }
 
