@@ -3,6 +3,8 @@
  */
 package play.core.server.common
 
+import javax.net.ssl.SSLSession
+
 import org.specs2.mutable.Specification
 import play.api._
 import play.api.mvc._
@@ -23,6 +25,8 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    override def sslSession = None
+
     val headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq)
   }
 

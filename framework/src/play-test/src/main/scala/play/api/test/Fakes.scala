@@ -4,6 +4,7 @@
 package play.api.test
 
 import javax.inject.{ Inject, Provider }
+import javax.net.ssl.SSLSession
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -37,7 +38,7 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, sslSession: Option[SSLSession] = None) extends Request[A] {
 
   private def _copy[B](
     id: Long = this.id,
@@ -49,6 +50,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     headers: Headers = this.headers,
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
+    sslSession: Option[SSLSession] = this.sslSession,
     body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
       method, uri, headers, body, remoteAddress, version, id, tags, secure

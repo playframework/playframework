@@ -61,12 +61,12 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
     val requestId = RequestIdProvider.requestIDs.incrementAndGet()
     val tryRequest = modelConversion.convertRequest(requestId,
-      channel.remoteAddress().asInstanceOf[InetSocketAddress], channel.pipeline().get(classOf[SslHandler]) != null,
-      request)
+      channel.remoteAddress().asInstanceOf[InetSocketAddress],
+      Option(channel.pipeline().get(classOf[SslHandler])), request)
 
     def clientError(statusCode: Int, message: String) = {
       val requestHeader = modelConversion.createUnparsedRequestHeader(requestId, request,
-        channel.remoteAddress().asInstanceOf[InetSocketAddress], channel.pipeline().get(classOf[SslHandler]) != null)
+        channel.remoteAddress().asInstanceOf[InetSocketAddress], Option(channel.pipeline().get(classOf[SslHandler])))
       val result = errorHandler(server.applicationProvider.current).onClientError(requestHeader, statusCode,
         if (message == null) "" else message)
       // If there's a problem in parsing the request, then we should close the connection, once done with it

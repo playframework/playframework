@@ -3,7 +3,9 @@
  */
 package play.core.j
 
+import java.util.Optional
 import java.util.concurrent.CompletionStage
+import javax.net.ssl.SSLSession
 
 import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
@@ -192,6 +194,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   def accepts(mediaType: String) = header.accepts(mediaType)
 
   def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
+
+  def sslSession(): Optional[SSLSession] = OptionConverters.toJava(header.sslSession)
 
   def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
