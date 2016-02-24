@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -80,7 +80,7 @@ Before you start creating a Play application in IntelliJ IDEA, make sure that th
 To create a Play application:
 
 1. Open ***New Project*** wizard, select ***Activator*** under ***Scala*** section and click ***Next***.
-2. Select one of the templates suitable. For the basic empty application you can select [Play Scala Seed](https://www.typesafe.com/activator/template/play-scala). The full list of templates can be found on [TypeSafe page](https://www.typesafe.com/activator/templates).
+2. Select one of the templates suitable. For the basic empty application you can select [Play Scala Seed](https://www.lightbend.com/activator/template/play-scala). The full list of templates can be found on [Lightbend Activator templates page](https://www.lightbend.com/activator/templates).
 3. Enter your project's information and click ***Finish***.
 
 Currently, for Play 2.4.x, instead of using the IntelliJ wizard to create a new project, we suggest that you create it using Activator and then Import it to IntelliJ.

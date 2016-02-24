@@ -1,4 +1,4 @@
-## Play Framework - The High Velocity Web Framework 
+## Play Framework - The High Velocity Web Framework
 
 The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
@@ -19,7 +19,7 @@ The Play Framework combines productivity and performance making it easy to build
 
 This software is licensed under the Apache 2 license, quoted below.
 
-Copyright (C) 2009-2016 Typesafe Inc. (http://www.typesafe.com).
+Copyright (C) 2009-2016 Lightbend Inc. (https://www.lightbend.com).
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 

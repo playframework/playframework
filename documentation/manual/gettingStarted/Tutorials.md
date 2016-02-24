@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Play Tutorials
 
 Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials come in.
@@ -9,9 +9,9 @@ Tutorials are useful for showing a single application at work, especially when i
 
 Many Activator templates come with comprehensive tutorials that guide you to creating an application using the technologies featured by that template.
 
-A full list of templates can be discovered in the [Activator Web Interface](https://www.typesafe.com/activator/docs).
+A full list of templates can be discovered in the [Activator Web Interface](https://www.lightbend.com/activator/docs).
 
-Additionally, templates are also published on the Typesafe website, a full list of both official and community contributed templates for Play can be found [here](https://typesafe.com/activator/templates#filter:play).
+Additionally, templates are also published on the Lightbend website, a full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
 
 Typesafe maintains a number of Activator templates.  These have built-in tutorials that you can see by running the application with `activator ui` and then opening the web interface at [http://127.0.0.1:8888/](http://127.0.0.1:8888/) and clicking on the Tutorial tab.
 
@@ -19,34 +19,34 @@ Typesafe maintains a number of Activator templates.  These have built-in tutoria
 
 This is where you should start with Play to see a simple example CRUD application.
 
-* [Play Intro in Scala](https://typesafe.com/activator/template/play-scala-intro) with [video](https://youtu.be/eNCerkVyQdc)
-* [Play Intro in Java](https://typesafe.com/activator/template/play-java-intro) with [video](https://youtu.be/bLrmnjPQsZc)
+* [Play Intro in Scala](https://www.lightbend.com/activator/template/play-scala-intro) with [video](https://youtu.be/eNCerkVyQdc)
+* [Play Intro in Java](https://www.lightbend.com/activator/template/play-java-intro) with [video](https://youtu.be/bLrmnjPQsZc)
 
 ### Reactive Stocks
 
 Reactive Stocks shows several stock prices displayed on a single page web application.
 
 * [Reactive Stocks in Scala](https://github.com/typesafehub/reactive-stocks#master)
-* [Reactive Stocks in Java](https://www.typesafe.com/activator/template/reactive-stocks-java8)
+* [Reactive Stocks in Java](https://www.lightbend.com/activator/template/reactive-stocks-java8)
 
-### Reactive Maps  
+### Reactive Maps
 
 Reactive Maps shows the Typesafe Platform with a series of moving actors updated in real time.
 
-* [Reactive Maps in Scala](https://www.typesafe.com/activator/template/reactive-maps)
-* [Reactive Maps in Java](https://www.typesafe.com/activator/template/reactive-maps-java)
+* [Reactive Maps in Scala](https://www.lightbend.com/activator/template/reactive-maps)
+* [Reactive Maps in Java](https://www.lightbend.com/activator/template/reactive-maps-java)
 
 ### Database
 
-* [Play Java with Spring Data JPA](https://www.typesafe.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).
-* [Play Scala with Slick](https://www.typesafe.com/activator/template/play-slick): This template combines Play Framework with [Slick](http://slick.typesafe.com/).
+* [Play Java with Spring Data JPA](https://www.lightbend.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).
+* [Play Scala with Slick](https://www.lightbend.com/activator/template/play-slick): This template combines Play Framework with [Slick](http://slick.typesafe.com/).
 * [Play Scala with Isolated Slick](https://github.com/wsargent/play-slick-3.0): This template creates module that hides Slick behind a DAO object.
 * [Play Java with Ebean](https://github.com/typesafehub/activator-computer-database-java): This is a Play example that uses [EBean](https://ebean-orm.github.io/).
 * [Play Scala with Anorm](https://github.com/typesafehub/activator-computer-database-scala): This is a Play example that uses [Anorm](https://github.com/playframework/anorm).
 
 ## Third Party Tutorials
 
-The Play community also has a number of tutorials that cover aspects of Play than the documentation can, or has a different angle.  This is an incomplete list of several helpful blog posts.  
+The Play community also has a number of tutorials that cover aspects of Play than the documentation can, or has a different angle.  This is an incomplete list of several helpful blog posts.
 
 Because some of the blog posts have been written a while ago, this section is organized by Play version.
 
@@ -98,7 +98,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### EmberJS
 
-* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.typesafe.com/activator/template/reactive-orientation))
+* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation))
 
 #### AngularJS, RequireJS and sbt-web
 
