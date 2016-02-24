@@ -156,6 +156,12 @@ class NettyServer(
         sslEngineProvider.map { sslEngineProvider =>
           val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
+          if (config.configuration.getBoolean("play.server.https.wantClientAuth").getOrElse(false)) {
+            sslEngine.setWantClientAuth(true)
+          }
+          if (config.configuration.getBoolean("play.server.https.needClientAuth").getOrElse(false)) {
+            sslEngine.setNeedClientAuth(true)
+          }
           pipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }

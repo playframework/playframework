@@ -19,7 +19,9 @@ import play.libs.XML;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
+import scala.compat.java8.OptionConverters;
 
+import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -582,6 +584,13 @@ public class Http {
         Optional<String> charset();
 
         /**
+         * Get the SSLSession that is used for the request if handled via SSL.
+         *
+         * @return The SSLSession used for the request if the request is secure and the server supports it.
+         */
+        Optional<SSLSession> sslSession();
+
+        /**
          * @return the tags for the request
          */
         Map<String, String> tags();
@@ -905,7 +914,8 @@ public class Http {
                 mapListToScala(splitQuery()),
                 buildHeaders(),
                 remoteAddress,
-                secure));
+                secure,
+                OptionConverters.toScala(sslSession)));
         }
 
         // -------------------
@@ -919,6 +929,7 @@ public class Http {
         protected String version;
         protected Map<String, String[]> headers = new HashMap<>();
         protected String remoteAddress;
+        protected Optional<SSLSession> sslSession = Optional.empty();
 
         /**
          * @return the id of the request
@@ -1253,6 +1264,23 @@ public class Http {
          */
         public RequestBuilder remoteAddress(String remoteAddress) {
             this.remoteAddress = remoteAddress;
+            return this;
+        }
+
+        /**
+         * @return the SSLSession if one has been set
+         */
+        public Optional<SSLSession> sslSession() {
+            return sslSession;
+        }
+
+        /**
+         *
+         * @param sslSession sets the SSLSession
+         * @return the builder instance
+         */
+        public RequestBuilder sslSession(SSLSession sslSession) {
+            this.sslSession = Optional.ofNullable(sslSession);
             return this;
         }
 
