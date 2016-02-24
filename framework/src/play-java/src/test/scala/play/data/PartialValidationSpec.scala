@@ -10,11 +10,13 @@ import scala.collection.JavaConverters._
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.data.FormFactory
+import play.data.format.Formatters
 
 class PartialValidationSpec extends Specification {
 
   val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
-  val formFactory = new FormFactory(new play.i18n.MessagesApi(messagesApi))
+  val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi))
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

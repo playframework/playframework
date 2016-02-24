@@ -22,6 +22,7 @@ import static play.libs.F.*;
 
 import play.libs.F.Tuple;
 import play.data.validation.*;
+import play.data.format.Formatters;
 
 import org.springframework.beans.*;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -45,7 +46,7 @@ public class Form<T> {
      */
     @Deprecated
     public static DynamicForm form() {
-        return new DynamicForm(play.api.Play.current().injector().instanceOf(MessagesApi.class));
+        return new DynamicForm(play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
     
     /**
@@ -55,7 +56,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<>(clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class));
+        return new Form<>(clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
     
     /**
@@ -65,7 +66,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<>(name, clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class));
+        return new Form<>(name, clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
     
     /**
@@ -75,7 +76,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class));
+        return new Form<>(name, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
 
     /**
@@ -85,7 +86,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class));
+        return new Form<>(null, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
 
     // ---
@@ -109,6 +110,7 @@ public class Form<T> {
     private final Optional<T> value;
     private final Class<?> groups;
     final MessagesApi messagesApi;
+    final Formatters formatters;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -127,22 +129,22 @@ public class Form<T> {
      *
      * @param clazz wrapped class
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi) {
-        this(null, clazz, messagesApi);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters) {
+        this(null, clazz, messagesApi, formatters);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, MessagesApi messagesApi) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi);
+    public Form(String name, Class<T> clazz, MessagesApi messagesApi, Formatters formatters) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi, formatters);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi);
+    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi, Formatters formatters) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi) {
-        this(rootName, clazz, data, errors, value, null, messagesApi);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters) {
+        this(rootName, clazz, data, errors, value, null, messagesApi, formatters);
     }
 
     /**
@@ -153,8 +155,9 @@ public class Form<T> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
      * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi, Formatters formatters) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
@@ -162,6 +165,7 @@ public class Form<T> {
         this.value = value;
         this.groups = groups;
         this.messagesApi = messagesApi;
+        this.formatters = formatters;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -373,7 +377,7 @@ public class Form<T> {
         }
         SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
         dataBinder.setValidator(validator);
-        dataBinder.setConversionService(play.data.format.Formatters.conversion);
+        dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
         final Map<String, String> objectDataFinal = objectData;
         withRequestLocale(() -> { dataBinder.bind(new MutablePropertyValues(objectDataFinal)); return null; });
@@ -441,7 +445,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi);
+            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -470,9 +474,9 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi);
+                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters);
         }
     }
 
@@ -528,7 +532,8 @@ public class Form<T> {
                 new HashMap<String,ValidationError>(),
                 Optional.ofNullable(value),
                 groups,
-                messagesApi
+                messagesApi,
+                formatters
         );
     }
 
@@ -744,7 +749,7 @@ public class Form<T> {
                     Object oValue = beanWrapper.getPropertyValue(objectKey);
                     if(oValue != null) {
                         final String objectKeyFinal = objectKey;
-                        fieldValue = withRequestLocale(() -> play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                        fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
                     }
                 }
             }

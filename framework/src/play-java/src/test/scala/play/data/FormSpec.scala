@@ -13,12 +13,14 @@ import scala.beans.BeanProperty
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.data.FormFactory
+import play.data.format.Formatters
 import play.twirl.api.Html
 
 object FormSpec extends Specification {
 
   val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
-  val formFactory = new FormFactory(new play.i18n.MessagesApi(messagesApi))
+  val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi))
 
   "a java form" should {
     "be valid" in {
@@ -170,7 +172,7 @@ object FormSpec extends Specification {
         // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
         // used come from the form, not the input data
         new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-          Map.empty.asJava, Optional.empty[JavaForm], null)
+          Map.empty.asJava, Optional.empty[JavaForm], null, null)
       }
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {

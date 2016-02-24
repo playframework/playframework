@@ -6,12 +6,13 @@ package javaguide.forms;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.LocalTime;
 import org.junit.Test;
+import play.Application;
 import play.data.DynamicForm;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
-import play.data.format.Formatters.SimpleFormatter;
 import play.data.validation.ValidationError;
+import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
 
@@ -27,11 +28,12 @@ import java.util.regex.Pattern;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
+import static play.inject.Bindings.bind;
 
 public class JavaForms extends WithApplication {
 
-    public FormFactory formFactory() {
-      return app.injector().instanceOf(FormFactory.class);
+    private FormFactory formFactory() {
+        return app.injector().instanceOf(FormFactory.class);
     }
 
     @Test
@@ -204,31 +206,11 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void registerFormatter() {
-        //#register-formatter
-        Formatters.register(LocalTime.class, new SimpleFormatter<LocalTime>() {
+        Application application = new GuiceApplicationBuilder()
+            .overrides(bind(Formatters.class).toProvider(FormattersProvider.class))
+            .build();
 
-            private Pattern timePattern = Pattern.compile(
-                    "([012]?\\d)(?:[\\s:\\._\\-]+([0-5]\\d))?"
-            );
-
-            @Override
-            public LocalTime parse(String input, Locale l) throws ParseException {
-                Matcher m = timePattern.matcher(input);
-                if (!m.find()) throw new ParseException("No valid Input", 0);
-                int hour = Integer.valueOf(m.group(1));
-                int min = m.group(2) == null ? 0 : Integer.valueOf(m.group(2));
-                return new LocalTime(hour, min);
-            }
-
-            @Override
-            public String print(LocalTime localTime, Locale l) {
-                return localTime.toString("HH:mm");
-            }
-
-        });
-        //#register-formatter
-
-        Form<WithLocalTime> form = formFactory().form(WithLocalTime.class);
+        Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(new LocalTime(23, 45)));
         assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));

@@ -165,9 +165,10 @@ public class HttpTest {
     public void testLangDataBinder() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+            Formatters formatters = app.injector().instanceOf(Formatters.class);
 
             // Register Formatter
-            Formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
+            formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
 
             // Prepare Request and Context with french number
             Map<String, String> data = new HashMap<>();
@@ -219,9 +220,9 @@ public class HttpTest {
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
             assertThat(myForm.field("amount").value()).isEqualTo("1,234,567.89");
 
-            // Clean up
-            Formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
-            Formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
+            // Clean up (Actually not really necassary because formatters are not global anyway ;-)
+            formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
+            formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
         });
     }
 
@@ -229,6 +230,7 @@ public class HttpTest {
     public void testLangErrorsAsJson() {
         withApplication((app) -> {
             MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+            Formatters formatters = app.injector().instanceOf(Formatters.class);
 
             RequestBuilder rb = new RequestBuilder();
             Context ctx = new Context(rb);
@@ -240,7 +242,7 @@ public class HttpTest {
             error.add(new ValidationError("key", "error.custom", args));
             Map<String,List<ValidationError>> errors = new HashMap<>();
             errors.put("foo", error);
-            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi);
+            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });
