@@ -81,6 +81,12 @@ To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed in
 
 @[url-encoded](code/ScalaWSSpec.scala)
 
+### Submitting multipart/form data
+
+To post multipart-form-encoded data a `Seq[org.asynchttpclient.request.body.multipart.Part]` needs to be passed into `post`.
+
+@[multipart-encoded](code/ScalaWSSpec.scala)
+
 ### Submitting JSON data
 
 The easiest way to post JSON data is to use the [[JSON|ScalaJson]] library.
@@ -216,7 +222,6 @@ You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/
 
 This is important in a couple of cases.  WS has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC12/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS

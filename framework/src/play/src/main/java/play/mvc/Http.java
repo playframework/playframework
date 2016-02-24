@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
@@ -1395,10 +1396,14 @@ public class Http {
             }
         }
 
+        public static interface Part<A> {
+
+        }
+
         /**
          * A file part.
          */
-        public static class FilePart<A> {
+        public static class FilePart<A> implements Part<A> {
 
             final String key;
             final String filename;
@@ -1446,6 +1451,35 @@ public class Http {
              */
             public A getFile() {
                 return file;
+            }
+
+        }
+
+        public static class DataPart implements Part<Source<ByteString, ?>> {
+            private final String key;
+            private final String value;
+
+            public DataPart(String key, String value) {
+                this.key = key;
+                this.value = value;
+            }
+
+            /**
+             * The part name.
+             *
+             * @return the part name
+             */
+            public String getKey() {
+                return key;
+            }
+
+            /**
+             * The part value.
+             *
+             * @return the part value
+             */
+            public String getValue() {
+                return value;
             }
 
         }

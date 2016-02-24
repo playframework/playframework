@@ -6,17 +6,16 @@ package play.it.tools
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import org.apache.commons.io.FileUtils
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.routing.SimpleRouter
 import play.api.routing.Router.Routes
 import play.api.routing.sird._
-import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
-
+import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
 import play.api.mvc._
 import play.api.mvc.Results._
-
-import play.api.libs.json._
-
+import play.api.libs.json.{ JsObject, _ }
 import play.filters.gzip.GzipFilter
 
 /**
@@ -51,6 +50,11 @@ object HttpBinApplication {
             case f: Map[String, Seq[String]] @unchecked =>
               Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
             // Anything else
+            case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
+              Json.obj(
+                "form" -> m.mdf.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
+                "file" -> JsString(m.mdf.file("upload").map(v => FileUtils.readFileToString(v.ref.file)).getOrElse(""))
+              )
             case b =>
               Json.obj("data" -> JsString(b.toString))
           })

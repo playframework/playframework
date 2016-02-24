@@ -75,6 +75,12 @@ The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]]
 
 @[ws-post-json](code/javaguide/ws/JavaWS.java)
 
+### Submitting multipart/form data
+
+The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData<Source<ByteString>, ?>, ?>`
+
+@[ws-post-multipart](code/javaguide/ws/JavaWS.java)
+
 ### Streaming data
 
 It's also possible to stream data.
@@ -100,6 +106,7 @@ Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done b
 You can process the response as a `JsonNode` by calling `response.asJson()`.
 
 @[ws-response-json](code/javaguide/ws/JavaWS.java)
+
 
 ### Processing a response as XML
 
@@ -184,7 +191,6 @@ You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/
 
 This is important in a couple of cases. The WS library has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC12/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
 * `WS` does not support streaming body upload.  In this case, you should use the [`FeedableBodyGenerator`](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC12/org/asynchttpclient/request/body/generator/FeedableBodyGenerator.html) provided by AsyncHttpClient.
 
 ## Configuring WS
