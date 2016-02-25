@@ -6,6 +6,7 @@ package play.api.libs.streams
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{ Flow, Source, Sink }
 import akka.stream.{ ActorMaterializer, Materializer }
+
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import org.specs2.mutable.Specification
 
@@ -26,7 +27,7 @@ object AccumulatorSpec extends Specification {
     }
   }
 
-  def sum = Accumulator(Sink.fold[Int, Int](0)(_ + _))
+  def sum: Accumulator[Int, Int] = Accumulator(Sink.fold[Int, Int](0)(_ + _))
   def source = Source(1 to 3)
   def await[T](f: Future[T]) = Await.result(f, 10.seconds)
   def error[T](any: Any): T = throw sys.error("error")
@@ -40,7 +41,6 @@ object AccumulatorSpec extends Specification {
   })
 
   "an accumulator" should {
-
     "provide map" in withMaterializer { implicit m =>
       await(sum.map(_ + 10).run(source)) must_== 16
     }
@@ -112,7 +112,5 @@ object AccumulatorSpec extends Specification {
         await(FutureConverters.toScala(sum.asJava.run(source.asJava, m))) must_== 6
       }
     }
-
   }
-
 }
