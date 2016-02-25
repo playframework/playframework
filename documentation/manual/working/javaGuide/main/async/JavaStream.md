@@ -3,7 +3,7 @@
 
 ## Standard responses and Content-Length header
 
-Since HTTP 1.1, to keep a single connection open to serve several HTTP requests and responses, the server must send the appropriate `Content-Length` HTTP header along with the response. 
+Since HTTP 1.1, to keep a single connection open to serve several HTTP requests and responses, the server must send the appropriate `Content-Length` HTTP header along with the response.
 
 By default, when you send a simple result, such as:
 
@@ -13,7 +13,7 @@ You are not specifying a `Content-Length` header. Of course, because the content
 
 > **Note** that for text-based content this is not as simple as it looks, since the `Content-Length` header must be computed according the encoding used to translate characters to bytes.
 
-To be able to compute the `Content-Length` header properly, Play must consume the whole response data and load its content into memory. 
+To be able to compute the `Content-Length` header properly, Play must consume the whole response data and load its content into memory.
 
 ## Serving files
 
@@ -29,10 +29,10 @@ Additionally this helper will also compute the `Content-Type` header from the fi
 
 For now, this works well with streaming file content, since we are able to compute the content length before streaming it. But what about dynamically-computed content with no content size available?
 
-For this kind of response we have to use **Chunked transfer encoding**. 
+For this kind of response we have to use **Chunked transfer encoding**.
 
 > **Chunked transfer encoding** is a data transfer mechanism in version HTTP 1.1 in which a web server serves content in a series of chunks. This uses the `Transfer-Encoding` HTTP response header instead of the `Content-Length` header, which the protocol would otherwise require. Because the `Content-Length` header is not used, the server does not need to know the length of the content before it starts transmitting a response to the client (usually a web browser). Web servers can begin transmitting responses with dynamically-generated content before knowing the total size of that content.
-> 
+>
 > The size of each chunk is sent right before the chunk itself so that a client can tell when it has finished receiving data for that chunk. The data transfer is terminated by a final chunk of length zero.
 >
 > <https://en.wikipedia.org/wiki/Chunked_transfer_encoding>
@@ -43,15 +43,11 @@ Let’s say that we have a service somewhere that provides a dynamic `InputStrea
 
 @[input-stream](code/javaguide/async/JavaStream.java)
 
-You can also set up your own chunked response builder. The Play Java API supports both text and binary chunked streams (via `String` and `byte[]`):
+You can also set up your own chunked response builder:
 
 @[chunked](code/javaguide/async/JavaStream.java)
 
-The `onReady` method is called when it is safe to write to this stream. It gives you a `Chunks.Out` channel you can write to.
-
-Let’s say we have an asynchronous process (like an `Actor`) somewhere pushing to this stream:
-
-@[register-out-channel](code/javaguide/async/JavaStream.java)
+The method `Source.actorRef` creates an Akka streams `Source` that materializes to an `ActorRef`. You can then publish elements to the stream by sending messages to the actor. An alternative approach is to create an actor that extends `ActorPublisher` and use the `Stream.actorPublisher` method to create it.
 
 We can inspect the HTTP response sent by the server:
 
@@ -71,3 +67,5 @@ bar
 ```
 
 We get three chunks and one final empty chunk that closes the response.
+
+For more information on using Akka streams, you can reference the [Akka streams documentation](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).
