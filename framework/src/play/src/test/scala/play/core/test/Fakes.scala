@@ -3,6 +3,8 @@
  */
 package play.core.test
 
+import java.security.cert.X509Certificate
+
 import akka.util.ByteString
 import play.api.inject.guice.GuiceInjectorBuilder
 import play.api.inject.{ BindingKey, Binding, Injector }
@@ -37,7 +39,7 @@ object Fakes {
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, clientCertificateChain: Option[Seq[X509Certificate]] = None) extends Request[A] {
 
   private def _copy[B](
     id: Long = this.id,
@@ -49,9 +51,10 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     headers: Headers = this.headers,
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
+    clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain,
     body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
-      method, uri, headers, body, remoteAddress, version, id, tags, secure
+      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain
     )
   }
 

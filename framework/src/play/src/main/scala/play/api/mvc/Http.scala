@@ -3,6 +3,7 @@
  */
 package play.api.mvc {
 
+  import java.security.cert.X509Certificate
   import java.util.Locale
 
   import play.api._
@@ -86,6 +87,11 @@ package play.api.mvc {
      * Is the client using SSL?
      */
     def secure: Boolean
+
+    /**
+     * The X509 certificate chain presented by a client during SSL requests.
+     */
+    def clientCertificateChain: Option[Seq[X509Certificate]]
 
     // -- Computed
 
@@ -176,6 +182,7 @@ package play.api.mvc {
 
     /**
       * Convenience method for adding a single tag to this request
+      *
       * @return the tagged request
       */
     def withTag(tagName: String, tagValue: String): RequestHeader = {
@@ -195,8 +202,9 @@ package play.api.mvc {
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
       remoteAddress: => String = this.remoteAddress,
-      secure: => Boolean = this.secure): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure)
+      secure: => Boolean = this.secure,
+      clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain)
       new RequestHeader {
         override val id = _id
         override val tags = _tags
@@ -208,6 +216,7 @@ package play.api.mvc {
         override val headers = _headers
         override lazy val remoteAddress = _remoteAddress()
         override lazy val secure = _secure()
+        override val clientCertificateChain = _clientCertificateChain
       }
     }
 
@@ -248,7 +257,8 @@ package play.api.mvc {
       override val queryString: Map[String, Seq[String]],
       override val headers: Headers,
       override val remoteAddress: String,
-      override val secure: Boolean) extends RequestHeader {
+      override val secure: Boolean,
+      override val clientCertificateChain: Option[Seq[X509Certificate]]) extends RequestHeader {
   }
 
   /**
@@ -279,6 +289,8 @@ package play.api.mvc {
       override def headers = self.headers
       override def remoteAddress = self.remoteAddress
       override def secure = self.secure
+      override def clientCertificateChain = self.clientCertificateChain
+
       override lazy val body = f(self.body)
     }
 
@@ -296,7 +308,8 @@ package play.api.mvc {
       override val queryString: Map[String, Seq[String]],
       override val headers: Headers,
       override val remoteAddress: String,
-      override val secure: Boolean) extends Request[A] {
+      override val secure: Boolean,
+      override val clientCertificateChain: Option[Seq[X509Certificate]]) extends Request[A] {
   }
 
   object Request {
@@ -312,6 +325,7 @@ package play.api.mvc {
       override def headers = rh.headers
       override lazy val remoteAddress = rh.remoteAddress
       override lazy val secure = rh.secure
+      override val clientCertificateChain = rh.clientCertificateChain
       override val body = a
     }
   }
@@ -331,6 +345,7 @@ package play.api.mvc {
     override def version = request.version
     override def remoteAddress = request.remoteAddress
     override def secure = request.secure
+    override def clientCertificateChain = request.clientCertificateChain
   }
 
   /**
