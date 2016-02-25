@@ -320,11 +320,12 @@ If you want to replace your `*.Out` with a simple object that you can write mess
 Java:
 
 ```java
-Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy.dropNew)
-  .mapMaterializerValue(sourceActor -> {
+Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy.dropNew())
+  .mapMaterializedValue(sourceActor -> {
     sourceActor.tell(ByteString.fromString("hello"), null);
     sourceActor.tell(ByteString.fromString("world"), null);
     sourceActor.tell(new Status.Success(NotUsed.getInstance()), null);
+    return null;
   });
 ```
 
