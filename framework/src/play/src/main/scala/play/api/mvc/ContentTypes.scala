@@ -6,10 +6,15 @@ package play.api.mvc
 import java.io._
 import java.util.Locale
 
+import scala.util.control.NonFatal
+import scala.xml._
+import scala.concurrent.{ Future, ExecutionContext, Promise }
+
 import akka.stream._
 import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
 import akka.stream.stage._
 import akka.util.ByteString
+
 import play.api._
 import play.api.data.Form
 import play.api.http.Status._
@@ -20,11 +25,6 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
 import play.core.parsers.Multipart
 import play.utils.PlayIO
-
-import scala.concurrent.{ Future, Promise }
-import scala.language.reflectiveCalls
-import scala.util.control.NonFatal
-import scala.xml._
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -669,7 +669,7 @@ trait BodyParsers {
      * @param maxLength The max length allowed
      * @param parser The BodyParser to wrap
      */
-    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
+    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser(s"maxLength=$maxLength, wrapping=$parser") { request =>
       import play.core.Execution.Implicits.trampoline
       val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
 
@@ -696,17 +696,26 @@ trait BodyParsers {
     }
 
     /**
-     * Allow to choose the right BodyParser parser to use by examining the request headers.
+     * Allows to choose the right BodyParser parser to use by examining the request headers.
      */
     def using[A](f: RequestHeader => BodyParser[A]) = BodyParser { request =>
       f(request)(request)
     }
 
     /**
-     * Create a conditional BodyParser.
+     * A body parser that flattens a future BodyParser.
+     */
+    def flatten[A](underlying: Future[BodyParser[A]])(implicit ec: ExecutionContext, materializer: Materializer): BodyParser[A] =
+      BodyParser { request =>
+        import play.core.Execution.Implicits.trampoline
+        Accumulator.flatten(underlying.map(_(request)))
+      }
+
+    /**
+     * Creates a conditional BodyParser.
      */
     def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Future[Result]): BodyParser[A] = {
-      BodyParser("conditional, wrapping=" + parser.toString) { request =>
+      BodyParser(s"conditional, wrapping=$parser") { request =>
         if (predicate(request)) {
           parser(request)
         } else {
