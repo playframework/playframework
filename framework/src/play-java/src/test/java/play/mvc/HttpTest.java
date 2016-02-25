@@ -4,6 +4,8 @@
 package play.mvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +17,7 @@ import com.typesafe.config.ConfigFactory;
 import play.Application;
 import play.Configuration;
 import play.Environment;
+import play.data.Birthday;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.Formats;
@@ -245,6 +248,60 @@ public class HttpTest {
             Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
+        });
+    }
+
+    @Test
+    public void testLangAnnotationDateDataBinder() {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+            // Prepare Request and Context
+            Map<String, String> data = new HashMap<>();
+            data.put("date", "3/10/1986");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse date input with pattern from the default messages file
+            Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            Birthday birthday = myForm.get();
+            assertThat(myForm.field("date").value()).isEqualTo("03/10/1986");
+            assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1986, 10, 3));
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("date", "16.2.2001");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse french date input with pattern from the french messages file
+            ctx.changeLang("fr");
+            myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            birthday = myForm.get();
+            assertThat(myForm.field("date").value()).isEqualTo("16.02.2001");
+            assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2001, 2, 16));
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("date", "8-31-1950");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse english date input with pattern from the en-US messages file
+            ctx.changeLang("en-US");
+            myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            birthday = myForm.get();
+            assertThat(myForm.field("date").value()).isEqualTo("08-31-1950");
+            assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1950, 8, 31));
         });
     }
 

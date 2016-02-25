@@ -33,7 +33,7 @@ public class Formatters {
 
         // By default, we always register some common and useful Formatters
         register(Date.class, new Formats.DateFormatter("yyyy-MM-dd"));
-        register(Date.class, new Formats.AnnotationDateFormatter());
+        register(Date.class, new Formats.AnnotationDateFormatter(messagesApi));
         register(String.class, new Formats.AnnotationNonEmptyFormatter());
         registerOptional();
     }
