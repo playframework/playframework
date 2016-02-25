@@ -9,11 +9,13 @@ import akka.stream.javadsl.AsPublisher;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.asynchttpclient.*;
 import org.asynchttpclient.oauth.OAuthSignatureCalculator;
+import org.asynchttpclient.request.body.generator.ByteArrayBodyGenerator;
 import org.asynchttpclient.request.body.generator.FileBodyGenerator;
 import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;
 import org.asynchttpclient.util.HttpUtils;
@@ -27,7 +29,6 @@ import scala.compat.java8.FutureConverters;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -476,18 +477,15 @@ public class AhcWSRequest implements WSRequest {
         } else if (body instanceof JsonNode) {
             JsonNode jsonBody = (JsonNode) body;
             List<String> contentType = new ArrayList<String>();
-            contentType.add("application/json; charset=utf-8");
+            contentType.add("application/json");
             possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentType);
-            String bodyStr = Json.stringify(jsonBody);
             byte[] bodyBytes;
             try {
-                bodyBytes = bodyStr.getBytes("utf-8");
-            } catch (UnsupportedEncodingException e) {
+                bodyBytes = Json.mapper().writeValueAsBytes(jsonBody);
+            } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-
-            builder.setBody(bodyStr);
-            builder.setCharset(StandardCharsets.UTF_8);
+            builder.setBody(new ByteArrayBodyGenerator(bodyBytes));
         } else if (body instanceof File) {
             File fileBody = (File) body;
             FileBodyGenerator bodyGenerator = new FileBodyGenerator(fileBody);
