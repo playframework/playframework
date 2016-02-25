@@ -10,7 +10,7 @@ import java.util.jar.JarFile
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
-import sbt.{ PathFinder, WatchState, SourceModificationWatch }
+import sbt._
 
 object Reloader {
 
@@ -266,6 +266,11 @@ object Reloader {
           } catch {
             case e: Throwable => // Swallow any exceptions so that all `onError`s get called.
           }
+        }
+        // Convert play-server exceptions to our to our ServerStartException
+        def getRootCause(t: Throwable): Throwable = if (t.getCause == null) t else getRootCause(t.getCause)
+        if (getRootCause(e).getClass.getName == "play.core.server.ServerListenException") {
+          throw new ServerStartException(e)
         }
         throw e
     }

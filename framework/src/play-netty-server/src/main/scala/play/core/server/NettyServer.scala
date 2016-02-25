@@ -4,36 +4,36 @@
 package play.core.server
 
 import java.io.IOException
+import java.net.InetSocketAddress
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import com.typesafe.config.{ ConfigValue, Config, ConfigFactory }
-import java.net.InetSocketAddress
+import com.typesafe.config.{ Config, ConfigFactory, ConfigValue }
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.group.DefaultChannelGroup
-import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel._
+import io.netty.channel.epoll.{ EpollEventLoopGroup, EpollServerSocketChannel }
+import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import play.api._
-import play.api.mvc.{ RequestHeader, Handler }
+import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
 import play.core._
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.Duration
-import scala.util.control.NonFatal
+
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
+import scala.util.control.NonFatal
 
 sealed trait NettyTransport
 case object Jdk extends NettyTransport
@@ -194,28 +194,26 @@ class NettyServer(
   }
 
   // Maybe the HTTP server channel
-  private val httpChannel = config.port.map { port =>
-    val (serverChannel, channelSource) = bind(new InetSocketAddress(config.address, port))
-    channelSource.runWith(channelSink(secure = false))
-    serverChannel
-  }
+  private val httpChannel = config.port.map(bindChannel(_, secure = false))
 
   // Maybe the HTTPS server channel
-  private val httpsChannel = config.sslPort.map { port =>
-    val (serverChannel, channelSource) = bind(new InetSocketAddress(config.address, port))
-    channelSource.runWith(channelSink(secure = true))
-    serverChannel
-  }
+  private val httpsChannel = config.sslPort.map(bindChannel(_, secure = true))
 
-  mode match {
-    case Mode.Test =>
-    case _ =>
-      httpChannel.foreach { http =>
-        logger.info(s"Listening for HTTP on ${http.localAddress()}")
-      }
-      httpsChannel.foreach { https =>
-        logger.info(s"Listening for HTTPS on ${https.localAddress()}")
-      }
+  private def bindChannel(port: Int, secure: Boolean): Channel = {
+    val protocolName = if (secure) "HTTPS" else "HTTP"
+    val address = new InetSocketAddress(config.address, port)
+    val (serverChannel, channelSource) = bind(address)
+    channelSource.runWith(channelSink(secure = secure))
+    val boundAddress = serverChannel.localAddress()
+    if (boundAddress == null) {
+      val e = new ServerListenException(protocolName, address)
+      logger.error(e.getMessage)
+      throw e
+    }
+    if (mode != Mode.Test) {
+      logger.info(s"Listening for $protocolName on $boundAddress")
+    }
+    serverChannel
   }
 
   override def stop() {
