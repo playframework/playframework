@@ -5,7 +5,7 @@ package play.filters.csrf;
 
 import java.util.concurrent.CompletionStage;
 
-import play.api.libs.Crypto;
+import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.mvc.Action;
@@ -21,13 +21,13 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
     private final CSRFConfig config;
     private final CSRF.TokenProvider tokenProvider;
-    private final Crypto crypto;
+    private final CSRFTokenSigner tokenSigner;
 
     @Inject
-    public AddCSRFTokenAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Crypto crypto) {
+    public AddCSRFTokenAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, CSRFTokenSigner tokenSigner) {
         this.config = config;
         this.tokenProvider = tokenProvider;
-        this.crypto = crypto;
+        this.tokenSigner = tokenSigner;
     }
 
     private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
@@ -35,9 +35,9 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
-        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
+        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, tokenSigner);
 
-        if (CSRFAction.getTokenToValidate(request, config, crypto).isEmpty()) {
+        if (CSRFAction.getTokenToValidate(request, config, tokenSigner).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
             String newToken = tokenProvider.generateToken();
 

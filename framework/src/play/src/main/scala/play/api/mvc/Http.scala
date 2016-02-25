@@ -9,7 +9,7 @@ package play.api.mvc {
   import play.api._
   import play.api.http._
   import play.api.i18n.Lang
-  import play.api.libs.Crypto
+  import play.api.libs.crypto.CookieSigner
   import play.core.utils.CaseInsensitiveOrdered
 
   import scala.annotation._
@@ -540,6 +540,11 @@ package play.api.mvc {
     def path = "/"
 
     /**
+     * The cookie signer.
+     */
+    def cookieSigner: CookieSigner
+
+    /**
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
@@ -547,7 +552,7 @@ package play.api.mvc {
         case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
       }.mkString("&")
       if (isSigned)
-        Crypto.sign(encoded) + "-" + encoded
+        cookieSigner.sign(encoded) + "-" + encoded
       else
         encoded
     }
@@ -584,7 +589,7 @@ package play.api.mvc {
         if (isSigned) {
           val splitted = data.split("-", 2)
           val message = splitted.tail.mkString("-")
-          if (safeEquals(splitted(0), Crypto.sign(message)))
+          if (safeEquals(splitted(0), cookieSigner.sign(message)))
             urldecode(message)
           else
             Map.empty[String, String]
@@ -708,6 +713,7 @@ package play.api.mvc {
     override def httpOnly = config.httpOnly
     override def path = httpConfiguration.context
     override def domain = config.domain
+    override def cookieSigner = play.api.libs.Crypto.crypto
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -780,6 +786,7 @@ package play.api.mvc {
     override def secure = config.secure
     override def httpOnly = config.httpOnly
     override def domain = sessionConfig.domain
+    override def cookieSigner = play.api.libs.Crypto.crypto
 
     val emptyCookie = new Flash
 

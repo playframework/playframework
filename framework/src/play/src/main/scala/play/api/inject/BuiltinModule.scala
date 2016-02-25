@@ -12,7 +12,7 @@ import play.api._
 import play.api.http._
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
-import play.api.libs.{ Crypto, CryptoConfig, CryptoConfigParser }
+import play.api.libs.crypto._
 import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.libs.concurrent.HttpExecutionContext
@@ -55,7 +55,10 @@ class BuiltinModule extends Module {
       bind[HttpExecutionContext].toSelf,
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
-      bind[Crypto].toSelf,
+      bind[CookieSigner].toProvider[CookieSignerProvider],
+      bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
+      bind[AESCrypter].toProvider[AESCrypterProvider],
+      bind[play.api.libs.Crypto].toSelf,
       bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,

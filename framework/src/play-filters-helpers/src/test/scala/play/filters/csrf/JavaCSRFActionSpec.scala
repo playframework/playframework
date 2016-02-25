@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.Play
-import play.api.libs.Crypto
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.ws._
 import play.api.mvc.Session
 import play.core.j.{ JavaAction, JavaActionAnnotations, JavaHandlerComponents }
@@ -23,9 +23,10 @@ import scala.reflect.ClassTag
  */
 object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
-  def javaHandlerComponents = Play.current.injector.instanceOf[JavaHandlerComponents]
-  def myAction = Play.current.injector.instanceOf[MyAction]
-  def ws = Play.current.injector.instanceOf[WSClient]
+  def javaHandlerComponents = Play.privateMaybeApplication.get.injector.instanceOf[JavaHandlerComponents]
+  def myAction = Play.privateMaybeApplication.get.injector.instanceOf[MyAction]
+  def ws = Play.privateMaybeApplication.get.injector.instanceOf[WSClient]
+  //def crypto = Play.privateMaybeApplication.get.injector.instanceOf[CSRFTokenSigner]
 
   def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
@@ -75,10 +76,10 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     )) {
       case _ => javaAction[MyAction]("getToken", myAction.getToken())
     } {
-      lazy val token = Crypto.generateSignedToken
+      lazy val token = crypto.generateSignedToken
       import play.api.Play.current
       val returned = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
-      Crypto.compareSignedTokens(token, returned) must beTrue
+      crypto.compareSignedTokens(token, returned) must beTrue
     }
   }
 

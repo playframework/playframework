@@ -16,7 +16,6 @@ import play.api.mvc._
 import play.api.libs.json.Json
 import play.api.test._
 import scala.util.Random
-import play.api.libs.Crypto
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Mode, Configuration, Environment }
 import play.api.ApplicationLoader.Context
@@ -80,7 +79,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound))
       } {
-        val token = Crypto.generateSignedToken
+        val token = crypto.generateSignedToken
         import play.api.Play.current
         await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
@@ -109,7 +108,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       .build()
 
     "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
-      val token = Crypto.generateSignedToken
+      val token = crypto.generateSignedToken
       val response = await(WS.url("http://localhost:" + port).withSession(TokenName -> token)
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
@@ -130,10 +129,10 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     "work with a Java error handler" in {
       def csrfCheckRequest = buildCsrfCheckRequestWithJavaHandler()
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
-      def generate = Crypto.generateSignedToken
+      def generate = crypto.generateSignedToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
       def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
-      def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
+      def compareTokens(a: String, b: String) = crypto.compareSignedTokens(a, b) must beTrue
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
     }
