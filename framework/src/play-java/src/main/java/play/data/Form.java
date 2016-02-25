@@ -41,6 +41,10 @@ public class Form<T> {
 
     // -- Form utilities
 
+    private static play.api.inject.Injector injector() {
+        return play.api.Play.current().injector();
+    }
+
     /**
      * Instantiates a dynamic form.
      *
@@ -48,7 +52,7 @@ public class Form<T> {
      */
     @Deprecated
     public static DynamicForm form() {
-        return new DynamicForm(play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
+        return new DynamicForm(injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     /**
@@ -58,7 +62,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<>(clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
+        return new Form<>(clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     /**
@@ -68,7 +72,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<>(name, clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
+        return new Form<>(name, clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     /**
@@ -78,7 +82,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
+        return new Form<>(name, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     /**
@@ -88,7 +92,7 @@ public class Form<T> {
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
+        return new Form<>(null, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     // ---
@@ -113,6 +117,7 @@ public class Form<T> {
     private final Class<?> groups;
     final MessagesApi messagesApi;
     final Formatters formatters;
+    final javax.validation.Validator validator;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -131,22 +136,22 @@ public class Form<T> {
      *
      * @param clazz wrapped class
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters) {
-        this(null, clazz, messagesApi, formatters);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(null, clazz, messagesApi, formatters, validator);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, MessagesApi messagesApi, Formatters formatters) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi, formatters);
+    public Form(String name, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi, formatters, validator);
     }
 
     @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi, Formatters formatters) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters);
+    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters) {
-        this(rootName, clazz, data, errors, value, null, messagesApi, formatters);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, null, messagesApi, formatters, validator);
     }
 
     /**
@@ -159,7 +164,7 @@ public class Form<T> {
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi, Formatters formatters) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
@@ -168,6 +173,7 @@ public class Form<T> {
         this.groups = groups;
         this.messagesApi = messagesApi;
         this.formatters = formatters;
+        this.validator = validator;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -377,7 +383,7 @@ public class Form<T> {
         if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
@@ -451,7 +457,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters);
+            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -480,9 +486,9 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters);
+                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters, this.validator);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
     }
 
@@ -539,7 +545,8 @@ public class Form<T> {
                 Optional.ofNullable(value),
                 groups,
                 messagesApi,
-                formatters
+                formatters,
+                validator
         );
     }
 
@@ -808,7 +815,7 @@ public class Form<T> {
             leafKey = leafKey.substring(p + 1);
         }
         if (classType != null) {
-            BeanDescriptor beanDescriptor = play.data.validation.Validation.getValidator().getConstraintsForClass(classType);
+            BeanDescriptor beanDescriptor = this.validator.getConstraintsForClass(classType);
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
                 if(property != null) {

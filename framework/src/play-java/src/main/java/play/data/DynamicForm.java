@@ -3,6 +3,8 @@
  */
 package play.data;
 
+import javax.validation.Validator;
+
 import java.util.*;
 
 import play.data.validation.*;
@@ -19,8 +21,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Creates a new empty dynamic form.
      */
-    public DynamicForm(MessagesApi messagesApi, Formatters formatters) {
-        super(DynamicForm.Dynamic.class, messagesApi, formatters);
+    public DynamicForm(MessagesApi messagesApi, Formatters formatters, Validator validator) {
+        super(DynamicForm.Dynamic.class, messagesApi, formatters, validator);
         rawData = new HashMap<>();
     }
     
@@ -31,8 +33,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value if the form submission was successful
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters);
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
@@ -61,7 +63,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -101,7 +103,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
     
     /**

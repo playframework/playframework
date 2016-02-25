@@ -67,7 +67,7 @@ object Dependencies {
     scalaJava8Compat,
 
     "org.yaml" % "snakeyaml" % "1.16",
-    "org.hibernate" % "hibernate-validator" % "5.2.2.Final",
+    "org.hibernate" % "hibernate-validator" % "5.2.4.Final",
     "javax.el"      % "javax.el-api"        % "3.0.0", // required by hibernate-validator
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
