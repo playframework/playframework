@@ -77,5 +77,6 @@ class RequestHeaderSpec extends Specification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    override def clientCertificateChain = None
   }
 }

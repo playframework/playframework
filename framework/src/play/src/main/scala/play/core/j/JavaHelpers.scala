@@ -193,6 +193,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
 
+  override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
+
   def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
