@@ -89,6 +89,12 @@ Here is an example showing how you could stream a large image to a different end
 
 The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString, ?>`.
 
+### Request Filters
+
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.libs.ws.WSRequestFilter`](api/java/play/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+
+@[ws-request-filter](code/javaguide/ws/JavaWS.java)
+
 ## Processing the Response
 
 Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by applying transformations such as `thenApply` and `thenCompose` to the `CompletionStage`.
