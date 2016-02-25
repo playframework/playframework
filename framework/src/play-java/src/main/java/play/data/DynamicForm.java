@@ -6,6 +6,7 @@ package play.data;
 import java.util.*;
 
 import play.data.validation.*;
+import play.data.format.Formatters;
 import play.i18n.MessagesApi;
 
 /**
@@ -18,8 +19,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Creates a new empty dynamic form.
      */
-    public DynamicForm(MessagesApi messagesApi) {
-        super(DynamicForm.Dynamic.class, messagesApi);
+    public DynamicForm(MessagesApi messagesApi, Formatters formatters) {
+        super(DynamicForm.Dynamic.class, messagesApi, formatters);
         rawData = new HashMap<>();
     }
     
@@ -30,8 +31,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value if the form submission was successful
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi);
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
@@ -60,7 +61,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters);
     }
 
     /**
@@ -100,7 +101,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters);
     }
     
     /**
