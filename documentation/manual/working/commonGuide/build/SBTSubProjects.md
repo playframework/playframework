@@ -97,7 +97,7 @@ One thing to note is that if you have a mix of Play and non-Play projects, you m
 
 ```scala
 object Common {
- 
+
   val playSettings = settings ++ Seq(
     routesGenerator := InjectedRoutesGenerator,
     libraryDependencies += specs2 % Test,
@@ -177,7 +177,7 @@ project
 `conf/routes`:
 
 ```
-GET /index                  controllers.Application.index()
+GET /index                  controllers.HomeController.index()
 
 ->  /admin admin.Routes
 
@@ -213,7 +213,7 @@ public class Assets {
 
 and a controller:
 
-`modules/admin/controllers/Application.scala`:
+`modules/admin/controllers/HomeController.scala`:
 
 ```scala
 package controllers.admin
@@ -222,7 +222,7 @@ import play.api._
 import play.api.mvc._
 import views.html._
 
-object Application extends Controller {
+class HomeController extends Controller {
 
   def index = Action { implicit request =>
     Ok("admin")
@@ -236,7 +236,7 @@ in case of a regular controller call:
 
 
 ```
-controllers.admin.routes.Application.index
+controllers.admin.routes.HomeController.index
 ```
 
 and for `Assets`:
@@ -254,7 +254,7 @@ http://localhost:9000/index
 triggers
 
 ```
-controllers.Application.index
+controllers.HomeController.index
 ```
 
 and
@@ -266,5 +266,5 @@ http://localhost:9000/admin/index
 triggers
 
 ```
-controllers.admin.Application.index
+controllers.admin.HomeController.index
 ```
