@@ -13,6 +13,9 @@ public class Birthday {
     // No annotation
     private Date alternativeDate;
 
+    @play.data.format.Formats.DateTime // no args; use default pattern
+    private Date otherDate;
+
     public Date getDate() {
         return this.date;
     }
@@ -27,5 +30,13 @@ public class Birthday {
 
     public void setAlternativeDate(Date date) {
         this.alternativeDate = date;
+    }
+
+    public Date getOtherDate() {
+        return this.otherDate;
+    }
+
+    public void setOtherDate(Date date) {
+        this.otherDate = date;
     }
 }

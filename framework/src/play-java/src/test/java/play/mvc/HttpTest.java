@@ -306,6 +306,44 @@ public class HttpTest {
     }
 
     @Test
+    public void testLangAnnotationDateDataBinderDefault() {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+            // Prepare Request and Context
+            Map<String, String> data = new HashMap<>();
+            data.put("otherDate", "1982-6-8");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse date input with pattern from Play's default messages file
+            Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            Birthday birthday = myForm.get();
+            assertThat(myForm.field("otherDate").value()).isEqualTo("1982-06-08");
+            assertThat(birthday.getOtherDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1982, 6, 8));
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("otherDate", "3-2004.9");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse french date input with pattern from the french messages file
+            ctx.changeLang("fr");
+            myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            birthday = myForm.get();
+            assertThat(myForm.field("otherDate").value()).isEqualTo("03-2004.09");
+            assertThat(birthday.getOtherDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2004, 9, 3));
+        });
+    }
+
+    @Test
     public void testLangDateDataBinder() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
