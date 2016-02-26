@@ -4,13 +4,18 @@
 package play.it.http
 
 import java.io.ByteArrayInputStream
+import java.util.Arrays
+
+import akka.NotUsed
+import akka.stream.javadsl.Source
+import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.it._
-import play.libs.{ LegacyEventSource, EventSource }
-import play.libs.EventSource.Event
+import play.libs.{ Comet, EventSource, Json, LegacyEventSource }
+import play.mvc.Http.MimeTypes
 import play.mvc.Results
 import play.mvc.Results.Chunks
 
@@ -89,12 +94,43 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "data: a\n\ndata: b\n\n"
     }
 
+    "chunk comet results from string" in makeRequest(new MockController {
+      def action = {
+        import scala.collection.JavaConverters._
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
+        val cometSource = dataSource.via(Comet.string("callback"))
+        Results.ok().chunked(cometSource)
+      }
+    }) { response =>
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must contain("<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>")
+    }
+
+    "chunk comet results from json" in makeRequest(new MockController {
+      def action = {
+        val objectNode = Json.newObject
+        objectNode.put("foo", "bar")
+        val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
+        val cometSource = dataSource.via(Comet.json("callback"))
+        Results.ok().chunked(cometSource)
+      }
+    }) { response =>
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must contain("<html><body><script type=\"text/javascript\">callback({\"foo\":\"bar\"});</script>")
+    }
+
     "chunk event source results" in makeRequest(new MockController {
       def action = {
         import scala.collection.JavaConverters._
-        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava)
-        val eventSource = EventSource.apply(dataSource)
-        Results.ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream")
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map {
+          new akka.japi.function.Function[String, EventSource.Event] {
+            def apply(t: String) = EventSource.Event.event(t)
+          }
+        }
+        val eventSource = dataSource.via(EventSource.flow())
+        Results.ok().chunked(eventSource).as("text/event-stream")
       }
     }) { response =>
       response.header(CONTENT_TYPE) must beSome.like {

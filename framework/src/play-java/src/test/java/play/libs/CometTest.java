@@ -4,11 +4,12 @@
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import play.api.libs.iteratee.TestChannel;
 import play.mvc.Results.Chunks;
+
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.assertions.Assertions.assertThat;

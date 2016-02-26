@@ -3,6 +3,8 @@
  */
 package play.libs;
 
+import akka.NotUsed;
+import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,36 +25,24 @@ import com.fasterxml.jackson.databind.JsonNode;
  *     //import scala.concurrent.duration.Duration;
  *     //import static java.util.concurrent.TimeUnit.*;
  *     //import static play.libs.EventSource.Event.event;
+ *     //private final DateTimeFormatter df = DateTimeFormatter.ofPattern("HH mm ss");
  *
  *     public Result liveClock() {
- *         Source&lt;String, ?&gt; tickSource = Source.from(Duration.Zero(), Duration.create(100, MILLISECONDS), "TICK");
- *         Source&lt;EventSource.Event, ?&gt; eventSource = tickSource.map((tick) -&gt; event(df.format(ZonedDateTime.now())));
- *         return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
+ *         Source&lt;String, ?&gt; tickSource = Source.tick(Duration.Zero(), Duration.create(100, MILLISECONDS), "TICK");
+ *         Source&lt;EventSource.Event, ?&gt; eventSource = tickSource.map((tick) -&gt; EventSource.Event.event(df.format(ZonedDateTime.now())));
+ *         return ok().chunked(eventSource.via(EventSource.flow())).as(Http.MimeTypes.EVENT_STREAM);
  *     }
  * }}}
  */
 public class EventSource {
 
-    /**
-     * Maps from a Source of String to a Source of EventSource.Event.
-     *
-     * Useful when id and name are not required.
-     *
-     * @param source input event source.
-     * @return a Source of EventSource.Event.
-     */
-    public static Source<EventSource.Event, ?> apply(Source<String, ?> source) {
-        return source.map(Event::event);
-    }
 
     /**
-     * Maps from a Source of EventSource.Event to a Source of ByteString.
-     *
-     * @param source input event source.
-     * @return a Source of ByteStream.
+     * Creates a flow of EventSource.Event to ByteString.
      */
-    public static Source<ByteString, ?> chunked(Source<EventSource.Event, ?> source) {
-        return source.map(event -> ByteString.fromString(event.formatted()));
+    public static Flow<EventSource.Event, ByteString, ?> flow() {
+        Flow<Event, Event, NotUsed> flow = Flow.of(Event.class);
+        return flow.map((EventSource.Event event) -> ByteString.fromString(event.formatted()));
     }
 
     /**
