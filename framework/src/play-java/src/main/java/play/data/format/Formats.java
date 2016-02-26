@@ -113,10 +113,11 @@ public class Formats {
 
         /**
          * Date pattern, as specified for {@link SimpleDateFormat}.
+         * Defaults to the message key "formats.annotationDateFormat".
          *
          * @return the date pattern
          */
-        String pattern();
+        String pattern() default "formats.annotationDateFormat";
     }
 
     /**
