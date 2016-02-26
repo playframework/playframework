@@ -34,12 +34,12 @@ public class Formats {
 
         /**
          * Creates a date formatter.
-         * The value defined for the message file key "formats.dateFormat" will be used as the default pattern.
+         * The value defined for the message file key "formats.date" will be used as the default pattern.
          *
          * @param messagesApi messages to look up the pattern
          */
         public DateFormatter(MessagesApi messagesApi) {
-            this(messagesApi, "formats.dateFormat");
+            this(messagesApi, "formats.date");
         }
 
         /**
