@@ -18,6 +18,7 @@ import play.Application;
 import play.Configuration;
 import play.Environment;
 import play.data.Birthday;
+import play.data.models.Task;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.Formats;
@@ -356,6 +357,31 @@ public class HttpTest {
             birthday = myForm.get();
             assertThat(myForm.field("alternativeDate").value()).isEqualTo("03/12/1962");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1962, 12, 3));
+        });
+    }
+
+    @Test
+    public void testInvalidMessages() {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+            // Prepare Request and Context
+            Map<String, String> data = new HashMap<>();
+            data.put("id", "1234567891");
+            data.put("name", "peter");
+            data.put("dueDate", "2009/11e/11");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse date input with pattern from the default messages file
+            Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isTrue();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(2);
+            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.java.util.Date");
         });
     }
 
