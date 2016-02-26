@@ -7,7 +7,7 @@ cd manual
 for f in `find . -name '*.md'`
 do
   echo "<!--- Copyright (C) 2009-$year Lightbend Inc. <https://www.lightbend.com> -->" > /tmp/mdcw
-  if head -n 1 $f | grep -q "Lightbend Inc. <https://www.lightbend.com>"
+  if head -n 1 $f | grep -qiE "(Lightbend|Typesafe) Inc. <https?://(www.)?(lightbend|typesafe).com"
   then
     tail -n +2 $f >> /tmp/mdcw
   else
