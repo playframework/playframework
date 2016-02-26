@@ -388,7 +388,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
     implicit def InstantFormatterParser(formatter: DateTimeFormatter): TemporalParser[Instant] = new TemporalParser[Instant] {
       def parse(input: String): Option[Instant] = try {
         val time = LocalDateTime.parse(input, formatter).atZone(ZoneId.of("Z"))
-        
+
         Some(time.toInstant)
       } catch {
         case _: DateTimeParseException => None
