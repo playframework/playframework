@@ -38,41 +38,41 @@ import com.google.common.collect.ImmutableList;
 public class Form<T> {
 
     // -- Form utilities
-    
+
     /**
      * Instantiates a dynamic form.
      *
-     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
     @Deprecated
     public static DynamicForm form() {
         return new DynamicForm(play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      *
-     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz) {
         return new Form<>(clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      *
-     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz) {
         return new Form<>(name, clazz, play.api.Play.current().injector().instanceOf(MessagesApi.class), play.api.Play.current().injector().instanceOf(Formatters.class));
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      *
-     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
     @Deprecated
     public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
@@ -82,7 +82,7 @@ public class Form<T> {
     /**
      * Instantiates a new form that wraps the specified class.
      *
-     * @deprecated inject a {@link #FormFactory} instead, since 2.5.0
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
     @Deprecated
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
@@ -90,7 +90,7 @@ public class Form<T> {
     }
 
     // ---
-    
+
     /**
      * Defines a form element's display name.
      */
@@ -183,7 +183,7 @@ public class Form<T> {
         Map<String,String> jsonData = new HashMap<>();
         if(request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(request.body().asJson())
                     )
@@ -294,7 +294,7 @@ public class Form<T> {
     public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(data)
                     )
@@ -684,7 +684,7 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     */
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<>());
     }
@@ -703,7 +703,7 @@ public class Form<T> {
      * Add a global error to this form.
      *
      * @param error the error message.
-     */    
+     */
     public void reject(String error) {
         reject("", error, new ArrayList<>());
     }
@@ -912,7 +912,7 @@ public class Form<T> {
 
         /**
          * Returns the expected format for this field.
-         * 
+         *
          * @return The expected format for this field.
          */
         public Tuple<String,List<Object>> format() {
