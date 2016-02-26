@@ -30,8 +30,8 @@ object DefaultBodyParserSpec extends PlaySpecification {
       parse("HEAD", None, ByteString("bar")) must beRight(AnyContentAsEmpty)
     }
 
-    "ignore text bodies for OPTIONS requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsEmpty)
+    "parse text bodies for OPTIONS requests" in new WithApplication() {
+      parse("OPTIONS", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
     "parse XML bodies for PATCH requests" in new WithApplication() {
