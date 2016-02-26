@@ -61,6 +61,21 @@ object FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
       myForm.errors.get("id").get(0).messages().asScala must contain("error.invalid")
     }
+    "be valid with default date binder" in {
+      val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+    }
+    "have an error due to baldy formatted date for default date binder" in {
+      val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors.get("endDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
+    }
 
     "support repeated values for Java binding" in {
 

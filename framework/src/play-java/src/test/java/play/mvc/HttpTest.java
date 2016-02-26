@@ -305,4 +305,58 @@ public class HttpTest {
         });
     }
 
+    @Test
+    public void testLangDateDataBinder() {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+            // Prepare Request and Context
+            Map<String, String> data = new HashMap<>();
+            data.put("alternativeDate", "1982-5-7");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse date input with pattern from Play's default messages file
+            Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            Birthday birthday = myForm.get();
+            assertThat(myForm.field("alternativeDate").value()).isEqualTo("1982-05-07");
+            assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1982, 5, 7));
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("alternativeDate", "10_4_2005");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse french date input with pattern from the french messages file
+            ctx.changeLang("fr");
+            myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            birthday = myForm.get();
+            assertThat(myForm.field("alternativeDate").value()).isEqualTo("10_04_2005");
+            assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2005, 10, 4));
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("alternativeDate", "3/12/1962");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse english date input with pattern from the en-US messages file
+            ctx.changeLang("en-US");
+            myForm = formFactory.form(Birthday.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            birthday = myForm.get();
+            assertThat(myForm.field("alternativeDate").value()).isEqualTo("03/12/1962");
+            assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1962, 12, 3));
+        });
+    }
+
 }
