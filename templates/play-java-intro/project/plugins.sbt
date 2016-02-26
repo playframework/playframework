@@ -8,6 +8,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "%JSHINT_VERSION%")
 addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "%RJS_VERSION%")
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "%DIGEST_VERSION%")
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "%MOCHA_VERSION%")
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "%SASSIFY_VERSION%")
 
 // Play enhancer - this automatically generates getters/setters for public fields
 // and rewrites accessors of these fields to use the getters/setters. Remove this
