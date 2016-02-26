@@ -56,6 +56,7 @@ templateParameters := Map(
   "DIGEST_VERSION" -> "1.1.0",
   "RJS_VERSION" -> "1.0.7",
   "MOCHA_VERSION" -> "1.1.0",
+  "SASSIFY_VERSION" -> "1.4.2",
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
   "PLAY_SLICK_VERSION" -> "1.1.0",
