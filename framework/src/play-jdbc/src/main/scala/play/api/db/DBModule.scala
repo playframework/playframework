@@ -40,13 +40,10 @@ final class DBModule extends Module {
 }
 
 /**
- * DB components (for compile-time injection).
+ * DB components default implementation
  */
-trait DBComponents {
-  def environment: Environment
-  def configuration: Configuration
-  def connectionPool: ConnectionPool
-  def applicationLifecycle: ApplicationLifecycle
+trait DefaultDBComponents extends DBComponents {
+  this: BuiltInComponents with ConnectionPoolComponents =>
 
   lazy val dbApi: DBApi = new DBApiProvider(environment, configuration, connectionPool, applicationLifecycle).get
 }

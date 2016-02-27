@@ -342,6 +342,20 @@ class DynamicEvolutions {
 }
 
 /**
+ * Dynamic evolutions components for compile-time DI
+ */
+trait DynamicEvolutionsComponents {
+  def dynamicEvolutions: DynamicEvolutions
+}
+
+/**
+ * Dynamic evolutions components default implementation
+ */
+trait DefaultDynamicEvolutionsComponents extends DynamicEvolutionsComponents {
+  lazy val dynamicEvolutions = new DynamicEvolutions
+}
+
+/**
  * Web command handler for applying evolutions on application start.
  */
 @Singleton

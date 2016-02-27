@@ -9,7 +9,7 @@ import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject.Module
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.api.{ Configuration, Environment, PlayConfig }
+import play.api.{ BuiltInComponents, Configuration, Environment, PlayConfig }
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
@@ -90,9 +90,19 @@ class AllowedHostsModule extends Module {
   )
 }
 
+/**
+ * Allowed hosts components for compile-time DI
+ */
 trait AllowedHostsComponents {
-  def configuration: Configuration
-  def httpErrorHandler: HttpErrorHandler
+  def allowedHostsConfig: AllowedHostsConfig
+  def allowedHostsFilter: AllowedHostsFilter
+}
+
+/**
+ * Allowed hosts components default implementation
+ */
+trait DefaultAllowedHostsComponents extends AllowedHostsComponents {
+  this: BuiltInComponents =>
 
   lazy val allowedHostsConfig: AllowedHostsConfig = AllowedHostsConfig.fromConfiguration(configuration)
   lazy val allowedHostsFilter: AllowedHostsFilter = AllowedHostsFilter(allowedHostsConfig, httpErrorHandler)

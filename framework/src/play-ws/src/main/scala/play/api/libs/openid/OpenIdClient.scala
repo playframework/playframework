@@ -312,12 +312,19 @@ class OpenIDModule extends Module {
 }
 
 /**
- * OpenID components
+ * OpenID components for compile-time DI
  */
 trait OpenIDComponents {
-  def wsClient: WSClient
+  def openIdDiscovery: Discovery
+  def openIdClient: OpenIdClient
+}
+
+/**
+ * OpenID components default implementation
+ */
+trait DefaultOpenIDComponents extends OpenIDComponents {
+  this: WSComponents =>
 
   lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)
   lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)
 }
-

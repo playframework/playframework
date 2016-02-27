@@ -26,7 +26,7 @@ object CompileTimeDependencyInjection extends Specification {
       val context = ApplicationLoader.createContext(environment)
       val components = new messages.MyComponents(context)
       components.application must beAnInstanceOf[Application]
-      components.myComponent must beAnInstanceOf[messages.MyComponent]
+      components.myService must beAnInstanceOf[messages.MyService]
     }
     "allow declaring a custom router" in {
       val context = ApplicationLoader.createContext(environment)
@@ -79,13 +79,25 @@ import play.api.routing.Router
 import play.api.i18n._
 
 class MyComponents(context: Context) extends BuiltInComponentsFromContext(context)
-                                     with I18nComponents {
+                                     with DefaultI18nComponents
+                                     with MyConcreteServiceComponent {
   lazy val router = Router.empty
-
-  lazy val myComponent = new MyComponent(messagesApi)
 }
 
-class MyComponent(messages: MessagesApi) {
+trait MyService {
+  //...
+}
+
+trait MyServiceComponent {
+  def myService: MyService
+}
+
+trait MyConcreteServiceComponent extends MyServiceComponent {
+  this: I18nComponents =>
+  lazy val myService = new MyConcreteService(messagesApi)
+}
+
+class MyConcreteService(messages: MessagesApi) extends MyService {
   // ...
 }
 //#messages

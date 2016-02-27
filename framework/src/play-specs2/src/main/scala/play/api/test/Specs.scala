@@ -7,8 +7,11 @@ import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
+import play.api.ApplicationLoader.Context
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
-import play.api.{ Application, ApplicationLoader, Environment, Mode }
+import play.api.routing.Router
+import play.api.{ Application, ApplicationLoader, Environment, Mode, BuiltInComponents }
+import play.api.mvc.{Results, Action}
 import play.core.server.ServerProvider
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
@@ -42,6 +45,30 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
   implicit def implicitApp = app
   implicit def implicitMaterializer = app.materializer
   override def around[T: AsResult](t: => T): Result = {
+    Helpers.running(app)(AsResult.effectively(t))
+  }
+}
+
+/**
+  * An empty router component that can be used when testing compile-time DI components.
+  */
+trait EmptyRouterComponent extends BuiltInComponents {
+  def router = Router.empty
+}
+
+/**
+  * Used to run specs within the context of running application loaded by compile-time DI components.
+  *
+  * @param compBuilder a function building DI components
+  * @param context a context passed to compBuilder
+  * @tparam A type mixing in all DI components
+  */
+abstract class WithCompileTimeDiApp[A <: BuiltInComponents](compBuilder: Context => A, context: Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test)))
+  extends Around with Scope {
+  lazy val components = compBuilder(context)
+  implicit lazy val app = components.application
+
+  def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
 }

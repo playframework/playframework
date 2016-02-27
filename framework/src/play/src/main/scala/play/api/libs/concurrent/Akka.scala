@@ -234,13 +234,17 @@ trait InjectedActorSupport {
 }
 
 /**
- * Components for configuring Akka.
- */
+  * Akka components for compile-time DI
+  */
 trait AkkaComponents {
+  def actorSystem: ActorSystem
+}
 
-  def environment: Environment
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
+/**
+ * Akka components default implementation
+ */
+trait DefaultAkkaComponents extends AkkaComponents {
+  this: BuiltInComponents =>
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
 }

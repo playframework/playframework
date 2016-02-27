@@ -7,7 +7,7 @@ import javax.inject.{ Inject, Provider }
 
 import akka.stream.Materializer
 import play.api.http.HttpErrorHandler
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ BuiltInComponents, Environment, PlayConfig, Configuration }
 import play.api.inject.Module
 
 /**
@@ -39,12 +39,19 @@ class CORSModule extends Module {
 }
 
 /**
- * Components for the CORS Filter
+ * CORS Filter components for compile-time DI
  */
 trait CORSComponents {
-  def configuration: Configuration
-  def httpErrorHandler: HttpErrorHandler
-  implicit def materializer: Materializer
+  def corsConfig: CORSConfig
+  def corsFilter: CORSFilter
+  def corsPathPrefixes: Seq[String]
+}
+
+/**
+ * CORS Filter components default implementation
+ */
+trait DefaultCORSComponents {
+  this: BuiltInComponents =>
 
   lazy val corsConfig: CORSConfig = CORSConfig.fromConfiguration(configuration)
   lazy val corsFilter: CORSFilter = new CORSFilter(corsConfig, httpErrorHandler, corsPathPrefixes)

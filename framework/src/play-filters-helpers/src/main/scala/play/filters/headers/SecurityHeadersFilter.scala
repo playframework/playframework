@@ -7,7 +7,7 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.inject.Module
 import play.api.mvc._
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ BuiltInComponents, Environment, PlayConfig, Configuration }
 
 /**
  * This class sets a number of common security headers on the HTTP request.
@@ -156,10 +156,18 @@ class SecurityHeadersModule extends Module {
 }
 
 /**
- * The security headers components.
+ * Security headers components for compile-time DI
  */
 trait SecurityHeadersComponents {
-  def configuration: Configuration
+  def securityHeadersConfig: SecurityHeadersConfig
+  def securityHeadersFilter: SecurityHeadersFilter
+}
+
+/**
+ * Default implementation of security headers components
+ */
+trait DefaultSecurityHeadersComponents extends SecurityHeadersComponents {
+  this: BuiltInComponents =>
 
   lazy val securityHeadersConfig: SecurityHeadersConfig = SecurityHeadersConfig.fromConfiguration(configuration)
   lazy val securityHeadersFilter: SecurityHeadersFilter = SecurityHeadersFilter(securityHeadersConfig)

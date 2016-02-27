@@ -61,12 +61,8 @@ object NingWSClient {
  * Ning WS API implementation components.
  */
 @deprecated("Use AhcWSClient instead", "2.5")
-trait NingWSComponents {
-
-  def environment: Environment
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
-  def materializer: Materializer
+trait NingWSComponents extends WSComponents {
+  this: BuiltInComponents =>
 
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   private lazy val ahcWsClientConfig = new AhcWSClientConfigParser(wsClientConfig, configuration, environment).parse()
@@ -84,5 +80,4 @@ trait NingWSComponents {
     )
 
   lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle)(materializer)
-  lazy val wsClient: WSClient = wsApi.client
 }

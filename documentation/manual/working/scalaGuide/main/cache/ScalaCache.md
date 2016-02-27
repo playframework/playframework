@@ -90,6 +90,10 @@ Or cache 404 Not Found only for a couple of minutes
 
 @[cached-action-control-404](code/ScalaCache.scala)
 
+## Compile time dependency injection components
+
+Play provides [CacheComponents](api/scala/play/api/cache/CacheComponents.html) trait that can be used to declare a dependency on the cache API and [EhCacheComponents](api/scala/play/api/cache/EhCacheComponents.html) trait that provides a default implementation. For details about usage of component traits refer to [[Compile time DI docs|ScalaCompileTimeDependencyInjection]].
+
 ## Custom implementations
 
 It is possible to provide a custom implementation of the [CacheApi](api/scala/play/api/cache/CacheApi.html) that either replaces, or sits along side the default implementation.

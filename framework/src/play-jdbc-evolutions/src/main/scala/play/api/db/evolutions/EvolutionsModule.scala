@@ -5,9 +5,9 @@ package play.api.db.evolutions
 
 import javax.inject._
 
-import play.api.db.DBApi
+import play.api.db.{ DBComponents, DBApi }
 import play.api.inject.{ Injector, Module }
-import play.api.{ Configuration, Environment }
+import play.api.{ BuiltInComponents, Configuration, Environment }
 import play.core.WebCommands
 
 /**
@@ -25,14 +25,20 @@ class EvolutionsModule extends Module {
 }
 
 /**
- * Components for default implementation of the evolutions API.
+ * Evolutions components for compile-time DI
  */
 trait EvolutionsComponents {
-  def environment: Environment
-  def configuration: Configuration
-  def dynamicEvolutions: DynamicEvolutions
-  def dbApi: DBApi
-  def webCommands: WebCommands
+  def evolutionsConfig: EvolutionsConfig
+  def evolutionsReader: EvolutionsReader
+  def evolutionsApi: EvolutionsApi
+  def applicationEvolutions: ApplicationEvolutions
+}
+
+/**
+ * Evolution components default implementation
+ */
+trait DefaultEvolutionsComponents extends EvolutionsComponents {
+  this: BuiltInComponents with DBComponents with DynamicEvolutionsComponents =>
 
   lazy val evolutionsConfig: EvolutionsConfig = new DefaultEvolutionsConfigParser(configuration).parse
   lazy val evolutionsReader: EvolutionsReader = new EnvironmentEvolutionsReader(environment)

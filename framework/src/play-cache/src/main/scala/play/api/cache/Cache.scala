@@ -139,12 +139,18 @@ object Cache {
 }
 
 /**
+ * Cache components for compile time dependency injection
+ */
+trait CacheComponents {
+  def cacheApi(name: String): CacheApi
+  def defaultCacheApi: CacheApi
+}
+
+/**
  * EhCache components for compile time injection
  */
-trait EhCacheComponents {
-  def environment: Environment
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
+trait EhCacheComponents extends CacheComponents {
+  this: BuiltInComponents =>
 
   lazy val ehCacheManager: CacheManager = new CacheManagerProvider(environment, configuration, applicationLifecycle).get
 
