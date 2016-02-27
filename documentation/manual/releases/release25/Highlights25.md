@@ -70,7 +70,7 @@ Here are the main changes:
 
 Many of our users want to use their own choice of logging framework but this was not possible until Play 2.5. Now Play's fixed dependency on [Logback](http://logback.qos.ch/) has been removed and Play applications can now use any [SLF4J](http://www.slf4j.org/)-compatible logging framework. Logback is included by default, but you can disable it by including a setting in your `build.sbt` file and replace it with your own choice of framework. See Play's [[docs about logging|SettingsLogger#Using-a-Custom-Logging-Framework]] for more information about using other logging frameworks in Play.
 
-Play applications will need to make a small change to their configuration because one Play's Logback classes has moved to a separate package as part of the change. [[(See Migration Guide.)|Migration25#Change-to-Logback-configuration]]
+Play applications will need to make a small change to their configuration because one Play's Logback classes has moved to a separate package as part of the change. See the [[Migration Guide|Migration25#Change-to-Logback-configuration]] for more details.
 
 ## Logging SQL statements
 
@@ -83,3 +83,16 @@ For more information about how to use SQL logging, see the Play [[Java|JavaDatab
 If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].
+
+## Performance Improvements
+
+Thanks to various performance optimizations, Play 2.5's performance testing framework shows roughly 60K requests per second, an almost 20% improvement over Play 2.4.x. 
+
+## WS Improvements
+
+Play WS has been upgraded to AsyncHttpClient 2.0, and now includes a request pipeline filter ([[Scala|ScalaWS#Request-Filters]], [[Java|JavaWS#Request-Filters]]) that can be used to log requests in [cURL format](https://curl.haxx.se/docs/manpage.html).  
+
+## ScalaTest Improvements
+
+Play has upgraded to [Scalatest 3.0](http://scalatest.org/release_notes/3.0.0) as the default Scala testing framework and example ScalaTests included with the seed templates.  For more information, please see [[Testing your Application with ScalaTest|ScalaTestingWithScalaTest]].
+
