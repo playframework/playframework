@@ -5,7 +5,7 @@ This is a guide for migrating from Play 2.2 to Play 2.3. If you need to migrate 
 
 ## Activator
 
-In Play 2.3 the `play` command has become the `activator` command. Play has been updated to use [Activator](https://typesafe.com/activator).
+In Play 2.3 the `play` command has become the `activator` command. Play has been updated to use [Activator](https://www.lightbend.com/community/core-tools/activator-and-sbt).
 
 ### Activator command
 
@@ -21,7 +21,7 @@ All the features that were available with the `play` command are still available
 
 Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](https://www.playframework.com/download) page.
 
-If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://typesafe.com/activator). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
+If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://www.lightbend.com/community/core-tools/activator-and-sbt). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
 Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
 

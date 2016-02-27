@@ -5,9 +5,9 @@ This page highlights the new features of Play 2.3. If you want learn about the c
 
 ## Activator
 
-The first thing you'll notice about Play 2.3 is that the `play` command has become the `activator` command. Play has been updated to use [Activator](https://typesafe.com/activator) so that we can:
+The first thing you'll notice about Play 2.3 is that the `play` command has become the `activator` command. Play has been updated to use [Activator](https://www.lightbend.com/community/core-tools/activator-and-sbt) so that we can:
 
-* Extend the range of templates we provide for getting started with Play projects. Activator supports a much [richer library](https://typesafe.com/activator/templates) of project templates. Templates can also include tutorials and other resources for getting started. The Play community can [contribute templates](https://typesafe.com/activator/template/contribute) too.
+* Extend the range of templates we provide for getting started with Play projects. Activator supports a much [richer library](https://www.lightbend.com/activator/templates) of project templates. Templates can also include tutorials and other resources for getting started. The Play community can [contribute templates](https://www.lightbend.com/activator/template/contribute) too.
 * Provide a nice web UI for getting started with Play, especially for newcomers who are unfamiliar with command line interfaces. Users can write code and run tests through the web UI. For experienced users, the command line interface is available just like before.
 * Make Play's high productivity development approach available to other projects. Activator isn't just for Play. Other projects can use Activator too.
 
@@ -27,7 +27,7 @@ All the features that were available with the `play` command are still available
 
 Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](https://www.playframework.com/download) page.
 
-If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://typesafe.com/activator). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
+If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://www.lightbend.com/community/core-tools/activator-and-sbt). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
 Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
 
@@ -68,11 +68,11 @@ This means Play will now integrate better with other sbt builds, not requiring a
 
 Play 2.3 has been tested with Java 8. Your project will work just fine with Java 8; there is nothing special to do other than ensuring that your Java environment is configured for Java 8. There is a new Activator sample available for Java 8:
 
-http://typesafe.com/activator/template/reactive-stocks-java8
+http://www.lightbend.com/activator/template/reactive-stocks-java8
 
 Our documentation has been improved with Java examples in general and, where applicable, Java 8 examples. Check out some [[examples of asynchronous programming with Java 8|JavaAsync]].
 
-For a complete overview of going Reactive with Java 8 and Play check out this blog: http://typesafe.com/blog/go-reactive-with-java-8
+For a complete overview of going Reactive with Java 8 and Play check out this blog: https://www.lightbend.com/blog/go-reactive-with-java-8
 
 ### Java performance
 
