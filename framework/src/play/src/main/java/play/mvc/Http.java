@@ -44,7 +44,7 @@ public class Http {
      */
     public static class Context {
 
-        public static ThreadLocal<Context> current = new ThreadLocal<Context>();
+        public static ThreadLocal<Context> current = new ThreadLocal<>();
 
         /**
          * Retrieves the current HTTP context, for the current thread.
