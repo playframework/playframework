@@ -9,12 +9,12 @@ import play.mvc.Action;
 import play.mvc.Http.Request;
 
 /**
- * An interface for creating a Java actions from Java methods.
+ * An interface for creating Java actions from Java methods.
  */
 @FunctionalInterface
 public interface ActionCreator {
     /**
-     * Call to create the root Action of a request for a Java application.
+     * Call to create the root Action for a Java controller method call.
      *
      * The request and actionMethod values are passed for information.  Implementations of this method should create
      * an instance of Action that invokes the injected action delegate.
@@ -31,7 +31,7 @@ public interface ActionCreator {
      * This method is passed a fully composed action, allowing a last final global interceptor to be added to the
      * action if required.
      *
-     * @deprecated This functionality can be emulated by other means.
+     * @deprecated Use createAction and set play.http.actionComposition.executeActionCreatorActionFirst = true
      *
      * @param action The action to wrap.
      * @return A wrapped action.
