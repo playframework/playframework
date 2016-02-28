@@ -17,7 +17,7 @@ Play uses the `Crypto.sign` method to provide message authentication for session
 
 ### MAC Algorithm Independence
 
-Play currently uses HMAC-SHA1 for signing and verifying session cookies.  An [HMAC](https://en.wikipedia.org/wiki/Hash-based_message_authentication_code) is a cryptographic function that authenticates that data has not been tampered with, using a secret key (the [application secret](https://www.playframework.com/documentation/2.4.x/ApplicationSecret) defined as play.crypto.secret) together with a message digest function (in this case [SHA-1](https://en.wikipedia.org/wiki/SHA-1)).  SHA-1 has suffered [some attacks recently](https://sites.google.com/site/itstheshappening/), but it remains secure when used with an HMAC for [message authenticity](http://killring.org/2014/01/05/how-broken-is-sha1/).  
+Play currently uses HMAC-SHA1 for signing and verifying session cookies.  An [HMAC](https://en.wikipedia.org/wiki/Hash-based_message_authentication_code) is a cryptographic function that authenticates that data has not been tampered with, using a secret key (the [application secret](https://www.playframework.com/documentation/2.4.x/ApplicationSecret) defined as play.crypto.secret) together with a message digest function (in this case [SHA-1](https://en.wikipedia.org/wiki/SHA-1)).  SHA-1 has suffered [some attacks recently](https://sites.google.com/site/itstheshappening/), but it remains secure when used with an HMAC for [message authenticity](https://killring.org/2014/01/05/how-broken-is-sha-1/).
 
 Play needs to have the flexibility be able to move to a different HMAC function [as needed](http://valerieaurora.org/hash.html) and so, should not be part of the public API.
 
@@ -73,9 +73,9 @@ If you have control over binaries in your production environment and do not have
 
 If you need a MAC replacement for `Crypto.sign`, use org.abstractj.kalium.keys.AuthenticationKey, which implements HMAC-SHA512/256.
 
-If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use org.abstractj.kalium.crypto.SecretBox, which implements [secret-key authenticated encryption](http://doc.libsodium.org/secret-key_cryptography/authenticated_encryption.html).  
+If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use org.abstractj.kalium.crypto.SecretBox, which implements [secret-key authenticated encryption](https://download.libsodium.org/doc/secret-key_cryptography/authenticated_encryption.html).
 
-Note that Kalium does require that a libsodium binary be [installed](http://doc.libsodium.org/installation/index.html), preferably from source that you have verified.
+Note that Kalium does require that a libsodium binary be [installed](https://download.libsodium.org/doc/installation/index.html), preferably from source that you have verified.
 
 ### Keyczar
 
