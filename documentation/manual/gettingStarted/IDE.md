@@ -9,7 +9,7 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
+Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
@@ -83,8 +83,6 @@ To create a Play application:
 2. Select one of the templates suitable. For the basic empty application you can select [Play Scala Seed](https://www.lightbend.com/activator/template/play-scala). The full list of templates can be found on [Lightbend Activator templates page](https://www.lightbend.com/activator/templates).
 3. Enter your project's information and click ***Finish***.
 
-Currently, for Play 2.4.x, instead of using the IntelliJ wizard to create a new project, we suggest that you create it using Activator and then Import it to IntelliJ.
-
 You can also import an existing Play project.
 
 To import a Play project:
@@ -113,11 +111,17 @@ For more detailed information, see the Play Framework 2.x tutorial at the follow
 
 ### Navigate from an error page to the source code
 
-Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page. Since then, you can easily navigate from error pages to IntelliJ, directly into the source code (you need to install the Remote Call <https://github.com/Zolotov/RemoteCall> IntelliJ plugin first).
+Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page.  This will link to runtime exceptions thrown when Play is running development mode.
 
-Just install the Remote Call plugin and run your app with the following options:
-`-Dplay.editor=http://localhost:8091/?message=%s:%s -Dapplication.mode=dev`
+> NOTE: Play can only display runtime exceptions, and compilation errors (even involving Twirl templates or routes) cannot be displayed in an error page. 
 
+You can easily navigate from error pages to IntelliJ directly into the source code, by installing the [Remote Call IntelliJ plugin](https://github.com/Zolotov/RemoteCall).
+
+Install the Remote Call plugin and run your app with the following options:
+
+```
+-Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s -Dapplication.mode=dev
+```
 
 ## Netbeans
 
@@ -197,14 +201,8 @@ Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you 
 
 ## All Scala Plugins if needed
 
-Scala is a newer programming language, so the functionality is provided in plugins rather than in the core IDE.
-
 1. Eclipse Scala IDE: <http://scala-ide.org/>
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
-3. IntelliJ IDEA Scala Plugin: <https://confluence.jetbrains.com/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
-4. IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
-5. Nika (11.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
-6. Leda (12.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
-7. IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
-8. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
+3. IntelliJ IDEA Scala Plugin: <http://blog.jetbrains.com/scala/>
+4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)
