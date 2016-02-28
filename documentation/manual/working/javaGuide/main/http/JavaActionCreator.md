@@ -7,14 +7,14 @@ The second way is to implement your own `HttpRequestHandler`, which is the prima
 
 ## Action creators
 
-The [`ActionCreator`](api/java/play/http/ActionCreator.html) interface has two methods that can be implemented: 
+The [`ActionCreator`](api/java/play/http/ActionCreator.html) interface has two methods that can be implemented:
 
-* `createAction`: Takes the request and the controller's action method associated with the passed request.
-*  `wrapAction`: Takes the action to be run and allows for a final global interceptor to be added to the action.
+* `createAction`: Takes the request and the controller's action method associated with the passed request. The action can either be the first or the last action depending on the configuration setting `play.http.actionComposition.executeActionCreatorActionFirst`.
+*  `wrapAction`: Takes the action to be run and allows for a final global interceptor to be added to the action. This method is deprecated since the same can be achieved using `createAction` and the above setting.
 
 There is also a [`DefaultActionCreator`](api/java/play/http/ActionCreator.html) interface you can extend with default implementations.
 
-> **Note:** If you are providing an implementation of `wrapAction` because you need to apply a cross cutting concern to an action before it is executed, creating a [[filter|JavaHttpFilters]] is a more idiomatic way of achieving the same.
+> **Note:** If you are implementing a custom ActionCreator because you need to apply a cross cutting concern to an action before it is executed, creating a [[filter|JavaHttpFilters]] is a more idiomatic way of achieving the same.
 
 A custom action creator can be supplied by creating a class in the root package called `ActionCreator` that implements `play.http.ActionCreator`, for example:
 
