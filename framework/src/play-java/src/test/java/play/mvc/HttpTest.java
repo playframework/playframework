@@ -31,6 +31,8 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.*;
 import org.junit.Test;
 
+import javax.validation.Validator;
+
 import static org.fest.assertions.Assertions.assertThat;
 import static play.Play.langCookieName;
 
@@ -235,6 +237,7 @@ public class HttpTest {
         withApplication((app) -> {
             MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
             Formatters formatters = app.injector().instanceOf(Formatters.class);
+            Validator validator = app.injector().instanceOf(Validator.class);
 
             RequestBuilder rb = new RequestBuilder();
             Context ctx = new Context(rb);
@@ -246,7 +249,7 @@ public class HttpTest {
             error.add(new ValidationError("key", "error.custom", args));
             Map<String,List<ValidationError>> errors = new HashMap<>();
             errors.put("foo", error);
-            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters);
+            Form form = new Form(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });
