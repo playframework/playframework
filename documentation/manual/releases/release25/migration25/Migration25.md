@@ -190,6 +190,10 @@ class FooApi @Inject() (appProvider: Provider[Application]) {
 
 This allows you to benefit from the testability you get with DI and still use your library that uses global state.
 
+## Content-Type charset changes
+
+Prior to Play 2.5, Play would add a `charset` parameter to certain content types that do not define a charset parameter, specifically [`application/json`](https://www.iana.org/assignments/media-types/application/json) and [`application/x-www-form-urlencoded`](https://www.iana.org/assignments/media-types/application/x-www-form-urlencoded). Now the `Content-Type` is sent without a charset by default. This applies both to sending requests with `WS` and returning responses from Play actions. If you have a non-spec-compliant client or server that requires you to send a charset parameter, you can explicitly set the `Content-Type` header.
+
 ## Guice injector and Guice builder changes
 
 By default, Guice can resolve your circular dependency by proxying an interface in the cycle. Since circular dependencies are generally a code smell, and you can also inject Providers to break the cycle, we have chosen to disable this feature on the default Guice injector. Other DI frameworks also are not likely to have this feature, so it can lead to problems when writing Play modules.
@@ -244,9 +248,9 @@ For more details, please read the CSRF documentation for [[Java|JavaCsrf]] and [
 
 ## Crypto Deprecated
 
-From Play 1.x, Play has come with a `Crypto` object that provides some cryptographic operations.  This used internally by Play.  The `Crypto` object is not mentioned in the documentation, but is mentioned as “cryptographic utilities” in the scaladoc.  
+From Play 1.x, Play has come with a `Crypto` object that provides some cryptographic operations.  This used internally by Play.  The `Crypto` object is not mentioned in the documentation, but is mentioned as “cryptographic utilities” in the scaladoc.
 
-For a variety of reasons, providing cryptographic utilities as a convenience has turned out not to be workable.   In 2.5.x, the Play-specific functionality has been broken into `CookieSigner`, `CSRFTokenSigner` and `AESSigner` traits, and the `Crypto` singleton object deprecated.  
+For a variety of reasons, providing cryptographic utilities as a convenience has turned out not to be workable.   In 2.5.x, the Play-specific functionality has been broken into `CookieSigner`, `CSRFTokenSigner` and `AESSigner` traits, and the `Crypto` singleton object deprecated.
 
 ### How to Migrate
 
