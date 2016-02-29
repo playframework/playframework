@@ -440,6 +440,15 @@ public class Results {
 
     }
 
+    /**
+     * Generates a 204 No Content result.
+     *
+     * @return the result
+     */
+    public static StatusHeader noContent() {
+        return new StatusHeader(NO_CONTENT);
+    }
+
     //////////////////////////////////////////////////////
     // EVERYTHING BELOW HERE IS GENERATED
     //
