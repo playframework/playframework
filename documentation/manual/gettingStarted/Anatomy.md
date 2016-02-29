@@ -30,7 +30,7 @@ logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
  └ resolution-cache      → Info about dependencies
- └ scala-2.10
+ └ scala-2.11
     └ api                → Generated API docs
     └ classes            → Compiled class files
     └ routes             → Sources generated from routes
