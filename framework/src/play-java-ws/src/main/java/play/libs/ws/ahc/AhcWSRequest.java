@@ -461,24 +461,25 @@ public class AhcWSRequest implements WSRequest {
             if (contentType == null) {
                 contentType = "text/plain";
             }
-            Charset charset = HttpUtils.parseCharset(contentType);
-            List<String> contentTypeList = new ArrayList<String>();
-            if (charset == null) {
-                charset = StandardCharsets.UTF_8;
-                contentTypeList.add(contentType + "; charset=" + charset.name().toLowerCase());
-            } else {
-                contentTypeList.add(contentType);
-            }
+
             // Always replace the content type header to make sure exactly one exists
+            List<String> contentTypeList = new ArrayList<String>();
+            contentTypeList.add(contentType);
             possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
 
-            byte[] bodyBytes;
-            bodyBytes = stringBody.getBytes(charset);
+            // Find a charset and try to pull a string out of it...
+            Charset charset = HttpUtils.parseCharset(contentType);
+            if (charset == null) {
+                charset = StandardCharsets.UTF_8;
+            }
+            byte[] bodyBytes = stringBody.getBytes(charset);
 
             // If using a POST with OAuth signing, the builder looks at
             // getFormParams() rather than getBody() and constructs the signature
             // based on the form params.
-            if (contentType.equals(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+            if (contentType.equals(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED) && calculator != null) {
+                possiblyModifiedHeaders.remove(HttpHeaders.Names.CONTENT_LENGTH);
+
                 Map<String, List<String>> stringListMap = FormUrlEncodedParser.parseAsJava(stringBody, "utf-8");
                 for (String key : stringListMap.keySet()) {
                     List<String> values = stringListMap.get(key);

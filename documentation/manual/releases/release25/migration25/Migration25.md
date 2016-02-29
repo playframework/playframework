@@ -70,10 +70,9 @@ The new configuration after the change will look something like this:
 
 You can find more details on how to set up Play with different logging frameworks are in [[Configuring logging|SettingsLogger#Using-a-Custom-Logging-Framework]] section of the documentation.
 
+## Play WS upgrades to AsyncHttpClient 2
 
-## Upgrade to AsyncHttpClient 2
-
-Play WS has been upgraded to use [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client) 2.  This is a major upgrade that uses Netty 4.0. Most of the changes in AHC 2.0 are under the hood, but AHC has some significant refactorings which require breaking changes to the WS API:
+Play WS has been upgraded to use [AsyncHttpClient 2](https://github.com/AsyncHttpClient/async-http-client).  This is a major upgrade that uses Netty 4.0. Most of the changes in AHC 2.0 are under the hood, but AHC has some significant refactorings which require breaking changes to the WS API:
 
 * `AsyncHttpClientConfig` replaced by [`DefaultAsyncHttpClientConfig`](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.html).
 * [`allowPoolingConnection`](https://static.javadoc.io/com.ning/async-http-client/1.9.32/com/ning/http/client/AsyncHttpClientConfig.html#allowPoolingConnections) and `allowSslConnectionPool` are combined in AsyncHttpClient into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
@@ -88,6 +87,7 @@ In addition, there are number of small changes:
 * The deprecated interface `play.libs.ws.WSRequestHolder` has been removed.
 * The `play.libs.ws.play.WSRequest` interface now returns `java.util.concurrent.CompletionStage` instead of `F.Promise`.
 * Static methods that rely on `Play.current` or `Play.application` have been deprecated.
+* Play WS would infer a charset from the content type and append a charset to the `Content-Type` header of the request if one was not already set.  This caused some confusion and bugs, and so in 2.5.x the `Content-Type` header does not automatically include an inferred charset.  If you explicitly set a `Content-Type` header, the setting is honored as is. 
 
 ## Deprecated `GlobalSettings`
 
