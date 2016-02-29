@@ -1,26 +1,44 @@
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-
-import org.openqa.selenium.htmlunit.HtmlUnitDriver
-
+import org.scalatestplus.play._
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.Application
+import play.api.inject.guice._
+import org.scalatest.TestData
 
 /**
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-@RunWith(classOf[JUnitRunner])
-class IntegrationSpec extends Specification {
+class IntegrationSpec extends PlaySpec with OneBrowserPerTest with HtmlUnitFactory with ServerProvider {
+
+  private var privateApp: Application = _
+
+  /**
+   * Implicit method that returns the `FakeApplication` instance for the current test.
+   */
+  implicit final def app: Application = synchronized { privateApp }
+
+  /**
+   * Creates new instance of `Application` with parameters set to their defaults. Override this method if you
+   * need an `Application` created with non-default parameter values.
+   */
+  def newAppForTest(testData: TestData): Application = GuiceApplicationBuilder().build()
+
+  lazy val port: Int = Helpers.testServerPort
+
+  override def withFixture(test: NoArgTest) = {
+    synchronized { privateApp = newAppForTest(test) }
+    Helpers.running(TestServer(port, app)) {
+      super.withFixture(test)
+    }
+  }
 
   "Application" should {
 
-    "work from within a browser" in new WithBrowser {
+    "work from within a browser" in {
+      go to ("http://localhost:" + port)
 
-      browser.goTo("http://localhost:" + port)
-
-      browser.pageSource must contain("Add Person")
+      pageSource must include ("Add Person")
     }
   }
 }
