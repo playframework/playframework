@@ -3,16 +3,17 @@
  */
 package play.api.mvc
 
-import java.nio.file.{ Files, Paths, Path }
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.{ Files, Path, Paths }
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.joda.time.{ DateTimeZone, DateTime }
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.specs2.mutable._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.api.{ Configuration, Environment, Play }
 import play.api.http.HeaderNames._
 import play.api.http.Status._
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.{ Configuration, Environment, Play }
 import play.core.test._
 
 object ResultsSpec extends Specification {
@@ -207,6 +208,14 @@ object ResultsSpec extends Specification {
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="${fileName}""""))
+    }
+
+    "send Content-Length with file" in withPath { (file, fileName) =>
+      val content = "test"
+      Files.write(file, content.getBytes(StandardCharsets.ISO_8859_1))
+      val rh = Ok.sendPath(file).header
+
+      rh.headers.get(CONTENT_LENGTH) must beSome(content.length.toString)
     }
 
     "support redirects for reverse routed calls" in {

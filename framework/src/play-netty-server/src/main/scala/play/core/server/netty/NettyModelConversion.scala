@@ -188,7 +188,12 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       if (mayHaveContentLength(result.header.status)) {
         result.body.contentLength.foreach { contentLength =>
           if (HttpHeaders.isContentLengthSet(response)) {
-            logger.warn("Content-Length header was set manually in the header, ignoring manual header")
+            val manualContentLength = response.headers.get(CONTENT_LENGTH)
+            if (manualContentLength == contentLength.toString) {
+              logger.info(s"Manual Content-Length header, ignoring manual header.")
+            } else {
+              logger.warn(s"Content-Length header was set manually in the header ($manualContentLength) but is not the same as actual content length ($contentLength).")
+            }
           }
           HttpHeaders.setContentLength(response, contentLength)
         }
