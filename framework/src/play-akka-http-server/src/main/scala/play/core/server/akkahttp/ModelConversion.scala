@@ -3,17 +3,19 @@
  */
 package play.core.server.akkahttp
 
+import java.net.InetSocketAddress
+
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import java.net.InetSocketAddress
 import play.api.Logger
-import play.api.http.{ HttpEntity => PlayHttpEntity, HttpChunk }
 import play.api.http.HeaderNames._
+import play.api.http.{ HttpChunk, HttpEntity => PlayHttpEntity }
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+
 import scala.collection.immutable
 
 /**
@@ -58,7 +60,12 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       // We could get NettyServer to send a similar tag, but for the moment
       // let's not, just in case it slows NettyServer down a bit.
       override val tags = Map("HTTP_SERVER" -> "akka-http")
-      override def uri = request.uri.toString
+      // Note: Akka HTTP doesn't provide a direct way to get the raw URI
+      // This will only work properly if
+      override def uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
+        logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
+        request.uri.toString
+      }
       override def path = request.uri.path.toString
       override def method = request.method.name
       override def version = request.protocol.value
@@ -74,8 +81,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   }
 
   /**
-   * Convert the request headers of an Akka `HttpRequest` to a Play
-   * `Headers` object.
+   * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
   private def convertRequestHeaders(request: HttpRequest): Headers = {
     val entityHeaders: Seq[(String, String)] = request.entity match {
@@ -86,7 +92,9 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       case HttpEntity.Chunked(contentType, _) =>
         Seq((CONTENT_TYPE, contentType.value))
     }
-    val normalHeaders: Seq[(String, String)] = request.headers.map((rh: HttpHeader) => (rh.name, rh.value))
+    val normalHeaders: Seq[(String, String)] = request.headers
+      .filter(_.isNot(`Raw-Request-URI`.lowercaseName))
+      .map(rh => rh.name -> rh.value)
     new Headers(entityHeaders ++ normalHeaders)
   }
 
