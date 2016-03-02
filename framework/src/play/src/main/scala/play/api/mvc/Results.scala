@@ -378,8 +378,7 @@ trait Results {
             CONTENT_DISPOSITION -> {
               val dispositionType = if (inline) "inline" else "attachment"
               dispositionType + "; filename=\"" + name + "\""
-            },
-            CONTENT_LENGTH -> length.toString
+            }
           )
         ),
         HttpEntity.Streamed(
