@@ -210,12 +210,12 @@ object ResultsSpec extends Specification {
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="${fileName}""""))
     }
 
-    "send Content-Length with file" in withPath { (file, fileName) =>
+    "allow checking content length" in withPath { (file, fileName) =>
       val content = "test"
       Files.write(file, content.getBytes(StandardCharsets.ISO_8859_1))
-      val rh = Ok.sendPath(file).header
+      val rh = Ok.sendPath(file)
 
-      rh.headers.get(CONTENT_LENGTH) must beSome(content.length.toString)
+      rh.body.contentLength must beSome(content.length)
     }
 
     "support redirects for reverse routed calls" in {
