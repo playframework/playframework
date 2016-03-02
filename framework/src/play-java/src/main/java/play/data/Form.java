@@ -430,7 +430,7 @@ public class Form<T> {
                 ValidationError validationError;
                 if (error.isBindingFailure()) {
                     ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    Optional<Messages> msgs = Optional.of(Http.Context.current.get()).map(c -> messagesApi.preferred(c.request()));
+                    Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(c -> messagesApi.preferred(c.request()));
                     for (String code: error.getCodes()) {
                         code = code.replace("typeMismatch", "error.invalid");
                         if(!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
