@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Main concepts for Java
+# Main concepts for Scala
 
 This section introduces you to the most common aspects of writing a Play application in Scala. You'll learn about handling HTTP requests, sending HTTP responses, working with different types of data, using databases and much more.
 
