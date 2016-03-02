@@ -385,6 +385,26 @@ public class HttpTest {
             assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
             assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
             assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.java.util.Date");
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("id", "1234567891");
+            data.put("name", "peter");
+            data.put("dueDate", "2009/11e/11");
+            Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
+            rb = new RequestBuilder().cookie(frCookie).uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse date input with pattern from the french messages file
+            myForm = formFactory.form(Task.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isTrue();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(3);
+            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.error("dueDate").messages().get(2)).isEqualTo("error.invalid.dueDate");
+            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.dueDate");
         });
     }
 
