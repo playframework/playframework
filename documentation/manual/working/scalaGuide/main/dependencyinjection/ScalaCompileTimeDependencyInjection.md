@@ -77,6 +77,6 @@ To use this router in an actual application:
 
 ## Using other components
 
-As described before, Play provides a number of helper traits for wiring in other components.  For example, if you wanted to use the messages module, you can mix in [I18nComponents](api/scala/play/api/i18n/I18nComponents.html) into your components cake, like so:
+As described before, Play provides a number of helper traits for wiring in other components.  For example, if you wanted to use the messages module, you can mix in [DefaultI18nComponents](api/scala/play/api/i18n/DefaultI18nComponents.html) into your components cake, like so:
 
 @[messages](code/CompileTimeDependencyInjection.scala)

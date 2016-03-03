@@ -28,10 +28,10 @@ class HikariCPModule extends Module {
 }
 
 /**
- * HikariCP components (for compile-time injection).
+ * Hikari connection pool components implementation
  */
-trait HikariCPComponents {
-  def environment: Environment
+trait HikariCPComponents extends ConnectionPoolComponents {
+  this: BuiltInComponents =>
 
   lazy val connectionPool: ConnectionPool = new HikariCPConnectionPool(environment)
 }

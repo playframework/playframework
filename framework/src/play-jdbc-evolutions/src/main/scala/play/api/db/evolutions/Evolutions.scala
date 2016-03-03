@@ -234,6 +234,17 @@ object Evolutions {
 }
 
 /**
+ * Evolutions components that can be used to run evolutions outside of a running application
+ */
+trait OfflineEvolutionsComponents {
+  def environment: Environment
+  def dbApi: DBApi
+
+  lazy val evolutionsReader: EvolutionsReader = new EnvironmentEvolutionsReader(environment)
+  lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(dbApi)
+}
+
+/**
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
 object OfflineEvolutions {
@@ -242,15 +253,11 @@ object OfflineEvolutions {
 
   private def isTest: Boolean = Play.privateMaybeApplication.exists(_.mode == Mode.Test)
 
-  private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
+  private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): OfflineEvolutionsComponents = {
     val _dbApi = dbApi
-    new EvolutionsComponents {
+    new OfflineEvolutionsComponents {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
-      lazy val configuration = Configuration.load(environment)
-      lazy val applicationLifecycle = new DefaultApplicationLifecycle
-      lazy val dynamicEvolutions = new DynamicEvolutions
       lazy val dbApi: DBApi = _dbApi
-      lazy val webCommands = new DefaultWebCommands
     }
   }
 

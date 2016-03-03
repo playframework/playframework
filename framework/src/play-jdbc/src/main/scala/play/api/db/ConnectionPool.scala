@@ -79,3 +79,10 @@ object ConnectionPool {
 
   }
 }
+
+/**
+ * Connection pool components for compile-time DI
+ */
+trait ConnectionPoolComponents {
+  def connectionPool: ConnectionPool
+}

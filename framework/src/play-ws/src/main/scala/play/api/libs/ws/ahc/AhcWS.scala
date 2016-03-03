@@ -548,19 +548,11 @@ case class AhcWSResponse(ahcResponse: AHCResponse) extends WSResponse {
 /**
  * Ahc WS API implementation components.
  */
-trait AhcWSComponents {
-
-  def environment: Environment
-
-  def configuration: Configuration
-
-  def applicationLifecycle: ApplicationLifecycle
-
-  def materializer: Materializer
+trait AhcWSComponents extends WSComponents {
+  this: BuiltInComponents =>
 
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   lazy val ahcWsClientConfig: AhcWSClientConfig =
     new AhcWSClientConfigParser(wsClientConfig, configuration, environment).parse()
   lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle)(materializer)
-  lazy val wsClient: WSClient = wsApi.client
 }

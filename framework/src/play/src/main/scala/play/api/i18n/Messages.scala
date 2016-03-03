@@ -570,12 +570,18 @@ class I18nModule extends Module {
 }
 
 /**
- * Injection helper for i18n components
+ * i18n components for compile time dependency injection
  */
 trait I18nComponents {
+  def messagesApi: MessagesApi
+  def langs: Langs
+}
 
-  def environment: Environment
-  def configuration: Configuration
+/**
+ * Default implementation of i18n components
+ */
+trait DefaultI18nComponents extends I18nComponents {
+  this: BuiltInComponents =>
 
   lazy val messagesApi: MessagesApi = new DefaultMessagesApi(environment, configuration, langs)
   lazy val langs: Langs = new DefaultLangs(configuration)

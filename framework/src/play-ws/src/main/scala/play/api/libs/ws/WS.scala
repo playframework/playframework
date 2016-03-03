@@ -700,3 +700,12 @@ case class DefaultWSResponseHeaders(status: Int, headers: Map[String, Seq[String
  * Sign a WS call with OAuth.
  */
 trait WSSignatureCalculator
+
+/**
+ * WS API components for compile-time DI
+ */
+trait WSComponents {
+  def wsClientConfig: WSClientConfig
+  def wsApi: WSAPI
+  lazy val wsClient: WSClient = wsApi.client
+}

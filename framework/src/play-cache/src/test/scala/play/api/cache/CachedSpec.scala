@@ -8,7 +8,7 @@ import javax.inject._
 import play.api.test._
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.mvc.{ Results, Action }
-import play.api.http
+import play.api.{ BuiltInComponentsFromContext, http }
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -291,6 +291,29 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
+  "EhCacheComponents" should {
+    "provide cache implementation" in new WithCompileTimeDiApp(context =>
+      new BuiltInComponentsFromContext(context) with EmptyRouterComponent with EhCacheComponents with DependingOnCacheComponent
+    ) {
+      val component = components.dependingOnCache
+      val defaultCache = components.defaultCacheApi
+      component.set("foo", "bar")
+      component.get("foo") must beSome("bar")
+      defaultCache.get("foo") must beSome("bar")
+    }
+  }
+
+}
+
+class DependingOnCache(cache: CacheApi) {
+  def get(key: String) = cache.get[String](key)
+  def set(key: String, value: String) = cache.set(key, value)
+}
+
+trait DependingOnCacheComponent {
+  this: CacheComponents =>
+
+  lazy val dependingOnCache = new DependingOnCache(defaultCacheApi)
 }
 
 class SomeComponent @Inject() (@NamedCache("custom") cache: CacheApi) {

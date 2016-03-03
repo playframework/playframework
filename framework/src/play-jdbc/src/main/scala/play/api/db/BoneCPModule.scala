@@ -29,10 +29,10 @@ class BoneCPModule extends Module {
 }
 
 /**
- * BoneCP components (for compile-time injection).
+ * Bone implementation of connection pool components
  */
-trait BoneCPComponents {
-  def environment: Environment
+trait BoneCPComponents extends ConnectionPoolComponents {
+  this: BuiltInComponents =>
 
   lazy val connectionPool: ConnectionPool = new BoneConnectionPool(environment)
 }

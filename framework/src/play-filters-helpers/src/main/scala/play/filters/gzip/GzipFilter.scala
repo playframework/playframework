@@ -13,7 +13,7 @@ import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
 import play.api.inject.Module
 import play.api.libs.streams.GzipFlow
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ BuiltInComponents, Environment, PlayConfig, Configuration }
 import play.api.mvc._
 import play.core.j
 import scala.concurrent.Future
@@ -225,11 +225,18 @@ class GzipFilterModule extends Module {
 }
 
 /**
- * The gzip filter components.
+ * gzip filter components for compile-time DI
  */
 trait GzipFilterComponents {
-  def configuration: Configuration
-  def materializer: Materializer
+  def gzipFilterConfig: GzipFilterConfig
+  def gzipFilter: GzipFilter
+}
+
+/**
+ * gzip filter components default implementation
+ */
+trait DefaultGzipFilterComponents {
+  this: BuiltInComponents =>
 
   lazy val gzipFilterConfig: GzipFilterConfig = GzipFilterConfig.fromConfiguration(configuration)
   lazy val gzipFilter: GzipFilter = new GzipFilter(gzipFilterConfig)(materializer)
