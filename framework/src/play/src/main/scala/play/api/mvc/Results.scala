@@ -408,8 +408,6 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromPath(content) &>
-        Enumeratee.onIterateeDone(onClose)(defaultContext))
       streamFile(StreamConverters.fromInputStream(() => Files.newInputStream(content)),
         fileName(content), Files.size(content), inline)
     }
