@@ -16,7 +16,7 @@ class IntegrationSpec extends Specification {
 
   "Application" should {
 
-    "work from within a browser" in new WithBrowser(webDriver = new HtmlUnitDriver(false)) {
+    "work from within a browser" in new WithBrowser {
 
       browser.goTo("http://localhost:" + port)
 
