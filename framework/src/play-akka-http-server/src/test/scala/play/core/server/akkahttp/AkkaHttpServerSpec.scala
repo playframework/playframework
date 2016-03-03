@@ -3,17 +3,13 @@
  */
 package play.core.server.akkahttp
 
-import play.api.http.HeaderNames._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.iteratee._
 import play.api.libs.ws._
 import play.api.mvc._
 import play.api.mvc.BodyParsers.parse
 import play.api.mvc.Results._
 import play.api.test._
-import play.core.server.ServerProvider
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
@@ -23,12 +19,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
   sequential
 
-  def requestFromServer[T](
-    path: String)(
-      exec: WSRequest => Future[WSResponse])(
-        routes: PartialFunction[(String, String), Handler])(
-          check: WSResponse => T)(
-            implicit awaitTimeout: Timeout): T = {
+  def requestFromServer[T](path: String)(exec: WSRequest => Future[WSResponse])(routes: PartialFunction[(String, String), Handler])(check: WSResponse => T)(implicit awaitTimeout: Timeout): T = {
     val app = GuiceApplicationBuilder().routes(routes).build()
     running(TestServer(testServerPort, app, serverProvider = Some(AkkaHttpServer.provider))) {
       val plainRequest = wsUrl(path)(testServerPort)
@@ -102,6 +93,40 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       } { response =>
         response.status must_== 200
         response.body must_== "<utf-8>; <en-NZ>"
+      }
+    }
+
+    "pass raw request URI to Actions" in {
+      requestFromServer("/abc?foo=bar") { request =>
+        request.withHeaders(
+          ACCEPT_ENCODING -> "utf-8",
+          ACCEPT_LANGUAGE -> "en-US"
+        ).get()
+      } {
+        case ("GET", "/abc") => Action { implicit request =>
+          Ok(request.uri)
+        }
+      } { response =>
+        response.status must_== 200
+        response.body must_== "/abc?foo=bar"
+      }
+    }
+
+    "pass raw request uri to Actions even if Raw-Request-URI header is set" in {
+      import akka.http.scaladsl.model.headers._
+      requestFromServer("/abc?foo=bar") { request =>
+        request.withHeaders(
+          ACCEPT_ENCODING -> "utf-8",
+          ACCEPT_LANGUAGE -> "en-US",
+          `Raw-Request-URI`.name -> "/foo/bar/baz"
+        ).get()
+      } {
+        case ("GET", "/abc") => Action { implicit request =>
+          Ok(request.uri)
+        }
+      } { response =>
+        response.status must_== 200
+        response.body must_== "/abc?foo=bar"
       }
     }
 
