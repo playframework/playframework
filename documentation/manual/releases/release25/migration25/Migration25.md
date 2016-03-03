@@ -258,3 +258,16 @@ Cryptographic migration will depend on your use case, especially if there is uns
 
 Please see [[Crypto Migration|CryptoMigration25]] for more details.
 
+## Netty 4 upgrade
+
+Netty has been upgraded from 3.10 to 4.0.  One consequence of this is the configuration options for configuring Netty channel options have changed.  The full list options can be seen [here](http://netty.io/4.0/api/io/netty/channel/ChannelOption.html).
+
+### How to Migrate
+
+Modify any `play.server.netty.option` keys to use the new keys defined in [ChannelOption](http://netty.io/4.0/api/io/netty/channel/ChannelOption.html).  A mapping of some of the more popularly used ones is:
+
+| **Old** | **New** |
+| ------------------
+| `play.server.netty.option.backlog` | `play.server.netty.option.SO_BACKLOG` |
+| `play.server.netty.option.child.keepAlive` | `play.server.netty.option.child.SO_KEEPALIVE` |
+| `play.server.netty.option.child.tcpNoDelay` | `play.server.netty.option.child.TCP_NODELAY` |
