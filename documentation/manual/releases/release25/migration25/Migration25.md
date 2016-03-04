@@ -68,6 +68,12 @@ The new configuration after the change will look something like this:
 <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 ```
 
+If you use compile time dependency injection, you will need to change your application loader from using `Logger.configure(...)` to the following:
+
+```scala
+LoggerConfigurator(context.environment.classLoader).foreach { _.configure(context.environment) }
+```
+
 You can find more details on how to set up Play with different logging frameworks are in [[Configuring logging|SettingsLogger#Using-a-Custom-Logging-Framework]] section of the documentation.
 
 ## Play WS upgrades to AsyncHttpClient 2
