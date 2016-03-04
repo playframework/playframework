@@ -31,10 +31,15 @@ To configure Play to use this application loader, configure the `play.applicatio
 
     play.application.loader=MyApplicationLoader
 
-Note that some initialization is done per default in the [GuiceApplicationBuilder](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) that is not provided by [BuiltInComponentsFromContext](api/scala/play/api/BuiltInComponentsFromContext.html) so that the loading can be fully customized.
-This initialization may be added in the application loader:
+## Configuring Logging
+
+To correctly configure logging in Play, the `LoggerConfigurator` must be run before the application is returned.  The default  [BuiltInComponentsFromContext](api/scala/play/api/BuiltInComponentsFromContext.html) does not call `LoggerConfigurator` for you.
+
+This initialization code must be added in your application loader:
 
 @[basicextended](code/CompileTimeDependencyInjection.scala)
+
+If you are migrating from Play 2.4.x, `LoggerConfigurator` is the replacement for `Logger.configure()` and allows for [[customization of different logging frameworks|SettingsLogger#Using-a-Custom-Logging-Framework]]. 
 
 ## Providing a router
 
