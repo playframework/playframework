@@ -148,7 +148,7 @@ object Templates {
       }
     },
 
-    publishTemplatesTo := "api.typesafe.com",
+    publishTemplatesTo := "www.lightbend.com",
     doPublishTemplates := {
       val host = publishTemplatesTo.value
       val creds = Credentials.forHost(credentials.value, host).getOrElse {

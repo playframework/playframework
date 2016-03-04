@@ -17,10 +17,8 @@ crossScalaVersions := Seq("2.10.5", "2.11.6")
 templates := {
   val dir = baseDirectory.value
   Seq(
-    "play-scala",
-    "play-java",
-    "play-scala-intro",
-    "play-java-intro"
+    "play-scala-2.4",
+    "play-java-2.4"
   ).map(template => dir / template)
 }
 
