@@ -101,13 +101,11 @@ The Plugins API was deprecated in Play 2.4 and has been removed in Play 2.5. The
 
 Routes are now generated using the dependency injection aware `InjectedRoutesGenerator`, rather than the previous `StaticRoutesGenerator` which assumed controllers were singleton objects.
 
-To revert back to the earlier behavior (if you have "object MyController" in your code, for example), please add:
+To revert back to the earlier behavior (if you have "object MyController" in your code, for example), please add the following line to your `build.sbt` file:
 
-```
+```scala
 routesGenerator := StaticRoutesGenerator
 ```
-
-to your `build.sbt` file.
 
 Using static controllers with the static routes generator is not deprecated, but it is recommended that you migrate to using classes with dependency injection.
 
@@ -145,7 +143,7 @@ You should refer to the list of dependency injected components in the [[Play 2.4
 
 For example, the following code injects an environment and configuration into a Controller in Scala:
 
-```
+```scala
 class HomeController @Inject() (environment: play.api.Environment, configuration: play.api.Configuration) extends Controller {
 
   def index = Action {
@@ -167,7 +165,7 @@ class HomeController @Inject() (environment: play.api.Environment, configuration
 
 Generally the components you use should not need to depend on the entire application, but sometimes you have to deal with legacy components that require one. You can handle this by injecting the application into one of your components:
 
-```
+```scala
 class FooController @Inject() (appProvider: Provider[Application]) extends Controller {
   implicit lazy val app = appProvider.get()
   def bar = Action {
@@ -180,7 +178,7 @@ Note that you usually want to use a `Provider[Application]` in this case to avoi
 
 Even better, you can make your own `*Api` class that turns the static methods into instance methods:
 
-```
+```scala
 class FooApi @Inject() (appProvider: Provider[Application]) {
   implicit lazy val app = appProvider.get()
   def bar = Foo.bar(app)
