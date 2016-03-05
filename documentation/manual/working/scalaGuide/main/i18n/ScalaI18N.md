@@ -3,13 +3,15 @@
 
 ## Specifying languages supported by your application
 
-A valid language code is specified by a valid **ISO 639-2 language code**, optionally followed by a valid **ISO 3166-1 alpha-2 country code**, such as `fr` or `en-US`.
+You specify languages for your application using language tags, specially formatted strings that identify a specific language. Language tags can specify simple languages, such as "en" for English, a specific regional dialect of a language (such as "en-AU" for English as used in Australia), a language and a script (such as "az-Latn" for Azerbaijani written in Latin script), or a combination of several of these (such as "zh-cmn-Hans-CN" for Chinese, Mandarin, Simplified script, as used in China).
 
 To start you need to specify the languages supported by your application in the `conf/application.conf` file:
 
 ```
 play.i18n.langs = [ "en", "en-US", "fr" ]
 ```
+
+These language tags will be validated used to create `Lang` instances. To access the languages supported by your application, you can inject a `Langs` instance into your component.
 
 ## Externalizing messages
 

@@ -3,36 +3,53 @@
  */
 package play.api.i18n
 
+import java.net.URL
+import java.util.Locale
 import javax.inject.{ Inject, Singleton }
 
-import play.api.inject.Module
-import play.api.mvc.{ DiscardingCookie, Cookie, Result, RequestHeader, Session }
-import play.mvc.Http
-
-import scala.language.postfixOps
-
 import play.api._
+import play.api.inject.Module
+import play.api.mvc.{ Cookie, DiscardingCookie, RequestHeader, Result, Session }
+import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
-import play.Logger
 
-import scala.util.parsing.input._
-import scala.util.parsing.combinator._
-import scala.util.control.NonFatal
-import java.net.URL
+import scala.collection.JavaConverters._
 import scala.io.Codec
+import scala.language.postfixOps
+import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.parsing.combinator._
+import scala.util.parsing.input._
 
 /**
  * A Lang supported by the application.
- *
- * @param language a valid ISO Language Code.
- * @param country a valid ISO Country Code.
  */
-case class Lang(language: String, country: String = "") {
+case class Lang(locale: Locale) {
 
   /**
    * Convert to a Java Locale value.
    */
-  lazy val toLocale = Option(country).filterNot(_.isEmpty).map(c => new java.util.Locale(language, c)).getOrElse(new java.util.Locale(language))
+  def toLocale: Locale = locale
+
+  /**
+   * @return The language for this Lang.
+   */
+  def language: String = locale.getLanguage
+
+  /**
+   * @return The country for this Lang, or "" if none exists.
+   */
+  def country: String = locale.getCountry
+
+  /**
+   * @return The script tag for this Lang, or "" if none exists.
+   */
+  def script: String = locale.getScript
+
+  /**
+   * @return The variant tag for this Lang, or "" if none exists.
+   */
+  def variant: String = locale.getVariant
 
   /**
    * Whether this lang satisfies the given lang.
@@ -45,24 +62,13 @@ case class Lang(language: String, country: String = "") {
    *
    * @param accept The accepted language
    */
-  def satisfies(accept: Lang) = language.equalsIgnoreCase(accept.language) && (accept match {
-    case Lang(_, "") => true
-    case Lang(_, c) => country.equalsIgnoreCase(c)
-  })
+  def satisfies(accept: Lang): Boolean =
+    Locale.lookup(Seq(new Locale.LanguageRange(code)).asJava, Seq(accept.locale).asJava) != null
 
   /**
-   * The Lang code (such as fr or en-US).
+   * The language tag (such as fr or en-US).
    */
-  lazy val code = language.toLowerCase(java.util.Locale.ENGLISH) + Option(country).filterNot(_.isEmpty).map("-" + _.toUpperCase(java.util.Locale.ENGLISH)).getOrElse("")
-
-  override def equals(that: Any) = {
-    that match {
-      case lang: Lang => code == lang.code
-      case _ => false
-    }
-  }
-
-  override def hashCode: Int = code.hashCode
+  lazy val code: String = locale.toLanguageTag
 }
 
 /**
@@ -73,35 +79,31 @@ object Lang {
   /**
    * The default Lang to use if nothing matches (platform default)
    */
-  implicit lazy val defaultLang = {
-    val defaultLocale = java.util.Locale.getDefault
-    Lang(defaultLocale.getLanguage, defaultLocale.getCountry)
-  }
-
-  private val SimpleLocale = """([a-zA-Z]{2,3})""".r
-  private val CountryLocale = (SimpleLocale.toString + """-([a-zA-Z]{2}|[0-9]{3})""").r
+  implicit lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
    *  throw exception if language is unrecognized
    */
-  def apply(code: String): Lang = {
-    get(code).getOrElse(
-      sys.error("Unrecognized language: %s".format(code))
-    )
-  }
+  def apply(code: String): Lang = Lang(new Locale.Builder().setLanguageTag(code).build())
+
+  /**
+   * Create a Lang value from a code (such as fr or en-US) and
+   *  throw exception if language is unrecognized
+   */
+  def apply(language: String, country: String = "", script: String = "", variant: String = ""): Lang =
+    Lang(new Locale.Builder()
+      .setLanguage(language)
+      .setRegion(country)
+      .setScript(script)
+      .setVariant(variant)
+      .build())
 
   /**
    * Create a Lang value from a code (such as fr or en-US) or none
    * if language is unrecognized.
    */
-  def get(code: String): Option[Lang] = {
-    code match {
-      case SimpleLocale(language) => Some(Lang(language, ""))
-      case CountryLocale(language, country) => Some(Lang(language, country))
-      case _ => None
-    }
-  }
+  def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
   private val langsCache = Application.instanceCache[Langs]
 
@@ -156,7 +158,8 @@ trait Langs {
 class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
 
   private val config = PlayConfig(configuration)
-  val availables = {
+
+  val availables: Seq[Lang] = {
     val langs = configuration.getString("application.langs") map { langsStr =>
       Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
       langsStr.split(",").map(_.trim).toSeq
@@ -172,7 +175,7 @@ class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
     }
   }
 
-  def preferred(candidates: Seq[Lang]) = candidates.collectFirst(Function.unlift { lang =>
+  def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
     availables.find(_.satisfies(lang))
   }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 }
@@ -509,20 +512,19 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
   protected def noMatch(key: String, args: Seq[Any])(implicit lang: Lang) = key
 
   def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
-    val langsToTry: List[Lang] =
-      List(lang, Lang(lang.language, ""), Lang("default", ""), Lang("default.play", ""))
+    val codesToTry = Seq(lang.code, lang.language, "default", "default.play")
     val pattern: Option[String] =
-      langsToTry.foldLeft[Option[String]](None)((res, lang) =>
-        res.orElse(messages.get(lang.code).flatMap(_.get(key))))
+      codesToTry.foldLeft[Option[String]](None)((res, lang) =>
+        res.orElse(messages.get(lang).flatMap(_.get(key))))
     pattern.map(pattern =>
       new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray))
   }
 
   def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
-    val langsToTry: List[Lang] = List(lang, Lang(lang.language, ""), Lang("default", ""), Lang("default.play", ""))
+    val codesToTry = Seq(lang.code, lang.language, "default", "default.play")
 
-    langsToTry.foldLeft[Boolean](false)({ (acc, lang) =>
-      acc || messages.get(lang.code).map(_.isDefinedAt(key)).getOrElse(false)
+    codesToTry.foldLeft[Boolean](false)({ (acc, lang) =>
+      acc || messages.get(lang).exists(_.isDefinedAt(key))
     })
   }
 

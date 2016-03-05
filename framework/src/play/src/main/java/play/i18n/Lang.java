@@ -14,49 +14,54 @@ import play.libs.*;
  */
 public class Lang extends play.api.i18n.Lang {
 
-    public final play.api.i18n.Lang underlyingLang;
-
     public Lang(play.api.i18n.Lang underlyingLang) {
-        super(underlyingLang.language(), underlyingLang.country());
-        this.underlyingLang = underlyingLang;
+        super(underlyingLang.locale());
+    }
+
+    public Lang(java.util.Locale locale) {
+        this(new play.api.i18n.Lang(locale));
     }
 
     /**
      * A valid ISO Language Code.
      */
     public String language() {
-        return underlyingLang.language();
+        return locale().getLanguage();
     }
 
     /**
      * A valid ISO Country Code.
      */
     public String country() {
-        return underlyingLang.country();
+        return locale().getCountry();
     }
 
     /**
-     * The Lang code (such as fr or en-US).
+     * The script tag for this Lang
+     */
+    public String script() {
+        return locale().getScript();
+    }
+
+    /**
+     * The variant tag for this Lang
+     */
+    public String variant() {
+        return locale().getVariant();
+    }
+
+    /**
+     * The language tag (such as fr or en-US).
      */
     public String code() {
-        return underlyingLang.code();
+        return locale().toLanguageTag();
     }
 
     /**
      * Convert to a Java Locale value.
      */
     public java.util.Locale toLocale() {
-        return underlyingLang.toLocale();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return underlyingLang.equals(other);
-    }
-
-    @Override
-    public int hashCode() {
-        return underlyingLang.hashCode();
+        return locale();
     }
 
     /**
@@ -110,7 +115,7 @@ public class Lang extends play.api.i18n.Lang {
         play.api.Application app = Play.current();
         List<play.api.i18n.Lang> result = new ArrayList<play.api.i18n.Lang>();
         for(play.i18n.Lang lang: langs) {
-            result.add(lang.underlyingLang);
+            result.add(lang);
         }
         return new Lang(play.api.i18n.Lang.preferred(Scala.toSeq(result), app));
     }
@@ -125,7 +130,7 @@ public class Lang extends play.api.i18n.Lang {
     public static Lang preferred(Application app, List<Lang> langs) {
         List<play.api.i18n.Lang> result = new ArrayList<play.api.i18n.Lang>();
         for(play.i18n.Lang lang: langs) {
-            result.add(lang.underlyingLang);
+            result.add(lang);
         }
         return new Lang(play.api.i18n.Lang.preferred(Scala.toSeq(result), app.getWrappedApplication()));
     }
