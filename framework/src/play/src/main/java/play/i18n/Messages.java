@@ -28,8 +28,7 @@ public class Messages {
         if(play.mvc.Http.Context.current.get() != null) {
             lang = play.mvc.Http.Context.current().lang();
         } else {
-            Locale defaultLocale = Locale.getDefault();
-            lang = new Lang(new play.api.i18n.Lang(defaultLocale.getLanguage(), defaultLocale.getCountry()));
+            lang = new Lang(new play.api.i18n.Lang(Locale.getDefault()));
         }
         return lang;
     }

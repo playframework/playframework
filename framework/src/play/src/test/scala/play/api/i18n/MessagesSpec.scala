@@ -28,8 +28,9 @@ object MessagesSpec extends Specification {
     override protected def loadAllMessages = testMessages
   }
 
-  def translate(msg: String, lang: String, reg: String): Option[String] =
+  def translate(msg: String, lang: String, reg: String): Option[String] = {
     api.translate(msg, Nil)(Lang(lang, reg))
+  }
 
   def isDefinedAt(msg: String, lang: String, reg: String): Boolean =
     api.isDefinedAt(msg)(Lang(lang, reg))
@@ -87,9 +88,9 @@ object MessagesSpec extends Specification {
 
     }
 
-    "report error for unsupported lang" in {
+    "report error for invalid lang" in {
       new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-        Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("wrong"))))
+        Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language"))))
       ) must throwA[PlayException]
     }
   }

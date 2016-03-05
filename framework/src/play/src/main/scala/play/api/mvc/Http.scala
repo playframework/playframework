@@ -5,8 +5,9 @@ package play.api.mvc {
 
   import java.security.cert.X509Certificate
   import java.util.Locale
+import java.util.Locale.LanguageRange
 
-  import play.api._
+import play.api._
   import play.api.http._
   import play.api.i18n.Lang
   import play.api.libs.crypto.CookieSigner
