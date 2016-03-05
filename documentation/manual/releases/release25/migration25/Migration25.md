@@ -216,7 +216,7 @@ In order to make Play's CSRF filter more resilient to browser plugin vulnerabili
 
 * Instead of blacklisting `POST` requests, now only `GET`, `HEAD` and `OPTIONS` requests are whitelisted, and all other requests require a CSRF check.  This means `DELETE` and `PUT` requests are now checked.
 * Instead of blacklisting `application/x-www-form-urlencoded`, `multipart/form-data` and `text/plain` requests, requests of all content types, including no content type, require a CSRF check.  One consequence of this is that AJAX requests that use `application/json` now need to include a valid CSRF token in the `Csrf-Token` header.
-* Stateless header-based bypasses, such as the `X-Request-With`, are disabled by default.
+* Stateless header-based bypasses, such as the `X-Requested-With`, are disabled by default.
 
 There's a new config option to bypass the new CSRF protection for requests with certain headers. This config option is turned on by default for the Cookie and Authorization headers, so that REST clients, which typically don't use session authentication, will still work without having to send a CSRF token.
 
