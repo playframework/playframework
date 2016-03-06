@@ -36,11 +36,11 @@ The following types have been changed:
 | Consuming a stream  |  `Iteratee`  |  `Sink`
 
 
-### How to migrate (by API)
+## How to migrate (by API)
 
 The following section gives an overview of how to migrate code that uses different parts of the API.
 
-#### Migrating chunked results (`chunked`, `Results.Chunked`)
+### Migrating chunked results (`chunked`, `Results.Chunked`)
 
 In Play 2.4 you would create chunked results in Scala with an `Enumerator` and in Java with a `Results.Chunked` object. In Play 2.5 these parts of the API are still available, but they have been deprecated.
 
@@ -50,7 +50,7 @@ More advanced users may prefer to explicitly create an `HttpEntity.Chunked` obje
 
 * To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
-#### Migrating streamed results (`feed`, `stream`) (Scala only)
+### Migrating streamed results (`feed`, `stream`) (Scala only)
 
 In Play 2.4 Scala users could stream results by passing an `Enumerator` to the `feed` or `stream` method. (Java users didn't have a way to stream results, apart from chunked results.) The `feed` method streamed the `Enumerator`'s data then closed the connection. The `stream` method, either streamed or chunked the result and possibly closed the connection, depending on the HTTP version of the connection and the presence or absence of the `Content-Length` header.
 
@@ -60,7 +60,7 @@ The new API is to create a `Result` object directly and choose an `HttpEntity` t
 
 * To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
-#### Migrating WebSockets (`WebSocket`)
+### Migrating WebSockets (`WebSocket`)
 
 In Play 2.4, a WebSocket's bidirectional stream was represented in Java with a pair of `WebSocket.In` and `WebSocket.Out` objects and in Scala with a pair of `Enumerator` and `Iteratee` objects. In Play 2.5, both Java and Scala now use an Akka Streams `Flow` to represent the bidirectional stream.
 
@@ -70,7 +70,7 @@ The first option is to use the old Play API, which has been deprecated and renam
 
 The second option is to change to the new Play API. To do this you'll need to change your WebSocket code to use an Akka Streams `Flow` object.
 
-##### Migrating Scala WebSockets
+#### Migrating Scala WebSockets
 
 The Play 2.4 Scala WebSocket API requires an `Enumerator`/`Iteratee` pair that produces `In` objects and consumes `Out` objects. A pair of `FrameFormatter`s handle the job of getting the data out of the `In` and `Out` objects.
 
@@ -78,7 +78,7 @@ The Play 2.4 Scala WebSocket API requires an `Enumerator`/`Iteratee` pair that p
 case class WebSocket[In, Out](f: RequestHeader => Future[Either[Result, (Enumerator[In], Iteratee[Out, Unit]) => Unit]])(implicit val inFormatter: WebSocket.FrameFormatter[In], val outFormatter: WebSocket.FrameFormatter[Out]) extends Handler {
 ```
 
-```
+```scala
 trait FrameFormatter[A] {
   def transform[B](fba: B => A, fab: A => B): FrameFormatter[B]
 }
@@ -101,7 +101,7 @@ case class PingMessage(data: ByteString) extends Message
 case class PongMessage(data: ByteString) extends Message
 ```
 
-```
+```scala
 trait MessageFlowTransformer[+In, -Out] { self =>
   def transform(flow: Flow[In, Out, _]): Flow[Message, Message, _]
 }
@@ -112,7 +112,7 @@ To migrate, you'll need to translate the bidirectional `Enumerator`/`Iteratee` s
 * To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 * To learn how to migrate an Iteratee to a Sink, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
 
-##### Migrating Java WebSockets
+#### Migrating Java WebSockets
 
 The Play 2.4 Java WebSocket API uses a `WebSocket.In` object to handle incoming messages and a `WebSocket.Out` object to send outgoing messages. The API supported WebSockets transporting text, bytes or JSON frames.
 
@@ -141,28 +141,25 @@ return WebSocket.Text.accept(requestHeader -> {
 
 You can also create your own `MappedWebSocketAcceptor` by defining how to convert incoming outgoing messages.
 
-* To learn how to migrate a `WebSocket.In` to a Sink, see XXXX.
-* To learn how to migrate a `WebSocket.Out` to a Source, see XXXX.
-
-#### Migrating Comet
+### Migrating Comet
 
 To use [Comet](https://en.wikipedia.org/wiki/Comet_(programming)) in Play you need to produce a chunked HTTP response with specially formatted chunks. Play has a `Comet` class to help produce events on the server that can be sent to the browser.  In Play 2.4.x, a new Comet instance had to be created and used callbacks for Java, and an Enumeratee was used for Scala.  In Play 2.5, there are new APIs added based on Akka Streams.
 
-##### Migrating Java Comet
+#### Migrating Java Comet
 
 Create an Akka Streams source for your objects, and convert them into either `String` or `JsonNode` objects.  From there, you can use `play.libs.Comet.string` or `play.libs.Comet.json` to convert your objects into a format suitable for `Results.ok().chunked()`.  There is additional documentation in [[JavaComet]].
 
 Because the Java Comet helper is based around callbacks, it may be easier to turn the callback based class into a `org.reactivestreams.Publisher` directly and use `Source.fromPublisher` to create a source.
 
-##### Migrating Scala Comet
+#### Migrating Scala Comet
 
 Create an Akka Streams source for your objects, and convert them into either `String` or `JsValue` objects.  From there, you can use `play.api.libs.Comet.string` or `play.api.libs.Comet.json` to convert your objects into a format suitable for `Ok.chunked()`.  There is additional documentation in [[ScalaComet]].
 
-#### Migrating Server-Sent events (`EventSource`)
+### Migrating Server-Sent events (`EventSource`)
 
 To use [Server-Sent Events](http://www.html5rocks.com/en/tutorials/eventsource/basics/) in Play you need to produce a chunked HTTP response with specially formatted chunks. Play has an `EventSource` interface to help produce events on the server that can be sent to the browser. In Play 2.4 Java and Scala each had quite different APIs, but in Play 2.5 they have been changed so they're both based on Akka Streams.
 
-##### Migrating Java Server-Sent events
+#### Migrating Java Server-Sent events
 
 In Play 2.4's Java API you produce your stream of chunks with `EventSource`, which is a class that extends `Chunks<String>`. You can construct `Event` objects from strings or JSON objects and then send them in the response by calling `EventSource`'s `send` method.
 
@@ -190,7 +187,7 @@ return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
 
 If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-customize.html#custom-processing-with-graphstage).
 
-##### Migrating Scala Server-Sent events
+#### Migrating Scala Server-Sent events
 
 To use Play 2.4's Scala API you provide an `Enumerator` of application objects then use the `EventSource` `Enumeratee` to convert them into `Event`s. Finally you pass the `Event`s to the `chunked` method where they're converted into chunks.
 
@@ -208,7 +205,7 @@ Ok.chunked(someDataStream via EventSource.flow).as("text/event-stream")
 
 * To learn how to migrate an Enumerator to a Source, see [Migrating Enumerators to Sources](#Migrating-Enumerators-to-Sources).
 
-#### Migrating custom actions (`EssentialAction`) (Scala only)
+### Migrating custom actions (`EssentialAction`) (Scala only)
 
 Most Scala users will use the `Action` class for their actions. The `Action` class is a type of `EssentialAction` that always parses its body fully before running its logic and sending a result. Some users may have written their own custom `EssentialAction`s so that they can do things like incrementally processing the request body.
 
@@ -229,7 +226,7 @@ To migrate, you'll need to replace your `Iteratee` with an `Accumulator` and you
 * To learn how to migrate an Iteratee to an Accumulator, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
 * To learn how to migrate an `Array[Byte]` to a `ByteString` see [Migrating byte arrays to ByteStrings](#Migrating-byte-arrays-\(byte[]/Array[Byte]\)-to-ByteStrings).
 
-#### Migrating custom body parsers (`BodyParser`) (Scala only)
+### Migrating custom body parsers (`BodyParser`) (Scala only)
 
 If you're a Scala user who has a custom `BodyParser` in their Play 2.4 application then you'll need to migrate it to the new Play 2.5 API. The `BodyParser` trait signature looks like this in Play 2.4:
 
@@ -248,7 +245,7 @@ To migrate, you'll need to replace your `Iteratee` with an `Accumulator` and you
 * To learn how to migrate an Iteratee to an Accumulator, see [Migrating Iteratees to Sinks and Accumulators](#Migrating-Iteratees-to-Sinks-and-Accumulators).
 * To learn how to migrate an `Array[Byte]` to a `ByteString` see [Migrating byte arrays to ByteStrings](#Migrating-byte-arrays-\(byte[]/Array[Byte]\)-to-ByteStrings).
 
-#### Migrating `Result` bodies (Scala only)
+### Migrating `Result` bodies (Scala only)
 
 The `Result` object has changed how it represents thre result body and the connection close flag. Instead of taking `body: Enumerator[Array[Byte]], connection: Connection`, it now takes `body: HttpEntity`. The `HttpEntity` type contains information about the body and implicit information about how to close the connection.
 
@@ -272,7 +269,7 @@ You may find that you don't need a stream for the `Result` body at all. If that'
 new Result(headers, HttpEntity.Strict(bytes))
 ```
 
-### How to migrate (by type)
+## How to migrate (by type)
 
 This section explains how to migrate your byte arrays and streams to the new Akka Streams APIs.
 
@@ -293,7 +290,7 @@ When you're first getting started with Akka Streams, the *Basics and working wit
 
 You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka streams.  Akka streams provides a [reactive streams](http://reactive-streams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka streams and vice versa.
 
-#### Migrating byte arrays (`byte[]`/`Array[Byte]`) to `ByteString`s
+### Migrating byte arrays (`byte[]`/`Array[Byte]`) to `ByteString`s
 
 Refer to the [Java](http://doc.akka.io/japi/akka/2.4.2/index.html) and [Scala](http://doc.akka.io/api/akka/2.4.2/akka/util/ByteString.html) API documentation for `ByteString`.
 
@@ -323,7 +320,7 @@ ByteString.fromString("hello");
 ByteString.fromArray(arr);
 ```
 
-#### Migrating `*.Out`s to `Source`s
+### Migrating `*.Out`s to `Source`s
 
 Play now uses a `Source` to generate events instead of its old `WebSocket.Out`, `Chunks.Out` and `EventSource.Out` classes. These classes were simple to use, but they were inflexible and they didn't implement [back](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-flows-and-basics.html#back-pressure-explained) [pressure](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-flows-and-basics.html#back-pressure-explained) properly.
 
@@ -353,7 +350,7 @@ val source = Source.actorRef[ByteString](256, OverflowStrategy.dropNew).mapMater
 }
 ```
 
-#### Migrating `Enumerator`s to `Source`s
+### Migrating `Enumerator`s to `Source`s
 
 Play uses `Enumerator`s in many places to produce streams of values.
 
@@ -386,7 +383,7 @@ Here's a list of some common mappings for enumerator factory methods:
 | `Enumerator.fromStream` | `StreamConverters.fromInputStream` | |
 | `Enumerator.fromFile` | `FileIO.fromFile` | |
 
-#### Migrating `Iteratee`s to `Sink`s and `Accumulator`s
+### Migrating `Iteratee`s to `Sink`s and `Accumulator`s
 
 **Step 1:** Convert using an adapter
 
@@ -413,7 +410,7 @@ Here's a list of some common mappings for iteratee factory methods:
 | `Iteratee.ignore` | `Sink.ignore` | |
 | `Done` | `Sink.cancelled` | The materialized value can be mapped to produce the result, or if using accumulators, `Accumulator.done` can be used instead. |
 
-#### Migrating `Enumeratees`s to `Processor`s
+### Migrating `Enumeratees`s to `Processor`s
 
 **Step 1:** Convert using an adapter
 

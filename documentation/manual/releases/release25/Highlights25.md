@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.5
 
-This page highlights the new features of Play 2.5. If you want learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
+This page highlights the new features of Play 2.5. If you want to learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
 
 ## New streaming API based on Akka Streams
 
@@ -35,7 +35,7 @@ The places where you will come across Akka streams in your Play applications inc
 
 ### Reactive Streams
 
-[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9, and available as a standalone library for JDK6 and above.  In general, it is not an end-user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
+[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9 and available as a standalone library for JDK6 and above.  In general, it is not an end-user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
 
 ### The future of iteratees
 
@@ -62,9 +62,9 @@ With Play 2.5 that situation has changed. Java 8 now ships with much better supp
 
 Here are the main changes:
 
-* Use Java functional interfaces (`Runnable`, `Consumer`, `Predicate`, etc). [[(See Migration Guide.)|Migration25#Replaced-functional-types-with-Java-8-functional-types]]
-* Use Java 8's [`Optional`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) instead of Play's `F.Option`. [[(See Migration Guide.)|Migration25#Replaced-F.Option-with-Java-8s-Optional]]
-* Use Java 8's [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) instead of Play's `F.Promise`. [[(See Migration Guide.)|Migration25#Replaced-F.Promise-with-Java-8s-CompletionStage]]
+* Use Java functional interfaces (`Runnable`, `Consumer`, `Predicate`, etc). [[(See Migration Guide.)|JavaMigration25#Replaced-functional-types-with-Java-8-functional-types]]
+* Use Java 8's [`Optional`](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) instead of Play's `F.Option`. [[(See Migration Guide.)|JavaMigration25#Replaced-F.Option-with-Java-8s-Optional]]
+* Use Java 8's [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) instead of Play's `F.Promise`. [[(See Migration Guide.)|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]]
 
 ## Support for other logging frameworks
 
@@ -86,7 +86,7 @@ You can learn how to use native sockets in Play documentation on [[configuring N
 
 ## Performance Improvements
 
-Thanks to various performance optimizations, Play 2.5's performance testing framework shows roughly 60K requests per second, an almost 20% improvement over Play 2.4.x. 
+Thanks to various performance optimizations, Play 2.5's performance testing framework shows roughly 60K requests per second, an **almost 20% improvement over Play 2.4.x**.
 
 ## WS Improvements
 
