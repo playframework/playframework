@@ -31,7 +31,7 @@ play.filters.csrf.headers.bypassHeaders {
   X-Requested-With = "*"
   Csrf-Token = "nocheck"
 }
-``
+```
 
 Caution should be taken when using this configuration option, as historically browser plugins have undermined this type of CSRF defence.
 
