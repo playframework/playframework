@@ -543,7 +543,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       // #curl-logger-filter
       ws.url(s"http://localhost:$testServerPort")
         .withRequestFilter(AhcCurlRequestLogger())
-        .withBody(Map("param1" -> Seq("value1")))
         .put(Map("key" -> Seq("value")))
       // #curl-logger-filter
 
