@@ -119,7 +119,7 @@ curl \
   --request PUT \
  --header 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' \
  --data 'key=value' \
- 'http://localhost:19001/
+ http://localhost:19001/
 ```
 
 ## Processing the Response
