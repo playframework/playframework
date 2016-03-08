@@ -11,7 +11,7 @@ import play.api.i18n.Lang
  *
  * For example:
  * {{{
- * object Application extends Controller {
+ * class HomeController @Inject()() extends Controller {
  *
  *   def hello(name:String) = Action { request =>
  *     Ok("Hello " + name)
