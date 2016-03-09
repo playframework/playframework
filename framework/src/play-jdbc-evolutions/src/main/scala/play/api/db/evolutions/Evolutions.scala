@@ -248,7 +248,6 @@ object OfflineEvolutions {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
       lazy val configuration = Configuration.load(environment)
       lazy val applicationLifecycle = new DefaultApplicationLifecycle
-      lazy val dynamicEvolutions = new DynamicEvolutions
       lazy val dbApi: DBApi = _dbApi
       lazy val webCommands = new DefaultWebCommands
     }
