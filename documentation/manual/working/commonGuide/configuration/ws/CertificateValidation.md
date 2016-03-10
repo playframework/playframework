@@ -18,7 +18,7 @@ You can override this to your tastes, but it is recommended to be at least as st
 The default list of disabled signature algorithms is defined below:
 
 ```
-play.ws.ssl.disabledSignatureAlgorithms = "MD2, MD4, MD5"
+play.ws.ssl.disabledSignatureAlgorithms = ["MD2", "MD4", "MD5"]
 ```
 
 MD5 is disabled, based on the proven [collision attack](https://www.win.tue.nl/hashclash/rogue-ca/) and the Mozilla recommendations:
@@ -34,7 +34,7 @@ SHA-1 is considered weak, and new certificates should use digest algorithms from
 WS defines the default list of weak key sizes as follows:
 
 ```
-play.ws.ssl.disabledKeyAlgorithms = "DHE keySize < 2048, ECDH keySize < 2048, ECDHE keySize < 2048, RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
+play.ws.ssl.disabledKeyAlgorithms = ["DHE keySize < 2048", "ECDH keySize < 2048", "ECDHE keySize < 2048", "RSA keySize < 2048", "DSA keySize < 2048", "EC keySize < 224"]
 ```
 
 These settings are based in part on [keylength.com](https://www.keylength.com/), and in part on the Mozilla recommendations:
