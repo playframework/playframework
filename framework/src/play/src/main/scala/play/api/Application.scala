@@ -11,6 +11,7 @@ import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.Singleton
 import play.api.http._
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.libs.Crypto
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
@@ -246,7 +247,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + global
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + global + crypto
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -265,6 +266,8 @@ trait BuiltInComponents {
 
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(cryptoConfig).get
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
+  lazy val aesCrypter: AESCrypter = new AESCrypterProvider(cryptoConfig).get
+  lazy val crypto: Crypto = new Crypto(cookieSigner, csrfTokenSigner, aesCrypter)
 
   @deprecated("Use dependency injection", "2.5.x")
   lazy val global: GlobalSettings.Deprecated = play.api.GlobalSettings(configuration, environment)
