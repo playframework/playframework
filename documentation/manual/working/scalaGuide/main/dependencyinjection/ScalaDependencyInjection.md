@@ -1,13 +1,21 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Runtime Dependency Injection
+# Dependency Injection
 
-Dependency injection is a way that you can separate your components so that they are not directly dependent on each other, rather, they get injected into each other.
+Dependency injection is a widely used design pattern that helps separate your components' behaviour from dependency resolution.  Play supports both runtime dependency injection based on [JSR 330](https://jcp.org/en/jsr/detail?id=330) (described in this page) and [[compile time dependency injection|ScalaCompileTimeDependencyInjection]] in Scala.
 
-Out of the box, Play provides runtime dependency injection based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  Runtime dependency injection is so called because the dependency graph is created, wired and validated at runtime.  If a dependency cannot be found for a particular component, you won't get an error until you run your application.  In contrast, Play also supports [[compile time dependency injection|ScalaCompileTimeDependencyInjection]], where errors in the dependency graph are detected and thrown at compile time.
+Runtime dependency injection is so called because the dependency graph is created, wired and validated at runtime.  If a dependency cannot be found for a particular component, you won't get an error until you run your application.
 
-The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
+Play supports [Guice](https://github.com/google/guice) out of the box, but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
-## Declaring dependencies
+## Motivation
+
+Dependency injection achieves several goals:
+1. It allows you to easily bind different implementations for the same component.  This is useful especially for testing, where you can manually instantiate components using mock dependencies or inject an alternate implementation.
+2. It allows you to avoid global static state.  While static factories can achieve the first goal, you have to be careful to make sure your state is set up properly.  In particular Play's (now deprecated) static APIs require a running application, which makes testing less flexible.  And having more than one instance available at a time makes it possible to run tests in parallel.
+
+The [Guice wiki](https://github.com/google/guice/wiki/Motivation) has some good examples explaining this in more detail.
+
+## Declaring runtime DI depndencies
 
 If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](https://docs.oracle.com/javaee/7/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors, we recommend that you use it on constructors, for example:
 
