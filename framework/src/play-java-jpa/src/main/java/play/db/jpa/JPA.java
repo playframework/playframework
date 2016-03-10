@@ -75,7 +75,6 @@ public class JPA {
         return entityManagerContext.em();
     }
 
-
     /**
      * Bind an EntityManager to the current HTTP context.
      * If no HTTP context is available the EntityManager gets bound to the current thread instead.
