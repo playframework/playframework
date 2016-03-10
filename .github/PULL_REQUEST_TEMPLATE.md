@@ -1,7 +1,7 @@
 # Pull Request Checklist
 
 * [ ] Have you read through the [contributor guidelines](https://www.playframework.com/contributing)?
-* [ ] Have you signed the [Typesafe CLA](https://www.typesafe.com/contribute/cla)?
+* [ ] Have you signed the [Lightbend CLA](https://www.lightbend.com/contribute/cla)?
 * [ ] Have you [squashed your commits](https://www.playframework.com/documentation/2.4.x/WorkingWithGit#Squashing-commits)?
 * [ ] Have you added copyright headers to new files?
 * [ ] Have you checked that both Scala and Java APIs are updated?
