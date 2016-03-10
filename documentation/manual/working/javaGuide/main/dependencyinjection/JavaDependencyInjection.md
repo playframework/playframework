@@ -1,9 +1,17 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Dependency Injection with Guice
+# Dependency Injection
 
-Dependency injection is a way that you can separate your components so that they are not directly dependent on each other, rather, they get injected into each other.
+Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you you don't have to do so manually.
 
 Out of the box, Play provides dependency injection support based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
+
+## Motivation
+
+Dependency injection achieves several goals:
+1. It allows you to easily bind different implementations for the same component.  This is useful especially for testing, where you can manually instantiate components using mock dependencies or inject an alternate implementation.
+2. It allows you to avoid global static state.  While static factories can achieve the first goal, you have to be careful to make sure your state is set up properly.  In particular Play's (now deprecated) static APIs require a running application, which makes testing less flexible.  And having more than one instance available at a time makes it possible to run tests in parallel.
+
+The [Guice wiki](https://github.com/google/guice/wiki/Motivation) has some good examples explaining this in more detail.
 
 ## Declaring dependencies
 
@@ -11,13 +19,15 @@ If you have a component, such as a controller, and it requires some other compon
 
 @[field](code/javaguide/di/field/MyComponent.java)
 
+Note that those are *instance* fields. It generally doesn't make sense to inject a static field, since it would break encapsulation.
+
 To use constructor injection:
 
 @[constructor](code/javaguide/di/constructor/MyComponent.java)
 
 For brevity, in the Play documentation, we use field injection, but in Play itself, we use constructor injection.
 
-Constructor injection is the most testable, since all the dependencies are required up front to construct an instance of the class, but it is also more verbose. Guice also has several other [types of injections](https://github.com/google/guice/wiki/Injections) which may be useful in some cases.
+Constructor injection is the most testable, since all the dependencies are required up front to construct an instance of the class. Guice also has several other [types of injections](https://github.com/google/guice/wiki/Injections) which may be useful in some cases. If you are migrating an application that uses statics, you may find its static injection support useful.
 
 ## Dependency injecting controllers
 
