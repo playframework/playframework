@@ -151,7 +151,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     def logBefore(script: Script)(implicit conn: Connection): Unit = {
       script match {
         case UpScript(e) => {
-          val ps = prepare("insert into ${schema}play_evolutions values(?, ?, ?, ?, ?, ?, ?)")
+          val ps = prepare("insert into ${schema}play_evolutions (id, hash, applied_at, apply_script, revert_script, state, last_problem) values(?, ?, ?, ?, ?, ?, ?)")
           ps.setInt(1, e.revision)
           ps.setString(2, e.hash)
           ps.setDate(3, new Date(System.currentTimeMillis()))
