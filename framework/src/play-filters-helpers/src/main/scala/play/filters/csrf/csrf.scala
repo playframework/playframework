@@ -281,13 +281,13 @@ class CSRFModule extends Module {
  */
 trait CSRFComponents {
   def configuration: Configuration
-  def tokenSigner: CSRFTokenSigner
+  def csrfTokenSigner: CSRFTokenSigner
   def httpErrorHandler: HttpErrorHandler
   implicit def materializer: Materializer
 
   lazy val csrfConfig: CSRFConfig = CSRFConfig.fromConfiguration(configuration)
-  lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig, tokenSigner).get
+  lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig, csrfTokenSigner).get
   lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRFHttpErrorHandler(httpErrorHandler)
-  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, tokenSigner, csrfTokenProvider, csrfErrorHandler)
+  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, csrfTokenSigner, csrfTokenProvider, csrfErrorHandler)
 
 }
