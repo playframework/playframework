@@ -52,7 +52,7 @@ play.ws.ssl.debug = {
 
 ## Verbose Debugging
 
-To see the behavior of WS SSL, you can configuring the SLF4J logger `play.api.libs.ws.ssl` for debug output.  For example, in Logback you would configure:
+To see the behavior of WS SSL, you can configure the SLF4J logger `play.api.libs.ws.ssl` for debug output.  For example, if you are using Logback, in `conf/logback.xml` you would configure:
 
 ```
 <logger name="play.api.libs.ws.ssl" value="DEBUG"/>
