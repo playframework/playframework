@@ -33,7 +33,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Int)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]): BodyParser[A] = BodyParser { request =>
+  def partParser[A](maxMemoryBufferSize: Int)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType
@@ -52,7 +52,10 @@ object Multipart {
             part.copy[Source[ByteString, _]](ref = body.collect {
               case Right(bytes) => bytes
             })
-          case (Seq(Left(other)), _) =>
+          case (Seq(Left(other)), ignored) =>
+            // If we don't run the source, it takes Akka streams 5 seconds to wake up and realise the source is empty
+            // before it progresses onto the next element
+            ignored.runWith(Sink.cancelled)
             other.asInstanceOf[Part[Nothing]]
         }.concatSubstreams
 
@@ -108,7 +111,7 @@ object Multipart {
       }
 
       multipartAccumulator.through(handleFileParts)
-    }(request)
+    }.apply(request)
   }
 
   type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
