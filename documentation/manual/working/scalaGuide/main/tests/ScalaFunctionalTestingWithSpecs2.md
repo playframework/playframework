@@ -5,22 +5,19 @@ Play provides a number of classes and convenience methods that assist with funct
 
 You can add these methods and classes by importing the following:
 
-```scala
-import play.api.test._
-import play.api.test.Helpers._
-```
+@[scalafunctionaltest-imports](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## Creating `Application` instances for testing
 
 Play frequently requires a running [`Application`](api/scala/play/api/Application.html) as context. If you're using the default Guice dependency injection, you can use the [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) class which can be configured with different configuration, routes, or even additional modules.
 
-@[scalafunctionaltest-fakeApplication](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-application](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## WithApplication
 
 To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default `GuiceApplicationBuilder`) is provided for convenience.
 
-Because [`WithApplication`](api/scala/play/api/test/WithApplication.html) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
+Because [`WithApplication`](api/scala/play/api/test/WithApplication.html) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
 
 @[scalafunctionaltest-withdbdata](code/specs2/WithDbDataSpec.scala)
 
@@ -44,7 +41,7 @@ If you want to test your application using a browser, you can use [Selenium WebD
 
 ## PlaySpecification
 
-[`PlaySpecification`](api/scala/play/api/test/PlaySpecification.html) is an extension of [`Specification`](https://etorreborre.github.io/specs2/api/SPECS2-3.4/index.html#org.specs2.mutable.Specification) that excludes some of the mixins provided in the default specs2 specification that clash with Play helpers methods.  It also mixes in the Play test helpers and types for convenience.
+[`PlaySpecification`](api/scala/play/api/test/PlaySpecification.html) is an extension of [`Specification`](https://etorreborre.github.io/specs2/api/SPECS2-3.6.6/index.html#org.specs2.mutable.Specification) that excludes some of the mixins provided in the default specs2 specification that clash with Play helpers methods.  It also mixes in the Play test helpers and types for convenience.
 
 @[scalafunctionaltest-playspecification](code/specs2/ExamplePlaySpecificationSpec.scala)
 

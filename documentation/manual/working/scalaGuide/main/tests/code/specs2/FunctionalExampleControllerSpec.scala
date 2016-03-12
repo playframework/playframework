@@ -6,7 +6,6 @@ package scalaguide.tests.specs2
 import scalaguide.tests.controllers
 
 import play.api.test._
-import play.api.test.Helpers._
 
 object FunctionalExampleControllerSpec extends PlaySpecification {
 
