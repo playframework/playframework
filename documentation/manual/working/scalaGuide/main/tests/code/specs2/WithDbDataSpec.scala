@@ -4,13 +4,9 @@
 package scalaguide.tests.specs2
 
 import play.api.test._
-import play.api.test.Helpers._
 
 import org.specs2.execute.{Result, AsResult}
 
-/**
- *
- */
 class WithDbDataSpec extends PlaySpecification {
 
   // #scalafunctionaltest-withdbdata
