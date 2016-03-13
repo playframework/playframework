@@ -5,6 +5,8 @@
 
 Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript WebSocket API.  However WebSockets are not limited in just being used by WebBrowsers, there are many WebSocket client libraries available, allowing for example servers to talk to each other, and also native mobile apps to use WebSockets.  Using WebSockets in these contexts has the advantage of being able to reuse the existing TCP port that a Play server uses.
 
+> **Tip:** Check [caniuse.com](http://caniuse.com/#feat=websockets) to see more about which browsers supports WebSockets, known issues and more information.
+
 ## Handling WebSockets
 
 Until now, we've been writing methods that return `Result` to handle standard HTTP requests.  WebSockets are quite different and can’t be handled via standard Play actions.

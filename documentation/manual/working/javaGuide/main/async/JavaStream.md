@@ -11,7 +11,7 @@ By default, when you send a simple result, such as:
 
 You are not specifying a `Content-Length` header. Of course, because the content you are sending is well known, Play is able to compute the content size for you and to generate the appropriate header.
 
-> **Note** that for text-based content this is not as simple as it looks, since the `Content-Length` header must be computed according the encoding used to translate characters to bytes.
+> **Note:** for text-based content this is not as simple as it looks, since the `Content-Length` header must be computed according the encoding used to translate characters to bytes.
 
 To be able to compute the `Content-Length` header properly, Play must consume the whole response data and load its content into memory.
 

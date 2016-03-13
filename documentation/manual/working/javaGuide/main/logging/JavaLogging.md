@@ -8,6 +8,7 @@ Using logging in your application can be useful for monitoring, debugging, error
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
 #### Logger
+
 Your application can define loggers to send log message requests. Each logger has a name which will appear in log messages and is used for configuration.  
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
@@ -15,6 +16,7 @@ Loggers follow a hierarchical inheritance structure based on their naming. A log
 Play applications are provided a default logger named "application" or you can create your own loggers. The Play libraries use a logger named "play", and some third party libraries will have loggers with their own names.
 
 #### Log levels
+
 Log levels are used to classify the severity of log messages. When you write a log request statement you will specify the severity and this will appear in generated log messages.
 
 This is the set of available log levels, in decreasing order of severity.
@@ -29,18 +31,21 @@ This is the set of available log levels, in decreasing order of severity.
 In addition to classifying messages, log levels are used to configure severity thresholds on loggers and appenders. For example, a logger set to level `INFO` will log any request of level `INFO` or higher (`INFO`, `WARN`, `ERROR`) but will ignore requests of lower severities (`DEBUG`, `TRACE`). Using `OFF` will ignore all log requests.
 
 #### Appenders
+
 The logging API allows logging requests to print to one or many output destinations called "appenders." Appenders are specified in configuration and options exist for the console, files, databases, and other outputs.
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> Note: For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> **Note:** For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
+
 First import the `Logger` class:
 
 @[logging-import](code/javaguide/logging/JavaLogging.java)
 
-#### The default Logger
+### The default Logger
+
 The `Logger` class serves as the default logger using the name "application." You can use it to write log request statements:
 
 @[logging-default-logger](code/javaguide/logging/JavaLogging.java)
@@ -60,7 +65,7 @@ java.lang.ArithmeticException: / by zero
 
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
-#### Creating your own loggers
+### Creating your own loggers
 
 Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
@@ -72,7 +77,7 @@ A common strategy for logging application events is to use a distinct logger per
 
 @[logging-create-logger-class](code/javaguide/logging/JavaLogging.java)
 
-#### Logging patterns
+### Logging patterns
 
 Effective use of loggers can help you achieve many goals with the same tool:
 

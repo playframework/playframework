@@ -9,11 +9,7 @@ There are two very different versions of OAuth: [OAuth 1.0](https://tools.ietf.o
 
 To use OAuth, first add `javaWs`  to your `build.sbt` file:
 
-```scala
-libraryDependencies ++= Seq(
-  javaWs
-)
-```
+@[javaws-sbt-dependencies](code/javaws.sbt)
 
 ## Required Information
 

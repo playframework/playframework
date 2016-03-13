@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # OpenID Support in Play
 
-OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
+[OpenID](http://openid.net/get-an-openid/what-is-openid/) is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
 
 ## The OpenID flow in a nutshell
 
@@ -16,11 +16,7 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 To use OpenID, first add `javaWs`  to your `build.sbt` file:
 
-```scala
-libraryDependencies ++= Seq(
-  javaWs
-)
-```
+@[javaws-sbt-dependencies](code/javaws.sbt)
 
 Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/java/play/libs/openid/OpenIdClient.html).
 
@@ -38,7 +34,7 @@ If the `CompletionStage` fails, you can define a fallback, which redirects back 
 
 @[ws-openid-routes](code/javaguide.ws.routes)
 
-controller:
+Controller:
 
 @[ws-openid-controller](code/javaguide/ws/controllers/OpenIDController.java)
 

@@ -13,7 +13,7 @@ To wrap a class you have to inject a `play.data.FormFactory` into your Controlle
 
 @[create](code/javaguide/forms/JavaForms.java)
 
-> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/3.0.x/reference/validation.html).
+> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/4.2.4.RELEASE/spring-framework-reference/html/validation.html).
 
 This form can generate a `User` result value from `HashMap<String,String>` data:
 
@@ -97,4 +97,4 @@ When the binding fails an array of errors keys is created, the first one defined
 
     ["error.invalid.<fieldName>", "error.invalid.<type>", "error.invalid"]
 
-The errors keys are created by [Spring DefaultMessageCodesResolver](http://static.springsource.org/spring/docs/3.0.7.RELEASE/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".
+The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs.spring.io/spring/docs/4.2.4.RELEASE/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".

@@ -11,12 +11,7 @@ The default implementation of the cache API uses [EHCache](http://www.ehcache.or
 
 Add `cache` into your dependencies list. For example, in `build.sbt`:
 
-```scala
-libraryDependencies ++= Seq(
-  cache,
-  ...
-)
-```
+@[cache-sbt-dependencies](code/cache.sbt)
 
 ## Accessing the Cache API
 
@@ -78,6 +73,6 @@ To replace the default implementation, you'll need to disable the default implem
 play.modules.disabled += "play.api.cache.EhCacheModule"
 ```
 
-Then simply implement CacheApi and bind it in the DI container.
+Then simply implement [CacheApi](api/java/play/cache/CacheApi.html) and bind it in the DI container.
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.
