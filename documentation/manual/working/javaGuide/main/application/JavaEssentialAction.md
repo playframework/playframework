@@ -3,9 +3,9 @@
 
 ## What is EssentialAction?
 
-EssentialAction is the underlying functional type used by Play's HTTP APIs. This differs from the `Action` type in Java, a higher-level type that accepts a `Context` and returns a `CompletionStage<Result>`. Most of the time you will not need to use `EssentialAction` directly in a Java application, but it can be useful when writing filters or interacting with other low-level Play APIs.
+[`EssentialAction`](api/java/play/mvc/EssentialAction.html) is the underlying functional type used by Play's HTTP APIs. This differs from the `Action` type in Java, a higher-level type that accepts a `Context` and returns a `CompletionStage<Result>`. Most of the time you will not need to use `EssentialAction` directly in a Java application, but it can be useful when writing filters or interacting with other low-level Play APIs.
 
-To understand EssentialAction we need to understand the Play architecture.
+To understand `EssentialAction` we need to understand the Play architecture.
 
 The core of Play is really small, surrounded by a fair amount of useful APIs, services and structure to make Web Programming tasks easier.
 
@@ -29,13 +29,13 @@ What we need to change is the second arrow to make it receive its input in chunk
 RequestHeader -> Accumulator<ByteString, Result>
 ```
 
-Ultimately, our Java type looks like 
+Ultimately, our Java type looks like:
 
 ```java
 Function<RequestHeader, Accumulator<ByteString, Result>>
 ```
 
-And this should read as: Take the request headers, take chunks of `ByteString` which represent the request body and eventually return a `Result`. This exactly how the `EssentialAction`'s apply method is defined
+And this should read as: Take the request headers, take chunks of `ByteString` which represent the request body and eventually return a `Result`. This exactly how the `EssentialAction`'s apply method is defined:
 
 ```java
 public abstract Accumulator<ByteString, Result> apply(RequestHeader requestHeader);

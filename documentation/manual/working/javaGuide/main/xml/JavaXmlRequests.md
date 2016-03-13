@@ -15,9 +15,9 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 > **Note:** This way, a 400 HTTP response will be automatically returned for non-XML requests.
 
-You can test it with **cURL** on the command line:
+You can test it with **`curl`** on the command line:
 
-```
+```bash
 curl 
   --header "Content-type: application/xml" 
   --request POST 

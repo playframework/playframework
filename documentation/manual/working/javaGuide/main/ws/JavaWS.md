@@ -3,19 +3,15 @@
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
 
-There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS. Finally, we'll discuss some common use cases.
+There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS library. Finally, we'll discuss some common use cases.
 
 ## Making a Request
 
 To use WS, first add `javaWs` to your `build.sbt` file:
 
-```scala
-libraryDependencies ++= Seq(
-  javaWs
-)
-```
+@[javaws-sbt-dependencies](code/javaws.sbt)
 
-Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the `WSClient` type to use dependency injection:
+Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
 
 @[ws-controller](code/javaguide/ws/Application.java)
 
@@ -160,9 +156,13 @@ You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that 
 
 ## Using WSClient
 
-We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
+We recommend that you get your `WSClient` instances using [[dependency injection|JavaDependencyInjection]] as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
-However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
+However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options.
+
+> **Note:** If you create a `WSClient` manually then you **must** call `client.close()` to clean it up when you've finished with it. Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
+
+Here is an example of how to create a `WSClient` instance by yourself:
 
 @[ws-custom-client-imports](code/javaguide/ws/JavaWS.java)
 
@@ -174,18 +174,18 @@ Once you are done with your custom client work, you **must** close the client:
 
 @[ws-close-client](code/javaguide/ws/JavaWS.java)
 
-Ideally, you should only close a client after you know all requests have been completed.  You should not use try-with-resources to automatically close a WSClient instance, because WSClient logic is asynchronous and try-with-resources only supports synchronous code in its body.
+Ideally, you should only close a client after you know all requests have been completed.  You should not use [`try-with-resources`](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) to automatically close a WSClient instance, because WSClient logic is asynchronous and `try-with-resources` only supports synchronous code in its body.
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC9/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
-This is important in a couple of cases.  WS has a couple of limitations that require access to the underlying client:
+This is important in a couple of cases. The WS library has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
-* `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC9/org/asynchttpclient/RequestBuilderBase.html#addBodyPart-org.asynchttpclient.request.body.multipart.Part-).
+* `WS` does not support streaming body upload.  In this case, you should use the [`FeedableBodyGenerator`](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC9/org/asynchttpclient/request/body/generator/FeedableBodyGenerator.html) provided by AsyncHttpClient.
 
 ## Configuring WS
 
@@ -214,7 +214,7 @@ To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC7/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC9/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 > **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 

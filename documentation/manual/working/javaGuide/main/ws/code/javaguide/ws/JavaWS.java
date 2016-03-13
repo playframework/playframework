@@ -204,8 +204,8 @@ public class JavaWS {
                     // Get the content type
                     String contentType =
                             Optional.ofNullable(responseHeaders.getHeaders().get("Content-Type"))
-                                    .map(contentTypes -> contentTypes.get(0)).
-                                    orElse("application/octet-stream");
+                                    .map(contentTypes -> contentTypes.get(0))
+                                    .orElse("application/octet-stream");
 
                     // If there's a content length, send that, otherwise return the body chunked
                     Optional<String> contentLength = Optional.ofNullable(responseHeaders.getHeaders()

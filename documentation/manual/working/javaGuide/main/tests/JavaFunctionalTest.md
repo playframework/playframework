@@ -5,10 +5,7 @@ Play provides a number of classes and convenience methods that assist with funct
 
 You can add these methods and classes by importing the following:
 
-```java
-import play.test.*;
-import static play.test.Helpers.*;
-```
+@[test-imports](code/javaguide/tests/FakeApplicationTest.java)
 
 ## Creating `Application` instances for testing
 

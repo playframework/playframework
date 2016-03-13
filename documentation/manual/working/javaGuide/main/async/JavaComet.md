@@ -47,7 +47,7 @@ For an example of a Comet helper, see the [Play 2.5 Clock Template](https://gith
 
 ## Debugging Comet
 
-The easiest way to debug a Comet stream that is not working is to use the [`log()`](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/java/stream-cookbook.html#Logging_elements_of_a_stream) operation to show any errors involved in mapping data through the stream.
+The easiest way to debug a Comet stream that is not working is to use the [`log()`](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-cookbook.html#Logging_elements_of_a_stream) operation to show any errors involved in mapping data through the stream.
 
 ## Legacy Comet Functionality
 

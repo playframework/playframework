@@ -15,7 +15,7 @@ def index = Action {
 
 Of course, because the content you are sending is well-known, Play is able to compute the content size for you and to generate the appropriate header.
 
-> **Note** that for text-based content it is not as simple as it looks, since the `Content-Length` header must be computed according the character encoding used to translate characters to bytes.
+> **Note**: for text-based content it is not as simple as it looks, since the `Content-Length` header must be computed according the character encoding used to translate characters to bytes.
 
 Actually, we previously saw that the response body is specified using a `play.api.libs.iteratee.Enumerator`:
 

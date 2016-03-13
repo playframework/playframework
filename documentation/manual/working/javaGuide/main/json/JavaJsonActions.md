@@ -31,7 +31,7 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 > **Note:** This way, a 400 HTTP response will be automatically returned for non JSON requests with Content-type set to application/json.
 
-You can test it with **cURL** from a command line:
+You can test it with **`curl`** from a command line:
 
 ```bash
 curl
@@ -74,6 +74,6 @@ You can also return a Java object and have it automatically serialized to JSON b
 
 Because Play uses Jackson, you can use your own `ObjectMapper` to create `JsonNode`s. The [documentation for jackson-databind](https://github.com/FasterXML/jackson-databind/blob/master/README.md) explains how you can further customize JSON conversion process.
 
-If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you can add something like this in your `GlobalSettings#onStart`:
+If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you can create a custom [[`ApplicationLoader`|JavaApplication]]:
 
-@[custom-object-mapper](code/javaguide/json/JavaJsonActions.java)
+@[custom-apploader-object-mapper](code/javaguide/json/JavaJsonCustomObjectMapper.java)

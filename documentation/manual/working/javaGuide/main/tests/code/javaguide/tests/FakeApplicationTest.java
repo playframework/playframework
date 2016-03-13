@@ -3,10 +3,13 @@
  */
 package javaguide.tests;
 
+//#test-imports
+import play.test.*;
 import static play.test.Helpers.*;
-import static org.junit.Assert.*;
+//#test-imports
 
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import play.Application;
 import play.GlobalSettings;

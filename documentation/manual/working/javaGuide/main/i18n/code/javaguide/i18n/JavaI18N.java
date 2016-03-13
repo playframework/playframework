@@ -36,6 +36,9 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSpecifyLangHello() {
+        //#current-lang-render
+        String message = Messages.get("home.title");
+        //#current-lang-render
         //#specify-lang-render
         String title = Messages.get(Lang.forCode("fr"), "hello");
         //#specify-lang-render

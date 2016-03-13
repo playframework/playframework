@@ -53,14 +53,7 @@ You can then use your new annotation with an action method:
 
 You can also put any action composition annotation directly on the `Controller` class. In this case it will be applied to all action methods defined by this controller.
 
-```java
-@Authenticated
-public class Admin extends Controller {
-    
-  …
-    
-}
-```
+@[annotated-controller](code/javaguide/http/JavaActionsComposition.java)
 
 > **Note:** If you want the action composition annotation(s) put on a ```Controller``` class to be executed before the one(s) put on action methods set ```play.http.actionComposition.controllerAnnotationsFirst = true``` in ```application.conf```. However, be aware that if you use a third party module in your project it may rely on a certain execution order of its annotations.
 

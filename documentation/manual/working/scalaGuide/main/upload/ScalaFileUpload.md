@@ -5,7 +5,7 @@
 
 The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data. 
 
-> **Note**: The HTTP method used to submit the form must be `POST` (not `GET`). 
+> **Note:** The HTTP method used to submit the form must be `POST` (not `GET`).
 
 Start by writing an HTML form:
 
