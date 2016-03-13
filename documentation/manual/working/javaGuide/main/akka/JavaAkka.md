@@ -117,7 +117,7 @@ By default the name of the Play actor system is `application`. You can change th
 play.akka.actor-system = "custom-name"
 ```
 
-> **Note:** This feature is useful if you want to put your play application ActorSystem in an akka cluster.
+> **Note:** This feature is useful if you want to put your play application `ActorSystem` in an akka cluster.
 
 ## Executing a block of code asynchronously
 

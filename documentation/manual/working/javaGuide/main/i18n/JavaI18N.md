@@ -19,9 +19,7 @@ The default `conf/messages` file matches all languages. You can specify addition
 
 You can retrieve messages for the _current language_ using the `play.i18n.Messages` object:
 
-```
-String title = Messages.get("home.title")
-```
+@[current-lang-render](code/javaguide/i18n/JavaI18N.java)
 
 The _current language_ is found by looking at the `lang` field in the current [`Context`](api/java/play/mvc/Http.Context.html). If there's no current `Context` then the default language is used. The `Context`'s `lang` value is determined by:
 

@@ -32,7 +32,7 @@ Let’s see what a route definition looks like:
 
 @[clients-show](code/javaguide.http.routing.routes)
 
-> Note that in the action call, the parameter type comes after the parameter name, like in Scala.
+> **Note:** in the action call, the parameter type comes after the parameter name, like in Scala.
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element of a route is the call definition.
 
@@ -42,7 +42,7 @@ You can also add comments to the route file, with the `#` character:
 
 ## The HTTP method
 
-The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
+The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS`).
 
 ## The URI pattern
 
@@ -60,7 +60,7 @@ If you want to define a route that, say, retrieves a client by id, you need to a
 
 @[clients-show](code/javaguide.http.routing.routes)
 
-> Note that a URI pattern may have more than one dynamic part.
+> **Note:** A URI pattern may have more than one dynamic part.
 
 The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment.
 
@@ -156,4 +156,4 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 ## Advanced Routing
 
-See [[Routing DSL|JavaRoutingDsl]]
+See [[Routing DSL|JavaRoutingDsl]].

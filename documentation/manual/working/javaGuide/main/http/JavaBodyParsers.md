@@ -5,7 +5,7 @@
 
 An HTTP request is a header followed by a body.  The header is typically small - it can be safely buffered in memory, hence in Play it is modelled using the [`RequestHeader`](api/java/play/mvc/Http.RequestHeader.html) class.  The body however can be potentially very long, and so is not buffered in memory, but rather is modelled as a stream.  However, many request body payloads are small and can be modelled in memory, and so to map the body stream to an object in memory, Play provides a [`BodyParser`](api/java/play/mvc/BodyParser.html) abstraction.
 
-Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/java.html).  Akka streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
+Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka streams](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).  Akka streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
 
 ## Using the built in body parsers
 
@@ -21,11 +21,11 @@ The request body can be accessed through the `body()` method on [`Request`](api/
 
 The following is a mapping of types supported by the default body parser:
 
-- **text/plain**: `String`, accessible via `asText()`.
-- **application/json**: `com.fasterxml.jackson.databind.JsonNode`, accessible via `asJson()`.
-- **application/xml**, **text/xml** or **application/XXX+xml**: `org.w3c.Document`, accessible via `asXml()`.
-- **application/form-url-encoded**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`.
-- **multipart/form-data**: [`MultipartFormData`](api/java/play/mvc/Http.MultipartFormData.html), accessible via `asMultipartFormData()`.
+- **`text/plain`**: `String`, accessible via `asText()`.
+- **`application/json`**: `com.fasterxml.jackson.databind.JsonNode`, accessible via `asJson()`.
+- **`application/xml`**, **`text/xml`** or **`application/XXX+xml`**: `org.w3c.Document`, accessible via `asXml()`.
+- **`application/form-url-encoded`**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`.
+- **`multipart/form-data`**: [`MultipartFormData`](api/java/play/mvc/Http.MultipartFormData.html), accessible via `asMultipartFormData()`.
 - Any other content type: [`RawBuffer`](api/java/play/mvc/Http.RawBuffer.html), accessible via `asRaw()`.
 
 The default body parser, for performance reasons, won't attempt to parse the body if the request method is not defined to have a meaningful body, as defined by the HTTP spec.  This means it only parses bodies of `POST`, `PUT` and `PATCH` requests, but not `GET`, `HEAD` or `DELETE`.  If you would like to parse request bodies for these methods, you can use the `AnyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
@@ -72,9 +72,9 @@ The signature of this method may be a bit daunting at first, so let's break it d
 
 The method takes a [`RequestHeader`](api/java/play/mvc/Http.RequestHeader.html).  This can be used to check information about the request - most commonly, it is used to get the `Content-Type`, so that the body can be correctly parsed.
 
-The return type of the method is an [`Accumulator`](api/java/play/libs/streams/Accumulator.html).  An accumulator is a thin layer around an [Akka streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/java.html) [`Sink`](http://doc.akka.io/japi/akka-stream-and-http-experimental/1.0/akka/stream/javadsl/Sink.html).  An accumulator asynchronously accumulates streams of elements into a result, it can be run by passing in an Akka streams [`Source`](http://doc.akka.io/japi/akka-stream-and-http-experimental/1.0/akka/stream/javadsl/Source.html), this will return a `CompletionStage` that will be redeemed when the accumulator is complete.  It is essentially the same thing as a `Sink<E, CompletionStage<A>>`, in fact it is nothing more than a wrapper around this type, but the big difference is that `Accumulator` provides convenient methods such as `map`, `mapFuture`, `recover` etc. for working with the result as if it were a promise, where `Sink` requires all such operations to be wrapped in a `mapMaterializedValue` call.
+The return type of the method is an [`Accumulator`](api/java/play/libs/streams/Accumulator.html).  An accumulator is a thin layer around an [Akka streams](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html) [`Sink`](http://doc.akka.io/japi/akka/2.4.2/akka/stream/javadsl/Sink.html).  An accumulator asynchronously accumulates streams of elements into a result, it can be run by passing in an Akka streams [`Source`](http://doc.akka.io/japi/akka/2.4.2/akka/stream/javadsl/Source.html), this will return a `CompletionStage` that will be redeemed when the accumulator is complete.  It is essentially the same thing as a `Sink<E, CompletionStage<A>>`, in fact it is nothing more than a wrapper around this type, but the big difference is that `Accumulator` provides convenient methods such as `map`, `mapFuture`, `recover` etc. for working with the result as if it were a promise, where `Sink` requires all such operations to be wrapped in a `mapMaterializedValue` call.
 
-The accumulator that the `apply` method returns consumes elements of type [`ByteString`](http://doc.akka.io/japi/akka/2.3.10/akka/util/ByteString.html) - these are essentially arrays of bytes, but differ from `byte[]` in that `ByteString` is immutable, and many operations such as slicing and appending happen in constant time.
+The accumulator that the `apply` method returns consumes elements of type [`ByteString`](http://doc.akka.io/japi/akka/2.4.2/akka/util/ByteString.html) - these are essentially arrays of bytes, but differ from `byte[]` in that `ByteString` is immutable, and many operations such as slicing and appending happen in constant time.
 
 The return type of the accumulator is `F.Either<Result, A>`.  This says it will either return a `Result`, or it will return a body of type `A`.  A result is generally returned in the case of an error, for example, if the body failed to be parsed, if the `Content-Type` didn't match the type that the body parser accepts, or if an in memory buffer was exceeded.  When the body parser returns a result, this will short circuit the processing of the action - the body parsers result will be returned immediately, and the action will never be invoked.
 
@@ -112,6 +112,6 @@ In rare circumstances, it may be necessary to write a custom parser using Akka s
 
 However, when that's not feasible, for example when the body you need to parse is too long to fit in memory, then you may need to write a custom body parser.
 
-A full description of how to use Akka streams is beyond the scope of this documentation - the best place to start is to read the [Akka streams documentation](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/java.html).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/java/stream-cookbook.html#Parsing_lines_from_a_stream_of_ByteStrings) documentation from the Akka streams cookbook:
+A full description of how to use Akka streams is beyond the scope of this documentation - the best place to start is to read the [Akka streams documentation](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-cookbook.html#Parsing_lines_from_a_stream_of_ByteStrings) documentation from the Akka streams cookbook:
 
 @[csv](code/javaguide/http/JavaBodyParsers.java)
