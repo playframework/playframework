@@ -3,7 +3,6 @@
  */
 package play.mvc;
 
-import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
@@ -154,8 +153,12 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null content");
         }
         try {
-            return doSendResource(FileIO.fromFile(path.toFile()), Optional.of(Files.size(path)),
-                    Optional.of(filename), inline);
+            return doSendResource(
+                    StreamConverters.fromInputStream(() -> Files.newInputStream(path)),
+                    Optional.of(Files.size(path)),
+                    Optional.of(filename),
+                    inline
+            );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -181,8 +184,12 @@ public class StatusHeader extends Result {
         if (file == null) {
             throw new NullPointerException("null file");
         }
-        return doSendResource(FileIO.fromFile(file), Optional.of(file.length()),
-                Optional.of(file.getName()), inline);
+        return doSendResource(
+                StreamConverters.fromInputStream(() -> Files.newInputStream(file.toPath())),
+                Optional.of(file.length()),
+                Optional.of(file.getName()),
+                inline
+        );
     }
 
     /**
@@ -196,21 +203,28 @@ public class StatusHeader extends Result {
         if (file == null) {
             throw new NullPointerException("null file");
         }
-        return doSendResource(FileIO.fromFile(file), Optional.of(file.length()),
-                Optional.of(fileName), true);
+        return doSendResource(
+                StreamConverters.fromInputStream(() -> Files.newInputStream(file.toPath())),
+                Optional.of(file.length()),
+                Optional.of(fileName),
+                true
+        );
     }
 
     private Result doSendResource(Source<ByteString, ?> data, Optional<Long> contentLength,
                                   Optional<String> resourceName, boolean inline) {
-        Map<String, String> headers = Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION,
-            (inline ? "inline" : "attachment") +
-                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"" : ""));
+        Map<String, String> headers = Collections.singletonMap(
+                Http.HeaderNames.CONTENT_DISPOSITION,
+                (inline ? "inline" : "attachment") +
+                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"" : "")
+        );
 
         return new Result(status(), headers, new HttpEntity.Streamed(
-                data, contentLength, resourceName.map(name ->
-                        OptionConverters.toJava(play.api.libs.MimeTypes.forFileName(name))
-                                .orElse(Http.MimeTypes.BINARY)
-        )
+                data,
+                contentLength,
+                resourceName.map(name -> OptionConverters.toJava(play.api.libs.MimeTypes.forFileName(name))
+                        .orElse(Http.MimeTypes.BINARY)
+                )
         ));
     }
 
