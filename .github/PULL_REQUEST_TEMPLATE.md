@@ -1,5 +1,6 @@
 # Pull Request Checklist
 
+* [ ] Have you read [How to write the perfect pull request](https://github.com/blog/1943-how-to-write-the-perfect-pull-request)?
 * [ ] Have you read through the [contributor guidelines](https://www.playframework.com/contributing)?
 * [ ] Have you signed the [Lightbend CLA](https://www.lightbend.com/contribute/cla)?
 * [ ] Have you [squashed your commits](https://www.playframework.com/documentation/2.4.x/WorkingWithGit#Squashing-commits)?
