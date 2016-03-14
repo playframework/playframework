@@ -3,17 +3,19 @@
 
 ## Specifying languages supported by your application
 
-To specify your application’s languages, you need a valid language code, specified by a valid **ISO Language Code**, optionally followed by a valid **ISO Country Code**. For example, `fr` or `en-US`.
+You specify languages for your application using language tags, specially formatted strings that identify a specific language. Language tags can specify simple languages, such as "en" for English, a specific regional dialect of a language (such as "en-AU" for English as used in Australia), a language and a script (such as "az-Latn" for Azerbaijani written in Latin script), or a combination of several of these (such as "zh-cmn-Hans-CN" for Chinese, Mandarin, Simplified script, as used in China).
 
-To start, you need to specify the languages that your application supports in its `conf/application.conf` file:
+To start you need to specify the languages supported by your application in the `conf/application.conf` file:
 
 ```
 play.i18n.langs = [ "en", "en-US", "fr" ]
 ```
 
+These language tags will be validated used to create `Lang` instances. To access the languages supported by your application, you can inject a `Langs` instance into your component.
+
 ## Externalizing messages
 
-You can externalize messages in the `conf/messages.xxx` files. 
+You can externalize messages in the `conf/messages.xxx` files.
 
 The default `conf/messages` file matches all languages. You can specify additional language messages files, such as `conf/messages.fr` or `conf/messages.en-US`.
 

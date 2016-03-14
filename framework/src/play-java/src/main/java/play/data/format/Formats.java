@@ -76,7 +76,7 @@ public class Formats {
             if(text == null || text.trim().isEmpty()) {
                 return null;
             }
-            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            Lang lang = new Lang(locale);
             SimpleDateFormat sdf = new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
                 .map(messages -> messages.get(lang, pattern))
                 .orElse(patternNoApp), locale);
@@ -95,7 +95,7 @@ public class Formats {
             if(value == null) {
                 return "";
             }
-            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            Lang lang = new Lang(locale);
             return new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
                 .map(messages -> messages.get(lang, pattern))
                 .orElse(patternNoApp), locale).format(value);
@@ -147,7 +147,7 @@ public class Formats {
             if(text == null || text.trim().isEmpty()) {
                 return null;
             }
-            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            Lang lang = new Lang(locale);
             SimpleDateFormat sdf = new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
                 .map(messages -> messages.get(lang, annotation.pattern()))
                 .orElse(annotation.pattern()), locale);
@@ -167,7 +167,7 @@ public class Formats {
             if(value == null) {
                 return "";
             }
-            Lang lang = new Lang(new play.api.i18n.Lang(locale.getLanguage(), locale.getCountry()));
+            Lang lang = new Lang(locale);
             return new SimpleDateFormat(Optional.ofNullable(this.messagesApi)
                 .map(messages -> messages.get(lang, annotation.pattern()))
                 .orElse(annotation.pattern()), locale).format(value);
