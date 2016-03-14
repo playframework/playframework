@@ -122,16 +122,30 @@ public class MessagesApi {
 
 
     /**
-     * Get a messages context appropriate for the given candidates.
+     * Get a messages context appropriate for the given request.
      *
-     * Will select a language from the candidates, based on the languages available, and fallback to the default language
+     * Will select a language from the request, based on the languages available, and fallback to the default language
      * if none of the candidates are available.
      *
      * @param request the incoming request
      * @return the preferred messages context for the request
      */
     public Messages preferred(Http.RequestHeader request) {
-        play.api.i18n.Messages msgs = messages.preferred(request);
+        return preferred(request, null);
+    }
+
+    /**
+     * Get a messages context appropriate for the given request.
+     *
+     * Will select a language from the request and the current context lang, based on the languages available, and fallback to the default language
+     * if none of the candidates are available.
+     *
+     * @param request the incoming request
+     * @param ctxLang the language of the current context
+     * @return the preferred messages context for the request
+     */
+    public Messages preferred(Http.RequestHeader request, Lang ctxLang) {
+        play.api.i18n.Messages msgs = messages.preferred(request, ctxLang);
         return new Messages(new Lang(msgs.lang()), this);
     }
 

@@ -84,6 +84,8 @@ public class HttpTest {
             // The language and cookie should now be 'en-US'
             assertThat(ctx.lang().code()).isEqualTo("en-US");
             assertThat(responseLangCookie(ctx)).isEqualTo("en-US");
+            // ctx.messages() takes the language which is set now into account
+            assertThat(ctx.messages().at("hello")).isEqualTo("Aloha");
         });
     }
 
@@ -130,6 +132,8 @@ public class HttpTest {
             // The language should now be 'en-US', but the cookie mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("en-US");
             assertThat(responseLangCookie(ctx)).isNull();
+            // ctx.messages() takes the language which is set now into account
+            assertThat(ctx.messages().at("hello")).isEqualTo("Aloha");
         });
     }
 

@@ -188,7 +188,7 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            return messagesApi().preferred(request());
+            return messagesApi().preferred(request(), lang);
         }
 
         /**
