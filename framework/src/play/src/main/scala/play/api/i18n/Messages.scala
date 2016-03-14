@@ -26,6 +26,8 @@ import scala.util.parsing.input._
  */
 case class Lang(locale: Locale) {
 
+  def this(language: String, country: String = "") = this(new Locale.Builder().setLanguage(language).setRegion(country).build())
+
   /**
    * Convert to a Java Locale value.
    */
