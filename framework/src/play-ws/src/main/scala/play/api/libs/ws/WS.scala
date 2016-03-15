@@ -16,6 +16,8 @@ import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json.JsValue
 import play.api.libs.iteratee._
+import play.core.formatters.Multipart
+import play.api.mvc.MultipartFormData
 import java.io.IOException
 
 /**
@@ -432,6 +434,15 @@ trait WSRequest {
   }
 
   /**
+   * Helper method for multipart body
+   */
+  private[libs] def withMultipartBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): WSRequest = {
+    val boundary = Multipart.randomBoundary()
+    val contentType = s"multipart/form-data; boundary=$boundary"
+    withBody(StreamedBody(Multipart.transform(body, boundary))).withHeaders("Content-Type" -> contentType)
+  }
+
+  /**
    * Sets the method for this request
    */
   def withMethod(method: String): WSRequest
@@ -474,6 +485,13 @@ trait WSRequest {
   def patch(body: File): Future[WSResponse] = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
+   * Perform a PATCH on the request asynchronously.
+   */
+  def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("PATCH").withMultipartBody(body).execute()
+  }
+
+  /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
@@ -498,6 +516,13 @@ trait WSRequest {
   def post(body: File): Future[WSResponse] = withMethod("POST").withBody(FileBody(body)).execute()
 
   /**
+   * Perform a POST on the request asynchronously.
+   */
+  def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("POST").withMultipartBody(body).execute()
+  }
+
+  /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
@@ -520,6 +545,13 @@ trait WSRequest {
    * Request body won't be chunked
    */
   def put(body: File): Future[WSResponse] = withMethod("PUT").withBody(FileBody(body)).execute()
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   */
+  def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("PUT").withMultipartBody(body).execute()
+  }
 
   /**
    * performs a PUT with supplied body
