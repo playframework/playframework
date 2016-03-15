@@ -5,7 +5,7 @@ package play.api.mvc
 
 import java.nio.file.{ Files, Path }
 
-import akka.stream.scaladsl.{ StreamConverters, FileIO, Source }
+import akka.stream.scaladsl.{ StreamConverters, Source }
 import akka.util.ByteString
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
@@ -15,8 +15,6 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.libs.streams.Streams
 
-import play.core.Execution.Implicits._
-import play.api.libs.concurrent.Execution.defaultContext
 import play.core.utils.CaseInsensitiveOrdered
 import scala.collection.immutable.TreeMap
 
@@ -105,7 +103,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    */
   def withCookies(cookies: Cookie*): Result = {
     if (cookies.isEmpty) this else {
-      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies))
     }
   }
 
@@ -121,7 +119,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies.map(_.toCookie)))
   }
 
   /**
@@ -397,7 +395,7 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
+      streamFile(StreamConverters.fromInputStream(() => Files.newInputStream(content.toPath)), fileName(content), content.length, inline)
     }
 
     /**
