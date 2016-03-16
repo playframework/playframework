@@ -68,7 +68,7 @@ object PlaySettings {
     playDocsModule := Some("com.typesafe.play" %% playDocsName.value % play.core.PlayVersion.current % DocsApplication.name),
     libraryDependencies ++= playDocsModule.value.toSeq,
     manageClasspath(DocsApplication),
-    playDocsJar := (managedClasspath in DocsApplication).value.files.filter(_.getName.startsWith(playDocsName.value)).headOption,
+    playDocsJar := (managedClasspath in DocsApplication).value.files.find(_.getName.startsWith(playDocsName.value)),
 
     parallelExecution in Test := false,
 
@@ -86,7 +86,7 @@ object PlaySettings {
     commands ++= {
       import PlayCommands._
       import PlayRun._
-      Seq(playStartCommand, playTestProdCommand, playStopProdCommand, h2Command)
+      Seq(playStartCommand, playRunProdCommand, playTestProdCommand, playStopProdCommand, h2Command)
     },
 
     // THE `in Compile` IS IMPORTANT!

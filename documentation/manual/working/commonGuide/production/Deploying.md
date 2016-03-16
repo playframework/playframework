@@ -175,12 +175,12 @@ $ target/universal/stage/bin/my-first-app -Dconfig.file=/full/path/to/conf/appli
 
 Play provides a convenient utility for running a test application in prod mode.
 
-> This is not intended for production usage.
+> **Note:** This is not intended for production usage.
 
-To run an application in prod mode, run `testProd`:
+To run an application in prod mode, run `runProd`:
 
 ```bash
-[my-first-app] $ testProd
+[my-first-app] $ runProd
 ```
 
 ## Using the SBT assembly plugin
