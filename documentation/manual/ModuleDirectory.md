@@ -89,7 +89,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
 
 ### Play-Slick
-* **Website (docs, sample):** <https://github.com/freekh/play-slick>
+* **Website (docs, sample):** <https://github.com/playframework/play-slick>
 * **Short description:** This plugin makes Slick a first-class citizen of Play.
 
 ### Redis Plugin  (Java and Scala)
