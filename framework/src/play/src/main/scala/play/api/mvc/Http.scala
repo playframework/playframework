@@ -315,7 +315,7 @@ import play.api._
 
   object Request {
 
-    def apply[A](rh: RequestHeader, a: A) = new Request[A] {
+    def apply[A](rh: RequestHeader, a: A): Request[A] = new Request[A] {
       override def id = rh.id
       override def tags = rh.tags
       override def uri = rh.uri
