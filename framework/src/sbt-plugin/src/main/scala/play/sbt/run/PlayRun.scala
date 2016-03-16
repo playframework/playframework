@@ -186,7 +186,13 @@ object PlayRun {
     new AssetsClassLoader(parent, playAllAssets.value)
   }
 
-  val playTestProdCommand = Command.args("testProd", "<port>")(testProd)
+  val playRunProdCommand = Command.args("runProd", "<port>")(testProd)
+
+  val playTestProdCommand = Command.args("testProd", "<port>") { (state: State, args: Seq[String]) =>
+    state.log.warn("The testProd command is deprecated, and will be removed in a future version of Play.")
+    state.log.warn("To test your application using production mode, run 'runProd' instead.")
+    testProd(state, args)
+  }
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
     state.log.warn("The start command is deprecated, and will be removed in a future version of Play.")
