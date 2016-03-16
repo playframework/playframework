@@ -408,9 +408,19 @@ trait MessagesApi {
   def preferred(request: RequestHeader): Messages
 
   /**
+   * Get the preferred messages for the given request and the current context lang
+   */
+  def preferred(request: RequestHeader, ctxLang: Lang): Messages
+
+  /**
    * Get the preferred messages for the given Java request
    */
   def preferred(request: play.mvc.Http.RequestHeader): Messages
+
+  /**
+   * Get the preferred messages for the given Java request and the current context lang
+   */
+  def preferred(request: play.mvc.Http.RequestHeader, ctxLang: Lang): Messages
 
   /**
    * Set the language on the result
@@ -483,14 +493,19 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
 
   def preferred(candidates: Seq[Lang]) = Messages(langs.preferred(candidates), this)
 
-  def preferred(request: RequestHeader) = {
+  def preferred(request: RequestHeader) = preferred(request, null)
+
+  def preferred(request: RequestHeader, ctxLang: Lang) = {
+    val maybeLangFromContext = Option(ctxLang)
     val maybeLangFromCookie = request.cookies.get(langCookieName)
       .flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     Messages(lang, this)
   }
 
-  def preferred(request: Http.RequestHeader) = preferred(request._underlyingHeader())
+  def preferred(request: Http.RequestHeader) = preferred(request, null)
+
+  def preferred(request: Http.RequestHeader, ctxLang: Lang) = preferred(request._underlyingHeader(), ctxLang)
 
   def setLang(result: Result, lang: Lang) = result.withCookies(Cookie(langCookieName, lang.code, path = Session.path, domain = Session.domain,
     secure = langCookieSecure, httpOnly = langCookieHttpOnly))
