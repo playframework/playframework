@@ -9,6 +9,7 @@ import javaguide.testhelpers.MockJavaAction;
 import org.slf4j.Logger;
 import play.api.libs.ws.ahc.AhcCurlRequestLogger;
 import play.libs.ws.*;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 // #ws-imports
@@ -19,6 +20,7 @@ import play.libs.Json;
 // #json-imports
 
 import play.libs.ws.ahc.AhcWSClient;
+import play.mvc.Http;
 import scala.compat.java8.FutureConverters;
 
 import java.io.*;
@@ -113,6 +115,10 @@ public class JavaWS {
 
             ws.url(url).post(json);
             // #ws-post-json
+
+            // #ws-post-multipart
+            ws.url(url).post(Source.single(new Http.MultipartFormData.DataPart("hello", "world")));
+            // #ws-post-multipart
 
             String value = IntStream.range(0,100).boxed().
                 map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
