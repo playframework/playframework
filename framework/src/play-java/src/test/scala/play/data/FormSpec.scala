@@ -12,6 +12,8 @@ import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.WithApplication
 import play.data.FormFactory
 import play.data.format.Formatters
 import play.twirl.api.Html
@@ -38,7 +40,7 @@ object FormSpec extends Specification {
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "have an error due to baldy formatted date" in {
+    "have an error due to badly formatted date" in new WithApplication() {
       val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
@@ -49,7 +51,35 @@ object FormSpec extends Specification {
       myForm.errors.get("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
       myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
     }
-    "have an error due to missing required value" in {
+    "have an error due to badly formatted date after using setTransientLang" in new WithApplication(GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en", "en-US", "fr")).build()) {
+      val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      Context.current.get().setTransientLang("fr");
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors.get("dueDate").get(0).messages().size() must beEqualTo(3)
+      myForm.errors.get("dueDate").get(0).messages().get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm.errors.get("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+      myForm.errors.get("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+      myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+    }
+    "have an error due to badly formatted date after using changeLang" in new WithApplication(GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en", "en-US", "fr")).build()) {
+      val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      Context.current.get().changeLang("fr");
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors.get("dueDate").get(0).messages().size() must beEqualTo(3)
+      myForm.errors.get("dueDate").get(0).messages().get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm.errors.get("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+      myForm.errors.get("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+      myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+    }
+    "have an error due to missing required value" in new WithApplication() {
       val req = dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
@@ -57,7 +87,7 @@ object FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
       myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.required")
     }
-    "have an error due to bad value in Id field" in {
+    "have an error due to bad value in Id field" in new WithApplication() {
       val req = dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
@@ -72,7 +102,7 @@ object FormSpec extends Specification {
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "have an error due to baldy formatted date for default date binder" in {
+    "have an error due to badly formatted date for default date binder" in new WithApplication() {
       val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
