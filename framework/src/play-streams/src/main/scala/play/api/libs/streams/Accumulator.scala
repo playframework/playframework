@@ -102,7 +102,9 @@ sealed trait Accumulator[-E, +A] {
  * This is essentially a lightweight wrapper around a Sink that gets materialised to a Future, but provides convenient
  * methods for working directly with that future as well as transforming the input.
  */
-private class SinkAccumulator[-E, +A](sink: Sink[E, Future[A]]) extends Accumulator[E, A] {
+private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extends Accumulator[E, A] {
+
+  private lazy val sink: Sink[E, Future[A]] = wrappedSink
 
   def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
     new SinkAccumulator(sink.mapMaterializedValue(_.map(f)))
@@ -170,7 +172,31 @@ private class DoneAccumulator[+A](future: Future[A]) extends Accumulator[Any, A]
   }
 }
 
+private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
+    extends SinkAccumulator[E, A](Accumulator.futureToSink(future)) {
+
+  override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
+    future.flatMap(_.run(source))(materializer.executionContext)
+  }
+
+  override def run()(implicit materializer: Materializer): Future[A] = future.flatMap(_.run())(materializer.executionContext)
+
+}
+
 object Accumulator {
+
+  private[streams] def futureToSink[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Sink[E, Future[A]] = {
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    Sink.asPublisher[E](fanout = false).mapMaterializedValue { publisher =>
+      future.recover {
+        case error =>
+          new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
+      }.flatMap { accumulator =>
+        Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run()
+      }
+    }
+  }
 
   /**
    * Create a new accumulator from the given Sink.
@@ -213,42 +239,7 @@ object Accumulator {
    * Flatten a future of an accumulator to an accumulator.
    */
   def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Accumulator[E, A] = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-    // Ideally, we'd use the following code, except due to akka streams bugs...
-    // new Accumulator(Sink.publisher[E].mapMaterializedValue { publisher =>
-    //  future.recover {
-    //    case error => new Accumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
-    //  }.flatMap { accumulator =>
-    //    Source(publisher).toMat(accumulator.toSink)(Keep.right).run()
-    //  }
-    //})
-
-    val result = Promise[A]()
-    val sink = Sink.fromSubscriber(new Subscriber[E] {
-      @volatile var subscriber: Subscriber[_ >: E] = _
-
-      def onSubscribe(sub: Subscription) = future.onComplete {
-        case Success(accumulator) =>
-          Source.fromPublisher(new Publisher[E]() {
-            def subscribe(s: Subscriber[_ >: E]) = {
-              subscriber = s
-              s.onSubscribe(sub)
-            }
-          }).runWith(accumulator.toSink.mapMaterializedValue { fA =>
-            result.completeWith(fA)
-          })
-        case Failure(error) =>
-          sub.cancel()
-          result.failure(error)
-      }
-
-      def onError(t: Throwable) = subscriber.onError(t)
-      def onComplete() = subscriber.onComplete()
-      def onNext(t: E) = subscriber.onNext(t)
-    })
-
-    new SinkAccumulator(sink.mapMaterializedValue(_ => result.future))
+    new FlattenedAccumulator[E, A](future)
   }
 
 }
