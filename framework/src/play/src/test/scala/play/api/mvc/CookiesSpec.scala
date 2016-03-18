@@ -25,6 +25,22 @@ object CookiesSpec extends Specification {
     }
   }
 
+  "Cookie" should {
+
+    val encoder = play.core.netty.utils.ServerCookieEncoder.STRICT
+
+    "properly encode ! character" in {
+      val output = encoder.encode("TestCookie", "!")
+      output must be_==("TestCookie=!")
+    }
+
+    // see #4460 for the gory details
+    "properly encode all special characters" in {
+      val output = encoder.encode("TestCookie", "!#$%&'()*+-./:<=>?@[]^_`{|}~")
+      output must be_==("TestCookie=!#$%&'()*+-./:<=>?@[]^_`{|}~")
+    }
+  }
+
   "trait Cookies#get" should {
     val originalCookie = Cookie(name = "cookie", value = "value")
     def headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
