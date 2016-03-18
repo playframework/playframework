@@ -71,6 +71,9 @@ case class Lang(locale: Locale) {
    * The language tag (such as fr or en-US).
    */
   lazy val code: String = locale.toLanguageTag
+
+  @deprecated("This method only exists for binary compatibility.", "2.5.1")
+  def copy(language: String, country: String): Lang = Lang(language, country)
 }
 
 /**
@@ -88,6 +91,8 @@ object Lang {
    *  throw exception if language is unrecognized
    */
   def apply(code: String): Lang = Lang(new Locale.Builder().setLanguageTag(code).build())
+
+  def apply(language: String, country: String): Lang = apply(language, country, script = "", variant = "")
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
@@ -129,6 +134,7 @@ object Lang {
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     langsCache(app).preferred(langs)
   }
+
 }
 
 /**

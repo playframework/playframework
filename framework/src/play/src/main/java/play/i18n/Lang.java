@@ -14,8 +14,15 @@ import play.libs.*;
  */
 public class Lang extends play.api.i18n.Lang {
 
+    /**
+     * @deprecated All instances of play.i18n.Lang can be used as a play.api.i18n.Lang (2.5.1)
+     */
+    @Deprecated
+    public final play.api.i18n.Lang underlyingLang;
+
     public Lang(play.api.i18n.Lang underlyingLang) {
         super(underlyingLang.locale());
+        this.underlyingLang = underlyingLang;
     }
 
     public Lang(java.util.Locale locale) {
