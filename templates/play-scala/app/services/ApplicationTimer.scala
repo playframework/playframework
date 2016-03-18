@@ -25,10 +25,10 @@ class ApplicationTimer @Inject() (clock: Clock, appLifecycle: ApplicationLifecyc
 
   // This code is called when the application starts.
   private val start: Instant = clock.instant
-  Logger.info(s"ApplicationTimer demo: Starting application at ${start}.")
+  Logger.info(s"ApplicationTimer demo: Starting application at $start.")
 
   // When the application starts, register a stop hook with the
-  // ApplicationLifecyle object. The code inside the stop hook wil
+  // ApplicationLifecycle object. The code inside the stop hook wil
   // be run when the application stops.
   appLifecycle.addStopHook { () =>
     val stop: Instant = clock.instant
