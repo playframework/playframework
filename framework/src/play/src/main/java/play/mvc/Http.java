@@ -3,6 +3,8 @@
  */
 package play.mvc;
 
+import akka.stream.Materializer;
+import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +33,7 @@ import java.net.URLEncoder;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static play.libs.Scala.asScala;
@@ -840,6 +843,29 @@ public class Http {
                 arrayValues.put(entry.getKey(), new String[]{entry.getValue()});
             }
             return bodyFormArrayValues(arrayValues);
+        }
+
+        /**
+         * Set a Multipart Form url encoded body to this request.
+         *
+         * @param data the multipart-form paramters
+         * @param mat a Akka Streams Materializer
+         * @return the modified builder
+         */
+        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Materializer mat) {
+            String boundary = MultipartFormatter.randomBoundary();
+            try {
+                ByteString materializedData = MultipartFormatter
+                        .transform(Source.from(data), boundary)
+                        .runWith(Sink.reduce(ByteString::concat), mat)
+                        .toCompletableFuture()
+                        .get();
+
+                play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(materializedData.size(), materializedData);
+                return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), MultipartFormatter.boundaryToContentType(boundary));
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Failure while materializing Multipart/Form Data");
+            }
         }
 
         /**
