@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 /**
  * This controller creates an `Action` that demonstrates how to write
- * simple asychronous code in a controller. It uses a timer to
+ * simple asynchronous code in a controller. It uses a timer to
  * asynchronously delay sending a response for 1 second.
  *
  * @param actorSystem We need the `ActorSystem`'s `Scheduler` to

@@ -20,7 +20,7 @@ class Module extends AbstractModule {
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone)
     // Ask Guice to create an instance of ApplicationTimer when the
     // application starts.
-    bind(classOf[ApplicationTimer]).asEagerSingleton
+    bind(classOf[ApplicationTimer]).asEagerSingleton()
     // Set AtomicCounter as the implementation for Counter.
     bind(classOf[Counter]).to(classOf[AtomicCounter])
   }
