@@ -243,7 +243,12 @@ object PlayBuild extends Build {
 
         twirlSources ++ twirlCompiledSources
       },
-      Docs.apiDocsIncludeManaged := true
+      Docs.apiDocsIncludeManaged := true,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart.partParser"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.crypto"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.aesCrypter")
+      )
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
       BuildLinkProject,
@@ -381,20 +386,37 @@ object PlayBuild extends Build {
       libraryDependencies ++= playWsDeps,
       parallelExecution in Test := false,
       // quieten deprecation warnings in tests
-      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation"),
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.put"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.post"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.patch"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.withMultipartBody")
+      )
     ).dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayWsJavaProject = PlayCrossBuiltProject("Play-Java-WS", "play-java-ws")
       .settings(
         libraryDependencies ++= playWsDeps,
-        parallelExecution in Test := false
+        parallelExecution in Test := false,
+        binaryIssueFilters := Seq(
+          ProblemFilters.exclude[MissingMethodProblem]("play.libs.ws.WSRequest.put"),
+          ProblemFilters.exclude[MissingMethodProblem]("play.libs.ws.WSRequest.post"),
+          ProblemFilters.exclude[MissingMethodProblem]("play.libs.ws.WSRequest.patch"),
+          ProblemFilters.exclude[MissingMethodProblem]("play.libs.ws.WSRequest.withMultipartBody")
+        )
       ).dependsOn(PlayProject)
     .dependsOn(PlayWsProject % "test->test;compile->compile", PlayJavaProject)
 
   lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters := Seq(
+        // We needed to change this since the method names did not line up with BuiltInComponents
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.tokenSigner"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.csrfTokenSigner")
+      )
     ).dependsOn(PlayProject, PlayJavaProject, PlaySpecs2Project % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact
