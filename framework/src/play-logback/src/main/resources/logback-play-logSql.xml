@@ -30,9 +30,9 @@
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 
-  <logger name="logger.org.jdbcdslog.ConnectionLogger" level="OFF"  /> <!-- Won' log connections -->
-  <logger name="logger.org.jdbcdslog.StatementLogger"  level="INFO" /> <!-- Will log all statements -->
-  <logger name="logger.org.jdbcdslog.ResultSetLogger"  level="OFF"  /> <!-- Won' log result sets -->
+  <logger name="org.jdbcdslog.ConnectionLogger" level="OFF"  /> <!-- Won' log connections -->
+  <logger name="org.jdbcdslog.StatementLogger"  level="INFO" /> <!-- Will log all statements -->
+  <logger name="org.jdbcdslog.ResultSetLogger"  level="OFF"  /> <!-- Won' log result sets -->
 
   <root level="WARN">
     <appender-ref ref="ASYNCFILE" />
