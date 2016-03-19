@@ -17,9 +17,7 @@ object ScalaExtendingPlay extends Specification {
     override def messages: Map[String, Map[String, String]] = ???
     override def preferred(candidates: Seq[Lang]): Messages = ???
     override def preferred(request: mvc.RequestHeader): Messages = ???
-    override def preferred(request: mvc.RequestHeader, ctxLang: Lang): Messages = ???
     override def preferred(request: RequestHeader): Messages = ???
-    override def preferred(request: RequestHeader, ctxLang: Lang): Messages = ???
     override def langCookieHttpOnly: Boolean = ???
     override def clearLang(result: Result): Result = ???
     override def langCookieSecure: Boolean = ???

@@ -13,3 +13,10 @@ git diff --exit-code || (
   echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
   false
 )
+
+echo "[info]"
+echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+echo "[info]"
+
+build mimaReportBinaryIssues
+
