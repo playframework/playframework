@@ -11,7 +11,7 @@ jdk:
   - oraclejdk8
 env:
   # Define scripts here so they run concurrently
-  - SCRIPT=checkCodeStyle
+  - SCRIPT=codeChecks
   - SCRIPT=test
   - SCRIPT=testSbtPlugins
   - SCRIPT=testDocumentation
