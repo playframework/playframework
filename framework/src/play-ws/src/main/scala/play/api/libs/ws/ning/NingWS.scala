@@ -4,12 +4,14 @@
 package play.api.libs.ws.ning
 
 import akka.stream.Materializer
+import io.netty.channel.EventLoopGroup
 import org.asynchttpclient._
 import play.api._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws._
-import play.api.libs.ws.ahc.{ AhcWSClientConfigParser, AhcWSAPI, AhcWSClient, AhcWSRequest }
+import play.api.libs.ws.ahc._
 import play.api.libs.ws.ssl._
+import play.core.server.ServerComponents
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -68,6 +70,10 @@ trait NingWSComponents {
   def applicationLifecycle: ApplicationLifecycle
   def materializer: Materializer
 
+  def serverComponents: ServerComponents
+
+  lazy val eventLoopGroup: EventLoopGroup = new EventLoopGroupProvider(applicationLifecycle, serverComponents)(materializer.executionContext).get
+
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   private lazy val ahcWsClientConfig = new AhcWSClientConfigParser(wsClientConfig, configuration, environment).parse()
   lazy val ningWsClientConfig: NingWSClientConfig =
@@ -83,6 +89,6 @@ trait NingWSComponents {
       keepAlive = ahcWsClientConfig.keepAlive
     )
 
-  lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle)(materializer)
+  lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle, eventLoopGroup)(materializer)
   lazy val wsClient: WSClient = wsApi.client
 }

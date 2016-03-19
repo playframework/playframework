@@ -138,7 +138,8 @@ object Server {
   def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      provider.createServerComponents(config)
     )) {
       def router = Router.from(routes)
     }.application
@@ -149,15 +150,18 @@ object Server {
 
 private[play] object JavaServerHelper {
   def forRouter(router: Router, mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
+    val provider = implicitly[ServerProvider]
+    val serverConfig = ServerConfig(mode = mode, port = httpPort.map(_.intValue), sslPort = sslPort.map(_.intValue))
+
     val r = router
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(mode = mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      provider.createServerComponents(serverConfig)
     )) {
       def router = r
     }.application
     Play.start(application)
-    val serverConfig = ServerConfig(mode = mode, port = httpPort.map(_.intValue), sslPort = sslPort.map(_.intValue))
-    implicitly[ServerProvider].createServer(serverConfig, application)
+    provider.createServer(serverConfig, application)
   }
 }

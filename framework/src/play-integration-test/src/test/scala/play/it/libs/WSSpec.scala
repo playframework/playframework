@@ -11,7 +11,7 @@ import akka.stream.scaladsl.FileIO
 import akka.util.ByteString
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Sink
-import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
+import org.asynchttpclient.{ AsyncHttpClient, RequestBuilderBase, SignatureCalculator }
 import play.api.http.Port
 import play.api.libs.json.JsString
 import play.api.libs.oauth._

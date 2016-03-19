@@ -6,17 +6,21 @@ package play.it.tools
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import io.netty.channel.EventLoopGroup
+import io.netty.channel.nio.NioEventLoopGroup
 import org.apache.commons.io.FileUtils
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.{ JsObject, _ }
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.routing.SimpleRouter
+import play.api.mvc.Results._
+import play.api.mvc._
 import play.api.routing.Router.Routes
+import play.api.routing.SimpleRouter
 import play.api.routing.sird._
 import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
-import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.libs.json.{ JsObject, _ }
+import play.core.server.ServerComponents
 import play.filters.gzip.GzipFilter
+
+import scala.concurrent.Future
 
 /**
  * This is a reimplementation of the excellent httpbin.org service
@@ -220,10 +224,8 @@ object HttpBinApplication {
   val delay: Routes = {
     case GET(p"/delay/$duration<[0-9+]") =>
       Action.async { request =>
-        import scala.concurrent.Await
-        import scala.concurrent.Promise
-        import scala.concurrent.Future
         import scala.concurrent.ExecutionContext.Implicits.global
+        import scala.concurrent.{ Await, Future, Promise }
         import scala.concurrent.duration._
         import scala.util.Try
         val p = Promise[Result]()
@@ -326,7 +328,8 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
+    val serverComponents = ServerComponents() + (new NioEventLoopGroup(): EventLoopGroup)
+    val components = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple(), serverComponents)) with AhcWSComponents {
       def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)
@@ -351,7 +354,11 @@ object HttpBinApplication {
           .orElse(html)
           .orElse(robots)
       )
-    }.application
+    }
+    components.applicationLifecycle.addStopHook { () =>
+      Future.successful(serverComponents.get[EventLoopGroup].foreach(_.shutdownGracefully()))
+    }
+    components.application
   }
 
 }

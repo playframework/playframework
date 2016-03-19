@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import play.ApplicationLoader.Context;
 import play.Environment;
+import play.core.server.ServerComponents;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.inject.guice.GuiceApplicationLoader;
 
@@ -93,7 +94,7 @@ public class NamedDatabaseTest {
 
     private Injector createInjector(Map<String, Object> config) {
       GuiceApplicationBuilder builder = new GuiceApplicationLoader()
-          .builder(new Context(Environment.simple(), config));
+          .builder(new Context(Environment.simple(), new ServerComponents(), config));
       return Guice.createInjector(builder.applicationModule());
     }
 

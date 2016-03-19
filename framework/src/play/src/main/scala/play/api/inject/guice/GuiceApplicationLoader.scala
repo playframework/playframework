@@ -3,9 +3,10 @@
  */
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
 import play.api.inject.bind
+import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
 import play.core.WebCommands
+import play.core.server.ServerComponents
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.
@@ -44,11 +45,13 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
 }
 
 object GuiceApplicationLoader {
+
   /**
    * The default overrides provided by the Scala and Java GuiceApplicationLoaders.
    */
   def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     Seq(
+      bind[ServerComponents] to context.serverComponents,
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
       bind[WebCommands] to context.webCommands)
   }

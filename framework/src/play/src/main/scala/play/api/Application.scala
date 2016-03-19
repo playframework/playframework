@@ -17,6 +17,7 @@ import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
+import play.core.server.ServerComponents
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
@@ -244,6 +245,7 @@ trait BuiltInComponents {
   def sourceMapper: Option[SourceMapper]
   def webCommands: WebCommands
   def configuration: Configuration
+  def serverComponents: ServerComponents
 
   def router: Router
 

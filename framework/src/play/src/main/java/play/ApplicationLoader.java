@@ -3,12 +3,14 @@
  */
 package play;
 
+import play.core.DefaultWebCommands;
+import play.core.SourceMapper;
+import play.core.server.ServerComponents;
+import play.libs.Scala;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import play.core.SourceMapper;
-import play.core.DefaultWebCommands;
-import play.libs.Scala;
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -58,7 +60,7 @@ public interface ApplicationLoader {
    * @param environment the application environment
    */
     public Context(Environment environment) {
-        this(environment, new HashMap<>());
+        this(environment, new ServerComponents(), new HashMap<>());
     }
 
   /**
@@ -69,13 +71,15 @@ public interface ApplicationLoader {
    *                        configuration files, and together form the initialConfiguration provided by the context.  It
    *                        is intended for use in dev mode, to allow the build system to pass additional configuration
    *                        into the application.
+   * @param components the server components for this context
    */
-    public Context(Environment environment, Map<String,Object> initialSettings) {
+    public Context(Environment environment, ServerComponents components, Map<String, Object> initialSettings) {
         this.underlying = new play.api.ApplicationLoader.Context(
-           environment.underlying(),
-           scala.Option.empty(),
-           new play.core.DefaultWebCommands(),
-           play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)));
+            environment.underlying(),
+            scala.Option.empty(),
+            new play.core.DefaultWebCommands(),
+            play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)),
+            components);
     }
 
     /**
@@ -115,10 +119,11 @@ public interface ApplicationLoader {
      */
     public Context withEnvironment(Environment environment) {
         play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
-           environment.underlying(),
-           underlying.sourceMapper(),
-           underlying.webCommands(),
-           underlying.initialConfiguration());
+            environment.underlying(),
+            underlying.sourceMapper(),
+            underlying.webCommands(),
+            underlying.initialConfiguration(),
+            new ServerComponents());
         return new Context(scalaContext);
     }
 
@@ -130,10 +135,11 @@ public interface ApplicationLoader {
      */
     public Context withConfiguration(Configuration initialConfiguration) {
         play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
-           underlying.environment(),
-           underlying.sourceMapper(),
-           underlying.webCommands(),
-           initialConfiguration.getWrappedConfiguration());
+            underlying.environment(),
+            underlying.sourceMapper(),
+            underlying.webCommands(),
+            initialConfiguration.getWrappedConfiguration(),
+            underlying.serverComponents());
         return new Context(scalaContext);
     }
 
@@ -154,9 +160,10 @@ public interface ApplicationLoader {
      *                        into the application.
      * @return the created context
      */
-    public static Context create(Environment environment, Map<String, Object> initialSettings) {
+    public static Context create(Environment environment, ServerComponents components, Map<String, Object> initialSettings) {
         play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader$.MODULE$.createContext(
             environment.underlying(),
+            components,
             Scala.asScala(initialSettings),
             Scala.<SourceMapper>None(),
             new DefaultWebCommands());
@@ -172,7 +179,7 @@ public interface ApplicationLoader {
      * @return a context created with the provided underlying environment
      */
     public static Context create(Environment environment) {
-        return create(environment, Collections.emptyMap());
+        return create(environment, new ServerComponents(), Collections.emptyMap());
     }
 
   }

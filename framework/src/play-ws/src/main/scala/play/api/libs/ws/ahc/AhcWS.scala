@@ -3,18 +3,20 @@
  */
 package play.api.libs.ws.ahc
 
-import akka.stream.Materializer
-import akka.util.ByteString
-import org.asynchttpclient.{ Response => AHCResponse, _ }
-import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
-import org.asynchttpclient.Realm
-import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.util.HttpUtils
-import java.io.IOException
-import java.io.UnsupportedEncodingException
+import java.io.{ IOException, UnsupportedEncodingException }
 import java.nio.charset.{ Charset, StandardCharsets }
 import javax.inject.{ Inject, Provider, Singleton }
+
+import akka.stream.Materializer
+import akka.stream.scaladsl.Sink
+import akka.util.ByteString
+import io.netty.channel.EventLoopGroup
+import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.handler.codec.http.HttpHeaders
+import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
+import org.asynchttpclient.util.HttpUtils
+import org.asynchttpclient.{ Realm, Response => AHCResponse, _ }
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
 import play.api.libs.iteratee.Enumerator
@@ -22,12 +24,13 @@ import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.debug._
 import play.core.parsers.FormUrlEncodedParser
+import play.core.server.ServerComponents
 import play.core.utils.CaseInsensitiveOrdered
+
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
-import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.Duration
-import akka.stream.scaladsl.Sink
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
  * A WS client backed by an AsyncHttpClient.
@@ -50,6 +53,12 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 }
 
 object AhcWSClient {
+
+  def apply(config: AhcWSClientConfig = AhcWSClientConfig())(implicit materializer: Materializer): AhcWSClient = {
+    // passing null means AHC will use its own internal EventLoopGroup
+    apply(config, null)
+  }
+
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of
    * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC12/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
@@ -67,8 +76,8 @@ object AhcWSClient {
    *
    * @param config configuration settings
    */
-  def apply(config: AhcWSClientConfig = AhcWSClientConfig())(implicit materializer: Materializer): AhcWSClient = {
-    val client = new AhcWSClient(new AhcConfigBuilder(config).build())
+  def apply(config: AhcWSClientConfig, eventLoopGroup: EventLoopGroup)(implicit materializer: Materializer): AhcWSClient = {
+    val client = new AhcWSClient(new AhcConfigBuilder(config).modifyUnderlying(_.setEventLoopGroup(eventLoopGroup)).build())
     new SystemConfiguration().configure(config.wsClientConfig)
     client
   }
@@ -371,8 +380,17 @@ class AhcWSModule extends Module {
       bind[WSAPI].to[AhcWSAPI],
       bind[AhcWSClientConfig].toProvider[AhcWSClientConfigParser].in[Singleton],
       bind[WSClientConfig].toProvider[WSConfigParser].in[Singleton],
-      bind[WSClient].toProvider[WSClientProvider].in[Singleton]
+      bind[WSClient].toProvider[WSClientProvider].in[Singleton],
+      bind[EventLoopGroup].toProvider[EventLoopGroupProvider].in[Singleton]
     )
+  }
+}
+
+class EventLoopGroupProvider @Inject() (applicationLifecycle: ApplicationLifecycle, serverComponents: ServerComponents)(implicit executionContext: ExecutionContext) extends Provider[EventLoopGroup] {
+  lazy val get = serverComponents.get[EventLoopGroup].getOrElse {
+    val group = new NioEventLoopGroup()
+    applicationLifecycle.addStopHook(() => Future(group.shutdownGracefully().get()))
+    group
   }
 }
 
@@ -381,7 +399,7 @@ class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
 }
 
 @Singleton
-class AhcWSAPI @Inject() (environment: Environment, clientConfig: AhcWSClientConfig, lifecycle: ApplicationLifecycle)(implicit materializer: Materializer) extends WSAPI {
+class AhcWSAPI @Inject() (environment: Environment, clientConfig: AhcWSClientConfig, lifecycle: ApplicationLifecycle, eventLoopGroup: EventLoopGroup)(implicit materializer: Materializer) extends WSAPI {
 
   private val logger = Logger(classOf[AhcWSAPI])
 
@@ -395,7 +413,7 @@ class AhcWSAPI @Inject() (environment: Environment, clientConfig: AhcWSClientCon
       new DebugConfiguration().configure(clientConfig.wsClientConfig.ssl.debug)
     }
 
-    val client = AhcWSClient(clientConfig)
+    val client = AhcWSClient(clientConfig, eventLoopGroup)
 
     lifecycle.addStopHook { () =>
       Future.successful(client.close())
@@ -558,9 +576,13 @@ trait AhcWSComponents {
 
   def materializer: Materializer
 
+  def serverComponents: ServerComponents
+
+  lazy val eventLoopGroup: EventLoopGroup = new EventLoopGroupProvider(applicationLifecycle, serverComponents)(materializer.executionContext).get
+
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   lazy val ahcWsClientConfig: AhcWSClientConfig =
     new AhcWSClientConfigParser(wsClientConfig, configuration, environment).parse()
-  lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle)(materializer)
+  lazy val wsApi: WSAPI = new AhcWSAPI(environment, ahcWsClientConfig, applicationLifecycle, eventLoopGroup)(materializer)
   lazy val wsClient: WSClient = wsApi.client
 }

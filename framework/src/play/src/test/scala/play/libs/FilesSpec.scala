@@ -12,6 +12,7 @@ import play.api.ApplicationLoader.Context
 import play.api.routing.Router
 import play.api._
 import play.api.libs.Files.TemporaryFile
+import play.core.server.ServerComponents
 import play.utils.PlayIO
 
 object FilesSpec extends Specification with After {

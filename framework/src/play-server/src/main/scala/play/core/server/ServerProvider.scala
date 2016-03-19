@@ -18,11 +18,22 @@ import scala.concurrent.Future
 trait ServerProvider {
   def createServer(context: ServerProvider.Context): Server
 
+  def createServerComponents(config: ServerConfig): ServerComponents = ServerComponents()
+
   /**
    * Create a server for a given application.
    */
-  final def createServer(config: ServerConfig, app: Application): Server =
-    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, app.materializer, () => Future.successful(())))
+  final def createServer(config: ServerConfig, components: ServerComponents, app: Application): Server = {
+    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, app.materializer, () => Future.successful(()), components))
+  }
+
+  /**
+   * Create a server for a given application, creating a new ServerComponents for this server.
+   */
+  final def createServer(config: ServerConfig, app: Application): Server = {
+    val components = createServerComponents(config)
+    createServer(config, components, app)
+  }
 }
 
 object ServerProvider {
@@ -34,6 +45,7 @@ object ServerProvider {
    * @param appProvider An object which can be queried to get an Application.
    * @param actorSystem An ActorSystem that the server can use.
    * @param stopHook A function that should be called by the server when it stops.
+   * @param serverComponents The components needed to start this server.
    * This function can be used to close resources that are provided to the server.
    */
   final case class Context(
@@ -41,7 +53,8 @@ object ServerProvider {
     appProvider: ApplicationProvider,
     actorSystem: ActorSystem,
     materializer: Materializer,
-    stopHook: () => Future[_])
+    stopHook: () => Future[_],
+    serverComponents: ServerComponents)
 
   /**
    * Load a server provider from the configuration and classloader.

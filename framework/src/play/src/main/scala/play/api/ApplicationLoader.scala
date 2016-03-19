@@ -4,6 +4,7 @@
 package play.api
 
 import play.api.inject.guice.GuiceApplicationLoader
+import play.core.server.ServerComponents
 import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
 import play.utils.Reflect
 
@@ -43,8 +44,14 @@ object ApplicationLoader {
    * @param initialConfiguration The initial configuration.  This configuration is not necessarily the same
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
+   * @param serverComponents Components that the server implementation wishes to expose to the application
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration)
+  final case class Context(
+    environment: Environment,
+    sourceMapper: Option[SourceMapper],
+    webCommands: WebCommands,
+    initialConfiguration: Configuration,
+    serverComponents: ServerComponents)
 
   /**
    * Locate and instantiate the ApplicationLoader.
@@ -85,11 +92,12 @@ object ApplicationLoader {
    * @param sourceMapper An optional source mapper.
    */
   def createContext(environment: Environment,
+    serverComponents: ServerComponents = ServerComponents(),
     initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
     webCommands: WebCommands = new DefaultWebCommands) = {
     val configuration = Configuration.load(environment, initialSettings)
-    Context(environment, sourceMapper, webCommands, configuration)
+    Context(environment, sourceMapper, webCommands, configuration, serverComponents)
   }
 
 }
@@ -102,5 +110,6 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
+  lazy val serverComponents = context.serverComponents
 }
 

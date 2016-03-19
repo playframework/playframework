@@ -39,18 +39,20 @@ object ProdServerStart {
       // Create a PID file before we do any real work
       val pidFile = createPidFile(process, config.configuration)
 
+      val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
+      val components: ServerComponents = serverProvider.createServerComponents(config)
+
       // Start the application
       val application: Application = {
         val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-        val context = ApplicationLoader.createContext(environment)
+        val context = ApplicationLoader.createContext(environment, components)
         val loader = ApplicationLoader(context)
         loader.load(context)
       }
       Play.start(application)
 
       // Start the server
-      val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
-      val server = serverProvider.createServer(config, application)
+      val server = serverProvider.createServer(config, components, application)
       process.addShutdownHook {
         server.stop()
         pidFile.foreach(_.delete())

@@ -21,9 +21,19 @@ class DocServerStart {
   def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
     forceTranslationReport: Callable[File], port: java.lang.Integer): ServerWithStop = {
 
+    val config = ServerConfig(
+      rootDir = projectPath,
+      port = Some(port),
+      mode = Mode.Test,
+      properties = System.getProperties
+    )
+    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
+
+    val serverComponents = serverProvider.createServerComponents(config)
+
     val application: Application = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
-      val context = ApplicationLoader.createContext(environment)
+      val context = ApplicationLoader.createContext(environment, serverComponents)
       val components = new BuiltInComponentsFromContext(context) {
         lazy val router = Router.empty
       }
@@ -50,19 +60,13 @@ class DocServerStart {
           )
     }
 
-    val config = ServerConfig(
-      rootDir = projectPath,
-      port = Some(port),
-      mode = Mode.Test,
-      properties = System.getProperties
-    )
-    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
     val context = ServerProvider.Context(
       config,
       applicationProvider,
       application.actorSystem,
       application.materializer,
-      stopHook = () => Future.successful(())
+      stopHook = () => Future.successful(()),
+      serverComponents
     )
     serverProvider.createServer(context)
 

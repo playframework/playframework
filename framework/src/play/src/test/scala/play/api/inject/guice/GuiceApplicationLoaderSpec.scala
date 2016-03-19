@@ -6,6 +6,7 @@ package play.api.inject.guice
 import org.specs2.mutable.Specification
 
 import com.google.inject.AbstractModule
+import play.core.server.ServerComponents
 
 import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
 import play.api.{ ApplicationLoader, Configuration, Environment }

@@ -4,12 +4,14 @@
 package play.api.inject
 package guice
 
-import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
-import com.google.inject.{ Module => GuiceModule, Binder, Stage, CreationException, Guice }
 import java.io.File
 import javax.inject.Inject
+
+import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
+import com.google.inject.{ Binder, CreationException, Guice, Module => GuiceModule, Stage }
 import play.api.inject.{ Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule }
 import play.api.{ Configuration, Environment, Mode, PlayException }
+
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 

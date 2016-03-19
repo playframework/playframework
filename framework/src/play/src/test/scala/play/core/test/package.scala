@@ -4,6 +4,7 @@
 package play.core
 
 import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment, Play }
+import play.core.server.ServerComponents
 
 package object test {
 

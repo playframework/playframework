@@ -44,21 +44,19 @@ case object Native extends NettyTransport
  */
 class NettyServer(
     config: ServerConfig,
+    components: ServerComponents,
     val applicationProvider: ApplicationProvider,
     stopHook: () => Future[_],
     val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
 
-  private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
+  private val nettyConfig = components[Config]
+
   private val maxInitialLineLength = nettyConfig.getInt("maxInitialLineLength")
   private val maxHeaderSize = nettyConfig.getInt("maxHeaderSize")
   private val maxChunkSize = nettyConfig.getInt("maxChunkSize")
   private val logWire = nettyConfig.getBoolean("log.wire")
 
-  private lazy val transport = nettyConfig.getString("transport") match {
-    case "native" => Native
-    case "jdk" => Jdk
-    case _ => throw ServerStartException("Netty transport configuration value should be either jdk or native")
-  }
+  private lazy val transport = components[NettyTransport]
 
   import NettyServer._
 
@@ -67,19 +65,12 @@ class NettyServer(
   /**
    * The event loop
    */
-  private val eventLoop = {
-    val threadCount = nettyConfig.getInt("eventLoopThreads")
-    val threadFactory = NamedThreadFactory("netty-event-loop")
-    transport match {
-      case Native => new EpollEventLoopGroup(threadCount, threadFactory)
-      case Jdk => new NioEventLoopGroup(threadCount, threadFactory)
-    }
-  }
+  private val eventLoopGroup = components[EventLoopGroup]
 
   /**
    * A reference to every channel, both server and incoming, this allows us to shutdown cleanly.
    */
-  private val allChannels = new DefaultChannelGroup(eventLoop.next())
+  private val allChannels = new DefaultChannelGroup(eventLoopGroup.next())
 
   /**
    * SSL engine provider, only created if needed.
@@ -115,7 +106,7 @@ class NettyServer(
    * Bind to the given address, returning the server channel, and a stream of incoming connection channels.
    */
   private def bind(address: InetSocketAddress): (Channel, Source[Channel, _]) = {
-    val serverChannelEventLoop = eventLoop.next
+    val serverChannelEventLoop = eventLoopGroup.next
 
     // Watches for channel events, and pushes them through a reactive streams publisher.
     val channelPublisher = new HandlerPublisher(serverChannelEventLoop, classOf[Channel])
@@ -182,7 +173,7 @@ class NettyServer(
       pipeline.addLast("request-handler", requestHandler)
 
       // And finally, register the channel with the event loop
-      val childChannelEventLoop = eventLoop.next()
+      val childChannelEventLoop = eventLoopGroup.next()
       childChannelEventLoop.register(connChannel)
       allChannels.add(connChannel)
     }
@@ -228,7 +219,7 @@ class NettyServer(
     allChannels.close().awaitUninterruptibly()
 
     // Now shutdown the event loop
-    eventLoop.shutdownGracefully()
+    eventLoopGroup.shutdownGracefully()
 
     // Now shut the application down
     applicationProvider.current.foreach(Play.stop)
@@ -263,8 +254,12 @@ class NettyServer(
  * The Netty server provider
  */
 class NettyServerProvider extends ServerProvider {
+
+  override def createServerComponents(config: ServerConfig): ServerComponents = NettyServer.createComponents(config)
+
   def createServer(context: ServerProvider.Context) = new NettyServer(
     context.config,
+    context.serverComponents,
     context.appProvider,
     context.stopHook,
     context.actorSystem
@@ -287,6 +282,23 @@ object NettyServer {
     ProdServerStart.main(args)
   }
 
+  def createComponents(config: ServerConfig): ServerComponents = {
+    val nettyConfig: Config = config.configuration.underlying.getConfig("play.server.netty")
+    val transport: NettyTransport = nettyConfig.getString("transport") match {
+      case "native" => Native
+      case "jdk" => Jdk
+      case _ => throw ServerStartException("Netty transport configuration value should be either jdk or native")
+    }
+
+    val threadCount = nettyConfig.getInt("eventLoopThreads")
+    val threadFactory = NamedThreadFactory("netty-event-loop")
+    val eventLoopGroup: EventLoopGroup = transport match {
+      case Native => new EpollEventLoopGroup(threadCount, threadFactory)
+      case Jdk => new NioEventLoopGroup(threadCount, threadFactory)
+    }
+    ServerComponents() + transport + nettyConfig + eventLoopGroup
+  }
+
   /**
    * Create a Netty server from the given application and server configuration.
    *
@@ -295,8 +307,8 @@ object NettyServer {
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
-    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem)(
-      application.materializer)
+    new NettyServer(config, NettyServer.createComponents(config),
+      ApplicationProvider(application), () => Future.successful(()), application.actorSystem)(application.materializer)
   }
 
   /**
@@ -315,10 +327,11 @@ object NettyServer {
  */
 trait NettyServerComponents {
   lazy val serverConfig: ServerConfig = ServerConfig()
+  lazy val serverComponents: ServerComponents = NettyServer.createComponents(serverConfig)
   lazy val server: NettyServer = {
     // Start the application first
     Play.start(application)
-    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem)(
+    new NettyServer(serverConfig, serverComponents, ApplicationProvider(application), serverStopHook, application.actorSystem)(
       application.materializer)
   }
 

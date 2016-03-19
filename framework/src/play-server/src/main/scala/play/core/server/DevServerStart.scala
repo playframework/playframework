@@ -95,6 +95,20 @@ object DevServerStart {
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
         println()
 
+        // Start server with the application
+        val serverConfig = ServerConfig(
+          rootDir = path,
+          port = httpPort,
+          sslPort = httpsPort,
+          address = httpAddress,
+          mode = Mode.Dev,
+          properties = process.properties,
+          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
+        )
+
+        val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
+        val serverComponents = serverProvider.createServerComponents(serverConfig)
+
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
 
@@ -153,7 +167,7 @@ object DevServerStart {
                       currentWebCommands = Some(webCommands)
 
                       val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                        val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands)
+                        val context = ApplicationLoader.createContext(environment, serverComponents, dirAndDevSettings, Some(sourceMapper), webCommands)
                         val loader = ApplicationLoader(context)
                         loader.load(context)
                       }
@@ -197,17 +211,6 @@ object DevServerStart {
 
         }
 
-        // Start server with the application
-        val serverConfig = ServerConfig(
-          rootDir = path,
-          port = httpPort,
-          sslPort = httpsPort,
-          address = httpAddress,
-          mode = Mode.Dev,
-          properties = process.properties,
-          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
-        )
-
         // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
@@ -220,8 +223,8 @@ object DevServerStart {
             actorSystem.terminate()
             Await.result(actorSystem.whenTerminated, Duration.Inf)
             Future.successful(())
-          })
-        val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
+          }, serverComponents)
+
         serverProvider.createServer(serverContext)
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause

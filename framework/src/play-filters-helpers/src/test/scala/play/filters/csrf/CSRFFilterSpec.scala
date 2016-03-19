@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.http.HttpFilters
+import play.core.server.ServerComponents
 import play.filters.csrf.CSRFConfig
 import play.mvc.Http
 
@@ -145,7 +146,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       environment,
       None,
       new DefaultWebCommands,
-      Configuration.load(environment)
+      Configuration.load(environment),
+      ServerComponents()
     )
     def loader = new GuiceApplicationLoader
     "allow injecting CSRF filters" in {

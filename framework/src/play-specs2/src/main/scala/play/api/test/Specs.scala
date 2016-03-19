@@ -4,12 +4,12 @@
 package play.api.test
 
 import org.openqa.selenium.WebDriver
-import org.specs2.execute.{ AsResult, Result }
+import org.specs2.execute.{AsResult, Result}
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
-import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
-import play.api.{ Application, ApplicationLoader, Environment, Mode }
-import play.core.server.ServerProvider
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceApplicationLoader}
+import play.api.{Application, ApplicationLoader, Environment, Mode}
+import play.core.server.{ServerComponents, ServerProvider}
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
@@ -21,7 +21,7 @@ import play.core.server.ServerProvider
  * @param applicationLoader The application loader to use
  * @param context The context supplied to the application loader
  */
-abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new GuiceApplicationLoader(), context: ApplicationLoader.Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))) extends Around with Scope {
+abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new GuiceApplicationLoader(), context: ApplicationLoader.Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test), ServerComponents())) extends Around with Scope {
   implicit lazy val app = applicationLoader.load(context)
   def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
