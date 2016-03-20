@@ -3,26 +3,28 @@
  */
 package play.api.mvc
 
-import akka.util.ByteString
-import play.api.data.Form
-import play.api.libs.streams.Accumulator
-import play.core.parsers.Multipart
-import scala.language.reflectiveCalls
 import java.io._
-import scala.concurrent.{ Promise, Future }
-import scala.xml._
-import play.api._
-import play.api.libs.json._
-import play.api.libs.Files.TemporaryFile
-import MultipartFormData._
 import java.util.Locale
-import scala.util.control.NonFatal
-import play.api.http.{ LazyHttpErrorHandler, ParserConfiguration, HttpConfiguration, HttpVerbs }
-import play.utils.PlayIO
-import play.api.http.Status._
+
 import akka.stream._
-import akka.stream.scaladsl.{ StreamConverters, Flow, Sink }
+import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
 import akka.stream.stage._
+import akka.util.ByteString
+import play.api._
+import play.api.data.Form
+import play.api.http.Status._
+import play.api.http._
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.json._
+import play.api.libs.streams.Accumulator
+import play.api.mvc.MultipartFormData._
+import play.core.parsers.Multipart
+import play.utils.PlayIO
+
+import scala.concurrent.{ Future, Promise }
+import scala.language.reflectiveCalls
+import scala.util.control.NonFatal
+import scala.xml._
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -549,8 +551,9 @@ trait BodyParsers {
     def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
       tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
         import play.core.parsers._
-        FormUrlEncodedParser.parse(bytes.decodeString(request.charset.getOrElse("utf-8")),
-          request.charset.getOrElse("utf-8"))
+        val charset = request.charset.getOrElse("UTF-8")
+        val urlEncodedString = bytes.decodeString("UTF-8")
+        FormUrlEncodedParser.parse(urlEncodedString, charset)
       }
 
     /**
