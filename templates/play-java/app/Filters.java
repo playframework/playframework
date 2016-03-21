@@ -14,10 +14,6 @@ import filters.ExampleFilter;
  * <code>Filters</code> that is placed the root package. You can load filters
  * from a different class by adding a `play.http.filters` setting to
  * the <code>application.conf</code> configuration file.
- *
- * @param env Basic environment settings for the current application.
- * @param exampleFilter A demonstration filter that adds a header to
- * each response.
  */
 @Singleton
 public class Filters implements HttpFilters {
@@ -25,6 +21,10 @@ public class Filters implements HttpFilters {
     private final Environment env;
     private final EssentialFilter exampleFilter;
 
+    /**
+     * @param env Basic environment settings for the current application.
+     * @param exampleFilter A demonstration filter that adds a header to
+     */
     @Inject
     public Filters(Environment env, ExampleFilter exampleFilter) {
         this.env = env;

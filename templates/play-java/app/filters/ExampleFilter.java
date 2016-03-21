@@ -13,17 +13,18 @@ import play.mvc.Http.RequestHeader;
  * This is a simple filter that adds a header to all requests. It's
  * added to the application's list of filters by the
  * {@link ExampleFilters} class.
- *
- * @param mat This object is needed to handle streaming of requests
- * and responses.
- * @param exec This class is needed to execute code asynchronously.
- * It is used below by the <code>thenAsyncApply</code> method.
  */
 @Singleton
 public class ExampleFilter extends Filter {
 
     private final Executor exec;
 
+    /**
+     * @param mat This object is needed to handle streaming of requests
+     * and responses.
+     * @param exec This class is needed to execute code asynchronously.
+     * It is used below by the <code>thenAsyncApply</code> method.
+     */
     @Inject
     public ExampleFilter(Materializer mat, Executor exec) {
         super(mat);

@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContextExecutor;
 
 /**
  * This controller contains an action that demonstrates how to write
- * simple asychronous code in a controller. It uses a timer to
+ * simple asynchronous code in a controller. It uses a timer to
  * asynchronously delay sending a response for 1 second.
  *
  * @param actorSystem We need the {@link ActorSystem}'s
@@ -44,7 +44,7 @@ public class AsyncController extends Controller {
      * a path of <code>/message</code>.
      */
     public CompletionStage<Result> message() {
-        return getFutureMessage(1, TimeUnit.SECONDS).thenApplyAsync(msg -> ok(msg), exec);
+        return getFutureMessage(1, TimeUnit.SECONDS).thenApplyAsync(Results::ok, exec);
     }
 
     private CompletionStage<String> getFutureMessage(long time, TimeUnit timeUnit) {
