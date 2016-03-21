@@ -15,7 +15,7 @@ Add `cache` into your dependencies list. For example, in `build.sbt`:
 
 ## Accessing the Cache API
 
-The cache API is provided by the [CacheApi](api/java/play/cache/CacheApi.html) object, and can be injected into your component like any other dependency.  For example:
+The cache API is defined by the [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) interfaces, depending on whether you want an asynchronous or synchronous implementation, and can be injected into your component like any other dependency.  For example:
 
 @[inject](code/javaguide/cache/inject/Application.java)
 
@@ -40,6 +40,8 @@ You can also supply a `Callable` that generates stores the value if no value is 
 To remove an item from the cache use the `remove` method:
 
 @[remove](code/javaguide/cache/JavaCache.java)
+
+Note that the [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) has the same API, except it returns the values directly instead of using futures.
 
 ## Accessing different caches
 
@@ -69,7 +71,7 @@ Play provides a default built-in helper for the standard case:
 
 ## Custom implementations
 
-It is possible to provide a custom implementation of the [CacheApi](api/java/play/cache/CacheApi.html) that either replaces, or sits along side the default implementation.
+It is possible to provide a custom implementation of the cache API that either replaces or sits alongside the default implementation.
 
 To replace the default implementation, you'll need to disable the default implementation by setting the following in `application.conf`:
 
@@ -77,6 +79,6 @@ To replace the default implementation, you'll need to disable the default implem
 play.modules.disabled += "play.api.cache.EhCacheModule"
 ```
 
-Then simply implement [CacheApi](api/java/play/cache/CacheApi.html) and bind it in the DI container.
+You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.

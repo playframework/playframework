@@ -9,7 +9,9 @@ import scala.runtime.AbstractFunction0;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import scala.compat.java8.FutureConverters;
 
 /**
  * Class that contains useful java &lt;-&gt; scala conversion helpers.
@@ -71,6 +73,24 @@ public class Scala {
                 } catch (RuntimeException e) {
                     throw e;
                 } catch (Error e) {
+                    throw e;
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
+    }
+
+    /**
+     * Converts a Java Callable to a Scala Function0.
+     */
+    public static <A> scala.Function0<scala.concurrent.Future<A>> asScalaWithFuture(final Callable<CompletionStage<A>> callable) {
+        return new AbstractFunction0<scala.concurrent.Future<A>>() {
+            @Override
+            public scala.concurrent.Future<A> apply() {
+                try {
+                    return FutureConverters.toScala(callable.call());
+                } catch (RuntimeException | Error e) {
                     throw e;
                 } catch (Throwable t) {
                     throw new RuntimeException(t);

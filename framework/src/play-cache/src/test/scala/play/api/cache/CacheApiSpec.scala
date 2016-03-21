@@ -3,6 +3,7 @@ package play.api.cache
 import javax.inject.{ Inject, Provider }
 
 import net.sf.ehcache.CacheManager
+import play.api.cache.ehcache.CacheManagerProvider
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
 

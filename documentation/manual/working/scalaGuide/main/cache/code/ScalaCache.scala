@@ -4,26 +4,28 @@
  */
 package scalaguide.cache {
 
+import akka.Done
 import akka.stream.ActorMaterializer
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import org.specs2.execute.AsResult
 
 import play.api.Play.current
 import play.api.test._
 import play.api.mvc._
 import play.api.libs.json.Json
-import scala.concurrent.Future
-import org.specs2.execute.AsResult
-
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
 class ScalaCacheSpec extends PlaySpecification with Controller {
 
-  import play.api.cache.CacheApi
+  import play.api.cache.AsyncCacheApi
   import play.api.cache.Cached
 
-  def withCache[T](block: CacheApi => T) = {
-    running()(app => block(app.injector.instanceOf[CacheApi]))
+  def withCache[T](block: AsyncCacheApi => T) = {
+    running()(app => block(app.injector.instanceOf[AsyncCacheApi]))
   }
 
   "A scala Cache" should {
@@ -38,29 +40,34 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
     "a cache" in withCache { cache =>
       val connectedUser = User("xf")
       //#set-value
-      cache.set("item.key", connectedUser)
+      val result: Future[Done] = cache.set("item.key", connectedUser)
       //#set-value
+      Await.result(result, 1.second)
 
       //#get-value
-      val maybeUser: Option[User] = cache.get[User]("item.key")
+      val futureMaybeUser: Future[Option[User]] = cache.get[User]("item.key")
       //#get-value
 
+      val maybeUser = Await.result(futureMaybeUser, 1.second)
       maybeUser must beSome(connectedUser)
 
       //#remove-value
-      cache.remove("item.key")
+      val removeResult: Future[Done] = cache.remove("item.key")
       //#remove-value
-      cache.get[User]("item.key") must beNone
+      Await.result(removeResult, 1.second)
+
+      cache.sync.get[User]("item.key") must beNone
     }
 
 
     "a cache or get user" in withCache { cache =>
       val connectedUser = "xf"
       //#retrieve-missing
-      val user: User = cache.getOrElse[User]("item.key") {
+      val futureUser: Future[User] = cache.getOrElseUpdate[User]("item.key") {
         User.findById(connectedUser)
       }
       //#retrieve-missing
+      val user = Await.result(futureUser, 1.second)
       user must beEqualTo(User(connectedUser))
     }
 
@@ -69,8 +76,9 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
       //#set-value-expiration
       import scala.concurrent.duration._
 
-      cache.set("item.key", connectedUser, 5.minutes)
+      val result: Future[Done] = cache.set("item.key", connectedUser, 5.minutes)
       //#set-value-expiration
+      Await.result(result, 1.second)
       ok
     }
 
@@ -157,7 +165,7 @@ import play.api.cache._
 import play.api.mvc._
 import javax.inject.Inject
 
-class Application @Inject() (cache: CacheApi) extends Controller {
+class Application @Inject() (cache: AsyncCacheApi) extends Controller {
 
 }
 //#inject
@@ -170,7 +178,7 @@ import play.api.mvc._
 import javax.inject.Inject
 
 class Application @Inject()(
-    @NamedCache("session-cache") sessionCache: CacheApi
+    @NamedCache("session-cache") sessionCache: AsyncCacheApi
 ) extends Controller {
 
 }
@@ -187,7 +195,7 @@ class Application @Inject() (cached: Cached) extends Controller {
 }
 //#cached-action-app
 
-class Application1 @Inject() (cached: Cached) extends Controller {
+class Application1 @Inject() (cached: Cached)(implicit ec: ExecutionContext) extends Controller {
   //#cached-action
   def index = cached("homePage") {
     Action {
@@ -199,13 +207,14 @@ class Application1 @Inject() (cached: Cached) extends Controller {
   import play.api.mvc.Security.Authenticated
 
   //#composition-cached-action
-  def userProfile = Authenticated {
-    user =>
-      cached(req => "profile." + user) {
-        Action {
-          Ok(views.html.profile(User.find(user)))
+  def userProfile = Authenticated { userId =>
+    cached(req => "profile." + userId) {
+      Action.async {
+        User.find(userId).map { user =>
+          Ok(views.html.profile(user))
         }
       }
+    }
   }
   //#composition-cached-action
   //#cached-action-control
@@ -245,9 +254,9 @@ class Application2 @Inject() (cached: Cached) extends Controller {
 case class User(name: String)
 
 object User {
-  def findById(userId: String) = User(userId)
+  def findById(userId: String) = Future.successful(User(userId))
 
-  def find(user: String) = User(user)
+  def find(user: String) = Future.successful(User(user))
 }
 
 }

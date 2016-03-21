@@ -22,13 +22,13 @@ libraryDependencies ++= Seq(
 
 ## Accessing the Cache API
 
-The cache API is provided by the [CacheApi](api/scala/play/api/cache/CacheApi.html) object, and can be injected into your component like any other dependency.  For example:
+The cache API is defined by the [AsyncCacheApi](api/scala/play/api/cache/AsyncCacheApi.html) and [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) traits, depending on whether you want an asynchronous or synchronous implementation, and can be injected into your component like any other dependency.  For example:
 
 @[inject](code/ScalaCache.scala)
 
 > **Note:** The API is intentionally minimal to allow several implementation to be plugged in. If you need a more specific API, use the one provided by your Cache plugin.
 
-Using this simple API you can either store data in cache:
+Using this simple API you can store data in cache:
 
 @[set-value](code/ScalaCache.scala)
 
@@ -47,6 +47,8 @@ You can specify an expiry duration by passing a duration, by default the duratio
 To remove an item from the cache use the `remove` method:
 
 @[remove-value](code/ScalaCache.scala)
+
+Note that the [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) has the same API, except it returns the values directly instead of using futures.
 
 ## Accessing different caches
 
@@ -96,7 +98,7 @@ Or cache 404 Not Found only for a couple of minutes
 
 ## Custom implementations
 
-It is possible to provide a custom implementation of the [CacheApi](api/scala/play/api/cache/CacheApi.html) that either replaces, or sits along side the default implementation.
+It is possible to provide a custom implementation of the cache API that either replaces, or sits along side the default implementation.
 
 To replace the default implementation, you'll need to disable the default implementation by setting the following in `application.conf`:
 
@@ -104,6 +106,6 @@ To replace the default implementation, you'll need to disable the default implem
 play.modules.disabled += "play.api.cache.EhCacheModule"
 ```
 
-Then simply implement `CacheApi` and bind it in the [[DI container|ScalaDependencyInjection]].
+You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.
