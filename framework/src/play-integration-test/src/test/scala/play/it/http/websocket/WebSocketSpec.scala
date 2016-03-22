@@ -3,25 +3,28 @@
  */
 package play.it.http.websocket
 
+import java.net.URI
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.{Consumer, Function}
+
 import akka.actor._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
+import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test._
-import play.api.Application
-import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.libs.iteratee._
+import play.api.mvc.{Handler, Results, WebSocket}
+import play.api.test._
 import play.core.routing.HandlerDef
 import play.it._
-import play.it.http.websocket.WebSocketClient.{ContinuationMessage, SimpleMessage, ExtendedMessage}
-import scala.concurrent.{ Future, Promise }
-import scala.concurrent.duration._
+import play.it.http.websocket.WebSocketClient.{ContinuationMessage, ExtendedMessage, SimpleMessage}
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.net.URI
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.{ Consumer, Function }
+import scala.concurrent.duration._
+import scala.concurrent.{Future, Promise}
+import scala.reflect.ClassTag
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
@@ -412,15 +415,17 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
     "allow handling a WebSocket in java" in {
 
+      import java.util.{List => JList}
+
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
-      import java.util.{List => JList}
+
       import scala.collection.JavaConverters._
 
-      implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
+      implicit def toHandler[J <: AnyRef](javaHandler: => J)(implicit factory: HandlerInvokerFactory[J], ct: ClassTag[J]): Handler = {
         val invoker = factory.createInvoker(
           javaHandler,
-          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
+          new HandlerDef(ct.runtimeClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
         )
         invoker.call(javaHandler)
       }
@@ -452,7 +457,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
-      import play.mvc.{ LegacyWebSocket, WebSocket => JWebSocket, Results => JResults }
+      import play.mvc.{LegacyWebSocket, Results => JResults, WebSocket => JWebSocket}
       import JWebSocket.{In, Out}
 
       implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {

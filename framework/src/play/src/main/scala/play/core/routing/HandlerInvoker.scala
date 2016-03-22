@@ -4,16 +4,16 @@
 package play.core.routing
 
 import java.util.Optional
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.mvc._
 import play.core.j
-import play.core.j.{ JavaHandlerComponents, JavaHandler, JavaActionAnnotations }
-import play.mvc.Http.RequestBody
+import play.core.j.{JavaActionAnnotations, JavaHandler, JavaHandlerComponents}
+import play.mvc.Http.{Context, RequestBody}
 
-import scala.compat.java8.{ OptionConverters, FutureConverters }
+import scala.compat.java8.{FutureConverters, OptionConverters}
 import scala.util.control.NonFatal
 
 /**
@@ -69,9 +69,9 @@ trait HandlerInvokerFactory[-T] {
 
 object HandlerInvokerFactory {
 
-  import play.mvc.{ Result => JResult, LegacyWebSocket, WebSocket => JWebSocket }
-  import play.core.j.JavaWebSocket
   import com.fasterxml.jackson.databind.JsonNode
+  import play.core.j.JavaWebSocket
+  import play.mvc.{LegacyWebSocket, Result => JResult, WebSocket => JWebSocket}
 
   private[routing] def handlerTags(handlerDef: HandlerDef): Map[String, String] = Map(
     play.api.routing.Router.Tags.RoutePattern -> handlerDef.path,
@@ -196,12 +196,25 @@ object HandlerInvokerFactory {
   }
 
   implicit def javaWebSocket: HandlerInvokerFactory[JWebSocket] = new HandlerInvokerFactory[JWebSocket] {
-    import play.http.websocket.{ Message => JMessage }
     import play.api.http.websocket._
     import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.http.websocket.{Message => JMessage}
+
     def createInvoker(fakeCall: => JWebSocket, handlerDef: HandlerDef) = new HandlerInvoker[JWebSocket] {
       def call(call: => JWebSocket) = WebSocket.acceptOrResult[Message, Message] { request =>
-        FutureConverters.toScala(call(new j.RequestHeaderImpl(request))).map { resultOrFlow =>
+
+        val javaContext = JavaWebSocket.createJavaContext(request)
+
+        val callWithContext = {
+          try {
+            Context.current.set(javaContext)
+            FutureConverters.toScala(call(new j.RequestHeaderImpl(request)))
+          } finally {
+            Context.current.remove()
+          }
+        }
+
+        callWithContext.map { resultOrFlow =>
           if (resultOrFlow.left.isPresent) {
             Left(resultOrFlow.left.get.asScala())
           } else {
