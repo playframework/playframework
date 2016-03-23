@@ -11,8 +11,6 @@ import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
 import play.api.http.Status$;
 import play.api.libs.Files;
-import play.api.mvc.BodyParsers$;
-import play.api.mvc.MaxSizeNotExceeded;
 import play.api.mvc.MaxSizeNotExceeded$;
 import play.api.mvc.MaxSizeStatus;
 import play.core.j.JavaParsers;
@@ -26,7 +24,10 @@ import scala.concurrent.Future;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +63,7 @@ public interface BodyParser<A> {
          * @return the class
          */
         Class<? extends BodyParser> value();
-      
+
     }
 
     /**
@@ -313,8 +314,9 @@ public interface BodyParser<A> {
 
         @Override
         protected Map<String, String[]> parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
-            return FormUrlEncodedParser.parseAsJavaArrayValues(bytes.decodeString(charset), charset);
+            String charset = request.charset().orElse("UTF-8");
+            String urlEncodedString = bytes.decodeString("UTF-8");
+            return FormUrlEncodedParser.parseAsJavaArrayValues(urlEncodedString, charset);
         }
     }
 
