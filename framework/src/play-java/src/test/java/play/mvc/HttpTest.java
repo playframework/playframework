@@ -412,4 +412,60 @@ public class HttpTest {
         });
     }
 
+    @Test
+    public void testConstraintWithInjectedMessagesApi() {
+        withApplication((app) -> {
+            FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+            // Prepare Request and Context
+            Map<String, String> data = new HashMap<>();
+            data.put("id", "1234567891");
+            data.put("name", "peter");
+            data.put("dueDate", "11/11/2009");
+            data.put("zip", "1234");
+            RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            Context ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse input with pattern from the default messages file
+            Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("id", "1234567891");
+            data.put("name", "peter");
+            data.put("dueDate", "11/11/2009");
+            data.put("zip", "567");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse input with pattern from the french messages file
+            ctx.changeLang("fr");
+            myForm = formFactory.form(Task.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isFalse();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+
+            // Prepare Request and Context
+            data = new HashMap<>();
+            data.put("id", "1234567891");
+            data.put("name", "peter");
+            data.put("dueDate", "11/11/2009");
+            data.put("zip", "1234");
+            rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+            ctx = new Context(rb);
+            Context.current.set(ctx);
+            // Parse WRONG input with pattern from the french messages file
+            ctx.changeLang("fr");
+            myForm = formFactory.form(Task.class).bindFromRequest();
+            assertThat(myForm.hasErrors()).isTrue();
+            assertThat(myForm.hasGlobalErrors()).isFalse();
+            myForm.data().clear();
+            assertThat(myForm.error("zip").messages().size()).isEqualTo(1);
+            assertThat(myForm.error("zip").message()).isEqualTo("error.i18nconstraint");
+        });
+    }
+
 }
