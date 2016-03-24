@@ -92,9 +92,7 @@ For a database other than the default:
 
 You can retrieve a JDBC connection the same way:
 
-```java
-Connection connection = DB.getConnection();
-```
+@[](code/JavaJdbcConnection.java)
 
 It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 
