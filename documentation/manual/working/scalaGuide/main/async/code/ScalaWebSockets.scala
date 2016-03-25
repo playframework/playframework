@@ -3,6 +3,9 @@
  */
 package scalaguide.async.websockets
 
+import javax.inject.Inject
+
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import play.api.http.websocket.{ TextMessage, Message }
@@ -43,7 +46,8 @@ object ScalaWebSockets extends PlaySpecification {
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
-        runWebSocket(Samples.Controller1.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
+        val controller = app.injector.instanceOf[Samples.Controller1]
+        runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
           case list => list must_== List(TextMessage("I received your message: foo"))
         }
       }
@@ -86,25 +90,28 @@ object ScalaWebSockets extends PlaySpecification {
       }
 
       "allow rejecting the WebSocket" in new WithApplication() {
-        runWebSocket(Samples.Controller2.socket, Source.empty, 0) must beLeft.which { result =>
+        val controller = app.injector.instanceOf[Samples.Controller3]
+        runWebSocket(controller.socket, Source.empty, 0) must beLeft.which { result =>
           result.header.status must_== FORBIDDEN
         }
       }
 
       "allow creating a json actor" in new WithApplication() {
         val json = Json.obj("foo" -> "bar")
-        runWebSocket(Samples.Controller4.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
+        val controller = app.injector.instanceOf[Samples.Controller4]
+        runWebSocket(controller.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
           out must_== List(TextMessage(Json.stringify(json)))
         }
       }
 
       "allow creating a higher level object actor" in new WithApplication() {
+        val controller = app.injector.instanceOf[Samples.Controller5]
         runWebSocket(
-          Samples.Controller5.socket,
-          Source.single(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.InEvent("blah"))))),
+          controller.socket,
+          Source.single(TextMessage(Json.stringify(Json.toJson(Samples.InEvent("blah"))))),
           1
         ) must beRight.which { out =>
-          out must_== List(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.OutEvent("blah")))))
+          out must_== List(TextMessage(Json.stringify(Json.toJson(Samples.OutEvent("blah")))))
         }
       }
 
@@ -113,19 +120,22 @@ object ScalaWebSockets extends PlaySpecification {
     "support iteratees" in {
 
       "iteratee1" in new WithApplication() {
-        runWebSocket(Samples.Controller6.socket, Source.empty, 1) must beRight.which { out =>
+        val controller = app.injector.instanceOf[Samples.Controller6]
+        runWebSocket(controller.socket, Source.empty, 1) must beRight.which { out =>
           out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Source.maybe, 1) must beRight.which { out =>
+        val controller = app.injector.instanceOf[Samples.Controller7]
+        runWebSocket(controller.socket, Source.maybe, 1) must beRight.which { out =>
           out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee3" in new WithApplication() {
-        runWebSocket(Samples.Controller8.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
+        val controller = app.injector.instanceOf[Samples.Controller8]
+        runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
           out must_== List(TextMessage("I received your message: foo"))
         }
       }
@@ -141,19 +151,19 @@ object ScalaWebSockets extends PlaySpecification {
 }
 
 object Samples {
-  object Controller1 {
-    import Actor1.MyWebSocketActor
+  import Actor1.MyWebSocketActor
+  //#actor-accept
+  import play.api.mvc._
+  import play.api.libs.streams._
 
-    //#actor-accept
-    import play.api.mvc._
-    import play.api.Play.current
-    import play.api.Play.materializer
+  class Controller1 @Inject() (implicit system: ActorSystem, materializer: Materializer) {
 
-    def socket = WebSocket.acceptWithActor[String, String] { request => out =>
-      MyWebSocketActor.props(out)
+    def socket = WebSocket.accept[String, String] { request =>
+      ActorFlow.actorRef(out => MyWebSocketActor.props(out))
     }
-    //#actor-accept
   }
+  //#actor-accept
+
 
   object Actor1 {
 
@@ -173,25 +183,27 @@ object Samples {
     //#example-actor
   }
 
-  object Controller2 extends play.api.mvc.Controller {
-    import Actor1.MyWebSocketActor
+  //#actor-try-accept
+  import scala.concurrent.Future
+  import play.api.mvc._
+  import play.api.libs.streams._
 
-    //#actor-try-accept
-    import scala.concurrent.Future
-    import play.api.mvc._
-    import play.api.Play.current
-    import play.api.Play.materializer
-
-    def socket = WebSocket.tryAcceptWithActor[String, String] { request =>
+  class Controller3 @Inject() (implicit system: ActorSystem, materializer: Materializer) extends play.api.mvc.Controller {
+    def socket = WebSocket.acceptOrResult[String, String] { request =>
       Future.successful(request.session.get("user") match {
         case None => Left(Forbidden)
-        case Some(_) => Right(MyWebSocketActor.props)
+        case Some(_) => Right(ActorFlow.actorRef(MyWebSocketActor.props))
       })
     }
-    //#actor-try-accept
   }
+  //#actor-try-accept
 
-  object Controller4 {
+  //#actor-json
+  import play.api.libs.json.JsValue
+  import play.api.mvc._
+  import play.api.libs.streams._
+
+  class Controller4 @Inject() (implicit system: ActorSystem, materializer: Materializer) {
     import akka.actor._
 
     class MyWebSocketActor(out: ActorRef) extends Actor {
@@ -206,24 +218,27 @@ object Samples {
       def props(out: ActorRef) = Props(new MyWebSocketActor(out))
     }
 
-    //#actor-json
-    import play.api.mvc._
-    import play.api.libs.json._
-    import play.api.Play.current
-    import play.api.Play.materializer
-
-    def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
-      MyWebSocketActor.props(out)
+    def socket = WebSocket.accept[JsValue, JsValue] { request =>
+      ActorFlow.actorRef(out => MyWebSocketActor.props(out))
     }
-    //#actor-json
 
   }
+  //#actor-json
 
-  object Controller5 {
+
+  case class InEvent(foo: String)
+  case class OutEvent(bar: String)
+
+  //#actor-json-formats
+  import play.api.libs.json._
+
+  implicit val inEventFormat = Json.format[InEvent]
+  implicit val outEventFormat = Json.format[OutEvent]
+  //#actor-json-formats
+
+
+  class Controller5 @Inject() (implicit system: ActorSystem, mat: Materializer) {
     import akka.actor._
-
-    case class InEvent(foo: String)
-    case class OutEvent(bar: String)
 
     class MyWebSocketActor(out: ActorRef) extends Actor {
       def receive = {
@@ -236,13 +251,6 @@ object Samples {
       def props(out: ActorRef) = Props(new MyWebSocketActor(out))
     }
 
-    //#actor-json-formats
-    import play.api.libs.json._
-
-    implicit val inEventFormat = Json.format[InEvent]
-    implicit val outEventFormat = Json.format[OutEvent]
-    //#actor-json-formats
-
     //#actor-json-frames
     import play.api.mvc.WebSocket.FrameFormatter
 
@@ -250,18 +258,19 @@ object Samples {
     //#actor-json-frames
 
     //#actor-json-in-out
+    import play.api.libs.json._
     import play.api.mvc._
-    import play.api.Play.current
-    import play.api.Play.materializer
+    import play.api.libs.streams._
 
-    def socket = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
-      MyWebSocketActor.props(out)
+    // Note: requires implicit ActorSystem and Materializer (inject into your controller)
+    def socket = WebSocket.accept[InEvent, OutEvent] { request =>
+      ActorFlow.actorRef(out => MyWebSocketActor.props(out))
     }
     //#actor-json-in-out
 
   }
 
-  object Controller6 {
+  class Controller6 {
 
     //#iteratee1
     import play.api.mvc._
@@ -284,7 +293,7 @@ object Samples {
 
   }
 
-  object Controller7 {
+  class Controller7 {
 
     //#iteratee2
     import play.api.mvc._
@@ -304,14 +313,14 @@ object Samples {
 
   }
 
-  object Controller8 {
+  class Controller8 {
 
     //#iteratee3
     import play.api.mvc._
     import play.api.libs.iteratee._
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-    def socket =  WebSocket.using[String] { request =>
+    def socket = WebSocket.using[String] { request =>
 
       // Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
       val (out, channel) = Concurrent.broadcast[String]
