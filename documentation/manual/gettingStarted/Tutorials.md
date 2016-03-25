@@ -13,7 +13,7 @@ A full list of templates can be discovered in the [Activator Web Interface](http
 
 Additionally, templates are also published on the Lightbend website, a full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
 
-Typesafe maintains a number of Activator templates.  These have built-in tutorials that you can see by running the application with `activator ui` and then opening the web interface at [http://127.0.0.1:8888/](http://127.0.0.1:8888/) and clicking on the Tutorial tab.
+Lightbend maintains a number of Activator templates.  These have built-in tutorials that you can see by running the application with `activator ui` and then opening the web interface at [http://127.0.0.1:8888/](http://127.0.0.1:8888/) and clicking on the Tutorial tab.
 
 ### Introduction
 
@@ -31,7 +31,7 @@ Reactive Stocks shows several stock prices displayed on a single page web applic
 
 ### Reactive Maps
 
-Reactive Maps shows the Typesafe Platform with a series of moving actors updated in real time.
+Reactive Maps shows the Lightbend Platform with a series of moving actors updated in real time.
 
 * [Reactive Maps in Scala](https://www.lightbend.com/activator/template/reactive-maps)
 * [Reactive Maps in Java](https://www.lightbend.com/activator/template/reactive-maps-java)

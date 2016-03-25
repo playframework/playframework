@@ -15,7 +15,7 @@ As Boxfuse works with your AWS account, it first needs the necessary permissions
 
 ## Build your Application
 
-Package your app using the Typesafe Activator by typing the `activator dist` command in your project directory.
+Package your app using the Lightbend Activator by typing the `activator dist` command in your project directory.
 
 ## Deploy your Application
 
