@@ -35,7 +35,16 @@ object Files {
    */
   @Singleton
   class DefaultTemporaryFileCreator @Inject() (applicationLifecycle: ApplicationLifecycle) extends TemporaryFileCreator {
-    private lazy val playTempFolder = JFiles.createTempDirectory("playtemp")
+    private var _playTempFolder: Option[Path] = None
+
+    private[libs] def playTempFolder: Path = _playTempFolder match {
+      // We may need to recreate the file if it was deleted (e.g. by tmpwatch)
+      case Some(folder) if JFiles.exists(folder) => folder
+      case _ =>
+        val folder = JFiles.createTempDirectory("playtemp")
+        _playTempFolder = Some(folder)
+        folder
+    }
 
     /**
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
