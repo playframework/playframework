@@ -37,9 +37,7 @@ object Crypto {
   private val cryptoCache = Application.instanceCache[Crypto]
   private def crypto = {
     Play.maybeApplication.fold(
-      new Crypto(new CryptoConfigParser(
-        Environment.simple(), Configuration.from(Map("play.crypto.aes.transformation" -> "AES/CTR/NoPadding"))
-      ).get)
+      sys.error("The global crypto instance requires a running application!")
     )(cryptoCache)
   }
 
