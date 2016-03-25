@@ -1,17 +1,19 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.libs
+package play.api.libs
 
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.{ Files => JFiles }
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.After
 import play.api.ApplicationLoader.Context
-import play.api.routing.Router
 import play.api._
-import play.api.libs.Files.TemporaryFile
+import play.api.inject.DefaultApplicationLifecycle
+import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFile }
+import play.api.routing.Router
 import play.utils.PlayIO
 
 object FilesSpec extends Specification with After {
@@ -25,6 +27,19 @@ object FilesSpec extends Specification with After {
   }
 
   "Files" should {
+
+    "DefaultTemporaryFileCreator" should {
+      "recreate directory if it is deleted" in {
+        val lifecycle = new DefaultApplicationLifecycle
+        val creator = new DefaultTemporaryFileCreator(lifecycle)
+        val file = creator.create("foo", "bar")
+        JFiles.delete(file.toPath)
+        JFiles.delete(creator.playTempFolder)
+        creator.create("foo", "baz")
+        lifecycle.stop()
+        success
+      }
+    }
 
     "Temporary files" should {
 
