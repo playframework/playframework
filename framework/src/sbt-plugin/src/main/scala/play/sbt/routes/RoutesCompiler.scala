@@ -185,7 +185,7 @@ object RoutesCompiler extends AutoPlugin {
           lazy val lineContent = {
             line flatMap { lineNo =>
               sourceFile.flatMap { file =>
-                IO.read(file).split('\n').lift(lineNo - 1)
+                IO.read(file).split('\n').lift(lineNo - 1).map(_.stripSuffix("\r"))
               }
             } getOrElse ""
           }
