@@ -43,6 +43,6 @@ object JavaParsers {
     }
   }
 
-  def trampoline: Executor = play.api.libs.iteratee.Execution.Implicits.trampoline
+  def trampoline: Executor = play.core.Execution.Implicits.trampoline
 
 }

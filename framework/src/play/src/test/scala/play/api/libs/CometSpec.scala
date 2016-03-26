@@ -9,9 +9,8 @@ import akka.util.{ ByteString, Timeout }
 import org.specs2.mutable._
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsString, JsValue }
-import play.api.mvc.{ Action, Controller, Result, Results }
+import play.api.mvc.{ Action, Controller, Result }
 import play.core.test.FakeRequest
 
 import scala.concurrent.{ Await, Future }
@@ -38,11 +37,6 @@ class CometSpec extends Specification {
   }
 
   "play comet" should {
-
-    "work with enumerator" in {
-      val result = Results.Ok.chunked(Enumerator("foo", "bar", "baz") &> Comet("callback.method"))
-      result.body.contentType must beSome(ContentTypes.HTML)
-    }
 
     "work with string" in {
       val app = new GuiceApplicationBuilder().build()

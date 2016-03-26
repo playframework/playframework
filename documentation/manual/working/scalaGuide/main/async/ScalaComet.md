@@ -48,13 +48,3 @@ For an example of a Comet helper, see the [Play 2.5 Clock Template](https://gith
 ## Debugging Comet
 
 The easiest way to debug a Comet stream that is not working is to use the [`log()`](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-cookbook.html#Logging_elements_of_a_stream) operation to show any errors involved in mapping data through the stream.
-
-## Legacy Comet with Enumerator
-
-Previously existing Comet functionality is still available through an `Enumeratee` using `Comet.apply`, but it is deprecated and you are encouraged to move to the Akka Streams based version.  
-
-If you have existing code that relies heavily on `Enumerator`, you can use [`play.api.libs.streams.Streams`](api/scala/play/api/libs/streams/Streams$.html) and the interoperability with [Reactive Streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-integrations.html#integrating-with-reactive-streams) to convert an Enumerator to a Stream:
-
-@[comet-enumerator](code/ScalaComet.scala)
-
-Also see the [[Streams Migration Guide|StreamsMigration25#Migrating-Enumerators-to-Sources]].

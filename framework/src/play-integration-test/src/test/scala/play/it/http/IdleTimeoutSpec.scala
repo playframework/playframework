@@ -11,12 +11,10 @@ import play.api.mvc.{ EssentialAction, Results }
 import play.api.test.{ FakeApplication, _ }
 import play.it.{ NettyIntegrationSpecification, ServerIntegrationSpecification }
 import play.it.AkkaHttpIntegrationSpecification
-import play.api.libs.iteratee._
 import play.api.libs.streams.Accumulator
 import play.core.server.ServerProvider
 import play.core.server.NettyServerProvider
 import play.core.server.NettyServer
-import play.core.server.Server
 import play.core.server.ServerProvider.Context
 import play.core.server.akkahttp.AkkaHttpServerProvider
 import play.core.server.akkahttp.AkkaHttpServer

@@ -10,10 +10,8 @@ import akka.util.ByteString
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
 import play.api.i18n.{ MessagesApi, Lang }
-import play.api.libs.iteratee._
 import play.api.http._
 import play.api.http.HeaderNames._
-import play.api.libs.streams.Streams
 
 import play.core.utils.CaseInsensitiveOrdered
 import scala.collection.immutable.TreeMap
@@ -439,36 +437,6 @@ trait Results {
       Result(
         header = header,
         body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
-      )
-    }
-
-    /**
-     * Feed the content as the response, using chunked transfer encoding.
-     *
-     * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
-     * instead return a 505 error code.
-     *
-     * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
-     * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
-     *
-     * @param content Enumerator providing the content to stream.
-     */
-    @deprecated("Use chunked with an Akka streams Source instead", "2.5.0")
-    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
-      chunked(Source.fromPublisher(Streams.enumeratorToPublisher(content)))
-    }
-
-    /**
-     * Feed the content as the response, closing the connection when done.
-     *
-     * @param content Enumerator providing the content to stream.
-     */
-    @deprecated("Use sendEntity with a Streamed entity instead", "2.5.0")
-    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
-      Result(
-        header = header,
-        body = HttpEntity.Streamed(Source.fromPublisher(Streams.enumeratorToPublisher(content)).map(writeable.transform),
-          None, writeable.contentType)
       )
     }
 

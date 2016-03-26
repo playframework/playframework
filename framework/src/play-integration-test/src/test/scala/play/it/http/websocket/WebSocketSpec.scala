@@ -5,16 +5,13 @@ package play.it.http.websocket
 
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.{Consumer, Function}
 
-import akka.actor._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.iteratee._
 import play.api.mvc.{Handler, Results, WebSocket}
 import play.api.test._
 import play.core.routing.HandlerDef
@@ -297,122 +294,6 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
     }
 
-    "allow handling WebSockets using iteratees" in {
-
-      "allow consuming messages" in allowConsumingMessages { _ =>
-        consumed =>
-          WebSocket.using[String] { req =>
-            (Iteratee.getChunks[String].map { result =>
-              consumed.success(result)
-            }, Enumerator.empty)
-          }
-      }
-
-      "allow sending messages" in allowSendingMessages { _ =>
-        messages =>
-          WebSocket.using[String] { req =>
-            (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
-          }
-      }
-
-      "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
-        WebSocket.using[String] { req =>
-          (Done(()), Enumerator.empty)
-        }
-      }
-
-      "clean up when closed" in cleanUpWhenClosed { app =>
-        cleanedUp =>
-          WebSocket.using[String] { req =>
-            val tick = Enumerator.unfoldM(()) { _ =>
-              val p = Promise[Option[(Unit, String)]]()
-              app.actorSystem.scheduler.scheduleOnce(100.millis)(p.success(Some(() -> "foo")))
-              p.future
-            }
-            (Iteratee.ignore, tick.onDoneEnumerating {
-              cleanedUp.success(true)
-            })
-          }
-      }
-
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
-        statusCode =>
-          WebSocket.tryAccept[String] { req =>
-            Future.successful(Left(Results.Status(statusCode)))
-          }
-      }
-    }
-
-    "allow handling a WebSocket with an actor" in {
-
-      "allow consuming messages" in allowConsumingMessages { implicit app =>
-        consumed =>
-          import app.materializer
-          WebSocket.acceptWithActor[String, String] { req =>
-            out =>
-              Props(new Actor() {
-                var messages = List.empty[String]
-                def receive = {
-                  case msg: String =>
-                    messages = msg :: messages
-                }
-                override def postStop() = {
-                  consumed.success(messages.reverse)
-                }
-              })
-          }
-      }
-
-      "allow sending messages" in allowSendingMessages { implicit app =>
-        messages =>
-          import app.materializer
-          WebSocket.acceptWithActor[String, String] { req =>
-            out =>
-              Props(new Actor() {
-                messages.foreach { msg =>
-                  out ! msg
-                }
-                out ! Status.Success(())
-                def receive = PartialFunction.empty
-              })
-          }
-      }
-
-      "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
-        import app.materializer
-        WebSocket.acceptWithActor[String, String] { req =>
-          out =>
-            Props(new Actor() {
-              out ! Status.Success(())
-              def receive = PartialFunction.empty
-            })
-        }
-      }
-
-      "clean up when closed" in cleanUpWhenClosed { implicit app =>
-        cleanedUp =>
-          import app.materializer
-          WebSocket.acceptWithActor[String, String] { req =>
-            out =>
-              Props(new Actor() {
-                def receive = PartialFunction.empty
-                override def postStop() = {
-                  cleanedUp.success(true)
-                }
-              })
-          }
-      }
-
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
-        statusCode =>
-          import app.materializer
-          WebSocket.tryAcceptWithActor[String, String] { req =>
-            Future.successful(Left(Results.Status(statusCode)))
-          }
-      }
-
-    }
-
     "allow handling a WebSocket in java" in {
 
       import java.util.{List => JList}
@@ -451,84 +332,6 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
       }
 
-    }
-
-    "allow handling a WebSocket using legacy java API" in {
-
-      import play.core.routing.HandlerInvokerFactory
-      import play.core.routing.HandlerInvokerFactory._
-      import play.mvc.{LegacyWebSocket, Results => JResults, WebSocket => JWebSocket}
-      import JWebSocket.{In, Out}
-
-      implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
-        val invoker = factory.createInvoker(
-          javaHandler,
-          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
-        )
-        invoker.call(javaHandler)
-      }
-
-      "allow consuming messages" in allowConsumingMessages { _ =>
-        consumed =>
-          new LegacyWebSocket[String] {
-            @volatile var messages = List.empty[String]
-            def onReady(in: In[String], out: Out[String]) = {
-              in.onMessage(new Consumer[String] {
-                def accept(msg: String) = messages = msg :: messages
-              })
-              in.onClose(new Runnable {
-                def run() = consumed.success(messages.reverse)
-              })
-            }
-          }
-      }
-
-      "allow sending messages" in allowSendingMessages { _ =>
-        messages =>
-          new LegacyWebSocket[String] {
-            def onReady(in: In[String], out: Out[String]) = {
-              messages.foreach { msg =>
-                out.write(msg)
-              }
-              out.close()
-            }
-          }
-      }
-
-      "clean up when closed" in cleanUpWhenClosed { _ =>
-        cleanedUp =>
-          new LegacyWebSocket[String] {
-            def onReady(in: In[String], out: Out[String]) = {
-              in.onClose(new Runnable {
-                def run() = cleanedUp.success(true)
-              })
-            }
-          }
-      }
-
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
-        statusCode =>
-          JWebSocket.reject[String](JResults.status(statusCode))
-      }
-
-      "allow handling a websocket with an actor" in allowSendingMessages { _ =>
-        messages =>
-
-
-          JWebSocket.withActor[String](new Function[ActorRef, Props]() {
-            def apply(out: ActorRef) = {
-              Props(new Actor() {
-                messages.foreach { msg =>
-                  out ! msg
-                }
-                out ! Status.Success(())
-                def receive ={
-                  case msg: Message => ()
-                }
-              })
-            }
-          })
-      }
     }
 
   }

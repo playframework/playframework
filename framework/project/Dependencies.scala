@@ -233,11 +233,6 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % "1.4.0"
   ) ++ playdocWebjarDependencies
 
-  val iterateesDependencies = Seq(
-    "org.scala-stm" %% "scala-stm" % "0.7",
-    typesafeConfig
-  ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
-
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,

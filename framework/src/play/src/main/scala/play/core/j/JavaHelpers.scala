@@ -5,7 +5,7 @@ package play.core.j
 
 import java.util.concurrent.CompletionStage
 
-import play.api.libs.iteratee.Execution.trampoline
+import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
 import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }

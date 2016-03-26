@@ -6,7 +6,7 @@ package play.api.libs.streams
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import org.reactivestreams.{ Publisher, Subscriber, Subscription }
-import play.api.libs.concurrent.StateMachine
+import play.api.libs.streams.concurrent.StateMachine
 
 private[play] object MaterializeOnDemandPublisher {
   sealed trait State

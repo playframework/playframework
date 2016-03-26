@@ -7,8 +7,7 @@ import akka.stream.Materializer
 import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
 import org.specs2.mutable.Specification
-import play.api.http.{ GlobalSettingsHttpRequestHandler, HttpRequestHandler, DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
@@ -22,7 +21,6 @@ import scala.concurrent._
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
 object NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
-object NettyGlobalFiltersSpec extends GlobalFiltersSpec with NettyIntegrationSpecification
 object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
@@ -47,7 +45,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
     }.application
 
     Server.withApplication(app) { implicit port =>
-      import app.materializer
       WsTestClient.withClient(block)
     }
 
@@ -69,7 +66,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
   class JavaSimpleFilter(mat: Materializer) extends play.mvc.Filter(mat) {
     println("Creating JavaSimpleFilter")
     import play.mvc._
-    import play.libs.streams.Accumulator
 
     override def apply(
       next: JFunction[Http.RequestHeader, CompletionStage[Result]],
@@ -80,32 +76,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
 
   }
 
-}
-
-trait GlobalFiltersSpec extends FiltersSpec {
-  def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(block: WSClient => T) = {
-
-    import play.api.inject.bind
-
-    val app = new GuiceApplicationBuilder()
-      .configure(settings)
-      .overrides(
-        bind[Router].toInstance(testRouter),
-        bind[HttpRequestHandler].to[GlobalSettingsHttpRequestHandler]
-      )
-      .global(
-        new WithFilters(filters: _*) {
-          override def onHandlerNotFound(request: RequestHeader) = {
-            errorHandler.fold(super.onHandlerNotFound(request))(_.onClientError(request, 404, ""))
-          }
-        }
-      ).build()
-
-    Server.withApplication(app) { implicit port =>
-      import app.materializer
-      WsTestClient.withClient(block)
-    }
-  }
 }
 
 trait FiltersSpec extends Specification with ServerIntegrationSpecification {

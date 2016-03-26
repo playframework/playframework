@@ -26,47 +26,24 @@ public class FakeApplication implements play.Application {
     /**
      * Create a fake application.
      *
-     * @deprecated Use the version without GlobalSettings, since 2.5.0
-     *
      * @param path application environment root path
      * @param classloader application environment class loader
      * @param additionalConfiguration additional configuration for the application
-     * @param global global settings to use in place of default global
      */
     @SuppressWarnings("unchecked")
-    @Deprecated
     public FakeApplication(
         File path,
         ClassLoader classloader,
-        Map<String, ? extends Object> additionalConfiguration,
-        play.GlobalSettings global) {
-
-        play.api.GlobalSettings scalaGlobal = (global != null) ? new play.core.j.JavaGlobalSettingsAdapter(global) : null;
+        Map<String, ? extends Object> additionalConfiguration) {
 
         this.application = new play.api.test.FakeApplication(
             path,
             classloader,
             Scala.asScala((Map<String, Object>) additionalConfiguration),
-            scala.Option.apply(scalaGlobal),
             scala.PartialFunction$.MODULE$.<scala.Tuple2<String, String>, Handler>empty()
         );
         this.configuration = application.injector().instanceOf(Configuration.class);
         this.injector = application.injector().instanceOf(Injector.class);
-    }
-
-    /**
-     * Create a fake application.
-     *
-     * @param path application environment root path
-     * @param classloader application environment class loader
-     * @param additionalConfiguration additional configuration for the application
-     */
-    @SuppressWarnings("unchecked")
-    public FakeApplication(
-            File path,
-            ClassLoader classloader,
-            Map<String, ? extends Object> additionalConfiguration) {
-        this(path, classloader, additionalConfiguration, null);
     }
 
     /**

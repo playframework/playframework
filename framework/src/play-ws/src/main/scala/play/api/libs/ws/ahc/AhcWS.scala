@@ -17,7 +17,6 @@ import javax.inject.{ Inject, Provider, Singleton }
 import io.netty.handler.codec.http.HttpHeaders
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.debug._
@@ -156,9 +155,6 @@ case class AhcWSRequest(client: AhcWSClient,
   }
 
   def stream(): Future[StreamedResponse] = Streamed.execute(client.underlying, buildRequest())
-
-  @deprecated("2.5", "Use `stream()` instead.")
-  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = Streamed.execute2(client.underlying, buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,

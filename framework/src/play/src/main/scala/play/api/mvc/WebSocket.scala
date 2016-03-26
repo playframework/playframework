@@ -3,19 +3,16 @@
  */
 package play.api.mvc
 
-import akka.stream.Materializer
-import akka.stream.scaladsl.{ Source, Sink, Flow }
+import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import play.api.http.websocket._
-import play.api.libs.iteratee._
 import play.api.libs.json._
-import play.api.libs.streams.{ AkkaStreams, ActorFlow, Streams }
+import play.api.libs.streams.AkkaStreams
+import play.core.Execution.Implicits.trampoline
 
-import scala.concurrent.{ ExecutionContext, Promise, Future }
+import scala.concurrent.Future
 
-import play.api.libs.iteratee.Execution.Implicits.trampoline
 import akka.actor.{ Props, ActorRef }
-import play.api.Application
 
 import scala.util.control.NonFatal
 
@@ -178,62 +175,6 @@ object WebSocket {
     }
   }
 
-  @deprecated("Use MessageFlowTransformer instead", "2.5.0")
-  type FrameFormatter[A] = MessageFlowTransformer[A, A]
-
-  /**
-   * Defaults frame formatters.
-   */
-  object FrameFormatter {
-
-    /**
-     * Json WebSocket frames, parsed into/formatted from objects of type A.
-     */
-    @deprecated("Use MessageFlowTransformer.jsonMessageFlowTransformer instead", "2.5.0")
-    def jsonFrame[A: Format]: MessageFlowTransformer[A, A] = MessageFlowTransformer.jsonMessageFlowTransformer[A, A]
-  }
-
-  /**
-   * Accepts a WebSocket using the given inbound/outbound channels.
-   */
-  @deprecated("Use accept with an Akka streams flow instead", "2.5.0")
-  def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: MessageFlowTransformer[A, A]): WebSocket = {
-    tryAccept[A](f.andThen(handler => Future.successful(Right(handler))))
-  }
-
-  /**
-   * Creates a WebSocket that will adapt the incoming stream and send it back out.
-   */
-  @deprecated("Use accept with an Akka streams flow instead", "2.5.0")
-  def adapter[A](f: RequestHeader => Enumeratee[A, A])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = {
-    using(f.andThen { enumeratee =>
-      val (iteratee, enumerator) = Concurrent.joined[A]
-      (enumeratee &> iteratee, enumerator)
-    })
-  }
-
-  /**
-   * Creates an action that will either reject the websocket with the given result, or will be handled by the given
-   * inbound and outbound channels, asynchronously
-   */
-  @deprecated("Use acceptOrResult with an Akka streams flow instead", "2.5.0")
-  def tryAccept[A](f: RequestHeader => Future[Either[Result, (Iteratee[A, _], Enumerator[A])]])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = {
-    acceptOrResult[A, A](f.andThen(_.map(_.right.map {
-      case (iteratee, enumerator) =>
-        // Play 2.4 and earlier only closed the WebSocket if the enumerator specifically fed EOF. So, you could
-        // return an empty enumerator, and it would never close the socket. Converting an empty enumerator to a
-        // publisher however will close the socket, so, we need to ensure the enumerator only completes if EOF
-        // is sent.
-        val enumeratorCompletion = Promise[Enumerator[A]]()
-        val nonCompletingEnumerator = onEOF(enumerator, () => {
-          enumeratorCompletion.success(Enumerator.empty)
-        }) >>> Enumerator.flatten(enumeratorCompletion.future)
-        val publisher = Streams.enumeratorToPublisher(nonCompletingEnumerator)
-        val (subscriber, _) = Streams.iterateeToSubscriber(iteratee)
-        Flow.fromSinkAndSource(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))
-    })))
-  }
-
   /**
    * Accepts a WebSocket using the given flow.
    */
@@ -256,77 +197,4 @@ object WebSocket {
    * the WebSocket
    */
   type HandlerProps = ActorRef => Props
-
-  /**
-   * Create a WebSocket that will pass messages to/from the actor created by the given props.
-   *
-   * Given a request and an actor ref to send messages to, the function passed should return the props for an actor
-   * to create to handle this WebSocket.
-   *
-   * For example:
-   *
-   * {{{
-   *   def webSocket = WebSocket.acceptWithActor[JsValue, JsValue] { req => out =>
-   *     MyWebSocketActor.props(out)
-   *   }
-   * }}}
-   */
-  @deprecated("Use accept with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.ActorFlow.actorRef", "2.5.0")
-  def acceptWithActor[In, Out](f: RequestHeader => HandlerProps)(implicit transformer: MessageFlowTransformer[In, Out],
-    app: Application, mat: Materializer): WebSocket = {
-    tryAcceptWithActor { req =>
-      Future.successful(Right((actorRef) => f(req)(actorRef)))
-    }
-  }
-
-  /**
-   * Create a WebSocket that will pass messages to/from the actor created by the given props asynchronously.
-   *
-   * Given a request, this method should return a future of either:
-   *
-   * - A result to reject the WebSocket with, or
-   * - A function that will take the sending actor, and create the props that describe the actor to handle this
-   * WebSocket
-   *
-   * For example:
-   *
-   * {{{
-   *   def subscribe = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
-   *     val isAuthenticated: Future[Boolean] = authenticate(req)
-   *     isAuthenticated.map {
-   *       case false => Left(Forbidden)
-   *       case true => Right(MyWebSocketActor.props)
-   *     }
-   *   }
-   * }}}
-   */
-  @deprecated("Use acceptOrResult with a flow that wraps a Sink.actorRef and Source.actorRef, or play.api.libs.Streams.ActorFlow.actorRef", "2.5.0")
-  def tryAcceptWithActor[In, Out](f: RequestHeader => Future[Either[Result, HandlerProps]])(implicit transformer: MessageFlowTransformer[In, Out],
-    app: Application, mat: Materializer): WebSocket = {
-
-    implicit val system = app.actorSystem
-
-    acceptOrResult(f.andThen(_.map(_.right.map { props =>
-      ActorFlow.actorRef(props)
-    })))
-  }
-
-  /**
-   * Like Enumeratee.onEOF, however enumeratee.onEOF always gets fed an EOF (by the enumerator if nothing else).
-   */
-  private def onEOF[E](enumerator: Enumerator[E], action: () => Unit): Enumerator[E] = new Enumerator[E] {
-    def apply[A](i: Iteratee[E, A]) = enumerator(wrap(i))
-
-    def wrap[A](i: Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
-      def fold[B](folder: (Step[E, A]) => Future[B])(implicit ec: ExecutionContext) = i.fold {
-        case Step.Cont(k) => folder(Step.Cont {
-          case eof @ Input.EOF =>
-            action()
-            wrap(k(eof))
-          case other => wrap(k(other))
-        })
-        case other => folder(other)
-      }(ec)
-    }
-  }
 }

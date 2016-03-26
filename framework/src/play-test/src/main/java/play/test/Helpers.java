@@ -16,16 +16,18 @@ import play.http.HttpEntity;
 import play.mvc.*;
 import play.api.test.Helpers$;
 import play.libs.*;
-import play.libs.F.*;
 import play.twirl.api.Content;
 
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
+import scala.compat.java8.FutureConverters;
 
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -75,8 +77,18 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.Result scalaResult = Promise.wrap(result).get(timeout);
-            return scalaResult.asJava();
+            try {
+                final play.api.mvc.Result scalaResult = FutureConverters.toJava(result).toCompletableFuture().get(timeout, TimeUnit.MILLISECONDS);
+                return scalaResult.asJava();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new RuntimeException(e.getCause());
+                }
+            } catch (InterruptedException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -121,27 +133,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake application.
      */
     public static Application fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), null);
-    }
-
-    /**
-     * Build a new fake application.
-     *
-     * @deprecated Use dependency injection (since 2.5.0)
-     */
-    @Deprecated
-    public static Application fakeApplication(GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), global);
-    }
-
-    /**
-     * A fake Global.
-     *
-     * @deprecated Use dependency injection (since 2.5.0)
-     */
-    @Deprecated
-    public static GlobalSettings fakeGlobal() {
-        return new GlobalSettings();
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<>());
     }
 
     /**
@@ -170,16 +162,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
-    }
-
-    /**
-     * Build a new fake application.
-     *
-     * @deprecated Use the version without GlobalSettings (since 2.5.0)
-     */
-    @Deprecated
-    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, global);
     }
 
     /**

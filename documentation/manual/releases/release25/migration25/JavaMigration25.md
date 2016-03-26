@@ -124,7 +124,7 @@ APIs that use `F.Promise` now use the standard Java 8 [`CompletionStage`](https:
 | `flatMap`           | `thenComposeAsync` (use `HttpExecution#defaultContext()` if needed) |
 | `filter`            | `thenApplyAsync` and implement the filter manually (use `HttpExecution#defaultContext()` if needed) |
 
-These migrations are explained in more detail in the [Javadoc for `F.Promise`](api/java/play/libs/F.Promise.html).
+These migrations are explained in more detail in the Javadoc for `F.Promise`.
 
 ## Replaced `F.Option` with Java 8's `Optional`
 

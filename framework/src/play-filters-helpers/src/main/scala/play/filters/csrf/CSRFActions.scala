@@ -37,7 +37,7 @@ class CSRFAction(next: EssentialAction,
     errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._
-  import play.api.libs.iteratee.Execution.Implicits.trampoline
+  import play.core.Execution.Implicits.trampoline
 
   private def checkFailed(req: RequestHeader, msg: String): Accumulator[ByteString, Result] =
     Accumulator.done(clearTokenIfInvalid(req, config, errorHandler, msg))
@@ -449,7 +449,7 @@ object CSRFAction {
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 
   private[csrf] def clearTokenIfInvalid(request: RequestHeader, config: CSRFConfig, errorHandler: ErrorHandler, msg: String): Future[Result] = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
 
     errorHandler.handle(request, msg) map { result =>
       CSRF.getToken(request).fold(
@@ -548,7 +548,7 @@ case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner) 
         val requestWithNewToken = CSRFAction.tagRequest(request, Token(config.tokenName, newToken))
 
         // Once done, add it to the result
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         wrapped(requestWithNewToken).map(result =>
           CSRFAction.addTokenToResponse(config, newToken, request, result))
       } else {

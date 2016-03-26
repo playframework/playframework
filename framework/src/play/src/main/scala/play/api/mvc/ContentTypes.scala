@@ -349,7 +349,7 @@ trait BodyParsers {
      */
     def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
       BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         enforceMaxLength(request, maxLength, Accumulator {
           val buffer = RawBuffer(memoryThreshold)
           val sink = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) => bf.push(bs); bf }
@@ -409,7 +409,7 @@ trait BodyParsers {
      */
     def json[A](implicit reader: Reads[A]): BodyParser[A] =
       BodyParser("json reader") { request =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         json(request) mapFuture {
           case Left(simpleResult) =>
             Future.successful(Left(simpleResult))
@@ -444,7 +444,7 @@ trait BodyParsers {
      */
     def form[A](form: Form[A], maxLength: Option[Long] = None, onErrors: Form[A] => Result = (formErrors: Form[A]) => Results.BadRequest): BodyParser[A] =
       BodyParser { requestHeader =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         anyContent(maxLength)(requestHeader).map { resultOrBody =>
           resultOrBody.right.flatMap { body =>
             form
@@ -529,7 +529,7 @@ trait BodyParsers {
      * @param to The file used to store the content.
      */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      import play.core.Execution.Implicits.trampoline
       Accumulator(StreamConverters.fromOutputStream(() => new FileOutputStream(to))).map(_ => Right(to))
     }
 
@@ -538,7 +538,7 @@ trait BodyParsers {
      */
     def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
       val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
-      file(tempFile.file)(request).map(_ => Right(tempFile))(play.api.libs.iteratee.Execution.trampoline)
+      file(tempFile.file)(request).map(_ => Right(tempFile))(play.core.Execution.Implicits.trampoline)
     }
 
     // -- FormUrlEncoded
@@ -606,7 +606,7 @@ trait BodyParsers {
      * Guess the body content by checking the Content-Type header.
      */
     def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      import play.core.Execution.Implicits.trampoline
 
       def maxLengthOrDefault = maxLength.fold(DefaultMaxTextLength)(_.toInt)
       def maxLengthOrDefaultLarge = maxLength.getOrElse(DefaultMaxDiskLength)
@@ -670,7 +670,7 @@ trait BodyParsers {
      * @param parser The BodyParser to wrap
      */
     def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      import play.core.Execution.Implicits.trampoline
       val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
 
       // Apply the request
@@ -691,7 +691,7 @@ trait BodyParsers {
      * A body parser that always returns an error.
      */
     def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error") { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      import play.core.Execution.Implicits.trampoline
       Accumulator.done(result.map(Left.apply))
     }
 
@@ -710,7 +710,7 @@ trait BodyParsers {
         if (predicate(request)) {
           parser(request)
         } else {
-          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          import play.core.Execution.Implicits.trampoline
           Accumulator.done(badResult(request).map(Left.apply))
         }
       }
@@ -726,7 +726,7 @@ trait BodyParsers {
     private[play] def enforceMaxLength[A](request: RequestHeader, maxLength: Long, accumulator: Accumulator[ByteString, Either[Result, A]]): Accumulator[ByteString, Either[Result, A]] = {
       val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
       Accumulator(takeUpToFlow.toMat(accumulator.toSink) { (statusFuture, resultFuture) =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         val defaultCtx = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
         statusFuture.flatMap {
@@ -748,7 +748,7 @@ trait BodyParsers {
      */
     private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, ByteString) => A): BodyParser[A] =
       BodyParser(name + ", maxLength=" + maxLength) { request =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
 
         enforceMaxLength(request, maxLength, Accumulator(
           Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)

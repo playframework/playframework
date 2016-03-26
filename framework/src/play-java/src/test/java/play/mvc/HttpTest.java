@@ -34,7 +34,6 @@ import org.junit.Test;
 import javax.validation.Validator;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.Play.langCookieName;
 
 /**
  * Tests for the Http class. This test is in the play-java project
@@ -47,7 +46,7 @@ public class HttpTest {
     private String responseLangCookie(Context ctx) {
         String value = null;
         for (Cookie c : ctx.response().cookies()) {
-          if (c.name().equals(Play.langCookieName())) {
+          if (c.name().equals(Play.application().injector().instanceOf(MessagesApi.class).langCookieName())) {
             value = c.value();
           }
         }

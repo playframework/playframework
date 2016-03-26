@@ -198,12 +198,8 @@ object PlayBuild extends Build {
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-  lazy val IterateesProject = PlayCrossBuiltProject("Play-Iteratees", "iteratees")
-    .settings(libraryDependencies ++= iterateesDependencies)
-
   lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
     .settings(libraryDependencies ++= streamsDependencies)
-    .dependsOn(IterateesProject)
 
   lazy val FunctionalProject = PlayCrossBuiltProject("Play-Functional", "play-functional")
 
@@ -211,7 +207,7 @@ object PlayBuild extends Build {
 
   lazy val JsonProject = PlayCrossBuiltProject("Play-Json", "play-json")
     .settings(libraryDependencies ++= jsonDependencies(scalaVersion.value))
-    .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
+    .dependsOn(FunctionalProject, DataCommonsProject)
 
   lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
@@ -247,7 +243,6 @@ object PlayBuild extends Build {
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
       BuildLinkProject,
-      IterateesProject % "test->test;compile->compile",
       JsonProject,
       PlayNettyUtilsProject,
       StreamsProject
@@ -256,8 +251,7 @@ object PlayBuild extends Build {
   lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)
     .dependsOn(
-      PlayProject,
-      IterateesProject % "test->test;compile->compile"
+      PlayProject
     )
 
   lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
@@ -424,7 +418,6 @@ object PlayBuild extends Build {
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     BuildLinkProject,
-    IterateesProject,
     FunctionalProject,
     DataCommonsProject,
     JsonProject,

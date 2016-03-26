@@ -12,7 +12,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import play.api.libs.streams.Streams;
 import play.http.HttpEntity;
 import play.libs.Json;
 import scala.Option;
@@ -236,22 +235,6 @@ public class StatusHeader extends Result {
      */
     public Result chunked(Source<ByteString, ?> chunks) {
         return new Result(status(), HttpEntity.chunked(chunks, Optional.empty()));
-    }
-
-    /**
-     * Send a chunked response with the given chunks.
-     *
-     * @deprecated Use {@link #chunked(Source)} instead.
-     * @param chunks Deprecated
-     * @param <T> Deprecated
-     * @return Deprecated
-     */
-    public <T> Result chunked(Results.Chunks<T> chunks) {
-        return new Result(status(), HttpEntity.chunked(
-                Source.fromPublisher(Streams.<T>enumeratorToPublisher(chunks.enumerator, Option.<T>empty()))
-                        .<ByteString>map(t -> chunks.writable.transform().apply(t)),
-                OptionConverters.toJava(chunks.writable.contentType())
-        ));
     }
 
     /**

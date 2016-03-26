@@ -4,7 +4,6 @@
 package play.libs.concurrent;
 
 import play.libs.F;
-import play.libs.F.Promise;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +27,7 @@ public class Futures {
      * @param promises The promises to combine
      * @return A single promise whose methods act on the list of redeemed promises
      */
-    public static <A> Promise<List<A>> sequence(Iterable<? extends CompletionStage<A>> promises) {
+    public static <A> CompletionStage<List<A>> sequence(Iterable<? extends CompletionStage<A>> promises) {
         CompletableFuture<List<A>> result = CompletableFuture.completedFuture(new ArrayList<>());
         for (CompletionStage<A> promise: promises) {
             result = result.thenCombine(promise, (list, a) -> {
@@ -36,7 +35,7 @@ public class Futures {
                 return list;
             });
         }
-        return Promise.wrap(result);
+        return result;
     }
 
     /**
@@ -47,7 +46,7 @@ public class Futures {
      * @param promises The promises to combine
      * @return A single promise whose methods act on the list of redeemed promises
      */
-    public static <A> Promise<List<A>> sequence(CompletionStage<A>... promises) {
+    public static <A> CompletionStage<List<A>> sequence(CompletionStage<A>... promises) {
         return sequence(Arrays.asList(promises));
     }
 
@@ -58,7 +57,7 @@ public class Futures {
      * @param delay The delay (expressed with the corresponding unit).
      * @param unit The Unit.
      */
-    public static <A> Promise<A> timeout(A message, long delay, TimeUnit unit) {
+    public static <A> CompletionStage<A> timeout(A message, long delay, TimeUnit unit) {
         CompletableFuture<A> future = new CompletableFuture<>();
         timer.schedule(new TimerTask() {
             @Override
@@ -66,7 +65,7 @@ public class Futures {
                 future.complete(message);
             }
         }, unit.toMillis(delay));
-        return Promise.wrap(future);
+        return future;
     }
 
     /**
@@ -79,7 +78,7 @@ public class Futures {
      * @param unit The Unit.
      * @return a promise without a real value
      */
-    public static Promise<Void> timeout(long delay, TimeUnit unit) {
+    public static CompletionStage<Void> timeout(long delay, TimeUnit unit) {
         return timeout(null, delay, unit).thenApply(n -> {
             throw new F.PromiseTimeoutException("Timeout in promise");
         });
@@ -94,7 +93,7 @@ public class Futures {
      * @param unit The units to use for the delay.
      * @param executor The executor to run the supplier in.
      */
-    public static <A> Promise<A> delayed(Supplier<A> supplier, long delay, TimeUnit unit, Executor executor) {
+    public static <A> CompletionStage<A> delayed(Supplier<A> supplier, long delay, TimeUnit unit, Executor executor) {
         CompletableFuture<A> future = new CompletableFuture<>();
         timer.schedule(new TimerTask() {
             @Override
@@ -102,6 +101,6 @@ public class Futures {
                 executor.execute(() -> future.complete(supplier.get()));
             }
         }, unit.toMillis(delay));
-        return Promise.wrap(future);
+        return future;
     }
 }

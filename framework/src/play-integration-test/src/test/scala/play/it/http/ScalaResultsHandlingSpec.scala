@@ -10,7 +10,6 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
-import play.api.libs.iteratee._
 import play.api.libs.EventSource
 import play.it._
 import scala.util.Try

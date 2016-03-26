@@ -7,7 +7,6 @@ import akka.util.ByteString
 import org.specs2.mutable._
 import play.api.http.{ HttpEntity, Writeable }
 import play.api.mvc.Results
-import play.core.j.JavaResults
 import play.mvc.{ Results => JResults }
 
 object TemplatesSpec extends Specification {
@@ -24,11 +23,6 @@ object TemplatesSpec extends Specification {
 
     "have body trimmed by implicit Writeable" in {
       val writeable = implicitly[Writeable[Xml]]
-      string(writeable.transform(xml)) must_== "xml"
-    }
-
-    "have body trimmed by JavaResults.writeContent" in {
-      val writeable = JavaResults.writeContent(xml.contentType)
       string(writeable.transform(xml)) must_== "xml"
     }
 

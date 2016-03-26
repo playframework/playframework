@@ -58,7 +58,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
     logger.trace("Http request received by netty: " + request)
 
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
 
     val requestId = RequestIdProvider.requestIDs.incrementAndGet()
     val tryRequest = modelConversion.convertRequest(requestId,
@@ -95,7 +95,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
       //execute normal action
       case Right((action: EssentialAction, app)) =>
         val recovered = EssentialAction { rh =>
-          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          import play.core.Execution.Implicits.trampoline
           action(rh).recoverWith {
             case error => app.errorHandler.onServerError(rh, error)
           }
@@ -112,7 +112,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
         val executed = Future(ws(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         executed.flatMap(identity).flatMap {
           case Left(result) =>
             // WebSocket was rejected, send result
@@ -162,7 +162,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         // Do essentially the same thing that the mapAsync call in NettyFlowHandler is doing
         val future: Future[HttpResponse] = handle(ctx.channel(), req)
 
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
         lastResponseSent = lastResponseSent.flatMap { _ =>
           // Need an explicit cast to Future[Unit] to help scalac out.
           val f: Future[Unit] = future.map { httpResponse =>
@@ -247,7 +247,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   private def handleAction(action: EssentialAction, requestHeader: RequestHeader,
     request: HttpRequest, app: Option[Application]): Future[HttpResponse] = {
     implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
 
     val body = modelConversion.convertRequestBody(request)
     val bodyParser = action(requestHeader)

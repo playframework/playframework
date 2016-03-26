@@ -4,14 +4,10 @@
 package play.core.server.common
 
 import org.specs2.mutable.Specification
-import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
-import play.api.http.HeaderNames._
-import play.api.libs.iteratee._
-import scala.concurrent.{ Future, Promise }
 
-object ServerResultUtilsSpec extends Specification with IterateeSpecification {
+object ServerResultUtilsSpec extends Specification {
 
   case class CookieRequestHeader(cookie: Option[(String, String)]) extends RequestHeader {
     def id = 1
