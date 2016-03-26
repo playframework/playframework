@@ -247,7 +247,7 @@ To migrate, you'll need to replace your `Iteratee` with an `Accumulator` and you
 
 ### Migrating `Result` bodies (Scala only)
 
-The `Result` object has changed how it represents thre result body and the connection close flag. Instead of taking `body: Enumerator[Array[Byte]], connection: Connection`, it now takes `body: HttpEntity`. The `HttpEntity` type contains information about the body and implicit information about how to close the connection.
+The `Result` object has changed how it represents the result body and the connection close flag. Instead of taking `body: Enumerator[Array[Byte]], connection: Connection`, it now takes `body: HttpEntity`. The `HttpEntity` type contains information about the body and implicit information about how to close the connection.
 
 You can migrate your existing `Enumerator` by using a `Streamed` entity that contains a `Source` and an optional `Content-Length` and `Content-Type` header.
 
