@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Additional configuration
+# Production Configuration
 
 There are a number of different types of configuration that you can configure in production.  The three mains types are:
 
