@@ -25,10 +25,10 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.1")
+  ).map(_ % "2.7.3")
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.16")
-  val logback = Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.4")
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.19")
+  val logback = Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.6")
 
   val guava = "com.google.guava" % "guava" % "19.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
@@ -37,7 +37,7 @@ object Dependencies {
   val h2database = "com.h2database" % "h2" % "1.4.191"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.12.1.1"
 
-  val acolyteVersion = "1.0.34-j7p"
+  val acolyteVersion = "1.0.36-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
@@ -61,12 +61,12 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.2.4.RELEASE"
+  val springFrameworkVersion = "4.2.5.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    "org.yaml" % "snakeyaml" % "1.16",
+    "org.yaml" % "snakeyaml" % "1.17",
     "org.hibernate" % "hibernate-validator" % "5.2.4.Final",
     "javax.el"      % "javax.el-api"        % "3.0.0", // required by hibernate-validator
 
@@ -93,7 +93,7 @@ object Dependencies {
     guava,
     findBugs,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.32"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
   ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -230,7 +230,7 @@ object Dependencies {
   )
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.2.2"
+    "com.typesafe.play" %% "play-doc" % "1.4.0"
   ) ++ playdocWebjarDependencies
 
   val iterateesDependencies = Seq(
