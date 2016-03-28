@@ -8,6 +8,7 @@ import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import play.libs.F;
+import play.mvc.Http;
 import play.mvc.Results;
 import play.mvc.WebSocket;
 import scala.compat.java8.FutureConverters;
@@ -35,20 +36,26 @@ public class WebSocketSpecJavaActions {
     }
 
     public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {
+        ensureContext();
         return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(getChunks(messages::success), emptySource()));
     }
 
     public static WebSocket allowSendingMessages(List<String> messages) {
+        ensureContext();
         return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), Source.from(messages)));
     }
 
     public static WebSocket closeWhenTheConsumerIsDone() {
+        ensureContext();
         return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.cancelled(), emptySource()));
     }
 
     public static WebSocket allowRejectingAWebSocketWithAResult(int statusCode) {
+        ensureContext();
         return WebSocket.Text.acceptOrResult(request -> CompletableFuture.completedFuture(F.Either.Left(Results.status(statusCode))));
     }
 
-
+    private static Http.Context ensureContext() {
+        return Http.Context.current();
+    }
 }
