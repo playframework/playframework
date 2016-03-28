@@ -6,7 +6,8 @@ package play.core.server
 import com.typesafe.config.ConfigFactory
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 import java.net.InetSocketAddress
-import java.util.concurrent.Executors
+import java.util.concurrent.{ Executors, TimeUnit }
+
 import org.jboss.netty.bootstrap._
 import org.jboss.netty.channel._
 import org.jboss.netty.channel.Channels._
@@ -14,14 +15,17 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.logging.LoggingHandler
 import org.jboss.netty.handler.ssl._
+import org.jboss.netty.handler.timeout.IdleStateHandler
 import org.jboss.netty.logging.InternalLogLevel
+import org.jboss.netty.util.HashedWheelTimer
 import play.api._
-import play.api.mvc.{ RequestHeader, Handler }
+import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
 import play.core._
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
+
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import scala.util.Success
@@ -80,7 +84,7 @@ class NettyServer(
     serverBootstrap
   }
 
-  private class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
+  private class PlayPipelineFactory(port: Int, secure: Boolean = false) extends ChannelPipelineFactory {
 
     private val logger = Logger(classOf[PlayPipelineFactory])
 
@@ -104,6 +108,15 @@ class NettyServer(
         newPipeline.addLast("logging", new LoggingHandler(InternalLogLevel.DEBUG))
       }
       newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
+      val idleTimeoutMs = if (secure) {
+        config.configuration.getMilliseconds("play.server.https.idleTimeout")
+      } else {
+        config.configuration.getMilliseconds("play.server.http.idleTimeout")
+      }
+      idleTimeoutMs.foreach { idleTimeout =>
+        logger.trace(s"using idle timeout of $idleTimeout ms on port $port")
+        newPipeline.addLast("idle-handler", new IdleStateHandler(new HashedWheelTimer(), idleTimeout, idleTimeout, idleTimeout, TimeUnit.MILLISECONDS))
+      }
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
@@ -128,7 +141,7 @@ class NettyServer(
   // The HTTP server channel
   private val httpChannel = config.port.map { port =>
     val bootstrap = newBootstrap
-    bootstrap.setPipelineFactory(new PlayPipelineFactory)
+    bootstrap.setPipelineFactory(new PlayPipelineFactory(port))
     val channel = bootstrap.bind(new InetSocketAddress(config.address, port))
     allChannels.add(channel)
     (bootstrap, channel)
@@ -137,7 +150,7 @@ class NettyServer(
   // Maybe the HTTPS server channel
   private val httpsChannel = config.sslPort.map { port =>
     val bootstrap = newBootstrap
-    bootstrap.setPipelineFactory(new PlayPipelineFactory(secure = true))
+    bootstrap.setPipelineFactory(new PlayPipelineFactory(port, secure = true))
     val channel = bootstrap.bind(new InetSocketAddress(config.address, port))
     allChannels.add(channel)
     (bootstrap, channel)

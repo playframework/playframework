@@ -363,8 +363,8 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$rRemoteAddress$1"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$tryToCreateRequest$1"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$rSecure$1"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$createRequestHeader$1")
-
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$createRequestHeader$1"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.NettyServer#PlayPipelineFactory.this")
       )
     )
     .dependsOn(PlayServerProject)

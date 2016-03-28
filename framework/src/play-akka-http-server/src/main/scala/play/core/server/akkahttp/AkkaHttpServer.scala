@@ -9,15 +9,19 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.{ ByteString, Timeout }
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
+
+import akka.http.ServerSettings
 import org.reactivestreams._
 import play.api._
-import play.api.http.{ HttpRequestHandler, DefaultHttpErrorHandler, HeaderNames, MediaType }
+import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpRequestHandler, MediaType }
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.core.ApplicationProvider
 import play.core.server._
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
+
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
@@ -47,9 +51,16 @@ class AkkaHttpServer(
   val address: InetSocketAddress = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
-    // TODO: pass in Inet.SocketOption, ServerSettings and LoggerAdapter params?
+    val initialSettings = ServerSettings(system)
+    val idleTimeout = config.configuration.getMilliseconds("play.server.http.idleTimeout")
+      .map(ms => Duration.apply(ms, TimeUnit.MILLISECONDS)).getOrElse(initialSettings.timeouts.idleTimeout)
+    // TODO - Akka doesn't seem to support idle timeout yet - StreamTcpManager ignores the idle timeout value in Connect/Bind
+    // TODO - support separate play.server.https.idleTimeout when ssl is supported
+    val serverSettings = initialSettings //.copy(timeouts = initialSettings.timeouts.copy(idleTimeout = idleTimeout))
+
+    // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
-      Http().bind(interface = config.address, port = config.port.get)
+      Http().bind(interface = config.address, port = config.port.get, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
       connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _))
