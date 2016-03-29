@@ -5,6 +5,7 @@ package play.core.server
 
 import java.io.IOException
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -22,6 +23,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
+import io.netty.handler.timeout.IdleStateHandler
 import play.api._
 import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
@@ -143,7 +145,7 @@ class NettyServer(
   /**
    * Create a sink for the incoming connection channels.
    */
-  private def channelSink(secure: Boolean): Sink[Channel, Future[Done]] = {
+  private def channelSink(port: Int, secure: Boolean): Sink[Channel, Future[Done]] = {
     Sink.foreach[Channel] { (connChannel: Channel) =>
 
       // Setup the channel for explicit reads
@@ -172,6 +174,17 @@ class NettyServer(
       pipeline.addLast("decompressor", new HttpContentDecompressor())
       if (logWire) {
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
+      }
+
+      val idleTimeoutMs = if (secure) {
+        config.configuration.getMilliseconds("play.server.https.idleTimeout")
+      } else {
+        config.configuration.getMilliseconds("play.server.http.idleTimeout")
+      }
+      idleTimeoutMs.foreach { idleTimeout =>
+        logger.trace(s"using idle timeout of $idleTimeout ms on port $port")
+        // only timeout if both reader and writer have been idle for the specified time
+        pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, idleTimeout, TimeUnit.MILLISECONDS))
       }
 
       val requestHandler = new PlayRequestHandler(this)
@@ -209,7 +222,7 @@ class NettyServer(
     val protocolName = if (secure) "HTTPS" else "HTTP"
     val address = new InetSocketAddress(config.address, port)
     val (serverChannel, channelSource) = bind(address)
-    channelSource.runWith(channelSink(secure = secure))
+    channelSource.runWith(channelSink(port = port, secure = secure))
     val boundAddress = serverChannel.localAddress()
     if (boundAddress == null) {
       val e = new ServerListenException(protocolName, address)

@@ -3,8 +3,12 @@
  */
 package play.it.http
 
-import java.net.{ SocketTimeoutException, Socket }
+import java.net.{ Socket, SocketTimeoutException }
 import java.io._
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
+
 import play.api.test.Helpers._
 import org.apache.commons.io.IOUtils
 
@@ -21,10 +25,11 @@ object BasicHttpClient {
    * @param checkClosed Whether to check if the channel is closed after receiving the responses
    * @param trickleFeed A timeout to use between sending request body chunks
    * @param requests The requests to make
+   * @param secure Whether to use HTTPS
    * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
    */
-  def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
-    val client = new BasicHttpClient(port)
+  def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None, secure: Boolean = false)(requests: BasicRequest*): Seq[BasicResponse] = {
+    val client = new BasicHttpClient(port, secure)
     try {
       var requestNo = 0
       val responses = requests.flatMap { request =>
@@ -51,7 +56,7 @@ object BasicHttpClient {
   }
 
   def pipelineRequests(port: Int, requests: BasicRequest*): Seq[BasicResponse] = {
-    val client = new BasicHttpClient(port)
+    val client = new BasicHttpClient(port, secure = false)
 
     try {
       var requestNo = 0
@@ -68,11 +73,21 @@ object BasicHttpClient {
   }
 }
 
-class BasicHttpClient(port: Int) {
-  val s = new Socket("localhost", port)
+class BasicHttpClient(port: Int, secure: Boolean) {
+  val s = createSocket
   s.setSoTimeout(5000)
   val out = new OutputStreamWriter(s.getOutputStream)
   val reader = new BufferedReader(new InputStreamReader(s.getInputStream))
+
+  protected def createSocket = {
+    if (!secure) {
+      new Socket("localhost", port)
+    } else {
+      val ctx = SSLContext.getInstance("TLS")
+      ctx.init(null, Array(new MockTrustManager()), null)
+      ctx.getSocketFactory.createSocket("localhost", port)
+    }
+  }
 
   /**
    * Send a request
@@ -253,3 +268,15 @@ case class BasicResponse(version: String, status: Int, reasonPhrase: String, hea
  */
 case class BasicRequest(method: String, uri: String, version: String, headers: Map[String, String], body: String)
 
+/**
+ * A TrustManager that trusts everything
+ */
+class MockTrustManager() extends X509TrustManager {
+  val nullArray = Array[X509Certificate]()
+
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+
+  def getAcceptedIssuers = nullArray
+}

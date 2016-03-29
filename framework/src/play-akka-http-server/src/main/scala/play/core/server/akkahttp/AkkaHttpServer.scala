@@ -15,16 +15,20 @@ import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
+
+import akka.http.scaladsl.settings.ServerSettings
 import akka.util.ByteString
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
-import play.api.libs.streams.{ MaterializeOnDemandPublisher, Accumulator }
+import play.api.libs.streams.{ Accumulator, MaterializeOnDemandPublisher }
 import play.api.mvc._
 import play.core.ApplicationProvider
 import play.core.server._
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
+
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
@@ -51,12 +55,23 @@ class AkkaHttpServer(
   implicit val system = actorSystem
   implicit val mat = materializer
 
-  private def createServerBinding(port: Int, connectionContext: ConnectionContext): Http.ServerBinding = {
+  private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
-    // TODO: pass in Inet.SocketOption, ServerSettings and LoggerAdapter params?
+    val initialSettings = ServerSettings(system)
+    val idleTimeout: Duration = (if (secure) {
+      config.configuration.getMilliseconds("play.server.https.idleTimeout")
+    } else {
+      config.configuration.getMilliseconds("play.server.http.idleTimeout")
+    }).map { timeoutMS =>
+      logger.trace(s"using idle timeout of $timeoutMS` ms on port $port")
+      Duration.apply(timeoutMS, TimeUnit.MILLISECONDS)
+    }.getOrElse(initialSettings.timeouts.idleTimeout)
+    val serverSettings = initialSettings.withTimeouts(initialSettings.timeouts.withIdleTimeout(idleTimeout))
+
+    // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
-      Http().bind(interface = config.address, port = port, connectionContext = connectionContext)
+      Http().bind(interface = config.address, port = port, connectionContext = connectionContext, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
       connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, connectionContext.isSecure))
@@ -68,7 +83,7 @@ class AkkaHttpServer(
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption()))
+  private val httpServerBinding = config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
 
   private val httpsServerBinding = config.sslPort.map { port =>
     val connectionContext = try {
@@ -84,7 +99,7 @@ class AkkaHttpServer(
         logger.error(s"Cannot load SSL context", e)
         ConnectionContext.noEncryption()
     }
-    createServerBinding(port, connectionContext)
+    createServerBinding(port, connectionContext, secure = true)
   }
 
   // Each request needs an id
