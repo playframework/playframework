@@ -2,6 +2,10 @@
 // Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 //
 
+// Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+fullResolvers := Resolver.defaultLocal +: fullResolvers.value
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+
 name := "dist-sample"
 
 version := "1.0-SNAPSHOT"

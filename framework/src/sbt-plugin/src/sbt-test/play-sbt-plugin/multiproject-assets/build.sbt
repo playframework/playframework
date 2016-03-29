@@ -5,6 +5,10 @@
 import java.net.URLClassLoader
 import com.typesafe.sbt.packager.Keys.executableScriptName
 
+// Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+fullResolvers := Resolver.defaultLocal +: fullResolvers.value
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+
 name := "assets-sample"
 
 version := "1.0-SNAPSHOT"

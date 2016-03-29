@@ -4,7 +4,7 @@
 
 import play.sbt.PlayScala
 import sbt._
-import Keys._
+import sbt.Keys._
 
 object ApplicationBuild extends Build {
 
@@ -49,6 +49,10 @@ object ApplicationBuild extends Build {
   }
 
   val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
+    // Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+    fullResolvers := Resolver.defaultLocal +: fullResolvers.value,
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+
     version := appVersion,
     extraLoggers ~= { currentFunction =>
       (key: ScopedKey[_]) => {

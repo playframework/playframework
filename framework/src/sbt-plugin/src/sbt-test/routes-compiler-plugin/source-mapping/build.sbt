@@ -3,6 +3,10 @@
 //
 import scala.reflect._
 
+// Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+fullResolvers := Resolver.defaultLocal +: fullResolvers.value
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.11.7")
