@@ -15,16 +15,17 @@ import io.netty.handler.codec.http.HttpHeaders.Names
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
+import io.netty.handler.timeout.IdleStateEvent
 import play.api.{ Application, Logger }
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, Status, HeaderNames }
+import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpErrorHandler, Status }
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{ RequestHeader, Results, WebSocket, EssentialAction }
+import play.api.mvc.{ EssentialAction, RequestHeader, Results, WebSocket }
 import play.core.server.NettyServer
-import play.core.server.common.{ ServerResultUtils, ForwardedHeaderHandler }
+import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import play.core.system.RequestIdProvider
 
 import scala.concurrent.Future
-import scala.util.{ Success, Failure }
+import scala.util.{ Failure, Success }
 
 private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
@@ -226,6 +227,15 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     // this method is called when the channel is registered with the event loop,
     // so ctx.read is automatically safe here w/o needing an isRegistered().
     ctx.read()
+  }
+
+  override def userEventTriggered(ctx: ChannelHandlerContext, evt: scala.Any): Unit = {
+    evt match {
+      case idle: IdleStateEvent if ctx.channel().isOpen =>
+        logger.trace(s"Closing connection due to idle timeout")
+        ctx.close()
+      case _ => super.userEventTriggered(ctx, evt)
+    }
   }
 
   //----------------------------------------------------------------
