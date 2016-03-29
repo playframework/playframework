@@ -59,7 +59,7 @@ object Play {
    * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI", "2.5.0")
-  def unsafeApplication: Application = _currentApp
+  def unsafeApplication: Application = privateMaybeApplication.orNull
 
   /**
    * Optionally returns the current running application.
@@ -67,12 +67,18 @@ object Play {
    * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
-  def maybeApplication: Option[Application] = Option(_currentApp)
+  def maybeApplication: Option[Application] = privateMaybeApplication
 
-  private[play] def privateMaybeApplication: Option[Application] = Option(_currentApp)
+  private[play] def privateMaybeApplication: Option[Application] = {
+    Option(_currentApp) match {
+      case Some(app) if !app.configuration.getBoolean("play.globalApplication").getOrElse(true) =>
+        sys.error("The global application is disabled. Set play.globalApplication to allow global state here")
+      case opt => opt
+    }
+  }
 
   /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
-  def routesCompilerMaybeApplication: Option[Application] = Option(_currentApp)
+  def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication
 
   /**
    * Implicitly import the current running application in the context.
@@ -85,7 +91,7 @@ object Play {
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
 
-  @volatile private[play] var _currentApp: Application = _
+  @volatile private var _currentApp: Application = _
 
   /**
    * Starts this application.
