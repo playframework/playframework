@@ -31,7 +31,7 @@ You can download Activator from [https://playframework.com/download](https://pla
 
 [[images/download.png]]
 
-The "offline distribution" comes with all of Activator's possible dependencies included.  It's a much larger initial download, but installing the offline distribution means that that starting up a new Play project is **much** faster, as all the dependencies are already resolved.
+The "offline distribution" comes with all of Activator's possible dependencies included.  It's a much larger initial download, but installing the offline distribution means that starting up a new Play project is **much** faster, as all the dependencies are already resolved.
 
 ### Extracting Activator
 

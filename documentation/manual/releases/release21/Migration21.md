@@ -42,7 +42,7 @@ If any compilation errors cropped up, this document will help you figure out wha
 
 Because Play 2.1 introduces further modularization, you now have to explicitly specify the dependencies your application needs. By default any `play.Project` will only contain a dependency to the core Play library.  You have to select the exact set of optional dependencies your application need.  Here are the new modularized dependencies in **Play 2.1**:
 
-- `jdbc` : The **JDBC** connection pool and the the `play.api.db` API.
+- `jdbc` : The **JDBC** connection pool and the `play.api.db` API.
 - `anorm` : The **Anorm** component.
 - `javaCore` : The core **Java** API.
 - `javaJdbc` : The Java database API.

@@ -27,7 +27,7 @@ play.http.filters = "filters.MyFilters"
 
 Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/package.html) package.
 
-The filter will set headers in the HTTP response automatically.  The settings can can be configured through the following settings in `application.conf`
+The filter will set headers in the HTTP response automatically.  The settings can be configured through the following settings in `application.conf`
 
 * `play.filters.headers.frameOptions` - sets [X-Frame-Options](https://developer.mozilla.org/en-US/docs/HTTP/X-Frame-Options), "DENY" by default.
 * `play.filters.headers.xssProtection` - sets [X-XSS-Protection](https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/), "1; mode=block" by default.

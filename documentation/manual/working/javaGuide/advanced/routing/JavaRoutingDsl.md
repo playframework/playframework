@@ -13,7 +13,7 @@ A simple example of the DSL's use is:
 
 @[simple](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
-The `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT` and `DELETE` are supported.
+The `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT` and `DELETE` are supported.
 
 Like Play's compiled router, the DSL also supports matching multi path segment parameters, this is done by prefixing the parameter with `*`:
 
