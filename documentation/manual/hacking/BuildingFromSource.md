@@ -15,7 +15,7 @@ From the shell, first checkout the Play source:
 $ git clone git://github.com/playframework/playframework.git
 ```
 
-Checkout the the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.4.x`.
+Checkout the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.4.x`.
 
 Now go to the `framework` directory and run `sbt`:
 
