@@ -95,6 +95,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
 ```
 
 This demonstrates a few useful features:
+
 - It uses `RollingFileAppender` which can help manage growing log files.
 - It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
