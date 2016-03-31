@@ -91,8 +91,3 @@ Thanks to various performance optimizations, Play 2.5's performance testing fram
 ## WS Improvements
 
 Play WS has been upgraded to AsyncHttpClient 2.0, and now includes a request pipeline filter ([[Scala|ScalaWS#Request-Filters]], [[Java|JavaWS#Request-Filters]]) that can be used to log requests in [cURL format](https://curl.haxx.se/docs/manpage.html).  
-
-## ScalaTest Improvements
-
-Play has upgraded to [Scalatest 3.0](http://scalatest.org/release_notes/3.0.0) as the default Scala testing framework and example ScalaTests included with the seed templates.  For more information, please see [[Testing your Application with ScalaTest|ScalaTestingWithScalaTest]].
-
