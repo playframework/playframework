@@ -11,7 +11,7 @@ object AssetsSpec extends Specification {
 
   "Assets controller" should {
 
-    "look up assets with the the correct resource name" in {
+    "look up assets with the correct resource name" in {
       Assets.resourceNameAt("a", "") must beNone
       Assets.resourceNameAt("a", "b") must beNone
       Assets.resourceNameAt("a", "/") must beNone
