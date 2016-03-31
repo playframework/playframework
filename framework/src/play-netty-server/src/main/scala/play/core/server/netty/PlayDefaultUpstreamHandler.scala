@@ -7,13 +7,12 @@ import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
-import org.jboss.netty.handler.codec.http.websocketx.{ WebSocketFrame, TextWebSocketFrame, BinaryWebSocketFrame }
+import org.jboss.netty.handler.codec.http.websocketx.{ BinaryWebSocketFrame, TextWebSocketFrame, WebSocketFrame }
 import org.jboss.netty.handler.codec.frame.TooLongFrameException
 import org.jboss.netty.handler.ssl._
-
 import org.jboss.netty.channel.group._
 import play.api._
-import play.api.http.{ HttpErrorHandler, DefaultHttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -21,15 +20,19 @@ import play.core.server.Server
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 import play.core.system.RequestIdProvider
 import play.core.websocket._
+
 import scala.collection.JavaConverters._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
+
 import scala.concurrent.Future
 import java.net.{ InetSocketAddress, URI }
 import java.io.IOException
-import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
-private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
+import org.jboss.netty.handler.timeout.{ IdleStateAwareChannelUpstreamHandler, IdleStateEvent }
+
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends IdleStateAwareChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   import PlayDefaultUpstreamHandler._
 
@@ -44,6 +47,14 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     response.headers().set(Names.CONNECTION, "close")
     response.headers().set(Names.CONTENT_LENGTH, "0")
     ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+  }
+
+  override def channelIdle(ctx: ChannelHandlerContext, e: IdleStateEvent): Unit = {
+    // currently we don't differentiate between reader/writer/all idle and just close the channel in all cases
+    if (e.getChannel.isOpen) {
+      logger.trace(s"Closing connection due to idle timeout. No activity in ${(System.currentTimeMillis() - e.getLastActivityTimeMillis)} ms")
+      e.getChannel.close()
+    }
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent): Unit = {
