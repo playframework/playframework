@@ -198,7 +198,7 @@ ProxyPassReverse / http://localhost:9998
 
 Play supports various forwarded headers used by proxies to indicate the incoming IP address and protocol of requests. Play uses this configuration to calculate the correct value for the `remoteAddress` and `secure` fields of `RequestHeader`.
 
-It is trivial for an HTTP client, whether it's a browser or other client, to forge forwarded headers, thereby spoofing the IP address and protocol that Play reports, consequently, Play needs to know which proxies are trusted. Play provides a configuration option to configure a list of trusted proxies, and will validate the incoming forwarded headers to verify that they are trusted, taking the first untrusted IP address that it finds as the reported user remote address (or the the last IP address if all proxies are trusted.)
+It is trivial for an HTTP client, whether it's a browser or other client, to forge forwarded headers, thereby spoofing the IP address and protocol that Play reports, consequently, Play needs to know which proxies are trusted. Play provides a configuration option to configure a list of trusted proxies, and will validate the incoming forwarded headers to verify that they are trusted, taking the first untrusted IP address that it finds as the reported user remote address (or the last IP address if all proxies are trusted.)
 
 To configure the list of trusted proxies, you can configure `play.http.forwarded.trustedProxies`.  This takes a list of IP address or CIDR subnet ranges.  Both IPv4 and IPv6 are supported.  For example:
 

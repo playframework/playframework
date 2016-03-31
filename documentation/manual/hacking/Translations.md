@@ -75,7 +75,7 @@ Copy a markdown page from the Play repository into your project.  It is importan
 
 For example, if you choose to start with `manual/scalaGuide/main/http/ScalaActions.md`, then you need to ensure that it is in `manual/scalaGuide/main/http/ScalaActions.md` in your project.
 
-> **Note:** It may be tempting to start by copying the entire Play manual into your project.  If you do do this, make sure you only copy the markdown files, that you don't copy the code samples as well.  If you copy the code samples, they will override the code samples from Play, and you will lose the benefit of having those code samples automatically maintained for you.
+> **Note:** It may be tempting to start by copying the entire Play manual into your project.  If you do this, make sure you only copy the markdown files, that you don't copy the code samples as well.  If you copy the code samples, they will override the code samples from Play, and you will lose the benefit of having those code samples automatically maintained for you.
 
 Now you can start translating the file.
 

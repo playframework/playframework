@@ -139,7 +139,7 @@ The new Scala JSON API provide great features such as transformation and validat
 
 Play 2.1 provides a new and really powerful filter API allowing to intercept each part of the HTTP request or response, in a fully non-blocking way.
 
-For that, we introduced a new new simpler type replacing the old `Action[A]` type, called `EssentialAction` which is defined as:
+For that, we introduced a new simpler type replacing the old `Action[A]` type, called `EssentialAction` which is defined as:
 
 ```
 RequestHeader => Iteratee[Array[Byte], Result]
