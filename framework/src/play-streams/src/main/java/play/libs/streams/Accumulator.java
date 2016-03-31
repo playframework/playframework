@@ -25,7 +25,7 @@ import java.util.function.Function;
  *
  * An accumulator is a view over an Akka streams Sink that materialises to a future, that is focused on the value of
  * that future, rather than the Stream. This means methods such as <code>map</code>, <code>recover</code> and so on are
- * provided for the the eventually redeemed future value.
+ * provided for the eventually redeemed future value.
  *
  * In order to be in line with the Java ecosystem, the future implementation that this uses for the materialised value
  * of the Sink is java.util.concurrent.CompletionStage, and running this accumulator will yield a CompletionStage. The

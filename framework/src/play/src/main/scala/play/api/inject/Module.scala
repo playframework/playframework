@@ -44,7 +44,7 @@ abstract class Module {
    * Get the bindings provided by this module.
    *
    * Implementations are strongly encouraged to do *nothing* in this method other than provide bindings.  Startup
-   * should be handled in the the constructors and/or providers bound in the returned bindings.  Dependencies on other
+   * should be handled in the constructors and/or providers bound in the returned bindings.  Dependencies on other
    * modules or components should be expressed through constructor arguments.
    *
    * The configuration and environment a provided for the purpose of producing dynamic bindings, for example, if what

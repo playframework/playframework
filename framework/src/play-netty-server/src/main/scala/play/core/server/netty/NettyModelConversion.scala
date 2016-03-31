@@ -261,7 +261,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     response
   }
 
-  /** Whether the the given status may have a content length header or not. */
+  /** Whether the given status may have a content length header or not. */
   private def mayHaveContentLength(status: Int) =
     status != Status.NO_CONTENT && status != Status.NOT_MODIFIED
 

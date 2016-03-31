@@ -75,7 +75,7 @@ object ConcurrentSpec extends Specification
             s :+ e
           }
         }
-        // Concurrent.buffer should buffer elements so that the the
+        // Concurrent.buffer should buffer elements so that the
         // fastEnumerator can complete even though the slowIteratee
         // won't consume anything until it has finished.
         val result =
