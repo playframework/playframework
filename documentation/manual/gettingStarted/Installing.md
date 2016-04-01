@@ -60,7 +60,7 @@ chmod u+x /path/to/activator-x.x.x/activator
 In a command prompt, type:
 
 ```
-setx PATH=%PATH%;"C:\path\to\activator-x.x.x"
+setx PATH=%PATH%;"C:\path\to\activator-x.x.x\bin"
 ```
 
 Note that [setx](https://technet.microsoft.com/en-us/library/cc755104.aspx) is only available on Windows 8 or later -- before that, and you will have to use the [System Properties dialog](https://java.com/en/download/help/path.xml).
