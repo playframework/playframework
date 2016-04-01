@@ -202,7 +202,12 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= iterateesDependencies)
 
   lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
-    .settings(libraryDependencies ++= streamsDependencies)
+    .settings(
+      libraryDependencies ++= streamsDependencies,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.streams.SinkAccumulator.this")
+      )
+    )
     .dependsOn(IterateesProject)
 
   lazy val FunctionalProject = PlayCrossBuiltProject("Play-Functional", "play-functional")
