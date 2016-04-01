@@ -99,7 +99,7 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
     }
 
     // Start scanning through connections starting at the rawConnection that
-    // was made the the Play server.
+    // was made the Play server.
     scan(rawConnection)
   }
 

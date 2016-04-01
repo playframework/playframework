@@ -36,7 +36,7 @@ object Streams {
   /**
    * Adapt a Promise into a Processor, creating an Processor that
    * consumes a single element and publishes it. The Subscriber end
-   * of the the Processor is created with `promiseToSubscriber`. The
+   * of the Processor is created with `promiseToSubscriber`. The
    * Publisher end of the Processor is created with `futureToPublisher`.
    */
   def promiseToProcessor[T](prom: Promise[T]): Processor[T, T] = {
