@@ -4,61 +4,49 @@
 package play.it.http
 
 import java.net.SocketException
+import java.util.Properties
 
 import akka.stream.scaladsl.Sink
-import play.api.Configuration
+import play.api.Mode
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{ EssentialAction, Results }
-import play.api.test.{ FakeApplication, _ }
+import play.api.test._
 import play.it.{ NettyIntegrationSpecification, ServerIntegrationSpecification }
 import play.it.AkkaHttpIntegrationSpecification
 import play.api.libs.streams.Accumulator
-import play.core.server.ServerProvider
-import play.core.server.NettyServerProvider
-import play.core.server.NettyServer
-import play.core.server.ServerProvider.Context
-import play.core.server.akkahttp.AkkaHttpServerProvider
-import play.core.server.akkahttp.AkkaHttpServer
+import play.core.server._
 
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
+import scala.collection.JavaConverters._
 
-object NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification {
-  override def integrationServerProvider: ServerProvider = new NettyServerProvider() with ServerConfigOverride {
-    override def createServer(context: Context): NettyServer = super.createServer(setupContext(context))
-  }
-}
+object NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification
 
-object AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification {
-  override def integrationServerProvider: ServerProvider = new AkkaHttpServerProvider() with ServerConfigOverride {
-    override def createServer(context: Context): AkkaHttpServer = super.createServer(setupContext(context))
-  }
-}
-
-// need to jump through some hoops here to keep binary compatibility for 2.5.x and support different timeouts per test
-// Lightbend Config caches system properties. Ideally play.api.test.TestServer would be changed to allow passing
-// config values when creating the server config
-trait ServerConfigOverride {
-  def setupContext(context: Context) = {
-    val idleConfig = Configuration("play.server.http.idleTimeout" -> System.getProperty("play.server.http.idleTimeout")) ++
-      Option(System.getProperty("play.server.https.idleTimeout"))
-      .map(t => Configuration("play.server.https.idleTimeout" -> t)).getOrElse(Configuration.empty)
-    context.copy(config = context.config.copy(configuration = context.config.configuration ++ idleConfig))
-  }
-}
+object AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
 
 trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
   val httpsPort = 9443
 
   "Play's idle timeout support" should {
-    def withServer[T](httpTimeout: Int, httpsPort: Option[Int] = None, httpsTimeout: Option[Int] = None)(action: EssentialAction)(block: Port => T) = {
+    def withServer[T](httpTimeout: Duration, httpsPort: Option[Int] = None, httpsTimeout: Duration = Duration.Inf)(action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      System.setProperty("play.server.http.idleTimeout", s"${httpTimeout}ms")
-      httpsTimeout.foreach(t => System.setProperty("play.server.https.idleTimeout", s"${t}ms"))
-      running(TestServer(port, sslPort = httpsPort, application = FakeApplication(
-        withRoutes = {
-          case _ => action
-        }
-      ))) {
+      def getTimeout(d: Duration) = d match {
+        case Duration.Inf => "null"
+        case Duration(t, u) => s"${u.toMillis(t)}ms"
+      }
+      val props = new Properties(System.getProperties)
+      props.putAll(Map(
+        "play.server.http.idleTimeout" -> getTimeout(httpTimeout),
+        "play.server.https.idleTimeout" -> getTimeout(httpsTimeout)
+      ).asJava)
+      val serverConfig = ServerConfig(port = Some(port), sslPort = httpsPort, mode = Mode.Test, properties = props)
+      running(play.api.test.TestServer(config = serverConfig,
+        application = new GuiceApplicationBuilder()
+          .routes({
+            case _ => action
+          }).build(),
+        serverProvider = Some(integrationServerProvider))) {
         block(port)
       }
     }
@@ -73,13 +61,13 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses
     }
 
-    "support sub-second timeouts" in withServer(300)(EssentialAction { req =>
+    "support sub-second timeouts" in withServer(300.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 400L) must throwA[SocketException]("Broken pipe|Connection reset")
     }
 
-    "support a separate timeout for https" in withServer(1000, httpsPort = Some(httpsPort), httpsTimeout = Some(400))(EssentialAction { req =>
+    "support a separate timeout for https" in withServer(1.second, httpsPort = Some(httpsPort), httpsTimeout = 400.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val responses = doRequests(port, trickle = 200L)
@@ -90,13 +78,13 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]("Broken pipe|Connection reset")
     }
 
-    "support multi-second timeouts" in withServer(1500)(EssentialAction { req =>
+    "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 1600L) must throwA[SocketException]("Broken pipe|Connection reset")
     }
 
-    "not timeout for slow requests with a sub-second timeout" in withServer(700)(EssentialAction { req =>
+    "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val responses = doRequests(port, trickle = 400L)
@@ -105,7 +93,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses(1).status must_== 200
     }
 
-    "not timeout for slow requests with a multi-second timeout" in withServer(1500)(EssentialAction { req =>
+    "not timeout for slow requests with a multi-second timeout" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val responses = doRequests(port, trickle = 1000L)

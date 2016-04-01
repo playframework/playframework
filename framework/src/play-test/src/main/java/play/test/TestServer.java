@@ -4,8 +4,14 @@
 package play.test;
 
 import play.Application;
+import play.api.Mode;
+import play.core.server.ServerConfig;
 import play.core.server.ServerProvider;
 import scala.Option;
+import scala.compat.java8.OptionConverters;
+
+import java.io.File;
+import java.util.Optional;
 
 /**
  * A test Netty web server.
@@ -19,7 +25,8 @@ public class TestServer extends play.api.test.TestServer {
      * @param application The Application to load in this server.
      */
     public TestServer(int port, Application application) {
-        super(port, application.getWrappedApplication(), play.libs.Scala.<Object>None(), play.libs.Scala.<ServerProvider>None());
+        super(createServerConfig(Optional.of(port), Optional.empty()), application.getWrappedApplication(),
+                play.libs.Scala.<ServerProvider>None());
     }
 
     /**
@@ -29,7 +36,14 @@ public class TestServer extends play.api.test.TestServer {
      * @param sslPort HTTPS port to bind on
      */
     public TestServer(int port, Application application, int sslPort) {
-        super(port, application.getWrappedApplication(), Option.<Object>apply(sslPort), play.libs.Scala.<ServerProvider>None());
+        super(createServerConfig(Optional.of(port), Optional.of(sslPort)), application.getWrappedApplication(),
+                play.libs.Scala.<ServerProvider>None());
+    }
+
+    private static ServerConfig createServerConfig(Optional<Integer> port, Optional<Integer> sslPort) {
+        return ServerConfig.apply(TestServer.class.getClassLoader(), new File("."),
+                (Option) OptionConverters.toScala(port), (Option) OptionConverters.toScala(sslPort), "0.0.0.0",
+                Mode.Test(), System.getProperties());
     }
 
 }
