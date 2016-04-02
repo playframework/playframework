@@ -79,6 +79,16 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
   }
 
+  def writeFile(file: File, content: String) = {
+    file.getParentFile.mkdirs()
+    val out = new FileWriter(file)
+    try {
+      out.write(content)
+    } finally {
+      out.close()
+    }
+  }
+
   /**
    * A source that produces a "large" result.
    *
@@ -190,7 +200,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         await(response).body must_== "value"
       }
 
-      "post with multipart/form encoded body" in withServer{
+      "post with multipart/form encoded body" in withServer {
           case("POST", "/") => Action(BodyParsers.parse.multipartFormData)(r => Ok(r.body.asFormUrlEncoded("key").head))
         } { ws =>
         import play.api.mvc.MultipartFormData._
@@ -200,6 +210,24 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         //#multipart-encoded
 
         await(response).body must_== "value"
+      }
+
+      "post with multipart/form encoded body from a file" in withServer {
+        case("POST", "/") => Action(BodyParsers.parse.multipartFormData){r =>
+            val file = r.body.file("hello").head
+          Ok(scala.io.Source.fromFile(file.ref.file).mkString)
+        }
+      } { ws =>
+        val tmpFile = new File("/tmp/picture/tmpformuploaded")
+        writeFile(tmpFile, "world")
+
+        import play.api.mvc.MultipartFormData._
+        val response =
+        //#multipart-encoded2
+        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromFile(tmpFile)) :: DataPart("key", "value") :: List()))
+        //#multipart-encoded2
+
+        await(response).body must_== "world"
       }
 
       "post with JSON body" in  withServer {

@@ -77,9 +77,15 @@ The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]]
 
 ### Submitting multipart/form data
 
-The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData<Source<ByteString>, ?>, ?>`
+The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`
+
+@[multipart-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-post-multipart](code/javaguide/ws/JavaWS.java)
+
+To Upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<ByteString>, ?>` to the `Source`:
+
+@[ws-post-multipart2](code/javaguide/ws/JavaWS.java)
 
 ### Streaming data
 

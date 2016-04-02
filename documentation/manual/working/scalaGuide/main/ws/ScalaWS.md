@@ -83,9 +83,13 @@ To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed in
 
 ### Submitting multipart/form data
 
-To post multipart-form-encoded data a `Seq[org.asynchttpclient.request.body.multipart.Part]` needs to be passed into `post`.
+To post multipart-form-encoded data a `Source[play.api.mvc.MultipartFormData.Part[Source[ByteString, Any]], Any]` needs to be passed into `post`.
 
 @[multipart-encoded](code/ScalaWSSpec.scala)
+
+To upload a file you need to pass a `play.api.mvc.MultipartFormData.FilePart[Source[ByteString, Any]]` to the `Source`:
+
+@[multipart-encoded2](code/ScalaWSSpec.scala)
 
 ### Submitting JSON data
 
