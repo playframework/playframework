@@ -5,7 +5,7 @@ This page highlights the new features of Play 2.5. If you want to learn about th
 
 ## New streaming API based on Akka Streams
 
-The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka streams](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-introduction.html).
+The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka Streams](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-introduction.html).
 
 At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, and the framework exposes the materialized values to your application as in-memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
 
@@ -21,11 +21,11 @@ While this safety and simplicity is great, the consequence of it was that it has
 
 ### Why Akka Streams
 
-Akka streams provides a good balance between safety, simplicity and familiarity.  Akka streams intentionally constrains you in what you can do so that you can only do things correctly, but not as much as iteratees do.  Conceptually they are much more familiar to most developers, offering both functional and imperative ways of working with them.  Akka streams also has a first class Java API, making it simple to implement any streaming requirements in Java that are needed.
+Akka Streams provides a good balance between safety, simplicity and familiarity.  Akka Streams intentionally constrains you in what you can do so that you can only do things correctly, but not as much as iteratees do.  Conceptually they are much more familiar to most developers, offering both functional and imperative ways of working with them.  Akka Streams also has a first class Java API, making it simple to implement any streaming requirements in Java that are needed.
 
-### Where are Akka streams used?
+### Where are Akka Streams used?
 
-The places where you will come across Akka streams in your Play applications include:
+The places where you will come across Akka Streams in your Play applications include:
 
 * Filters
 * Streaming response bodies
@@ -35,7 +35,7 @@ The places where you will come across Akka streams in your Play applications inc
 
 ### Reactive Streams
 
-[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9 and available as a standalone library for JDK6 and above.  In general, it is not an end-user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka streams support.  It also means any other reactive streams implementations can be used in Play.
+[Reactive Streams](http://reactivestreams.org) is a new specification for asynchronous streaming, which is scheduled for inclusion in JDK9 and available as a standalone library for JDK6 and above.  In general, it is not an end-user library, rather it is an SPI that streaming libraries can implement in order to integrate with each other.  Both Akka Streams and iteratees provide a reactive streams SPI implementation.  This means, existing iteratees code can easily be used with Play's new Akka Streams support.  It also means any other reactive streams implementations can be used in Play.
 
 ### The future of iteratees
 

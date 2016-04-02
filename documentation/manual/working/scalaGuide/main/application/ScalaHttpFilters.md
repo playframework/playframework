@@ -53,6 +53,6 @@ Here is the above filter example rewritten as an `EssentialFilter`:
 
 @[essential-filter-example](code/EssentialFilter.scala)
 
-The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  You could compose this with an Akka streams Flow using the `through` method some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
+The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  You could compose this with an Akka Streams Flow using the `through` method some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
 
 > Although it may seem that there are two different filter APIs, there is only one, `EssentialFilter`.  The simpler `Filter` API in the earlier examples extends `EssentialFilter`, and implements it by creating a new `EssentialAction`.  The passed in callback makes it appear to skip the body parsing by creating a promise for the `Result`, while the body parsing and the rest of the action are executed asynchronously.
