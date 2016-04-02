@@ -43,7 +43,7 @@ Modules can be tested using Play's built in test functionality, using the `Guice
 
 @[module-bindings](code/ScalaExtendingPlay.scala)
 
-Please see [[Testing with Guice|ScalaTestingWithGuice#Bindings-and-Modules] for more details.
+Please see [[Testing with Guice|ScalaTestingWithGuice#Bindings-and-Modules]] for more details.
 
 ## Listing Existing Play Modules
 
