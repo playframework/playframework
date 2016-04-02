@@ -288,7 +288,7 @@ When you're first getting started with Akka Streams, the *Basics and working wit
 * [Basics for Java](http://doc.akka.io/docs/akka/2.4.2/java/stream/stream-flows-and-basics.html)
 * [Basics for Scala](http://doc.akka.io/docs/akka/2.4.2/scala/stream/stream-flows-and-basics.html)
 
-You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka streams.  Akka streams provides a [reactive streams](http://reactive-streams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka streams and vice versa.
+You don't need to convert your whole application in one go. Parts of your application can keep using iteratees while other parts use Akka Streams.  Akka Streams provides a [reactive streams](http://reactive-streams.org) implementation, and Play's iteratees library also provides a reactive streams implementation, consequently, Play's iteratees can easily be wrapped in Akka Streams and vice versa.
 
 ### Migrating byte arrays (`byte[]`/`Array[Byte]`) to `ByteString`s
 
@@ -376,7 +376,7 @@ Here's a list of some common mappings for enumerator factory methods:
 | `Enumerator.apply(a)` | `Source.single(a)` | |
 | `Enumerator.apply(a, b)` | `Source.apply(List(a, b)))` | |
 | `Enumerator.enumerate(seq)` | `Source.apply(seq)` | `seq` must be immutable |
-| `Enumerator.repeat` | `Source.repeat` | The repeated element is not evaluated each time in Akka streams |
+| `Enumerator.repeat` | `Source.repeat` | The repeated element is not evaluated each time in Akka Streams |
 | `Enumerator.empty` | `Source.empty` | |
 | `Enumerator.unfold` | `Source.unfold` | |
 | `Enumerator.generateM` | `Source.unfoldAsync` | |
@@ -428,7 +428,7 @@ Here's a list of some common mappings for enumeratee factory methods:
 | **Iteratees** | **Akka Streams** | **Notes** |
 | --------
 | `Enumeratee.map` | `Flow.map` | |
-| `Enumeratee.mapM` | `Flow.mapAsync` | You have to specify the parallelism in Akka streams, ie how many elements will be mapped in parallel at a time. |
+| `Enumeratee.mapM` | `Flow.mapAsync` | You have to specify the parallelism in Akka Streams, ie how many elements will be mapped in parallel at a time. |
 | `Enumeratee.mapConcat` | `Flow.mapConcat` | |
 | `Enumeratee.filter` | `Flow.filter` | |
 | `Enumeratee.take` | `Flow.take` | |

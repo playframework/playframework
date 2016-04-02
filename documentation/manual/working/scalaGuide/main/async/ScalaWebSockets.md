@@ -19,7 +19,7 @@ To handle a WebSocket with an actor, we need to give Play a `akka.actor.Props` o
 
 @[actor-accept](code/ScalaWebSockets.scala)
 
-Note that `ActorFlow.actorRef(...)` can be replaced with any Akka streams `Flow[In, Out, _]`, but actors are generally the most straightforward way to do it.
+Note that `ActorFlow.actorRef(...)` can be replaced with any Akka Streams `Flow[In, Out, _]`, but actors are generally the most straightforward way to do it.
 
 The actor that we're sending to here in this case looks like this:
 

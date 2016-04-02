@@ -5,7 +5,7 @@ This is a guide for migrating from Play 2.4 to Play 2.5. If you need to migrate 
 
 As well as the information contained on this page, there is more detailed migration information for some topics:
 
-- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka streams, now used in place of iteratees in many Play APIs
+- [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka Streams, now used in place of iteratees in many Play APIs
 - [[Java Migration Guide|JavaMigration25]] - Migrating Java applications. Play now uses native Java types for functional types and offers several new customizable components in Java.
 
 ## How to migrate
