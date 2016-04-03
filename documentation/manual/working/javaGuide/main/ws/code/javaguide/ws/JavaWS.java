@@ -9,6 +9,8 @@ import javaguide.testhelpers.MockJavaAction;
 import org.slf4j.Logger;
 import play.api.libs.ws.ahc.AhcCurlRequestLogger;
 import play.libs.ws.*;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -18,6 +20,10 @@ import java.util.concurrent.CompletionStage;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 // #json-imports
+
+// #multipart-imports
+import play.mvc.Http.MultipartFormData.*;
+// #multipart-imports
 
 import play.libs.ws.ahc.AhcWSClient;
 import play.mvc.Http;
@@ -117,8 +123,16 @@ public class JavaWS {
             // #ws-post-json
 
             // #ws-post-multipart
-            ws.url(url).post(Source.single(new Http.MultipartFormData.DataPart("hello", "world")));
+            ws.url(url).post(Source.single(new DataPart("hello", "world")));
             // #ws-post-multipart
+
+            // #ws-post-multipart2
+            Source<ByteString, ?> file = FileIO.fromFile(new File("hello.txt"));
+            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
+            DataPart dp = new DataPart("key", "value");
+
+            ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
+            // #ws-post-multipart2
 
             String value = IntStream.range(0,100).boxed().
                 map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
