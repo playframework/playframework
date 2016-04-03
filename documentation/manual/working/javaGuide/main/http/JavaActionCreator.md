@@ -34,7 +34,7 @@ Providing a custom `HttpRequestHandler` should be a last course of action. Most 
 
 ### Implementing a custom request handler
 
-The `HttpRequestHandler` trait has one method to be implemented, `handlerForRequest`.  This takes the request to get a handler for, and returns a `HandlerForRequest` instance containing a `RequestHeader` and a `Handler`.
+The `HttpRequestHandler` interface has one method to be implemented, `handlerForRequest`.  This takes the request to get a handler for, and returns a `HandlerForRequest` instance containing a `RequestHeader` and a `Handler`.
 
 The reason why a request header is returned is so that information, such as routing information, can be added to the request. In this way, the router is able to tag requests with routing information, such as which route matched the request, which can be useful for monitoring or even for injecting cross cutting functionality.
 
