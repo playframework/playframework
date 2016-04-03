@@ -47,7 +47,7 @@ You can also set up your own chunked response builder:
 
 @[chunked](code/javaguide/async/JavaStream.java)
 
-The method `Source.actorRef` creates an Akka streams `Source` that materializes to an `ActorRef`. You can then publish elements to the stream by sending messages to the actor. An alternative approach is to create an actor that extends `ActorPublisher` and use the `Stream.actorPublisher` method to create it.
+The method `Source.actorRef` creates an Akka Streams `Source` that materializes to an `ActorRef`. You can then publish elements to the stream by sending messages to the actor. An alternative approach is to create an actor that extends `ActorPublisher` and use the `Stream.actorPublisher` method to create it.
 
 We can inspect the HTTP response sent by the server:
 
@@ -68,4 +68,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka streams, you can reference the [Akka streams documentation](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).
+For more information on using Akka Streams, you can reference the [Akka Streams documentation](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).
