@@ -380,22 +380,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
   }
 
-  private def result(file: String,
-    length: Long,
-    mimeType: String,
-    resourceData: Enumerator[Array[Byte]],
-    gzipRequested: Boolean,
-    gzipAvailable: Boolean): Result = {
-
-    val response = if (length > 0) {
-      Ok.sendEntity(HttpEntity.Streamed(
-        akka.stream.scaladsl.Source.fromPublisher(Streams.enumeratorToPublisher(resourceData)).map(ByteString.apply),
-        Some(length),
-        Some(mimeType)
-      ))
-    } else {
-      Ok.sendEntity(HttpEntity.Strict(ByteString.empty, Some(mimeType)))
-    }
+  private def addGzipHeaders(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
     if (gzipRequested && gzipAvailable) {
       response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
     } else if (gzipAvailable) {
@@ -454,14 +439,13 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
           notFound
         } else {
           val stream = connection.getInputStream
-          val length = stream.available
-          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
-
+          val result = RangeResult.ofStream(stream, request.headers.get(RANGE), Option(file), Option(assetInfo.mimeType))
+          val gzipResult = addGzipHeaders(result, gzipRequested, assetInfo.gzipUrl.isDefined)
           Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
               assetInfo,
               aggressiveCaching,
-              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+              gzipResult
             )
           })
         }

@@ -217,5 +217,17 @@ trait AssetsSpec extends PlaySpecification
         }
       }
     }
+
+    "serve a partial content if requested" in withServer { client =>
+      val result = await(client.url("/foo.txt")
+        .withHeaders(
+          RANGE -> "bytes=2-4"
+        ).get())
+
+      result.status must_== PARTIAL_CONTENT
+      result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 2-4/"))
+      result.header(CONTENT_LENGTH) must beSome("3")
+    }
+
   }
 }
