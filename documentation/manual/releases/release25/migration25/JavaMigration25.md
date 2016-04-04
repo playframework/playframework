@@ -148,6 +148,11 @@ Here follows a short table that should ease the migration:
 
 `Optional` has a lot more combinators, so we highly encourage you to [learn its API](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html) if you are not familiar with it already.
 
+## Thread Local attributes
+
+Thread Local attributes such as `Http.Context`, `Http.Session` etc are no longer passed to a different execution context when used with `CompletionStage` and `*Async` callbacks. 
+More information is [here](https://www.playframework.com/documentation/2.5.x/ThreadPools#Java-thread-locals)
+
 ## Deprecated static APIs
 
 Several static APIs were deprecated in Play 2.5, in favour of using dependency injected components. Using static global state is bad for testability and modularity, and it is recommended that you move to dependency injection for accessing these APIs. You should refer to the list in the [[Play 2.4 Migration Guide|Migration24#Dependency-Injected-Components]] to find the equivalent dependency injected component for your static API.
