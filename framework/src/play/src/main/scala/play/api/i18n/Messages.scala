@@ -155,12 +155,10 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
-
-  private val config = PlayConfig(configuration)
+class DefaultLangs @Inject() (config: Configuration) extends Langs {
 
   val availables: Seq[Lang] = {
-    val langs = configuration.getString("application.langs") map { langsStr =>
+    val langs = config.getOptional[String]("application.langs") map { langsStr =>
       Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
       langsStr.split(",").map(_.trim).toSeq
     } getOrElse {
@@ -169,7 +167,7 @@ class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
 
     langs.map { lang =>
       try { Lang(lang) } catch {
-        case NonFatal(e) => throw configuration.reportError("play.i18n.langs",
+        case NonFatal(e) => throw config.reportError("play.i18n.langs",
           "Invalid language code [" + lang + "]", Some(e))
       }
     }
@@ -471,9 +469,7 @@ trait MessagesApi {
  * The internationalisation API.
  */
 @Singleton
-class DefaultMessagesApi @Inject() (environment: Environment, configuration: Configuration, langs: Langs) extends MessagesApi {
-
-  private val config = PlayConfig(configuration)
+class DefaultMessagesApi @Inject() (environment: Environment, config: Configuration, langs: Langs) extends MessagesApi {
 
   import java.text._
 

@@ -9,7 +9,7 @@ import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject.Module
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.api.{ Configuration, Environment, PlayConfig }
+import play.api.{ Configuration, Environment }
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
@@ -74,7 +74,7 @@ object AllowedHostsConfig {
    * Parses out the AllowedHostsConfig from play.api.Configuration (usually this means application.conf).
    */
   def fromConfiguration(conf: Configuration): AllowedHostsConfig = {
-    AllowedHostsConfig(PlayConfig(conf).get[Seq[String]]("play.filters.hosts.allowed"))
+    AllowedHostsConfig(conf.get[Seq[String]]("play.filters.hosts.allowed"))
   }
 }
 

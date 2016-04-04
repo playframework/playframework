@@ -3,20 +3,25 @@
  */
 package play.http;
 
-import play.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import com.typesafe.config.Config;
+import play.Configuration;
+import play.Environment;
+import play.Logger;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.http.HttpErrorHandlerExceptions;
 import play.api.routing.Router;
-import play.mvc.Http.*;
+import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 import play.mvc.Results;
 import scala.Option;
 import scala.Some;
-
-import javax.inject.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Default implementation of the http error handler.
@@ -31,13 +36,19 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     private final Provider<Router> routes;
 
     @Inject
-    public DefaultHttpErrorHandler(Configuration configuration, Environment environment,
-                                   OptionalSourceMapper sourceMapper, Provider<Router> routes) {
+    public DefaultHttpErrorHandler(
+        Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes) {
         this.environment = environment;
         this.sourceMapper = sourceMapper;
         this.routes = routes;
 
-        this.playEditor = Option.apply(configuration.getString("play.editor"));
+        this.playEditor = Option.apply(config.hasPath("play.editor") ? config.getString("play.editor") : null);
+    }
+
+    @Deprecated
+    public DefaultHttpErrorHandler(
+        Configuration config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes) {
+        this(config.underlying(), environment, sourceMapper, routes);
     }
 
     /**
@@ -102,7 +113,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     }
 
     /**
-     * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled 
+     * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled
      * by any of the other methods in this class already.
      *
      * @param request The request that caused the client error.

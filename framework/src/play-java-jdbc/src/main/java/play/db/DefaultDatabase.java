@@ -7,9 +7,10 @@ import java.sql.Connection;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import play.Configuration;
+import com.typesafe.config.Config;
 
 import com.typesafe.config.ConfigFactory;
+import play.Configuration;
 
 /**
  * Default delegating implementation of the database API.
@@ -28,11 +29,23 @@ public class DefaultDatabase implements Database {
      * @param name name for the db's underlying datasource
      * @param configuration the database's configuration
      */
-    public DefaultDatabase(String name, Configuration configuration) {
+    public DefaultDatabase(String name, Config configuration) {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(
-                configuration.underlying()
-                        .withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype"))
+                configuration.withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype"))
         )));
+    }
+
+    /**
+     * Create a default BoneCP-backed database.
+     *
+     * @param name name for the db's underlying datasource
+     * @param configuration the database's configuration
+     *
+     * @deprecated use the version that accepts Config
+     */
+    @Deprecated
+    public DefaultDatabase(String name, Configuration configuration) {
+        this(name, configuration.underlying());
     }
 
     /**

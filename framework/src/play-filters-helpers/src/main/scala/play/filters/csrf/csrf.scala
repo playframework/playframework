@@ -91,7 +91,7 @@ object CSRFConfig {
   def global = Play.privateMaybeApplication.map(_.injector.instanceOf[CSRFConfig]).getOrElse(CSRFConfig())
 
   def fromConfiguration(conf: Configuration): CSRFConfig = {
-    val config = PlayConfig(conf).getDeprecatedWithFallback("play.filters.csrf", "csrf")
+    val config = conf.getDeprecatedWithFallback("play.filters.csrf", "csrf")
 
     val methodWhiteList = config.get[Seq[String]]("method.whiteList").toSet
     val methodBlackList = config.get[Seq[String]]("method.blackList").toSet
@@ -256,7 +256,7 @@ object CSRF {
 
   object ErrorHandler {
     def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-      Reflect.bindingsFromConfiguration[ErrorHandler, CSRFErrorHandler, JavaCSRFErrorHandlerAdapter, JavaCSRFErrorHandlerDelegate, CSRFHttpErrorHandler](environment, PlayConfig(configuration),
+      Reflect.bindingsFromConfiguration[ErrorHandler, CSRFErrorHandler, JavaCSRFErrorHandlerAdapter, JavaCSRFErrorHandlerDelegate, CSRFHttpErrorHandler](environment, configuration,
         "play.filters.csrf.errorHandler", "CSRFErrorHandler")
     }
   }

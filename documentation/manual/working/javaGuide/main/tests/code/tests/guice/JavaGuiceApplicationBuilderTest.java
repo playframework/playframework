@@ -3,6 +3,7 @@
  */
 package javaguide.tests.guice;
 
+import com.typesafe.config.ConfigFactory;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.net.URL;
@@ -104,7 +105,7 @@ public class JavaGuiceApplicationBuilderTest {
     public void overrideConfiguration() {
         // #override-configuration
         Application application = new GuiceApplicationBuilder()
-            .loadConfig(env -> Configuration.load(env))
+            .withConfigLoader(env -> ConfigFactory.load(env.classLoader()))
             .build();
         // #override-configuration
     }

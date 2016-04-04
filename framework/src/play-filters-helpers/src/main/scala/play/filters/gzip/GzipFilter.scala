@@ -13,7 +13,7 @@ import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
 import play.api.inject.Module
 import play.api.libs.streams.GzipFlow
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ Environment, Configuration }
 import play.api.mvc._
 import play.core.j
 import scala.concurrent.Future
@@ -197,7 +197,7 @@ case class GzipFilterConfig(bufferSize: Int = 8192,
 object GzipFilterConfig {
 
   def fromConfiguration(conf: Configuration) = {
-    val config = PlayConfig(conf).get[PlayConfig]("play.filters.gzip")
+    val config = conf.get[Configuration]("play.filters.gzip")
 
     GzipFilterConfig(
       bufferSize = config.get[ConfigMemorySize]("bufferSize").toBytes.toInt,

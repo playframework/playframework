@@ -50,7 +50,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
    */
   def create(name: String, dbConfig: DatabaseConfig, conf: Config): DataSource = {
 
-    val config = PlayConfig(conf)
+    val config = Configuration(conf)
 
     val datasource = new BoneCPDataSource
 

@@ -3,13 +3,15 @@
  */
 package play.inject.guice;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.List;
-import play.api.inject.guice.GuiceableModule;
+
+import com.typesafe.config.Config;
 import play.Application;
 import play.Configuration;
 import play.Environment;
+import play.api.inject.guice.GuiceableModule;
 import play.libs.Scala;
 
 import static scala.compat.java8.JFunction.func;
@@ -35,8 +37,23 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
      * @param load the configuration loader
      * @return the configured application builder
      */
+    public GuiceApplicationBuilder withConfigLoader(Function<Environment, Config> load) {
+        return newBuilder(delegate.loadConfig(func((play.api.Environment env) ->
+            new play.api.Configuration(load.apply(new Environment(env))))));
+    }
+
+    /**
+     * Set the initial configuration loader.
+     * Overrides the default or any previously configured values.
+     *
+     * @param load the configuration loader
+     * @return the configured application builder
+     *
+     * @deprecated Use withConfigLoader
+     */
+    @Deprecated
     public GuiceApplicationBuilder loadConfig(Function<Environment, Configuration> load) {
-        return newBuilder(delegate.loadConfig(func((play.api.Environment env) -> load.apply(new Environment(env)).getWrappedConfiguration())));
+        return withConfigLoader(env -> load.apply(env).underlying());
     }
 
     /**
@@ -46,8 +63,21 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
      * @param conf the configuration
      * @return the configured application builder
      */
+    public GuiceApplicationBuilder loadConfig(Config conf) {
+        return withConfigLoader(env -> conf);
+    }
+
+    /**
+     * Set the initial configuration.
+     * Overrides the default or any previously configured values.
+     *
+     * @param conf the configuration
+     * @return the configured application builder
+     * @deprecated Use loadConfig(Config
+     */
+    @Deprecated
     public GuiceApplicationBuilder loadConfig(Configuration conf) {
-        return loadConfig(env -> conf);
+        return withConfigLoader(env -> conf.underlying());
     }
 
     /**
@@ -57,10 +87,24 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
      * @param loader the configuration
      * @return the configured application builder
      */
-    public GuiceApplicationBuilder load(BiFunction<Environment, Configuration, List<GuiceableModule>> loader) {
+    public GuiceApplicationBuilder withModuleLoader(BiFunction<Environment, Config, List<GuiceableModule>> loader) {
         return newBuilder(delegate.load(func((play.api.Environment env, play.api.Configuration conf) ->
-            Scala.toSeq(loader.apply(new Environment(env), new Configuration(conf)))
+            Scala.toSeq(loader.apply(new Environment(env), conf.underlying()))
         )));
+    }
+
+    /**
+     * Set the module loader.
+     * Overrides the default or any previously configured values.
+     *
+     * @param loader the configuration
+     * @return the configured application builder
+     *
+     * @deprecated Use withModuleLoader instead
+     */
+    @Deprecated
+    public GuiceApplicationBuilder load(BiFunction<Environment, Configuration, List<GuiceableModule>> loader) {
+        return withModuleLoader((env, conf) -> loader.apply(env, new play.Configuration(conf)));
     }
 
     /**

@@ -15,7 +15,6 @@ import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
-import java.util.concurrent.TimeUnit
 
 import akka.http.scaladsl.settings.ServerSettings
 import akka.util.ByteString
@@ -48,7 +47,7 @@ class AkkaHttpServer(
 
   assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
-  private val serverConfig = PlayConfig(config.configuration).get[PlayConfig]("play.server")
+  private val serverConfig = config.configuration.get[Configuration]("play.server")
 
   def mode = config.mode
 

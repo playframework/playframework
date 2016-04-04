@@ -49,7 +49,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
    * @return a data source backed by a connection pool
    */
   override def create(name: String, dbConfig: DatabaseConfig, configuration: Config): DataSource = {
-    val config = PlayConfig(configuration)
+    val config = Configuration(configuration)
 
     Try {
       Logger.info(s"Creating Pool for datasource '$name'")
@@ -87,12 +87,12 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 /**
  * HikariCP config
  */
-class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
+private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Configuration) {
 
   def toHikariConfig: HikariConfig = {
     val hikariConfig = new HikariConfig()
 
-    val config = configuration.get[PlayConfig]("hikaricp")
+    val config = configuration.get[Configuration]("hikaricp")
 
     // Essentials configurations
     config.get[Option[String]]("dataSourceClassName").foreach(hikariConfig.setDataSourceClassName)
@@ -105,7 +105,7 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
 
     import scala.collection.JavaConverters._
 
-    val dataSourceConfig = config.get[PlayConfig]("dataSource")
+    val dataSourceConfig = config.get[Configuration]("dataSource")
     dataSourceConfig.underlying.root().keySet().asScala.foreach { key =>
       hikariConfig.addDataSourceProperty(key, dataSourceConfig.get[String](key))
     }

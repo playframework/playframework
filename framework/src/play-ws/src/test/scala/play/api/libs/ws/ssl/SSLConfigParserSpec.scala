@@ -8,7 +8,7 @@ package play.api.libs.ws.ssl
 import org.specs2.mutable._
 
 import com.typesafe.config.ConfigFactory
-import play.api.PlayConfig
+import play.api.Configuration
 import play.api.test.WithApplication
 
 object SSLConfigParserSpec extends Specification {
@@ -21,7 +21,7 @@ object SSLConfigParserSpec extends Specification {
 
     def parseThis(input: String)(implicit app: play.api.Application) = {
       val config = ConfigFactory.parseString(input).withFallback(ConfigFactory.defaultReference().getConfig("play.ws.ssl"))
-      val parser = new SSLConfigParser(PlayConfig(config), app.classloader)
+      val parser = new SSLConfigParser(Configuration(config), app.classloader)
       parser.parse()
     }
 

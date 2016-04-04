@@ -47,11 +47,11 @@ object GuiceInjectorBuilderSpec extends Specification {
         .injector.instanceOf[Configuration]
 
       conf.subKeys must contain(allOf("a", "b", "c", "d"))
-      conf.getInt("a") must beSome(1)
-      conf.getInt("b") must beSome(2)
-      conf.getInt("c") must beSome(3)
-      conf.getInt("d.1") must beSome(4)
-      conf.getInt("d.2") must beSome(5)
+      conf.get[Int]("a") must_== 1
+      conf.get[Int]("b") must_== 2
+      conf.get[Int]("c") must_== 3
+      conf.get[Int]("d.1") must_== 4
+      conf.get[Int]("d.2") must_== 5
     }
 
     "support various bindings" in {
@@ -89,8 +89,8 @@ object GuiceInjectorBuilderSpec extends Specification {
       val env = injector.instanceOf[Environment]
       val conf = injector.instanceOf[Configuration]
       env.mode must_== Mode.Test
-      conf.getInt("a") must beNone
-      conf.getInt("b") must beSome(2)
+      conf.has("a") must beFalse
+      conf.get[Int]("b") must_== 2
     }
 
     "disable modules" in {

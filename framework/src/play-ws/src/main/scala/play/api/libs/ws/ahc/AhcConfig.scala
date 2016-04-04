@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import org.asynchttpclient.{ DefaultAsyncHttpClientConfig, AsyncHttpClientConfig }
 
 import javax.net.ssl._
-import play.api.{ ConfigLoader, PlayConfig, Environment, Configuration }
+import play.api.{ ConfigLoader, Environment, Configuration }
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.WSClientConfig
 
@@ -66,9 +66,8 @@ class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
 
   def parse(): AhcWSClientConfig = {
 
-    val playConfig = PlayConfig(configuration)
     def get[A: ConfigLoader](name: String): A =
-      playConfig.getDeprecated[A](s"play.ws.ahc.$name", s"play.ws.ning.$name")
+      configuration.getDeprecated[A](s"play.ws.ahc.$name", s"play.ws.ning.$name")
 
     val maximumConnectionsPerHost = get[Int]("maxConnectionsPerHost")
     val maximumConnectionsTotal = get[Int]("maxConnectionsTotal")
@@ -82,11 +81,11 @@ class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
     // allowPoolingConnection and allowSslConnectionPool were merged into keepAlive in AHC 2.0
     // We want one value, keepAlive, and we don't want to confuse anyone who has to migrate.
     // keepAlive
-    if (playConfig.underlying.hasPath("play.ws.ahc.keepAlive")) {
+    if (configuration.underlying.hasPath("play.ws.ahc.keepAlive")) {
       val msg = "Both allowPoolingConnection and allowSslConnectionPool have been replaced by keepAlive!"
       Seq("play.ws.ning.allowPoolingConnection", "play.ws.ning.allowSslConnectionPool").foreach { s =>
-        if (playConfig.underlying.hasPath(s)) {
-          throw playConfig.reportError(s, msg)
+        if (configuration.underlying.hasPath(s)) {
+          throw configuration.reportError(s, msg)
         }
       }
     }

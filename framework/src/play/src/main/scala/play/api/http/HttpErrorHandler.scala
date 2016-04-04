@@ -51,7 +51,7 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, PlayConfig(configuration),
+    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
       "play.http.errorHandler", "ErrorHandler")
   }
 }
@@ -78,7 +78,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     this(environment, configuration, sourceMapper.sourceMapper, Some(router.get))
 
   // Hyperlink string to wrap around Play error messages.
-  private var playEditor: Option[String] = configuration.getString("play.editor")
+  private var playEditor: Option[String] = configuration.getOptional[String]("play.editor")
 
   /**
    * Sets the play editor to the given string after initialization.  Used for

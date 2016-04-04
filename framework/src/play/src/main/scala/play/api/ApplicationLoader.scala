@@ -51,7 +51,7 @@ object ApplicationLoader {
    */
   def apply(context: Context): ApplicationLoader = {
     Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, GuiceApplicationLoader](
-      context.environment, PlayConfig(context.initialConfiguration), "play.application.loader", classOf[GuiceApplicationLoader].getName
+      context.environment, context.initialConfiguration, "play.application.loader", classOf[GuiceApplicationLoader].getName
     ) match {
         case None =>
           new GuiceApplicationLoader

@@ -4,10 +4,10 @@
 package play.api.db
 
 import com.zaxxer.hikari.HikariConfig
-import play.api.{ PlayConfig, Configuration }
-
-import org.specs2.specification.Scope
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
+import play.api.Configuration
+
 import scala.concurrent.duration._
 
 class HikariCPConfigSpec extends Specification {
@@ -163,6 +163,6 @@ class HikariCPConfigSpec extends Specification {
 
 trait Configs extends Scope {
   val dbConfig = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
-  val reference = PlayConfig(Configuration.reference).get[PlayConfig]("play.db.prototype")
-  def from(props: (String, String)*) = PlayConfig(Configuration(reference.underlying) ++ Configuration.from(props.toMap))
+  val reference = Configuration.reference.get[Configuration]("play.db.prototype")
+  def from(props: (String, String)*) = reference ++ Configuration.from(props.toMap)
 }

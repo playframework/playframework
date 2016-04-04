@@ -4,6 +4,7 @@
 package play.db;
 
 import javax.sql.DataSource;
+import com.typesafe.config.Config;
 
 import play.Configuration;
 import play.Environment;
@@ -21,7 +22,22 @@ public interface ConnectionPool {
      * @param environment the database environment
      * @return a data source backed by a connection pool
      */
-    public DataSource create(String name, Configuration configuration, Environment environment);
+    DataSource create(String name, Config configuration, Environment environment);
+
+    /**
+     * Create a data source with the given configuration.
+     *
+     * @param name the database name
+     * @param configuration the data source configuration
+     * @param environment the database environment
+     * @return a data source backed by a connection pool
+     *
+     * @deprecated Use create(String, Config, Environment
+     */
+    @Deprecated
+    default DataSource create(String name, Configuration configuration, Environment environment) {
+        return create(name, configuration.underlying(), environment);
+    }
 
     /**
      * Close the given data source.

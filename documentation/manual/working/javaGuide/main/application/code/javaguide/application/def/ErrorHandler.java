@@ -4,6 +4,8 @@
 package javaguide.application.def;
 
 //#default
+import com.typesafe.config.Config;
+
 import play.*;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
@@ -19,9 +21,9 @@ import java.util.concurrent.CompletionStage;
 public class ErrorHandler extends DefaultHttpErrorHandler {
 
     @Inject
-    public ErrorHandler(Configuration configuration, Environment environment,
+    public ErrorHandler(Config config, Environment environment,
                         OptionalSourceMapper sourceMapper, Provider<Router> routes) {
-        super(configuration, environment, sourceMapper, routes);
+        super(config, environment, sourceMapper, routes);
     }
 
     protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception) {

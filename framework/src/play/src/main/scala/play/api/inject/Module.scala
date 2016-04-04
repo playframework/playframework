@@ -134,6 +134,8 @@ object Modules {
       {
         tryConstruct(environment, configuration)
       } orElse {
+        tryConstruct(new JavaEnvironment(environment), configuration.underlying)
+      } orElse {
         tryConstruct(new JavaEnvironment(environment), new JavaConfiguration(configuration))
       } orElse {
         tryConstruct()

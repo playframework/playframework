@@ -8,10 +8,11 @@ import java.io._
 import com.typesafe.config.ConfigException
 import org.specs2.mutable.Specification
 
-import scala.None
 import scala.util.control.NonFatal
 
 object ConfigurationSpec extends Specification {
+
+  def config(data: (String, Any)*) = Configuration.from(data.toMap)
 
   def exampleConfig = Configuration.from(
     Map(
@@ -32,6 +33,37 @@ object ConfigurationSpec extends Specification {
   )
 
   "Configuration" should {
+
+    "support getting optional values" in {
+      "when null" in {
+        config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
+      }
+      "when set" in {
+        config("foo.bar" -> "bar").get[Option[String]]("foo.bar") must beSome("bar")
+      }
+      "when undefined" in {
+        config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
+      }
+    }
+    "support getting prototyped seqs" in {
+      val seq = config(
+        "bars" -> Seq(Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedSeq("bars")
+      seq must haveSize(1)
+      seq.head.get[String]("a") must_== "different a"
+      seq.head.get[String]("b") must_== "some b"
+    }
+    "support getting prototyped maps" in {
+      val map = config(
+        "bars" -> Map("foo" -> Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedMap("bars")
+      map must haveSize(1)
+      val foo = map("foo")
+      foo.get[String]("a") must_== "different a"
+      foo.get[String]("b") must_== "some b"
+    }
 
     "be accessible as an entry set" in {
       val map = Map(exampleConfig.entrySet.toList: _*)
@@ -99,45 +131,6 @@ object ConfigurationSpec extends Specification {
       "but not in test mode" in {
         load(Mode.Test) must not(throwA[PlayException])
       }
-    }
-  }
-
-}
-
-object PlayConfigSpec extends Specification {
-
-  def config(data: (String, Any)*) = PlayConfig(Configuration.from(data.toMap))
-
-  "PlayConfig" should {
-    "support getting optional values" in {
-      "when null" in {
-        config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
-      }
-      "when set" in {
-        config("foo.bar" -> "bar").get[Option[String]]("foo.bar") must beSome("bar")
-      }
-      "when undefined" in {
-        config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
-      }
-    }
-    "support getting prototyped seqs" in {
-      val seq = config(
-        "bars" -> Seq(Map("a" -> "different a")),
-        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
-      ).getPrototypedSeq("bars")
-      seq must haveSize(1)
-      seq.head.get[String]("a") must_== "different a"
-      seq.head.get[String]("b") must_== "some b"
-    }
-    "support getting prototyped maps" in {
-      val map = config(
-        "bars" -> Map("foo" -> Map("a" -> "different a")),
-        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
-      ).getPrototypedMap("bars")
-      map must haveSize(1)
-      val foo = map("foo")
-      foo.get[String]("a") must_== "different a"
-      foo.get[String]("b") must_== "some b"
     }
   }
 

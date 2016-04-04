@@ -10,8 +10,8 @@ import play.api.inject.{ Binding, BindingKey }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.{ Configuration, Environment, PlayConfig }
-import play.core.j.{ JavaHttpRequestHandlerDelegate, JavaHandler, JavaHandlerComponents }
+import play.api.{ Configuration, Environment }
+import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
 
 /**
@@ -46,7 +46,7 @@ object HttpRequestHandler {
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
     val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](environment,
-      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler")
+      configuration, "play.http.requestHandler", "RequestHandler")
 
     val javaComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
 
@@ -59,7 +59,7 @@ object ActionCreator {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     Reflect.configuredClass[ActionCreator, ActionCreator, HttpRequestHandlerActionCreator](environment,
-      PlayConfig(configuration), "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+      configuration, "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
         val impl = either.fold(identity, identity)
         Seq(BindingKey(classOf[ActionCreator]).to(impl))
       }

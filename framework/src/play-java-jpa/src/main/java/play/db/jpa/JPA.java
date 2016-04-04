@@ -45,7 +45,7 @@ public class JPA {
      */
     @Deprecated
     public static JPAApi jpaApi() {
-        JPAConfig jpaConfig = new DefaultJPAConfig.JPAConfigProvider(play.Play.application().configuration()).get();
+        JPAConfig jpaConfig = new DefaultJPAConfig.JPAConfigProvider(play.Play.application().config()).get();
         return new DefaultJPAApi(jpaConfig, entityManagerContext).start();
     }
 

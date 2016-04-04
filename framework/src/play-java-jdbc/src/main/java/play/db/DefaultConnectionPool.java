@@ -7,9 +7,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
-import play.Configuration;
+import com.typesafe.config.Config;
 import play.Environment;
-import play.api.PlayConfig;
 import play.api.db.DatabaseConfig;
 
 /**
@@ -25,9 +24,8 @@ public class DefaultConnectionPool implements ConnectionPool {
         this.cp = connectionPool;
     }
 
-    public DataSource create(String name, Configuration configuration, Environment environment) {
-        PlayConfig config = new PlayConfig(configuration.getWrappedConfiguration().underlying());
-        return cp.create(name, DatabaseConfig.fromConfig(config, environment.underlying()), config.underlying());
+    public DataSource create(String name, Config config, Environment environment) {
+        return cp.create(name, DatabaseConfig.fromConfig(new play.api.Configuration(config), environment.underlying()), config);
     }
 
     public void close(DataSource dataSource) {

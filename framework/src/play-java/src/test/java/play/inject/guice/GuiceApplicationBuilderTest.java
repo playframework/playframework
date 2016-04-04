@@ -3,21 +3,24 @@
  */
 package play.inject.guice;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import javax.inject.Inject;
 import javax.inject.Provider;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.Test;
-import play.api.inject.guice.GuiceApplicationBuilderSpec;
+import org.junit.rules.ExpectedException;
 import play.Application;
-import play.Configuration;
+import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
 import play.libs.Scala;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static play.inject.Bindings.bind;
 
 public class GuiceApplicationBuilderTest {
@@ -44,7 +47,7 @@ public class GuiceApplicationBuilderTest {
                 // override the scala api configuration, which should underlie the java api configuration
                 bind(play.api.Configuration.class).to(new GuiceApplicationBuilderSpec.ExtendConfiguration(Scala.varargs(Scala.Tuple("a", 1)))),
                 // also override the java api configuration
-                bind(Configuration.class).to(new ExtendConfiguration(new Configuration(ImmutableMap.of("b", 2)))),
+                bind(Config.class).to(new ExtendConfiguration(ConfigFactory.parseMap(ImmutableMap.of("b", 2)))),
                 bind(A.class).to(A2.class))
             .injector()
             .instanceOf(Application.class);
@@ -79,9 +82,9 @@ public class GuiceApplicationBuilderTest {
 
     @Test
     public void setInitialConfigurationLoader() {
-        Configuration extra = new Configuration(ImmutableMap.of("a", 1));
+        Config extra = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
         Application app = new GuiceApplicationBuilder()
-            .loadConfig(env -> extra.withFallback(Configuration.load(env)))
+            .withConfigLoader(env -> extra.withFallback(ConfigFactory.load(env.classLoader())))
             .build();
 
         assertThat(app.configuration().getInt("a"), is(1));
@@ -122,18 +125,18 @@ public class GuiceApplicationBuilderTest {
     public static interface B {}
     public static class B1 implements B {}
 
-    public static class ExtendConfiguration implements Provider<Configuration> {
+    public static class ExtendConfiguration implements Provider<Config> {
 
       @Inject Injector injector = null;
 
-      Configuration extra;
+      Config extra;
 
-      public ExtendConfiguration(Configuration extra) {
+      public ExtendConfiguration(Config extra) {
         this.extra = extra;
       }
 
-      public Configuration get() {
-        Configuration current = injector.instanceOf(play.inject.ConfigurationProvider.class).get();
+      public Config get() {
+        Config current = injector.instanceOf(play.api.inject.ConfigProvider.class).get();
         return extra.withFallback(current);
       }
     }

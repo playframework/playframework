@@ -3,12 +3,11 @@
  */
 package play.filters.cors
 
-import com.typesafe.config.Config
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 
 import scala.concurrent.Future
 
-import play.api.{ PlayConfig, Logger, Configuration }
+import play.api.{ Logger, Configuration }
 import play.api.mvc.{ ActionBuilder, Request, Result }
 
 /**
@@ -56,17 +55,16 @@ object CORSActionBuilder {
   /**
    * Construct an action builder that uses a subtree of the application configuration.
    *
-   * @param  configuration  The configuration to load the config from
+   * @param  config  The configuration to load the config from
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(configuration: Configuration, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+  def apply(config: Configuration, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
     configPath: String = "play.filters.cors"): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
       override protected def corsConfig = {
-        val config = PlayConfig(configuration)
-        val prototype = config.get[Config]("play.filters.cors")
-        val corsConfig = PlayConfig(config.get[Config](configPath).withFallback(prototype))
+        val prototype = config.get[Configuration]("play.filters.cors")
+        val corsConfig = prototype ++ config.get[Configuration](configPath)
         CORSConfig.fromUnprefixedConfiguration(corsConfig)
       }
       override protected val errorHandler = eh
