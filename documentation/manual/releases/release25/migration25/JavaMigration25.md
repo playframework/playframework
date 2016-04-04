@@ -150,7 +150,7 @@ Here follows a short table that should ease the migration:
 
 ## Thread Local attributes
 
-Thread Local attributes such as Http.Context, Http.Session etc are no longer passed to a different execution context when used with `CompletionStage` and `*Async` callbacks. 
+Thread Local attributes such as `Http.Context`, `Http.Session` etc are no longer passed to a different execution context when used with `CompletionStage` and `*Async` callbacks. 
 More information is [here](https://www.playframework.com/documentation/2.5.x/ThreadPools#Java-thread-locals)
 
 ## Deprecated static APIs
