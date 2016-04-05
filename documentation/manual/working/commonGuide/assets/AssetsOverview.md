@@ -30,7 +30,11 @@ WebJars are automatically extracted into a `lib` folder relative to your public 
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
 ```
 
-Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar.
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar. To clarify, the `requirejs` webjar dependency is declared at your build file like:
+
+```scala
+libraryDependencies += "org.webjars" % "requirejs" % "2.2.0"
+```
 
 ## How are public assets packaged?
 
@@ -44,7 +48,7 @@ Play comes with a built-in controller to serve public assets. By default, this c
 
 The controller is available in the default Play JAR as `controllers.Assets` and defines a single `at` action with two parameters:
 
-```
+```scala
 Assets.at(path: String, file: String)
 ```
 
@@ -105,7 +109,7 @@ You will then need to specify both parameters when using the reverse router:
 pipelineStages := Seq(rjs, digest, gzip)
 ```
 
-The above will order the RequireJs optimizer (`sbt-rjs`), the digester (`sbt-digest`) and then compression (`sbt-gzip`). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
+The above will order the RequireJs optimizer ([sbt-rjs](https://github.com/sbt/sbt-rjs)), the digester ([sbt-digest](https://github.com/sbt/sbt-digest)) and then compression ([sbt-gzip](https://github.com/sbt/sbt-gzip)). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
 
 In essence asset fingerprinting permits your static assets to be served with aggressive caching instructions to a browser. This will result in an improved experience for your users given that subsequent visits to your site will result in less assets requiring to be downloaded. Rails also describes the benefits of [asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). 
 
@@ -115,7 +119,7 @@ The above declaration of `pipelineStages` and the requisite `addSbtPlugin` decla
 GET  /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
 ```
 
-> Make sure you indicate that `file` is an asset by writing `file: Asset`.
+> **Note:** Make sure you indicate that `file` is an asset by writing `file: Asset`.
 
 You then use the reverse router, for example within a `scala.html` view:
 
@@ -162,3 +166,21 @@ export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 ```
 
 The above declaration ensures that Node.js is used when executing any sbt-web plugin.
+
+## Range requests support
+
+`Assets` controller automatically supports part of [RFC 7233](http://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. The `Assets` controller will delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for all assets delivery.
+
+> **Note:** Besides the fact that some parsing is done to better handle multiple ranges, `multipart/byteranges` is not fully supported yet.
+
+You can also return `206 Partial Content` when delivering files without using the `Assets` controller:
+
+### Scala version
+
+@[range-request](code/assets/controllers/RangeRequestController.scala)
+
+### Java version
+
+@[range-request](code/assets/controllers/JavaRangeRequestController.java)
+
+Both examples will delivery just part of the video file, according to the requested range.

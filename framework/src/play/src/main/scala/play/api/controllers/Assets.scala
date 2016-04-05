@@ -3,28 +3,32 @@
  */
 package controllers
 
-import akka.util.ByteString
 import play.api._
-import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.api.libs._
-import play.api.libs.iteratee._
 import java.io._
-import java.net.{ URL, URLConnection, JarURLConnection }
-import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
+import java.net.{JarURLConnection, URL, URLConnection}
+
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.joda.time.DateTimeZone
-import play.utils.{ Resources, InvalidUriEncodingException, UriEncoding }
-import scala.concurrent.{ ExecutionContext, Promise, Future, blocking }
+import play.utils.{InvalidUriEncodingException, Resources, UriEncoding}
+
+import scala.concurrent.{ExecutionContext, Future, Promise, blocking}
 import scala.util.control.NonFatal
-import scala.util.{ Success, Failure }
+import scala.util.{Failure, Success}
 import java.util.Date
 import java.util.regex.Pattern
+
 import play.api.libs.iteratee.Execution.Implicits
-import play.api.http.{ HttpEntity, LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
+import play.api.http.{ContentTypes, HttpErrorHandler, LazyHttpErrorHandler}
+
 import scala.collection.concurrent.TrieMap
 import play.core.routing.ReverseRouteContext
+
 import scala.io.Source
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
+
+import akka.stream.scaladsl.StreamConverters
 
 /*
  * A map designed to prevent the "thundering herds" issue.
@@ -264,7 +268,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
     minifiedPathsCache.getOrElse(path, {
       def minifiedPathFor(delim: Char): Option[String] = {
         val ext = path.reverse.takeWhile(_ != '.').reverse
-        val noextPath = path.dropRight(ext.size + 1)
+        val noextPath = path.dropRight(ext.length + 1)
         val minPath = noextPath + delim + "min." + ext
         resource(minPath).map(_ => minPath)
       }
@@ -333,7 +337,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
           digest(minPath).fold(minPath) { dgst =>
             val lastSep = minPath.lastIndexOf("/")
             minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
-          }.drop(base.size + 1)
+          }.drop(base.length + 1)
         }
       }
     }
@@ -347,7 +351,6 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
   import Assets._
   import AssetInfo._
-  import ResponseHeader._
 
   private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
     // First check etag. Important, if there is an If-None-Match header, we MUST not check the
@@ -380,22 +383,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
   }
 
-  private def result(file: String,
-    length: Long,
-    mimeType: String,
-    resourceData: Enumerator[Array[Byte]],
-    gzipRequested: Boolean,
-    gzipAvailable: Boolean): Result = {
-
-    val response = if (length > 0) {
-      Ok.sendEntity(HttpEntity.Streamed(
-        akka.stream.scaladsl.Source.fromPublisher(Streams.enumeratorToPublisher(resourceData)).map(ByteString.apply),
-        Some(length),
-        Some(mimeType)
-      ))
-    } else {
-      Ok.sendEntity(HttpEntity.Strict(ByteString.empty, Some(mimeType)))
-    }
+  private def asGzipResult(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
     if (gzipRequested && gzipAvailable) {
       response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
     } else if (gzipAvailable) {
@@ -414,14 +402,14 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     // otherwise we can't.
     val requestedDigest = f.getName.takeWhile(_ != '-')
     if (!requestedDigest.isEmpty) {
-      val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath.replace('\\', '/')
+      val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
       val bareFullPath = path + "/" + bareFile
       blocking(digest(bareFullPath)) match {
         case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
-        case _ => assetAt(path, file.name, false)
+        case _ => assetAt(path, file.name, aggressiveCaching = false)
       }
     } else {
-      assetAt(path, file.name, false)
+      assetAt(path, file.name, aggressiveCaching = false)
     }
   }
 
@@ -454,14 +442,14 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
           notFound
         } else {
           val stream = connection.getInputStream
-          val length = stream.available
-          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
+          val source = StreamConverters.fromInputStream(() => stream)
+          val result = RangeResult.ofSource(stream.available(), source, request.headers.get(RANGE), Option(file), Option(assetInfo.mimeType))
 
           Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
               assetInfo,
               aggressiveCaching,
-              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+              asGzipResult(result, gzipRequested, assetInfo.gzipUrl.isDefined)
             )
           })
         }

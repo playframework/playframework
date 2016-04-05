@@ -5,7 +5,6 @@ package play.mvc;
 
 import akka.util.ByteString;
 import play.api.libs.iteratee.Enumerator;
-import play.api.libs.streams.Streams;
 import play.api.mvc.*;
 
 import play.http.HttpEntity;

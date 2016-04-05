@@ -217,5 +217,112 @@ trait AssetsSpec extends PlaySpecification
         }
       }
     }
+
+    "serve a partial content if requested" in {
+      "return a 206 Partial Content status" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-10")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+      }
+
+      "The first 500 bytes: 0-499 inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-499")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-499/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The second 500 bytes: 500-999 inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=500-999")
+            .get()
+        )
+
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 500-999/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The final 500 bytes: 9500-9999, inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=9500-9999")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The final 500 bytes using a open range: 9500-" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=9500-")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/10000"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-0,-1")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-0,-1/"))
+      }.pendingUntilFixed
+
+      "Multiple intervals to get the second 500 bytes" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=500-600,601-999")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("multipart/byteranges"))
+      }.pendingUntilFixed
+
+      "Return status 416 when first byte is gt the length of the complete entity" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.status must_== REQUESTED_RANGE_NOT_SATISFIABLE
+      }
+
+      "Return a Content-Range header for 416 responses" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.header(CONTENT_RANGE) must beSome.which(_ == "bytes */10000")
+      }
+    }
   }
 }
