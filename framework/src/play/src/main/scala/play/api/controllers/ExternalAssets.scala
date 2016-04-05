@@ -14,7 +14,7 @@ import java.io._
  * Controller that serves static resources from an external folder.
  * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
  *
- * Not that this controller is not intented to be used in production mode and can lead to security issues.
+ * Note that this controller IS NOT intended to be used in production mode and can lead to security issues.
  * Therefore it is automatically disabled in production mode.
  *
  * All assets are served with max-age=3600 cache directive.
