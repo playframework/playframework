@@ -137,7 +137,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++ logback.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.34.Final"
+  val nettyVersion = "4.0.36.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.5",
@@ -269,7 +269,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.0-RC19"
+    "org.asynchttpclient" % "async-http-client" % "2.0.0-RC21"
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
     logback.map(_ % Test) ++
