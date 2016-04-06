@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
@@ -153,7 +154,7 @@ public class StatusHeader extends Result {
         }
         try {
             return doSendResource(
-                    StreamConverters.fromInputStream(() -> Files.newInputStream(path)),
+                    FileIO.fromFile(path.toFile()),
                     Optional.of(Files.size(path)),
                     Optional.of(filename),
                     inline
@@ -184,7 +185,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                StreamConverters.fromInputStream(() -> Files.newInputStream(file.toPath())),
+                FileIO.fromFile(file),
                 Optional.of(file.length()),
                 Optional.of(file.getName()),
                 inline
@@ -203,7 +204,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                StreamConverters.fromInputStream(() -> Files.newInputStream(file.toPath())),
+                FileIO.fromFile(file),
                 Optional.of(file.length()),
                 Optional.of(fileName),
                 true

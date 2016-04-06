@@ -3,7 +3,7 @@
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-[Reactive Streams](http://www.reactive-streams.org/) is a new standard that gives a common API for asynchronous streams. Play 2.4 introduces some wrappers to convert Play's [[Iteratees and Enumerators|Iteratees]] into Reactive Streams objects. This means that Play can integrate with other software that supports Reactive Streams, e.g. [Akka Streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/), [RxJava](https://github.com/ReactiveX/RxJavaReactiveStreams) and [others](http://www.reactive-streams.org/announce-1.0.0#implementations).
+[Reactive Streams](http://www.reactive-streams.org/) is a new standard that gives a common API for asynchronous streams. Play 2.4 introduces some wrappers to convert Play's [[Iteratees and Enumerators|Iteratees]] into Reactive Streams objects. This means that Play can integrate with other software that supports Reactive Streams, e.g. [Akka Streams](http://doc.akka.io/docs/akka/2.4.3/scala/stream/index.html), [RxJava](https://github.com/ReactiveX/RxJavaReactiveStreams) and [others](http://www.reactive-streams.org/announce-1.0.0#implementations).
 
 The purpose of the API is:
 
