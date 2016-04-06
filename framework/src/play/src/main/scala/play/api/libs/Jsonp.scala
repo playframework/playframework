@@ -50,8 +50,6 @@ object Jsonp {
     ContentTypeOf[Jsonp](Some(ContentTypes.JAVASCRIPT))
   }
 
-  import play.api.libs.iteratee.Execution.Implicits.trampoline
-
   implicit def writeableOf_Jsonp(implicit codec: Codec): Writeable[Jsonp] = Writeable { jsonp =>
     codec.encode("%s(%s);".format(jsonp.padding, jsonp.json))
   }

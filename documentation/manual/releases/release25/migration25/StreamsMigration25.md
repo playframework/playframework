@@ -360,7 +360,7 @@ If you use `Results.chunked` or `Results.feed` you can continue to use the exist
 
 **Step 2:** Convert `Enumerator` to `Source` with an adapter
 
-You can convert your existing `Enumerator` to a `Source` by first converting it to a reactive streams `Publisher` using [`Streams.enumeratorToPublisher`](api/scala/play/api/libs/streams/Streams$.html#enumeratorToPublisher[T]\(Enumerator[T],Option[T]\):Publisher[T]), and then you can convert the publisher to a source using [`Source.fromPublisher`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Source$.html#fromPublisher[T]\(Publisher[T]\):Source[T,NotUsed]), for example:
+You can convert your existing `Enumerator` to a `Source` by first converting it to a reactive streams `Publisher` using `Streams.enumeratorToPublisher`, and then you can convert the publisher to a source using [`Source.fromPublisher`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Source$.html#fromPublisher[T]\(Publisher[T]\):Source[T,NotUsed]), for example:
 
 ```scala
 val enumerator: Enumerator[T] = ...
@@ -387,7 +387,7 @@ Here's a list of some common mappings for enumerator factory methods:
 
 **Step 1:** Convert using an adapter
 
-You can convert your existing `Iteratee` to a `Sink` by first converting it to a reactive streams `Subscriber` using [`Streams.iterateeToSubscriber`](api/scala/play/api/libs/streams/Streams$.html#iterateeToSubscriber[T,U]\(Iteratee[T,U]\):\(Subscriber[T],Iteratee[T,U]\)), and then you can convert the subscriber to a sink using [`Sink.fromSubscriber`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Sink$.html#fromSubscriber[T]\(Subscriber[T]\):Sink[T,NotUsed]), for example:
+You can convert your existing `Iteratee` to a `Sink` by first converting it to a reactive streams `Subscriber` using `Streams.iterateeToSubscriber`, and then you can convert the subscriber to a sink using [`Sink.fromSubscriber`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Sink$.html#fromSubscriber[T]\(Subscriber[T]\):Sink[T,NotUsed]), for example:
 
 ```scala
 val iteratee: Iteratee[T, U] = ...
@@ -395,7 +395,7 @@ val (subscriber, resultIteratee) = Streams.iterateeToSubscriber(iteratee)
 val sink = Sink.fromSubscriber(subscriber)
 ```
 
-If you need to return an `Accumulator`, you can instead use the [`Streams.iterateeToAccumulator`](api/scala/play/api/libs/streams/Streams$.html#iterateeToAccumulator[T,U]\(Iteratee[T,U]\):Accumulator[T,U]) method.
+If you need to return an `Accumulator`, you can instead use the `Streams.iterateeToAccumulator` method.
 
 **Step 2:** (Optional) Rewrite to a `Sink`
 
@@ -414,7 +414,7 @@ Here's a list of some common mappings for iteratee factory methods:
 
 **Step 1:** Convert using an adapter
 
-You can convert your existing `Enumeratee` to a `Flow` by first converting it to a reactive streams `Processor` using [`Streams.enumerateeToProcessor`](api/scala/play/api/libs/streams/Streams$.html#enumerateeToProcessor[A,B]\(Enumeratee[A,B]\):Processor[A,B]), and then you can convert the processor to a flow using [`Flow.fromProcessor`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Flow$.html#fromProcessor[I,O]\(\(\)⇒Processor[I,O]\):Flow[I,O,NotUsed]), for example:
+You can convert your existing `Enumeratee` to a `Flow` by first converting it to a reactive streams `Processor` using `Streams.enumerateeToProcessor`, and then you can convert the processor to a flow using [`Flow.fromProcessor`](http://doc.akka.io/api/akka/2.4.2/akka/stream/scaladsl/Flow$.html#fromProcessor[I,O]\(\(\)⇒Processor[I,O]\):Flow[I,O,NotUsed]), for example:
 
 ```scala
 val enumeratee: Enumeratee[A, B] = ...

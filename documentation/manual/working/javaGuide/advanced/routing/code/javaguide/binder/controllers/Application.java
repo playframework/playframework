@@ -4,19 +4,17 @@
 package javaguide.binder.controllers;
 
 //#javascript-router-resource-imports
+import play.routing.JavaScriptReverseRouter;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.Routes;
 //#javascript-router-resource-imports
-
-// import static javaguide.binder.controllers.routes;
 
 public class Application extends Controller {
     
     //#javascript-router-resource
     public Result javascriptRoutes() {
         return ok(
-            Routes.javascriptRouter("jsRoutes",
+            JavaScriptReverseRouter.create("jsRoutes",
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )
@@ -27,7 +25,7 @@ public class Application extends Controller {
     public Result javascriptRoutes2() {
         return ok(
             //#javascript-router-resource-custom-method
-            Routes.javascriptRouter("jsRoutes", "myAjaxMethod",
+            JavaScriptReverseRouter.create("jsRoutes", "myAjaxMethod",
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )

@@ -4,9 +4,8 @@
 package play.api.mvc
 
 import akka.util.ByteString
-import play.api.libs.iteratee._
 import play.api._
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.libs.streams.Accumulator
 import scala.concurrent._
 import scala.language.higherKinds
 
@@ -181,7 +180,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
       def apply(request: RequestHeader) = self(request).mapFuture {
         case Right(a) =>
           // safe to execute `Right.apply` in same thread
-          f(a).map(Right.apply)(Execution.trampoline)
+          f(a).map(Right.apply)(play.core.Execution.trampoline)
         case left =>
           Future.successful(left.asInstanceOf[Either[Result, B]])
       }(pec)
@@ -256,37 +255,6 @@ object BodyParser {
 
   def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
-    override def toString = "BodyParser(" + debugName + ")"
-  }
-
-  /**
-   * Create an anonymous BodyParser
-   *
-   * Example:
-   * {{{
-   * val bodySize = BodyParser.iteratee { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
-   * }
-   * }}}
-   */
-  @deprecated("Use apply instead", "2.5.0")
-  def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
-    iteratee("(no name)")(f)
-  }
-
-  /**
-   * Create a BodyParser
-   *
-   * Example:
-   * {{{
-   * val bodySize = BodyParser.iteratee("Body size") { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
-   * }
-   * }}}
-   */
-  @deprecated("Use apply instead", "2.5.0")
-  def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
-    def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
     override def toString = "BodyParser(" + debugName + ")"
   }
 

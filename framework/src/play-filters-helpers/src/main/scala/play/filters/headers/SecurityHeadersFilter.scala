@@ -132,7 +132,7 @@ class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends Es
    * Applies the filter to an action, appending the headers to the result so it shows in the HTTP response.
    */
   def apply(next: EssentialAction) = EssentialAction { req =>
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
     next(req).map(_.withHeaders(headers(req): _*))
   }
 }

@@ -248,7 +248,7 @@ object CSRF {
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
 
     def handle(req: Http.RequestHeader, msg: String) =
       FutureConverters.toJava(delegate.handle(req._underlyingHeader(), msg).map(_.asJava))

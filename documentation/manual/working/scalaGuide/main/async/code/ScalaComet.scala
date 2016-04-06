@@ -9,9 +9,7 @@ import akka.stream.scaladsl.Source
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Comet
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json._
-import play.api.libs.streams.Streams
 import play.api.mvc._
 //#comet-imports
 
@@ -36,16 +34,6 @@ object ScalaCometSpec extends PlaySpecification {
       Ok.chunked(jsonSource via Comet.json("parent.cometMessage")).as(ContentTypes.HTML)
     }
     //#comet-json
-
-    //#comet-enumerator
-    def cometFromEnumerator = Action {
-      implicit val m = materializer
-      val enum = Enumerator("one", "two", "three")
-      val publisher = Streams.enumeratorToPublisher(enum)
-      def stringSource: Source[String, _] = Source.fromPublisher(publisher)
-      Ok.chunked(stringSource via Comet.string("parent.cometMessage")).as(ContentTypes.HTML)
-    }
-    //#comet-enumerator
   }
 
 

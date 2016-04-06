@@ -51,51 +51,9 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, GlobalSettingsHttpErrorHandler](environment, PlayConfig(configuration),
+    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, PlayConfig(configuration),
       "play.http.errorHandler", "ErrorHandler")
   }
-}
-
-/**
- * HTTP error handler that delegates to legacy GlobalSettings methods.
- *
- * This is an internal error handler that ensures that applications that provide custom onHandlerNotFound, onBadRequest,
- * and onError implementations on GlobalSettings still work.  It is package private to Play, and is only referenced from the
- * HttpErrorHandler.bindingsFromConfiguration method as the default.  It should go away when GlobalSettings is removed.
- *
- * The dependency on GlobalSettings is wrapped in a Provider to avoid a circular dependency, since other methods on
- * GlobalSettings also require invoking this.
- */
-@Singleton
-private[play] class GlobalSettingsHttpErrorHandler @Inject() (global: Provider[GlobalSettings]) extends HttpErrorHandler {
-
-  /**
-   * Invoked when a client error occurs, that is, an error in the 4xx series.
-   *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
-   */
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
-    statusCode match {
-      case BAD_REQUEST => global.get.onBadRequest(request, message)
-      case FORBIDDEN => Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
-      case NOT_FOUND => global.get.onHandlerNotFound(request)
-      case clientError if statusCode >= 400 && statusCode < 500 =>
-        Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
-      case nonClientError =>
-        throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
-    }
-  }
-
-  /**
-   * Invoked when a server error occurs.
-   *
-   * @param request The request that triggered the server error.
-   * @param exception The server error.
-   */
-  def onServerError(request: RequestHeader, exception: Throwable) =
-    global.get.onError(request, exception)
 }
 
 /**
@@ -302,7 +260,7 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
  * handler injected.
  */
 private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler) extends play.http.HttpErrorHandler {
-  import play.api.libs.iteratee.Execution.Implicits.trampoline
+  import play.core.Execution.Implicits.trampoline
 
   def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
     FutureConverters.toJava(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))

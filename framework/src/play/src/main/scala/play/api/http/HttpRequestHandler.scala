@@ -3,14 +3,14 @@
  */
 package play.api.http
 
-import javax.inject.{ Inject, Provider }
+import javax.inject.Inject
 
 import play.api.http.Status._
 import play.api.inject.{ Binding, BindingKey }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.{ Configuration, Environment, GlobalSettings, PlayConfig }
+import play.api.{ Configuration, Environment, PlayConfig }
 import play.core.j.{ JavaHttpRequestHandlerDelegate, JavaHandler, JavaHandlerComponents }
 import play.utils.Reflect
 
@@ -80,10 +80,6 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  *
  * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
  * is the default one, in order to provide support for Java actions.
- *
- * The default implementations of method interception methods on [[play.api.GlobalSettings]] match the implementations
- * of this, so when not providing any custom logic, whether this is used or the global settings http request handler
- * is used is irrelevant.
  */
 class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
     filters: EssentialFilter*) extends HttpRequestHandler {
@@ -172,18 +168,6 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
     router.handlerFor(request)
   }
 
-}
-
-/**
- * An [[HttpRequestHandler]] that delegates to [[play.api.GlobalSettings]].
- *
- * This handler should be used in order to support legacy global settings request interception.
- *
- * Custom handlers need not extend this.
- */
-@deprecated("GlobalSettings is deprecated. Use DefaultHttpRequestHandler or JavaCompatibleHttpRequestHandler.", "2.5.0")
-class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSettings]) extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) = global.get.onRequestReceived(request)
 }
 
 /**

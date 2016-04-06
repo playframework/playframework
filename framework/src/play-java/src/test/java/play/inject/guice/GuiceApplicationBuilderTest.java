@@ -5,7 +5,6 @@ package play.inject.guice;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.junit.Rule;
@@ -14,7 +13,6 @@ import org.junit.Test;
 import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.Application;
 import play.Configuration;
-import play.GlobalSettings;
 import play.inject.Injector;
 import play.libs.Scala;
 

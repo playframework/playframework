@@ -5,11 +5,9 @@ package play.api.libs.streams
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Source, Keep, Flow, Sink }
-import org.reactivestreams.{ Publisher, Subscription, Subscriber }
 
 import scala.compat.java8.FutureConverters
-import scala.concurrent.{ Promise, ExecutionContext, Future }
-import scala.util.{ Failure, Success }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.compat.java8.FutureConverters._
 
 /**
@@ -186,7 +184,7 @@ private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(im
 object Accumulator {
 
   private[streams] def futureToSink[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Sink[E, Future[A]] = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import Execution.Implicits.trampoline
 
     Sink.asPublisher[E](fanout = false).mapMaterializedValue { publisher =>
       future.recover {

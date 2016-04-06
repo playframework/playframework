@@ -7,8 +7,6 @@ import akka.stream.Materializer
 import play.api.i18n.MessagesApi
 import play.utils.Threads
 
-import java.io._
-
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -106,15 +104,9 @@ object Play {
     _currentApp = app
 
     Threads.withContextClassLoader(app.classloader) {
-      // Call before start now
-      app.global.beforeStart(app)
-
       // Ensure routes are eagerly loaded, so that the reverse routers are
       // correctly initialised before plugins are started.
       app.routes
-
-      // If the global plugin is loaded, then send it a start now.
-      app.global.onStart(app)
     }
 
     app.mode match {
@@ -130,92 +122,11 @@ object Play {
   def stop(app: Application) {
     if (app != null) {
       Threads.withContextClassLoader(app.classloader) {
-        app.global.onStop(app)
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
     _currentApp = null
   }
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
-    app.resourceAsStream(name)
-  }
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
-    app.resource(name)
-  }
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def getFile(relativePath: String)(implicit app: Application): File = {
-    app.getFile(relativePath)
-  }
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
-    app.getExistingFile(relativePath)
-  }
-
-  /**
-   * @deprecated inject the [[play.api.Application]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def application(implicit app: Application): Application = app
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def classloader(implicit app: Application): ClassLoader = app.classloader
-
-  /**
-   * @deprecated inject the [[play.api.Configuration]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def configuration(implicit app: Application): Configuration = app.configuration
-
-  /**
-   * @deprecated inject the [[play.api.routing.Router]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def routes(implicit app: Application): play.api.routing.Router = app.routes
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def mode(implicit app: Application): Mode.Mode = app.mode
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
-
-  /**
-   * @deprecated inject the [[play.api.Environment]] instead
-   */
-  @deprecated("inject the play.api.Environment instead", "2.5.0")
-  def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
   /**
    * Returns the name of the cookie that can be used to permanently set the user's language.

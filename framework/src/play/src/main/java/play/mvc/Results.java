@@ -4,17 +4,13 @@
 package play.mvc;
 
 import akka.util.ByteString;
-import play.api.libs.iteratee.Enumerator;
-import play.api.mvc.*;
 
 import play.http.HttpEntity;
-import play.libs.F.*;
 
 import play.twirl.api.Content;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -27,7 +23,6 @@ import static play.mvc.Http.HeaderNames.*;
 public class Results {
 
     private static final String UTF8 = "utf-8";
-    private static final int defaultChunkSize = 1024 * 8;
 
     // -- Constructor methods
 
@@ -215,230 +210,6 @@ public class Results {
         return status(status).sendFile(content, fileName);
     }
 
-    public static Result status(int status, Chunks<?> chunks) {
-        return status(status).chunked(chunks);
-    }
-
-    /**
-     * A Chunked result.
-     *
-     * @deprecated use {@link akka.stream.javadsl.Source} instead.
-     */
-    public abstract static class Chunks<A> {
-
-        final Enumerator<A> enumerator;
-        final play.api.http.Writeable<A> writable;
-
-        public Chunks(play.api.http.Writeable<A> writable) {
-            final Chunks<A> self = this;
-            this.writable = writable;
-            final RedeemablePromise<Object> disconnected = RedeemablePromise.<Object>empty();
-            this.enumerator = play.core.j.JavaResults.chunked(
-                    (channel) -> {
-                        Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
-                        self.onReady(chunked);
-                    },
-                    () -> disconnected.success(null)
-            );
-        }
-
-        /**
-         * Called when the Chunked stream is ready.
-         *
-         * @param out The out stream.
-         */
-        public abstract void onReady(Chunks.Out<A> out);
-
-        /**
-         * A Chunked stream.
-         */
-        public static class Out<A> {
-
-            /** A Promise that will be redeemed to null when the channel is disconnected. */
-            final RedeemablePromise<Object> disconnected;
-            final play.api.libs.iteratee.Concurrent.Channel<A> channel;
-
-            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, RedeemablePromise<Object> disconnected) {
-                this.channel = channel;
-                this.disconnected = disconnected;
-            }
-
-            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Runnable> disconnectedCallbacks) {
-                this.channel = channel;
-                this.disconnected = RedeemablePromise.<Object>empty();
-                for(Runnable callback: disconnectedCallbacks) {
-                    onDisconnected(callback);
-                }
-            }
-
-            /**
-             * Write a Chunk.
-             *
-             * @param chunk the chunk to write
-             */
-            public void write(A chunk) {
-                channel.push(chunk);
-            }
-
-            /**
-             * Attach a callback to be called when the socket is disconnected.
-             *
-             * @param callback the function to run when the socket is disconnected
-             */
-            public void onDisconnected(final Runnable callback) {
-                disconnected.onRedeem(ignored -> callback.run());
-            }
-
-            /**
-             * Closes the stream.
-             */
-            public void close() {
-                channel.eofAndEnd();
-            }
-
-        }
-
-    }
-
-    /**
-     * Chunked result based on String chunks.
-     *
-     * @deprecated use {@link akka.stream.javadsl.Source} instead.
-     */
-    public abstract static class StringChunks extends Chunks<String> {
-
-        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(StringChunks.class);
-
-        public StringChunks() {
-            this(Codec.utf_8());
-        }
-
-        public StringChunks(String codec) {
-            this(Codec.javaSupported(codec));
-        }
-
-        public StringChunks(Codec codec) {
-            super(play.core.j.JavaResults.writeString(codec));
-        }
-
-        /**
-         * Creates a StringChunks. The abstract {@code onReady} method is
-         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
-         *
-         * Uses UTF-8 by default.
-         *
-         * @param callback the callback used to implement onReady
-         * @return a new StringChunks
-         * @throws NullPointerException if the specified callback is null
-         */
-        public static StringChunks whenReady(Consumer<Chunks.Out<String>> callback) {
-            return whenReady(Codec.utf_8(), callback);
-        }
-
-        /**
-         * Creates a StringChunks. The abstract {@code onReady} method is
-         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
-         *
-         * @param codec the Codec charset used
-         * @param callback the callback used to implement onReady
-         * @return a new StringChunks
-         * @throws NullPointerException if the specified callback is null
-         */
-        public static StringChunks whenReady(String codec, Consumer<Chunks.Out<String>> callback) {
-            return whenReady(Codec.javaSupported(codec), callback);
-        }
-
-        /**
-         * Creates a StringChunks. The abstract {@code onReady} method is
-         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
-         *
-         * @param codec the Codec used
-         * @param callback the callback used to implement onReady
-         * @return a new StringChunks
-         * @throws NullPointerException if the specified callback is null
-         */
-        public static StringChunks whenReady(Codec codec, Consumer<Chunks.Out<String>> callback) {
-            return new WhenReadyStringChunks(codec, callback);
-        }
-
-        /**
-         * An extension of StringChunks that obtains its onReady from
-         * the specified {@code Callback<Chunks.Out<String>>}.
-         */
-        static final class WhenReadyStringChunks extends StringChunks {
-
-            private final Consumer<Chunks.Out<String>> callback;
-
-            WhenReadyStringChunks(Codec codec, Consumer<Chunks.Out<String>> callback) {
-                super(codec);
-                if (callback == null) throw new NullPointerException("StringChunks onReady callback cannot be null");
-                this.callback = callback;
-            }
-
-            @Override
-            public void onReady(Chunks.Out<String> out) {
-                try {
-                    callback.accept(out);
-                } catch (Throwable e) {
-                    logger.error("Exception in StringChunks.onReady", e);
-                }
-            }
-        }
-
-    }
-
-    /**
-     * Chunked result based on byte[] chunks.
-     *
-     * @deprecated use {@link akka.stream.javadsl.Source} instead.
-     */
-    @Deprecated
-    public abstract static class ByteChunks extends Chunks<byte[]> {
-
-        public ByteChunks() {
-            super(play.core.j.JavaResults.writeBytes());
-        }
-
-        /**
-         * Creates a ByteChunks. The abstract {@code onReady} method is
-         * implemented using the specified {@code Callback<Chunks.Out<byte[]>>}.
-         *
-         * @param callback the callback used to implement onReady
-         * @return a new ByteChunks
-         * @throws NullPointerException if the specified callback is null
-         */
-        public static ByteChunks whenReady(Consumer<Chunks.Out<byte[]>> callback) {
-            return new WhenReadyByteChunks(callback);
-        }
-
-        /**
-         * An extension of ByteChunks that obtains its onReady from
-         * the specified {@code Callback<Chunks.Out<byte[]>>}.
-         */
-        static final class WhenReadyByteChunks extends ByteChunks {
-
-            private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyByteChunks.class);
-
-            private final Consumer<Chunks.Out<byte[]>> callback;
-
-            WhenReadyByteChunks(Consumer<Chunks.Out<byte[]>> callback) {
-                super();
-                if (callback == null) throw new NullPointerException("ByteChunks onReady callback cannot be null");
-                this.callback = callback;
-            }
-
-            @Override
-            public void onReady(Chunks.Out<byte[]> out) {
-                try {
-                    callback.accept(out);
-                } catch (Throwable e) {
-                    logger.error("Exception in ByteChunks.onReady", e);
-                }
-            }
-        }
-
-    }
-
     /**
      * Generates a 204 No Content result.
      *
@@ -591,19 +362,6 @@ public class Results {
         return status(OK, content, filename);
     }
 
-    /**
-     * Generates a 200 OK result.
-     *
-     * @deprecated Use {@link #ok } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result ok(Chunks<?> chunks) {
-        return status(OK, chunks);
-    }
-
 
     /**
      * Generates a 201 Created result.
@@ -742,20 +500,6 @@ public class Results {
     }
 
     /**
-     * Generates a 201 Created result.
-     *
-     * @deprecated Use {@link #created } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result created(Chunks<?> chunks) {
-        return status(CREATED, chunks);
-    }
-
-
-    /**
      * Generates a 400 Bad Request result.
      *
      * @return the result
@@ -890,20 +634,6 @@ public class Results {
     public static Result badRequest(File content, String filename) {
         return status(BAD_REQUEST, content, filename);
     }
-
-    /**
-     * Generates a 400 Bad Request result.
-     *
-     * @deprecated Use {@link #badRequest } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result badRequest(Chunks<?> chunks) {
-        return status(BAD_REQUEST, chunks);
-    }
-
 
     /**
      * Generates a 401 Unauthorized result.
@@ -1042,20 +772,6 @@ public class Results {
     }
 
     /**
-     * Generates a 401 Unauthorized result.
-     *
-     * @deprecated Use {@link #unauthorized } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result unauthorized(Chunks<?> chunks) {
-        return status(UNAUTHORIZED, chunks);
-    }
-
-
-    /**
      * Generates a 402 Payment Required result.
      *
      * @return the result
@@ -1190,20 +906,6 @@ public class Results {
     public static Result paymentRequired(File content, String filename) {
         return status(PAYMENT_REQUIRED, content, filename);
     }
-
-    /**
-     * Generates a 402 Payment Required result.
-     *
-     * @deprecated Use {@link #paymentRequired } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result paymentRequired(Chunks<?> chunks) {
-        return status(PAYMENT_REQUIRED, chunks);
-    }
-
 
     /**
      * Generates a 403 Forbidden result.
@@ -1342,20 +1044,6 @@ public class Results {
     }
 
     /**
-     * Generates a 403 Forbidden result.
-     *
-     * @deprecated Use {@link #forbidden } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result forbidden(Chunks<?> chunks) {
-        return status(FORBIDDEN, chunks);
-    }
-
-
-    /**
      * Generates a 404 Not Found result.
      *
      * @return the result
@@ -1492,20 +1180,6 @@ public class Results {
     }
 
     /**
-     * Generates a 404 Not Found result.
-     *
-     * @deprecated Use {@link #notFound } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result notFound(Chunks<?> chunks) {
-        return status(NOT_FOUND, chunks);
-    }
-
-
-    /**
      * Generates a 500 Internal Server Error result.
      *
      * @return the result
@@ -1639,19 +1313,6 @@ public class Results {
      */
     public static Result internalServerError(File content, String filename) {
         return status(INTERNAL_SERVER_ERROR, content, filename);
-    }
-
-    /**
-     * Generates a 500 Internal Server Error result.
-     *
-     * @deprecated Use {@link #internalServerError } with {@link StatusHeader#chunked(akka.stream.javadsl.Source) }
-     * instead.
-     * @param chunks Deprecated
-     * @return Deprecated
-     */
-    @Deprecated
-    public static Result internalServerError(Chunks<?> chunks) {
-        return status(INTERNAL_SERVER_ERROR, chunks);
     }
 
     /**

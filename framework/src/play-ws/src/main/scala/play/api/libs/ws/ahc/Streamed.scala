@@ -9,8 +9,6 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.{ AsyncHttpClient, HttpResponseBodyPart, HttpResponseHeaders, HttpResponseStatus, Request }
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.reactivestreams.{ Publisher, Subscriber, Subscription }
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.streams.Streams
 import play.api.libs.ws.{ DefaultWSResponseHeaders, StreamedResponse, WSResponseHeaders }
 
 import scala.concurrent.{ Future, Promise }
@@ -20,7 +18,7 @@ private[play] object Streamed {
   def execute(client: AsyncHttpClient, request: Request): Future[StreamedResponse] = {
     val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
     client.executeRequest(request, new DefaultStreamedAsyncHandler(promise))
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
     promise.future.map {
       case (headers, publisher) =>
         // this transformation is not part of `DefaultStreamedAsyncHandler.onCompleted` because 
@@ -29,24 +27,6 @@ private[play] object Streamed {
         // `DefaultStreamedAsyncHandler.onCompleted`.
         val source = Source.fromPublisher(publisher).map(bodyPart => ByteString(bodyPart.getBodyPartBytes))
         StreamedResponse(headers, source)
-    }
-  }
-
-  // This method was introduced because in Play we have utilities that makes it easy to convert a `Publisher` into an `Enumerator`, 
-  // while it's not as easy to convert an akka-stream Source to a reactive-streams `Publisher` (as it requires materialization of 
-  // the stream). This is why `DefaultStreamedAsyncHandler`'s constructor takes a `Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]` 
-  // and not a `Promise[(WSResponseHeaders, Source[ByteString])]`. In fact, the moment this method is removed, we should refactor the 
-  // `DefaultStreamedAsyncHandler`' constructor parameter's type to the latter.
-  // This method is `deprecated` because we should remember to remove it together with `AhcWSRequest.streamWithEnumerator`.
-  @deprecated("2.5", "Use `execute()` instead.")
-  def execute2(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
-    val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
-    client.executeRequest(request, new DefaultStreamedAsyncHandler(promise))
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    promise.future.map {
-      case (headers, publisher) =>
-        val enumerator = Streams.publisherToEnumerator(publisher).map(_.getBodyPartBytes)
-        (headers, enumerator)
     }
   }
 

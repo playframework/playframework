@@ -24,7 +24,8 @@ templates := {
     )
   }
   Seq(
-    template("play-scala", "scala", "play-common"),
+    // Disabled for due to binary compatibility/circular dependency issue with scalatestplus-play
+    // template("play-scala", "scala", "play-common"),
     template("play-java", "java", "play-common"),
     template("play-scala-intro", "scala"),
     template("play-java-intro", "java")
@@ -60,7 +61,7 @@ templateParameters := Map(
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
   "PLAY_SLICK_VERSION" -> "1.1.0",
-  "SCALATESTPLUS_PLAY_VERSION" -> "1.5.0-RC1",
+  "SCALATESTPLUS_PLAY_VERSION" -> "1.5.1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )

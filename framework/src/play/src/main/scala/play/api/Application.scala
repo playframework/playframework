@@ -60,9 +60,6 @@ trait Application {
   private[play] def isTest = (mode == Mode.Test)
   private[play] def isProd = (mode == Mode.Prod)
 
-  @deprecated("Use dependency injection", "2.5.0")
-  def global: GlobalSettings.Deprecated = injector.instanceOf[GlobalSettings.Deprecated]
-
   def configuration: Configuration
 
   /**
@@ -247,7 +244,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + global + crypto
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + crypto
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -268,9 +265,6 @@ trait BuiltInComponents {
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
   lazy val aesCrypter: AESCrypter = new AESCrypterProvider(cryptoConfig).get
   lazy val crypto: Crypto = new Crypto(cookieSigner, csrfTokenSigner, aesCrypter)
-
-  @deprecated("Use dependency injection", "2.5.x")
-  lazy val global: GlobalSettings.Deprecated = play.api.GlobalSettings(configuration, environment)
 
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
 }

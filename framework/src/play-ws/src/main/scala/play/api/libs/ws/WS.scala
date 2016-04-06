@@ -6,7 +6,6 @@ package play.api.libs.ws
 import java.io.Closeable
 import java.io.File
 import java.net.URI
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.xml.Elem
@@ -15,7 +14,6 @@ import akka.util.ByteString
 import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json.JsValue
-import play.api.libs.iteratee._
 import play.core.formatters.Multipart
 import play.api.mvc.MultipartFormData
 import java.io.IOException
@@ -453,26 +451,6 @@ trait WSRequest {
   def get(): Future[WSResponse] = withMethod("GET").execute()
 
   /**
-   * performs a get
-   * @param consumer that's handling the response
-   */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
-  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    getStream().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
-  }
-
-  /**
-   * performs a get
-   */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
-  def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
-    withMethod("GET").streamWithEnumerator()
-  }
-
-  /**
    * Perform a PATCH on the request asynchronously.
    */
   def patch[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
@@ -489,18 +467,6 @@ trait WSRequest {
    */
   def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
     withMethod("PATCH").withMultipartBody(body).execute()
-  }
-
-  /**
-   * performs a POST with supplied body
-   * @param consumer that's handling the response
-   */
-  @deprecated("2.5.0", """Use WS.withMethod("PATCH").stream()""")
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PATCH").withBody(body).streamWithEnumerator().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
   }
 
   /**
@@ -523,18 +489,6 @@ trait WSRequest {
   }
 
   /**
-   * performs a POST with supplied body
-   * @param consumer that's handling the response
-   */
-  @deprecated("2.5.0", """Use WS.withMethod("POST").stream()""")
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("POST").withBody(body).streamWithEnumerator().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
-  }
-
-  /**
    * Perform a PUT on the request asynchronously.
    */
   def put[T](body: T)(implicit wrt: Writeable[T]): Future[WSResponse] =
@@ -551,18 +505,6 @@ trait WSRequest {
    */
   def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
     withMethod("PUT").withMultipartBody(body).execute()
-  }
-
-  /**
-   * performs a PUT with supplied body
-   * @param consumer that's handling the response
-   */
-  @deprecated("2.5.0", """Use WS.withMethod("PUT").stream()""")
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-    withMethod("PUT").withBody(body).streamWithEnumerator().flatMap {
-      case (response, enumerator) =>
-        enumerator(consumer(response))
-    }
   }
 
   /**
@@ -591,14 +533,6 @@ trait WSRequest {
    * Execute this request and stream the response body.
    */
   def stream(): Future[StreamedResponse]
-
-  /**
-   * Execute this request and stream the response body.
-   * @note This method used to be named `stream`, but it was renamed because the method's signature was
-   *       changed and the JVM doesn't allow overloading on the return type.
-   */
-  @deprecated("2.5.0", "Use `WS.stream()` instead.")
-  def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 
 /**

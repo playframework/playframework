@@ -12,7 +12,7 @@ import play.api.inject.Injector
 import scala.compat.java8.FutureConverters
 import scala.language.existentials
 
-import play.api.libs.iteratee.Execution.trampoline
+import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult, BodyParser => JBodyParser }
 import play.mvc.Http.{ Context => JContext }

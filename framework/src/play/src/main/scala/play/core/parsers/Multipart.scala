@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.Execution.Implicits.trampoline
+import play.core.Execution.Implicits.trampoline
 
 /**
  * Utilities for handling multipart bodies

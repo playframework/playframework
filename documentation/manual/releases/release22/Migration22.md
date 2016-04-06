@@ -153,7 +153,7 @@ Iteratee.foreach[String] { msg =>
 
 ## Concurrent F.Promise execution
 
-The way that the [`F.Promise`](api/java/play/libs/F.Promise.html) class executes user-supplied code has changed in Play 2.2.
+The way that the `F.Promise` class executes user-supplied code has changed in Play 2.2.
 
 In Play 2.1, the `F.Promise` class restricted how user code was executed. Promise operations for a given HTTP request would execute in the order that they were submitted, essentially running sequentially.
 

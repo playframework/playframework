@@ -14,10 +14,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.it._
-import play.libs.{ Comet, EventSource, Json, LegacyEventSource }
-import play.mvc.Http.MimeTypes
+import play.libs.{ Comet, EventSource, Json }
 import play.mvc.Results
-import play.mvc.Results.Chunks
 
 object NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -56,42 +54,6 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
-    }
-
-    "chunk results that are streamed" in makeRequest(new MockController {
-      def action = {
-        Results.ok(new Results.StringChunks() {
-          def onReady(out: Chunks.Out[String]) {
-            out.write("a")
-            out.write("b")
-            out.write("c")
-            out.close()
-          }
-        })
-      }
-    }) { response =>
-      response.header(TRANSFER_ENCODING) must beSome("chunked")
-      response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "abc"
-    }
-
-    "chunk legacy event source results" in makeRequest(new MockController {
-      def action = {
-        Results.ok(new LegacyEventSource() {
-          def onConnected(): Unit = {
-            send(LegacyEventSource.Event.event("a"))
-            send(LegacyEventSource.Event.event("b"))
-            close()
-          }
-        })
-      }
-    }) { response =>
-      response.header(CONTENT_TYPE) must beSome.like {
-        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream; charset=utf-8"
-      }
-      response.header(TRANSFER_ENCODING) must beSome("chunked")
-      response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "data: a\n\ndata: b\n\n"
     }
 
     "chunk comet results from string" in makeRequest(new MockController {

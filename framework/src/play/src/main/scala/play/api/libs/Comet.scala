@@ -7,9 +7,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.util.{ ByteString, ByteStringBuilder }
 import org.apache.commons.lang3.StringEscapeUtils
-import play.api.libs.iteratee._
 import play.api.libs.json.{ JsValue, Json }
-import play.core.Execution.Implicits.internalContext
 import play.twirl.api._
 
 /**
@@ -35,23 +33,6 @@ object Comet {
   val initialHtmlChunk = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>")
 
   val initialByteString = ByteString.fromString(initialHtmlChunk.toString())
-
-  /**
-   * Create a Comet Enumeratee.
-   *
-   * @tparam E Type of messages handled by this comet stream.
-   * @param callback Javascript function to call on the browser for each message.
-   * @param initialChunk Initial chunk of data to send for browser compatibility (default to send 5Kb of blank data)
-   */
-  @deprecated("Please use Comet.flow", "2.5.0")
-  def apply[E](callback: String, initialChunk: Html = initialHtmlChunk): Enumeratee[E, Html] = new Enumeratee[E, Html] {
-    val cb: ByteString = ByteString.fromString(callback)
-    def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
-      val fedWithInitialChunk = Iteratee.flatten(Enumerator(initialChunk) |>> inner)
-      val eToScript = Enumeratee.map[E](toHtml(callback, _))
-      eToScript.applyOn(fedWithInitialChunk)
-    }
-  }
 
   /**
    * Produces a Flow of escaped ByteString from a series of String elements.  Calls

@@ -26,7 +26,6 @@ final case class GuiceApplicationBuilder(
   binderOptions: Set[BinderOption] = BinderOption.defaults,
   eagerly: Boolean = false,
   loadConfiguration: Environment => Configuration = Configuration.load,
-  global: Option[GlobalSettings.Deprecated] = None,
   loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
     environment, configuration, modules, overrides, disabled, binderOptions, eagerly
   ) {
@@ -47,15 +46,6 @@ final case class GuiceApplicationBuilder(
    */
   def loadConfig(conf: Configuration): GuiceApplicationBuilder =
     loadConfig(env => conf)
-
-  /**
-   * Set the global settings object.
-   * Overrides the default or any previously configured values.
-   * @deprecated use dependency injection, since 2.5.0
-   */
-  @deprecated("Use dependency injection", "2.5.0")
-  def global(globalSettings: GlobalSettings): GuiceApplicationBuilder =
-    copy(global = Option(globalSettings))
 
   /**
    * Set the module loader.
@@ -96,7 +86,6 @@ final case class GuiceApplicationBuilder(
   override def applicationModule(): GuiceModule = {
     val initialConfiguration = loadConfiguration(environment)
     val appConfiguration = initialConfiguration ++ configuration
-    val globalSettings = global.getOrElse(GlobalSettings(appConfiguration, environment))
 
     LoggerConfigurator(environment.classLoader).foreach {
       _.configure(environment)
@@ -111,7 +100,6 @@ final case class GuiceApplicationBuilder(
     copy(configuration = appConfiguration)
       .bindings(loadedModules: _*)
       .bindings(
-        bind[GlobalSettings.Deprecated] to globalSettings,
         bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
         bind[WebCommands] to new DefaultWebCommands
       ).createModule()
@@ -134,9 +122,8 @@ final case class GuiceApplicationBuilder(
     binderOptions: Set[BinderOption] = binderOptions,
     eagerly: Boolean = eagerly,
     loadConfiguration: Environment => Configuration = loadConfiguration,
-    global: Option[GlobalSettings] = global,
     loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly, loadConfiguration, global, loadModules)
+    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly, loadConfiguration, loadModules)
 
   /**
    * Implementation of Self creation for GuiceBuilder.

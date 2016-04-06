@@ -162,7 +162,7 @@ class AkkaHttpServer(
       //execute normal action
       case (action: EssentialAction, _) =>
         val actionWithErrorHandling = EssentialAction { rh =>
-          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          import play.core.Execution.Implicits.trampoline
           action(rh).recoverWith {
             case error => handleHandlerError(tryApp, taggedRequestHeader, error)
           }
@@ -170,7 +170,7 @@ class AkkaHttpServer(
         executeAction(tryApp, request, taggedRequestHeader, requestBodySource, actionWithErrorHandling)
 
       case (websocket: WebSocket, Some(upgrade)) =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import play.core.Execution.Implicits.trampoline
 
         websocket(taggedRequestHeader).map {
           case Left(result) =>
@@ -202,7 +202,7 @@ class AkkaHttpServer(
     requestBodySource: Option[Source[ByteString, _]],
     action: EssentialAction): Future[HttpResponse] = {
 
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.core.Execution.Implicits.trampoline
     val actionAccumulator: Accumulator[ByteString, Result] = action(taggedRequestHeader)
 
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {

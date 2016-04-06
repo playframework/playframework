@@ -3,28 +3,24 @@
  */
 package javaguide.async;
 
-//#imports
 import akka.actor.*;
-import play.libs.F.*;
+import akka.stream.Materializer;
+import play.libs.streams.ActorFlow;
 import play.mvc.WebSocket;
-import play.mvc.LegacyWebSocket;
-//#imports
+import play.libs.F;
+
+//#streams-imports
+import akka.stream.javadsl.*;
+//#streams-imports
 
 import play.mvc.Controller;
 
 import java.io.Closeable;
+import java.util.concurrent.CompletableFuture;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class JavaWebSockets {
-
-    public static class ActorController1 {
-
-        //#actor-accept
-        public static LegacyWebSocket<String> socket() {
-            return WebSocket.withActor(MyWebSocketActor::props);
-        }
-        //#actor-accept
-    }
 
     public static class Actor1 extends UntypedActor {
         private final Closeable someResource;
@@ -55,52 +51,101 @@ public class JavaWebSockets {
     }
 
     public static class ActorController2 extends Controller {
+        private ActorSystem actorSystem;
+        private Materializer materializer;
+
         //#actor-reject
-        public LegacyWebSocket<String> socket() {
-            if (session().get("user") != null) {
-                return WebSocket.withActor(MyWebSocketActor::props);
-            } else {
-                return WebSocket.reject(forbidden());
-            }
+        public WebSocket socket() {
+            return WebSocket.Text.acceptOrResult(request -> {
+                if (session().get("user") != null) {
+                    return CompletableFuture.completedFuture(
+                            F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props,
+                                    actorSystem, materializer)));
+                } else {
+                    return CompletableFuture.completedFuture(F.Either.Left(forbidden()));
+                }
+            });
         }
         //#actor-reject
     }
 
     public static class ActorController4 extends Controller {
+        private ActorSystem actorSystem;
+        private Materializer materializer;
+
         //#actor-json
-        public LegacyWebSocket<JsonNode> socket() {
-            return WebSocket.withActor(MyWebSocketActor::props);
+        public WebSocket socket() {
+            return WebSocket.Json.accept(request ->
+                    ActorFlow.actorRef(MyWebSocketActor::props,
+                            actorSystem, materializer));
         }
         //#actor-json
     }
 
-    // No simple way to test websockets yet
+    public static class InEvent {}
+    public static class OutEvent {}
 
-    public static class Controller1 {
-        //#websocket
-        public LegacyWebSocket<String> socket() {
-            return WebSocket.whenReady((in, out) -> {
-                // For each event received on the socket,
-                in.onMessage(System.out::println);
+    public static class ActorController5 extends Controller {
+        private ActorSystem actorSystem;
+        private Materializer materializer;
 
-                // When the socket is closed.
-                in.onClose(() -> System.out.println("Disconnected"));
+        //#actor-json-class
+        public WebSocket socket() {
+            return WebSocket.json(InEvent.class).accept(request ->
+                    ActorFlow.actorRef(MyWebSocketActor::props,
+                            actorSystem, materializer));
+        }
+        //#actor-json-class
+    }
 
-                // Send a single 'Hello!' message
-                out.write("Hello!");
+    public static class Controller1 extends Controller {
+        //#streams1
+        public WebSocket socket() {
+            return WebSocket.Text.accept(request -> {
+                // Log events to the console
+                Sink<String, ?> in = Sink.foreach(System.out::println);
+
+                // Send a single 'Hello!' message and then leave the socket open
+                Source<String, ?> out = Source.single("Hello!").concat(Source.maybe());
+
+                return Flow.fromSinkAndSource(in, out);
             });
         }
-        //#websocket
+        //#streams1
     }
 
-    public static class Controller2 {
-        //#discard-input
-        public LegacyWebSocket<String> socket() {
-            return WebSocket.whenReady((in, out) -> {
-                out.write("Hello!");
-                out.close();
+    public static class Controller2 extends Controller {
+
+        //#streams2
+        public WebSocket socket() {
+            return WebSocket.Text.accept(request -> {
+                // Just ignore the input
+                Sink<String, ?> in = Sink.ignore();
+
+                // Send a single 'Hello!' message and close
+                Source<String, ?> out = Source.single("Hello!");
+
+                return Flow.fromSinkAndSource(in, out);
             });
         }
-        //#discard-input
+        //#streams2
+
     }
+
+    public static class Controller3 extends Controller {
+
+        //#streams3
+        public WebSocket socket() {
+            return WebSocket.Text.accept(request -> {
+
+                // log the message to stdout and send response back to client
+                return Flow.<String>create().map(msg -> {
+                    System.out.println(msg);
+                    return "I received your message: " + msg;
+                });
+            });
+        }
+        //#streams3
+    }
+
 }

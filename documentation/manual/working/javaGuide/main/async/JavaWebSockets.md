@@ -9,16 +9,19 @@ Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript
 
 ## Handling WebSockets
 
-Until now, we've been writing methods that return `Result` to handle standard HTTP requests.  WebSockets are quite different and can’t be handled via standard Play actions.
+Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
-Play provides two different built in mechanisms for handling WebSockets.  The first is using actors, the second is using simple callbacks.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/java/play/mvc/WebSocket.html).
+Play's WebSocket handling mechanism is built around Akka streams.  A WebSocket is modelled as a `Flow`, incoming WebSocket messages are fed into the flow, and messages produced by the flow are sent out to the client.
+
+Note that while conceptually, a flow is often viewed as something that receives messages, does some processing to them, and then produces the processed messages - there is no reason why this has to be the case, the input of the flow may be completely disconnected from the output of the flow.  Akka streams provides a constructor, `Flow.fromSinkAndSource`, exactly for this purpose, and often when handling WebSockets, the input and output will not be connected at all.
+
+Play provides some factory methods for constructing WebSockets in [WebSocket](api/java/play/mvc/WebSocket.html).
 
 ## Handling WebSockets with actors
 
-To handle a WebSocket with an actor, we need to give Play a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection.  Play will give us an `akka.actor.ActorRef` to send upstream messages to, so we can use that to help create the `Props` object:
+To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/java/play/libs/streams/ActorFlow.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
 
-@[imports](code/javaguide/async/JavaWebSockets.java)
-@[actor-accept](code/javaguide/async/JavaWebSockets.java)
+@[content](code/javaguide/async/websocket/HomeController.java)
 
 The actor that we're sending to here in this case looks like this:
 
@@ -40,7 +43,7 @@ Play will automatically close the WebSocket when your actor that handles the Web
 
 ### Rejecting a WebSocket
 
-Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides a `reject` WebSocket builder for this purpose:
+Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides a `acceptOrResult` WebSocket builder for this purpose:
 
 @[actor-reject](code/javaguide/async/JavaWebSockets.java)
 
@@ -50,26 +53,36 @@ You may need to do some asynchronous processing before you are ready to create a
 
 ### Handling different types of messages
 
-So far we have only seen handling `String` frames.  Play also has built in handlers for `byte[]` frames, and `JSONNode` messages parsed from `String` frames.  You can pass these as the type parameters to the WebSocket creation method, for example:
+So far we have only seen handling `String` frames, using the `Text` builder.  Play also has built in handlers for `ByteString` frames using the `Binary` builder, and `JSONNode` messages parsed from `String` frames using the `Json` builder.  Here's an example of using the `Json` builder:
 
 @[actor-json](code/javaguide/async/JavaWebSockets.java)
 
-## Handling WebSockets using callbacks
+Play also provides built in support for translating `JSONNode` messages to and from a higher level object.  If you had a class, `InEvent`, representing input events, and another class, `OutEvent`, representing output events, you could use it like this:
 
-If you don't want to use actors to handle a WebSocket, you can also handle it using simple callbacks.
+@[actor-json-class](code/javaguide/async/JavaWebSockets.java)
 
-To handle a WebSocket your method must return a `WebSocket` instead of a `Result`:
+## Handling WebSockets using Akka streams directly
 
-@[websocket](code/javaguide/async/JavaWebSockets.java)
+Actors are not always the right abstraction for handling WebSockets, particularly if the WebSocket behaves more like a stream.
 
-A WebSocket has access to the request headers (from the HTTP request that initiates the WebSocket connection) allowing you to retrieve standard headers and session data. But it doesn't have access to any request body, nor to the HTTP response.
+Instead, you can use Akka streams directly to handle WebSockets.  To use Akka streams, first import the Akka streams javadsl:
 
-When the `WebSocket` is ready, you get both `in` and `out` channels.
+@[streams-imports](code/javaguide/async/JavaWebSockets.java)
 
-It this example, we print each message to console and we send a single **Hello!** message.
+Now you can use it like so.
 
-> **Tip:** You can test your WebSocket controller on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
+@[streams1](code/javaguide/async/JavaWebSockets.java)
 
-Let’s write another example that totally discards the input data and closes the socket just after sending the **Hello!** message:
+A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn’t have access to a request body, nor to the HTTP response.
 
-@[discard-input](code/javaguide/async/JavaWebSockets.java)
+It this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
+
+> **Tip:** You can test WebSockets on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
+
+Let’s write another example that discards the input data and closes the socket just after sending the **Hello!** message:
+
+@[streams2](code/javaguide/async/JavaWebSockets.java)
+
+Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
+
+@[streams3](code/javaguide/async/JavaWebSockets.java)
