@@ -4,7 +4,7 @@
 package play.api.mvc
 
 import akka.NotUsed
-import akka.stream.scaladsl.{ Flow, Source, StreamConverters }
+import akka.stream.scaladsl.{ FileIO, Flow, Source }
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api.http.HeaderNames._
@@ -224,8 +224,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofPath(path: java.nio.file.Path, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    // TODO use FileIO.fromFile after https://github.com/akka/akka/issues/20031 was released
-    val source = StreamConverters.fromInputStream(() => java.nio.file.Files.newInputStream(path))
+    val source = FileIO.fromFile(path.toFile)
     ofSource(path.toFile.length(), source, rangeHeader, Option(fileName), contentType)
   }
 
@@ -249,8 +248,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    // TODO use FileIO.fromFile after https://github.com/akka/akka/issues/20031 was released
-    val source = StreamConverters.fromInputStream(() => new java.io.FileInputStream(file))
+    val source = FileIO.fromFile(file)
     ofSource(file.length(), source, rangeHeader, Option(fileName), contentType)
   }
 

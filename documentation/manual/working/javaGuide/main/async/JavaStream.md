@@ -68,4 +68,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka Streams, you can reference the [Akka Streams documentation](http://doc.akka.io/docs/akka/2.4.2/java/stream/index.html).
+For more information on using Akka Streams, you can reference the [Akka Streams documentation](http://doc.akka.io/docs/akka/2.4.3/java/stream/index.html).
