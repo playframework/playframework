@@ -52,7 +52,7 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 object AhcWSClient {
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of
-   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC16/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
+   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC21/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
    *
@@ -302,7 +302,14 @@ case class AhcWSRequest(client: AhcWSClient,
 
         (builder, h)
       case StreamedBody(source) =>
-        (builder.setBody(source.map(_.toByteBuffer).runWith(Sink.asPublisher(false))), this.headers)
+        // If the body has a streaming interface it should be up to the user to provide a manual Content-Length
+        // else every content would be Transfer-Encoding: chunked
+        // If the Content-Length is -1 Async-Http-Client sets a Transfer-Encoding: chunked
+        // If the Content-Length is great than -1 Async-Http-Client will use the correct Content-Length
+        val filteredHeaders = this.headers.filterNot { case (k, v) => k.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH) }
+        val contentLength = this.headers.find { case (k, _) => k.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH) }.map(_._2.head.toLong)
+
+        (builder.setBody(source.map(_.toByteBuffer).runWith(Sink.asPublisher(false)), contentLength.getOrElse(-1L)), filteredHeaders)
     }
 
     // headers
