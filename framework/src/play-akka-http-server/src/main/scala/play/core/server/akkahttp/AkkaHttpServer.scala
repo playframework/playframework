@@ -48,6 +48,8 @@ class AkkaHttpServer(
 
   assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
+  private val serverConfig = PlayConfig(config.configuration).get[PlayConfig]("play.server")
+
   def mode = config.mode
 
   // Remember that some user config may not be available in development mode due to
@@ -59,14 +61,11 @@ class AkkaHttpServer(
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
     val initialSettings = ServerSettings(system)
-    val idleTimeout: Duration = (if (secure) {
-      config.configuration.getMilliseconds("play.server.https.idleTimeout")
+    val idleTimeout = if (secure) {
+      serverConfig.get[Duration]("https.idleTimeout")
     } else {
-      config.configuration.getMilliseconds("play.server.http.idleTimeout")
-    }).map { timeoutMS =>
-      logger.trace(s"using idle timeout of $timeoutMS` ms on port $port")
-      Duration.apply(timeoutMS, TimeUnit.MILLISECONDS)
-    }.getOrElse(initialSettings.timeouts.idleTimeout)
+      serverConfig.get[Duration]("http.idleTimeout")
+    }
     val serverSettings = initialSettings.withTimeouts(initialSettings.timeouts.withIdleTimeout(idleTimeout))
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
@@ -79,7 +78,7 @@ class AkkaHttpServer(
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
 
-    val bindTimeout = PlayConfig(config.configuration).get[Duration]("play.akka.http-bind-timeout")
+    val bindTimeout = serverConfig.get[FiniteDuration]("akka.bindTimeout")
     Await.result(bindingFuture, bindTimeout)
   }
 

@@ -21,7 +21,7 @@ import play.twirl.api.Content;
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
 import scala.compat.java8.FutureConverters;
-
+import scala.compat.java8.OptionConverters;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -446,7 +446,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             try {
                 start(server);
                 startedServer = server;
-                browser = testBrowser(webDriver, server.port());
+                browser = testBrowser(webDriver, (Integer) OptionConverters.toJava(server.config().port()).get());
                 block.accept(browser);
             }
             finally {

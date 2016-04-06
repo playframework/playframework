@@ -11,17 +11,14 @@ import scala.util.control.NonFatal
 /**
  * A test web server.
  *
- * @param port HTTP port to bind on.
+ * @param config The server configuration.
  * @param application The Application to load in this server.
- * @param sslPort HTTPS port to bind on.
- * @param serverProvider *Experimental API; subject to change* The type of
- * server to use. If not provided, uses Play's default provider.
+ * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
  */
 case class TestServer(
-    port: Int,
-    application: Application = GuiceApplicationBuilder().build(),
-    sslPort: Option[Int] = None,
-    serverProvider: Option[ServerProvider] = None) {
+    config: ServerConfig,
+    application: Application,
+    serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
 
@@ -34,11 +31,6 @@ case class TestServer(
     }
 
     try {
-      val config = ServerConfig(
-        rootDir = application.path,
-        port = Option(port), sslPort = sslPort, mode = Mode.Test,
-        properties = System.getProperties
-      )
       testServerProcess = TestServer.start(serverProvider, config, application)
     } catch {
       case NonFatal(t) =>
@@ -58,9 +50,30 @@ case class TestServer(
     }
   }
 
+  /**
+   * The port that the server is running on.
+   */
+  def port: Int = config.port.getOrElse(throw new IllegalStateException("No HTTP port defined"))
 }
 
 object TestServer {
+
+  /**
+   * A test web server.
+   *
+   * @param port HTTP port to bind on.
+   * @param application The Application to load in this server.
+   * @param sslPort HTTPS port to bind on.
+   * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
+   */
+  def apply(
+    port: Int,
+    application: Application = GuiceApplicationBuilder().build(),
+    sslPort: Option[Int] = None,
+    serverProvider: Option[ServerProvider] = None) = new TestServer(
+    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test,
+      rootDir = application.path), application, serverProvider
+  )
 
   /**
    * Start a TestServer with the given config and application. To stop it,

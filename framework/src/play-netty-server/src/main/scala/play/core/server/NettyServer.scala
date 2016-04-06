@@ -50,13 +50,14 @@ class NettyServer(
     stopHook: () => Future[_],
     val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
 
-  private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
-  private val maxInitialLineLength = nettyConfig.getInt("maxInitialLineLength")
-  private val maxHeaderSize = nettyConfig.getInt("maxHeaderSize")
-  private val maxChunkSize = nettyConfig.getInt("maxChunkSize")
-  private val logWire = nettyConfig.getBoolean("log.wire")
+  private val serverConfig = PlayConfig(config.configuration).get[PlayConfig]("play.server")
+  private val nettyConfig = serverConfig.get[PlayConfig]("netty")
+  private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
+  private val maxHeaderSize = nettyConfig.get[Int]("maxHeaderSize")
+  private val maxChunkSize = nettyConfig.get[Int]("maxChunkSize")
+  private val logWire = nettyConfig.get[Boolean]("log.wire")
 
-  private lazy val transport = nettyConfig.getString("transport") match {
+  private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
     case "jdk" => Jdk
     case _ => throw ServerStartException("Netty transport configuration value should be either jdk or native")
@@ -70,7 +71,7 @@ class NettyServer(
    * The event loop
    */
   private val eventLoop = {
-    val threadCount = nettyConfig.getInt("eventLoopThreads")
+    val threadCount = nettyConfig.get[Int]("eventLoopThreads")
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
       case Native => new EpollEventLoopGroup(threadCount, threadFactory)
@@ -134,7 +135,7 @@ class NettyServer(
       .handler(channelPublisher)
       .localAddress(address)
 
-    setOptions(bootstrap.option, nettyConfig.getConfig("option"))
+    setOptions(bootstrap.option, nettyConfig.get[Config]("option"))
 
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
@@ -151,17 +152,17 @@ class NettyServer(
       // Setup the channel for explicit reads
       connChannel.config().setOption(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
 
-      setOptions(connChannel.config().setOption, nettyConfig.getConfig("option.child"))
+      setOptions(connChannel.config().setOption, nettyConfig.get[Config]("option.child"))
 
       val pipeline = connChannel.pipeline()
       if (secure) {
         sslEngineProvider.map { sslEngineProvider =>
           val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
-          if (config.configuration.getBoolean("play.server.https.wantClientAuth").getOrElse(false)) {
+          if (serverConfig.get[Boolean]("https.wantClientAuth")) {
             sslEngine.setWantClientAuth(true)
           }
-          if (config.configuration.getBoolean("play.server.https.needClientAuth").getOrElse(false)) {
+          if (serverConfig.get[Boolean]("https.needClientAuth")) {
             sslEngine.setNeedClientAuth(true)
           }
           pipeline.addLast("ssl", new SslHandler(sslEngine))
@@ -176,15 +177,17 @@ class NettyServer(
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
 
-      val idleTimeoutMs = if (secure) {
-        config.configuration.getMilliseconds("play.server.https.idleTimeout")
+      val idleTimeout = if (secure) {
+        serverConfig.get[Duration]("https.idleTimeout")
       } else {
-        config.configuration.getMilliseconds("play.server.http.idleTimeout")
+        serverConfig.get[Duration]("http.idleTimeout")
       }
-      idleTimeoutMs.foreach { idleTimeout =>
-        logger.trace(s"using idle timeout of $idleTimeout ms on port $port")
-        // only timeout if both reader and writer have been idle for the specified time
-        pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, idleTimeout, TimeUnit.MILLISECONDS))
+      idleTimeout match {
+        case Duration.Inf => // Do nothing
+        case Duration(timeout, timeUnit) =>
+          logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
+          // only timeout if both reader and writer have been idle for the specified time
+          pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, TimeUnit.MILLISECONDS))
       }
 
       val requestHandler = new PlayRequestHandler(this)
