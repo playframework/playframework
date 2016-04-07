@@ -60,7 +60,7 @@ templateParameters := Map(
   "SASSIFY_VERSION" -> "1.4.4",
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
-  "PLAY_SLICK_VERSION" -> "1.1.0",
+  "PLAY_SLICK_VERSION" -> "2.0.0",
   "SCALATESTPLUS_PLAY_VERSION" -> "1.5.1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
