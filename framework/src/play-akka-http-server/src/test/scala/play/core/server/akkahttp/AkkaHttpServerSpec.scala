@@ -206,5 +206,19 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       }
     }
 
+    "pass Header Content-Length to Actions" in {
+      requestFromServer("/httpServerHeader") { request =>
+        request.post("10")
+      } {
+        case ("POST", "/httpServerHeader") => Action { implicit request =>
+          val contentLength = request.headers.get(CONTENT_LENGTH).map(_.mkString).getOrElse("")
+          Ok(contentLength)
+        }
+      } { response =>
+        response.status must_== 200
+        response.body must_== "2"
+      }
+    }
+
   }
 }
