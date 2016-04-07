@@ -15,7 +15,7 @@ Dependency injection achieves several goals:
 
 The [Guice wiki](https://github.com/google/guice/wiki/Motivation) has some good examples explaining this in more detail.
 
-## Declaring runtime DI depndencies
+## Declaring runtime DI dependencies
 
 If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](https://docs.oracle.com/javaee/7/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors, we recommend that you use it on constructors, for example:
 
