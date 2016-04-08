@@ -52,6 +52,10 @@ Because some of the blog posts have been written a while ago, this section is or
 
 ### 2.5.x
 
+#### Dependency Injection
+
+* [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado. 
+
 #### Akka Streams
 
 * [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-akka-streams/) by Loïc Descotte.
