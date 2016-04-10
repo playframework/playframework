@@ -85,12 +85,12 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   private def convertRequestHeaders(request: HttpRequest): Headers = {
     val entityHeaders: Seq[(String, String)] = request.entity match {
-      case HttpEntity.Strict(contentType, _) =>
-        Seq((CONTENT_TYPE, contentType.value))
+      case s: HttpEntity.Strict =>
+        Seq((CONTENT_TYPE, s.contentType.value), (CONTENT_LENGTH, s.contentLength.toString))
       case HttpEntity.Default(contentType, contentLength, _) =>
         Seq((CONTENT_TYPE, contentType.value), (CONTENT_LENGTH, contentLength.toString))
       case HttpEntity.Chunked(contentType, _) =>
-        Seq((CONTENT_TYPE, contentType.value))
+        Seq((CONTENT_TYPE, contentType.value), (TRANSFER_ENCODING, "chunked"))
     }
     val normalHeaders: Seq[(String, String)] = request.headers
       .filter(_.isNot(`Raw-Request-URI`.lowercaseName))
