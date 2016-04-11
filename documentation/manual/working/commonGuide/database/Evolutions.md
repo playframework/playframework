@@ -226,3 +226,8 @@ By default, each statement of each evolution script will be executed immediately
 
 Evolutions are stored in your database in a table called `play_evolutions`.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (preferred) create multiple evolutions scripts less than 64kb in size.
 
+
+### Using evolutions with compile time dependency injection
+
+If you are using Macwire or similar for dependency injection then you can use the trait `EvolutionsComponents` to get ahold of the evolutions plugin. After that when your application is loaded you can call `this.applicationEvolutions.start()` to get the `Database needs evolution` screen. 
+
