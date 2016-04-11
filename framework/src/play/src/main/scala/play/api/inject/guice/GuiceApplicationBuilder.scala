@@ -5,6 +5,8 @@ package play.api.inject.guice
 
 import javax.inject.{ Provider, Inject }
 
+import org.slf4j.ILoggerFactory
+
 import com.google.inject.{ Module => GuiceModule }
 import play.api.mvc.{ RequestHeader, Handler }
 import play.api.routing.Router
@@ -87,22 +89,38 @@ final case class GuiceApplicationBuilder(
     val initialConfiguration = loadConfiguration(environment)
     val appConfiguration = initialConfiguration ++ configuration
 
-    LoggerConfigurator(environment.classLoader).foreach {
-      _.configure(environment)
-    }
-
-    if (shouldDisplayLoggerDeprecationMessage(appConfiguration)) {
-      Logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")
-    }
+    val loggerFactory = configureLoggerFactory(appConfiguration)
 
     val loadedModules = loadModules(environment, appConfiguration)
 
     copy(configuration = appConfiguration)
       .bindings(loadedModules: _*)
       .bindings(
+        bind[ILoggerFactory] to loggerFactory,
         bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
         bind[WebCommands] to new DefaultWebCommands
       ).createModule()
+  }
+
+  /**
+   * Configures the SLF4J logger factory.  This is where LoggerConfigurator is
+   * called from.
+   *
+   * @param configuration play.api.Configuration
+   * @return the app wide ILoggerFactory.  Useful for testing and DI.
+   */
+  def configureLoggerFactory(configuration: Configuration): ILoggerFactory = {
+    val loggerFactory: ILoggerFactory = LoggerConfigurator(environment.classLoader).map { lc =>
+        lc.configure(environment, configuration, Map.empty)
+        lc.loggerFactory
+      }.getOrElse(org.slf4j.LoggerFactory.getILoggerFactory)
+
+    if (shouldDisplayLoggerDeprecationMessage(configuration)) {
+      val logger = loggerFactory.getLogger("application")
+      logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")
+    }
+
+    loggerFactory
   }
 
   /**

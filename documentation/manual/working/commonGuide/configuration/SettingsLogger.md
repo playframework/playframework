@@ -102,6 +102,24 @@ This demonstrates a few useful features:
 - The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.  
 
+## Including Properties
+
+By default, only the property `application.home` is exported to the logging framework, meaning that files can be referenced relative to the Play application:
+
+```
+ <file>${application.home:-}/example.log</file>
+```
+
+If you want to reference properties that are defined in the `application.conf` file, you can add `play.logger.includeConfigProperties=true` to your application.conf file.  When the application starts, all properties defined in configuration will be available to the logger:
+
+```
+<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <pattern>context = ${my.property.defined.in.application.conf} %message%n</pattern>
+    </encoder>
+</appender>
+```
+
 ## Akka logging configuration
 
 Akka system logging can be done by changing the `akka` logger to INFO.
@@ -145,39 +163,7 @@ play.logger.configurator=Log4J2LoggerConfigurator
 
 And then extend LoggerConfigurator with any customizations:
 
-```scala
-import java.io.File
-import java.net.URL
+@[log4j2-import](code/Log4j2LoggerConfigurator.scala)
 
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.core._
-import org.apache.logging.log4j.core.config.Configurator
+@[log4j2-class](code/Log4j2LoggerConfigurator.scala)
 
-import play.api.{Mode, Environment, LoggerConfigurator}
-
-class Log4J2LoggerConfigurator extends LoggerConfigurator {
-
-  override def init(rootPath: File, mode: Mode.Mode): Unit = {
-    val properties = Map("application.home" -> rootPath.getAbsolutePath)
-    val resourceName = if (mode == Mode.Dev) "log4j2-dev.xml" else "log4j2.xml"
-    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
-    configure(properties, resourceUrl)
-  }
-
-  override def shutdown(): Unit = {
-    val context = LogManager.getContext().asInstanceOf[LoggerContext]
-    Configurator.shutdown(context)
-  }
-
-  override def configure(env: Environment): Unit = {
-    val properties = Map("application.home" -> env.rootPath.getAbsolutePath)
-    val resourceUrl = env.resource("log4j2.xml")
-    configure(properties, resourceUrl)
-  }
-
-  override def configure(properties: Map[String, String], config: Option[URL]): Unit = {
-    val context =  LogManager.getContext(false).asInstanceOf[LoggerContext]
-    context.setConfigLocation(config.get.toURI)
-  }
-}
-```
