@@ -40,3 +40,13 @@ Any of the headers can be disabled by setting a configuration value of `null`, f
     play.filters.headers.frameOptions = null
 
 For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
+
+## Action-specific overrides
+
+Security headers may be overridden in specific actions using `withHeaders` on the result:
+
+@[allowActionSpecificHeaders](code/SecurityHeaders.scala)
+
+Any security headers not mentioned in `withHeaders` will use the usual configured values
+(if present) or the defaults.  Action-specific security headers are ignored unless 
+`play.filters.headers.allowActionSpecificHeaders` is set to `true` in the configuration.
