@@ -19,7 +19,7 @@ First we see that there is a generic type `A`, and then that an action must defi
 
 The `A` type is the type of the request body. We can use any Scala type as the request body, for example `String`, `NodeSeq`, `Array[Byte]`, `JsonValue`, or `java.io.File`, as long as we have a body parser able to process it.
 
-To summarize, an `Action[A]` uses a `BodyParser[A]` to retrieve a value of type `A` from the HTTP request, and to build a `Request[A]` object that is passed to the action code. 
+To summarize, an `Action[A]` uses a `BodyParser[A]` to retrieve a value of type `A` from the HTTP request, and to build a `Request[A]` object that is passed to the action code.
 
 ## Using the built in body parsers
 
@@ -42,7 +42,9 @@ The following is a mapping of types supported by the default body parser:
 - **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.
 - Any other content type: [`RawBuffer`](api/scala/play/api/mvc/RawBuffer.html), accessible via `asRaw`.
 
-The default body parser, for performance reasons, won't attempt to parse the body if the request method is not defined to have a meaningful body, as defined by the HTTP spec.  This means it only parses bodies of `POST`, `PUT` and `PATCH` requests, but not `GET`, `HEAD` or `DELETE`.  If you would like to parse request bodies for these methods, you can use the `anyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
+The default body parser tries to determine if the request has a body before it tries to parse. According to the HTTP spec, the presence of either the `Content-Length` or `Transfer-Encoding` header signals the presence of a body, so the parser will only parse if one of those headers is present, or on `FakeRequest` when a non-empty body has explicitly been set.
+
+If you would like to try to parse a body in all cases, you can use the `anyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
 
 ## Choosing an explicit body parser
 

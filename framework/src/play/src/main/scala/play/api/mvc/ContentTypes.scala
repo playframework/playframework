@@ -582,15 +582,15 @@ trait BodyParsers {
     // -- Magic any content
 
     /**
-     * If the request is a PATCH, POST, or PUT, parse the body content by checking the Content-Type header.
+     * If the request has a body, parse the body content by checking the Content-Type header.
      */
     def default: BodyParser[AnyContent] = default(None)
 
     /**
-     * If the request is a PATCH, POST, or PUT, parse the body content by checking the Content-Type header.
+     * If the request has a body, parse the body content by checking the Content-Type header.
      */
     def default(maxLength: Option[Long]): BodyParser[AnyContent] = using { request =>
-      if (request.method == HttpVerbs.PATCH || request.method == HttpVerbs.POST || request.method == HttpVerbs.PUT) {
+      if (request.hasBody) {
         anyContent(maxLength)
       } else {
         ignore(AnyContentAsEmpty)

@@ -576,6 +576,11 @@ public class Http {
         String getHeader(String headerName);
 
         /**
+         * Checks if the request has a body.
+         */
+        boolean hasBody();
+
+        /**
          * Checks if the request has the header.
          *
          * @param headerName The name of the header (case-insensitive)
@@ -709,6 +714,13 @@ public class Http {
         }
 
         /**
+         * @return whether the underlying request has a body.
+         */
+        public boolean hasBody() {
+            return underlying != null && underlying.hasBody();
+        }
+
+        /**
          * @return the username
          */
         public String username() {
@@ -804,6 +816,16 @@ public class Http {
          * @return the modified builder
          */
         protected RequestBuilder body(RequestBody body) {
+            if (body == null || body.as(Object.class) == null) {
+                // assume null sigifies no body; RequestBody is a wrapper for the actual body content
+                this.headers.remove(HeaderNames.CONTENT_LENGTH);
+                this.headers.remove(HeaderNames.TRANSFER_ENCODING);
+            } else {
+                int length = body.asBytes().length();
+                if (header(HeaderNames.TRANSFER_ENCODING) == null) {
+                    this.headers.put(HeaderNames.CONTENT_LENGTH, new String[] {Integer.toString(length)});
+                }
+            }
             this.body = body;
             return this;
         }
