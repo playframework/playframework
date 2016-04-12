@@ -3,11 +3,12 @@
  */
 package akka.http.play
 
+import akka.http.impl.engine.ws._
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
-import akka.http.impl.engine.ws._
 import akka.stream.scaladsl._
-import akka.stream.stage.{ Context, Stage, PushStage }
+import akka.stream.stage._
+import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.streams.AkkaStreams
@@ -36,7 +37,7 @@ object WebSocketHandler {
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
     // flow that we are wrapping, are sent to the client and the close procedure is implemented.
     Flow[FrameEvent]
-      .transform(() => aggregateFrames(bufferLimit))
+      .via(aggregateFrames(bufferLimit))
       .via(handleProtocolFailures(WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow)))
       .map(messageToFrameEvent)
   }
@@ -48,53 +49,67 @@ object WebSocketHandler {
    *
    * @param bufferLimit The maximum size of frame data that should be buffered.
    */
-  private def aggregateFrames(bufferLimit: Int): Stage[FrameEvent, Either[Message, RawMessage]] = {
-    new PushStage[FrameEvent, Either[Message, RawMessage]] {
+  private def aggregateFrames(bufferLimit: Int): GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] = {
+    new GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] {
 
-      var currentFrameData: ByteString = null
-      var currentFrameHeader: FrameHeader = null
+      val in = Inlet[FrameEvent]("in")
+      val out = Outlet[Either[Message, RawMessage]]("out")
 
-      def onPush(elem: FrameEvent, ctx: Context[Either[Message, RawMessage]]) = elem match {
-        // FrameData error handling first
-        case unexpectedData: FrameData if currentFrameHeader == null =>
-          // Technically impossible, this indicates a bug in Akka HTTP,
-          // since it has sent the start of a frame before finishing
-          // the previous frame.
-          ctx.push(close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
-        case FrameData(data, _) if currentFrameData.size + data.size > bufferLimit =>
-          ctx.push(close(Protocol.CloseCodes.TooBig))
+      override val shape = FlowShape.of(in, out)
 
-        // FrameData handling
-        case FrameData(data, false) =>
-          currentFrameData ++= data
-          ctx.pull()
-        case FrameData(data, true) =>
-          val message = frameToRawMessage(currentFrameHeader, currentFrameData ++ data)
-          currentFrameHeader = null
-          currentFrameData = null
-          ctx.push(Right(message))
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
 
-        // Frame start error handling
-        case FrameStart(header, data) if currentFrameHeader != null =>
-          // Technically impossible, this indicates a bug in Akka HTTP,
-          // since it has sent the start of a frame before finishing
-          // the previous frame.
-          ctx.push(close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
+        var currentFrameData: ByteString = null
+        var currentFrameHeader: FrameHeader = null
 
-        // Frame start protocol errors
-        case FrameStart(header, _) if header.mask.isEmpty =>
-          ctx.push(close(Protocol.CloseCodes.ProtocolError, "Unmasked client frame"))
+        override def onPush(): Unit = {
+          val elem = grab(in)
+          elem match {
+            // FrameData error handling first
+            case unexpectedData: FrameData if currentFrameHeader == null =>
+              // Technically impossible, this indicates a bug in Akka HTTP,
+              // since it has sent the start of a frame before finishing
+              // the previous frame.
+              push(out, close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
+            case FrameData(data, _) if currentFrameData.size + data.size > bufferLimit =>
+              push(out, close(Protocol.CloseCodes.TooBig))
 
-        // Frame start
-        case fs @ FrameStart(header, data) if fs.lastPart =>
-          ctx.push(Right(frameToRawMessage(header, data)))
+            // FrameData handling
+            case FrameData(data, false) =>
+              currentFrameData ++= data
+              pull(in)
+            case FrameData(data, true) =>
+              val message = frameToRawMessage(currentFrameHeader, currentFrameData ++ data)
+              currentFrameHeader = null
+              currentFrameData = null
+              push(out, Right(message))
 
-        case FrameStart(header, data) =>
-          currentFrameHeader = header
-          currentFrameData = data
-          ctx.pull()
+            // Frame start error handling
+            case FrameStart(header, data) if currentFrameHeader != null =>
+              // Technically impossible, this indicates a bug in Akka HTTP,
+              // since it has sent the start of a frame before finishing
+              // the previous frame.
+              push(out, close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
+
+            // Frame start protocol errors
+            case FrameStart(header, _) if header.mask.isEmpty =>
+              push(out, close(Protocol.CloseCodes.ProtocolError, "Unmasked client frame"))
+
+            // Frame start
+            case fs @ FrameStart(header, data) if fs.lastPart =>
+              push(out, Right(frameToRawMessage(header, data)))
+
+            case FrameStart(header, data) =>
+              currentFrameHeader = header
+              currentFrameData = data
+              pull(in)
+          }
+        }
+
+        override def onPull(): Unit = pull(in)
+
+        setHandlers(in, out, this)
       }
-
     }
   }
 
@@ -141,19 +156,37 @@ object WebSocketHandler {
   /**
    * Handles the protocol failures by gracefully closing the connection.
    */
-  private def handleProtocolFailures: Flow[RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
-    AkkaStreams.bypassWith(Flow[Either[Message, RawMessage]].transform(() => new PushStage[Either[Message, RawMessage], Either[RawMessage, Message]] {
-      var closing = false
-      def onPush(elem: Either[Message, RawMessage], ctx: Context[Either[RawMessage, Message]]) = elem match {
-        case _ if closing =>
-          ctx.finish()
-        case Right(message) =>
-          ctx.push(Left(message))
-        case Left(close) =>
-          closing = true
-          ctx.push(Right(close))
-      }
-    }), Merge(2, eagerComplete = true))
+  private def handleProtocolFailures: Flow[WebSocketFlowHandler.RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
+    AkkaStreams.bypassWith(Flow[Either[Message, RawMessage]].via(
+      new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {
+
+        val in = Inlet[Either[Message, RawMessage]]("in")
+        val out = Outlet[Either[RawMessage, Message]]("out")
+
+        override val shape = FlowShape.of(in, out)
+
+        override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
+          var closing = false
+
+          override def onPush(): Unit = {
+            val elem = grab(in)
+            elem match {
+              case _ if closing =>
+                completeStage()
+              case Right(message) =>
+                push(out, Left(message))
+              case Left(close) =>
+                closing = true
+                push(out, Right(close))
+            }
+          }
+
+          override def onPull(): Unit = pull(in)
+
+          setHandlers(in, out, this)
+
+        }
+      }), Merge(2, eagerComplete = true))
   }
 
   private case class Frame(header: FrameHeader, data: ByteString) {
