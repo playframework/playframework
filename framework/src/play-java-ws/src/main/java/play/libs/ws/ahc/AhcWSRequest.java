@@ -543,10 +543,18 @@ public class AhcWSRequest implements WSRequest {
             InputStreamBodyGenerator bodyGenerator = new InputStreamBodyGenerator(inputStreamBody);
             builder.setBody(bodyGenerator);
         } else if (body instanceof Source) {
+            // If the body has a streaming interface it should be up to the user to provide a manual Content-Length
+            // else every content would be Transfer-Encoding: chunked
+            // If the Content-Length is -1 Async-Http-Client sets a Transfer-Encoding: chunked
+            // If the Content-Length is great than -1 Async-Http-Client will use the correct Content-Length
+            long contentLength = Optional.ofNullable(possiblyModifiedHeaders.get(HttpHeaders.Names.CONTENT_LENGTH))
+                    .map(Long::valueOf).orElse(-1L);
+            possiblyModifiedHeaders.remove(HttpHeaders.Names.CONTENT_LENGTH);
+
             Source<ByteString,?> sourceBody = (Source<ByteString,?>) body;
             Publisher<ByteBuffer> publisher = sourceBody.map(ByteString::toByteBuffer)
                 .runWith(Sink.asPublisher(AsPublisher.WITHOUT_FANOUT), materializer);
-            builder.setBody(publisher);
+            builder.setBody(publisher, contentLength);
         } else {
             throw new IllegalStateException("Impossible body: " + body);
         }

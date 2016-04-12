@@ -22,6 +22,7 @@ import play.it._
 import play.it.tools.HttpBinApplication
 import play.api.mvc.Results.Ok
 import play.api.libs.streams.Accumulator
+import play.api.libs.ws.StreamedBody
 import play.libs.ws.WSResponse
 import play.mvc.Http
 
@@ -82,6 +83,18 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         block(wsClient)
       } finally {
         wsClient.close()
+      }
+    }
+
+    def withHeaderCheck[T](block: play.libs.ws.WSClient => T) = {
+      Server.withRouter() {
+        case _ => Action { req =>
+          val contentLength = req.headers.get(CONTENT_LENGTH)
+          val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+          Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+        }
+      } { implicit port =>
+        withClient(block)
       }
     }
 
@@ -154,6 +167,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val body = res.toCompletableFuture.get().getBody
 
       body must_== "abc"
+    }
+
+    "streaming a request body with manual content length" in withHeaderCheck { ws =>
+      val source = Source.single(ByteString("abc")).asJava
+      val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(source).execute()
+      val body = res.toCompletableFuture.get().getBody
+
+      body must_== s"Content-Length: 3; Transfer-Encoding: -1"
     }
 
     "sending a simple multipart form body" in withServer { ws =>
@@ -237,6 +258,20 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       }
     }
 
+    def withHeaderCheck[T](block: play.api.libs.ws.WSClient => T) = {
+      Server.withRouter() {
+        case _ => Action { req =>
+
+          val contentLength = req.headers.get(CONTENT_LENGTH)
+          val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+          Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+
+        }
+      } { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
     "make GET Requests" in withServer { ws =>
       val req = ws.url("/get").get()
 
@@ -265,6 +300,14 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val body = await(res).body
 
       body must_== "abc"
+    }
+
+    "streaming a request body with manual content length" in withHeaderCheck { ws =>
+      val source = Source.single(ByteString("abc"))
+      val res = ws.url("/post").withMethod("POST").withHeaders(CONTENT_LENGTH -> "3").withBody(StreamedBody(source)).execute()
+      val body = await(res).body
+
+      body must_== s"Content-Length: 3; Transfer-Encoding: -1"
     }
 
     "send a multipart request body" in withServer { ws =>
