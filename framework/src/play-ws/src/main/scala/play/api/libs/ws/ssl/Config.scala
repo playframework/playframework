@@ -5,7 +5,7 @@
  */
 package play.api.libs.ws.ssl
 
-import play.api.PlayConfig
+import play.api.{ Configuration, PlayConfig }
 import java.security.{ KeyStore, SecureRandom }
 import java.net.URL
 import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory }
@@ -196,7 +196,9 @@ object SSLConfigFactory {
   def defaultConfig = SSLConfig()
 }
 
-class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
+class SSLConfigParser private[play] (c: PlayConfig, classLoader: ClassLoader) {
+
+  def this(c: Configuration, classLoader: ClassLoader) = this(PlayConfig(c), classLoader)
 
   def parse(): SSLConfig = {
 
