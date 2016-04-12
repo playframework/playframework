@@ -16,4 +16,12 @@ object SecurityHeaders {
     def filters = Seq(securityHeadersFilter)
   }
   //#filters
+
+  import play.api.mvc.Action
+  import play.api.mvc.Results.Ok
+  def index = Action {
+  //#allowActionSpecificHeaders
+  	Ok("Index").withHeaders(SecurityHeadersFilter.CONTENT_SECURITY_POLICY_HEADER -> "my page-specific header")
+  //#allowActionSpecificHeaders
+  }
 }
