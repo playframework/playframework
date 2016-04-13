@@ -67,7 +67,7 @@ public interface BodyParser<A> {
     }
 
     /**
-     * If PATCH, POST, or PUT, guess the body content by checking the Content-Type header.
+     * If the request has a body, guess the body content by checking the Content-Type header.
      */
     class Default extends AnyContent {
         @Inject
@@ -77,7 +77,7 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, Object>> apply(Http.RequestHeader request) {
-            if (request.method().equals("POST") || request.method().equals("PUT") || request.method().equals("PATCH")) {
+            if (request.hasHeader(Http.HeaderNames.CONTENT_LENGTH) || request.hasHeader(Http.HeaderNames.TRANSFER_ENCODING)) {
                 return super.apply(request);
             } else {
                 return (Accumulator) new Empty().apply(request);
