@@ -6,10 +6,13 @@ package play.api.libs.logback
 import java.io.File
 import java.net.URL
 
+import ch.qos.logback.classic._
+import ch.qos.logback.classic.joran._
+import ch.qos.logback.core.util._
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge._
+import org.slf4j.impl.StaticLoggerBinder
 import play.api._
-
-import scala.util.control.NonFatal
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {
 
@@ -61,60 +64,36 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    */
   def configure(properties: Map[String, String], config: Option[URL]): Unit = synchronized {
     // Redirect JUL -> SL4FJ
-    {
-      import java.util.logging._
 
-      import org.slf4j.bridge._
-
-      Option(java.util.logging.Logger.getLogger("")).map { root =>
-        root.setLevel(Level.FINEST)
-        root.getHandlers.foreach(root.removeHandler(_))
-      }
-
-      SLF4JBridgeHandler.install()
+    Option(java.util.logging.Logger.getLogger("")).map { root =>
+      root.setLevel(java.util.logging.Level.FINEST)
+      root.getHandlers.foreach(root.removeHandler)
     }
+
+    SLF4JBridgeHandler.install()
 
     // Configure logback
-    {
-      import ch.qos.logback.classic._
-      import ch.qos.logback.classic.joran._
-      import ch.qos.logback.core.util._
-      import org.slf4j._
 
-      try {
-        val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-        val configurator = new JoranConfigurator
-        configurator.setContext(ctx)
-        ctx.reset()
+    val ctx = StaticLoggerBinder.getSingleton.getLoggerFactory.asInstanceOf[LoggerContext]
+    val configurator = new JoranConfigurator
+    configurator.setContext(ctx)
+    ctx.reset()
 
-        // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
-        // logging
-        val frameworkPackages = ctx.getFrameworkPackages
-        frameworkPackages.add(classOf[play.Logger].getName)
-        frameworkPackages.add(classOf[play.api.Logger].getName)
+    // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
+    // logging
+    val frameworkPackages = ctx.getFrameworkPackages
+    frameworkPackages.add(classOf[play.Logger].getName)
+    frameworkPackages.add(classOf[play.api.Logger].getName)
 
-        properties.foreach {
-          case (name, value) => ctx.putProperty(name, value)
-        }
+    properties.foreach { case (k, v) => ctx.putProperty(k, v) }
 
-        try {
-          config match {
-            case Some(url) => configurator.doConfigure(url)
-            case None =>
-              System.err.println("Could not detect a logback configuration file, not configuring logback")
-          }
-        } catch {
-          case NonFatal(e) =>
-            System.err.println("Error encountered while configuring logback:")
-            e.printStackTrace()
-        }
-
-        StatusPrinter.printIfErrorsOccured(ctx)
-      } catch {
-        case NonFatal(_) =>
-      }
-
+    config match {
+      case Some(url) => configurator.doConfigure(url)
+      case None =>
+        System.err.println("Could not detect a logback configuration file, not configuring logback")
     }
+
+    StatusPrinter.printIfErrorsOccured(ctx)
 
   }
 
@@ -122,7 +101,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Shutdown the logger infrastructure.
    */
   def shutdown() {
-    import ch.qos.logback.classic._
 
     val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
