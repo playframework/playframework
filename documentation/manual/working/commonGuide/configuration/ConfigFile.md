@@ -19,6 +19,12 @@ At runtime, the default `application.conf` is loaded from the classpath. System 
 
 These system properties specify a replacement for `application.conf`, not an addition. If you still want to use some values from the `application.conf` file then you can include the `application.conf` in your other `.conf` file by writing `include "application"` at the top of that file. After you've included the `application.conf`'s settings in your new `.conf` file you can then specify any settings that you want override.
 
+## Using from your controller
+
+The configuration can be available in your controller (or your component), to use the default settings or your custom one, thanks to Dependency Injection (in [[Scala|ScalaDependencyInjection]] or in [[Java|JavaDependencyInjection]]).
+
+@[dependency-injection](code/Configuration.scala)
+
 ## Using with Akka
 
 Akka will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Akka in the `application.conf` directory. In Play, Akka reads its settings from within the `play.akka` setting, not from the `akka` setting.
