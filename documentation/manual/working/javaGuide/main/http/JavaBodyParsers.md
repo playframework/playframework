@@ -28,7 +28,9 @@ The following is a mapping of types supported by the default body parser:
 - **`multipart/form-data`**: [`MultipartFormData`](api/java/play/mvc/Http.MultipartFormData.html), accessible via `asMultipartFormData()`.
 - Any other content type: [`RawBuffer`](api/java/play/mvc/Http.RawBuffer.html), accessible via `asRaw()`.
 
-The default body parser, for performance reasons, won't attempt to parse the body if the request method is not defined to have a meaningful body, as defined by the HTTP spec.  This means it only parses bodies of `POST`, `PUT` and `PATCH` requests, but not `GET`, `HEAD` or `DELETE`.  If you would like to parse request bodies for these methods, you can use the `AnyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
+The default body parser tries to determine if the request has a body before it tries to parse. According to the HTTP spec, the presence of either the `Content-Length` or `Transfer-Encoding` header signals the presence of a body, so the parser will only parse if one of those headers is present, or on `FakeRequest` when a non-empty body has explicitly been set.
+
+If you would like to try to parse a body in all cases, you can use the `AnyContent` body parser, described [below](#Choosing-an-explicit-body-parser).
 
 ### Choosing an explicit body parser
 
@@ -59,7 +61,7 @@ Most of the built in body parsers buffer the body in memory, and some buffer it 
 The memory buffer limit is configured using `play.http.parser.maxMemoryBuffer`, and defaults to 100KB, while the disk buffer limit is configured using `play.http.parser.maxDiskBuffer`, and defaults to 10MB.  These can both be configured in `application.conf`, for example, to increase the memory buffer limit to 256KB:
 
     play.http.parser.maxMemoryBuffer = 256kb
-    
+
 You can also limit the amount of memory used on a per action basis by writing a custom body parser, see [below](#Writing-a-custom-max-length-body-parser) for details.
 
 ## Writing a custom body parser

@@ -10,13 +10,14 @@ import akka.stream.Materializer
 import akka.util.ByteString
 import play.api._
 import play.api.http._
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._
-import play.api.mvc._
-import play.api.libs.json.JsValue
-import scala.concurrent.Future
-import xml.NodeSeq
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.JsValue
+import play.api.mvc._
+
+import scala.concurrent.Future
+import scala.xml.NodeSeq
 
 /**
  * Fake HTTP headers implementation.

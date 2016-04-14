@@ -3,6 +3,7 @@
  */
 package play.api.mvc {
 
+  import java.net.{URI, URLDecoder, URLEncoder}
   import java.security.cert.X509Certificate
   import java.util.Locale
 import java.util.Locale.LanguageRange
@@ -14,16 +15,15 @@ import play.api._
   import play.core.utils.CaseInsensitiveOrdered
 
   import scala.annotation._
-  import scala.collection.immutable.{ TreeMap, TreeSet }
-  import scala.util.control.NonFatal
+  import scala.collection.immutable.{TreeMap, TreeSet}
   import scala.util.Try
-  import java.net.{ URI, URLDecoder, URLEncoder }
+  import scala.util.control.NonFatal
 
   private[mvc] object GlobalStateHttpConfiguration {
     def httpConfiguration: HttpConfiguration = HttpConfiguration.current
   }
 
-  import GlobalStateHttpConfiguration._
+  import play.api.mvc.GlobalStateHttpConfiguration._
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -100,6 +100,16 @@ import play.api._
      * Helper method to access a queryString parameter.
      */
     def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+
+    /**
+     * True if this request has a body, so we know if we should trigger body parsing. The base implementation simply
+     * checks for the Content-Length or Transfer-Encoding headers, but subclasses (such as fake requests) may return
+     * true in other cases so the headers need not be updated to reflect the body.
+     */
+    def hasBody: Boolean = {
+      import HeaderNames._
+      headers.get(CONTENT_LENGTH).isDefined || headers.get(TRANSFER_ENCODING).isDefined
+    }
 
     /**
      * The HTTP host (domain, optionally port)
@@ -205,7 +215,7 @@ import play.api._
       remoteAddress: => String = this.remoteAddress,
       secure: => Boolean = this.secure,
       clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain)
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain, _hasBody) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain, hasBody)
       new RequestHeader {
         override val id = _id
         override val tags = _tags
@@ -218,6 +228,7 @@ import play.api._
         override lazy val remoteAddress = _remoteAddress()
         override lazy val secure = _secure()
         override val clientCertificateChain = _clientCertificateChain
+        override val hasBody = _hasBody || super.hasBody
       }
     }
 
@@ -270,6 +281,20 @@ import play.api._
   @implicitNotFound("Cannot find any HTTP Request here")
   trait Request[+A] extends RequestHeader {
     self =>
+
+    /**
+     * True if this request has a body. This is either done by inspecting the body itself to see if it is an entity
+     * representing an "empty" body.
+     */
+    override def hasBody: Boolean = {
+      @tailrec @inline def isEmptyBody(body: Any): Boolean = body match {
+        case rb: play.mvc.Http.RequestBody => isEmptyBody(rb.as(classOf[AnyRef]))
+        case AnyContentAsEmpty | null | Unit => true
+        case unit if unit.isInstanceOf[scala.runtime.BoxedUnit] => true
+        case _ => false
+      }
+      !isEmptyBody(body) || super.hasBody
+    }
 
     /**
      * The body content.

@@ -212,6 +212,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     getHeader(headerName) != null
   }
 
+  def hasBody: Boolean = header.hasBody
+
   private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
     val map = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
     map.putAll(headers.toMap.mapValues(_.toArray).asJava)
