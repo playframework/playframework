@@ -100,7 +100,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
   /**
    * Shutdown the logger infrastructure.
    */
-  def shutdown() {
+  def shutdown(): Unit = {
 
     val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
