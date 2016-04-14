@@ -51,7 +51,7 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 object AhcWSClient {
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of
-   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0-RC21/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
+   * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
    *
