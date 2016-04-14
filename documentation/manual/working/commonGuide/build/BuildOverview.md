@@ -47,7 +47,8 @@ Activator is also able to construct the build requirements from scala files insi
 ```scala
 import sbt._
 import Keys._
-import play.Play.autoImport._
+import play.sbt._
+import Play.autoImport._
 import PlayKeys._
 ```
 
