@@ -130,10 +130,10 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
             </p>
 
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
+<pre><code>db.default.url="jdbc:mysql://localhost/database_name"
+db.default.driver=com.mysql.jdbc.Driver
+db.default.username=root
+db.default.password="secret"</code></pre>
 
             <h2>Need more help?</h2>
 
@@ -270,10 +270,10 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
             </p>
 
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
+<pre><code>db.default.url="jdbc:mysql://localhost/database_name"
+db.default.driver=com.mysql.jdbc.Driver
+db.default.username=root
+db.default.password="secret"</code></pre>
 
             <h2>Need more help?</h2>
 
