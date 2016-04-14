@@ -77,7 +77,18 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     router: Provider[Router]) =
     this(environment, configuration, sourceMapper.sourceMapper, Some(router.get))
 
-  private val playEditor = configuration.getString("play.editor")
+  // Hyperlink string to wrap around Play error messages.
+  private var playEditor: Option[String] = configuration.getString("play.editor")
+
+  /**
+   * Sets the play editor to the given string after initialization.  Used for
+   * tests, or cases where the existing configuration isn't sufficient.
+   *
+   * @param editor the play editor string.
+   */
+  def setPlayEditor(editor: String): Unit = {
+    playEditor = Option(editor)
+  }
 
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
@@ -239,7 +250,9 @@ object HttpErrorHandlerExceptions {
 /**
  * A default HTTP error handler that can be used when there's no application available
  */
-object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simple(), Configuration.empty, None, None)
+object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simple(), Configuration.load(Environment.simple()), None, None) {
+
+}
 
 /**
  * A lazy HTTP error handler, that looks up the error handler from the current application
