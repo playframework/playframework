@@ -142,7 +142,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), BINARY);
 
         assertEquals(result.status(), OK);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
     }
 
     @Test
@@ -153,7 +153,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), TEXT);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(TEXT, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(TEXT, result.body().contentType().orElse(""));
     }
 
     @Test
@@ -164,7 +164,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
@@ -176,7 +176,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
 
         assertEquals(result.status(), OK);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
@@ -189,7 +189,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofSource(entityLength, source, "file.txt", TEXT);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(TEXT, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(TEXT, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
