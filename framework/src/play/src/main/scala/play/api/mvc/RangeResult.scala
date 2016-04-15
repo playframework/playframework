@@ -257,7 +257,6 @@ object RangeResult {
   def ofSource(entityLength: Long, source: Source[ByteString, _], rangeHeader: Option[String], fileName: Option[String], contentType: Option[String]): Result = {
     val commonHeaders = Seq(
       Some(ACCEPT_RANGES -> "bytes"),
-      Some(CONTENT_TYPE -> contentType.getOrElse(ContentTypes.BINARY)),
       fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; filename="$f"""")
     ).flatten.toMap
 

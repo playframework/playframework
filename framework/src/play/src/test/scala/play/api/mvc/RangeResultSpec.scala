@@ -295,9 +295,9 @@ object RangeResultSpec extends Specification {
     "have headers" in {
       val stream = new java.io.ByteArrayInputStream(Array[Byte](1, 2, 3))
       val source = StreamConverters.fromInputStream(() => stream)
-      val Result(ResponseHeader(_, headers, _), _) = RangeResult.ofSource(stream.available(), source, None, None, None)
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType)) = RangeResult.ofSource(stream.available(), source, None, None, None)
       headers must havePair("Accept-Ranges" -> "bytes")
-      headers must havePair("Content-Type" -> "application/octet-stream")
+      contentType must beSome("application/octet-stream")
     }
 
     "support Content-Disposition header" in {
@@ -333,9 +333,9 @@ object RangeResultSpec extends Specification {
     "support sending path" in {
       val file = createFile(java.nio.file.Paths.get("path.mp4"))
       try {
-        val Result(ResponseHeader(_, headers, _), _) = RangeResult.ofPath(file.toPath, None, Some("video/mp4"))
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType)) = RangeResult.ofPath(file.toPath, None, Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"")
-        headers must havePair("Content-Type" -> "video/mp4")
+        contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)
       }
@@ -344,9 +344,9 @@ object RangeResultSpec extends Specification {
     "support sending file" in {
       val file = createFile(java.nio.file.Paths.get("file.mp4"))
       try {
-        val Result(ResponseHeader(_, headers, _), _) = RangeResult.ofFile(file, None, Some("video/mp4"))
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType)) = RangeResult.ofFile(file, None, Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
-        headers must havePair("Content-Type" -> "video/mp4")
+        contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)
       }

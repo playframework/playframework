@@ -158,7 +158,7 @@ public class RangeResultsTest {
         closeStreamSilently(stream);
 
         assertEquals(result.status(), OK);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
     }
 
     @Test
@@ -171,7 +171,7 @@ public class RangeResultsTest {
         closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(TEXT, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(TEXT, result.body().contentType().orElse(""));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class RangeResultsTest {
         closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
@@ -198,7 +198,7 @@ public class RangeResultsTest {
         closeStreamSilently(stream);
 
         assertEquals(result.status(), OK);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(BINARY, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
@@ -214,7 +214,7 @@ public class RangeResultsTest {
         closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(TEXT, result.header(CONTENT_TYPE).orElse(""));
+        assertEquals(TEXT, result.body().contentType().orElse(""));
         assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
