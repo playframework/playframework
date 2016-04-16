@@ -136,19 +136,6 @@ public class RangeResultsTest {
     // -- Sources
 
     @Test
-    public void shouldReturnRangeResultForStream() throws IOException {
-        this.mockRangeRequest();
-
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
-        Result result = RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), BINARY);
-        closeStreamSilently(stream);
-
-        assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals(BINARY, result.header(CONTENT_TYPE).orElse(""));
-    }
-
-    @Test
     public void shouldNotReturnRangeResultForStreamWhenHeaderIsNotPresent() throws IOException {
         this.mockRegularRequest();
 
