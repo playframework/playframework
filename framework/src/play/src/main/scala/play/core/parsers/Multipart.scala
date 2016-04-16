@@ -119,7 +119,7 @@ object Multipart {
   def handleFilePartAsTemporaryFile: FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-      Accumulator(StreamConverters.fromOutputStream(() => new java.io.FileOutputStream(tempFile.file))).map { _ =>
+      Accumulator(FileIO.toFile(tempFile.file)).map { _ =>
         FilePart(partName, filename, contentType, tempFile)
       }
   }

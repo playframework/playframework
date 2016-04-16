@@ -5,17 +5,17 @@ package play.api.mvc
 
 import java.nio.file.{ Files, Path }
 
-import akka.stream.scaladsl.{ StreamConverters, Source }
+import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
 import akka.util.ByteString
-import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import play.api.i18n.{ MessagesApi, Lang }
-import play.api.libs.iteratee._
-import play.api.http._
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.http.HeaderNames._
+import play.api.http._
+import play.api.i18n.{ Lang, MessagesApi }
+import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
-
 import play.core.utils.CaseInsensitiveOrdered
+
 import scala.collection.immutable.TreeMap
 
 /**
@@ -395,7 +395,7 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      streamFile(StreamConverters.fromInputStream(() => Files.newInputStream(content.toPath)), fileName(content), content.length, inline)
+      streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
     }
 
     /**
@@ -406,8 +406,7 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      streamFile(StreamConverters.fromInputStream(() => Files.newInputStream(content)),
-        fileName(content), Files.size(content), inline)
+      streamFile(FileIO.fromFile(content.toFile), fileName(content), Files.size(content), inline)
     }
 
     /**

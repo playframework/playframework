@@ -28,7 +28,7 @@ In addition, if you have any other dependencies on Play artifacts, and you are n
 If you're using a multi-project build, and none of the projects has a root directory of the current directory, the root project is now determined by overriding rootProject instead of alphabetically:
 
 ```scala
-override def rootProject = Some(myProject) 
+override def rootProject = Some(myProject)
 ```
 
 ### Update Scala version
@@ -187,9 +187,9 @@ We have upgraded Jackson to version 2 which means that the package name is now `
 
 ## Preparing a distribution
 
-The _stage_ and _dist_ tasks have been completely re-written in Play 2.2 so that they use the [Native Packager Plugin](https://github.com/sbt/sbt-native-packager). 
+The _stage_ and _dist_ tasks have been completely re-written in Play 2.2 so that they use the [Native Packager Plugin](https://github.com/sbt/sbt-native-packager).
 
-Play distributions are no longer created in the project's `dist` folder. Instead, they are created in the project's `target` folder. 
+Play distributions are no longer created in the project's `dist` folder. Instead, they are created in the project's `target` folder.
 
 Another thing that has changed is the location of the Unix script that starts a Play application. Prior to 2.2 the Unix script was named `start` and it resided in the root level folder of the distribution. With 2.2 the `start` script is named as per the project's name and it resides in the distribution's `bin` folder. In addition there is now a `.bat` script available to start the Play application on Windows.
 
@@ -199,4 +199,4 @@ Please consult the [["Starting your application in production mode"|Production]]
 
 ## Upgrade from Akka 2.1 to 2.2
 
-The migration guide for upgrading from Akka 2.1 to 2.2 can be found [here](http://doc.akka.io/docs/akka/2.2.0/project/migration-guide-2.1.x-2.2.x.html).
+The migration guide for upgrading from Akka 2.1 to 2.2 can be found [here](http://doc.akka.io/docs/akka/2.4.4/project/migration-guide-2.1.x-2.2.x.html).
