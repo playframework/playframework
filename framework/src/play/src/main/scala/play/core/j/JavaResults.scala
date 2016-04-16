@@ -5,17 +5,17 @@ package play.core.j
 
 import akka.stream.Materializer
 import akka.util.ByteString
+import play.api.http._
+import play.api.mvc._
+import play.mvc.Http.{ Cookie => JCookie, Cookies => JCookies, Flash => JFlash, Session => JSession }
+import play.mvc.{ Result => JResult }
 
 import scala.annotation.varargs
-import scala.compat.java8.FutureConverters
-import scala.language.reflectiveCalls
-import play.api.mvc._
-import play.api.http._
-import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
-import play.mvc.{ Result => JResult }
 import scala.collection.JavaConverters._
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.reflectiveCalls
 
 object JavaResultExtractor {
 
@@ -41,6 +41,18 @@ object JavaResultExtractor {
         cookies.toIterator.map(makeJavaCookie).asJava
       }
     }
+
+  def withCookies(header: ResponseHeader, cookies: Array[JCookie]): ResponseHeader = {
+    if (cookies.isEmpty) {
+      header
+    } else {
+      val cookieHeader = Cookies.mergeSetCookieHeader(
+        header.headers.getOrElse(HeaderNames.SET_COOKIE, ""),
+        JavaHelpers.cookiesToScalaCookies(java.util.Arrays.asList(cookies: _*))
+      )
+      header.copy(headers = header.headers + (HeaderNames.SET_COOKIE -> cookieHeader))
+    }
+  }
 
   def getSession(responseHeader: ResponseHeader): JSession =
     new JSession(Session.decodeFromCookie(

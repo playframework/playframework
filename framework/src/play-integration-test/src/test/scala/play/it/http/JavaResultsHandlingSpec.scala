@@ -15,7 +15,7 @@ import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
-import play.mvc.Results
+import play.mvc.{ Http, Results }
 
 object NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -46,6 +46,40 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header("Server") must beSome("bar")
       response.header("Other") must beSome("bar")
+      response.body must_== "Hello world"
+    }
+
+    "add cookies in Result" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world").withCookies(
+          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
+        )
+      }
+    }) { response =>
+      response.header("Set-Cookie").get must contain("bar=KitKat;")
+      response.body must_== "Hello world"
+    }
+
+    "add cookies in Response" in makeRequest(new MockController {
+      def action = {
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header("Set-Cookie").get must contain("foo=1;")
+      response.body must_== "Hello world"
+    }
+
+    "add cookies in both Response and Result" in makeRequest(new MockController {
+      def action = {
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        Results.ok("Hello world").withCookies(
+          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
+        )
+      }
+    }) { response =>
+      response.allHeaders.get("Set-Cookie").get(0) must contain("bar=KitKat")
+      response.allHeaders.get("Set-Cookie").get(1) must contain("foo=1")
       response.body must_== "Hello world"
     }
 
