@@ -3,26 +3,27 @@
  */
 package play.core.j
 
+import java.util.function.Consumer
+
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.libs.streams.Streams
-
-import scala.annotation.varargs
-import scala.compat.java8.FutureConverters
-import scala.language.reflectiveCalls
-import play.api.mvc._
 import play.api.http._
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Concurrent._
+import play.api.libs.iteratee.Concurrent.Channel
+import play.api.libs.iteratee.{ Concurrent, Enumerator, Input }
+import play.api.libs.streams.Streams
+import play.api.mvc._
 import play.core.Execution.internalContext
-import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
+import play.mvc.Http.{ Cookie => JCookie, Cookies => JCookies, Flash => JFlash, Session => JSession }
 import play.mvc.{ Result => JResult }
 import play.twirl.api.Content
+
+import scala.annotation.varargs
 import scala.collection.JavaConverters._
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import java.util.function.Consumer
+import scala.language.reflectiveCalls
 
 /**
  * Java compatible Results
@@ -79,6 +80,18 @@ object JavaResultExtractor {
         cookies.toIterator.map(makeJavaCookie).asJava
       }
     }
+
+  def withCookies(header: ResponseHeader, cookies: Array[JCookie]): ResponseHeader = {
+    if (cookies.isEmpty) {
+      header
+    } else {
+      val cookieHeader = Cookies.mergeSetCookieHeader(
+        header.headers.getOrElse(HeaderNames.SET_COOKIE, ""),
+        JavaHelpers.cookiesToScalaCookies(java.util.Arrays.asList(cookies: _*))
+      )
+      header.copy(headers = header.headers + (HeaderNames.SET_COOKIE -> cookieHeader))
+    }
+  }
 
   def getSession(responseHeader: ResponseHeader): JSession =
     new JSession(Session.decodeFromCookie(

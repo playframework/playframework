@@ -925,23 +925,28 @@ package play.api.mvc {
      * @return decoded cookies
      */
     def decodeSetCookieHeader(cookieHeader: String): Seq[Cookie] = {
-      Try {
-        val decoder = config.clientDecoder
-        SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq.flatMap { cookieString =>
-          Option(decoder.decode(cookieString.trim)).map(cookie =>
-            Cookie(
-              cookie.name,
-              cookie.value,
-              if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
-              Option(cookie.path).getOrElse("/"),
-              Option(cookie.domain),
-              cookie.isSecure,
-              cookie.isHttpOnly
-            ))
-        }
-      }.getOrElse {
-        logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
+      if (cookieHeader.isEmpty) {
+        // fail fast if there are no existing cookies
         Seq.empty
+      } else {
+        Try {
+          val decoder = config.clientDecoder
+          for {
+            cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
+            cookie <- Option(decoder.decode(cookieString.trim))
+          } yield Cookie(
+            cookie.name,
+            cookie.value,
+            if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
+            Option(cookie.path).getOrElse("/"),
+            Option(cookie.domain),
+            cookie.isSecure,
+            cookie.isHttpOnly
+          )
+        } getOrElse {
+          logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
+          Seq.empty
+        }
       }
     }
 
