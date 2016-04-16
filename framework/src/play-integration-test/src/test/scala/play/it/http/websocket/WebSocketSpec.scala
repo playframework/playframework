@@ -383,7 +383,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         WebSocket.acceptWithActor[String, String] { req =>
           out =>
             Props(new Actor() {
-              out ! Status.Success(())
+              app.actorSystem.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
               def receive = PartialFunction.empty
             })
         }

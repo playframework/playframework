@@ -10,13 +10,12 @@ import static play.mvc.Http.MimeTypes.*;
 import static play.mvc.Http.Status.*;
 
 import akka.stream.IOResult;
+import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
-import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
 import org.junit.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -139,10 +138,8 @@ public class RangeResultsTest {
     public void shouldNotReturnRangeResultForStreamWhenHeaderIsNotPresent() throws IOException {
         this.mockRegularRequest();
 
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
         Result result = RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), BINARY);
-        closeStreamSilently(stream);
 
         assertEquals(result.status(), OK);
         assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -152,10 +149,8 @@ public class RangeResultsTest {
     public void shouldReturnRangeResultForStreamWhenHeaderIsPresentAndContentTypeWasSpecified() throws IOException {
         this.mockRangeRequest();
 
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
         Result result = RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), TEXT);
-        closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
         assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -165,10 +160,8 @@ public class RangeResultsTest {
     public void shouldReturnRangeResultForStreamWithCustomFilename() throws IOException {
         this.mockRangeRequest();
 
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
         Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
-        closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
         assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -179,10 +172,8 @@ public class RangeResultsTest {
     public void shouldNotReturnRangeResultForStreamWhenHeaderIsNotPresentWithCustomFilename() throws IOException {
         this.mockRegularRequest();
 
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
         Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
-        closeStreamSilently(stream);
 
         assertEquals(result.status(), OK);
         assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -193,12 +184,9 @@ public class RangeResultsTest {
     public void shouldReturnPartialContentForSourceWithGivenEntityLength() throws IOException {
         this.mockRangeRequest();
 
-        InputStream stream = Files.newInputStream(path);
-        Source<ByteString, CompletionStage<IOResult>> source = StreamConverters.fromInputStream(() -> stream);
-
         long entityLength = path.toFile().length();
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
         Result result = RangeResults.ofSource(entityLength, source, "file.txt", TEXT);
-        closeStreamSilently(stream);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
         assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -214,13 +202,5 @@ public class RangeResultsTest {
         Http.Request request = mock(Http.Request.class);
         when(request.getHeader(RANGE)).thenReturn("bytes=0-1");
         when(this.ctx.request()).thenReturn(request);
-    }
-
-    private void closeStreamSilently(InputStream stream) {
-        try {
-            stream.close();
-        } catch (IOException e) {
-            // do nothing
-        }
     }
 }

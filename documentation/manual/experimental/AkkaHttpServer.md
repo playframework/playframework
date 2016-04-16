@@ -3,7 +3,7 @@
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-Play 2's main server is built on top of [Netty](http://netty.io/). In Play 2.4 we started experimenting with an experimental server based on [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/). Akka HTTP is an HTTP library built on top of Akka. It is written by the authors of [Spray](http://spray.io/).
+Play 2's main server is built on top of [Netty](http://netty.io/). In Play 2.4 we started experimenting with an experimental server based on [Akka HTTP](http://doc.akka.io/docs/akka/2.4.4/scala/http/index.html). Akka HTTP is an HTTP library built on top of Akka. It is written by the authors of [Spray](http://spray.io/).
 
 The purpose of this backend is:
 

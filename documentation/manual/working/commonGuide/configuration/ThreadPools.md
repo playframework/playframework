@@ -43,7 +43,7 @@ In most situations, the appropriate execution context to use will be the **Play 
 
 @[global-thread-pool](code/ThreadPools.scala)
 
-The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.2/scala/dispatchers.html).
+The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.4/scala/dispatchers.html).
 
 ### Configuring the default thread pool
 
@@ -57,7 +57,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.2/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.4/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
@@ -169,8 +169,8 @@ Note that you must have Akka logging set to a debug level to see output, so you 
 Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should se your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
 
 ```
-{ 
-  # Elided HOCON... 
+{
+  # Elided HOCON...
   "actor" : {
     "default-dispatcher" : {
       # application.conf @ file:/Users/wsargent/work/catapi/target/universal/stage/conf/application.conf: 19
