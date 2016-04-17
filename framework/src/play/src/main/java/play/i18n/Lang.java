@@ -9,6 +9,8 @@ import play.Application;
 import play.api.Play;
 import play.libs.*;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * A Lang supported by the application.
  */
@@ -95,11 +97,7 @@ public class Lang extends play.api.i18n.Lang {
      */
     public static List<Lang> availables(Application app) {
         List<play.api.i18n.Lang> langs = Scala.asJava(play.api.i18n.Lang.availables(app.getWrappedApplication()));
-        List<play.i18n.Lang> result = new ArrayList<play.i18n.Lang>();
-        for(play.api.i18n.Lang lang: langs) {
-            result.add(new Lang(lang));
-        }
-        return result;
+        return langs.stream().map(Lang::new).collect(toList());
     }
 
     /**
@@ -113,10 +111,7 @@ public class Lang extends play.api.i18n.Lang {
     @Deprecated
     public static Lang preferred(List<Lang> langs) {
         play.api.Application app = Play.current();
-        List<play.api.i18n.Lang> result = new ArrayList<play.api.i18n.Lang>();
-        for(play.i18n.Lang lang: langs) {
-            result.add(lang);
-        }
+        List<play.api.i18n.Lang> result = langs.stream().collect(toList());
         return new Lang(play.api.i18n.Lang.preferred(Scala.toSeq(result), app));
     }
 
@@ -128,10 +123,7 @@ public class Lang extends play.api.i18n.Lang {
      * @return the preferred lang.
      */
     public static Lang preferred(Application app, List<Lang> langs) {
-        List<play.api.i18n.Lang> result = new ArrayList<play.api.i18n.Lang>();
-        for(play.i18n.Lang lang: langs) {
-            result.add(lang);
-        }
+        List<play.api.i18n.Lang> result = langs.stream().collect(toList());
         return new Lang(play.api.i18n.Lang.preferred(Scala.toSeq(result), app.getWrappedApplication()));
     }
 }

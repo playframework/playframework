@@ -39,7 +39,7 @@ public abstract class EssentialAction
     @Override
     public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result> apply(play.api.mvc.RequestHeader rh) {
         return apply(new RequestHeaderImpl(rh))
-            .map(r -> r.asScala(), Execution.internalContext())
+            .map(Result::asScala, Execution.internalContext())
             .asScala();
     }
 
