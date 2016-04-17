@@ -4,6 +4,8 @@
 package play;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -125,7 +127,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public String getString(String key) {
-        return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
+        return Scala.orNull(conf.getString(key, scala.Option.empty()));
     }
 
     /**
@@ -136,7 +138,7 @@ public class Configuration {
      * @return a configuration value or the defaultString
      */
     public String getString(String key, String defaultString) {
-        return Scala.orElse(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()), defaultString);
+        return Scala.orElse(conf.getString(key, scala.Option.empty()), defaultString);
     }
 
     /**
@@ -416,11 +418,7 @@ public class Configuration {
      */
     public List<Configuration> getConfigList(String key) {
         if (conf.getConfigList(key).isDefined()) {
-          List<Configuration> out = new ArrayList<Configuration>();
-          for (play.api.Configuration c : conf.getConfigList(key).get()) {
-            out.add(new Configuration(c));
-          }
-          return out;
+            return conf.getConfigList(key).get().stream().map(Configuration::new).collect(Collectors.toList());
         }
 
         return null;
@@ -603,11 +601,7 @@ public class Configuration {
      */
     public List<Map<String, Object>> getObjectList(String key) {
         if (conf.getObjectList(key).isDefined()) {
-          List<Map<String, Object>> out = new ArrayList<Map<String, Object>>();
-          for (ConfigObject c : conf.getObjectList(key).get()) {
-            out.add(c.unwrapped());
-          }
-          return out;
+            return conf.getObjectList(key).get().stream().map((Function<ConfigObject, Map<String, Object>>) ConfigObject::unwrapped).collect(Collectors.toList());
         }
         return null;
     }

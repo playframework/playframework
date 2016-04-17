@@ -3,7 +3,6 @@
  */
 package play;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
@@ -32,12 +31,7 @@ public class ConfigurationTest {
     public void beAccessibleAsAnEntrySet() {
         Set<Map.Entry<String, ConfigValue>> entrySet = exampleConfig().entrySet();
         assertThat(entrySet).hasSize(3);
-        List<String> keys = Lists.transform(Lists.newArrayList(entrySet), new Function<Map.Entry<String, ConfigValue>, String>() {
-            @Override
-            public String apply(Map.Entry<String, ConfigValue> input) {
-                return input.getKey();
-            }
-        });
+        List<String> keys = Lists.transform(Lists.newArrayList(entrySet), Map.Entry::getKey);
         assertThat(keys).containsOnly("foo.bar1", "foo.bar2", "blah");
     }
 

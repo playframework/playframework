@@ -6,6 +6,8 @@ package play.db.jpa;
 import java.util.*;
 import javax.persistence.*;
 
+import static java.util.stream.Collectors.toList;
+
 @Entity
 public class TestEntity {
 
@@ -29,11 +31,7 @@ public class TestEntity {
     public static List<String> allNames() {
         @SuppressWarnings("unchecked")
         List<TestEntity> results = JPA.em().createQuery("from TestEntity order by name").getResultList();
-        List<String> names = new ArrayList<String>();
-        for (TestEntity entity : results) {
-            names.add(entity.name);
-        }
-        return names;
+        return results.stream().map(entity -> entity.name).collect(toList());
     }
 
 }

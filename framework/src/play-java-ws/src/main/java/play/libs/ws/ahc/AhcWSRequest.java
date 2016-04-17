@@ -21,7 +21,6 @@ import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;
 import org.asynchttpclient.util.HttpUtils;
 import org.reactivestreams.Publisher;
 import play.api.libs.ws.ahc.Streamed;
-import play.core.formatters.Multipart;
 import play.core.parsers.FormUrlEncodedParser;
 import play.libs.Json;
 import play.libs.oauth.OAuth;
@@ -39,9 +38,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
 
 /**
  * provides the User facing API for building WS request.
@@ -51,8 +47,8 @@ public class AhcWSRequest implements WSRequest {
     private final String url;
     private String method = "GET";
     private Object body = null;
-    private Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
-    private Map<String, List<String>> queryParameters = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> headers = new HashMap<>();
+    private final Map<String, List<String>> queryParameters = new HashMap<>();
 
     private String username;
     private String password;
@@ -66,7 +62,7 @@ public class AhcWSRequest implements WSRequest {
     private Boolean followRedirects = null;
     private String virtualHost = null;
 
-    private ArrayList<WSRequestFilter> filters = new ArrayList();
+    private final ArrayList<WSRequestFilter> filters = new ArrayList<>();
 
     public AhcWSRequest(AhcWSClient client, String url, Materializer materializer) {
         this.client = client;
@@ -92,21 +88,14 @@ public class AhcWSRequest implements WSRequest {
      */
     @Override
     public AhcWSRequest setHeader(String name, String value) {
-        if (headers.containsKey(name)) {
-            Collection<String> values = headers.get(name);
-            values.add(value);
-        } else {
-            List<String> values = new ArrayList<String>();
-            values.add(value);
-            headers.put(name, values);
-        }
+        addValueTo(headers, name, value);
         return this;
     }
 
     /**
      * Sets a query string
      *
-     * @param query
+     * @param query the query string
      */
     @Override
     public WSRequest setQueryString(String query) {
@@ -128,14 +117,7 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public WSRequest setQueryParameter(String name, String value) {
-        if (queryParameters.containsKey(name)) {
-            Collection<String> values = queryParameters.get(name);
-            values.add(value);
-        } else {
-            List<String> values = new ArrayList<String>();
-            values.add(value);
-            queryParameters.put(name, values);
-        }
+        addValueTo(queryParameters, name, value);
         return this;
     }
 
@@ -254,12 +236,12 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public Map<String, Collection<String>> getHeaders() {
-        return new HashMap<String, Collection<String>>(this.headers);
+        return new HashMap<>(this.headers);
     }
 
     @Override
     public Map<String, Collection<String>> getQueryParameters() {
-        return new HashMap<String, Collection<String>>(this.queryParameters);
+        return new HashMap<>(this.queryParameters);
     }
 
     @Override
@@ -444,9 +426,7 @@ public class AhcWSRequest implements WSRequest {
             Request ahcRequest = ahcWsRequest.buildRequest();
             return ahcWsRequest.execute(ahcRequest);
         }, filters.iterator());
-
-        CompletionStage<WSResponse> futureResponse = executor.apply(this);
-        return futureResponse;
+        return executor.apply(this);
     }
 
 
@@ -460,9 +440,9 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public CompletionStage<StreamedResponse> stream() {
-    	AsyncHttpClient asyncClient = (AsyncHttpClient) client.getUnderlying();
-    	Request request = buildRequest();
-    	return StreamedResponse.from(Streamed.execute(asyncClient, request));
+        AsyncHttpClient asyncClient = (AsyncHttpClient) client.getUnderlying();
+        Request request = buildRequest();
+        return StreamedResponse.from(Streamed.execute(asyncClient, request));
     }
 
     @Override
@@ -493,7 +473,7 @@ public class AhcWSRequest implements WSRequest {
             }
 
             // Always replace the content type header to make sure exactly one exists
-            List<String> contentTypeList = new ArrayList<String>();
+            List<String> contentTypeList = new ArrayList<>();
             contentTypeList.add(contentType);
             possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentTypeList);
 
@@ -511,12 +491,7 @@ public class AhcWSRequest implements WSRequest {
                 possiblyModifiedHeaders.remove(HttpHeaders.Names.CONTENT_LENGTH);
 
                 Map<String, List<String>> stringListMap = FormUrlEncodedParser.parseAsJava(stringBody, "utf-8");
-                for (String key : stringListMap.keySet()) {
-                    List<String> values = stringListMap.get(key);
-                    for (String value : values) {
-                        builder.addFormParam(key, value);
-                    }
-                }
+                stringListMap.forEach((key, values) -> values.forEach(value -> builder.addFormParam(key, value)));
             } else {
                 builder.setBody(stringBody);
             }
@@ -524,7 +499,7 @@ public class AhcWSRequest implements WSRequest {
             builder.setCharset(charset);
         } else if (body instanceof JsonNode) {
             JsonNode jsonBody = (JsonNode) body;
-            List<String> contentType = new ArrayList<String>();
+            List<String> contentType = new ArrayList<>();
             contentType.add("application/json");
             possiblyModifiedHeaders.set(HttpHeaders.Names.CONTENT_TYPE, contentType);
             byte[] bodyBytes;
@@ -588,16 +563,26 @@ public class AhcWSRequest implements WSRequest {
         return builder.build();
     }
 
+    private void addValueTo(Map<String, List<String>> map, String name, String value) {
+        if (map.containsKey(name)) {
+            Collection<String> values = map.get(name);
+            values.add(value);
+        } else {
+            List<String> values = new ArrayList<>();
+            values.add(value);
+            map.put(name, values);
+        }
+    }
+
     private CompletionStage<WSResponse> execute(Request request) {
 
-        final scala.concurrent.Promise<WSResponse> scalaPromise = scala.concurrent.Promise$.MODULE$.<WSResponse>apply();
+        final scala.concurrent.Promise<WSResponse> scalaPromise = scala.concurrent.Promise$.MODULE$.apply();
         try {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) client.getUnderlying();
             asyncHttpClient.executeRequest(request, new AsyncCompletionHandler<Response>() {
                 @Override
                 public Response onCompleted(Response response) {
-                    final Response ahcResponse = response;
-                    scalaPromise.success(new AhcWSResponse(ahcResponse));
+                    scalaPromise.success(new AhcWSResponse(response));
                     return response;
                 }
 
