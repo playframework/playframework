@@ -323,6 +323,16 @@ trait AssetsSpec extends PlaySpecification
 
         result.header(CONTENT_RANGE) must beSome.which(_ == "bytes */10000")
       }
+
+      "No Content-Disposition header when serving assets" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.header(CONTENT_DISPOSITION) must beNone
+      }
     }
   }
 }
