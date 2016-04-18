@@ -20,11 +20,11 @@ public class XPath {
     /**
      * Select all nodes that are selected by this XPath expression. If multiple nodes match,
      * multiple nodes will be returned. Nodes will be returned in document-order,
-     * @param path
-     * @param node
+     * @param path the xpath expression
+     * @param node the starting node
      * @param namespaces Namespaces that need to be available in the xpath, where the key is the
      * prefix and the value the namespace URI
-     * @return
+     * @return result of evaluating the xpath expression against node
      */
     public static NodeList selectNodes(String path, Object node, Map<String, String> namespaces) {
         try {
@@ -46,9 +46,9 @@ public class XPath {
     /**
      * Select all nodes that are selected by this XPath expression. If multiple nodes match,
      * multiple nodes will be returned. Nodes will be returned in document-order,
-     * @param path
-     * @param node
-     * @return
+     * @param path the xpath expression
+     * @param node the starting node
+     * @return result of evaluating the xpath expression against node
      */
     public static NodeList selectNodes(String path, Object node) {
         return selectNodes(path, node, null);
@@ -76,12 +76,11 @@ public class XPath {
     }
 
     private static void bindUnboundedNamespaces(SimpleNamespaceContext nsContext, Map<String, String> namespaces) {
-        for (Map.Entry<String, String> entry : namespaces.entrySet()) {
-            //making sure that namespace is not already bound. Otherwise UnsupportedException happens
-            if(nsContext.getPrefix(entry.getValue()) == null) {
-                nsContext.bindNamespaceUri(entry.getKey(), entry.getValue());
+        namespaces.forEach((key, value) -> {
+            if(nsContext.getPrefix(value) == null) {
+                nsContext.bindNamespaceUri(key, value);
             }
-        }
+        });
     }
 
     /**

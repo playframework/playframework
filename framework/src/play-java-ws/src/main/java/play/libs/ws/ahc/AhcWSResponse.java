@@ -20,12 +20,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * A WS response.
  */
 public class AhcWSResponse implements WSResponse {
 
-    private org.asynchttpclient.Response ahcResponse;
+    private final org.asynchttpclient.Response ahcResponse;
 
     public AhcWSResponse(org.asynchttpclient.Response ahcResponse) {
         this.ahcResponse = ahcResponse;
@@ -79,11 +81,7 @@ public class AhcWSResponse implements WSResponse {
      */
     @Override
     public List<WSCookie> getCookies() {
-        List<WSCookie> cookieList = new ArrayList<WSCookie>();
-        for (org.asynchttpclient.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
-            cookieList.add(new AhcWSCookie(ahcCookie));
-        }
-        return cookieList;
+        return ahcResponse.getCookies().stream().map(AhcWSCookie::new).collect(toList());
     }
 
     /**

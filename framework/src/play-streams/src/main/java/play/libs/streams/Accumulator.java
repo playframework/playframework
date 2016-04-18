@@ -7,7 +7,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.Subscriber;
 
-import akka.NotUsed;
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import play.api.libs.streams.Accumulator$;
@@ -171,7 +170,7 @@ public abstract class Accumulator<E, A> {
     public static <E, A> Accumulator<E, A> flatten(CompletionStage<Accumulator<E, A>> stage, Materializer materializer) {
         final CompletableFuture<A> result = new CompletableFuture<A>();
         final FlattenSubscriber<A, E> subscriber = 
-            new FlattenSubscriber(stage, result, materializer);
+            new FlattenSubscriber<>(stage, result, materializer);
 
         final Sink<E, CompletableFuture<A>> sink =
             Sink.fromSubscriber(subscriber).
@@ -206,11 +205,9 @@ public abstract class Accumulator<E, A> {
         }
 
         private Publisher<E> publisher(final Subscription sub) {
-            return new Publisher<E>() {
-                public void subscribe(Subscriber<? super E> s) {
-                    underlying = s;
-                    s.onSubscribe(sub);
-                }
+            return s -> {
+                underlying = s;
+                s.onSubscribe(sub);
             };
         }
 
@@ -234,19 +231,15 @@ public abstract class Accumulator<E, A> {
         }
     
         private BiFunction<Accumulator<E, A>, Throwable, Void> handler(final Subscription sub) {
-            return new BiFunction<Accumulator<E, A>, Throwable, Void>() {
-                public Void apply(Accumulator<E, A> acc, Throwable error) {
-                    if (acc != null) {
-                        Source.fromPublisher(publisher(sub)).runWith(acc.toSink().mapMaterializedValue(fA -> completeResultWith(fA)), materializer);
-
-                    } else {
-                        // On error
-                        sub.cancel();
-                        result.completeExceptionally(error);
-                    }
-
-                    return null;
+            return (acc, error) -> {
+                if (acc != null) {
+                    Source.fromPublisher(publisher(sub)).runWith(acc.toSink().mapMaterializedValue(this::completeResultWith), materializer);
+                } else {
+                    // On error
+                    sub.cancel();
+                    result.completeExceptionally(error);
                 }
+                return null;
             };
         }
 
