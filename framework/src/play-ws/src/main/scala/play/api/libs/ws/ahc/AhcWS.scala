@@ -45,7 +45,7 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 
   def close(): Unit = asyncHttpClient.close()
 
-  def url(url: String): WSRequest = AhcWSRequest(this, url, "GET", EmptyBody, Map(), Map(), None, None, None, None, None, None, None)
+  def url(url: String): WSRequest = AhcWSRequest(this, url, "GET", EmptyBody, TreeMap()(CaseInsensitiveOrdered), Map(), None, None, None, None, None, None, None)
 }
 
 object AhcWSClient {
@@ -212,12 +212,7 @@ case class AhcWSRequest(client: AhcWSClient,
       .build()
   }
 
-  def contentType: Option[String] = {
-    this.headers.find(p => p._1 == HttpHeaders.Names.CONTENT_TYPE).map {
-      case (header, values) =>
-        values.head
-    }
-  }
+  def contentType: Option[String] = this.headers.get(HttpHeaders.Names.CONTENT_TYPE).map(_.head)
 
   /**
    * Creates and returns an AHC request, running all operations on it.
