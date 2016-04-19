@@ -454,8 +454,9 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
         } else {
           val stream = connection.getInputStream
           val source = StreamConverters.fromInputStream(() => stream)
-          // TODO this is a lie - stream.available does not necessarily return the length of the file, to do that we
-          val result = RangeResult.ofSource(stream.available(), source, request.headers.get(RANGE), Option(file), Option(assetInfo.mimeType))
+          // FIXME stream.available does not necessarily return the length of the file. According to the docs "It is never
+          // correct to use the return value of this method to allocate a buffer intended to hold all data in this stream."
+          val result = RangeResult.ofSource(stream.available(), source, request.headers.get(RANGE), None, Option(assetInfo.mimeType))
 
           Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
