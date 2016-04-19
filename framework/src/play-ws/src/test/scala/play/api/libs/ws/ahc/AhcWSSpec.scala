@@ -111,9 +111,11 @@ object AhcWSSpec extends PlaySpecification with Mockito {
     "not make Content-Type header if there is Content-Type in headers already" in new WithApplication {
       import scala.collection.JavaConverters._
       val req: AHCRequest = WS.url("http://playframework.com/")
-        .withHeaders("Content-Type" -> "fake/contenttype; charset=utf-8").withBody(<aaa>value1</aaa>).asInstanceOf[AhcWSRequest]
+        .withHeaders("content-type" -> "fake/contenttype; charset=utf-8")
+        .withBody(<aaa>value1</aaa>)
+        .asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type") must_== ("fake/contenttype; charset=utf-8")
+      req.getHeaders.getAll("Content-Type").asScala must_== Seq("fake/contenttype; charset=utf-8")
     }
 
     "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
@@ -204,17 +206,7 @@ object AhcWSSpec extends PlaySpecification with Mockito {
         .withBody("HELLO WORLD")
         .asInstanceOf[AhcWSRequest]
         .buildRequest()
-      req.getHeaders.get("Content-Type") must_== ("text/plain; charset=US-ASCII")
-    }
-
-    "Only send first content type header if two are sent" in new WithApplication {
-      import scala.collection.JavaConverters._
-      val req: AHCRequest = WS.url("http://playframework.com/")
-        .withHeaders("Content-Type" -> "application/json")
-        .withHeaders("Content-Type" -> "application/xml") // second content type header is ignored
-        .withBody("HELLO WORLD").asInstanceOf[AhcWSRequest]
-        .buildRequest()
-      req.getHeaders.get("Content-Type") must_== ("application/json")
+      req.getHeaders.getAll("Content-Type").asScala must_== Seq("text/plain; charset=US-ASCII")
     }
 
     "POST binary data as is" in new WithApplication {
