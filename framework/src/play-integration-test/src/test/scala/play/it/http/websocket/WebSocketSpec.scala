@@ -6,12 +6,14 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
+import akka.actor.{Status, Actor, Props}
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Handler, Results, WebSocket}
 import play.api.test._
 import play.core.routing.HandlerDef
@@ -290,6 +292,84 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
             closeFrame()
           ))
         }
+      }
+
+    }
+
+    "allow handling a WebSocket with an actor" in {
+
+      "allow consuming messages" in allowConsumingMessages { implicit app =>
+        consumed =>
+          import app.materializer
+          implicit val system = app.actorSystem
+          WebSocket.accept[String, String] { req =>
+            ActorFlow.actorRef({ out =>
+              Props(new Actor() {
+                var messages = List.empty[String]
+                def receive = {
+                  case msg: String =>
+                    messages = msg :: messages
+                }
+                override def postStop() = {
+                  consumed.success(messages.reverse)
+                }
+              })
+            })
+          }
+      }
+
+      "allow sending messages" in allowSendingMessages { implicit app =>
+        messages =>
+          import app.materializer
+          implicit val system = app.actorSystem
+          WebSocket.accept[String, String] { req =>
+            ActorFlow.actorRef({ out =>
+              Props(new Actor() {
+                messages.foreach { msg =>
+                  out ! msg
+                }
+                out ! Status.Success(())
+                def receive = PartialFunction.empty
+              })
+            })
+          }
+      }
+
+      "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              system.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
+              def receive = PartialFunction.empty
+            })
+          })
+        }
+      }
+
+      "clean up when closed" in cleanUpWhenClosed { implicit app =>
+        cleanedUp =>
+          import app.materializer
+          implicit val system = app.actorSystem
+          WebSocket.accept[String, String] { req =>
+            ActorFlow.actorRef({ out =>
+              Props(new Actor() {
+                def receive = PartialFunction.empty
+                override def postStop() = {
+                  cleanedUp.success(true)
+                }
+              })
+            })
+          }
+      }
+
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
+        statusCode =>
+          import app.materializer
+          WebSocket.acceptOrResult[String, String] { req =>
+            Future.successful(Left(Results.Status(statusCode)))
+          }
       }
 
     }
