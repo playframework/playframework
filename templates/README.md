@@ -24,7 +24,7 @@ There is a `syncTemplates` command that will build the templates and keep them i
 with the sources as they change. The most convenient way to use this is to use triggered
 execution:
 
-    sbt ~syncTemplates
+    sbt "~syncTemplates"
 
 Then in another window, you can test/run the template, for example, to run the
 `play-scala` template:
