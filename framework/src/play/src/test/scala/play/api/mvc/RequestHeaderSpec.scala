@@ -26,6 +26,14 @@ class RequestHeaderSpec extends Specification {
         val rh = DummyRequestHeader("GET", "https://example.com:8080/test", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com:8080"
       }
+      "absolute uri with port and invalid characters" in {
+        val rh = DummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        rh.host must_== "example.com:8080"
+      }
+      "relative uri with invalid characters" in {
+        val rh = DummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        rh.host must_== "playframework.com"
+      }
     }
 
     "parse accept languages" in {
@@ -67,11 +75,10 @@ class RequestHeaderSpec extends Specification {
       requestMethod: String = "GET",
       requestUri: String = "/",
       headers: Headers = Headers()) extends RequestHeader {
-    private[this] val parsedUri = new URI(requestUri)
     def id = 1
     def tags = Map()
     def uri = requestUri
-    def path = parsedUri.getPath
+    def path = new URI(requestUri).getPath // this just won't work for invalid URIs
     def method = requestMethod
     def version = ""
     def queryString = Map()
