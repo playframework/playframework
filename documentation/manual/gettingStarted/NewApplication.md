@@ -54,7 +54,7 @@ In `project/plugins.sbt`, add:
 
 ```scala
 // The Typesafe repository
-resolvers += "Typesafe repository" at "https://dl.bintray.com/typesafe/maven-releases/"
+resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/maven-releases/"
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
