@@ -30,7 +30,7 @@ import scala.concurrent.duration._
  * @param disableUrlEncoding Whether the raw URL should be used.
  * @param keepAlive whether connection pooling should be used.
  */
-@deprecated("Use AhcWSClientConfig", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcWSClientConfig", "2.5")
 case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
@@ -44,7 +44,7 @@ case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
 /**
  * Factory for creating NingWSClientConfig, for use from Java.
  */
-@deprecated("Use AhcWSConfigBuilder", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcWSConfigBuilder", "2.5")
 object NingWSClientConfigFactory {
 
   def forClientConfig(config: WSClientConfig) = {
@@ -57,7 +57,7 @@ object NingWSClientConfigFactory {
  *
  * @param ningConfig the ning client configuration.
  */
-@deprecated("Use AhcConfigBuilder", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcConfigBuilder", "2.5")
 class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSClientConfig()) {
 
   protected val addCustomSettings: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder = identity

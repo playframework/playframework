@@ -18,7 +18,7 @@ import play.api.libs.ws.ssl._
  *
  * @param config a client configuration object
  */
-@deprecated("Use AhcWSClient instead", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcWSClient instead", "2.5")
 case class NingWSClient(config: AsyncHttpClientConfig)(implicit materializer: Materializer) extends WSClient {
 
   private val ahcWsClient = AhcWSClient(config)
@@ -32,7 +32,7 @@ case class NingWSClient(config: AsyncHttpClientConfig)(implicit materializer: Ma
   def url(url: String): WSRequest = AhcWSRequest(ahcWsClient, url, "GET", EmptyBody, Map(), Map(), None, None, None, None, None, None, None)
 }
 
-@deprecated("Use AhcWSClient instead", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcWSClient instead", "2.5")
 object NingWSClient {
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of an [[https://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
@@ -60,7 +60,7 @@ object NingWSClient {
 /**
  * Ning WS API implementation components.
  */
-@deprecated("Use AhcWSClient instead", "2.5")
+@deprecated("Use play.api.libs.ws.ahc.AhcWSComponents instead", "2.5")
 trait NingWSComponents {
 
   def environment: Environment
