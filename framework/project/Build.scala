@@ -396,7 +396,8 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.put"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.post"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.patch"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.withMultipartBody")
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.ws.WSRequest.withMultipartBody"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.ws.ahc.AhcWSRequest.execute")
       )
     ).dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")

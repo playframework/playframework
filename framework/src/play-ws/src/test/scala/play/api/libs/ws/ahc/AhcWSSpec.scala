@@ -3,23 +3,25 @@
  */
 package play.api.libs.ws.ahc
 
+import java.util
+
 import akka.util.{ ByteString, Timeout }
-import io.netty.handler.codec.http.{ DefaultHttpHeaders, HttpHeaders }
+import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Response => AHCResponse, Request => AHCRequest }
+import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Request => AHCRequest, Response => AHCResponse }
 import org.specs2.mock.Mockito
+import play.api.Play
 import play.api.inject.guice.GuiceApplicationBuilder
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import play.api.libs.oauth.{ RequestToken, ConsumerKey, OAuthCalculator }
-
-import play.api.mvc._
-
-import java.util
+import play.api.libs.oauth.{ ConsumerKey, OAuthCalculator, RequestToken }
 import play.api.libs.ws._
+import play.api.mvc._
+import play.api.routing.sird._
 import play.api.test._
-import akka.util.ByteString
+import play.core.server.Server
+
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 
 object AhcWSSpec extends PlaySpecification with Mockito {
 
@@ -140,7 +142,6 @@ object AhcWSSpec extends PlaySpecification with Mockito {
     }
 
     "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in new WithApplication {
-      import scala.collection.JavaConverters._
       val req: AHCRequest = WS.url("http://playframework.com/")
         .withHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
         .withBody("HELLO WORLD") // and body is set to string (see #5221)
@@ -433,6 +434,16 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       }
     }
 
+    class HeaderAppendingFilter(key: String, value: String) extends WSRequestFilter {
+      override def apply(next: WSRequestExecutor): WSRequestExecutor = {
+        new WSRequestExecutor {
+          override def execute(request: WSRequest): Future[WSResponse] = {
+            next.execute(request.withHeaders((key, value)))
+          }
+        }
+      }
+    }
+
     "work with one request filter" in new WithServer() {
       val client = app.injector.instanceOf(classOf[WSClient])
       val callList = scala.collection.mutable.ArrayBuffer[Int]()
@@ -451,6 +462,30 @@ object AhcWSSpec extends PlaySpecification with Mockito {
         .withRequestFilter(new CallbackRequestFilter(callList, 3))
         .get()
       callList must containTheSameElementsAs(Seq(1, 2, 3))
+    }
+
+    "should allow filters to modify the request" in {
+      val appendedHeader = "key"
+      val appendedHeaderValue = "value"
+
+      Server.withRouter() {
+        case play.api.routing.sird.GET(p"/") => Action {
+          request =>
+            request.headers.get(appendedHeader) match {
+              case Some(appendedHeaderValue) => Results.Ok
+              case _ => Results.Forbidden
+            }
+        }
+      } { implicit port =>
+        implicit val materializer = Play.current.materializer
+        WsTestClient.withClient { client =>
+          val response = Await.result(
+            client.url("/")
+              .withRequestFilter(new HeaderAppendingFilter(appendedHeader, appendedHeaderValue))
+              .get(), 5.seconds)
+          response.status must beEqualTo(200)
+        }
+      }
     }
   }
 
