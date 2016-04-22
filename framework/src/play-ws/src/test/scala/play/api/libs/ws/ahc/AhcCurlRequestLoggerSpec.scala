@@ -137,6 +137,22 @@ class AhcCurlRequestLoggerSpec extends PlaySpecification
 
         there was one(logger).info(curlStatement)
       }
+
+      "log a request with Basic auth" in new WithServer {
+        val client = wsUrl("/")
+        val logger = mock[Logger]
+        val responseFuture = client.withRequestFilter(AhcCurlRequestLogger(logger))
+          .withAuth("username1", "password1", WSAuthScheme.BASIC)
+          .get()
+
+        responseFuture must beAnInstanceOf[AhcWSResponse].await
+        val curlStatement = s"""curl \\
+                                |  --verbose \\
+                                |  --request GET \\
+                                |  --user username1:password1 \\
+                                |  'http://localhost:$testServerPort/'""".stripMargin
+        there was one(logger).info(curlStatement)
+      }
       //
       //      "log a request with a proxy" in new WithServer {
       //        val client = wsUrl("/")

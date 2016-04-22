@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 import org.asynchttpclient.util.HttpUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.ws._
-
 import scala.concurrent.Future
 
 /**
@@ -52,6 +51,15 @@ trait CurlFormat {
     // method
     b.append(s"  --request ${request.method}")
     b.append(" \\\n")
+
+    //authentication
+    request.auth match {
+      case Some((userName, password, WSAuthScheme.BASIC)) => {
+        b.append(s"  --user $userName:$password")
+        b.append(" \\\n")
+      }
+      case _ => Unit
+    }
 
     // headers
     request.headers.foreach {
