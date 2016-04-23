@@ -23,7 +23,7 @@ import play.libs.Scala;
  * Out of the box Play provides a Java and Scala default implementation based on Guice. The Java implementation is the
  * {@link play.inject.guice.GuiceApplicationLoader} and the Scala implementation is {@link play.api.inject.guice.GuiceApplicationLoader}.
  *
- * A custom application loader can be configured using the `application.loader` configuration property.
+ * A custom application loader can be configured using the `play.application.loader` configuration property.
  * Implementations must define a no-arg constructor.
  */
 public interface ApplicationLoader {
