@@ -37,7 +37,7 @@ public class ApplicationTimer {
         Logger.info("ApplicationTimer demo: Starting application at " + start);
 
         // When the application starts, register a stop hook with the
-        // ApplicationLifecycle object. The code inside the stop hook wil
+        // ApplicationLifecycle object. The code inside the stop hook will
         // be run when the application stops.
         appLifecycle.addStopHook(() -> {
             Instant stop = clock.instant();
