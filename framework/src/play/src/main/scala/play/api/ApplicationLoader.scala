@@ -20,7 +20,7 @@ import play.utils.Reflect
  * Out of the box Play provides a Java and Scala default implementation based on Guice. The Scala implementation is the
  * [[play.api.inject.guice.GuiceApplicationLoader]].
  *
- * A custom application loader can be configured using the `application.loader` configuration property.
+ * A custom application loader can be configured using the `play.application.loader` configuration property.
  * Implementations must define a no-arg constructor.
  */
 trait ApplicationLoader {
