@@ -25,16 +25,16 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
   "scala body handling" should {
 
-    def tryRequest[T](result: Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
+    def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
       val response = Try(await(wsUrl("/").get()))
       block(response)
     }
 
-    def makeRequest[T](result: Result)(block: WSResponse => T) = {
+    def makeRequest[T](result: => Result)(block: WSResponse => T) = {
       tryRequest(result)(tryResult => block(tryResult.get))
     }
 
-    def withServer[T](result: Result)(block: Port => T) = {
+    def withServer[T](result: => Result)(block: Port => T) = {
       val port = testServerPort
       running(TestServer(port, GuiceApplicationBuilder().routes { case _ => Action(result) }.build())) {
         block(port)
@@ -218,7 +218,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         ).head
 
         response.status must_== 500
-        response.body must beLeft("")
+        response.body must beLeft
       }
 
     "return a 400 error on Header value contains a prohibited character" in withServer(

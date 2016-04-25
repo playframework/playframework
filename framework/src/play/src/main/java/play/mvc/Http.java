@@ -1715,6 +1715,12 @@ public class Http {
          * @param value The value of the header, must not be null
          */
         public void setHeader(String name, String value) {
+            if (name == null) {
+                throw new NullPointerException("Header name cannot be null!");
+            }
+            if (value == null) {
+                throw new NullPointerException("Header value cannot be null!");
+            }
             this.headers.put(name, value);
         }
 
