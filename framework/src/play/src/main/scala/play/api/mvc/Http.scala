@@ -3,12 +3,11 @@
  */
 package play.api.mvc {
 
-  import java.net.{URI, URLDecoder, URLEncoder}
+  import java.net.{URLDecoder, URLEncoder}
   import java.security.cert.X509Certificate
   import java.util.Locale
-import java.util.Locale.LanguageRange
 
-import play.api._
+  import play.api._
   import play.api.http._
   import play.api.i18n.Lang
   import play.api.libs.crypto.CookieSigner
@@ -115,10 +114,9 @@ import play.api._
      * The HTTP host (domain, optionally port)
      */
     lazy val host: String = {
-      val u = new URI(uri)
-      (u.getHost, u.getPort) match {
-        case (h, p) if h != null && p > 0 => s"$h:$p"
-        case (h, _) if h != null => h
+      val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
+      uri match {
+        case AbsoluteUri(proto, hostPort, rest) => hostPort
         case _ => headers.get(HeaderNames.HOST).getOrElse("")
       }
     }
