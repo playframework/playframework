@@ -81,6 +81,23 @@ case object AhcWSRequest {
     }
     TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered) ++ mutableMap
   }
+
+  private[libs] def execute(request: Request, client: AhcWSClient): Future[AhcWSResponse] = {
+    import org.asynchttpclient.AsyncCompletionHandler
+    val result = Promise[AhcWSResponse]()
+
+    client.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
+      override def onCompleted(response: AHCResponse) = {
+        result.success(AhcWSResponse(response))
+        response
+      }
+
+      override def onThrowable(t: Throwable) = {
+        result.failure(t)
+      }
+    })
+    result.future
+  }
 }
 
 /**
@@ -145,7 +162,7 @@ case class AhcWSRequest(client: AhcWSClient,
   def execute(): Future[WSResponse] = {
     val executor = filterWSRequestExecutor(new WSRequestExecutor {
       override def execute(request: WSRequest): Future[WSResponse] =
-        request.asInstanceOf[AhcWSRequest].execute(buildRequest())
+        AhcWSRequest.execute(request.asInstanceOf[AhcWSRequest].buildRequest(), client)
     })
     executor.execute(this)
   }
@@ -318,23 +335,6 @@ case class AhcWSRequest(client: AhcWSClient,
     }
 
     builderWithBody.build()
-  }
-
-  private[libs] def execute(request: Request): Future[AhcWSResponse] = {
-    import org.asynchttpclient.AsyncCompletionHandler
-    val result = Promise[AhcWSResponse]()
-
-    client.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
-      override def onCompleted(response: AHCResponse) = {
-        result.success(AhcWSResponse(response))
-        response
-      }
-
-      override def onThrowable(t: Throwable) = {
-        result.failure(t)
-      }
-    })
-    result.future
   }
 
   private[libs] def createProxy(wsProxyServer: WSProxyServer): AHCProxyServer = {
