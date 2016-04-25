@@ -22,7 +22,7 @@ For any custom configuration, you will need to specify your own Logback configur
 
 ### Using a configuration file from project source
 
-You can provide a default logging configuration by providing a file `conf/logback.xml`.
+You can provide a default logging configuration by providing a file `conf/logger.xml`.
 
 ### Using an external configuration file
 
