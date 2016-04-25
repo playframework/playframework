@@ -29,6 +29,12 @@ import scala.collection.immutable.TreeMap
 final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
+  // validate headers so we know this response header is well formed
+  for ((name, value) <- headers) {
+    if (name eq null) throw new NullPointerException("Response header names cannot be null!")
+    if (value eq null) throw new NullPointerException(s"Response header '$name' has null value!")
+  }
+
   def copy(status: Int = status, headers: Map[String, String] = headers, reasonPhrase: Option[String] = reasonPhrase): ResponseHeader =
     new ResponseHeader(status, headers, reasonPhrase)
 
