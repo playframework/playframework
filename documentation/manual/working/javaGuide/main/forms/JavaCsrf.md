@@ -27,7 +27,7 @@ Alternatively, you can set `play.filters.csrf.header.bypassHeaders` to match com
 This configuration would look like:
 
 ```
-play.filters.csrf.headers.bypassHeaders {
+play.filters.csrf.header.bypassHeaders {
   X-Requested-With = "*"
   Csrf-Token = "nocheck"
 }
