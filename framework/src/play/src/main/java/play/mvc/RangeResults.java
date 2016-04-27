@@ -34,6 +34,60 @@ public class RangeResults {
     }
 
     /**
+     * Returns the stream as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param stream the content stream
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofStream(InputStream stream) {
+        return JavaRangeResult.ofStream(stream, rangeHeader(), null, Optional.empty());
+    }
+
+    /**
+     * Returns the stream as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param stream the content stream
+     * @param contentLength the entity length
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofStream(InputStream stream, long contentLength) {
+        return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(), null, Optional.empty());
+    }
+
+    /**
+     * Returns the stream as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param stream the content stream
+     * @param contentLength the entity length
+     * @param filename filename used at the Content-Disposition header
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofStream(InputStream stream, long contentLength, String filename) {
+        return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(), filename, Optional.empty());
+    }
+
+    /**
+     * Returns the stream as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param stream the content stream
+     * @param contentLength the entity length
+     * @param filename filename used at the Content-Disposition header
+     * @param contentType the content type for this stream
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofStream(InputStream stream, long contentLength, String filename, String contentType) {
+        return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(), filename, Optional.ofNullable(contentType));
+    }
+
+    /**
      * Returns the path as a result considering "Range" header. If the header is present and
      * it is satisfiable, then a Result containing just the requested part will be returned.
      * If the header is not present or is unsatisfiable, then a regular Result will be returned.
