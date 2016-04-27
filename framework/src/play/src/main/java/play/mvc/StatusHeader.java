@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.api.libs.streams.Streams;
 import play.http.HttpEntity;
 import play.libs.Json;
+import play.utils.UriEncoding;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 
@@ -29,12 +30,15 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.nio.charset.StandardCharsets.*;
+
 /**
  * A status with no body
  */
 public class StatusHeader extends Result {
 
-    private static final int defaultChunkSize = 1024 * 8;
+    private static final int DEFAULT_CHUNK_SIZE = 1024 * 8;
+    private static final boolean DEFAULT_INLINE_MODE = true;
 
     public StatusHeader(int status) {
         super(status);
@@ -52,7 +56,7 @@ public class StatusHeader extends Result {
         if (stream == null) {
             throw new NullPointerException("Null stream");
         }
-        return new Result(status(), HttpEntity.chunked(StreamConverters.fromInputStream(() -> stream, defaultChunkSize),
+        return new Result(status(), HttpEntity.chunked(StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
                 Optional.empty()));
     }
 
@@ -65,9 +69,9 @@ public class StatusHeader extends Result {
      */
     public Result sendInputStream(InputStream stream, long contentLength) {
         if (stream == null) {
-            throw new NullPointerException("Null content");
+            throw new NullPointerException("Null stream");
         }
-        return new Result(status(), new HttpEntity.Streamed(StreamConverters.fromInputStream(() -> stream, defaultChunkSize),
+        return new Result(status(), new HttpEntity.Streamed(StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
                 Optional.of(contentLength), Optional.empty()));
     }
 
@@ -77,10 +81,10 @@ public class StatusHeader extends Result {
      * The resource will be loaded from the same classloader that this class comes from.
      *
      * @param resourceName The path of the resource to load.
-     * @return an inlined '200 OK' result containing the resource in the body with in-line content disposition.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
      */
     public Result sendResource(String resourceName) {
-        return sendResource(resourceName, true);
+        return sendResource(resourceName, DEFAULT_INLINE_MODE);
     }
 
     /**
@@ -91,7 +95,7 @@ public class StatusHeader extends Result {
      * @return a '200 OK' result containing the resource in the body with in-line content disposition.
      */
     public Result sendResource(String resourceName, ClassLoader classLoader) {
-        return sendResource(resourceName, classLoader, true);
+        return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE);
     }
 
     /**
@@ -121,13 +125,41 @@ public class StatusHeader extends Result {
     }
 
     /**
+     * Send the given resource.
+     * <p>
+     * The resource will be loaded from the same classloader that this class comes from.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param filename     The file name of the resource.
+     * @return a '200 OK' result containing the resource in the body.
+     */
+    public Result sendResource(String resourceName, boolean inline, String filename) {
+        return sendResource(resourceName, this.getClass().getClassLoader(), inline, filename);
+    }
+
+    /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param classLoader  The classloader to load it from.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param filename     The file name of the resource.
+     * @return a '200 OK' result containing the resource in the body.
+     */
+    public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, String filename) {
+        return doSendResource(StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
+                Optional.empty(), Optional.of(filename), inline);
+    }
+
+    /**
      * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
      *
      * @param path The path to send.
      * @return a '200 OK' result containing the file at the provided path with inline content disposition.
      */
     public Result sendPath(Path path) {
-        return sendPath(path, false);
+        return sendPath(path, DEFAULT_INLINE_MODE);
     }
 
     /**
@@ -139,6 +171,17 @@ public class StatusHeader extends Result {
      */
     public Result sendPath(Path path, boolean inline) {
         return sendPath(path, inline, path.getFileName().toString());
+    }
+
+    /**
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+     *
+     * @param path     The path to send.
+     * @param filename The file name of the path.
+     * @return a '200 OK' result containing the file at the provided path
+     */
+    public Result sendPath(Path path, String filename) {
+        return sendPath(path, DEFAULT_INLINE_MODE, filename);
     }
 
     /**
@@ -170,8 +213,8 @@ public class StatusHeader extends Result {
      *
      * @param file The file to send.
      */
-    private Result sendFile(File file) {
-        return sendFile(file, true);
+    public Result sendFile(File file) {
+        return sendFile(file, DEFAULT_INLINE_MODE);
     }
 
     /**
@@ -194,13 +237,25 @@ public class StatusHeader extends Result {
     }
 
     /**
-     * Send the given file as an attachment.
+     * Send the given file.
      *
      * @param file The file to send.
      * @param fileName The name of the attachment
      * @return a '200 OK' result containing the file
      */
     public Result sendFile(File file, String fileName) {
+        return sendFile(file, DEFAULT_INLINE_MODE, fileName);
+    }
+
+    /**
+     * Send the given file.
+     *
+     * @param file     The file to send.
+     * @param fileName The name of the attachment
+     * @param inline   True if the file should be sent inline, false if it should be sent as an attachment.
+     * @return a '200 OK' result containing the file
+     */
+    public Result sendFile(File file, boolean inline, String fileName) {
         if (file == null) {
             throw new NullPointerException("null file");
         }
@@ -208,7 +263,7 @@ public class StatusHeader extends Result {
                 FileIO.fromFile(file),
                 Optional.of(file.length()),
                 Optional.of(fileName),
-                true
+                inline
         );
     }
 
@@ -217,7 +272,7 @@ public class StatusHeader extends Result {
         Map<String, String> headers = Collections.singletonMap(
                 Http.HeaderNames.CONTENT_DISPOSITION,
                 (inline ? "inline" : "attachment") +
-                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"" : "")
+                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"; filename*=utf-8''" + UriEncoding.encodePathSegment(resourceName.get(), UTF_8) : "")
         );
 
         return new Result(status(), headers, new HttpEntity.Streamed(

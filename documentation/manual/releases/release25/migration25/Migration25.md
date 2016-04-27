@@ -44,7 +44,7 @@ Or:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-slick" % "2.0.0"
+  "com.typesafe.play" %% "play-slick" % "2.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0"
 )
 ```
@@ -63,7 +63,7 @@ If your project is using [[ScalaTest + Play|ScalaTestingWithScalaTest]], you nee
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % "test"
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test"
 )
 ```
 
@@ -322,3 +322,19 @@ Modify any `play.server.netty.option` keys to use the new keys defined in [Chann
 | `play.server.netty.option.backlog` | `play.server.netty.option.SO_BACKLOG` |
 | `play.server.netty.option.child.keepAlive` | `play.server.netty.option.child.SO_KEEPALIVE` |
 | `play.server.netty.option.child.tcpNoDelay` | `play.server.netty.option.child.TCP_NODELAY` |
+
+## Changes to `sendFile`, `sendPath` and `sendResource` methods
+
+Java (`play.mvc.StatusHeader`) and Scala (`play.api.mvc.Results.Status`) APIs had the following behavior before:
+
+| API   | Method                                    | Default      |
+|:------|:------------------------------------------|:-------------|
+| Scala | `play.api.mvc.Results.StatussendResource` | `inline`     |
+| Scala | `play.api.mvc.Results.StatussendPath`     | `attachment` |
+| Scala | `play.api.mvc.Results.StatussendFile`     | `attachment` |
+| Java  | `play.mvc.StatusHeader.sendInputStream`   | `none`       |
+| Java  | `play.mvc.StatusHeader.sendResource`      | `inline`     |
+| Java  | `play.mvc.StatusHeader.sendPath`          | `attachment` |
+| Java  | `play.mvc.StatusHeader.sendFile`          | `inline`     |
+
+In other words, they were mixing `inline` and `attachment` modes when delivering files. Now, when delivering files, paths and resources uses `inline` as the default behavior. Of course, you can alternate between these two modes using the parameters present in these methods.

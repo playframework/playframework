@@ -60,7 +60,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofPath(path);
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"test.tmp\"; filename*=utf-8''test.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofPath(path);
 
         assertEquals(result.status(), OK);
-        assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"test.tmp\"; filename*=utf-8''test.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofPath(path, "file.txt");
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -89,7 +89,27 @@ public class RangeResultsTest {
         Result result = RangeResults.ofPath(path, "file.txt");
 
         assertEquals(result.status(), OK);
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldReturnRangeResultForPathWhenFilenameHasSpecialChars() {
+        this.mockRangeRequest();
+
+        Result result = RangeResults.ofPath(path, "测 试.tmp");
+
+        assertEquals(result.status(), PARTIAL_CONTENT);
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldNotReturnRangeResultForPathWhenFilenameHasSpecialChars() {
+        this.mockRegularRequest();
+
+        Result result = RangeResults.ofPath(path, "测 试.tmp");
+
+        assertEquals(result.status(), OK);
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     // -- Files
@@ -100,7 +120,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofFile(path.toFile());
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"test.tmp\"; filename*=utf-8''test.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -110,7 +130,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofFile(path.toFile());
 
         assertEquals(result.status(), OK);
-        assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"test.tmp\"; filename*=utf-8''test.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -119,7 +139,7 @@ public class RangeResultsTest {
         Result result = RangeResults.ofFile(path.toFile(), "file.txt");
 
         assertEquals(result.status(), PARTIAL_CONTENT);
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -129,7 +149,27 @@ public class RangeResultsTest {
         Result result = RangeResults.ofFile(path.toFile(), "file.txt");
 
         assertEquals(result.status(), OK);
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldReturnRangeResultForFileWhenFilenameHasSpecialChars() {
+        this.mockRangeRequest();
+
+        Result result = RangeResults.ofFile(path.toFile(), "测 试.tmp");
+
+        assertEquals(result.status(), PARTIAL_CONTENT);
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldNotReturnRangeResultForFileWhenFilenameHasSpecialChars() {
+        this.mockRegularRequest();
+
+        Result result = RangeResults.ofFile(path.toFile(), "测 试.tmp");
+
+        assertEquals(result.status(), OK);
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     // -- Sources
@@ -165,7 +205,7 @@ public class RangeResultsTest {
 
         assertEquals(result.status(), PARTIAL_CONTENT);
         assertEquals(BINARY, result.body().contentType().orElse(""));
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -177,7 +217,7 @@ public class RangeResultsTest {
 
         assertEquals(result.status(), OK);
         assertEquals(BINARY, result.body().contentType().orElse(""));
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     @Test
@@ -190,7 +230,32 @@ public class RangeResultsTest {
 
         assertEquals(result.status(), PARTIAL_CONTENT);
         assertEquals(TEXT, result.body().contentType().orElse(""));
-        assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+        assertEquals("attachment; filename=\"file.txt\"; filename*=utf-8''file.txt", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldNotReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+        this.mockRegularRequest();
+
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
+        Result result = RangeResults.ofSource(path.toFile().length(), source, "测 试.tmp", BINARY);
+
+        assertEquals(result.status(), OK);
+        assertEquals(BINARY, result.body().contentType().orElse(""));
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
+    }
+
+    @Test
+    public void shouldReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+        this.mockRangeRequest();
+
+        long entityLength = path.toFile().length();
+        Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
+        Result result = RangeResults.ofSource(entityLength, source, "测 试.tmp", TEXT);
+
+        assertEquals(result.status(), PARTIAL_CONTENT);
+        assertEquals(TEXT, result.body().contentType().orElse(""));
+        assertEquals("attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp", result.header(CONTENT_DISPOSITION).orElse(""));
     }
 
     private void mockRegularRequest() {

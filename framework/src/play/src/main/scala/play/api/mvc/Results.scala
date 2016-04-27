@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path }
 
 import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
@@ -15,6 +16,7 @@ import play.api.i18n.{ Lang, MessagesApi }
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.core.utils.CaseInsensitiveOrdered
+import play.utils.UriEncoding
 
 import scala.collection.immutable.TreeMap
 
@@ -381,7 +383,7 @@ trait Results {
           Map(
             CONTENT_DISPOSITION -> {
               val dispositionType = if (inline) "inline" else "attachment"
-              dispositionType + "; filename=\"" + name + "\""
+              s"""$dispositionType; filename="$name"; filename*=utf-8''${UriEncoding.encodePathSegment(name, StandardCharsets.UTF_8)}"""
             }
           )
         ),
@@ -400,7 +402,7 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
+    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
       streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
     }
 
@@ -411,7 +413,7 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
+    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
       streamFile(FileIO.fromFile(content.toFile), fileName(content), Files.size(content), inline)
     }
 
@@ -422,8 +424,7 @@ trait Results {
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      */
-    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader,
-      inline: Boolean = true): Result = {
+    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
       streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)

@@ -158,56 +158,70 @@ object ResultsSpec extends Specification {
       val rh = Ok.sendFile(file).header
 
       (rh.status aka "status" must_== OK) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
     "support sending a file with Unauthorized status" in withFile { (file, fileName) =>
       val rh = Unauthorized.sendFile(file).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file inline with Unauthorized status" in withFile { (file, fileName) =>
-      val rh = Unauthorized.sendFile(file, inline = true).header
+    "support sending a file attached with Unauthorized status" in withFile { (file, fileName) =>
+      val rh = Unauthorized.sendFile(file, inline = false).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
     "support sending a file with PaymentRequired status" in withFile { (file, fileName) =>
       val rh = PaymentRequired.sendFile(file).header
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file inline with PaymentRequired status" in withFile { (file, fileName) =>
-      val rh = PaymentRequired.sendFile(file, inline = true).header
+    "support sending a file attached with PaymentRequired status" in withFile { (file, fileName) =>
+      val rh = PaymentRequired.sendFile(file, inline = false).header
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
+    }
+
+    "support sending a file with filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, fileName = _ => "测 试.tmp").header
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="测 试.tmp"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp"""))
     }
 
     "support sending a path with Ok status" in withPath { (file, fileName) =>
       val rh = Ok.sendPath(file).header
 
       (rh.status aka "status" must_== OK) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
     "support sending a path with Unauthorized status" in withPath { (file, fileName) =>
       val rh = Unauthorized.sendPath(file).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a path inline with Unauthorized status" in withPath { (file, fileName) =>
-      val rh = Unauthorized.sendPath(file, inline = true).header
+    "support sending a path attached with Unauthorized status" in withPath { (file, fileName) =>
+      val rh = Unauthorized.sendPath(file, inline = false).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="${fileName}""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
+    }
+
+    "support sending a path with filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, fileName = _ => "测 试.tmp").header
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="测 试.tmp"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp"""))
     }
 
     "allow checking content length" in withPath { (file, fileName) =>
