@@ -73,5 +73,22 @@ object DynamicFormSpec extends Specification {
       form("foo").value() must_== "bar"
     }
 
+    "don't throw NullPointerException when all components of form are null" in {
+      val form = new DynamicForm(null, null, null).fill(Map("foo" -> "bar"))
+      form("foo").value() must_== "bar"
+    }
+
+    "convert jField to scala Field when all components of jField are null" in {
+      val jField = new play.data.Form.Field(null, null, null, null, null, null)
+      jField.indexes() must_== new java.util.ArrayList(0)
+
+      val sField = javaFieldtoScalaField(jField)
+      sField.name must_== null
+      sField.id must_== ""
+      sField.label must_== ""
+      sField.constraints must_== Nil
+      sField.errors must_== Nil
+    }
+
   }
 }
