@@ -594,10 +594,10 @@ public class Form<T> {
         if (arguments != null) {
             return arguments.stream().map(arg -> {
                     if (arg instanceof String) {
-                        return messagesApi.get(lang, (String)arg);
+                        return messagesApi != null ? messagesApi.get(lang, (String)arg) : (String)arg;
                     }
                     if (arg instanceof List) {
-                        return ((List<?>) arg).stream().map(key -> messagesApi.get(lang, (String)key)).collect(Collectors.toList());
+                        return ((List<?>) arg).stream().map(key -> messagesApi != null ? messagesApi.get(lang, (String)key) : (String)key).collect(Collectors.toList());
                     }
                     return arg;
                 }).collect(Collectors.toList());
@@ -710,8 +710,12 @@ public class Form<T> {
                 if (beanWrapper.isReadableProperty(objectKey)) {
                     Object oValue = beanWrapper.getPropertyValue(objectKey);
                     if (oValue != null) {
-                        final String objectKeyFinal = objectKey;
-                        fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                        if(formatters != null) {
+                            final String objectKeyFinal = objectKey;
+                            fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                        } else {
+                            fieldValue = oValue.toString();
+                        }
                     }
                 }
             }
@@ -763,7 +767,7 @@ public class Form<T> {
             classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
             leafKey = leafKey.substring(p + 1);
         }
-        if (classType != null) {
+        if (classType != null && this.validator != null) {
             BeanDescriptor beanDescriptor = this.validator.getConstraintsForClass(classType);
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
@@ -886,6 +890,9 @@ public class Form<T> {
          */
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
+            if(form == null) {
+                return new ArrayList<>(0);
+            }
             return form.value().map((Function<Object, List<Integer>>) value -> {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value);
                 beanWrapper.setAutoGrowNestedPaths(true);
