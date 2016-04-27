@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.api.libs.streams.Streams;
 import play.http.HttpEntity;
 import play.libs.Json;
+import play.utils.UriEncoding;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 
@@ -28,6 +29,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * A status with no body
@@ -269,7 +272,7 @@ public class StatusHeader extends Result {
         Map<String, String> headers = Collections.singletonMap(
                 Http.HeaderNames.CONTENT_DISPOSITION,
                 (inline ? "inline" : "attachment") +
-                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"" : "")
+                (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"; filename*=utf-8''" + UriEncoding.encodePathSegment(resourceName.get(), UTF_8) : "")
         );
 
         return new Result(status(), headers, new HttpEntity.Streamed(

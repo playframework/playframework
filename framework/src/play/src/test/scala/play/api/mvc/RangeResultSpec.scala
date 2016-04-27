@@ -304,7 +304,14 @@ object RangeResultSpec extends Specification {
       val stream = new java.io.ByteArrayInputStream(Array[Byte](1, 2, 3))
       val source = StreamConverters.fromInputStream(() => stream)
       val Result(ResponseHeader(_, headers, _), _) = RangeResult.ofSource(stream.available(), source, None, Some("video.mp4"), None)
-      headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"")
+      headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"; filename*=utf-8''video.mp4")
+    }
+
+    "support non-ISO-8859-1 filename in Content-Disposition header" in {
+      val stream = new java.io.ByteArrayInputStream(Array[Byte](1, 2, 3))
+      val source = StreamConverters.fromInputStream(() => stream)
+      val Result(ResponseHeader(_, headers, _), _) = RangeResult.ofSource(stream.available(), source, None, Some("测 试.tmp"), None)
+      headers must havePair("Content-Disposition" -> "attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp")
     }
 
     "support first byte position" in {
@@ -334,7 +341,7 @@ object RangeResultSpec extends Specification {
       val file = createFile(java.nio.file.Paths.get("path.mp4"))
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType)) = RangeResult.ofPath(file.toPath, None, Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"; filename*=utf-8''path.mp4")
         contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)
@@ -345,7 +352,7 @@ object RangeResultSpec extends Specification {
       val file = createFile(java.nio.file.Paths.get("file.mp4"))
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType)) = RangeResult.ofFile(file, None, Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"; filename*=utf-8''file.mp4")
         contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)

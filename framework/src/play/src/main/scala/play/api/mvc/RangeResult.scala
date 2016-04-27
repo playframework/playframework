@@ -3,6 +3,8 @@
  */
 package play.api.mvc
 
+import java.nio.charset.StandardCharsets
+
 import akka.NotUsed
 import akka.stream.scaladsl.{ FileIO, Flow, Source }
 import akka.stream.stage._
@@ -10,6 +12,7 @@ import akka.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.http.{ ContentTypes, HttpEntity }
+import play.utils.UriEncoding
 
 import scala.math.Ordered.orderingToOrdered
 
@@ -255,7 +258,7 @@ object RangeResult {
   def ofSource(entityLength: Long, source: Source[ByteString, _], rangeHeader: Option[String], fileName: Option[String], contentType: Option[String]): Result = {
     val commonHeaders = Seq(
       Some(ACCEPT_RANGES -> "bytes"),
-      fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; filename="$f"""")
+      fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; filename="$f"; filename*=utf-8''${UriEncoding.encodePathSegment(f, StandardCharsets.UTF_8)}""")
     ).flatten.toMap
 
     RangeSet(entityLength, rangeHeader) match {
