@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path }
 
 import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
@@ -13,6 +14,7 @@ import play.api.http.HeaderNames._
 import play.api.http._
 import play.api.i18n.{ Lang, MessagesApi }
 import play.core.utils.CaseInsensitiveOrdered
+import play.utils.UriEncoding
 
 import scala.collection.immutable.TreeMap
 
@@ -379,7 +381,7 @@ trait Results {
           Map(
             CONTENT_DISPOSITION -> {
               val dispositionType = if (inline) "inline" else "attachment"
-              dispositionType + "; filename=\"" + name + "\""
+              s"""$dispositionType; filename="$name"; filename*=utf-8''${UriEncoding.encodePathSegment(name, StandardCharsets.UTF_8)}"""
             }
           )
         ),
