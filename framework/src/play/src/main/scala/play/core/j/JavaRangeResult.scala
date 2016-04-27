@@ -22,6 +22,14 @@ object JavaRangeResult {
 
   private type OptString = Optional[String]
 
+  def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
+    RangeResult.ofStream(stream, rangeHeader.asScala, fileName, contentType.asScala).asJava
+  }
+
+  def ofStream(entityLength: Long, stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
+    RangeResult.ofStream(entityLength, stream, rangeHeader.asScala, fileName, contentType.asScala).asJava
+  }
+
   def ofPath(path: Path, rangeHeader: OptString, contentType: OptString): Result = {
     RangeResult.ofPath(path, rangeHeader.asScala, contentType.asScala).asJava
   }
@@ -40,5 +48,9 @@ object JavaRangeResult {
 
   def ofSource(entityLength: Long, source: Source[ByteString, _], rangeHeader: OptString, fileName: OptString, contentType: OptString): Result = {
     RangeResult.ofSource(entityLength, source.asScala, rangeHeader.asScala, fileName.asScala, contentType.asScala).asJava
+  }
+
+  def ofSource(entityLength: Optional[Long], source: Source[ByteString, _], rangeHeader: OptString, fileName: OptString, contentType: OptString): Result = {
+    RangeResult.ofSource(entityLength.asScala, source.asScala, rangeHeader.asScala, fileName.asScala, contentType.asScala).asJava
   }
 }
