@@ -217,6 +217,10 @@ public class Result {
         return JavaResultExtractor.getCookies(header);
     }
 
+    public Result withCookies(Cookie... cookies) {
+        return new Result(JavaResultExtractor.withCookies(header, cookies), body);
+    }
+
     /**
      * Return a copy of this result with the given header.
      *
