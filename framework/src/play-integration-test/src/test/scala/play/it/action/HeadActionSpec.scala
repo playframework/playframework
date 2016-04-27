@@ -115,6 +115,36 @@ trait HeadActionSpec extends PlaySpecification
       }
     }
 
+    "clean up any onDoneEnumerating callbacks when null headers are present" in {
+      val wasCalled = new AtomicBoolean()
+
+      val action = Action {
+        Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true))).withHeaders(("Foo", null))
+      }
+      serverWithAction(action) {
+        await(wsUrl("/get").head())
+        wasCalled.get() must be_==(true).eventually
+      }
+    }
+
+    "clean up any onDoneEnumerating callbacks when returning chunked response for 1.0 request" in {
+      val wasCalled = new AtomicBoolean()
+
+      val action = Action {
+        Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
+      }
+      serverWithAction(action) {
+        import org.apache.http._
+        import org.apache.http.impl.client._
+        import org.apache.http.message._
+        val client = HttpClients.createDefault()
+        val response = client.execute(new HttpHost("localhost", port), new BasicHttpRequest("HEAD", "/get", HttpVersion.HTTP_1_0))
+        response.close()
+        //await(wsUrl("/get").withHeaders().head())
+        wasCalled.get() must be_==(true).eventually
+      }
+    }
+
     "respect deliberately set Content-Length headers" in withServer {
       val result = await(wsUrl("/manualContentSize").head())
 
