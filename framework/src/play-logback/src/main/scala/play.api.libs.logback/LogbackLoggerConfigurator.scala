@@ -9,12 +9,14 @@ import java.net.URL
 import ch.qos.logback.classic._
 import ch.qos.logback.classic.joran._
 import ch.qos.logback.core.util._
-import org.slf4j.LoggerFactory
+import org.slf4j.ILoggerFactory
 import org.slf4j.bridge._
 import org.slf4j.impl.StaticLoggerBinder
 import play.api._
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {
+
+  lazy val loggerFactory: ILoggerFactory = StaticLoggerBinder.getSingleton.getLoggerFactory
 
   /**
    * Initialize the Logger when there's no application ClassLoader available.
@@ -26,12 +28,11 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     configure(properties, resourceUrl)
   }
 
-  /**
-   * Reconfigures the underlying logback infrastructure.
-   */
   def configure(env: Environment): Unit = {
-    val properties = Map("application.home" -> env.rootPath.getAbsolutePath)
+    configure(env, Configuration.empty, Map.empty)
+  }
 
+  def configure(env: Environment, configuration: Configuration, optionalProperties: Map[String, String]): Unit = {
     // Get an explicitly configured resource URL
     // Fallback to a file in the conf directory if the resource wasn't found on the classpath
     def explicitResourceUrl = sys.props.get("logger.resource").map { r =>
@@ -56,12 +57,11 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
     val configUrl = explicitResourceUrl orElse explicitFileUrl orElse resourceUrl
 
+    val properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties)
+
     configure(properties, configUrl)
   }
 
-  /**
-   * Reconfigures the underlying logback infrastructure.
-   */
   def configure(properties: Map[String, String], config: Option[URL]): Unit = synchronized {
     // Redirect JUL -> SL4FJ
 
@@ -74,7 +74,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
     // Configure logback
 
-    val ctx = StaticLoggerBinder.getSingleton.getLoggerFactory.asInstanceOf[LoggerContext]
+    val ctx = loggerFactory.asInstanceOf[LoggerContext]
     val configurator = new JoranConfigurator
     configurator.setContext(ctx)
     ctx.reset()
@@ -102,7 +102,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    */
   def shutdown(): Unit = {
 
-    val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+    val ctx = loggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
 
     org.slf4j.bridge.SLF4JBridgeHandler.uninstall()
