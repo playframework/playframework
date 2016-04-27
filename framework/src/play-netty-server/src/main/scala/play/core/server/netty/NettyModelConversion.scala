@@ -59,7 +59,10 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
         }
       }
       // wrapping into URI to handle absoluteURI
-      val path = new URI(uri.path()).getRawPath
+      val path = Option(new URI(uri.path).getRawPath).getOrElse {
+        // if the URI has no path, this will trigger a 400 error
+        throw new IllegalStateException(s"Cannot parse path from URI: ${uri.path}")
+      }
       createRequestHeader(request, requestId, path, parameters, remoteAddress, sslHandler)
     }
   }
