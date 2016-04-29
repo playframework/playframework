@@ -456,7 +456,7 @@ trait WSRequest {
    * performs a get
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  @deprecated("""Use WS.withMethod("GET").stream()""", "2.5.0")
   def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     getStream().flatMap {
       case (response, enumerator) =>
@@ -467,7 +467,7 @@ trait WSRequest {
   /**
    * performs a get
    */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  @deprecated("""Use WS.withMethod("GET").stream()""", "2.5.0")
   def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
     withMethod("GET").streamWithEnumerator()
   }
@@ -495,7 +495,7 @@ trait WSRequest {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("PATCH").stream()""")
+  @deprecated("""Use WS.withMethod("PATCH").stream()""", "2.5.0")
   def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PATCH").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -526,7 +526,7 @@ trait WSRequest {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("POST").stream()""")
+  @deprecated("""Use WS.withMethod("POST").stream()""", "2.5.0")
   def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("POST").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -557,7 +557,7 @@ trait WSRequest {
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("PUT").stream()""")
+  @deprecated("""Use WS.withMethod("PUT").stream()""", "2.5.0")
   def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PUT").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -597,7 +597,7 @@ trait WSRequest {
    * @note This method used to be named `stream`, but it was renamed because the method's signature was
    *       changed and the JVM doesn't allow overloading on the return type.
    */
-  @deprecated("2.5.0", "Use `WS.stream()` instead.")
+  @deprecated("Use `WS.stream()` instead.", "2.5.0")
   def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 

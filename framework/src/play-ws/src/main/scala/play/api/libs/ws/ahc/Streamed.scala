@@ -38,7 +38,7 @@ private[play] object Streamed {
   // and not a `Promise[(WSResponseHeaders, Source[ByteString])]`. In fact, the moment this method is removed, we should refactor the 
   // `DefaultStreamedAsyncHandler`' constructor parameter's type to the latter.
   // This method is `deprecated` because we should remember to remove it together with `AhcWSRequest.streamWithEnumerator`.
-  @deprecated("2.5", "Use `execute()` instead.")
+  @deprecated("Use `execute()` instead.", "2.5.0")
   def execute2(client: AsyncHttpClient, request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
     val promise = Promise[(WSResponseHeaders, Publisher[HttpResponseBodyPart])]()
     client.executeRequest(request, new DefaultStreamedAsyncHandler(promise))
