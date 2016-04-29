@@ -16,6 +16,7 @@ import javax.inject.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+@Singleton
 public class ErrorHandler extends DefaultHttpErrorHandler {
 
     @Inject
