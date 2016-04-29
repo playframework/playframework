@@ -50,7 +50,6 @@ object GitHubClientSpec extends Specification with NoTimeConversions {
           Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
         }
       } { implicit port =>
-        implicit val materializer = Play.current.materializer
         WsTestClient.withClient { client =>
           val result = Await.result(
             new GitHubClient(client, "").repositories(), 10.seconds)
@@ -104,7 +103,6 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
           Results.Ok.sendResource("github/repositories.json")
         }
       } { implicit port =>
-        implicit val materializer = Play.current.materializer
         //#send-resource
         WsTestClient.withClient { client =>
           Await.result(new GitHubClient(client, "").repositories(), 10.seconds) must_== Seq("octocat/Hello-World")
@@ -126,7 +124,6 @@ object ScalaTestingWebServiceClients extends Specification with NoTimeConversion
             Results.Ok.sendResource("github/repositories.json")
           }
         } { implicit port =>
-          implicit val materializer = Play.current.materializer
           WsTestClient.withClient { client =>
             block(new GitHubClient(client, ""))
           }
