@@ -29,7 +29,7 @@ object ServerResultUtils {
    * The server shouldn't send a body and, since the response cannot have a
    * body, the Content-Length header shouldn't be sent either.
    */
-  final case object StreamWithNoBody extends ResultStreaming
+  case object StreamWithNoBody extends ResultStreaming
   /**
    * Used for responses that have unknown length and should be delimited by
    * the connection closing. This is used for all HTTP 1.0 responses with
@@ -71,7 +71,7 @@ object ServerResultUtils {
    * A `Connection: keep-alive` header should be sent. Used to
    * force an HTTP 1.0 connection to remain open.
    */
-  final case object SendKeepAlive extends ConnectionHeader {
+  case object SendKeepAlive extends ConnectionHeader {
     override def willClose = false
     override def header = Some(KEEP_ALIVE)
   }
@@ -79,7 +79,7 @@ object ServerResultUtils {
    * A `Connection: close` header should be sent. Used to
    * force an HTTP 1.1 connection to close.
    */
-  final case object SendClose extends ConnectionHeader {
+  case object SendClose extends ConnectionHeader {
     override def willClose = true
     override def header = Some(CLOSE)
   }
@@ -87,7 +87,7 @@ object ServerResultUtils {
    * No `Connection` header should be sent. Used on an HTTP 1.0
    * connection where the default behavior is to close the connection.
    */
-  final case object DefaultClose extends ConnectionHeader {
+  case object DefaultClose extends ConnectionHeader {
     override def willClose = true
     override def header = None
   }
@@ -183,13 +183,8 @@ object ServerResultUtils {
         }
 
       // Check if the result has a known length
-      case _ if (result.header.headers.contains(CONTENT_LENGTH)) =>
+      case _ if result.header.headers.contains(CONTENT_LENGTH) =>
         valid(StreamWithKnownLength(result.body), connection)
-
-      // Check if the connection is required to close (if so we don't need to
-      // worry about chunking the response)
-      case _ if connection.willClose =>
-        valid(StreamWithClose(result.body), connection)
 
       // Read ahead one element and see if we can send the body
       // in one element, or if we need to chunk it, or if we need
@@ -202,11 +197,12 @@ object ServerResultUtils {
             val body = bodyOption.getOrElse(emptyBytes)
             Right((StreamWithStrictBody(body), connection))
           case Right(bodyEnum) =>
-            // Use chunked encoding for HTTP 1.1. For HTTP 1.0
-            // delimit the end of the result by closing the
-            // connection.
+            // Use chunked encoding for HTTP 1.1 only when the connection will not close.
+            // For HTTP 1.0 always delimit the end of the result by closing the connection.
             if (isHttp10) {
               Right((StreamWithClose(bodyEnum), DefaultClose))
+            } else if (connection.willClose) {
+              Right((StreamWithClose(bodyEnum), connection))
             } else {
               Right((PerformChunkedTransferEncoding(bodyEnum), connection))
             }

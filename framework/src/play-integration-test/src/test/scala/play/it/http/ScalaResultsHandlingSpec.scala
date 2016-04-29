@@ -99,6 +99,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         )(0)
         response.status must_== 200
+        response.headers.get(CONTENT_LENGTH) must beSome
         response.headers.get(CONNECTION) must beSome("close")
       }
 
@@ -106,9 +107,10 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       Results.Ok.copy(connection = HttpConnection.Close)
     ) { port =>
         val response = BasicHttpClient.makeRequests(port, checkClosed = true)(
-          BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), "")
+          BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "Keep-Alive"), "")
         )(0)
         response.status must_== 200
+        response.headers.get(CONTENT_LENGTH) must beSome
         response.headers.get(CONNECTION).map(_.toLowerCase) must beOneOf(None, Some("close"))
       }
 
