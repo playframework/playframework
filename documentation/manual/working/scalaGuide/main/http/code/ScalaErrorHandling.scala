@@ -50,7 +50,9 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.mvc.Results._
 import scala.concurrent._
+import javax.inject.Singleton;
 
+@Singleton
 class ErrorHandler extends HttpErrorHandler {
 
   def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
@@ -79,6 +81,7 @@ import play.api.mvc.Results._
 import play.api.routing.Router
 import scala.concurrent._
 
+@Singleton
 class ErrorHandler @Inject() (
     env: Environment,
     config: Configuration,
