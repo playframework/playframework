@@ -14,8 +14,10 @@ import scala.annotation.tailrec
  */
 private[play] final class SerializableResult(constructorResult: Result) extends Externalizable {
 
-  assert(Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
-    "Only strict entities can be cached, streamed entities cannot be cached")
+  assert(
+    Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
+    "Only strict entities can be cached, streamed entities cannot be cached"
+  )
 
   /**
    * Create an empty object. Must call `readExternal` after calling

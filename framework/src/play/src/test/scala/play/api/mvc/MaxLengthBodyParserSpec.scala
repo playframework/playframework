@@ -41,8 +41,7 @@ object MaxLengthBodyParserSpec extends Specification with AfterAll {
       }, { t =>
         bodyParsed.failure(t)
         t
-      })
-    ))
+      })))
     (parser, bodyParsed.future)
   }
 

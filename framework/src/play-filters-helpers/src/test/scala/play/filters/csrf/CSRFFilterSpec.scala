@@ -77,7 +77,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .flatMap(_.get("foo"))
             .flatMap(_.headOption)
             .map(Results.Ok(_))
-            .getOrElse(Results.NotFound))
+            .getOrElse(Results.NotFound)
+        )
       } {
         val token = crypto.generateSignedToken
         import play.api.Play.current
@@ -120,8 +121,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             "longvalue" -> Random.alphanumeric.take(1024).mkString(""),
             "foo" -> "bar"
           ).map(f => f._1 + "=" + f._2).mkString("&")
-        )
-      )
+        ))
       response.status must_== OK
       response.body must_== "bar buffer"
     }

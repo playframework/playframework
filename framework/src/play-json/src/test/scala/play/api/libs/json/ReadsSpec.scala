@@ -31,10 +31,12 @@ object ReadsSpec extends org.specs2.mutable.Specification {
       LocalDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME)
 
     lazy val correctedReads = Reads.localDateTimeReads(
-      DateTimeFormatter.ISO_DATE_TIME, _.drop(1))
+      DateTimeFormatter.ISO_DATE_TIME, _.drop(1)
+    )
 
     val CustomReads2 = Reads.localDateTimeReads(
-      DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss"), _.drop(2))
+      DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss"), _.drop(2)
+    )
 
     "be successfully read from number" in {
       reads(JsNumber(BigDecimal valueOf 123L)).
@@ -58,13 +60,15 @@ object ReadsSpec extends org.specs2.mutable.Specification {
 
       "from '2011-12-03T10:15:30+01:00' (with TZ offset)" in {
         reads(JsString("2011-12-03T10:15:30+01:00")) aka "read date" must_== (
-          JsSuccess(dateTime("2011-12-03T10:15:30+01:00")))
+          JsSuccess(dateTime("2011-12-03T10:15:30+01:00"))
+        )
       }
 
       "from '2011-12-03T10:15:30+01:00[Europe/Paris]' (with time zone)" in {
         reads(JsString("2011-12-03T10:15:30+01:00[Europe/Paris]")).
           aka("read date") must_== (
-            JsSuccess(dateTime("2011-12-03T10:15:30+01:00[Europe/Paris]")))
+            JsSuccess(dateTime("2011-12-03T10:15:30+01:00[Europe/Paris]"))
+          )
       }
     }
 
@@ -187,7 +191,8 @@ object ReadsSpec extends org.specs2.mutable.Specification {
     @inline def dateTime(input: String) = ZonedDateTime.parse(input)
 
     lazy val correctedReads = Reads.zonedDateTimeReads(
-      DateTimeFormatter.ISO_DATE_TIME, _.drop(1))
+      DateTimeFormatter.ISO_DATE_TIME, _.drop(1)
+    )
 
     val CustomReads2 = Reads.zonedDateTimeReads(
       DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ssVV"), _.drop(2)
@@ -210,13 +215,15 @@ object ReadsSpec extends org.specs2.mutable.Specification {
     "be successfully read with default implicit" >> {
       "from '2011-12-03T10:15:30+01:00' (with TZ offset)" in {
         reads(JsString("2011-12-03T10:15:30+01:00")) aka "read date" must_== (
-          JsSuccess(dateTime("2011-12-03T10:15:30+01:00")))
+          JsSuccess(dateTime("2011-12-03T10:15:30+01:00"))
+        )
       }
 
       "from '2011-12-03T10:15:30+01:00[Europe/Paris]' (with time zone)" in {
         reads(JsString("2011-12-03T10:15:30+01:00[Europe/Paris]")).
           aka("read date") must_== (
-            JsSuccess(dateTime("2011-12-03T10:15:30+01:00[Europe/Paris]")))
+            JsSuccess(dateTime("2011-12-03T10:15:30+01:00[Europe/Paris]"))
+          )
       }
     }
 
@@ -265,10 +272,12 @@ object ReadsSpec extends org.specs2.mutable.Specification {
     @inline def date(input: String) = LocalDate.parse(input)
 
     lazy val correctedReads = Reads.localDateReads(
-      DateTimeFormatter.ISO_DATE, _.drop(1))
+      DateTimeFormatter.ISO_DATE, _.drop(1)
+    )
 
     val CustomReads2 = Reads.localDateReads(
-      DateTimeFormatter.ofPattern("dd/MM/yyyy"), _.drop(2))
+      DateTimeFormatter.ofPattern("dd/MM/yyyy"), _.drop(2)
+    )
 
     "be successfully read from number" in {
       val beforeMidnight = Instant.parse("1970-01-01T23:55:00Z")

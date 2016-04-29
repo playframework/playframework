@@ -185,8 +185,7 @@ object FormSpec extends Specification {
       val failingValidatorForm = Form(
         "foo" -> Forms.text.verifying("isEmpty", s =>
           if (s.isEmpty) true
-          else throw new AssertionError("Validation was run when it wasn't meant to")
-        )
+          else throw new AssertionError("Validation was run when it wasn't meant to"))
       )
       failingValidatorForm.fill("foo").errors must beEmpty
     }

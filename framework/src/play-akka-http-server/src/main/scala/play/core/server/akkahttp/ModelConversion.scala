@@ -33,7 +33,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
+    request: HttpRequest
+  )(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -47,7 +48,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest): RequestHeader = {
+    request: HttpRequest
+  ): RequestHeader = {
     val remoteHostAddress = remoteAddress.getAddress.getHostAddress
     // Taken from PlayDefaultUpstreamHander
 
@@ -102,7 +104,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: Materializer): Option[Source[ByteString, Any]] = {
+    request: HttpRequest
+  )(implicit fm: Materializer): Option[Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
         None
@@ -125,7 +128,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   def convertResult(
     requestHeaders: RequestHeader,
     unvalidated: Result,
-    protocol: HttpProtocol)(implicit mat: Materializer): HttpResponse = {
+    protocol: HttpProtocol
+  )(implicit mat: Materializer): HttpResponse = {
 
     val result = ServerResultUtils.validateResult(requestHeaders, unvalidated)
     val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
@@ -144,7 +148,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestHeaders: RequestHeader,
     convertedHeaders: AkkaHttpHeaders,
     result: Result,
-    protocol: HttpProtocol): ResponseEntity = {
+    protocol: HttpProtocol
+  ): ResponseEntity = {
 
     val contentType = result.body.contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
       HttpHeader.parse(CONTENT_TYPE, ct) match {
@@ -199,14 +204,16 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   case class AkkaHttpHeaders(
     misc: immutable.Seq[HttpHeader],
-    transferEncoding: Option[immutable.Seq[TransferEncoding]])
+    transferEncoding: Option[immutable.Seq[TransferEncoding]]
+  )
 
   /**
    * Convert Play response headers into `HttpHeader` objects, then separate
    * out any special headers.
    */
   private def convertResponseHeaders(
-    playHeaders: Map[String, String]): AkkaHttpHeaders = {
+    playHeaders: Map[String, String]
+  ): AkkaHttpHeaders = {
     val rawHeaders: Iterable[(String, String)] = ServerResultUtils.splitSetCookieHeaders(playHeaders)
     val convertedHeaders: Seq[HttpHeader] = convertHeaders(rawHeaders)
     val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, None)

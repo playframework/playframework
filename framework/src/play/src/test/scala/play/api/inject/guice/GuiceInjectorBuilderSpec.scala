@@ -60,10 +60,12 @@ object GuiceInjectorBuilderSpec extends Specification {
           new EnvironmentModule,
           Seq(new ConfigurationModule),
           new AModule,
-          Seq(new BModule))
+          Seq(new BModule)
+        )
         .bindings(
           bind[C].to[C1],
-          Seq(bind[D].to[D1]))
+          Seq(bind[D].to[D1])
+        )
         .injector
 
       injector.instanceOf[Environment] must beAnInstanceOf[Environment]
@@ -80,10 +82,12 @@ object GuiceInjectorBuilderSpec extends Specification {
         .configure("a" -> 1)
         .bindings(
           new EnvironmentModule,
-          new ConfigurationModule)
+          new ConfigurationModule
+        )
         .overrides(
           bind[Environment] to Environment.simple(),
-          new SetConfigurationModule(Configuration("b" -> 2)))
+          new SetConfigurationModule(Configuration("b" -> 2))
+        )
         .injector
 
       val env = injector.instanceOf[Environment]
@@ -101,7 +105,8 @@ object GuiceInjectorBuilderSpec extends Specification {
           new AModule,
           new BModule,
           bind[C].to[C1],
-          bind[D] to new D1)
+          bind[D] to new D1
+        )
         .disable[EnvironmentModule]
         .disable(classOf[AModule], classOf[CModule]) // C won't be disabled
         .injector

@@ -115,9 +115,11 @@ object Multipart {
 
   }
 
-  private def streamed(boundary: String,
+  private def streamed(
+    boundary: String,
     nioCharset: Charset,
-    chunkSize: Int): PushPullStage[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]] =
+    chunkSize: Int
+  ): PushPullStage[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]] =
     new PushPullStage[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]] {
       var firstBoundaryRendered = false
 

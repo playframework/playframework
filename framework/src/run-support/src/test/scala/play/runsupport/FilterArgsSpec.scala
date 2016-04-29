@@ -16,7 +16,8 @@ object FilterArgsSpec extends Specification {
     httpPort: Option[Int] = Some(defaultHttpPort),
     httpsPort: Option[Int] = None,
     httpAddress: String = defaultHttpAddress,
-    devSettings: Seq[(String, String)] = Seq.empty): Result = {
+    devSettings: Seq[(String, String)] = Seq.empty
+  ): Result = {
 
     val result = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     result must_== ((properties, httpPort, httpsPort, httpAddress))

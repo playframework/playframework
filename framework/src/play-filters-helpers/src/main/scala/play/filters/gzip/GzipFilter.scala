@@ -177,9 +177,11 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
  * @param shouldGzip Whether the given request/result should be gzipped.  This can be used, for example, to implement
  *                   black/white lists for gzipping by content type.
  */
-case class GzipFilterConfig(bufferSize: Int = 8192,
+case class GzipFilterConfig(
+    bufferSize: Int = 8192,
     chunkedThreshold: Int = 102400,
-    shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true) {
+    shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true
+) {
 
   // alternate constructor and builder methods for Java
   def this() = this(shouldGzip = (_, _) => true)

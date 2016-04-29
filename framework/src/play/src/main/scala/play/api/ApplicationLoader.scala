@@ -53,23 +53,23 @@ object ApplicationLoader {
     Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, GuiceApplicationLoader](
       context.environment, PlayConfig(context.initialConfiguration), "play.application.loader", classOf[GuiceApplicationLoader].getName
     ) match {
-        case None =>
-          new GuiceApplicationLoader
-        case Some(Left(scalaClass)) =>
-          scalaClass.newInstance
-        case Some(Right(javaClass)) =>
-          val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
-          // Create an adapter from a Java to a Scala ApplicationLoader. This class is
-          // effectively anonymous, but let's give it a name to make debugging easier.
-          class JavaApplicationLoaderAdapter extends ApplicationLoader {
-            override def load(context: ApplicationLoader.Context): Application = {
-              val javaContext = new play.ApplicationLoader.Context(context)
-              val javaApplication = javaApplicationLoader.load(javaContext)
-              javaApplication.getWrappedApplication
-            }
+      case None =>
+        new GuiceApplicationLoader
+      case Some(Left(scalaClass)) =>
+        scalaClass.newInstance
+      case Some(Right(javaClass)) =>
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+        // effectively anonymous, but let's give it a name to make debugging easier.
+        class JavaApplicationLoaderAdapter extends ApplicationLoader {
+          override def load(context: ApplicationLoader.Context): Application = {
+            val javaContext = new play.ApplicationLoader.Context(context)
+            val javaApplication = javaApplicationLoader.load(javaContext)
+            javaApplication.getWrappedApplication
           }
-          new JavaApplicationLoaderAdapter
-      }
+        }
+        new JavaApplicationLoaderAdapter
+    }
   }
 
   /**
@@ -84,10 +84,12 @@ object ApplicationLoader {
    *                        into the application.
    * @param sourceMapper An optional source mapper.
    */
-  def createContext(environment: Environment,
+  def createContext(
+    environment: Environment,
     initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
-    webCommands: WebCommands = new DefaultWebCommands) = {
+    webCommands: WebCommands = new DefaultWebCommands
+  ) = {
     val configuration = Configuration.load(environment, initialSettings)
     Context(environment, sourceMapper, webCommands, configuration)
   }

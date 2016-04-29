@@ -55,7 +55,8 @@ trait DefaultFiltersSpec extends FiltersSpec {
   "Java filters" should {
     "work with a simple nop filter" in withFlexibleServer(
       Map.empty, None,
-      (mat: Materializer) => Seq(new JavaSimpleFilter(mat))) { ws =>
+      (mat: Materializer) => Seq(new JavaSimpleFilter(mat))
+    ) { ws =>
         val response = Await.result(ws.url("/ok").get(), Duration.Inf)
         response.status must_== 200
         response.body must_== expectedOkText
@@ -69,7 +70,8 @@ trait DefaultFiltersSpec extends FiltersSpec {
 
     override def apply(
       next: JFunction[Http.RequestHeader, CompletionStage[Result]],
-      rh: Http.RequestHeader): CompletionStage[Result] = {
+      rh: Http.RequestHeader
+    ): CompletionStage[Result] = {
       println("Calling JavaSimpleFilter.apply")
       next(rh)
     }
@@ -161,14 +163,16 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     }
 
     "Filters are not applied when the request is outside the application.context" in withServer(
-      Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
+      Map("play.http.context" -> "/foo")
+    )(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
         val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
         response.status must_== 200
         response.body must_== expectedOkText
       }
 
     "Filters are applied on the root of the application context" in withServer(
-      Map("play.http.context" -> "/foo"))(SkipNextFilter) { ws =>
+      Map("play.http.context" -> "/foo")
+    )(SkipNextFilter) { ws =>
         val response = Await.result(ws.url("/foo").post(expectedOkText), Duration.Inf)
         response.status must_== 200
         response.body must_== SkipNextFilter.expectedText

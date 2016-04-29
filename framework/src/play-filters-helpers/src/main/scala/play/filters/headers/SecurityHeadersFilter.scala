@@ -68,12 +68,14 @@ object SecurityHeadersFilter {
  * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies".
  * @param contentSecurityPolicy "Content-Security-Policy"
  */
-case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),
+case class SecurityHeadersConfig(
+    frameOptions: Option[String] = Some("DENY"),
     xssProtection: Option[String] = Some("1; mode=block"),
     contentTypeOptions: Option[String] = Some("nosniff"),
     permittedCrossDomainPolicies: Option[String] = Some("master-only"),
     contentSecurityPolicy: Option[String] = Some("default-src 'self'"),
-    allowActionSpecificHeaders: Boolean = false) {
+    allowActionSpecificHeaders: Boolean = false
+) {
   def this() {
     this(frameOptions = Some("DENY"))
   }
@@ -107,7 +109,8 @@ object SecurityHeadersConfig {
       contentTypeOptions = config.get[Option[String]]("contentTypeOptions"),
       permittedCrossDomainPolicies = config.get[Option[String]]("permittedCrossDomainPolicies"),
       contentSecurityPolicy = config.get[Option[String]]("contentSecurityPolicy"),
-      allowActionSpecificHeaders = config.get[Option[Boolean]]("allowActionSpecificHeaders").getOrElse(false))
+      allowActionSpecificHeaders = config.get[Option[Boolean]]("allowActionSpecificHeaders").getOrElse(false)
+    )
   }
 }
 

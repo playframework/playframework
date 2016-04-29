@@ -109,7 +109,8 @@ object RoutesFileParserSpec extends Specification {
 
     "parse argument with complex name" in {
       parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(Seq(
-        Parameter("`b[]`", "List[String]", None, Some("[]"))))
+        Parameter("`b[]`", "List[String]", None, Some("[]"))
+      ))
     }
 
     "parse a non instantiating route" in {

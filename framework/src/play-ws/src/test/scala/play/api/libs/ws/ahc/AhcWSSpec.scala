@@ -295,7 +295,8 @@ object AhcWSSpec extends PlaySpecification with Mockito {
           """{
             |  "data": "body"
             |}
-          """.stripMargin))
+          """.stripMargin
+        ))
       }
     }.build()
 
@@ -482,7 +483,8 @@ object AhcWSSpec extends PlaySpecification with Mockito {
           val response = Await.result(
             client.url("/")
               .withRequestFilter(new HeaderAppendingFilter(appendedHeader, appendedHeaderValue))
-              .get(), 5.seconds)
+              .get(), 5.seconds
+          )
           response.status must beEqualTo(200)
         }
       }

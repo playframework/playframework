@@ -648,7 +648,8 @@ case class DefaultWSProxyServer(
   /** The realm's charset. */
   encoding: Option[String] = None,
 
-  nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer
+  nonProxyHosts: Option[Seq[String]] = None
+) extends WSProxyServer
 
 /**
  * An HTTP response header (the body has not been retrieved yet)

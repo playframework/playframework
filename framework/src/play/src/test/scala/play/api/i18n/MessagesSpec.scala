@@ -16,13 +16,18 @@ object MessagesSpec extends Specification {
     "default" -> Map(
       "title" -> "English Title",
       "foo" -> "English foo",
-      "bar" -> "English pub"),
+      "bar" -> "English pub"
+    ),
     "fr" -> Map(
       "title" -> "Titre francais",
-      "foo" -> "foo francais"),
+      "foo" -> "foo francais"
+    ),
     "fr-CH" -> Map(
-      "title" -> "Titre suisse"))
-  val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
+      "title" -> "Titre suisse"
+    )
+  )
+  val api = new DefaultMessagesApi(
+    new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
     Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH"))))
   ) {
     override protected def loadAllMessages = testMessages
@@ -89,7 +94,8 @@ object MessagesSpec extends Specification {
     }
 
     "report error for invalid lang" in {
-      new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
+      new DefaultMessagesApi(
+        new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
         Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language"))))
       ) must throwA[PlayException]
     }

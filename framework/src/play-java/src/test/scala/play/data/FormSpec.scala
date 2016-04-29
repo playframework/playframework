@@ -183,7 +183,8 @@ object FormSpec extends Specification {
 
       "that returns customized message when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
+          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava
+        )
         form.hasErrors must beEqualTo(true)
         form.errors().get("hairColor") must beNull
         val validationErrors = form.errors().get("skinColor")
@@ -193,7 +194,8 @@ object FormSpec extends Specification {
 
       "that returns customized message in annotation when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
+          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava
+        )
         form.errors().get("skinColor") must beNull
         form.hasErrors must beEqualTo(true)
         val validationErrors = form.errors().get("hairColor")

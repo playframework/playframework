@@ -105,14 +105,16 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val rep = req.toCompletableFuture.get(10, TimeUnit.SECONDS) // AWait result
 
       rep.getStatus aka "status" must_== 200 and (
-        rep.asJson.path("origin").textValue must not beNull)
+        rep.asJson.path("origin").textValue must not beNull
+      )
     }
 
     "use queryString in url" in withServer { ws =>
       val rep = ws.url("/get?foo=bar").get().toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       rep.getStatus aka "status" must_== 200 and (
-        rep.asJson().path("args").path("foo").textValue() must_== "bar")
+        rep.asJson().path("args").path("foo").textValue() must_== "bar"
+      )
     }
 
     "use user:password in url" in Server.withApplication(app) { implicit port =>
@@ -121,7 +123,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
           .toCompletableFuture.get(10, TimeUnit.SECONDS)
 
         rep.getStatus aka "status" must_== 200 and (
-          rep.asJson().path("authenticated").booleanValue() must beTrue)
+          rep.asJson().path("authenticated").booleanValue() must beTrue
+        )
       }
     }
 
@@ -150,11 +153,13 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val bar = ws.url("/get?foo=bar").get.toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       empty.asJson.path("args").path("foo").textValue() must_== "" and (
-        bar.asJson.path("args").path("foo").textValue() must_== "bar")
+        bar.asJson.path("args").path("foo").textValue() must_== "bar"
+      )
     }
 
     "get a streamed response" in withResult(
-      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
+      Results.Ok.chunked(Source(List("a", "b", "c")))
+    ) { ws =>
         val res = ws.url("/get").stream().toCompletableFuture.get()
 
         await(res.getBody().runWith(foldingSink, app.materializer)).decodeString("utf-8").
@@ -285,7 +290,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     "get a streamed response" in withResult(
-      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
+      Results.Ok.chunked(Source(List("a", "b", "c")))
+    ) { ws =>
 
         val res = ws.url("/get").stream()
         val body = await(res).body

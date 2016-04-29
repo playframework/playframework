@@ -132,7 +132,8 @@ object Multipart {
     fileName: String,
 
     /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
-    contentType: Option[String])
+    contentType: Option[String]
+  )
 
   private[play] object FileInfoMatcher {
 
@@ -201,9 +202,10 @@ object Multipart {
       for {
         values <- headers.get("content-disposition").map(
           _.split(";").map(_.trim).map {
-            case KeyValue(key, v) => (key.trim, v.trim)
-            case key => (key.trim, "")
-          }.toMap)
+          case KeyValue(key, v) => (key.trim, v.trim)
+          case key => (key.trim, "")
+        }.toMap
+        )
         _ <- values.get("form-data")
         partName <- values.get("name")
       } yield partName
@@ -212,7 +214,8 @@ object Multipart {
 
   private def createBadResult[A](msg: String, status: Int = BAD_REQUEST): RequestHeader => Future[Either[Result, A]] = { request =>
     Play.privateMaybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
-      _.errorHandler.onClientError(request, status, msg).map(Left(_)))
+      _.errorHandler.onClientError(request, status, msg).map(Left(_))
+    )
   }
 
   private type RawPart = Either[Part[Unit], ByteString]

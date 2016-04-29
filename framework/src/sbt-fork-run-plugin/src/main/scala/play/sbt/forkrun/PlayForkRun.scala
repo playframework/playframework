@@ -87,7 +87,8 @@ object PlayForkRun extends AutoPlugin {
       configKey = thisProjectRef.value.project + "/" + playForkConfig.key.label,
       logLevel = ((logLevel in (Compile, run)) ?? Level.Info).value,
       logSbtEvents = playForkLogSbtEvents.value,
-      shutdownTimeout = playForkShutdownTimeout.value)
+      shutdownTimeout = playForkShutdownTimeout.value
+    )
   }
 
   def forkRunTask = Def.inputTask[Unit] {
@@ -144,7 +145,8 @@ object PlayForkRun extends AutoPlugin {
     PlayReload.compile(
       () => PlayInternalKeys.playReload.result.value,
       () => PlayInternalKeys.playReloaderClasspath.result.value,
-      () => Option(streamsManager.value))
+      () => Option(streamsManager.value)
+    )
   }
 
 }

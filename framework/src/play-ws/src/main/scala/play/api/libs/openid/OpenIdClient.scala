@@ -69,11 +69,13 @@ object OpenID {
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
   @deprecated("Inject OpenIdClient into your component", "2.5.0")
-  def redirectURL(openID: String,
+  def redirectURL(
+    openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
-    realm: Option[String] = None)(implicit app: Application) =
+    realm: Option[String] = None
+  )(implicit app: Application) =
     app.injector.instanceOf[OpenIdClient].redirectURL(openID, callbackURL, axRequired, axOptional, realm)
 
   /**
@@ -88,11 +90,13 @@ trait OpenIdClient {
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
-  def redirectURL(openID: String,
+  def redirectURL(
+    openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
-    realm: Option[String] = None): Future[String]
+    realm: Option[String] = None
+  ): Future[String]
 
   /**
    * From a request corresponding to the callback from the OpenID server, check the identity of the current user
@@ -111,11 +115,13 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends Open
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
-  def redirectURL(openID: String,
+  def redirectURL(
+    openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
-    realm: Option[String] = None): Future[String] = {
+    realm: Option[String] = None
+  ): Future[String] = {
 
     val claimedIdCandidate = discovery.normalizeIdentifier(openID)
     discovery.discoverServer(openID).map({ server =>
@@ -150,8 +156,10 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends Open
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Future[UserInfo] = {
-    (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
+    (
+      queryString.get("openid.mode").flatMap(_.headOption),
+      queryString.get("openid.claimed_id").flatMap(_.headOption)
+    ) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
         case (Some("id_res"), Some(id)) => {
           // MUST perform discovery on the claimedId to resolve the op_endpoint.
           val server: Future[OpenIDServer] = discovery.discoverServer(id)
@@ -174,8 +182,10 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends Open
     })
   }
 
-  private def axParameters(axRequired: Seq[(String, String)],
-    axOptional: Seq[(String, String)]): Seq[(String, String)] = {
+  private def axParameters(
+    axRequired: Seq[(String, String)],
+    axOptional: Seq[(String, String)]
+  ): Seq[(String, String)] = {
     if (axRequired.isEmpty && axOptional.isEmpty)
       Nil
     else {

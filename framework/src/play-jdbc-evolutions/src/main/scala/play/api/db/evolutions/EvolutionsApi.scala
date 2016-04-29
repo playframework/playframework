@@ -130,14 +130,16 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       Collections.unfoldLeft(executeQuery(
         """
             select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id
-        """)) { rs =>
+        """
+      )) { rs =>
         rs.next match {
           case false => None
           case true => {
             Some((rs, Evolution(
               rs.getInt(1),
               Option(rs.getString(3)) getOrElse "",
-              Option(rs.getString(4)) getOrElse "")))
+              Option(rs.getString(4)) getOrElse ""
+            )))
           }
         }
       }
@@ -452,7 +454,8 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
         Evolution(
           revision,
           parsed.getOrElse(UPS, ""),
-          parsed.getOrElse(DOWNS, ""))
+          parsed.getOrElse(DOWNS, "")
+        )
       }
     }
 
@@ -479,8 +482,10 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
  * @param prefix A prefix that gets added to the resource file names, for example, this could be used to namespace
  *               evolutions in different environments to work with different databases.
  */
-class ClassLoaderEvolutionsReader(classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
-    prefix: String = "") extends ResourceEvolutionsReader {
+class ClassLoaderEvolutionsReader(
+    classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
+    prefix: String = ""
+) extends ResourceEvolutionsReader {
   def loadResource(db: String, revision: Int) = {
     Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(db, revision)))
   }
@@ -538,7 +543,8 @@ object SimpleEvolutionsReader {
  */
 case class InconsistentDatabase(db: String, script: String, error: String, rev: Int, autocommit: Boolean) extends PlayException.RichDescription(
   "Database '" + db + "' is in an inconsistent state!",
-  "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit) " before marking it as resolved." else ".")) {
+  "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit) " before marking it as resolved." else ".")
+) {
 
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
   def content = script

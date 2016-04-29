@@ -12,10 +12,13 @@ object TemplatesSpec extends Specification {
       val reverseParams: Seq[(Parameter, Int)] = reverseParametersJavascript(Seq(
         route("/foobar", Seq(
           Parameter("foo", "String", Some("FOO"), None),
-          Parameter("bar", "String", Some("BAR"), None))),
+          Parameter("bar", "String", Some("BAR"), None)
+        )),
         route("/foobar", Seq(
           Parameter("foo", "String", None, None),
-          Parameter("bar", "String", None, None)))))
+          Parameter("bar", "String", None, None)
+        ))
+      ))
 
       reverseParams must haveSize(2)
       reverseParams(0)._1.name must_== ("foo0")
@@ -26,10 +29,13 @@ object TemplatesSpec extends Specification {
       val routes = Seq(
         route("/foobar", Seq(
           Parameter("foo", "String", Some("FOO"), None),
-          Parameter("bar", "String", Some("BAR"), None))),
+          Parameter("bar", "String", Some("BAR"), None)
+        )),
         route("/foobar", Seq(
           Parameter("foo", "String", None, None),
-          Parameter("bar", "String", None, None))))
+          Parameter("bar", "String", None, None)
+        ))
+      )
       val localNames = reverseLocalNames(routes.head, reverseParametersJavascript(routes))
       val constraints = javascriptParameterConstraints(routes.head, localNames)
 
@@ -42,6 +48,7 @@ object TemplatesSpec extends Specification {
     Route(
       HttpVerb("GET"),
       PathPattern(Seq(StaticPart(staticPath))),
-      HandlerCall("pkg", "ctrl", true, "method", Some(params)))
+      HandlerCall("pkg", "ctrl", true, "method", Some(params))
+    )
   }
 }

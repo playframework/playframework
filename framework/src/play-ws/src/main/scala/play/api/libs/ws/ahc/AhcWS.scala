@@ -103,7 +103,8 @@ case object AhcWSRequest {
 /**
  * A Ahc WS Request.
  */
-case class AhcWSRequest(client: AhcWSClient,
+case class AhcWSRequest(
+    client: AhcWSClient,
     url: String,
     method: String,
     body: WSBody,
@@ -116,7 +117,8 @@ case class AhcWSRequest(client: AhcWSClient,
     virtualHost: Option[String],
     proxyServer: Option[WSProxyServer],
     disableUrlEncoding: Option[Boolean],
-    filters: Seq[WSRequestFilter] = Nil)(implicit materializer: Materializer) extends WSRequest {
+    filters: Seq[WSRequestFilter] = Nil
+)(implicit materializer: Materializer) extends WSRequest {
 
   def sign(calc: WSSignatureCalculator): WSRequest = copy(calc = Some(calc))
 
@@ -126,8 +128,7 @@ case class AhcWSRequest(client: AhcWSClient,
   def withHeaders(hdrs: (String, String)*): WSRequest = {
     val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
       if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-      else m + (hdr._1 -> Seq(hdr._2))
-    )
+      else m + (hdr._1 -> Seq(hdr._2)))
     copy(headers = headers)
   }
 

@@ -147,7 +147,8 @@ object Modules {
       case e: Throwable => throw new PlayException(
         "Cannot load module",
         "Module [" + className + "] cannot be instantiated.",
-        e)
+        e
+      )
     }
   }
 }

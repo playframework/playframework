@@ -32,7 +32,8 @@ object DevServerStart {
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
     httpsPort: Int,
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String
+  ): ServerWithStop = {
     mainDev(buildLink, buildDocHandler, None, Some(httpsPort), httpAddress)
   }
 
@@ -46,7 +47,8 @@ object DevServerStart {
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
     httpPort: Int,
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String
+  ): ServerWithStop = {
     mainDev(buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
   }
 
@@ -55,7 +57,8 @@ object DevServerStart {
     buildDocHandler: BuildDocHandler,
     httpPort: Option[Int],
     httpsPort: Option[Int],
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String
+  ): ServerWithStop = {
     val classLoader = getClass.getClassLoader
     Threads.withContextClassLoader(classLoader) {
       try {

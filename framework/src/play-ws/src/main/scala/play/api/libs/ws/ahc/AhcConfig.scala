@@ -34,7 +34,8 @@ import scala.concurrent.duration._
  * @param disableUrlEncoding Whether the raw URL should be used.
  * @param keepAlive keeps thread pool active, replaces allowPoolingConnection and allowSslConnectionPool
  */
-case class AhcWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
+case class AhcWSClientConfig(
+  wsClientConfig: WSClientConfig = WSClientConfig(),
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
   maxConnectionLifetime: Duration = Duration.Inf,
@@ -42,7 +43,8 @@ case class AhcWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
   disableUrlEncoding: Boolean = false,
-  keepAlive: Boolean = true)
+  keepAlive: Boolean = true
+)
 
 /**
  * Factory for creating AhcWSClientConfig, for use from Java.
@@ -58,9 +60,11 @@ object AhcWSClientConfigFactory {
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
 @Singleton
-class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
+class AhcWSClientConfigParser @Inject() (
+    wsClientConfig: WSClientConfig,
     configuration: Configuration,
-    environment: Environment) extends Provider[AhcWSClientConfig] {
+    environment: Environment
+) extends Provider[AhcWSClientConfig] {
 
   def get = parse()
 
@@ -158,7 +162,8 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
    * @return the new builder
    */
   def modifyUnderlying(
-    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder): AhcConfigBuilder = {
+    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder
+  ): AhcConfigBuilder = {
     new AhcConfigBuilder(ahcConfig) {
       override val addCustomSettings = modify compose AhcConfigBuilder.this.addCustomSettings
       override val builder = AhcConfigBuilder.this.builder

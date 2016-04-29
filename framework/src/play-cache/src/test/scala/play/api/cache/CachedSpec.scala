@@ -67,7 +67,8 @@ class CachedSpec extends PlaySpecification {
           .timeToLiveSeconds(60)
           .timeToIdleSeconds(30)
           .diskExpiryThreadIntervalSeconds(0)
-          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP)))
+          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP))
+      )
       cacheManager.addCache(diskEhcache)
       val diskEhcache2 = cacheManager.getCache("disk")
       assert(diskEhcache2 != null)
@@ -208,7 +209,8 @@ class CachedSpec extends PlaySpecification {
 
       val beInOneHour = beBetween(
         (Duration(1, HOURS) - Duration(10, SECONDS)).toMillis,
-        Duration(1, HOURS).toMillis)
+        Duration(1, HOURS).toMillis
+      )
 
       res0.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
       res1.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
@@ -305,7 +307,8 @@ class CachedController @Inject() (cached: Cached) {
 
 class NamedCachedController @Inject() (
     @NamedCache("custom") val cache: CacheApi,
-    @NamedCache("custom") val cached: Cached) {
+    @NamedCache("custom") val cached: Cached
+) {
   val invoked = new AtomicInteger()
   val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
   def isCached(key: String): Boolean = cache.get[String](key).isDefined

@@ -55,7 +55,8 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
   def remoteConnection(
     rawRemoteAddress: InetAddress,
     rawSecure: Boolean,
-    headers: Headers): ConnectionInfo = {
+    headers: Headers
+  ): ConnectionInfo = {
     val rawConnection = ConnectionInfo(rawRemoteAddress, rawSecure)
     remoteConnection(rawConnection, headers)
   }

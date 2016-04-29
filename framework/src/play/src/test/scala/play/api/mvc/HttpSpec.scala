@@ -104,7 +104,8 @@ object HttpSpec extends Specification {
     "merge two cookies" in withApplication {
       val cookies = Seq(
         Cookie("foo", "bar"),
-        Cookie("bar", "qux"))
+        Cookie("bar", "qux")
+      )
 
       Cookies.mergeSetCookieHeader("", cookies) must ===("foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly")
     }
@@ -117,7 +118,8 @@ object HttpSpec extends Specification {
         Cookie("foo", "baz", secure = true),
         Cookie("foo", "baz", httpOnly = false),
         Cookie("foo", "bar", path = "/blah"),
-        Cookie("foo", "baz", path = "/blah"))
+        Cookie("foo", "baz", path = "/blah")
+      )
 
       Cookies.mergeSetCookieHeader("", cookies) must ===(
         "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))

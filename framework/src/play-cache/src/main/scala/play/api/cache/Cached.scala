@@ -28,7 +28,8 @@ class Cached @Inject() (cache: CacheApi) {
    */
   def apply(
     key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration]): CachedBuilder = new CachedBuilder(cache, key, caching)
+    caching: PartialFunction[ResponseHeader, Duration]
+  ): CachedBuilder = new CachedBuilder(cache, key, caching)
 
   /**
    * Cache an action.
@@ -100,7 +101,8 @@ object Cached {
   @deprecated("Inject Cached into your component", "2.5.0")
   def apply(
     key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration]): UnboundCachedBuilder = new UnboundCachedBuilder(key, caching)
+    caching: PartialFunction[ResponseHeader, Duration]
+  ): UnboundCachedBuilder = new UnboundCachedBuilder(key, caching)
 
   /**
    * Cache an action.
@@ -180,7 +182,8 @@ object Cached {
 final class CachedBuilder(
     cache: CacheApi,
     key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration]) {
+    caching: PartialFunction[ResponseHeader, Duration]
+) {
 
   /**
    * Compose the cache with an action

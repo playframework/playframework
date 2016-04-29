@@ -37,7 +37,8 @@ import scala.concurrent.Future
  * @param shouldProtect A function that decides based on the headers of the request if a check is needed.
  * @param bypassCorsTrustedOrigins Whether to bypass the CSRF check if the CORS filter trusts this origin
  */
-case class CSRFConfig(tokenName: String = "csrfToken",
+case class CSRFConfig(
+    tokenName: String = "csrfToken",
     cookieName: Option[String] = None,
     secureCookie: Boolean = false,
     httpOnlyCookie: Boolean = false,
@@ -48,7 +49,8 @@ case class CSRFConfig(tokenName: String = "csrfToken",
     checkContentType: Option[String] => Boolean = _ => true,
     headerName: String = "Csrf-Token",
     shouldProtect: RequestHeader => Boolean = _ => false,
-    bypassCorsTrustedOrigins: Boolean = true) {
+    bypassCorsTrustedOrigins: Boolean = true
+) {
 
   // Java builder methods
   def this() = this(cookieName = None)

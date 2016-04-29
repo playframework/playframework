@@ -455,9 +455,11 @@ class AESCTRCrypter @Inject() (config: CryptoConfig) extends AESCrypter {
  * @param aesTransformation The AES transformation to use
  * @param provider The crypto provider to use
  */
-case class CryptoConfig(secret: String,
+case class CryptoConfig(
+  secret: String,
   provider: Option[String] = None,
-  @deprecated("This field is deprecated and will be removed in future versions", "2.5.0") aesTransformation: String = "AES/CTR/NoPadding")
+  @deprecated("This field is deprecated and will be removed in future versions", "2.5.0") aesTransformation: String = "AES/CTR/NoPadding"
+)
 
 @Singleton
 class CryptoConfigParser @Inject() (environment: Environment, configuration: Configuration) extends Provider[CryptoConfig] {

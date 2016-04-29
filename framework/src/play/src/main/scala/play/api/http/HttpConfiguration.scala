@@ -25,7 +25,8 @@ case class HttpConfiguration(
   actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
   cookies: CookiesConfiguration = CookiesConfiguration(),
   session: SessionConfiguration = SessionConfiguration(),
-  flash: FlashConfiguration = FlashConfiguration())
+  flash: FlashConfiguration = FlashConfiguration()
+)
 
 /**
  * The cookies configuration
@@ -34,7 +35,8 @@ case class HttpConfiguration(
  *               discarded if a single cookie is found to be invalid.
  */
 case class CookiesConfiguration(
-    strict: Boolean = true) {
+    strict: Boolean = true
+) {
   def serverEncoder: ServerCookieEncoder = strict match {
     case true => ServerCookieEncoder.STRICT
     case false => ServerCookieEncoder.LAX
@@ -83,7 +85,8 @@ case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean
  */
 case class ParserConfiguration(
   maxMemoryBuffer: Int = 102400,
-  maxDiskBuffer: Long = 10485760)
+  maxDiskBuffer: Long = 10485760
+)
 
 /**
  * Configuration for action composition.
@@ -94,7 +97,8 @@ case class ParserConfiguration(
  */
 case class ActionCompositionConfiguration(
   controllerAnnotationsFirst: Boolean = false,
-  executeActionCreatorActionFirst: Boolean = false)
+  executeActionCreatorActionFirst: Boolean = false
+)
 
 object HttpConfiguration {
 

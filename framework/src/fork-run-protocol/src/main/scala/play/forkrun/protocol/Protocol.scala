@@ -23,7 +23,8 @@ case class ForkConfig(
   notifyKey: String,
   reloadKey: String,
   compileTimeout: Long,
-  mainClass: String)
+  mainClass: String
+)
 
 object ForkConfig {
   import play.runsupport._

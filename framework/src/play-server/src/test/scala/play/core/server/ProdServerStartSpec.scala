@@ -41,7 +41,8 @@ object ProdServerStartSpec extends Specification {
   class FakeServerProcess(
       val args: Seq[String] = Seq(),
       propertyMap: Map[String, String] = Map(),
-      val pid: Option[String] = None) extends ServerProcess {
+      val pid: Option[String] = None
+  ) extends ServerProcess {
 
     val classLoader: ClassLoader = getClass.getClassLoader
 

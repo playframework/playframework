@@ -41,12 +41,14 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
         "play.server.https.idleTimeout" -> getTimeout(httpsTimeout)
       ).asJava)
       val serverConfig = ServerConfig(port = Some(port), sslPort = httpsPort, mode = Mode.Test, properties = props)
-      running(play.api.test.TestServer(config = serverConfig,
+      running(play.api.test.TestServer(
+        config = serverConfig,
         application = new GuiceApplicationBuilder()
           .routes({
             case _ => action
           }).build(),
-        serverProvider = Some(integrationServerProvider))) {
+        serverProvider = Some(integrationServerProvider)
+      )) {
         block(port)
       }
     }

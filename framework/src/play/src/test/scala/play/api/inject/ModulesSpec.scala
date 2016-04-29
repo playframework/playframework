@@ -66,12 +66,14 @@ class PlainGuiceModule extends AbstractModule {
 
 class ScalaGuiceModule(
     val environment: Environment,
-    val configuration: Configuration) extends AbstractModule {
+    val configuration: Configuration
+) extends AbstractModule {
   def configure(): Unit = ()
 }
 
 class JavaGuiceModule(
     val environment: JavaEnvironment,
-    val configuration: JavaConfiguration) extends AbstractModule {
+    val configuration: JavaConfiguration
+) extends AbstractModule {
   def configure(): Unit = ()
 }

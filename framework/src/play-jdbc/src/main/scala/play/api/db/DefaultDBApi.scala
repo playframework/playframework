@@ -15,7 +15,8 @@ class DefaultDBApi(
     configuration: Map[String, Config],
     defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(Environment.simple()),
     environment: Environment = Environment.simple(),
-    injector: Injector = NewInstanceInjector) extends DBApi {
+    injector: Injector = NewInstanceInjector
+) extends DBApi {
 
   import DefaultDBApi._
 

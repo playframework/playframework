@@ -161,8 +161,10 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    */
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     try {
-      val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(sourceMapper,
-        environment.mode == Mode.Prod, exception)
+      val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
+        sourceMapper,
+        environment.mode == Mode.Prod, exception
+      )
 
       logServerError(request, usefulException)
 
@@ -186,7 +188,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * @param usefulException The server error.
    */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException) {
-    Logger.error("""
+    Logger.error(
+      """
                     |
                     |! @%s - Internal server error, for (%s) [%s] ->
                     | """.stripMargin.format(usefulException.id, request.method, request.uri),
@@ -238,7 +241,8 @@ object HttpErrorHandlerExceptions {
       new PlayException.ExceptionSource(
         "Execution exception",
         "[%s: %s]".format(other.getClass.getSimpleName, other.getMessage),
-        other) {
+        other
+      ) {
         def line = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
         def position = null
         def input = source.map(_._1).map(PlayIO.readFileAsString).orNull

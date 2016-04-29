@@ -431,7 +431,8 @@ object QueryStringBindable {
       Some(
         implicitly[QueryStringBindable[T]].bind(key, params)
           .map(_.right.map(Some(_)))
-          .getOrElse(Right(None)))
+          .getOrElse(Right(None))
+      )
     }
     def unbind(key: String, value: Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
     override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
@@ -445,7 +446,8 @@ object QueryStringBindable {
       Some(
         implicitly[QueryStringBindable[T]].bind(key, params)
           .map(_.right.map(Optional.ofNullable[T]))
-          .getOrElse(Right(Optional.empty[T])))
+          .getOrElse(Right(Optional.empty[T]))
+      )
     }
     def unbind(key: String, value: Optional[T]) = {
       value.asScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")

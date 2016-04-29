@@ -18,7 +18,8 @@ import scala.util.control.NonFatal
 case class TestServer(
     config: ServerConfig,
     application: Application,
-    serverProvider: Option[ServerProvider]) {
+    serverProvider: Option[ServerProvider]
+) {
 
   private var testServerProcess: TestServerProcess = _
 
@@ -70,7 +71,8 @@ object TestServer {
     port: Int,
     application: Application = GuiceApplicationBuilder().build(),
     sslPort: Option[Int] = None,
-    serverProvider: Option[ServerProvider] = None) = new TestServer(
+    serverProvider: Option[ServerProvider] = None
+  ) = new TestServer(
     ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test,
       rootDir = application.path), application, serverProvider
   )
@@ -82,7 +84,8 @@ object TestServer {
   private[play] def start(
     testServerProvider: Option[ServerProvider],
     config: ServerConfig,
-    application: Application): TestServerProcess = {
+    application: Application
+  ): TestServerProcess = {
     val process = new TestServerProcess
     val serverProvider: ServerProvider = {
       testServerProvider
@@ -129,4 +132,5 @@ private[play] class TestServerProcess extends ServerProcess {
 private[play] case class TestServerExitException(
   message: String,
   cause: Option[Throwable] = None,
-  returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)
+  returnCode: Int = -1
+) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)

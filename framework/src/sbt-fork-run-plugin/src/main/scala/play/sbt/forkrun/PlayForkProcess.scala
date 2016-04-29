@@ -17,7 +17,8 @@ case class PlayForkOptions(
   configKey: String,
   logLevel: Level.Value,
   logSbtEvents: Boolean,
-  shutdownTimeout: FiniteDuration)
+  shutdownTimeout: FiniteDuration
+)
 
 /**
  * This differs from sbt's fork run mainly in the way that the process is stopped.

@@ -36,7 +36,8 @@ case class CORSConfig(
     isHttpHeaderAllowed: String => Boolean = _ => true,
     exposedHeaders: Seq[String] = Seq.empty,
     supportsCredentials: Boolean = true,
-    preflightMaxAge: Duration = 1.hour) {
+    preflightMaxAge: Duration = 1.hour
+) {
   def anyOriginAllowed: Boolean = allowedOrigins == Origins.All
   def withAnyOriginAllowed = withOriginsAllowed(Origins.All)
 
@@ -87,7 +88,8 @@ object CORSConfig {
       isHttpHeaderAllowed = _ => false,
       exposedHeaders = Seq.empty,
       supportsCredentials = true,
-      preflightMaxAge = 0.seconds)
+      preflightMaxAge = 0.seconds
+    )
 
   /**
    * Build a [[CORSConfig]]from a [[play.api.Configuration]]

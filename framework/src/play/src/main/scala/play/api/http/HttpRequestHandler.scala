@@ -45,8 +45,10 @@ object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](environment,
-      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler")
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](
+      environment,
+      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler"
+    )
 
     val javaComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
 
@@ -58,8 +60,10 @@ object ActionCreator {
   import play.http.{ ActionCreator, HttpRequestHandlerActionCreator }
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.configuredClass[ActionCreator, ActionCreator, HttpRequestHandlerActionCreator](environment,
-      PlayConfig(configuration), "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+    Reflect.configuredClass[ActionCreator, ActionCreator, HttpRequestHandlerActionCreator](
+      environment,
+      PlayConfig(configuration), "play.http.actionCreator", "ActionCreator"
+    ).fold(Seq[Binding[_]]()) { either =>
         val impl = either.fold(identity, identity)
         Seq(BindingKey(classOf[ActionCreator]).to(impl))
       }
@@ -108,8 +112,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   def handlerForRequest(request: RequestHeader) = {
 
     def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      errorHandler.onClientError(req, NOT_FOUND)
-    )
+      errorHandler.onClientError(req, NOT_FOUND))
 
     val (routedRequest, handler) = routeRequest(request) map {
       case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
@@ -181,8 +184,10 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(router,
-  errorHandler, configuration, filters.filters: _*) {
+  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(
+  router,
+  errorHandler, configuration, filters.filters: _*
+) {
 
   override def routeRequest(request: RequestHeader): Option[Handler] = {
     super.routeRequest(request) match {

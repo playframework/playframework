@@ -58,7 +58,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    */
   def bind(data: Map[String, String]): Form[T] = mapping.bind(data).fold(
     newErrors => this.copy(data = data, errors = errors ++ newErrors, value = None),
-    value => this.copy(data = data, errors = errors, value = Some(value)))
+    value => this.copy(data = data, errors = errors, value = Some(value))
+  )
 
   /**
    * Binds data to this form, i.e. handles form submission.
@@ -157,7 +158,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     constraints.get(key).getOrElse(Nil),
     formats.get(key),
     errors.collect { case e if e.key == key => e },
-    data.get(key))
+    data.get(key)
+  )
 
   /**
    * Retrieves the first global error, if it exists, i.e. an error without any key.

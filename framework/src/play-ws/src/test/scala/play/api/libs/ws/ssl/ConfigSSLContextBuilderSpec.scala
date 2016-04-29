@@ -138,9 +138,11 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val checkRevocation = false
       val revocationLists = None
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
+      val actual = builder.buildCompositeTrustManager(
+        trustManagerConfig,
         checkRevocation,
-        revocationLists, algorithmChecker)
+        revocationLists, algorithmChecker
+      )
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 

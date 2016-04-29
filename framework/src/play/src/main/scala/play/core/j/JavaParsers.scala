@@ -27,7 +27,8 @@ object JavaParsers {
       lazy val getFiles = {
         multipart.files.map { file =>
           new play.mvc.Http.MultipartFormData.FilePart(
-            file.key, file.filename, file.contentType.orNull, file.ref.file)
+            file.key, file.filename, file.contentType.orNull, file.ref.file
+          )
         }.asJava
       }
     }

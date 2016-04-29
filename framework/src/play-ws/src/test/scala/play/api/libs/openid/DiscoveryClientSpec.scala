@@ -249,11 +249,13 @@ object DiscoveryClientSpec extends Specification with Mockito {
   }
 
   // See 9.1 http://openid.net/specs/openid-authentication-2_0.html#anchor27
-  private def verifyValidOpenIDRequest(params: Map[String, Seq[String]],
+  private def verifyValidOpenIDRequest(
+    params: Map[String, Seq[String]],
     claimedId: String,
     returnTo: String,
     opLocalIdentifier: Option[String] = None,
-    realm: Option[String] = None) = {
+    realm: Option[String] = None
+  ) = {
     "valid request parameters need to be present" in {
       params.get("openid.ns") must_== Some(Seq("http://specs.openid.net/auth/2.0"))
       params.get("openid.mode") must_== Some(Seq("checkid_setup"))

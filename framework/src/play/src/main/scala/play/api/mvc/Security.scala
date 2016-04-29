@@ -42,7 +42,8 @@ object Security {
    */
   def Authenticated[A](
     userinfo: RequestHeader => Option[A],
-    onUnauthorized: RequestHeader => Result)(action: A => EssentialAction): EssentialAction = {
+    onUnauthorized: RequestHeader => Result
+  )(action: A => EssentialAction): EssentialAction = {
 
     EssentialAction { request =>
       userinfo(request).map { user =>
@@ -83,7 +84,8 @@ object Security {
    */
   def Authenticated(action: String => EssentialAction): EssentialAction = Authenticated(
     req => req.session.get(username),
-    _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
+    _ => Unauthorized(views.html.defaultpages.unauthorized())
+  )(action)
 
   /**
    * An authenticated request
@@ -128,8 +130,10 @@ object Security {
    * @param userinfo The function that looks up the user info.
    * @param onUnauthorized The function to get the result for when no authenticated user can be found.
    */
-  class AuthenticatedBuilder[U](userinfo: RequestHeader => Option[U],
-    onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))
+  class AuthenticatedBuilder[U](
+    userinfo: RequestHeader => Option[U],
+    onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())
+  )
       extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R] {
 
     def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) =
@@ -188,8 +192,10 @@ object Security {
      * @param userinfo The function that looks up the user info.
      * @param onUnauthorized The function to get the result for when no authenticated user can be found.
      */
-    def apply[U](userinfo: RequestHeader => Option[U],
-      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
+    def apply[U](
+      userinfo: RequestHeader => Option[U],
+      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())
+    ): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
 
     /**
      * Simple authenticated action builder that looks up the username from the session

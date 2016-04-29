@@ -127,7 +127,9 @@ object JsPathSpec extends Specification {
               "key1111" -> Json.arr(
                 Json.obj("alpha" -> "value11111", "key11112" -> "value11112"),
                 "beta1",
-                Json.obj("key11121" -> "value11121", "key11122" -> "value111122")))),
+                Json.obj("key11121" -> "value11121", "key11122" -> "value111122")
+              )
+            )),
             "key12"
           ),
           "key2" -> Json.obj(

@@ -20,10 +20,12 @@ import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory }
  * @param data The data to load the key store file from.
  * @param password The password to use to load the key store file, if the file is password protected.
  */
-case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
+case class KeyStoreConfig(
+    storeType: String = KeyStore.getDefaultType,
     filePath: Option[String] = None,
     data: Option[String] = None,
-    password: Option[String] = None) {
+    password: Option[String] = None
+) {
 
   assert(filePath.isDefined ^ data.isDefined, "Either key store path or data must be defined, but not both.")
 }
@@ -37,9 +39,11 @@ case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
  * @param filePath The path of the key store file.
  * @param data The data to load the key store file from.
  */
-case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
+case class TrustStoreConfig(
+    storeType: String = KeyStore.getDefaultType,
     filePath: Option[String],
-    data: Option[String]) {
+    data: Option[String]
+) {
 
   assert(filePath.isDefined ^ data.isDefined, "Either trust store path or data must be defined, but not both.")
 }
@@ -52,7 +56,8 @@ case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
  */
 case class KeyManagerConfig(
   algorithm: String = KeyManagerFactory.getDefaultAlgorithm,
-  keyStoreConfigs: Seq[KeyStoreConfig] = Nil)
+  keyStoreConfigs: Seq[KeyStoreConfig] = Nil
+)
 
 /**
  * The trust manager config.
@@ -62,7 +67,8 @@ case class KeyManagerConfig(
  */
 case class TrustManagerConfig(
   algorithm: String = TrustManagerFactory.getDefaultAlgorithm,
-  trustStoreConfigs: Seq[TrustStoreConfig] = Nil)
+  trustStoreConfigs: Seq[TrustStoreConfig] = Nil
+)
 
 /**
  * SSL debug configuration.
@@ -81,7 +87,8 @@ case class SSLDebugConfig(
     sessioncache: Boolean = false,
     keymanager: Boolean = false,
     trustmanager: Boolean = false,
-    pluggability: Boolean = false) {
+    pluggability: Boolean = false
+) {
 
   /**
    * Whether any debug options are enabled.
@@ -150,7 +157,8 @@ case class SSLLooseConfig(
   allowWeakProtocols: Boolean = false,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
-  acceptAnyCertificate: Boolean = false)
+  acceptAnyCertificate: Boolean = false
+)
 
 /**
  * The SSL configuration.
@@ -182,7 +190,8 @@ case class SSLConfig(
   trustManagerConfig: TrustManagerConfig = TrustManagerConfig(),
   secureRandom: Option[SecureRandom] = None,
   debug: SSLDebugConfig = SSLDebugConfig(),
-  loose: SSLLooseConfig = SSLLooseConfig())
+  loose: SSLLooseConfig = SSLLooseConfig()
+)
 
 /**
  * Factory for creating SSL config (for use from Java).
@@ -235,7 +244,8 @@ class SSLConfigParser private[play] (c: PlayConfig, classLoader: ClassLoader) {
       trustManagerConfig = trustManagers,
       secureRandom = None,
       debug = debug,
-      loose = looseOptions)
+      loose = looseOptions
+    )
   }
 
   /**
@@ -304,7 +314,8 @@ class SSLConfigParser private[play] (c: PlayConfig, classLoader: ClassLoader) {
         keymanager = keymanager,
         trustmanager = trustmanager,
         pluggability = pluggability,
-        certpath = certpath)
+        certpath = certpath
+      )
     }
   }
 

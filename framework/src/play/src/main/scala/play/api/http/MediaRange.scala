@@ -39,11 +39,13 @@ case class MediaType(mediaType: String, mediaSubType: String, parameters: Seq[(S
  * @param qValue The Q value
  * @param acceptExtensions The accept extensions
  */
-class MediaRange(mediaType: String,
+class MediaRange(
+    mediaType: String,
     mediaSubType: String,
     parameters: Seq[(String, Option[String])],
     val qValue: Option[BigDecimal],
-    val acceptExtensions: Seq[(String, Option[String])]) extends MediaType(mediaType, mediaSubType, parameters) {
+    val acceptExtensions: Seq[(String, Option[String])]
+) extends MediaType(mediaType, mediaSubType, parameters) {
 
   /**
    * @return true if `mimeType` matches this media type, otherwise false

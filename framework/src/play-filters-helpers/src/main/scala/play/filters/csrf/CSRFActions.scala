@@ -30,11 +30,13 @@ import scala.concurrent.Future
  * @param next The composed action that is being protected.
  * @param errorHandler handling failed token error.
  */
-class CSRFAction(next: EssentialAction,
+class CSRFAction(
+    next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
     tokenSigner: CSRFTokenSigner = Crypto.crypto,
     tokenProvider: TokenProvider = new SignedTokenProvider(Crypto.crypto),
-    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
+    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler
+)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._
   import play.core.Execution.Implicits.trampoline

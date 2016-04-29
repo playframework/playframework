@@ -215,14 +215,16 @@ object Application {
 class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-class DefaultApplication @Inject() (environment: Environment,
+class DefaultApplication @Inject() (
+    environment: Environment,
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
-    override val materializer: Materializer) extends Application {
+    override val materializer: Materializer
+) extends Application {
 
   def path = environment.rootPath
 

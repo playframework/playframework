@@ -48,7 +48,8 @@ class ApplicationEvolutionsProvider @Inject() (
     dbApi: DBApi,
     environment: Environment,
     webCommands: WebCommands,
-    injector: Injector) extends Provider[ApplicationEvolutions] {
+    injector: Injector
+) extends Provider[ApplicationEvolutions] {
 
   lazy val get = new ApplicationEvolutions(config, reader, evolutions, injector.instanceOf[DynamicEvolutions], dbApi,
     environment, webCommands)

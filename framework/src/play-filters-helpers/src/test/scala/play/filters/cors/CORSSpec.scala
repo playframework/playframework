@@ -5,14 +5,14 @@ package play.filters.cors
 
 import javax.inject.Inject
 
-import play.api.http.{ContentTypes, HttpFilters}
+import play.api.http.{ ContentTypes, HttpFilters }
 import play.api.inject.bind
-import play.api.mvc.{Action, Result, Results}
+import play.api.mvc.{ Action, Result, Results }
 import play.api.routing.Router
 import play.api.routing.sird._
-import play.api.test.{FakeRequest, PlaySpecification}
-import play.api.{Application, Configuration}
-import play.filters.csrf.{CSRFCheck, CSRFFilter}
+import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.{ Application, Configuration }
+import play.filters.csrf.{ CSRFCheck, CSRFFilter }
 
 import scala.concurrent.Future
 
@@ -240,7 +240,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "forbid an empty Access-Control-Request-Method header in a preflight request" in withApplication() {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> ""
+      )).get
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)
@@ -275,7 +276,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "handle a basic preflight request with default config" in withApplication() {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
@@ -291,7 +293,8 @@ trait CORSCommonSpec extends PlaySpecification {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
         ACCESS_CONTROL_REQUEST_METHOD -> "PUT",
-        ACCESS_CONTROL_REQUEST_HEADERS -> "X-Header1, X-Header2")).get
+        ACCESS_CONTROL_REQUEST_HEADERS -> "X-Header1, X-Header2"
+      )).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
@@ -321,7 +324,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "handle a preflight request with credentials support off" in withApplication(conf = noCredentialsConf) {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone
@@ -349,7 +353,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "handle a preflight request with preflight caching off" in withApplication(conf = noPreflightCache) {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
@@ -366,7 +371,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "handle a preflight request with custom preflight cache max age" in withApplication(conf = customMaxAge) {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
@@ -383,7 +389,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "forbid a preflight request with a retricted request method" in withApplication(conf = restrictMethods) {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)
@@ -395,7 +402,8 @@ trait CORSCommonSpec extends PlaySpecification {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
         ACCESS_CONTROL_REQUEST_METHOD -> "PUT",
-        ACCESS_CONTROL_REQUEST_HEADERS -> "X-Header1, X-Header2")).get
+        ACCESS_CONTROL_REQUEST_HEADERS -> "X-Header1, X-Header2"
+      )).get
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)
@@ -421,7 +429,8 @@ trait CORSCommonSpec extends PlaySpecification {
     "forbid a preflight request with a retricted origin" in withApplication(conf = restrictOrigins) {
       val result = route(fakeRequest("OPTIONS", "/").withHeaders(
         ORIGIN -> "http://localhost",
-        ACCESS_CONTROL_REQUEST_METHOD -> "PUT")).get
+        ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+      )).get
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)

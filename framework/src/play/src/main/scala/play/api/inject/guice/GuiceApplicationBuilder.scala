@@ -28,9 +28,10 @@ final case class GuiceApplicationBuilder(
   binderOptions: Set[BinderOption] = BinderOption.defaults,
   eagerly: Boolean = false,
   loadConfiguration: Environment => Configuration = Configuration.load,
-  loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
-    environment, configuration, modules, overrides, disabled, binderOptions, eagerly
-  ) {
+  loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules
+) extends GuiceBuilder[GuiceApplicationBuilder](
+  environment, configuration, modules, overrides, disabled, binderOptions, eagerly
+) {
 
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
@@ -63,8 +64,8 @@ final case class GuiceApplicationBuilder(
     load((env, conf) => modules)
 
   /**
-    * Override the router with a fake router having the given routes, before falling back to the default router
-    */
+   * Override the router with a fake router having the given routes, before falling back to the default router
+   */
   def routes(routes: PartialFunction[(String, String), Handler]): GuiceApplicationBuilder =
     bindings(bind[FakeRouterConfig] to FakeRouterConfig(routes))
       .overrides(bind[Router].toProvider[FakeRouterProvider])
@@ -111,9 +112,9 @@ final case class GuiceApplicationBuilder(
    */
   def configureLoggerFactory(configuration: Configuration): ILoggerFactory = {
     val loggerFactory: ILoggerFactory = LoggerConfigurator(environment.classLoader).map { lc =>
-        lc.configure(environment, configuration, Map.empty)
-        lc.loggerFactory
-      }.getOrElse(org.slf4j.LoggerFactory.getILoggerFactory)
+      lc.configure(environment, configuration, Map.empty)
+      lc.loggerFactory
+    }.getOrElse(org.slf4j.LoggerFactory.getILoggerFactory)
 
     if (shouldDisplayLoggerDeprecationMessage(configuration)) {
       val logger = loggerFactory.getLogger("application")
@@ -140,7 +141,8 @@ final case class GuiceApplicationBuilder(
     binderOptions: Set[BinderOption] = binderOptions,
     eagerly: Boolean = eagerly,
     loadConfiguration: Environment => Configuration = loadConfiguration,
-    loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules): GuiceApplicationBuilder =
+    loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules
+  ): GuiceApplicationBuilder =
     new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly, loadConfiguration, loadModules)
 
   /**
@@ -153,7 +155,8 @@ final case class GuiceApplicationBuilder(
     overrides: Seq[GuiceableModule],
     disabled: Seq[Class[_]],
     binderOptions: Set[BinderOption] = binderOptions,
-    eagerly: Boolean): GuiceApplicationBuilder =
+    eagerly: Boolean
+  ): GuiceApplicationBuilder =
     copy(environment, configuration, modules, overrides, disabled, binderOptions, eagerly)
 
   /**
@@ -201,9 +204,9 @@ private class AdditionalRouterProvider(additional: Router) extends Provider[Rout
   lazy val get = Router.from(additional.routes.orElse(fallback.get.routes))
 }
 
-
 private class FakeRoutes(
-    injected: PartialFunction[(String, String), Handler], fallback: Router) extends Router {
+    injected: PartialFunction[(String, String), Handler], fallback: Router
+) extends Router {
   def documentation = fallback.documentation
   // Use withRoutes first, then delegate to the parentRoutes if no route is defined
   val routes = new AbstractPartialFunction[RequestHeader, Handler] {

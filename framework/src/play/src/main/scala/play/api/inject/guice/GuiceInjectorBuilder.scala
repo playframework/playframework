@@ -25,7 +25,8 @@ abstract class GuiceBuilder[Self] protected (
     overrides: Seq[GuiceableModule],
     disabled: Seq[Class[_]],
     binderOptions: Set[BinderOption],
-    eagerly: Boolean) {
+    eagerly: Boolean
+) {
 
   import BinderOption._
 
@@ -204,7 +205,8 @@ abstract class GuiceBuilder[Self] protected (
     overrides: Seq[GuiceableModule] = overrides,
     disabled: Seq[Class[_]] = disabled,
     binderOptions: Set[BinderOption] = binderOptions,
-    eagerly: Boolean = eagerly): Self =
+    eagerly: Boolean = eagerly
+  ): Self =
     newBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly)
 
   /**
@@ -218,7 +220,8 @@ abstract class GuiceBuilder[Self] protected (
     overrides: Seq[GuiceableModule],
     disabled: Seq[Class[_]],
     binderOptions: Set[BinderOption],
-    eagerly: Boolean): Self
+    eagerly: Boolean
+  ): Self
 
 }
 
@@ -232,7 +235,8 @@ final class GuiceInjectorBuilder(
   overrides: Seq[GuiceableModule] = Seq.empty,
   disabled: Seq[Class[_]] = Seq.empty,
   binderOptions: Set[BinderOption] = BinderOption.defaults,
-  eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
+  eagerly: Boolean = false
+) extends GuiceBuilder[GuiceInjectorBuilder](
   environment, configuration, modules, overrides, disabled, binderOptions, eagerly
 ) {
 
@@ -251,7 +255,8 @@ final class GuiceInjectorBuilder(
     overrides: Seq[GuiceableModule],
     disabled: Seq[Class[_]],
     binderOptions: Set[BinderOption],
-    eagerly: Boolean): GuiceInjectorBuilder =
+    eagerly: Boolean
+  ): GuiceInjectorBuilder =
     new GuiceInjectorBuilder(environment, configuration, modules, overrides, disabled, binderOptions, eagerly)
 }
 

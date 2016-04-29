@@ -63,7 +63,8 @@ object RoutesFileParser {
           file,
           "Missing package name",
           Some(route.call.pos.line),
-          Some(route.call.pos.column))
+          Some(route.call.pos.column)
+        )
       }
 
       if (route.call.controller.isEmpty) {
@@ -71,7 +72,8 @@ object RoutesFileParser {
           file,
           "Missing Controller",
           Some(route.call.pos.line),
-          Some(route.call.pos.column))
+          Some(route.call.pos.column)
+        )
       }
 
       route.path.parts.collect {
@@ -82,7 +84,8 @@ object RoutesFileParser {
                 file,
                 "It is not allowed to specify a fixed or default value for parameter: '" + name + "' extracted from the path",
                 Some(p.pos.line),
-                Some(p.pos.column))
+                Some(p.pos.column)
+              )
             }
             try {
               java.util.regex.Pattern.compile(regex)
@@ -92,7 +95,8 @@ object RoutesFileParser {
                   file,
                   e.getMessage,
                   Some(part.pos.line),
-                  Some(part.pos.column))
+                  Some(part.pos.column)
+                )
               }
             }
           }.getOrElse {
@@ -100,7 +104,8 @@ object RoutesFileParser {
               file,
               "Missing parameter in call definition: " + name,
               Some(part.pos.line),
-              Some(part.pos.column))
+              Some(part.pos.column)
+            )
           }
         }
       }

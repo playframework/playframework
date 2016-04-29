@@ -42,7 +42,8 @@ class AkkaHttpServer(
     val applicationProvider: ApplicationProvider,
     actorSystem: ActorSystem,
     materializer: Materializer,
-    stopHook: () => Future[_]) extends Server {
+    stopHook: () => Future[_]
+) extends Server {
 
   import AkkaHttpServer._
 
@@ -109,7 +110,8 @@ class AkkaHttpServer(
   // until we have an Application available before we can read any configuration. :(
   private lazy val modelConversion: ModelConversion = {
     val forwardedHeaderHandler = new ForwardedHeaderHandler(
-      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(applicationProvider.get.toOption.map(_.configuration)))
+      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(applicationProvider.get.toOption.map(_.configuration))
+    )
     new ModelConversion(forwardedHeaderHandler)
   }
 
@@ -119,7 +121,8 @@ class AkkaHttpServer(
       requestId = requestId,
       remoteAddress = remoteAddress,
       secureProtocol = secure,
-      request = request)
+      request = request
+    )
     val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader)
     val responseFuture = executeHandler(
       newTryApp,
@@ -153,7 +156,8 @@ class AkkaHttpServer(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Option[Source[ByteString, _]],
-    handler: Handler): Future[HttpResponse] = {
+    handler: Handler
+  ): Future[HttpResponse] = {
 
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
@@ -199,7 +203,8 @@ class AkkaHttpServer(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Option[Source[ByteString, _]],
-    action: EssentialAction): Future[HttpResponse] = {
+    action: EssentialAction
+  ): Future[HttpResponse] = {
 
     import play.core.Execution.Implicits.trampoline
     val actionAccumulator: Accumulator[ByteString, Result] = action(taggedRequestHeader)

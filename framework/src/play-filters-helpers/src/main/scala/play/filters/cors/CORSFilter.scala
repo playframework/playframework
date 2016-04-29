@@ -36,7 +36,8 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
 class CORSFilter(
     override protected val corsConfig: CORSConfig = CORSConfig(),
     override protected val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-    private val pathPrefixes: Seq[String] = Seq("/"))(override implicit val mat: Materializer) extends Filter with AbstractCORSPolicy {
+    private val pathPrefixes: Seq[String] = Seq("/")
+)(override implicit val mat: Materializer) extends Filter with AbstractCORSPolicy {
 
   // Java constructor
   def this(corsConfig: CORSConfig, errorHandler: play.http.HttpErrorHandler, pathPrefixes: java.util.List[String])(mat: Materializer) = {

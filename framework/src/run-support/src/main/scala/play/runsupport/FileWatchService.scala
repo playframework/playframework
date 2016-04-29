@@ -157,11 +157,13 @@ private object JNotifyFileWatchService {
    */
   class JNotifyDelegate(classLoader: ClassLoader, listenerClass: Class[_], addWatchMethod: Method, removeWatchMethod: Method) {
     def addWatch(fileOrDirectory: String, listener: AnyRef): Int = {
-      addWatchMethod.invoke(null,
+      addWatchMethod.invoke(
+        null,
         fileOrDirectory, // The file or directory to watch
         15: java.lang.Integer, // flags to say watch for all events
         true: java.lang.Boolean, // Watch subtree
-        listener).asInstanceOf[Int]
+        listener
+      ).asInstanceOf[Int]
     }
     def removeWatch(id: Int): Unit = {
       try {
@@ -367,12 +369,14 @@ private[runsupport] object GlobalStaticVar {
     // Now we construct a MBean that exposes the AtomicReference.get method
     val getMethod = classOf[AtomicReference[_]].getMethod("get")
     val getInfo = new ModelMBeanOperationInfo("The value", getMethod)
-    val mmbi = new ModelMBeanInfoSupport("GlobalStaticVar",
+    val mmbi = new ModelMBeanInfoSupport(
+      "GlobalStaticVar",
       "A global static variable",
       null, // no attributes
       null, // no constructors
       Array(getInfo), // the operation
-      null); // no notifications
+      null
+    ); // no notifications
 
     val mmb = new RequiredModelMBean(mmbi)
     mmb.setManagedResource(reference, "ObjectReference")

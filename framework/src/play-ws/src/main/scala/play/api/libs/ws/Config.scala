@@ -15,14 +15,16 @@ import scala.concurrent.duration._
 /**
  * WS client config
  */
-case class WSClientConfig(connectionTimeout: Duration = 2.minutes,
+case class WSClientConfig(
+  connectionTimeout: Duration = 2.minutes,
   idleTimeout: Duration = 2.minutes,
   requestTimeout: Duration = 2.minutes,
   followRedirects: Boolean = true,
   useProxyProperties: Boolean = true,
   userAgent: Option[String] = None,
   compressionEnabled: Boolean = false,
-  ssl: SSLConfig = SSLConfig())
+  ssl: SSLConfig = SSLConfig()
+)
 
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
@@ -57,6 +59,7 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
       useProxyProperties = useProxyProperties,
       userAgent = userAgent,
       compressionEnabled = compressionEnabled,
-      ssl = sslConfig)
+      ssl = sslConfig
+    )
   }
 }

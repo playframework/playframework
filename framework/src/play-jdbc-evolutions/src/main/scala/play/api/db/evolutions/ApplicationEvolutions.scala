@@ -25,7 +25,8 @@ class ApplicationEvolutions @Inject() (
     dynamicEvolutions: DynamicEvolutions,
     dbApi: DBApi,
     environment: Environment,
-    webCommands: WebCommands) {
+    webCommands: WebCommands
+) {
 
   private val logger = Logger(classOf[ApplicationEvolutions])
 
@@ -246,13 +247,16 @@ case class DefaultEvolutionsDatasourceConfig(
   autocommit: Boolean,
   useLocks: Boolean,
   autoApply: Boolean,
-  autoApplyDowns: Boolean) extends EvolutionsDatasourceConfig
+  autoApplyDowns: Boolean
+) extends EvolutionsDatasourceConfig
 
 /**
  * Default evolutions configuration.
  */
-class DefaultEvolutionsConfig(defaultDatasourceConfig: EvolutionsDatasourceConfig,
-    datasources: Map[String, EvolutionsDatasourceConfig]) extends EvolutionsConfig {
+class DefaultEvolutionsConfig(
+    defaultDatasourceConfig: EvolutionsDatasourceConfig,
+    datasources: Map[String, EvolutionsDatasourceConfig]
+) extends EvolutionsConfig {
   def forDatasource(db: String) = datasources.getOrElse(db, defaultDatasourceConfig)
 }
 
@@ -386,7 +390,8 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
  */
 case class InvalidDatabaseRevision(db: String, script: String) extends PlayException.RichDescription(
   "Database '" + db + "' needs evolution!",
-  "An SQL script need to be run on your database.") {
+  "An SQL script need to be run on your database."
+) {
 
   def subTitle = "This SQL script must be run:"
   def content = script

@@ -35,10 +35,12 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
    *
    * Will return a failure if there's a protocol error or some other error in the header.
    */
-  def convertRequest(requestId: Long,
+  def convertRequest(
+    requestId: Long,
     remoteAddress: InetSocketAddress,
     sslHandler: Option[SslHandler],
-    request: HttpRequest): Try[RequestHeader] = {
+    request: HttpRequest
+  ): Try[RequestHeader] = {
 
     if (request.getDecoderResult.isFailure) {
       Failure(request.getDecoderResult.cause())

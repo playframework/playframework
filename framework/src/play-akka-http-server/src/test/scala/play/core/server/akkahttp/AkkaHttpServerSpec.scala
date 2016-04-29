@@ -85,7 +85,8 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       requestFromServer("/abc") { request =>
         request.withHeaders(
           ACCEPT_ENCODING -> "utf-8",
-          ACCEPT_LANGUAGE -> "en-NZ").get()
+          ACCEPT_LANGUAGE -> "en-NZ"
+        ).get()
       } {
         case ("GET", "/abc") => Action { implicit request =>
           Ok(headerDump(ACCEPT_ENCODING, ACCEPT_LANGUAGE))
@@ -179,7 +180,8 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
     "support WithServer form" in new WithServer(
       app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build(),
-      serverProvider = Some(AkkaHttpServer.provider)) {
+      serverProvider = Some(AkkaHttpServer.provider)
+    ) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
       response.body must_== "Some(akka-http)"

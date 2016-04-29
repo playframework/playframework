@@ -24,7 +24,8 @@ object Ciphers {
 
   def recommendedCiphers: Seq[String] = foldVersion(
     run16 = java16RecommendedCiphers,
-    runHigher = java17RecommendedCiphers)
+    runHigher = java17RecommendedCiphers
+  )
 
   lazy val java17RecommendedCiphers: Seq[String] = {
     SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites

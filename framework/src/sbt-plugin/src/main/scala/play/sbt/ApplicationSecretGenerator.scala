@@ -73,8 +73,10 @@ object ApplicationSecretGenerator {
     } else {
       val lineNumber: Int = secretConfigOrigin.lineNumber - 1
 
-      val newLines: List[String] = lines.updated(lineNumber,
-        lines(lineNumber).replace(secretConfigValue.unwrapped().asInstanceOf[String], newSecret))
+      val newLines: List[String] = lines.updated(
+        lineNumber,
+        lines(lineNumber).replace(secretConfigValue.unwrapped().asInstanceOf[String], newSecret)
+      )
 
       // removes existing application.secret key
       if (config.hasPath("application.secret")) {

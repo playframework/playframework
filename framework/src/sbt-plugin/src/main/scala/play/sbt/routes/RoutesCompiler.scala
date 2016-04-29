@@ -20,10 +20,14 @@ object RoutesKeys {
   val routes = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
   val routesImport = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
   val routesGenerator = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
-  val generateReverseRouter = SettingKey[Boolean]("playGenerateReverseRouter",
-    "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
-  val namespaceReverseRouter = SettingKey[Boolean]("playNamespaceReverseRouter",
-    "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
+  val generateReverseRouter = SettingKey[Boolean](
+    "playGenerateReverseRouter",
+    "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed."
+  )
+  val namespaceReverseRouter = SettingKey[Boolean](
+    "playNamespaceReverseRouter",
+    "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions."
+  )
 
   /**
    * This class is used to avoid infinite recursions when configuring aggregateReverseRoutes, since it makes the
@@ -38,8 +42,10 @@ object RoutesKeys {
     implicit def fromProject(project: => Project): LazyProjectReference = new LazyProjectReference(project)
   }
 
-  val aggregateReverseRoutes = SettingKey[Seq[LazyProjectReference]]("playAggregateReverseRoutes",
-    "A list of projects that reverse routes should be aggregated from.")
+  val aggregateReverseRoutes = SettingKey[Seq[LazyProjectReference]](
+    "playAggregateReverseRoutes",
+    "A list of projects that reverse routes should be aggregated from."
+  )
 
   val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator
   val StaticRoutesGenerator = play.routes.compiler.StaticRoutesGenerator
@@ -203,7 +209,8 @@ object RoutesCompiler extends AutoPlugin {
 private case class RoutesCompilerOp(task: RoutesCompilerTask, generatorId: String, playVersion: String)
 
 case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException.ExceptionSource(
-  "Compilation error", message) with FeedbackProvidedException {
+  "Compilation error", message
+) with FeedbackProvidedException {
   def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
   def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
   def input = IO.read(source)

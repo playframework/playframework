@@ -115,8 +115,10 @@ object WebSocketHandler {
 
   private def frameToRawMessage(header: FrameHeader, data: ByteString) = {
     val unmasked = FrameEventParser.mask(data, header.mask)
-    RawMessage(frameOpCodeToMessageType(header.opcode),
-      unmasked, header.fin)
+    RawMessage(
+      frameOpCodeToMessageType(header.opcode),
+      unmasked, header.fin
+    )
   }
 
   /**
@@ -186,7 +188,8 @@ object WebSocketHandler {
           setHandlers(in, out, this)
 
         }
-      }), Merge(2, eagerComplete = true))
+      }
+    ), Merge(2, eagerComplete = true))
   }
 
   private case class Frame(header: FrameHeader, data: ByteString) {

@@ -28,8 +28,10 @@ private[server] object WebSocketHandler {
 
     // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
-    SynchronousMappedStreams.transform(WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow).toProcessor.run(),
-      frameToMessage, messageToFrame)
+    SynchronousMappedStreams.transform(
+      WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow).toProcessor.run(),
+      frameToMessage, messageToFrame
+    )
   }
 
   /**

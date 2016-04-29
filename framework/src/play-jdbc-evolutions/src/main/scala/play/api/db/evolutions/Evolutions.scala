@@ -122,7 +122,8 @@ object Evolutions {
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment) {
     val evolutions = environment.getFile(fileName(db, revision))
     Files.createDirectory(environment.getFile(directoryName(db)).toPath)
-    writeFileIfChanged(evolutions,
+    writeFileIfChanged(
+      evolutions,
       """|# --- %s
          |
          |# --- !Ups
@@ -131,7 +132,8 @@ object Evolutions {
          |# --- !Downs
          |%s
          |
-         |""".stripMargin.format(comment, ups, downs))
+         |""".stripMargin.format(comment, ups, downs)
+    )
   }
 
   private def writeFileIfChanged(path: File, content: String): Unit = {

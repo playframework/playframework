@@ -225,7 +225,8 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         throw io
       case e: Exception =>
         throw new RuntimeException(
-          s"Exception while reading response $responseDesc ${e.getClass.getName}: ${e.getMessage}", e)
+          s"Exception while reading response $responseDesc ${e.getClass.getName}: ${e.getMessage}", e
+        )
     }
   }
 

@@ -52,7 +52,8 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
     clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain,
-    body: B = this.body): FakeRequest[B] = {
+    body: B = this.body
+  ): FakeRequest[B] = {
     new FakeRequest[B](
       method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain
     )
@@ -81,10 +82,10 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    */
   def withFlash(data: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+      Cookies.mergeCookieHeader(
+        headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
         Seq(Flash.encodeAsCookie(new Flash(flash.data ++ data)))
-      )
-    )
+      ))
   }
 
   /**
@@ -92,8 +93,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies)
-    )
+      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies))
   }
 
   /**
@@ -101,10 +101,10 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+      Cookies.mergeCookieHeader(
+        headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
         Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
-      )
-    )
+      ))
   }
 
   /**

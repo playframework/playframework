@@ -35,13 +35,15 @@ trait JavaHelpers {
       }
 
       private def makeJavaCookie(cookie: Cookie): JCookie = {
-        new JCookie(cookie.name,
+        new JCookie(
+          cookie.name,
           cookie.value,
           cookie.maxAge.map(i => new Integer(i)).orNull,
           cookie.path,
           cookie.domain.orNull,
           cookie.secure,
-          cookie.httpOnly)
+          cookie.httpOnly
+        )
       }
 
       def iterator: java.util.Iterator[JCookie] = {
@@ -100,7 +102,8 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava)
+      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava
+    )
   }
 
   /**

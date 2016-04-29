@@ -17,7 +17,8 @@ import java.io.{ InputStream, File }
 case class Environment(
     rootPath: File,
     classLoader: ClassLoader,
-    mode: Mode.Mode) {
+    mode: Mode.Mode
+) {
 
   /**
    * Retrieves a file relative to the application root path.

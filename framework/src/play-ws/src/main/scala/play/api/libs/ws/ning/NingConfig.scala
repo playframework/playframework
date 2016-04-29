@@ -31,7 +31,8 @@ import scala.concurrent.duration._
  * @param keepAlive whether connection pooling should be used.
  */
 @deprecated("Use AhcWSClientConfig", "2.5")
-case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
+case class NingWSClientConfig(
+  wsClientConfig: WSClientConfig = WSClientConfig(),
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
   maxConnectionLifetime: Duration = Duration.Inf,
@@ -39,7 +40,8 @@ case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
   disableUrlEncoding: Boolean = false,
-  keepAlive: Boolean = true)
+  keepAlive: Boolean = true
+)
 
 /**
  * Factory for creating NingWSClientConfig, for use from Java.
@@ -100,7 +102,8 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
    * @return the new builder
    */
   def modifyUnderlying(
-    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder): NingAsyncHttpClientConfigBuilder = {
+    modify: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder
+  ): NingAsyncHttpClientConfigBuilder = {
     new NingAsyncHttpClientConfigBuilder(ningConfig) {
       override val addCustomSettings = modify compose NingAsyncHttpClientConfigBuilder.this.addCustomSettings
       override val builder = NingAsyncHttpClientConfigBuilder.this.builder

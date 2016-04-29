@@ -48,7 +48,8 @@ class NettyServer(
     config: ServerConfig,
     val applicationProvider: ApplicationProvider,
     stopHook: () => Future[_],
-    val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
+    val actorSystem: ActorSystem
+)(implicit val materializer: Materializer) extends Server {
 
   private val serverConfig = PlayConfig(config.configuration).get[PlayConfig]("play.server")
   private val nettyConfig = serverConfig.get[PlayConfig]("netty")
@@ -312,7 +313,8 @@ object NettyServer {
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
     new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem)(
-      application.materializer)
+      application.materializer
+    )
   }
 
   /**
@@ -335,7 +337,8 @@ trait NettyServerComponents {
     // Start the application first
     Play.start(application)
     new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem)(
-      application.materializer)
+      application.materializer
+    )
   }
 
   lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)

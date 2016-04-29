@@ -46,11 +46,13 @@ object XMLSpec extends Specification {
     "parse XML bodies without loading in a related schema from a parameter" in {
       val externalParameterEntity = File.createTempFile("xep", ".dtd")
       val externalGeneralEntity = File.createTempFile("xxe", ".txt")
-      writeStringToFile(externalParameterEntity,
+      writeStringToFile(
+        externalParameterEntity,
         s"""
           |<!ENTITY % xge SYSTEM "${externalGeneralEntity.toURI}">
           |<!ENTITY % pe "<!ENTITY xxe '%xge;'>">
-        """.stripMargin)
+        """.stripMargin
+      )
       writeStringToFile(externalGeneralEntity, "I shouldnt be there!")
       externalGeneralEntity.deleteOnExit()
       externalParameterEntity.deleteOnExit()

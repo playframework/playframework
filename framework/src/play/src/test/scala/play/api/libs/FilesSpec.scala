@@ -75,7 +75,8 @@ object FilesSpec extends Specification with After {
 
       "works when using compile time dependency injection" in {
         val context = ApplicationLoader.createContext(
-          new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
+          new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test)
+        )
         val appLoader = new ApplicationLoader {
           def load(context: Context) = {
             (new BuiltInComponentsFromContext(context) {

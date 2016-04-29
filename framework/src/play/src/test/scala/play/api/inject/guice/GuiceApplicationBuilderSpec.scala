@@ -18,7 +18,8 @@ object GuiceApplicationBuilderSpec extends Specification {
       val injector = new GuiceApplicationBuilder()
         .bindings(
           new AModule,
-          bind[B].to[B1])
+          bind[B].to[B1]
+        )
         .injector
 
       injector.instanceOf[A] must beAnInstanceOf[A1]
@@ -30,7 +31,8 @@ object GuiceApplicationBuilderSpec extends Specification {
         .bindings(new AModule)
         .overrides(
           bind[Configuration] to new ExtendConfiguration("a" -> 1),
-          bind[A].to[A2])
+          bind[A].to[A2]
+        )
         .build
 
       app.configuration.getInt("a") must beSome(1)

@@ -74,7 +74,8 @@ class RequestHeaderSpec extends Specification {
   case class DummyRequestHeader(
       requestMethod: String = "GET",
       requestUri: String = "/",
-      headers: Headers = Headers()) extends RequestHeader {
+      headers: Headers = Headers()
+  ) extends RequestHeader {
     def id = 1
     def tags = Map()
     def uri = requestUri

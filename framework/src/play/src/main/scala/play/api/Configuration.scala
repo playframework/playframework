@@ -36,7 +36,8 @@ object Configuration {
     classLoader: ClassLoader,
     properties: Properties,
     directSettings: Map[String, AnyRef],
-    allowMissingApplicationConf: Boolean): Configuration = {
+    allowMissingApplicationConf: Boolean
+  ): Configuration = {
 
     try {
       // Get configuration from the system properties.
@@ -777,8 +778,8 @@ case class Configuration(underlying: Config) {
    * val configuration = Configuration.load()
    * val subKeys = configuration.subKeys
    * }}}
-    *
-    * @return the set of direct sub-keys available in this configuration
+   *
+   * @return the set of direct sub-keys available in this configuration
    */
   def subKeys: Set[String] = underlying.root().keySet().asScala.toSet
 
@@ -910,17 +911,17 @@ case class Configuration(underlying: Config) {
 private[play] class PlayConfig(val underlying: Config) {
 
   /**
-    * Get the config at the given path.
-    */
+   * Get the config at the given path.
+   */
   def get[A](path: String)(implicit loader: ConfigLoader[A]): A = {
     loader.load(underlying, path)
   }
 
   /**
-    * Get a prototyped sequence of objects.
-    *
-    * Each object in the sequence will fallback to the object loaded from prototype.$path.
-    */
+   * Get a prototyped sequence of objects.
+   *
+   * Each object in the sequence will fallback to the object loaded from prototype.$path.
+   */
   def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Seq[Config]](path).map { config =>
@@ -929,10 +930,10 @@ private[play] class PlayConfig(val underlying: Config) {
   }
 
   /**
-    * Get a prototyped map of objects.
-    *
-    * Each value in the map will fallback to the object loaded from prototype.$path.
-    */
+   * Get a prototyped map of objects.
+   *
+   * Each value in the map will fallback to the object loaded from prototype.$path.
+   */
   def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
     val prototype = if (prototypePath.isEmpty) {
       underlying
@@ -945,12 +946,12 @@ private[play] class PlayConfig(val underlying: Config) {
   }
 
   /**
-    * Get a deprecated configuration item.
-    *
-    * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
-    *
-    * Otherwise, the configuration from path will be looked up.
-    */
+   * Get a deprecated configuration item.
+   *
+   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up.
+   */
   def getDeprecated[A: ConfigLoader](path: String, deprecatedPaths: String*): A = {
     deprecatedPaths.collectFirst {
       case deprecated if underlying.hasPath(deprecated) =>
@@ -1044,8 +1045,7 @@ private[play] object ConfigLoader {
   implicit val seqBooleanLoader = ConfigLoader(_.getBooleanList).map(toScala(_).map(_.booleanValue()))
 
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader(config => path =>
-    if (!config.getIsNull(path)) FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS) else Duration.Inf
-  )
+    if (!config.getIsNull(path)) FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS) else Duration.Inf)
 
   implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] = ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))
     .map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))

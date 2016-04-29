@@ -108,13 +108,16 @@ object WritesSpec extends org.specs2.mutable.Specification {
 
     "be written as number" in {
       Writes.LocalDateNumberWrites.writes(
-        LocalDate ofEpochDay 1234567890L) aka "written date" must_== JsNumber(
-          BigDecimal valueOf 106666665696000000L)
+        LocalDate ofEpochDay 1234567890L
+      ) aka "written date" must_== JsNumber(
+          BigDecimal valueOf 106666665696000000L
+        )
     }
 
     "be written with default implicit as '2011-12-03'" in {
       writes(date("2011-12-03")) aka "written date" must_== JsString(
-        "2011-12-03")
+        "2011-12-03"
+      )
     }
 
     "be written with custom pattern as '03/12/2011'" in {

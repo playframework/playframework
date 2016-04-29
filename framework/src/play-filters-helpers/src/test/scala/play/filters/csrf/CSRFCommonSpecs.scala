@@ -51,50 +51,42 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     "accept requests with token in query string" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req.withQueryString(TokenName -> token), token)
-        .post(Map("foo" -> "bar"))
-      )(_.status must_== OK)
+        .post(Map("foo" -> "bar")))(_.status must_== OK)
     }
     "accept requests with token in form body" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
-        .post(Map("foo" -> "bar", TokenName -> token))
-      )(_.status must_== OK)
+        .post(Map("foo" -> "bar", TokenName -> token)))(_.status must_== OK)
     }
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
         .withHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
-        .post(multiPartFormDataBody(TokenName, token))
-      )(_.status must_== OK)
+        .post(multiPartFormDataBody(TokenName, token)))(_.status must_== OK)
     }
     "accept requests with token in header" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
         .withHeaders(HeaderName -> token)
-        .post(Map("foo" -> "bar"))
-      )(_.status must_== OK)
+        .post(Map("foo" -> "bar")))(_.status must_== OK)
     }
     "reject requests with nocheck header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
         .withHeaders(HeaderName -> "nocheck")
-        .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+        .post(Map("foo" -> "bar")))(_.status must_== errorStatusCode)
     }
     "reject requests with ajax header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
         .withHeaders("X-Requested-With" -> "a spoon")
-        .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+        .post(Map("foo" -> "bar")))(_.status must_== errorStatusCode)
     }
     "reject requests with different token in body" in {
       csrfCheckRequest(req => addToken(req, generate)
-        .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== errorStatusCode)
+        .post(Map("foo" -> "bar", TokenName -> generate)))(_.status must_== errorStatusCode)
     }
     "reject requests with token in session but none elsewhere" in {
       csrfCheckRequest(req => addToken(req, generate)
-        .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+        .post(Map("foo" -> "bar")))(_.status must_== errorStatusCode)
     }
     "reject requests with token in body but not in session" in {
       csrfCheckRequest(
@@ -143,13 +135,11 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
       "reject requests with unsigned token in body" in {
         csrfCheckRequest(req =>
-          addToken(req, generate).post(Map("foo" -> "bar", TokenName -> "foo"))
-        )(_.status must_== FORBIDDEN)
+          addToken(req, generate).post(Map("foo" -> "bar", TokenName -> "foo")))(_.status must_== FORBIDDEN)
       }
       "reject requests with unsigned token in session" in {
         csrfCheckRequest(req =>
-          addToken(req, "foo").post(Map("foo" -> "bar", TokenName -> generate))
-        ) { response =>
+          addToken(req, "foo").post(Map("foo" -> "bar", TokenName -> generate))) { response =>
           response.status must_== FORBIDDEN
           response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)) must beSome.like {
             case cookie => cookie.value must beNone
@@ -231,7 +221,8 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     }
 
     "allow configuring a header bypass" in {
-      def csrfCheckRequest = buildCsrfCheckRequest(false,
+      def csrfCheckRequest = buildCsrfCheckRequest(
+        false,
         "play.filters.csrf.header.bypassHeaders.X-Requested-With" -> "*",
         "play.filters.csrf.header.bypassHeaders.Csrf-Token" -> "nocheck"
       )
@@ -239,14 +230,12 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       "accept requests with nocheck header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
           .withHeaders(HeaderName -> "nocheck")
-          .post(Map("foo" -> "bar"))
-        )(_.status must_== OK)
+          .post(Map("foo" -> "bar")))(_.status must_== OK)
       }
       "accept requests with ajax header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
           .withHeaders("X-Requested-With" -> "a spoon")
-          .post(Map("foo" -> "bar"))
-        )(_.status must_== OK)
+          .post(Map("foo" -> "bar")))(_.status must_== OK)
       }
     }
   }
@@ -283,7 +272,6 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     running(TestServer(testServerPort, GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
       .routes(router)
-      .build()
-    ))(block)
+      .build()))(block)
   }
 }

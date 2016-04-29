@@ -294,20 +294,22 @@ trait DefaultWrites {
   }
 
   /**
-    * The default typeclass to write a `java.time.LocalDateTime`,
-    * using '2011-12-03T10:15:30' format.
-    */
+   * The default typeclass to write a `java.time.LocalDateTime`,
+   * using '2011-12-03T10:15:30' format.
+   */
   implicit val DefaultLocalDateTimeWrites =
     temporalWrites[LocalDateTime, DateTimeFormatter](
-      DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+      DateTimeFormatter.ISO_LOCAL_DATE_TIME
+    )
 
   /**
-    * The default typeclass to write a `java.time.OffsetDateTime`,
-    * using '2011-12-03T10:15:30+02:00' format.
-    */
+   * The default typeclass to write a `java.time.OffsetDateTime`,
+   * using '2011-12-03T10:15:30+02:00' format.
+   */
   implicit val DefaultOffsetDateTimeWrites =
     temporalWrites[OffsetDateTime, DateTimeFormatter](
-      DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+      DateTimeFormatter.ISO_OFFSET_DATE_TIME
+    )
 
   /**
    * The default typeclass to write a `java.time.ZonedDateTime`,
@@ -315,7 +317,8 @@ trait DefaultWrites {
    */
   implicit val DefaultZonedDateTimeWrites =
     temporalWrites[ZonedDateTime, DateTimeFormatter](
-      DateTimeFormatter.ISO_ZONED_DATE_TIME)
+      DateTimeFormatter.ISO_ZONED_DATE_TIME
+    )
 
   /**
    * The default typeclass to write a `java.time.LocalDate`,
@@ -323,7 +326,8 @@ trait DefaultWrites {
    */
   implicit val DefaultLocalDateWrites =
     temporalWrites[LocalDate, DateTimeFormatter](
-      DateTimeFormatter.ISO_LOCAL_DATE)
+      DateTimeFormatter.ISO_LOCAL_DATE
+    )
 
   /**
    * The default typeclass to write a `java.time.Instant`,
@@ -346,7 +350,8 @@ trait DefaultWrites {
   val LocalDateTimeNumberWrites: Writes[LocalDateTime] =
     new Writes[LocalDateTime] {
       def writes(t: LocalDateTime): JsValue = JsNumber(BigDecimal.valueOf(
-        t.toInstant(ZoneOffset.UTC).toEpochMilli))
+        t.toInstant(ZoneOffset.UTC).toEpochMilli
+      ))
     }
 
   /**
@@ -377,7 +382,8 @@ trait DefaultWrites {
    */
   val LocalDateNumberWrites: Writes[LocalDate] = new Writes[LocalDate] {
     def writes(t: LocalDate): JsValue = JsNumber(BigDecimal.valueOf(
-      t.atStartOfDay.toInstant(ZoneOffset.UTC).toEpochMilli))
+      t.atStartOfDay.toInstant(ZoneOffset.UTC).toEpochMilli
+    ))
   }
 
   /**

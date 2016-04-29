@@ -23,25 +23,22 @@ class OAuthSpec extends PlaySpecification {
   "OAuth" should {
 
     "sign a simple get request" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
-        hostUrl =>
-          WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
+        WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
 
     "sign a get request with query parameters" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
-        hostUrl =>
-          WS.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
+        WS.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
 
     "sign a post request with a body" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
-        hostUrl =>
-          WS.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
+      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
+        WS.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }

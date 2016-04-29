@@ -106,7 +106,8 @@ object ResultsSpec extends Specification {
       def testWithCookies(
         cookies1: List[Cookie],
         cookies2: List[Cookie],
-        expected: Option[Set[Cookie]]) = {
+        expected: Option[Set[Cookie]]
+      ) = {
         val result = Ok("hello").withCookies(cookies1: _*).withCookies(cookies2: _*)
         result.header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader(_).to[Set]) must_== expected
       }
@@ -115,27 +116,33 @@ object ResultsSpec extends Specification {
       testWithCookies(
         List(),
         List(),
-        None)
+        None
+      )
       testWithCookies(
         List(preferencesCookie),
         List(),
-        Some(Set(preferencesCookie)))
+        Some(Set(preferencesCookie))
+      )
       testWithCookies(
         List(),
         List(sessionCookie),
-        Some(Set(sessionCookie)))
+        Some(Set(sessionCookie))
+      )
       testWithCookies(
         List(),
         List(sessionCookie, preferencesCookie),
-        Some(Set(sessionCookie, preferencesCookie)))
+        Some(Set(sessionCookie, preferencesCookie))
+      )
       testWithCookies(
         List(sessionCookie, preferencesCookie),
         List(),
-        Some(Set(sessionCookie, preferencesCookie)))
+        Some(Set(sessionCookie, preferencesCookie))
+      )
       testWithCookies(
         List(preferencesCookie),
         List(sessionCookie),
-        Some(Set(preferencesCookie, sessionCookie)))
+        Some(Set(preferencesCookie, sessionCookie))
+      )
     }
 
     "support clearing a language cookie using clearingLang" in withApplication {

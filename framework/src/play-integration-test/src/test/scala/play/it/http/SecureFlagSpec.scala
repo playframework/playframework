@@ -36,8 +36,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
     val port = testServerPort
     running(TestServer(port, sslPort = sslPort, application = GuiceApplicationBuilder()
       .routes { case _ => action }
-      .build()
-    )) {
+      .build())) {
       block(port)
     }
   }

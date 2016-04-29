@@ -28,13 +28,15 @@ object JavaResultExtractor {
       }
 
       private def makeJavaCookie(cookie: Cookie): JCookie = {
-        new JCookie(cookie.name,
+        new JCookie(
+          cookie.name,
           cookie.value,
           cookie.maxAge.map(i => new Integer(i)).orNull,
           cookie.path,
           cookie.domain.orNull,
           cookie.secure,
-          cookie.httpOnly)
+          cookie.httpOnly
+        )
       }
 
       def iterator: java.util.Iterator[JCookie] = {

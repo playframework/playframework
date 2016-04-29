@@ -230,7 +230,8 @@ abstract class GeneratedRouter extends Router {
    */
   def createInvoker[T](
     fakeCall: => T,
-    handlerDef: HandlerDef)(implicit hif: HandlerInvokerFactory[T]): HandlerInvoker[T] = {
+    handlerDef: HandlerDef
+  )(implicit hif: HandlerInvokerFactory[T]): HandlerInvoker[T] = {
     val underlyingInvoker = hif.createInvoker(fakeCall, handlerDef)
     new TaggingInvoker(underlyingInvoker, handlerDef)
   }

@@ -63,10 +63,12 @@ object Reloader {
     }
   }
 
-  def filterArgs(args: Seq[String],
+  def filterArgs(
+    args: Seq[String],
     defaultHttpPort: Int,
     defaultHttpAddress: String,
-    devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {
+    devSettings: Seq[(String, String)]
+  ): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
     val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
@@ -289,7 +291,8 @@ class Reloader(
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
-    runSbtTask: String => AnyRef) extends BuildLink {
+    runSbtTask: String => AnyRef
+) extends BuildLink {
 
   // The current classloader for the application
   @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None

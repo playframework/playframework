@@ -69,8 +69,10 @@ private[routing] object RouterBuilderHelper {
                   // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
                   // it to instantiate the default body parser, we have to instantiate it ourselves.
                   val app = Play.privateMaybeApplication.get // throw exception if no current app
-                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(app.errorHandler),
-                    app.injector.instanceOf[HttpConfiguration])
+                  new play.mvc.BodyParser.Default(
+                    new JavaHttpErrorHandlerDelegate(app.errorHandler),
+                    app.injector.instanceOf[HttpConfiguration]
+                  )
                 }
                 Action.async(parser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request)
@@ -88,8 +90,7 @@ private[routing] object RouterBuilderHelper {
 
             Some(action)
           } else None
-        } else None
-      ))
+        } else None))
     }).asJava
   }
 }

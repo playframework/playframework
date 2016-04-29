@@ -41,7 +41,8 @@ object ServerProvider {
     appProvider: ApplicationProvider,
     actorSystem: ActorSystem,
     materializer: Materializer,
-    stopHook: () => Future[_])
+    stopHook: () => Future[_]
+  )
 
   /**
    * Load a server provider from the configuration and classloader.

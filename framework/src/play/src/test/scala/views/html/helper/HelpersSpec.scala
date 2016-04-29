@@ -109,9 +109,9 @@ object HelpersSpec extends Specification {
       val body = select.apply(form("foo"), Seq(
         "0" -> "test0",
         "1" -> "test1",
-        "2" -> "test2"),
-        '_disabled -> Seq("0", "2")
-      ).body
+        "2" -> "test2"
+      ),
+        '_disabled -> Seq("0", "2")).body
 
       body must contain("""<option value="0" disabled>test0</option>""")
       body must contain("""<option value="1">test1</option>""")
@@ -129,8 +129,7 @@ object HelpersSpec extends Specification {
       Forms.seq(tuple(
         "a" -> Forms.text,
         "b" -> Forms.text
-      ))
-    ))
+      ))))
     def renderComplex(form: Form[_], min: Int = 1) = repeat.apply(form("foo"), min) { f =>
       val a = f("a")
       val b = f("b")
@@ -188,7 +187,8 @@ object HelpersSpec extends Specification {
         Seq(("constraint.custom", Seq("constraint.customarg"))),
         Some("format.custom", Seq("format.customarg")),
         Seq(FormError("foo", "error.custom", Seq("error.customarg"))),
-        None)
+        None
+      )
 
       val body = inputText.apply(field).body
 

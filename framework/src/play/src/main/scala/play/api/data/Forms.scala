@@ -387,7 +387,8 @@ object Forms {
     numberMapping[Byte](Byte.MinValue, Byte.MaxValue, min, max, strict)
 
   @inline private def numberMapping[N: Numeric: Formatter](
-    typeMin: N, typeMax: N, min: N, max: N, strict: Boolean): Mapping[N] = {
+    typeMin: N, typeMax: N, min: N, max: N, strict: Boolean
+  ): Mapping[N] = {
     val number = of[N]
     if (min == typeMin && max == typeMax) {
       number

@@ -34,7 +34,8 @@ case class X(
   _6: String, _7: String, _8: String, _9: String, _10: String,
   _11: String, _12: String, _13: String, _14: String, _15: String,
   _16: String, _17: String, _18: String, _19: String, _20: String,
-  _21: String, _22: String)
+  _21: String, _22: String
+)
 
 case class Program(id: Long, name: String, logoPath: Option[String], logoThumb: Option[String])
 object Program {

@@ -106,7 +106,8 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     val body = Random.nextString(1000)
 
     "not buffer more than the configured threshold" in withApplication(
-      Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)), chunkedThreshold = 512) { implicit mat =>
+      Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)), chunkedThreshold = 512
+    ) { implicit mat =>
         val result = makeGzipRequest
         checkGzippedBody(result, body)
         await(result).body must beAnInstanceOf[HttpEntity.Chunked]

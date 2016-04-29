@@ -81,14 +81,16 @@ class StaticTestModule extends AbstractModule {
 
 class ScalaConfiguredModule(
     environment: Environment,
-    configuration: Configuration) extends AbstractModule {
+    configuration: Configuration
+) extends AbstractModule {
   def configure(): Unit = {
     bind(classOf[Foo]) to classOf[ScalaConfiguredFoo]
   }
 }
 class JavaConfiguredModule(
     environment: JavaEnvironment,
-    configuration: JavaConfiguration) extends AbstractModule {
+    configuration: JavaConfiguration
+) extends AbstractModule {
   def configure(): Unit = {
     bind(classOf[Foo]) to classOf[JavaConfiguredFoo]
   }

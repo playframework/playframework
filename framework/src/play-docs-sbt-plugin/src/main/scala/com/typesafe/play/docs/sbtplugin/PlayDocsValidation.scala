@@ -32,12 +32,14 @@ object PlayDocsValidation {
    *
    * This is the main markdown report for validating markdown docs.
    */
-  case class MarkdownRefReport(markdownFiles: Seq[File],
+  case class MarkdownRefReport(
+    markdownFiles: Seq[File],
     wikiLinks: Seq[LinkRef],
     resourceLinks: Seq[LinkRef],
     codeSamples: Seq[CodeSampleRef],
     relativeLinks: Seq[LinkRef],
-    externalLinks: Seq[LinkRef])
+    externalLinks: Seq[LinkRef]
+  )
 
   case class LinkRef(link: String, file: File, position: Int)
   case class CodeSampleRef(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
@@ -59,16 +61,20 @@ object PlayDocsValidation {
   case class CodeSample(source: String, segment: String,
     sourcePosition: Int, segmentPosition: Int)
 
-  case class TranslationReport(missingFiles: Seq[String],
+  case class TranslationReport(
+    missingFiles: Seq[String],
     introducedFiles: Seq[String],
     changedPathFiles: Seq[(String, String)],
     codeSampleIssues: Seq[TranslationCodeSamples],
     okFiles: Seq[String],
-    total: Int)
-  case class TranslationCodeSamples(name: String,
+    total: Int
+  )
+  case class TranslationCodeSamples(
+    name: String,
     missingCodeSamples: Seq[CodeSample],
     introducedCodeSamples: Seq[CodeSample],
-    totalCodeSamples: Int)
+    totalCodeSamples: Int
+  )
 
   /**
    * Configuration for validation.
@@ -388,16 +394,20 @@ object PlayDocsValidation {
       case link if !relativeLinkOk(link) => link
     }, "Bad relative link")
 
-    assertLinksNotMissing("Missing wiki resources test",
+    assertLinksNotMissing(
+      "Missing wiki resources test",
       report.resourceLinks.collect {
         case link if !fileExists(link.link) => link
-      }, "Could not find resource")
+      }, "Could not find resource"
+    )
 
     val (existing, nonExisting) = report.codeSamples.partition(sample => fileExists(sample.source))
 
-    assertLinksNotMissing("Missing source files test",
+    assertLinksNotMissing(
+      "Missing source files test",
       nonExisting.map(sample => LinkRef(sample.source, sample.file, sample.sourcePosition)),
-      "Could not find source file")
+      "Could not find source file"
+    )
 
     def segmentExists(sample: CodeSampleRef) = {
       if (sample.segment.nonEmpty) {

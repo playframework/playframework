@@ -281,7 +281,8 @@ package object templates {
           case (u, Parameter(name, typeName, None, Some(default))) =>
             """if(""" + safeKeyword(localNames.getOrElse(name, name)) + """ == """ + default + """) None else Some(""" + u + """)"""
           case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
-        }.mkString(", "))
+        }.mkString(", ")
+      )
 
     }
 
@@ -360,7 +361,8 @@ package object templates {
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? null : " + u + ")"
           case (u, Parameter(name, typeName, None, None)) => u
-        }.mkString(", "))
+        }.mkString(", ")
+      )
 
     }
 

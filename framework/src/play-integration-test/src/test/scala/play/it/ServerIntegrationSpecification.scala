@@ -48,7 +48,8 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   def TestServer(
     port: Int,
     application: Application = play.api.PlayCoreTestApplication(),
-    sslPort: Option[Int] = None): play.api.test.TestServer = {
+    sslPort: Option[Int] = None
+  ): play.api.test.TestServer = {
     play.api.test.TestServer(port, application, sslPort, Some(integrationServerProvider))
   }
 
@@ -57,8 +58,10 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    */
   abstract class WithServer(
     app: play.api.Application = play.api.test.FakeApplication(),
-    port: Int = play.api.test.Helpers.testServerPort) extends play.api.test.WithServer(
-    app, port, serverProvider = Some(integrationServerProvider))
+    port: Int = play.api.test.Helpers.testServerPort
+  ) extends play.api.test.WithServer(
+    app, port, serverProvider = Some(integrationServerProvider)
+  )
 
 }
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
