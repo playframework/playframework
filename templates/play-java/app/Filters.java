@@ -39,7 +39,7 @@ public class Filters implements HttpFilters {
       if (env.mode().equals(Mode.DEV)) {
           return new EssentialFilter[] { exampleFilter };
       } else {
-         return new EssentialFilter[] {};      
+         return new EssentialFilter[] {};
       }
     }
 

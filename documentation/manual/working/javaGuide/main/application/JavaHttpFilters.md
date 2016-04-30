@@ -27,7 +27,7 @@ We save a timestamp before invoking the next filter in the chain. Invoking the n
 
 ## Using filters
 
-The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/java/play/http/HttpFilters.html) interface in the root package called `Filters`:
+The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/java/play/http/HttpFilters.html) interface in the root package called `Filters`. Typically you should extend the [`DefaultHttpFilters`](api/java/play/http/DefaultHttpFilters.html) class and pass your filters to the varargs constructor:
 
 @[filters](code/javaguide/application/httpfilters/Filters.java)
 
