@@ -40,15 +40,12 @@ import simple.LoggingFilter
 
 // #filters
 import javax.inject.Inject
-import play.api.http.HttpFilters
+import play.api.http.DefaultHttpFilters
 import play.filters.gzip.GzipFilter
 
 class Filters @Inject() (
   gzip: GzipFilter,
   log: LoggingFilter
-) extends HttpFilters {
-
-  val filters = Seq(gzip, log)
-}
+) extends DefaultHttpFilters(gzip, log)
 //#filters
 }

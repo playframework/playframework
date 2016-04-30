@@ -9,11 +9,9 @@ object SecurityHeaders {
   //#filters
   import javax.inject.Inject
 
-  import play.api.http.HttpFilters
+  import play.api.http.DefaultHttpFilters
   import play.filters.headers.SecurityHeadersFilter
 
-  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
-    def filters = Seq(securityHeadersFilter)
-  }
+  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends DefaultHttpFilters(securityHeadersFilter)
   //#filters
 }
