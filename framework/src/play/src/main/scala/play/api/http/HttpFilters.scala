@@ -22,6 +22,17 @@ trait HttpFilters {
   def asJava: play.http.HttpFilters = new JavaHttpFiltersDelegate(this)
 }
 
+/**
+ * A default implementation of HttpFilters that accepts filters as a varargs constructor and exposes them as a
+ * filters sequence. For example:
+ *
+ * {{{
+ *   class Filters @Inject()(csrfFilter: CSRFFilter, corsFilter: CORSFilter)
+ *     extends DefaultHttpFilters(csrfFilter, corsFilter)
+ * }}}
+ */
+class DefaultHttpFilters(val filters: EssentialFilter*) extends HttpFilters
+
 object HttpFilters {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration) = {
@@ -39,19 +50,15 @@ object HttpFilters {
 /**
  * A filters provider that provides no filters.
  */
-class NoHttpFilters extends HttpFilters {
-  def filters = Nil
-}
+class NoHttpFilters extends DefaultHttpFilters
 
 object NoHttpFilters extends NoHttpFilters
 
 /**
- * Adapter from the Java HttpFliters to the Scala HttpFilters interface.
+ * Adapter from the Java HttpFilters to the Scala HttpFilters interface.
  */
-class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters) extends HttpFilters {
-  def filters = underlying.filters()
-}
+class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
+  extends DefaultHttpFilters(underlying.filters: _*)
 
-class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters) extends play.http.HttpFilters {
-  def filters() = delegate.filters.map(_.asJava).toArray
-}
+class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
+  extends play.http.DefaultHttpFilters(delegate.filters: _*)

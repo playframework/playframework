@@ -34,13 +34,12 @@ object ScalaCsrf extends PlaySpecification {
   "Play's CSRF protection" should {
     "allow global configuration" in new WithApplication() {
       //#http-filters
-      import play.api.http.HttpFilters
+      import play.api.http.DefaultHttpFilters
       import play.filters.csrf.CSRFFilter
       import javax.inject.Inject
 
-      class Filters @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
-        def filters = Seq(csrfFilter)
-      }
+      class Filters @Inject() (csrfFilter: CSRFFilter)
+        extends DefaultHttpFilters(csrfFilter)
       //#http-filters
       ok
     }
@@ -61,7 +60,7 @@ object ScalaCsrf extends PlaySpecification {
 
     def tokenFormAction(implicit app: Application) = addToken(Action { implicit request =>
       Ok(scalaguide.forms.html.csrf())
-    }) 
+    })
 
     "allow rendering a token in a query string" in new WithApplication() {
       val originalToken = Crypto.generateSignedToken

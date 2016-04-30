@@ -27,7 +27,7 @@ We save a timestamp before invoking the next filter in the chain. Invoking the n
 
 ## Using filters
 
-The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/scala/play/api/http/HttpFilters.html) trait in the root package:
+The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/scala/play/api/http/HttpFilters.html) trait in the root package. Typically you should extend the [`DefaultHttpFilters`](api/scala/play/api/http/DefaultHttpFilters.html) class and pass your filters to the varargs constructor:
 
 @[filters](code/ScalaHttpFilters.scala)
 
