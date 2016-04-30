@@ -75,8 +75,15 @@ public class JavaBodyParsers extends WithApplication {
 
     //#composing-class
     public static class UserBodyParser implements BodyParser<User> {
-        @Inject BodyParser.Json jsonParser;
-        @Inject Executor executor;
+
+        private BodyParser.Json jsonParser;
+        private Executor executor;
+
+        @Inject
+        public UserBodyParser(BodyParser.Json jsonParser, Executor executor) {
+            this.jsonParser = jsonParser;
+            this.executor = executor;
+        }
     //#composing-class
 
         //#composing-apply
@@ -145,8 +152,15 @@ public class JavaBodyParsers extends WithApplication {
 
     //#forward-body
     public static class ForwardingBodyParser implements BodyParser<WSResponse> {
-        @Inject WSClient ws;
-        @Inject Executor executor;
+        private WSClient ws;
+        private Executor executor;
+
+        @Inject
+        public ForwardingBodyParser(WSClient ws, Executor executor) {
+            this.ws = ws;
+            this.executor = executor;
+        }
+
         String url = "http://example.com";
 
         public Accumulator<ByteString, F.Either<Result, WSResponse>> apply(RequestHeader request) {
@@ -166,7 +180,12 @@ public class JavaBodyParsers extends WithApplication {
 
     //#csv
     public static class CsvBodyParser implements BodyParser<List<List<String>>> {
-        @Inject Executor executor;
+        private Executor executor;
+
+        @Inject
+        public CsvBodyParser(Executor executor) {
+            this.executor = executor;
+        }
 
         @Override
         public Accumulator<ByteString, F.Either<Result, List<List<String>>>> apply(RequestHeader request) {
