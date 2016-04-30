@@ -11,7 +11,12 @@ import javax.inject.Inject;
 
 public class ConfiguredActor extends UntypedActor {
 
-    @Inject Configuration configuration;
+    private Configuration configuration;
+
+    @Inject
+    public ConfiguredActor(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     @Override
     public void onReceive(Object message) throws Exception {
