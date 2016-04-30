@@ -380,7 +380,7 @@ object PlayBuild extends Build {
 
   lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
     .settings(
-      libraryDependencies ++= logback,
+      libraryDependencies += logback,
       parallelExecution in Test := false,
       // quieten deprecation warnings in tests
       scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
