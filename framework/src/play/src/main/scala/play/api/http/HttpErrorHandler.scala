@@ -127,15 +127,40 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a handler or resource is not found.
    *
+   * By default, the implementation of this method delegates to [[onProdNotFound]] when in prod mode, and
+   * [[onDevNotFound]] in dev mode.  It is recommended, if you want Play's debug info on the not found page in dev
+   * mode, that you override [[onProdNotFound]] instead of this method.
+   *
    * @param request The request that no handler was found to handle.
    * @param message A message.
    */
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(NotFound(environment.mode match {
-      case Mode.Prod => views.html.defaultpages.notFound(request.method, request.uri)
-      case _ => views.html.defaultpages.devNotFound(request.method, request.uri, router)
-    }))
+    environment.mode match {
+      case Mode.Prod => onProdNotFound(request, message)
+      case _ => onDevNotFound(request, message)
+    }
   }
+
+  /**
+   * Invoked in dev mode when a handler or resource is not found.
+   *
+   * @param request The request that no handler was found to handle.
+   * @param message A message.
+   */
+  protected def onDevNotFound(request: RequestHeader, message: String): Future[Result] =
+    Future.successful(NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, router)))
+
+  /**
+   * Invoked in prod mode when a handler or resource is not found.
+   *
+   * Override this rather than [[onNotFound]] if you don't want to change Play's debug output when logging route information
+   * in dev mode.
+   *
+   * @param request The request that no handler was found to handle.
+   * @param message A message.
+   */
+  protected def onProdNotFound(request: RequestHeader, message: String): Future[Result] =
+    Future.successful(NotFound(views.html.defaultpages.notFound(request.method, request.uri)))
 
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled by any of

@@ -87,18 +87,44 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked when a handler or resource is not found.
      *
+     * By default, the implementation of this method delegates to [[onProdNotFound()]] when in prod mode, and
+     * [[onDevNotFound()]] in dev mode.  It is recommended, if you want Play's debug info on the not found page in dev
+     * mode, that you override [[onProdNotFound()]] instead of this method.
+     *
      * @param request The request that no handler was found to handle.
      * @param message A message.
      */
     protected CompletionStage<Result> onNotFound(RequestHeader request, String message){
         if (environment.isProd()) {
-            return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.notFound.render(
-                    request.method(), request.uri())));
+            return onProdNotFound(request, message);
         } else {
-            return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.devNotFound.render(
-                    request.method(), request.uri(), Some.apply(routes.get())
-            )));
+            return onDevNotFound(request, message);
         }
+    }
+
+    /**
+     * Invoked in dev mode when a handler or resource is not found.
+     *
+     * @param request The request that no handler was found to handle.
+     * @param message A message.
+     */
+    protected CompletionStage<Result> onDevNotFound(RequestHeader request, String message){
+        return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.devNotFound.render(
+                request.method(), request.uri(), Some.apply(routes.get()))));
+    }
+
+    /**
+     * Invoked in prod mode when a handler or resource is not found.
+     *
+     * Override this rather than [[onNotFound()]] if you don't want to change Play's debug output when logging route information
+     * in dev mode.
+     *
+     * @param request The request that no handler was found to handle.
+     * @param message A message.
+     */
+    protected CompletionStage<Result> onProdNotFound(RequestHeader request, String message){
+        return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.notFound.render(
+                request.method(), request.uri())));
     }
 
     /**
