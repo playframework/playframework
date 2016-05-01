@@ -10,11 +10,11 @@ import play.api.{ Play, Application }
 
 object SpecsSpec extends Specification {
 
-  def getConfig(key: String)(implicit app: Application) = app.configuration.getString(key)
+  def getConfig(key: String)(implicit app: Application) = app.configuration.getOptional[String](key)
 
   "WithApplication context" should {
     "provide an app" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
-      app.configuration.getString("foo") must beSome("bar")
+      app.configuration.getOptional[String]("foo") must beSome("bar")
     }
     "make the app available implicitly" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
       getConfig("foo") must beSome("bar")

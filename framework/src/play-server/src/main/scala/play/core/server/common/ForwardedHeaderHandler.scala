@@ -4,7 +4,7 @@
 package play.core.server.common
 
 import java.net.InetAddress
-import play.api.{ PlayConfig, Configuration, Logger }
+import play.api.{ Configuration, Logger }
 import play.api.mvc.Headers
 import play.core.server.common.NodeIdentifierParser.Ip
 import scala.annotation.tailrec
@@ -213,7 +213,7 @@ private[server] object ForwardedHeaderHandler {
 
   object ForwardedHeaderHandlerConfig {
     def apply(configuration: Option[Configuration]): ForwardedHeaderHandlerConfig = {
-      val config = PlayConfig(configuration.getOrElse(Configuration.reference)).get[PlayConfig]("play.http.forwarded")
+      val config = configuration.getOrElse(Configuration.reference).get[Configuration]("play.http.forwarded")
 
       val version = config.get[String]("version") match {
         case "x-forwarded" => Xforwarded

@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 
+import com.typesafe.config.Config;
 import play.inject.Injector;
 import play.libs.Scala;
 
@@ -29,7 +30,17 @@ public interface Application {
      *
      * @return the configuration
      */
-    Configuration configuration();
+    @Deprecated
+    default Configuration configuration() {
+        return new Configuration(this.config());
+    }
+
+    /**
+     * Get the application configuration.
+     *
+     * @return the configuration
+     */
+    Config config();
 
     /**
      * Get the injector for this application.

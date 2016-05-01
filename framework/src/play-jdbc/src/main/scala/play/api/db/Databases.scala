@@ -11,7 +11,7 @@ import play.utils.{ ProxyDriver, Reflect }
 
 import com.typesafe.config.Config
 import scala.util.control.{ NonFatal, ControlThrowable }
-import play.api.{ Environment, Configuration, PlayConfig }
+import play.api.{ Environment, Configuration }
 
 /**
  * Creation helpers for manually instantiating databases.
@@ -94,7 +94,7 @@ object Databases {
  */
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
 
-  private val config = PlayConfig(configuration)
+  private val config = Configuration(configuration)
   val databaseConfig = DatabaseConfig.fromConfig(config, environment)
 
   // abstract methods to be implemented

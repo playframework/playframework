@@ -7,7 +7,7 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.inject.Module
 import play.api.mvc._
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ Environment, Configuration }
 
 /**
  * This class sets a number of common security headers on the HTTP request.
@@ -99,7 +99,7 @@ case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),
 object SecurityHeadersConfig {
 
   def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
-    val config = PlayConfig(conf).get[PlayConfig]("play.filters.headers")
+    val config = conf.get[Configuration]("play.filters.headers")
 
     SecurityHeadersConfig(
       frameOptions = config.get[Option[String]]("frameOptions"),

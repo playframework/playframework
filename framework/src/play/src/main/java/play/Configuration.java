@@ -20,8 +20,11 @@ import javax.inject.Singleton;
 
 /**
  * The current application configuration.
+ *
+ * @deprecated Use Config instead.
  */
 @Singleton
+@Deprecated
 public class Configuration {
 
     /**

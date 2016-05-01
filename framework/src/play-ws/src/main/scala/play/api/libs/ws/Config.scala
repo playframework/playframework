@@ -8,7 +8,7 @@ package play.api.libs.ws
 import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.libs.ws.ssl.{ SSLConfigParser, SSLConfig }
-import play.api.{ PlayConfig, Environment, Configuration }
+import play.api.{ Environment, Configuration }
 
 import scala.concurrent.duration._
 
@@ -34,7 +34,7 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
 
   def parse(): WSClientConfig = {
 
-    val config = PlayConfig(configuration).getDeprecatedWithFallback("play.ws", "ws")
+    val config = configuration.getDeprecatedWithFallback("play.ws", "ws")
 
     val connectionTimeout = config.get[Duration]("timeout.connection")
     val idleTimeout = config.get[Duration]("timeout.idle")
@@ -47,7 +47,7 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
 
     val compressionEnabled = config.get[Boolean]("compressionEnabled")
 
-    val sslConfig = new SSLConfigParser(config.get[PlayConfig]("ssl"), environment.classLoader).parse()
+    val sslConfig = new SSLConfigParser(config.get[Configuration]("ssl"), environment.classLoader).parse()
 
     WSClientConfig(
       connectionTimeout = connectionTimeout,

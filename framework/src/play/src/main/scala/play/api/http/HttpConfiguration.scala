@@ -6,7 +6,7 @@ package play.api.http
 import javax.inject.{ Singleton, Inject, Provider }
 
 import com.typesafe.config.ConfigMemorySize
-import play.api.{ PlayConfig, Application, Play, Configuration }
+import play.api.{ Application, Play, Configuration }
 import play.core.netty.utils.{ ServerCookieDecoder, ClientCookieEncoder, ClientCookieDecoder, ServerCookieEncoder }
 
 import scala.concurrent.duration.FiniteDuration
@@ -103,12 +103,11 @@ object HttpConfiguration {
     lazy val get = fromConfiguration(configuration)
   }
 
-  def fromConfiguration(configuration: Configuration) = {
-    val config = PlayConfig(configuration)
+  def fromConfiguration(config: Configuration) = {
     val context = {
       val ctx = config.getDeprecated[String]("play.http.context", "application.context")
       if (!ctx.startsWith("/")) {
-        throw configuration.globalError("play.http.context must start with a /")
+        throw config.globalError("play.http.context must start with a /")
       }
       ctx
     }

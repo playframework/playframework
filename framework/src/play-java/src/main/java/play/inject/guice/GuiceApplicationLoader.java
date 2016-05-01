@@ -43,7 +43,7 @@ public class GuiceApplicationLoader implements ApplicationLoader {
     public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
         return initialBuilder
             .in(context.environment())
-            .loadConfig(context.initialConfiguration())
+            .loadConfig(context.initialConfig())
             .overrides(overrides(context));
     }
 

@@ -5,15 +5,16 @@ package play.api.http
 
 import java.util.concurrent.CompletableFuture
 
+import com.typesafe.config.Config
 import org.specs2.mutable.Specification
 import play.api.inject.BindingKey
-import play.api.{ OptionalSourceMapper, Configuration, Mode, Environment }
-import play.api.mvc.{ Results, RequestHeader }
+import play.api.mvc.{ RequestHeader, Results }
 import play.api.routing._
+import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
 import play.core.test.{ FakeRequest, Fakes }
 
-import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
 
 object HttpErrorHandlerSpec extends Specification {
 
@@ -72,6 +73,7 @@ object HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[Router]).to(Router.empty),
         BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
         BindingKey(classOf[Configuration]).to(config),
+        BindingKey(classOf[Config]).to(config.underlying),
         BindingKey(classOf[Environment]).to(env)
       )).instanceOf[HttpErrorHandler]
   }

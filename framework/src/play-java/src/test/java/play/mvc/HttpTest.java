@@ -13,25 +13,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.validation.Validator;
+
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.Test;
 import play.Application;
-import play.Configuration;
 import play.Environment;
+import play.Play;
 import play.data.Birthday;
-import play.data.models.Task;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.Formats;
 import play.data.Money;
 import play.data.format.Formatters;
+import play.data.models.Task;
 import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
-import play.Play;
 import play.inject.guice.GuiceApplicationBuilder;
-import play.mvc.Http.*;
-import org.junit.Test;
-
-import javax.validation.Validator;
+import play.mvc.Http.Context;
+import play.mvc.Http.Cookie;
+import play.mvc.Http.RequestBuilder;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -53,15 +55,15 @@ public class HttpTest {
         return value;
     }
 
-    private static Configuration addLangs(Environment environment) {
-      Configuration langOverrides = new Configuration(ConfigFactory.parseString("play.i18n.langs = [\"en\", \"en-US\", \"fr\" ]"));
-      Configuration loaded = Configuration.load(environment);
+    private static Config addLangs(Environment environment) {
+      Config langOverrides = ConfigFactory.parseString("play.i18n.langs = [\"en\", \"en-US\", \"fr\" ]");
+      Config loaded = ConfigFactory.load(environment.classLoader());
       return langOverrides.withFallback(loaded);
     }
 
     private static void withApplication(Consumer<Application> r) {
         Application app = new GuiceApplicationBuilder()
-          .loadConfig(HttpTest::addLangs)
+          .withConfigLoader(HttpTest::addLangs)
           .build();
         play.api.Play.start(app.getWrappedApplication());
         try {

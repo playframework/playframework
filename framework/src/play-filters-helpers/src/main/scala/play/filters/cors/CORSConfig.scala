@@ -3,7 +3,7 @@
  */
 package play.filters.cors
 
-import play.api.{ PlayConfig, Configuration }
+import play.api.Configuration
 import play.filters.cors.CORSConfig.Origins
 
 import scala.concurrent.duration._
@@ -107,11 +107,11 @@ object CORSConfig {
    * }}}
    */
   def fromConfiguration(conf: Configuration): CORSConfig = {
-    val config = PlayConfig(conf).get[PlayConfig]("play.filters.cors")
+    val config = conf.get[Configuration]("play.filters.cors")
     fromUnprefixedConfiguration(config)
   }
 
-  private[cors] def fromUnprefixedConfiguration(config: PlayConfig): CORSConfig = {
+  private[cors] def fromUnprefixedConfiguration(config: Configuration): CORSConfig = {
     CORSConfig(
       allowedOrigins = config.get[Option[Seq[String]]]("allowedOrigins") match {
         case Some(allowed) => Origins.Matching(allowed.toSet)

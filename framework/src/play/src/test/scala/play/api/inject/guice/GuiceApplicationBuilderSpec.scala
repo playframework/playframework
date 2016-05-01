@@ -33,7 +33,7 @@ object GuiceApplicationBuilderSpec extends Specification {
           bind[A].to[A2])
         .build
 
-      app.configuration.getInt("a") must beSome(1)
+      app.configuration.get[Int]("a") must_== 1
       app.injector.instanceOf[A] must beAnInstanceOf[A2]
     }
 
@@ -54,7 +54,7 @@ object GuiceApplicationBuilderSpec extends Specification {
         .loadConfig(env => Configuration.load(env) ++ extraConfig)
         .build
 
-      app.configuration.getInt("a") must beSome(1)
+      app.configuration.get[Int]("a") must_== 1
     }
 
     "set module loader" in {

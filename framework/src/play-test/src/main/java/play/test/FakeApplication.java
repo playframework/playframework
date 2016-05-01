@@ -6,8 +6,9 @@ package play.test;
 import java.io.File;
 import java.util.Map;
 
+import com.typesafe.config.Config;
+
 import play.api.mvc.Handler;
-import play.Configuration;
 import play.inject.Injector;
 import play.libs.Scala;
 
@@ -20,7 +21,7 @@ import play.libs.Scala;
 public class FakeApplication implements play.Application {
 
     private final play.api.test.FakeApplication application;
-    private final Configuration configuration;
+    private final Config config;
     private final Injector injector;
 
     /**
@@ -42,7 +43,7 @@ public class FakeApplication implements play.Application {
             Scala.asScala((Map<String, Object>) additionalConfiguration),
             scala.PartialFunction$.MODULE$.<scala.Tuple2<String, String>, Handler>empty()
         );
-        this.configuration = application.injector().instanceOf(Configuration.class);
+        this.config = application.injector().instanceOf(Config.class);
         this.injector = application.injector().instanceOf(Injector.class);
     }
 
@@ -56,8 +57,18 @@ public class FakeApplication implements play.Application {
     /**
      * Get the application configuration.
      */
-    public Configuration configuration() {
-        return configuration;
+    public Config config() {
+        return config;
+    }
+
+    /**
+     * Get the application configuration.
+     *
+     * @deprecated Use config
+     */
+    @Deprecated
+    public play.Configuration configuration() {
+        return new play.Configuration(config);
     }
 
     /**

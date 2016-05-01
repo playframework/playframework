@@ -50,8 +50,8 @@ class NettyServer(
     stopHook: () => Future[_],
     val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
 
-  private val serverConfig = PlayConfig(config.configuration).get[PlayConfig]("play.server")
-  private val nettyConfig = serverConfig.get[PlayConfig]("netty")
+  private val serverConfig = config.configuration.get[Configuration]("play.server")
+  private val nettyConfig = serverConfig.get[Configuration]("netty")
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize = nettyConfig.get[Int]("maxHeaderSize")
   private val maxChunkSize = nettyConfig.get[Int]("maxChunkSize")
@@ -187,7 +187,7 @@ class NettyServer(
         case Duration(timeout, timeUnit) =>
           logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
           // only timeout if both reader and writer have been idle for the specified time
-          pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, TimeUnit.MILLISECONDS))
+          pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
       }
 
       val requestHandler = new PlayRequestHandler(this)

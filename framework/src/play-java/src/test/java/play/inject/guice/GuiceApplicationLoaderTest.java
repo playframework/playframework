@@ -3,18 +3,18 @@
  */
 package play.inject.guice;
 
-import com.google.common.collect.ImmutableMap;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import play.Application;
 import play.ApplicationLoader;
-import play.Configuration;
 import play.Environment;
-import play.libs.Scala;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static play.inject.Bindings.bind;
 
 public class GuiceApplicationLoaderTest {
@@ -43,10 +43,10 @@ public class GuiceApplicationLoaderTest {
         ApplicationLoader loader = new GuiceApplicationLoader() {
             @Override
             public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
-                Configuration extra = new Configuration("a = 1");
+                Config extra = ConfigFactory.parseString("a = 1");
                 return initialBuilder
                     .in(context.environment())
-                    .loadConfig(extra.withFallback(context.initialConfiguration()))
+                    .loadConfig(extra.withFallback(context.initialConfig()))
                     .overrides(overrides(context));
             }
         };

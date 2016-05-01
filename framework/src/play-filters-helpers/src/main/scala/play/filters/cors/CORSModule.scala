@@ -7,7 +7,7 @@ import javax.inject.{ Inject, Provider }
 
 import akka.stream.Materializer
 import play.api.http.HttpErrorHandler
-import play.api.{ Environment, PlayConfig, Configuration }
+import play.api.{ Environment, Configuration }
 import play.api.inject.Module
 
 /**
@@ -23,7 +23,7 @@ class CORSConfigProvider @Inject() (configuration: Configuration) extends Provid
 class CORSFilterProvider @Inject() (configuration: Configuration, errorHandler: HttpErrorHandler, corsConfig: CORSConfig,
     materializer: Materializer) extends Provider[CORSFilter] {
   lazy val get = {
-    val pathPrefixes = PlayConfig(configuration).get[Seq[String]]("play.filters.cors.pathPrefixes")
+    val pathPrefixes = configuration.get[Seq[String]]("play.filters.cors.pathPrefixes")
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)(materializer)
   }
 }
@@ -48,5 +48,5 @@ trait CORSComponents {
 
   lazy val corsConfig: CORSConfig = CORSConfig.fromConfiguration(configuration)
   lazy val corsFilter: CORSFilter = new CORSFilter(corsConfig, httpErrorHandler, corsPathPrefixes)
-  lazy val corsPathPrefixes: Seq[String] = PlayConfig(configuration).get[Seq[String]]("play.filters.cors.pathPrefixes")
+  lazy val corsPathPrefixes: Seq[String] = configuration.get[Seq[String]]("play.filters.cors.pathPrefixes")
 }

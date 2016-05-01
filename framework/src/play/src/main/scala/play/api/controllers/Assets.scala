@@ -98,13 +98,13 @@ private object AssetInfo {
     resource <- app.resource(name)
   } yield resource
 
-  lazy val defaultCharSet = config(_.getString("default.charset")).getOrElse("utf-8")
+  lazy val defaultCharSet = config(_.getOptional[String]("default.charset")).getOrElse("utf-8")
 
-  lazy val defaultCacheControl = config(_.getString("assets.defaultCache")).getOrElse("public, max-age=3600")
+  lazy val defaultCacheControl = config(_.getOptional[String]("assets.defaultCache")).getOrElse("public, max-age=3600")
 
-  lazy val aggressiveCacheControl = config(_.getString("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+  lazy val aggressiveCacheControl = config(_.getOptional[String]("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
 
-  lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
+  lazy val digestAlgorithm = config(_.getOptional[String]("assets.digest.algorithm")).getOrElse("md5")
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -166,7 +166,7 @@ private class AssetInfo(
   def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-  val configuredCacheControl = config(_.getString("\"assets.cache." + name + "\""))
+  val configuredCacheControl = config(_.getOptional[String]("\"assets.cache." + name + "\""))
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {

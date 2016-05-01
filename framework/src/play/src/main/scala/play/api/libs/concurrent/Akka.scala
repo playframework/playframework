@@ -287,9 +287,7 @@ object ActorSystemProvider {
    * Start an ActorSystem, using the given configuration and ClassLoader.
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, configuration: Configuration): (ActorSystem, StopHook) = {
-    val config = PlayConfig(configuration)
-
+  def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
       // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
