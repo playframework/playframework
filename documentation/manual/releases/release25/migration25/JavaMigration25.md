@@ -48,7 +48,7 @@ The table below shows all the changes:
 | `F.Callback2<A,B>`   | `java.util.function.BiConsumer<A,B>`
 | `F.Callback3<A,B,C>` | No counterpart in Java 8, consider using `akka.japi.function.Function3`
 | `F.Predicate<A>`     | `java.util.function.Predicate<A>`
-| `F.Function0<A>`     | `java.util.function.Supplier<A>`
+| `F.Function0<R>`     | `java.util.function.Supplier<R>`
 | `F.Function1<A,R>`   | `java.util.function.Function<A,R>`
 | `F.Function2<A,B,R>` | `java.util.function.BiFunction<A,B,R>`
 
