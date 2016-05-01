@@ -24,6 +24,8 @@ For any custom configuration, you will need to specify your own Logback configur
 
 You can provide a default logging configuration by providing a file `conf/logback.xml`.
 
+> Note: If you run your Play application with a dedicated application loader (because you want to make use of compile time dependency injection), then in order to make Play pick up your own Logback configuration file, you need to add the following to the `load` method of your application loader: `LoggerConfigurator(context.environment.classLoader).foreach { _.configure(context.environment) }`.
+
 ### Using an external configuration file
 
 You can also specify a configuration file via a System property.  This is particularly useful for production environments where the configuration file may be managed outside of your application source.
