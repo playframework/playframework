@@ -17,8 +17,12 @@ import static akka.pattern.Patterns.ask;
 
 public class Application extends Controller {
 
-    @Inject @Named("configured-actor")
-    ActorRef configuredActor;
+    private ActorRef configuredActor;
+
+    @Inject
+    public Application(@Named("configured-actor") ActorRef configuredActor) {
+       this.configuredActor = configuredActor;
+    }
 
     public CompletionStage<Result> getConfig() {
         return FutureConverters.toJava(ask(configuredActor,

@@ -12,7 +12,12 @@ import play.db.Database;
 
 // inject "orders" database instead of "default"
 class JavaJdbcConnection extends Controller {
-    @Inject Database db;
+    private Database db;
+
+    @Inject
+    public JavaJdbcConnection(Database db) {
+        this.db = db;
+    }
     // get jdbc connection
     Connection connection = db.getConnection();
 }

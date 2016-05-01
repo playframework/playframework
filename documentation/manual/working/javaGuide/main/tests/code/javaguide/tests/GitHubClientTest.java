@@ -38,9 +38,8 @@ public class GitHubClientTest {
 
         server = Server.forRouter(router);
         ws = WS.newClient(server.httpPort());
-        client = new GitHubClient();
+        client = new GitHubClient(ws);
         client.baseUrl = "";
-        client.ws = ws;
     }
 
     @After

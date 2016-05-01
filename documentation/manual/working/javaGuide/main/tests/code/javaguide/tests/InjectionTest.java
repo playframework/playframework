@@ -40,8 +40,8 @@ public class InjectionTest {
       GuiceApplicationBuilder builder = new GuiceApplicationLoader()
           .builder(new Context(Environment.simple()))
           .overrides(testModule);
-      Guice.createInjector(builder.applicationModule()).injectMembers(this);      
-      
+      Guice.createInjector(builder.applicationModule()).injectMembers(this);
+
       Helpers.start(application);
     }
 

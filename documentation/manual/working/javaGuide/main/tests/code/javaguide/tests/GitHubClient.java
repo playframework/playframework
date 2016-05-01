@@ -13,7 +13,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.ws.WSClient;
 
 class GitHubClient {
-    @Inject WSClient ws;
+    private WSClient ws;
+
+    @Inject
+    public GitHubClient(WSClient ws) {
+        this.ws = ws;
+    }
+
     String baseUrl = "https://api.github.com";
 
     public CompletionStage<List<String>> getRepositories() {

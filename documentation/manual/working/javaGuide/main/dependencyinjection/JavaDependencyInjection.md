@@ -25,9 +25,9 @@ To use constructor injection:
 
 @[constructor](code/javaguide/di/constructor/MyComponent.java)
 
-For brevity, in the Play documentation, we use field injection, but in Play itself, we use constructor injection.
+Field injection is shorter, but we recommend using constructor injection in your application.  It is the most testable, since in a unit test you need to pass all the constructor arguments to create an instance of your class, and the compiler makes sure the dependencies are all there.  It is also easy to understand what is going on, since there is no "magic" setting of fields going on.  The DI framework is just automating the same constructor call you could write manually.
 
-Constructor injection is the most testable, since all the dependencies are required up front to construct an instance of the class. Guice also has several other [types of injections](https://github.com/google/guice/wiki/Injections) which may be useful in some cases. If you are migrating an application that uses statics, you may find its static injection support useful.
+Guice also has several other [types of injections](https://github.com/google/guice/wiki/Injections) which may be useful in some cases. If you are migrating an application that uses statics, you may find its static injection support useful.
 
 ## Dependency injecting controllers
 

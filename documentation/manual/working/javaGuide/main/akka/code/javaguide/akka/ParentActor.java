@@ -12,7 +12,12 @@ import javax.inject.Inject;
 
 public class ParentActor extends UntypedActor implements InjectedActorSupport {
 
-    @Inject ConfiguredChildActorProtocol.Factory childFactory;
+    private ConfiguredChildActorProtocol.Factory childFactory;
+
+    @Inject
+    public ParentActor(ConfiguredChildActorProtocol.Factory childFactory) {
+        this.childFactory = childFactory;
+    }
 
     @Override
     public void onReceive(Object message) throws Exception {
