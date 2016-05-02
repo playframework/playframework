@@ -17,7 +17,7 @@ If you don't have the JDK, you have to install it from [Oracle's JDK Site](http:
 
 Play is a series of libraries available in [Maven Repository](http://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project.
 
-For getting started, we'll install Play though [Lightbend Activator](https://www.lightbend.com/activator/docs).
+For getting started, we'll install Play through [Lightbend Activator](https://www.lightbend.com/activator/docs).
 
 Activator can be described as "sbt plus templates" -- it combines [sbt](http://www.scala-sbt.org/0.13/docs/index.html) (a build tool) plus a means of downloading [project templates](https://www.lightbend.com/activator/templates) (like Maven archetypes) and a web interface for managing those projects.  Templates can be examples, or they can be "seed" templates that provide a starting point for your own projects.
 
