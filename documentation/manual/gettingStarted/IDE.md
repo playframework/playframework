@@ -11,11 +11,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
 
+In your `project/plugins.sbt` file, add the line:
+
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting to your `build.sbt` file:
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
