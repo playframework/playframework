@@ -152,7 +152,8 @@ trait EhCacheComponents {
    * Use this to create with the given name.
    */
   def cacheApi(name: String): CacheApi = {
-    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager))
+    val createNamedCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
+    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager, createNamedCaches))
   }
 
   lazy val defaultCacheApi: CacheApi = cacheApi("play")
@@ -169,6 +170,7 @@ class EhCacheModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
     val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").toSeq
+    val createBoundCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
 
     // Creates a named cache qualifier
     def named(name: String): NamedCache = {
@@ -181,7 +183,7 @@ class EhCacheModule extends Module {
       val ehcacheKey = bind[Ehcache].qualifiedWith(namedCache)
       val cacheApiKey = bind[CacheApi].qualifiedWith(namedCache)
       Seq(
-        ehcacheKey.to(new NamedEhCacheProvider(name)),
+        ehcacheKey.to(new NamedEhCacheProvider(name, createBoundCaches)),
         cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
         bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaCacheApiProvider(cacheApiKey)),
         bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey))
@@ -208,21 +210,28 @@ class CacheManagerProvider @Inject() (env: Environment, config: Configuration, l
   }
 }
 
-private[play] class NamedEhCacheProvider(name: String) extends Provider[Ehcache] {
+private[play] class NamedEhCacheProvider(name: String, create: Boolean) extends Provider[Ehcache] {
   @Inject private var manager: CacheManager = _
-  lazy val get: Ehcache = NamedEhCacheProvider.getNamedCache(name, manager)
+  lazy val get: Ehcache = NamedEhCacheProvider.getNamedCache(name, manager, create)
 }
 
 private[play] object NamedEhCacheProvider {
-  def getNamedCache(name: String, manager: CacheManager) = try {
-    manager.addCache(name)
+  def getNamedCache(name: String, manager: CacheManager, create: Boolean) = try {
+    if (create) {
+      manager.addCache(name)
+    }
     manager.getEhcache(name)
   } catch {
     case e: ObjectExistsException =>
       throw new EhCacheExistsException(
         s"""An EhCache instance with name '$name' already exists.
            |
-           |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
+           |This may indicate that multiple instances of a dependent component (e.g. a Play application) have started at the same time.
+           |
+           |If you would like to configure caches in ehcache.xml instead of having Play create them, please set:
+           |
+           |    play.cache.createBoundCaches = false
+           |
          """.stripMargin, e)
   }
 }
