@@ -3,7 +3,7 @@
 
 Caching data is a typical optimization in modern applications, and so Play provides a global cache. An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
 
-For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime. 
+For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
 The default implementation of the cache API uses [EHCache](http://www.ehcache.org/).
 
@@ -49,13 +49,17 @@ If you want to access multiple different ehcache caches, then you'll need to tel
 
     play.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
 
+By default, Play will try to create these caches for you. If you would like to define them yourself in `ehcache.xml`, you can set:
+
+    play.cache.createBoundCaches = false
+
 Now to access these different caches, when you inject them, use the [NamedCache](api/java/play/cache/NamedCache.html) qualifier on your dependency, for example:
 
 @[qualified](code/javaguide/cache/qualified/Application.java)
 
 ## Caching HTTP responses
 
-You can easily create a smart cached action using standard `Action` composition. 
+You can easily create a smart cached action using standard `Action` composition.
 
 > **Note:** Play HTTP `Result` instances are safe to cache and reuse later.
 

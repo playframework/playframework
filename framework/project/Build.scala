@@ -284,7 +284,7 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.copy"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.NoHeaderRangeSet.entityLength"),
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.this")
-      
+
       )
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
@@ -484,7 +484,12 @@ object PlayBuild extends Build {
   lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(
       libraryDependencies ++= playCacheDeps,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters := Seq(
+        // These methods are private[play]
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.cache.NamedEhCacheProvider.this"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.cache.NamedEhCacheProvider.getNamedCache")
+      )
     ).dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
