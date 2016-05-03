@@ -129,7 +129,7 @@ object Json {
    * Example :
    * {{{
    * JsObject(Seq(
-   *    "key1", JsString("value"),
+   *    "key1" -> JsString("value"),
    *    "key2" -> JsNumber(123),
    *    "key3" -> JsObject(Seq("key31" -> JsString("value31")))
    * )) == Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
