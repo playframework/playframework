@@ -52,15 +52,15 @@ public class FormFactory {
     /**
      * Instantiates a new form that wraps the specified class.
      */
-    public <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group, messagesApi, formatters, validator);
+    public <T> Form<T> form(String name, Class<T> clazz, Class<?>... groups) {
+        return new Form<>(name, clazz, groups, messagesApi, formatters, validator);
     }
 
     /**
      * Instantiates a new form that wraps the specified class.
      */
-    public <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group, messagesApi, formatters, validator);
+    public <T> Form<T> form(Class<T> clazz, Class<?>... groups) {
+        return new Form<>(null, clazz, groups, messagesApi, formatters, validator);
     }
 
 }

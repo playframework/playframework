@@ -38,64 +38,6 @@ import com.google.common.collect.ImmutableList;
  */
 public class Form<T> {
 
-    // -- Form utilities
-
-    private static play.api.inject.Injector injector() {
-        return play.api.Play.current().injector();
-    }
-
-    /**
-     * Instantiates a dynamic form.
-     *
-     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
-     */
-    @Deprecated
-    public static DynamicForm form() {
-        return new DynamicForm(injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
-    }
-
-    /**
-     * Instantiates a new form that wraps the specified class.
-     *
-     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
-     */
-    @Deprecated
-    public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<>(clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
-    }
-
-    /**
-     * Instantiates a new form that wraps the specified class.
-     *
-     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
-     */
-    @Deprecated
-    public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<>(name, clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
-    }
-
-    /**
-     * Instantiates a new form that wraps the specified class.
-     *
-     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
-     */
-    @Deprecated
-    public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
-    }
-
-    /**
-     * Instantiates a new form that wraps the specified class.
-     *
-     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
-     */
-    @Deprecated
-    public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
-    }
-
-    // ---
-
     /**
      * Defines a form element's display name.
      */
@@ -113,7 +55,7 @@ public class Form<T> {
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
     private final Optional<T> value;
-    private final Class<?> groups;
+    private final Class<?>[] groups;
     final MessagesApi messagesApi;
     final Formatters formatters;
     final javax.validation.Validator validator;
@@ -139,18 +81,24 @@ public class Form<T> {
         this(null, clazz, messagesApi, formatters, validator);
     }
 
-    @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator);
     }
 
-    @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, Class<?> groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    }
+
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
     }
 
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, null, messagesApi, formatters, validator);
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    }
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
 
     /**
@@ -163,7 +111,7 @@ public class Form<T> {
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
