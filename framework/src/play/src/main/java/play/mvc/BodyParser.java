@@ -8,6 +8,7 @@ import akka.stream.javadsl.Sink;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
+import play.Logger;
 import play.api.http.HttpConfiguration;
 import play.api.http.Status$;
 import play.api.libs.Files;
@@ -19,6 +20,9 @@ import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
+import play.mvc.Http.HeaderNames;
+import play.mvc.Http.MimeTypes;
+import play.util.XmlEncodingDetective;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
@@ -254,8 +258,53 @@ public interface BodyParser<A> {
 
         @Override
         protected String parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
+            String charset = request.charset().orElse("");
+            String requestContentType = request.getHeader(HeaderNames.CONTENT_TYPE);
+            if (!"".equals(charset) && !MimeTypes.JSON.equals(requestContentType)){
+                return bytes.decodeString(charset);
+            }
+            charset = "ISO-8859-1";
+            switch (requestContentType){
+                case MimeTypes.JSON:
+                    charset = getJsonCharset(bytes);
+                    break;
+                case MimeTypes.XML: case MimeTypes.XML_DTD: case MimeTypes.XML_EXTERNAL_PARSED_ENTITY:
+                    try {
+                        charset = XmlEncodingDetective.detectEncoding(bytes, request.charset().orElse(null), requestContentType);
+                    } catch (Exception e){
+                        Logger.info("failed to detect encoding: " + e.getMessage());
+                        charset = "UTF-8";
+                    }
+                    break;
+                case MimeTypes.TEXT: case MimeTypes.HTML:
+                    charset = "ISO-8859-1";
+                    break;
+                default:
+                    break;
+            }
             return bytes.decodeString(charset);
+        }
+
+        private String getJsonCharset(ByteString bytes){
+            String charset = "UTF-8";
+            try {
+                Byte[] octetsArray = new Byte[4];
+                bytes.copyToArray(octetsArray, 0, 4);
+                if (octetsArray[0] == 0 && octetsArray[1] == 0 && octetsArray[2] == 0 && octetsArray[3] != 0){
+                    charset = "UTF-32BE";
+                } else if (octetsArray[0] == 0 && octetsArray[1] != 0 && octetsArray[2] == 0 && octetsArray[3] != 0){
+                    charset = "UTF-16BE";
+                } else if (octetsArray[0] != 0 && octetsArray[1] == 0 && octetsArray[2] == 0 && octetsArray[3] == 0){
+                    charset = "UTF-32LE";
+                } else if (octetsArray[0] != 0 && octetsArray[1] == 0 && octetsArray[2] != 0 && octetsArray[3] == 0){
+                    charset = "UTF-16LE";
+                } else if (octetsArray[0] != 0 && octetsArray[1] != 0 && octetsArray[2] != 0 && octetsArray[3] != 0){
+                    charset = "UTF-8";
+                }
+                return charset;
+            } catch (Exception e){
+                return charset;
+            }
         }
     }
 
