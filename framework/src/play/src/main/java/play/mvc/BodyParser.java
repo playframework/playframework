@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.util.ByteString;
@@ -19,6 +20,7 @@ import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
+import play.api.libs.streams.Accumulator$;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
@@ -33,6 +35,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -391,8 +395,7 @@ public interface BodyParser<A> {
             this.errorMessage = errorMessage;
         }
 
-        protected BufferingBodyParser(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler,
-                                      String errorMessage) {
+        protected BufferingBodyParser(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler, String errorMessage) {
             this(httpConfiguration.parser().maxMemoryBuffer(), errorHandler, errorMessage);
         }
 
@@ -436,8 +439,8 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator =
-                    delegate.apply(request._underlyingHeader()).asJava();
+            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request._underlyingHeader()).asJava();
+
             return javaAccumulator.map(result -> {
                         if (result.isLeft()) {
                             return F.Either.Left(result.left().get().asJava());
@@ -450,4 +453,25 @@ public interface BodyParser<A> {
         }
     }
 
+    /**
+     * A body parser that completes the underlying one.
+     */
+    abstract class CompletableBodyParser<A> implements BodyParser<A> {
+        private final CompletionStage<BodyParser<A>> underlying;
+        private final Materializer materializer;
+
+        public CompletableBodyParser(CompletionStage<BodyParser<A>> underlying,
+                                     Materializer materializer) {
+
+            this.underlying = underlying;
+            this.materializer = materializer;
+        }
+
+        @Override
+        public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
+            CompletionStage<Accumulator<ByteString, F.Either<Result, A>>> completion = underlying.thenApply(parser -> parser.apply(request));
+
+            return Accumulator.flatten(completion, this.materializer);
+        }
+    }
 }
