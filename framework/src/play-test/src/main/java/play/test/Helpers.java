@@ -424,6 +424,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Executes a block of code in a running server, with a test browser.
      */
     public static synchronized void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+        running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
+    }
+
+    /**
+     * Executes a block of code in a running server, with a test browser.
+     */
+    public static synchronized void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
