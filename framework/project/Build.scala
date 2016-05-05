@@ -553,7 +553,7 @@ object PlayBuild extends Build {
 
         val sbtDependencies = Seq(
             "com.typesafe"                      %    "config"                   %   "1.0.0",
-            "rhino"                             %    "js"                       %   "1.7R2",
+            "org.mozilla"                       %    "rhino"                    %   "1.7R4",
 
             ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
               .exclude("args4j", "args4j")
