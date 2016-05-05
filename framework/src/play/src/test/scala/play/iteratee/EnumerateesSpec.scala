@@ -123,7 +123,15 @@ object EnumerateesSpec extends Specification {
         Enumeratee.map(List(_)) |>>
         Iteratee.consume()
       result.flatMap(_.run).value.get must equalTo(List("Hello","World","!"))
+    }
 
+    "Not drop elements" in {
+      val result =
+        Enumerator(Range(1,10):_*) &>
+        Enumeratee.map[Int](List(_)) ><>
+        Enumeratee.grouped( Traversable.take[List[Int]](2) &>> Iteratee.consume() ) |>>
+        Iteratee.consume()
+      result.flatMap(_.run).value.get must equalTo(List(Range(1,10):_*))
     }
 
   }
