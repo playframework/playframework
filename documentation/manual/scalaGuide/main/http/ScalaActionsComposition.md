@@ -91,7 +91,7 @@ Play also provides a built in authentication action builder.  Information on thi
 
 > **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
-> If you have more complex requirements than can be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
+> If you have more complex requirements than can not be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
 
 Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
 
