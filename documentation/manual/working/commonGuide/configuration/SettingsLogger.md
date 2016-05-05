@@ -16,6 +16,12 @@ A few things to note about this configuration:
 * Play uses ANSI color codes by default in level messages.
 * Play puts both the console and the file logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 
+## Using a custom application loader
+
+Note that when using a custom application loader that does not extend the default `GuiceApplicationLoader` (for example when using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]]), the `LoggerConfigurator` needs to be manually invoked to pick up your custom configuration. You can do this with code like the following:
+
+@[basicextended](../../scalaGuide/main/dependencyinjection/code/CompileTimeDependencyInjection.scala)
+
 ## Custom configuration
 
 For any custom configuration, you will need to specify your own Logback configuration file.
@@ -100,7 +106,7 @@ This demonstrates a few useful features:
 - It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
 - The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
-- All loggers are set to a threshold of `INFO` which is a common choice for production logging.  
+- All loggers are set to a threshold of `INFO` which is a common choice for production logging.
 
 ## Including Properties
 
