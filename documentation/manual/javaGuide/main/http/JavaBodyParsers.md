@@ -64,9 +64,9 @@ public static Result save() {
   String textBody = body.asText();
   
   if(textBody != null) {
-    ok("Got: " + text);
+    return ok("Got: " + textBody);
   } else {
-    badRequest("Expecting text/plain request body");
+    return badRequest("Expecting text/plain request body");
   }
 }
 ```
