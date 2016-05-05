@@ -276,11 +276,13 @@ object NettyServer {
     }
 
     try {
+      val app = new StaticApplication(applicationPath)
+      val conf = app.application.configuration
       val server = new NettyServer(
-        new StaticApplication(applicationPath),
-        Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
-        Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
-        Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
+        app,
+        readConfParam(conf, "http.port").fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
+        readConfParam(conf, "https.port").map(Integer.parseInt(_)),
+        readConfParam(conf, "http.address").getOrElse("0.0.0.0")
       )
 
       Runtime.getRuntime.addShutdownHook(new Thread {
@@ -298,6 +300,11 @@ object NettyServer {
       }
     }
 
+  }
+
+  private def readConfParam(conf: Configuration, paramName: String) = {
+    val param = Option(System.getProperty(paramName))
+    if (param.isDefined) param else conf.getString(paramName)
   }
 
   /**
