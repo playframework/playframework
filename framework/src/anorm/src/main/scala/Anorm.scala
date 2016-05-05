@@ -79,21 +79,30 @@ package anorm {
         if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
     }
 
+    protected def bool2int(b: Boolean) = if (b == true) 1 else 0
+
     implicit def rowToString: Column[String] = {
       Column.nonNull[String] { (value, meta) =>
         val MetaDataItem(qualified, nullable, clazz) = meta
         value match {
           case string: String => Right(string)
           case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
+          case n: Number => Right(n.toString())
+          case b: Boolean => Right(b.toString())
           case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to String for column " + qualified))
         }
       }
     }
 
+    implicit def rowToAnyType[T]: Column[T] = Column.nonNull { (value, meta) => Right(value.asInstanceOf[T]) }
+
     implicit def rowToInt: Column[Int] = Column.nonNull { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case int: Int => Right(int)
+        case n: Number => Right(n.intValue())
+        case b: Boolean => Right(bool2int(b))
+        case s: String => Right(s.toInt)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Int for column " + qualified))
       }
     }
@@ -102,6 +111,9 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case d: Double => Right(d)
+        case n: Number => Right(n.doubleValue())
+        case b: Boolean => Right(bool2int(b).doubleValue())
+        case s: String => Right(s.toDouble)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Double for column " + qualified))
       }
     }
@@ -110,6 +122,9 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case short: Short => Right(short)
+        case n: Number => Right(n.shortValue())
+        case b: Boolean => Right(bool2int(b).shortValue())
+        case s: String => Right(s.toShort)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Short for column " + qualified))
       }
     }
@@ -118,6 +133,8 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bool: Boolean => Right(bool)
+        case n: Number => Right(n != 0)
+        case s: String => Right(s.toBoolean)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Boolean for column " + qualified))
       }
     }
@@ -127,27 +144,41 @@ package anorm {
       value match {
         case int: Int => Right(int: Long)
         case long: Long => Right(long)
+        case n: Number => Right(n.longValue())
+        case b: Boolean => Right(bool2int(b).longValue())
+        case s: String => Right(s.toLong)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Long for column " + qualified))
       }
     }
 
     implicit def rowToBigInteger: Column[java.math.BigInteger] = Column.nonNull { (value, meta) =>
+      import java.math.BigDecimal
       import java.math.BigInteger
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bi: BigInteger => Right(bi)
+        case bd: BigDecimal => Right(bd.toBigInteger)
         case int: Int => Right(BigInteger.valueOf(int))
         case long: Long => Right(BigInteger.valueOf(long))
+        case n: Number => Right(BigInteger.valueOf(n.longValue()))
+        case b: Boolean => Right(BigInteger.valueOf(bool2int(b)))
+        case s: String => Right(new BigDecimal(s).toBigInteger)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigInteger for column " + qualified))
       }
     }
 
     implicit def rowToBigDecimal: Column[java.math.BigDecimal] = Column.nonNull { (value, meta) =>
       import java.math.BigDecimal
+      import java.math.BigInteger
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
-        case bi: java.math.BigDecimal => Right(bi)
-        case double: Double => Right(new java.math.BigDecimal(double))
+        case bi: BigDecimal => Right(bi)
+        case bi: BigInteger => Right(new BigDecimal(bi))
+        case double: Double => Right(BigDecimal.valueOf(double))
+        case float: Float => Right(BigDecimal.valueOf(float))
+        case n: Number => Right(BigDecimal.valueOf(n.longValue()))
+        case b: Boolean => Right(BigDecimal.valueOf(bool2int(b)))
+        case s: String => Right(new BigDecimal(s))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigDecimal for column " + qualified))
       }
     }
