@@ -251,6 +251,14 @@ object Router {
                     |
                     |object Routes extends Router.Routes {
                     |
+                    |private var _prefix = "/"
+                    |
+                    |def setPrefix(prefix: String) {
+                    |  _prefix = prefix  
+                    |}
+                    |
+                    |def prefix = _prefix
+                    |
                     |%s 
                     |    
                     |def routes:PartialFunction[RequestHeader,Handler] = {        
@@ -386,17 +394,16 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                               route.verb.value,
-                              route.path.parts.map {
-                                case StaticPart(part) => "\"" + part + "\""
+                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\"" + route.path.parts.map {
+                                case StaticPart(part) => " + \"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                                    "(\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                                    " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
                                   }.getOrElse {
                                     throw new Error("missing key " + name)
                                   }
-
                                 }
-                              }.mkString(" + "),
+                              }.mkString,
 
                               {
                                 val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
@@ -649,7 +656,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                               route.verb.value,
-                              route.path.parts.map {
+                              "Routes.prefix" + { if(route.path.parts.isEmpty) "" else """ + { if(Routes.prefix.endsWith("/")) "" else "/" } + """} + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -762,13 +769,13 @@ object Router {
         case (r, i) =>
           """
                         |%s
-                        |val %s%s = Route("%s", %s)
+                        |lazy val %s%s = Route("%s", %s)
                     """.stripMargin.format(
             markLines(r),
             r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
             i,
             r.verb.value,
-            "PathPattern(List(" + r.path.parts.map(_.toString).mkString(",") + "))")
+            "PathPattern(List(StaticPart(Routes.prefix)" + { if(r.path.parts.isEmpty) "" else """,StaticPart(if(Routes.prefix.endsWith("/")) "" else "/"),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
       }.mkString("\n") +
         """|
                |def documentation = List(%s)
@@ -951,8 +958,8 @@ object Router {
         case chars => StaticPart(chars.mkString)
       }
 
-      def path: Parser[PathPattern] = ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(regexComponentPathPart) | staticPathPart) +) ^^ {
-        case parts => PathPattern(parts)
+      def path: Parser[PathPattern] = "/" ~ ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(regexComponentPathPart) | staticPathPart) *) ^^ {
+        case _ ~ parts => PathPattern(parts)
       }
 
       def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> rep1sep(identifier, ".") ~ opt(brackets) ^^ {
@@ -1112,10 +1119,15 @@ object Router {
   }
 
   trait Routes {
+    self =>
 
     def documentation: Seq[(String, String, String)]
 
     def routes: PartialFunction[RequestHeader, Handler]
+    
+    private[play] def setPrefix(prefix: String)
+    
+    def prefix: String
 
     //
 

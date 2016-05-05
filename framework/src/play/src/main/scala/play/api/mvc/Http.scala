@@ -285,6 +285,11 @@ package play.api.mvc {
     val secure = false
 
     /**
+     *  The cookie path. 
+     */
+    val path = "/"
+
+    /**
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
@@ -345,7 +350,7 @@ package play.api.mvc {
      */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
-      Cookie(COOKIE_NAME, cookie, maxAge, "/", None, secure, httpOnly)
+      Cookie(COOKIE_NAME, cookie, maxAge, path, None, secure, httpOnly)
     }
 
     /**
@@ -433,6 +438,7 @@ package play.api.mvc {
     override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
     override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
+    override val path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -495,6 +501,8 @@ package play.api.mvc {
   object Flash extends CookieBaker[Flash] {
 
     val COOKIE_NAME = "PLAY_FLASH"
+    override val path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+
     val emptyCookie = new Flash
 
     def deserialize(data: Map[String, String]) = new Flash(data)
