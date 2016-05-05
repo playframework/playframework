@@ -72,7 +72,7 @@ resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.or
 sbt can search your local Maven repository if you add it as a repository:
 
 ```scala
-resolvers += (
+resolvers ++= Seq(
     "Local Maven Repository" at "file:///"+Path.userHome.absolutePath+"/.m2/repository"
 )
 ```
