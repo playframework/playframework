@@ -2,8 +2,12 @@ package play.templates.test
 
 import org.specs2.mutable._
 import play.templates._
-
 import java.io._
+import org.specs2.specification.Scope
+import scala.tools.nsc.util.ScalaClassLoader
+import scalax.file.Path
+
+import scala.language.reflectiveCalls
 
 object TemplateCompilerSpec extends Specification {
 
@@ -16,53 +20,132 @@ object TemplateCompilerSpec extends Specification {
   scalax.file.Path(generatedClasses).deleteRecursively()
   scalax.file.Path(generatedClasses).createDirectory()
 
+  abstract class Context extends Scope {
+    val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
+    def compileTemplate[T <: AnyRef](templateName: String) =
+      helper.compileTemplate[T](s"$templateName.scala.html", s"html.$templateName")
+  }
+
   "The template compiler" should {
-    "compile successfully" in {
-      val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
-      helper.compile[((String, List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A", "B"))(4).toString.trim must beLike {
-        case html =>
-          {
-            if (html.contains("<h1>Hello World</h1>") &&
-              html.contains("You have 2 items") &&
-              html.contains("EA") &&
-              html.contains("EB")) ok else ko
-          }
+    "compile the following successfully" >> {
+
+      "real template" in new Context {
+        type ExpectedType = { def apply(name: String, items: List[String])(repeat: Int): Html }
+        val template = compileTemplate[ExpectedType]("real")
+
+        template("World", List("A", "B"))(4).toString.trim must beLike {
+          case html =>
+            {
+              if (html.contains("<h1>Hello World</h1>") &&
+                html.contains("You have 2 items") &&
+                html.contains("EA") &&
+                html.contains("EB")) ok else ko
+            }
+        }
       }
 
-      helper.compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
-        "<h1>It works</h1>")
+      "static template" in new Context {
+        type ExpectedType = { def apply(): Html }
+        val template = compileTemplate[ExpectedType]("static")
+        template().toString.trim must be_==(
+          "<h1>It works</h1>")
+      }
 
-      val testParam = "12345"
-      helper.compile[((String) => Html)]("patternMatching.scala.html", "html.patternMatching")(testParam).toString.trim must be_==(
-        """@test
-@test.length
-@test.length.toInt
+      "patternMatching template" in new Context {
+        type ExpectedType = { def apply(test: String): Html }
+        val template = compileTemplate[ExpectedType]("patternMatching")
+        template("12345").toString.trim must be_==(
+          """|@test
+        	 |@test.length
+        	 |@test.length.toInt
+        	 |
+             |@(test)
+        	 |@(test.length)
+        	 |@(test.length + 1)
+        	 |@(test.+(3))
+        	 |
+        	 |5 match @test.length""".stripMargin)
+      }
 
-@(test)
-@(test.length)
-@(test.length + 1)
-@(test.+(3))
+      "hello template" in new Context {
+        type ExpectedType = { def apply(name: String): Html }
+        val template = compileTemplate[ExpectedType]("hello")
+        template("World").toString.trim must be_==(
+          "<h1>Hello World!</h1><h1>xml</h1>")
+      }
 
-5 match @test.length""")
+      "set template" in new Context {
+        type ExpectedType = { def apply(test: Set[String]): Html; }
+        val template = compileTemplate[ExpectedType]("set")
+        template(Set("first", "second", "third")).toString.trim
+          .replace("\n", "")
+          .replaceAll("\\s+", "") must be_==("firstsecondthird")
+      }
 
-      val hello = helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim
-      
-      hello must be_==(
-        "<h1>Hello World!</h1><h1>xml</h1>")
+      "forSomeType template" in new Context {
+        type ExpectedType = { def apply(seq: Seq[_]): Html }
+        val template = compileTemplate[ExpectedType]("forSomeType")
+        template(Seq("first", "second", "third")).toString.trim must
+          be_==("first,second,third")
+      }
 
-      helper.compile[((collection.immutable.Set[String]) => Html)]("set.scala.html", "html.set")(Set("first","second","third")).toString.trim.replace("\n","").replaceAll("\\s+", "") must be_==("firstsecondthird")
+      "defaultValue template" in new Context {
+        type ExpectedType = { def apply(arg: String = "<see template>"): Html }
+        val template = compileTemplate[ExpectedType]("defaultValue")
+        template().toString.trim must
+          be_==("1")
 
+        template("2").toString.trim must
+          be_==("2")
+      }
+
+      "onlyImplicit template" in new Context {
+        type ExpectedType = { def apply(implicit test: String): Html }
+        val template = compileTemplate[ExpectedType]("onlyImplicit")
+
+        implicit val s: String = "test1"
+        (template.apply).toString.trim must
+          be_==("test1")
+
+        template("test2").toString.trim must
+          be_==("test2")
+      }
     }
-    "fail compilation for error.scala.html" in {
-      val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
-      helper.compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like {
+    "fail compilation for error.scala.html" in new Context {
+      compileTemplate[(() => Html)]("error") must throwA[CompilationError].like {
         case CompilationError(_, 2, 12) => ok
         case _ => ko
       }
     }
+    "produce a template that is a function" in new Context {
+      type ExpectedType = {
+        def apply(arg1: String, arg2: => String, arg3: String*)(arg4: String, arg5: => String, arg6: String*)(arg7: List[String], arg8: => List[String], arg9: List[String]*)(implicit arg10: String): Html
+      }
 
+      val template = compileTemplate[ExpectedType]("function")
+
+      val testFile = new File(generatedDir, "TestFunction.scala")
+      Path(testFile).write(
+        """|object TestFunction {
+           |  val withoutImplicits:(String, => String, String *) => (String, => String, String *) => (List[String], => List[String], List[String] *) => (String) => play.templates.test.Helper.HtmlFormat.Appendable = 
+           |    html.function
+           |
+           |  val withImplicits:(String, => String, String *) => (String, => String, String *) => (List[String], => List[String], List[String] *) => play.templates.test.Helper.HtmlFormat.Appendable = {
+           |    implicit val s = "test"
+           |    html.function
+           |  }
+    	   |}""".stripMargin)
+      helper.compileFile(testFile)
+      val obj = helper.loadObject[AnyRef]("TestFunction")
+
+      template("one", "two", "three", "four")("five", "six", "seven", "eight")(List("nine"), List("ten"), List("eleven"), List("twelve"))("test1").toString.trim must
+        be_==("""one,two,three,four,five,six,seven,eight,nine,ten,eleven,twelve,test1""")
+
+      implicit val s: String = "test2"
+      template("one", "two", "three", "four")("five", "six", "seven", "eight")(List("nine"), List("ten"), List("eleven"), List("twelve")).toString.trim must
+        be_==("""one,two,three,four,five,six,seven,eight,nine,ten,eleven,twelve,test2""")
+    }
   }
-
 }
 
 object Helper {
@@ -94,7 +177,7 @@ object Helper {
 
     val templateCompiler = ScalaTemplateCompiler
 
-    val classloader = new URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
+    val classloader = new ScalaClassLoader.URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
 
     // A list of the compile errors from the most recent compiler run
     val compileErrors = new mutable.ListBuffer[CompilationError]
@@ -123,33 +206,46 @@ object Helper {
         }
       })
 
-      new compiler.Run
-
       compiler
     }
 
-    def compile[T](templateName: String, className: String): T = {
+    def compile(files: List[String]) = {
+      val run = new compiler.Run
+
+      run.compile(files)
+    }
+
+    def compileFile(file: File) = {
+      compile(List(file.getAbsolutePath))
+
+      compileErrors.headOption.foreach(throw _)
+    }
+
+    def compileTemplate[T <: AnyRef](templateName: String, className: String): T = {
       val templateFile = new File(sourceDir, templateName)
       val Some(generated) = templateCompiler.compile(templateFile, sourceDir, generatedDir, "play.templates.test.Helper.HtmlFormat")
 
       val mapper = GeneratedSource(generated)
 
-      val run = new compiler.Run
-
-      compileErrors.clear()
-
-      run.compile(List(generated.getAbsolutePath))
+      compile(List(generated.getAbsolutePath))
 
       compileErrors.headOption.foreach {
-        case CompilationError(msg, line, column) => {
-          compileErrors.clear()
+        case x @ CompilationError(msg, line, column) => {
           throw CompilationError(msg, mapper.mapLine(line), mapper.mapPosition(column))
         }
       }
 
-      val t = classloader.loadClass(className + "$").getDeclaredField("MODULE$").get(null)
+      loadObject(className)
+    }
 
-      t.getClass.getDeclaredMethod("f").invoke(t).asInstanceOf[T]
+    def loadObject[T <: AnyRef](className: String): T = {
+      val obj =
+        classloader
+          .tryToLoadClass[T](className + "$")
+          .map(_.getDeclaredField("MODULE$").get(null))
+          .getOrElse(throw new Exception(s"Class $className not found"))
+
+      obj.asInstanceOf[T]
     }
   }
 }
