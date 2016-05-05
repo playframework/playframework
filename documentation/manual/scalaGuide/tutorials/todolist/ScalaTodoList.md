@@ -392,7 +392,7 @@ It’s time to complete the implementation:
 def create(label: String) {
   DB.withConnection { implicit c =>
     SQL("insert into task (label) values ({label})").on(
-      'label -> label
+      'label' -> label
     ).executeUpdate()
   }
 }
@@ -400,7 +400,7 @@ def create(label: String) {
 def delete(id: Long) {
   DB.withConnection { implicit c =>
     SQL("delete from task where id = {id}").on(
-      'id -> id
+      'id' -> id
     ).executeUpdate()
   }
 }
