@@ -42,7 +42,7 @@ Now visit [http://localhost:9000/login] (http://localhost:9000/login) in your br
 
 Our login page needs to contain a form, which will of course, hold an email address (username) and password.
 
-Play provides a forms API for handling the rendering, decoding, and validation of forms.  Let's start off by implementing our form as a Java object.  Open the `app/controllers/Application.java` class, and declare a static inner class called `Login` at the end of it:
+Play provides a forms API for handling the rendering, decoding, and validation of forms.  Let's start off by implementing our form as a Java object.  Open the `app/controllers/Application.java` class, and declare a static inner class called `Login` at the end of it (you may need to add getters and setters for the binding to work correctly):
 
 ```java
 public static class Login {
