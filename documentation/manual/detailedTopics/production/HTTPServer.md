@@ -60,7 +60,7 @@ http {
   }
 
   server {
-    server_name www.mysite.com mysite.com;
+    server_name mysite.com;
     rewrite ^(.*) https://www.mysite.com$1 permanent;
   }
 
