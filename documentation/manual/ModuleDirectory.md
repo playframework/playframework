@@ -131,6 +131,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/tegonal/play-messagescompiler/blob/master/readme.md>
 * **Short description:** Provides type safety for the project's messages.
 
+### Play I18n HOCON
+
+* **Website:** <https://marcospereira.github.io/play-i18n-hocon/>
+* **Documentation:** <https://marcospereira.github.io/play-i18n-hocon/>
+* **Short description:** A Playframework module to use HOCON for i18n instead of Java Properties
 
 
 ## Performance
