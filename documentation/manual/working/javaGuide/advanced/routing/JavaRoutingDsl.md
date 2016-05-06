@@ -50,6 +50,16 @@ and in the application loader:
 
 @[load](code/AppLoader.scala)
 
+### Providing a DI router with Guice
+
+A router via Guice could be provided with the following snippet:
+
+@[load-guice2](code/GuiceRouterProvider.java)
+
+and in the application loader:
+
+@[load-guice1](code/GuiceAppLoader.java)
+
 ### Overriding binding
 
 A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|JavaTestingWithGuice#Override-bindings]] 
