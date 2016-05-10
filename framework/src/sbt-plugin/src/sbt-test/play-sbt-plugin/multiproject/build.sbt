@@ -1,3 +1,5 @@
+import sbt.Keys._
+
 //
 // Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 //
@@ -23,7 +25,10 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
+  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7"),
+  // Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+  fullResolvers := Resolver.defaultLocal +: fullResolvers.value,
+  updateOptions := updateOptions.value.withLatestSnapshots(false)
 )
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {

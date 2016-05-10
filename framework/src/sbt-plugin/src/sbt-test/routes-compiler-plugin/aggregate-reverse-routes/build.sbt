@@ -9,6 +9,10 @@ lazy val root = (project in file("."))
   .aggregate(common, a, b, c, nonplay)
 
 def commonSettings: Seq[Setting[_]] = Seq(
+  // Ensure sbt just goes straight to local for SNAPSHOTs, and doesn't try anything else
+  fullResolvers := Resolver.defaultLocal +: fullResolvers.value,
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
+
   scalaVersion := sys.props.get("scala.version").getOrElse("2.11.7"),
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
   // This makes it possible to run tests on the output regardless of scala version
