@@ -198,7 +198,7 @@ final class CachedBuilder(
     val notModified = for {
       requestEtag <- request.headers.get(IF_NONE_MATCH)
       etag <- cache.get[String](etagKey)
-      if requestEtag == "*" || etag == requestEtag
+      if requestEtag.contains("*") || etag == requestEtag
     } yield Accumulator.done(NotModified)
 
     notModified.orElse {
