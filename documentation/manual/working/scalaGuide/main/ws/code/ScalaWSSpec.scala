@@ -535,9 +535,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "allow programmatic configuration" in new WithApplication() {
 
-      // If running in Play, environment should be injected
-      val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
-
       //#ws-custom-client
       import com.typesafe.config.ConfigFactory
       import play.api._
@@ -547,6 +544,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         """
           |ws.followRedirects = true
         """.stripMargin))
+
+      // If running in Play, environment should be injected
+      val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
       val parser = new WSConfigParser(configuration, environment)
       val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
