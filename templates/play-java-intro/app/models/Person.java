@@ -1,13 +1,16 @@
 package models;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @Entity
 public class Person {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-	public String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    public Integer id;
 
     public String name;
 }
