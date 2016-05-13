@@ -5,6 +5,8 @@ Sometimes we would like to call other HTTP services from within a Play applicati
 
 There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS library. Finally, we'll discuss some common use cases.
 
+> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [CompletionStage section of the migration guide](https://www.playframework.com/documentation/2.5.x/JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage) will be very helpful.
+
 ## Making a Request
 
 To use WS, first add `javaWs` to your `build.sbt` file:
@@ -152,12 +154,13 @@ Of course, you can use any other valid HTTP verb.
 
 ### Chaining WS calls
 
-You can chain WS calls by using `flatMap`.
+You can chain WS calls by using [`thenCompose`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#thenCompose-java.util.function.Function-).
 
 @[ws-composition](code/javaguide/ws/JavaWS.java)
 
 ### Exception recovery
-If you want to recover from an exception in the call, you can use `recover` or `recoverWith` to substitute a response.
+
+If you want to recover from an exception in the call, you can use [`handle`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#handle-java.util.function.BiFunction-) or [`exceptionally`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#exceptionally-java.util.function.Function-) to substitute a response.
 
 @[ws-recover](code/javaguide/ws/JavaWS.java)
 
