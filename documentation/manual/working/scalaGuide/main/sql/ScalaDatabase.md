@@ -78,6 +78,17 @@ db.customers.driver=org.h2.Driver
 db.customers.url="jdbc:h2:mem:customers"
 ```
 
+## Exposing the datasource through JNDI
+
+Some libraries expect to retrieve the `Datasource` reference from JNDI. You can expose any Play managed datasource via JNDI by adding this configuration in `conf/application.conf`:
+
+```properties
+db.default.driver=org.h2.Driver
+db.default.url="jdbc:h2:mem:play"
+db.default.jndiName=DefaultDS
+```
+
+
 ## How to configure SQL log statement
 
 Not all connection pools offer (out of the box) a way to log SQL statements. HikariCP, per instance, suggests that you use the log capacities of your database vendor. From [HikariCP docs](https://github.com/brettwooldridge/HikariCP/tree/dev#log-statement-text--slow-query-logging):
@@ -113,16 +124,6 @@ libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 
 Or if the driver can't be found from repositories you can drop the driver into your project's [[unmanaged dependencies|Anatomy]] `lib` directory.
 
-## Accessing the JDBC datasource
-
-The `play.api.db` package provides access to the configured data sources:
-
-```scala
-import play.api.db._
-
-val ds = DB.getDataSource()
-```
-
 ## Obtaining a JDBC connection
 
 There are several ways to retrieve a JDBC connection. The following code show you a JDBC example very simple, working with MySQL 5.*:
@@ -145,7 +146,7 @@ The connection will be automatically closed at the end of the block.
 A variant is to set the connection's auto-commit to `false` and to manage a transaction for the block:
 
 ```scala
-DB.withTransaction { conn =>
+db.withTransaction { conn =>
   // do whatever you need with the connection
 }
 ```
