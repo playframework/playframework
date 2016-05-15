@@ -5,7 +5,7 @@ Play's documentation shows the available features and how to use them, but the d
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-## Activator Templates
+## Activator Templates Overview
 
 Many tutorials come in the form of templates, which can be downloaded as projects onto your computer.
 
@@ -31,7 +31,11 @@ git clone https://github.com/playframework/some-awesome-play-template my-local-p
 
 Creating new projects is covered in more detail in [[Creating a new application|NewApplication]].
 
-### Seed Templates
+## Play Maintained Seeds and Example Templates
+
+This section covers the core tutorials and examples from Play.  These are maintained by the core Play team, and so will be based on the latest Play release.
+
+### Creating a Seed Template
 
 If you are starting off a new Play project and don't want any extras, you can use the seed templates by typing the following at the command prompt:
 
@@ -84,14 +88,14 @@ This is an example template that uses [EBean](https://ebean-orm.github.io/) usin
 
 This is an example template that shows streaming responses through Comet or Server Sent Events, using Akka Streams:
 
-* [playframework/play-streaming-scala](https://github.com/playframework/play-streaming-scala) 
+* [playframework/play-streaming-scala](https://github.com/playframework/play-streaming-scala)
 * [playframework/play-streaming-java](https://github.com/playframework/play-streaming-java)
 
 ### WebSocket
 
 This is an example template that shows bidirectional streaming through the WebSocket API, using Akka Streams:
 
-* [playframework/play-websocket-scala](https://github.com/playframework/play-websocket-scala) 
+* [playframework/play-websocket-scala](https://github.com/playframework/play-websocket-scala)
 * [playframework/play-websocket-java](https://github.com/playframework/play-websocket-java)
 
 ### Cryptography
@@ -118,11 +122,11 @@ This is an example template showing compile time dependency injection using [Mac
 
 * [playframework/play-macwire-di](https://github.com/playframework/play-macwire-di)
 
-## Third Party Tutorials
+## Third Party Tutorials and Templates
 
-The Play community also has a number of tutorials that cover aspects of Play than the documentation can, or has a different angle.  This is an incomplete list of several helpful blog posts.
+The Play community also has a number of tutorials and templates that cover aspects of Play than the documentation can, or has a different angle.  Templates listed here are not maintained by the Play team, and so may be out of date.
 
-Because some of the blog posts have been written a while ago, this section is organized by Play version.
+This is an incomplete list of several helpful blog posts, and because some of the blog posts have been written a while ago, this section is organized by Play version.
 
 ### 2.5.x
 
@@ -134,6 +138,10 @@ Because some of the blog posts have been written a while ago, this section is or
 
 * [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-akka-streams/) by Loïc Descotte.
 * [Playing with Akka Streams and Twitter](https://loicdescotte.github.io/posts/play-akka-streams-twitter/) by Loïc Descotte.
+
+#### Database
+
+* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an activator project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
 
 ### 2.4.x
 
@@ -171,6 +179,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 * [Play framework, Slick and MySQL Tutorial](http://pedrorijo.com/blog/play-slick/) by Pedro Rijo.
 
 #### RethinkDB
+
 * [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions)
 
 #### Forms
