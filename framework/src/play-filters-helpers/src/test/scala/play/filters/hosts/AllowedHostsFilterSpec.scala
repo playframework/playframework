@@ -23,11 +23,11 @@ object AllowedHostsFilterSpec extends PlaySpecification {
 
   sequential
 
-  private def request(hostHeader: String, uri: String = "/", headers: Seq[(String, String)] = Seq()) = {
+  private def request(app: Application, hostHeader: String, uri: String = "/", headers: Seq[(String, String)] = Seq()) = {
     val req = FakeRequest(method = "GET", path = uri)
       .withHeaders(headers: _*)
       .withHeaders(HOST -> hostHeader)
-    route(req).get
+    route(app, req).get
   }
 
   private val okWithHost = (req: RequestHeader) => Ok(req.host)
@@ -46,8 +46,9 @@ object AllowedHostsFilterSpec extends PlaySpecification {
       .build()
   }
 
-  def withApplication[T](result: RequestHeader => Result, config: String)(block: => T): T = {
-    running(newApplication(result, config))(block)
+  def withApplication[T](result: RequestHeader => Result, config: String)(block: Application => T): T = {
+    val app = newApplication(result, config)
+    running(app)(block(app))
   }
 
   val TestServerPort = 8192
@@ -57,71 +58,71 @@ object AllowedHostsFilterSpec extends PlaySpecification {
   }
 
   "the allowed hosts filter" should {
-    "disallow non-local hosts with default config" in withApplication(okWithHost, "") {
-      status(request("localhost")) must_== OK
-      status(request("typesafe.com")) must_== BAD_REQUEST
-      status(request("")) must_== BAD_REQUEST
+    "disallow non-local hosts with default config" in withApplication(okWithHost, "") { app =>
+      status(request(app, "localhost")) must_== OK
+      status(request(app, "typesafe.com")) must_== BAD_REQUEST
+      status(request(app, "")) must_== BAD_REQUEST
     }
 
     "only allow specific hosts specified in configuration" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = ["example.com", "example.net"]
-      """.stripMargin) {
-        status(request("example.com")) must_== OK
-        status(request("EXAMPLE.net")) must_== OK
-        status(request("example.org")) must_== BAD_REQUEST
-        status(request("foo.example.com")) must_== BAD_REQUEST
+      """.stripMargin) { app =>
+        status(request(app, "example.com")) must_== OK
+        status(request(app, "EXAMPLE.net")) must_== OK
+        status(request(app, "example.org")) must_== BAD_REQUEST
+        status(request(app, "foo.example.com")) must_== BAD_REQUEST
       }
 
     "allow defining host suffixes in configuration" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com"]
-      """.stripMargin) {
-        status(request("foo.example.com")) must_== OK
-        status(request("example.com")) must_== OK
+      """.stripMargin) { app =>
+        status(request(app, "foo.example.com")) must_== OK
+        status(request(app, "example.com")) must_== OK
       }
 
     "support FQDN format for hosts" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com", "example.net"]
-      """.stripMargin) {
-        status(request("foo.example.com.")) must_== OK
-        status(request("example.net.")) must_== OK
+      """.stripMargin) { app =>
+        status(request(app, "foo.example.com.")) must_== OK
+        status(request(app, "example.net.")) must_== OK
       }
 
     "support allowing empty hosts" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com", ""]
-      """.stripMargin) {
-        status(request("")) must_== OK
-        status(request("example.net")) must_== BAD_REQUEST
-        status(route(FakeRequest()).get) must_== OK
+      """.stripMargin) { app =>
+        status(request(app, "")) must_== OK
+        status(request(app, "example.net")) must_== BAD_REQUEST
+        status(route(app, FakeRequest()).get) must_== OK
       }
 
     "support host headers with ports" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = ["example.com"]
-      """.stripMargin) {
-        status(request("example.com:80")) must_== OK
-        status(request("google.com:80")) must_== BAD_REQUEST
+      """.stripMargin) { app =>
+        status(request(app, "example.com:80")) must_== OK
+        status(request(app, "google.com:80")) must_== BAD_REQUEST
       }
 
     "restrict host headers based on port" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com:8080"]
-      """.stripMargin) {
-        status(request("example.com:80")) must_== BAD_REQUEST
-        status(request("www.example.com:8080")) must_== OK
-        status(request("example.com:8080")) must_== OK
+      """.stripMargin) { app =>
+        status(request(app, "example.com:80")) must_== BAD_REQUEST
+        status(request(app, "www.example.com:8080")) must_== OK
+        status(request(app, "example.com:8080")) must_== OK
       }
 
     "support matching all hosts" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = ["."]
-      """.stripMargin) {
-        status(request("example.net")) must_== OK
-        status(request("amazon.com")) must_== OK
-        status(request("")) must_== OK
+      """.stripMargin) { app =>
+        status(request(app, "example.net")) must_== OK
+        status(request(app, "amazon.com")) must_== OK
+        status(request(app, "")) must_== OK
       }
 
     // See http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
@@ -129,17 +130,17 @@ object AllowedHostsFilterSpec extends PlaySpecification {
     "not allow malformed ports" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".mozilla.org"]
-      """.stripMargin) {
-        status(request("addons.mozilla.org:@passwordreset.net")) must_== BAD_REQUEST
-        status(request("addons.mozilla.org: www.securepasswordreset.com")) must_== BAD_REQUEST
+      """.stripMargin) { app =>
+        status(request(app, "addons.mozilla.org:@passwordreset.net")) must_== BAD_REQUEST
+        status(request(app, "addons.mozilla.org: www.securepasswordreset.com")) must_== BAD_REQUEST
       }
 
     "validate hosts in absolute URIs" in withApplication(okWithHost,
       """
         |play.filters.hosts.allowed = [".mozilla.org"]
-      """.stripMargin) {
-        status(request("www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
-        status(request("addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")) must_== BAD_REQUEST
+      """.stripMargin) { app =>
+        status(request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
+        status(request(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")) must_== BAD_REQUEST
       }
 
     "not allow bypassing with X-Forwarded-Host header" in withServer(okWithHost,
