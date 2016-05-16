@@ -66,6 +66,14 @@ A router can be provided to the application as detailed in [[Application Entry p
 
 @[load](code/SirdAppLoader.scala)
 
+### Providing a DI router with Guice
+
+A SIRD router can be provided in Guice-based Play apps by overriding the `GuiceApplicationLoader` and the `Provider[Router]`:
+
+@[load-guice](code/ScalaSimpleRouter.scala)
+
+A SIRD router is more powerful than the routes file and is more accessible by IDE's.
+
 ### Overriding binding
 
-A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|ScalaTestingWithGuice#Override-bindings]] 
+A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|ScalaTestingWithGuice#Override-bindings]]
