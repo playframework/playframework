@@ -47,6 +47,8 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 @[actor-reject](code/javaguide/async/JavaWebSockets.java)
 
+> **Note**: the WebSocket protocol does not implement [Same Origin Policy](https://en.wikipedia.org/wiki/Same-origin_policy), and so does not protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).  To secure a websocket against hijacking, the `Origin` header in the request must be checked against the server's origin, and manual authentication (including CSRF tokens) should be implemented.  If a WebSocket request does not pass the security checks, then `acceptOrResult` should reject the request by returning a Forbidden result.
+
 ### Accepting a WebSocket asynchronously
 
 You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `CompletionStage<WebSocket<A>>` instead of `WebSocket<A>`.
