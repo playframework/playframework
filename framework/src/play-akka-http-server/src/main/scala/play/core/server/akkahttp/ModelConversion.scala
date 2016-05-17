@@ -155,6 +155,10 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     }
 
     result.body match {
+      case PlayHttpEntity.Head(Some(contentLength), _) =>
+        HttpEntity.Default(contentType, contentLength, Source.empty)
+      case PlayHttpEntity.Head(_, _) =>
+        HttpEntity.CloseDelimited(contentType, Source.empty)
       case PlayHttpEntity.Strict(data, _) =>
         HttpEntity.Strict(contentType, data)
 

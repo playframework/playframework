@@ -67,6 +67,23 @@ object HttpEntity {
   val NoEntity = Strict(ByteString.empty, None)
 
   /**
+   * An entity with a given length but no content, sent as a response to a HEAD request.
+   *
+   * @param contentLength The length of the data contained within this entity.
+   * @param contentType The content type, if known.
+   */
+  case class Head(contentLength: Option[Long], contentType: Option[String] = None) extends HttpEntity {
+    def isKnownEmpty = true
+    def dataStream = Source.empty
+    override def consumeData(implicit mat: Materializer) = Future.successful(ByteString.empty)
+    def asJava = new JHttpEntity.Head(
+      OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
+      OptionConverters.toJava(contentType)
+    )
+    def as(contentType: String) = copy(contentType = Some(contentType))
+  }
+
+  /**
    * A strict entity.
    *
    * Strict entities are contained entirely in memory.
@@ -74,7 +91,7 @@ object HttpEntity {
    * @param data The data contained within this entity.
    * @param contentType The content type, if known.
    */
-  final case class Strict(data: ByteString, contentType: Option[String]) extends HttpEntity {
+  case class Strict(data: ByteString, contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty = data.isEmpty
     def contentLength = Some(data.size)
     def dataStream = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
@@ -91,12 +108,14 @@ object HttpEntity {
    *                      delimited.
    * @param contentType The content type, if known.
    */
-  final case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String]) extends HttpEntity {
+  case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty = false
     def dataStream = data
-    def asJava = new JHttpEntity.Streamed(data.asJava,
+    def asJava = new JHttpEntity.Streamed(
+      data.asJava,
       OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
-      OptionConverters.toJava(contentType))
+      OptionConverters.toJava(contentType)
+    )
     def as(contentType: String) = copy(contentType = Some(contentType))
   }
 
@@ -109,7 +128,7 @@ object HttpEntity {
    *               contain no trailers.
    * @param contentType The content type, if known.
    */
-  final case class Chunked(chunks: Source[HttpChunk, _], contentType: Option[String]) extends HttpEntity {
+  case class Chunked(chunks: Source[HttpChunk, _], contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty = false
     def contentLength = None
     def dataStream = chunks.collect {

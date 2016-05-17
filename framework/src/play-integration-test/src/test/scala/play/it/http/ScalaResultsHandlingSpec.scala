@@ -170,6 +170,17 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         responses(1).status must_== 200
       }
 
+    "send Content-Length with no content in response to HEAD requests" in withServer(
+      Results.Ok.sendEntity(HttpEntity.Head(Some(1000)))
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("HEAD", "/", "HTTP/1.1", Map(), "")
+        ).head
+        response.status must_== 200
+        response.headers.get(CONTENT_LENGTH) must beSome("1000")
+        response.body must beLeft("")
+      }
+
     "allow sending trailers" in withServer(
       Result(ResponseHeader(200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
         HttpEntity.Chunked(Source(List(

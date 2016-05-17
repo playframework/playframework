@@ -3,6 +3,9 @@
  */
 package play.http;
 
+import java.util.Optional;
+import java.util.concurrent.CompletionStage;
+
 import akka.japi.pf.PFBuilder;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
@@ -11,9 +14,6 @@ import play.api.http.HttpChunk;
 import play.twirl.api.Content;
 import play.twirl.api.Xml;
 import scala.compat.java8.OptionConverters;
-
-import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
 /**
  * An HTTP entity
@@ -151,6 +151,54 @@ public abstract class HttpEntity {
     }
 
     /**
+     * An entity with a given length but no content, sent as a response to a HEAD request.
+     */
+    public final static class Head extends HttpEntity {
+        private final Optional<String> contentType;
+        private final Optional<Long> contentLength;
+
+        public Head(Optional<Long> contentLength, Optional<String> contentType) {
+            this.contentType = contentType;
+            this.contentLength = contentLength;
+        }
+
+        @Override
+        public Optional<String> contentType() {
+            return contentType;
+        }
+
+        @Override
+        public boolean isKnownEmpty() {
+            return true;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return contentLength;
+        }
+
+        @Override
+        public HttpEntity as(String contentType) {
+            return new Head(contentLength, Optional.of(contentType));
+        }
+
+        @Override
+        public Source<ByteString, ?> dataStream() {
+            return Source.<ByteString>empty();
+        }
+
+        @Override
+        public play.api.http.HttpEntity asScala() {
+            return new play.api.http.HttpEntity.Head(
+                /* scala Option[Long] produces a Java generic signature of Option<Object>, so we need to do an
+                   unchecked cast here to get it to typecheck */
+                (scala.Option) OptionConverters.toScala(contentLength),
+                OptionConverters.toScala(contentType)
+            );
+        }
+    }
+
+    /**
      * A streamed entity, backed by a source.
      */
     public final static class Streamed extends HttpEntity {
@@ -196,11 +244,13 @@ public abstract class HttpEntity {
         @Override
         @SuppressWarnings("unchecked")
         public play.api.http.HttpEntity asScala() {
-            return new play.api.http.HttpEntity.Streamed(data.asScala(),
-                    /* scala Option[Long] produces a Java generic signature of Option<Object>, so we need to do an
-                       unchecked cast here to get it to typecheck */
-                    (scala.Option) OptionConverters.toScala(contentLength),
-                    OptionConverters.toScala(contentType));
+            return new play.api.http.HttpEntity.Streamed(
+                data.asScala(),
+                /* scala Option[Long] produces a Java generic signature of Option<Object>, so we need to do an
+                   unchecked cast here to get it to typecheck */
+                (scala.Option) OptionConverters.toScala(contentLength),
+                OptionConverters.toScala(contentType)
+            );
         }
     }
 

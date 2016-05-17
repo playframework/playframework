@@ -161,11 +161,10 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     }
 
     val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeader, result)
-    val skipEntity = requestHeader.method == HttpMethod.HEAD.name()
+    val isHeadResponse = requestHeader.method == HttpMethod.HEAD.name
 
     val response: HttpResponse = result.body match {
-
-      case any if skipEntity =>
+      case any if isHeadResponse =>
         ServerResultUtils.cancelEntity(any)
         new DefaultFullHttpResponse(httpVersion, responseStatus, Unpooled.EMPTY_BUFFER)
 
@@ -196,9 +195,17 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
               logger.info(s"Manual Content-Length header, ignoring manual header.")
             } else {
               logger.warn(s"Content-Length header was set manually in the header ($manualContentLength) but is not the same as actual content length ($contentLength).")
+              if (isHeadResponse) {
+                logger.warn(s"If sending a response to a HEAD request, use HttpEntity.Head with a content length")
+              }
             }
           }
-          HttpHeaders.setContentLength(response, contentLength)
+          if (result.body.isInstanceOf[HttpEntity.Head] && !isHeadResponse) {
+            logger.warn("HttpEntity.Head was used to respond to a non-HEAD request. Setting Content-Length to 0")
+            HttpHeaders.setContentLength(response, 0)
+          } else {
+            HttpHeaders.setContentLength(response, contentLength)
+          }
         }
       }
       result.body.contentType.foreach { contentType =>

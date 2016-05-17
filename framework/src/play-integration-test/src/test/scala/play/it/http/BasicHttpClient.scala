@@ -64,8 +64,8 @@ object BasicHttpClient {
         requestNo += 1
         client.sendRequest(request, requestNo.toString, waitForResponses = false)
       }
-      for (i <- 0 until requests.length) yield {
-        client.readResponse(requestNo.toString)
+      for ((request, requestNo) <- requests.zipWithIndex) yield {
+        client.readResponse(requestNo.toString, request)
       }
     } finally {
       client.close()
@@ -127,16 +127,16 @@ class BasicHttpClient(port: Int, secure: Boolean) {
     if (waitForResponses) {
       request.headers.get("Expect").filter(_ == "100-continue").map { _ =>
         out.flush()
-        val response = readResponse(requestDesc + " continue")
+        val response = readResponse(requestDesc + " continue", request)
         if (response.status == 100) {
           writeBody()
-          Seq(response, readResponse(requestDesc))
+          Seq(response, readResponse(requestDesc, request))
         } else {
           Seq(response)
         }
       } getOrElse {
         writeBody()
-        Seq(readResponse(requestDesc))
+        Seq(readResponse(requestDesc, request))
       }
     } else {
       writeBody()
@@ -150,7 +150,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
    * @param responseDesc Description of the response, for error reporting
    * @return The response
    */
-  def readResponse(responseDesc: String) = {
+  def readResponse(responseDesc: String, request: BasicRequest) = {
     try {
       val statusLine = reader.readLine()
       if (statusLine == null) {
@@ -180,7 +180,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
       val headers = readHeaders.toMap
 
       def readCompletely(length: Int): String = {
-        if (length == 0) {
+        if (length == 0 || request.method == HEAD) {
           ""
         } else {
           val buf = new Array[Char](length)
