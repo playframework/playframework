@@ -3,17 +3,17 @@
  */
 package play.api.db.evolutions
 
-import java.io.{ InputStream, FileInputStream }
+import java.io.{ FileInputStream, InputStream }
 import java.sql.{ Connection, Date, PreparedStatement, ResultSet, SQLException }
 import javax.inject.{ Inject, Singleton }
 
-import scala.io.Codec
-import scala.util.control.NonFatal
-
-import play.api.db.{ Database, DBApi }
+import play.api.db.{ DBApi, Database }
 import play.api.libs.Collections
 import play.api.{ Environment, Logger, PlayException }
 import play.utils.PlayIO
+
+import scala.io.Codec
+import scala.util.control.NonFatal
 
 /**
  * Evolutions API.
@@ -93,8 +93,8 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
  */
 class DatabaseEvolutions(database: Database, schema: String = "") {
 
-  import DefaultEvolutionsApi._
   import DatabaseUrlPatterns._
+  import DefaultEvolutionsApi._
 
   def scripts(evolutions: Seq[Evolution]): Seq[Script] = {
     if (evolutions.nonEmpty) {
@@ -150,20 +150,22 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   def evolve(scripts: Seq[Script], autocommit: Boolean): Unit = {
     def logBefore(script: Script)(implicit conn: Connection): Unit = {
       script match {
-        case UpScript(e) => {
-          val ps = prepare("insert into ${schema}play_evolutions (id, hash, applied_at, apply_script, revert_script, state, last_problem) values(?, ?, ?, ?, ?, ?, ?)")
-          ps.setInt(1, e.revision)
-          ps.setString(2, e.hash)
-          ps.setDate(3, new Date(System.currentTimeMillis()))
-          ps.setString(4, e.sql_up)
-          ps.setString(5, e.sql_down)
-          ps.setString(6, "applying_up")
-          ps.setString(7, "")
-          ps.execute()
-        }
-        case DownScript(e) => {
+        case UpScript(e) =>
+          prepareAndExecute(
+            "insert into ${schema}play_evolutions " +
+              "(id, hash, applied_at, apply_script, revert_script, state, last_problem) " +
+              "values(?, ?, ?, ?, ?, ?, ?)"
+          ) { ps =>
+              ps.setInt(1, e.revision)
+              ps.setString(2, e.hash)
+              ps.setDate(3, new Date(System.currentTimeMillis()))
+              ps.setString(4, e.sql_up)
+              ps.setString(5, e.sql_down)
+              ps.setString(6, "applying_up")
+              ps.setString(7, "")
+            }
+        case DownScript(e) =>
           execute("update ${schema}play_evolutions set state = 'applying_down' where id = " + e.revision)
-        }
       }
     }
 
@@ -179,10 +181,10 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     }
 
     def updateLastProblem(message: String, revision: Int)(implicit conn: Connection): Boolean = {
-      val ps = prepare("update ${schema}play_evolutions set last_problem = ? where id = ?")
-      ps.setString(1, message)
-      ps.setInt(2, revision)
-      ps.execute()
+      prepareAndExecute("update ${schema}play_evolutions set last_problem = ? where id = ?") { ps =>
+        ps.setString(1, message)
+        ps.setInt(2, revision)
+      }
     }
 
     implicit val connection = database.getConnection(autocommit = autocommit)
@@ -309,8 +311,14 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     c.createStatement.execute(applySchema(sql))
   }
 
-  private def prepare(sql: String)(implicit c: Connection): PreparedStatement = {
-    c.prepareStatement(applySchema(sql))
+  private def prepareAndExecute(sql: String)(block: PreparedStatement => Unit)(implicit c: Connection) = {
+    val ps = c.prepareStatement(applySchema(sql))
+    try {
+      block(ps)
+      ps.execute()
+    } finally {
+      ps.close()
+    }
   }
 
   private def applySchema(sql: String): String = {
