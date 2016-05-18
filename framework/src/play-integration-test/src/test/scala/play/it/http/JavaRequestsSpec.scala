@@ -61,7 +61,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
     }
 
     "create a request without a body" in {
-      val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody())
+      val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(null))
       val javaContext: Context = JavaHelpers.createJavaContext(requestHeader)
       val javaRequest = javaContext.request()
 
