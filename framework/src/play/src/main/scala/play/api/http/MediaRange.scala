@@ -75,12 +75,12 @@ object MediaType {
       MediaRangeParser.mediaType(new CharSequenceReader(mediaType)) match {
         case MediaRangeParser.Success(mt: MediaType, next) => {
           if (!next.atEnd) {
-            logger.debug("Unable to parse part of media type '" + next.source + "'")
+            logger.debug(s"Unable to parse part of media type '${next.source}'")
           }
           Some(mt)
         }
         case MediaRangeParser.NoSuccess(err, next) => {
-          logger.debug("Unable to parse media type '" + next.source + "'")
+          logger.debug(s"Unable to parse media type '${next.source}'")
           None
         }
       }
@@ -100,13 +100,13 @@ object MediaRange {
     def apply(mediaRanges: String): Seq[MediaRange] = {
       MediaRangeParser(new CharSequenceReader(mediaRanges)) match {
         case MediaRangeParser.Success(mrs: List[MediaRange], next) =>
-          if (next.atEnd) {
-            logger.debug("Unable to parse part of media range header '" + next.source + "'")
+          if (!next.atEnd) {
+            logger.debug(s"Unable to parse part of media range header '${next.source}'")
           }
           mrs.sorted
         case MediaRangeParser.NoSuccess(err, _) =>
-          logger.debug("Unable to parse media range header '" + mediaRanges + "': " + err)
-          Nil
+          logger.debug(s"Unable to parse media range header '$mediaRanges': $err")
+          Seq.empty
       }
     }
   }
