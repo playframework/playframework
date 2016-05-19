@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Accessing an SQL database
+# Accessing a SQL database
 
 ## Configuring JDBC connection pools
 
