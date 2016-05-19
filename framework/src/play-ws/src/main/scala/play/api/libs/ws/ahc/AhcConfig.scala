@@ -7,17 +7,17 @@ package play.api.libs.ws.ahc
 
 import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
-import javax.inject.{ Singleton, Inject, Provider }
-
-import org.asynchttpclient.netty.ssl.JsseSslEngineFactory
-import org.slf4j.LoggerFactory
-
-import org.asynchttpclient.{ DefaultAsyncHttpClientConfig, AsyncHttpClientConfig }
-
+import javax.inject.{ Inject, Provider, Singleton }
 import javax.net.ssl._
-import play.api.{ ConfigLoader, Environment, Configuration }
-import play.api.libs.ws.ssl._
+
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory
+import org.asynchttpclient.netty.ssl.JsseSslEngineFactory
+import org.asynchttpclient.{ AsyncHttpClientConfig, DefaultAsyncHttpClientConfig }
+import org.slf4j.LoggerFactory
 import play.api.libs.ws.WSClientConfig
+import play.api.libs.ws.ssl._
+import play.api.{ ConfigLoader, Configuration, Environment }
 
 import scala.concurrent.duration._
 
@@ -279,7 +279,13 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
 
     builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
-    builder.setSslEngineFactory(new JsseSslEngineFactory(sslContext))
+    // If you wan't to accept any certificate you also want to use a loose netty based loose SslContext
+    // Never use this in production.
+    if (sslConfig.loose.acceptAnyCertificate) {
+      builder.setSslContext(SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build())
+    } else {
+      builder.setSslEngineFactory(new JsseSslEngineFactory(sslContext))
+    }
   }
 
   def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {
