@@ -29,7 +29,7 @@ Before making a contribution, it is important to make sure that the change you w
         * Java APIs should go to `framework/play/src/main/java`, package structure is `play.myapipackage.xxxx`
         * Scala APIs should go to `framework/play/src/main/scala`, where the package structure is `play.api.myapipackage`
         * Features are forever, always think about whether a new feature really belongs to the core framework or if it should be implemented as a module
-        * Code must conform to standard style guidelines and pass all tests (see [validatePullRequest](https://github.com/playframework/playframework/blob/master/framework/validatePullRequest))
+        * Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. New files must:
         * Have a Lightbend copyright header in the style of ``Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>``.
         * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
