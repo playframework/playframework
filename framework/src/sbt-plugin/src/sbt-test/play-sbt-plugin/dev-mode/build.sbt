@@ -4,6 +4,8 @@
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+libraryDependencies += guiceSupport
+
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode

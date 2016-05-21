@@ -3,13 +3,11 @@
  */
 package play.api.inject
 
+import com.google.inject.AbstractModule
 import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
-
-import com.google.inject.AbstractModule
-
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
 import play.api.{ Configuration, Environment }
+import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
 
 class ModulesSpec extends Specification {
 

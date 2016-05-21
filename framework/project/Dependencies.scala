@@ -111,6 +111,11 @@ object Dependencies {
   val jodatime = "joda-time" % "joda-time" % "2.9.3"
   val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
 
+  val guiceDeps = Seq(
+    "com.google.inject" % "guice" % "4.0",
+    "com.google.inject.extensions" % "guice-assistedinject" % "4.0"
+  )
+
   def runtime(scalaVersion: String) =
     slf4j ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
@@ -119,6 +124,7 @@ object Dependencies {
       "org.scala-stm" %% "scala-stm" % "0.7",
       "commons-codec" % "commons-codec" % "1.10",
 
+      guava,
       jodatime,
       jodaConvert,
 
@@ -127,11 +133,8 @@ object Dependencies {
       "xerces" % "xercesImpl" % "2.11.0",
 
       "javax.transaction" % "jta" % "1.1",
+      "javax.inject" % "javax.inject" % "1",
 
-      "com.google.inject" % "guice" % "4.0",
-      "com.google.inject.extensions" % "guice-assistedinject" % "4.0",
-
-      guava % Test,
       logback % Test,
 
       "org.scala-lang" % "scala-reflect" % scalaVersion,
@@ -276,7 +279,7 @@ object Dependencies {
     ("org.fluentlenium" % "fluentlenium-core" % "0.10.9")
       .exclude("org.jboss.netty", "netty"),
     logback % Test
-  )
+  ) ++ guiceDeps
 
   val playCacheDeps = Seq(
       "net.sf.ehcache" % "ehcache-core" % "2.6.11",

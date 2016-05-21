@@ -251,7 +251,8 @@ object PlayBuild extends Build {
   lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)
     .dependsOn(
-      PlayProject
+      PlayProject,
+      PlayGuiceProject % "test"
     )
 
   lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
@@ -284,7 +285,7 @@ object PlayBuild extends Build {
   lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
     .settings(libraryDependencies ++= javaJdbcDeps)
     .dependsOn(PlayJdbcProject, PlayJavaProject)
-    .dependsOn(PlaySpecs2Project % "test")
+    .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
   lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
     .settings(libraryDependencies ++= jpaDeps)
@@ -296,7 +297,10 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= testDependencies,
       parallelExecution in Test := false
-    ).dependsOn(PlayNettyServerProject)
+    ).dependsOn(
+      PlayGuiceProject,
+      PlayNettyServerProject
+    )
 
   lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
     .settings(
@@ -306,15 +310,24 @@ object PlayBuild extends Build {
 
   lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
-    .dependsOn(PlayProject % "compile;test->test")
-    .dependsOn(PlayTestProject % "test")
-    .dependsOn(PlaySpecs2Project % "test")
+    .dependsOn(
+      PlayProject % "compile;test->test",
+      PlayTestProject % "test",
+      PlaySpecs2Project % "test",
+      PlayGuiceProject % "test"
+    )
 
   lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
     .settings(
       libraryDependencies ++= playDocsDependencies
     ).dependsOn(PlayNettyServerProject)
+
+  lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
+    .settings(libraryDependencies ++= guiceDeps ++ specsBuild.map(_ % "test"))
+    .dependsOn(
+      PlayProject % "compile;test->test"
+    )
 
   lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
@@ -417,6 +430,7 @@ object PlayBuild extends Build {
 
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
+    PlayGuiceProject,
     BuildLinkProject,
     FunctionalProject,
     DataCommonsProject,

@@ -6,31 +6,13 @@ package play.core.test
 import java.security.cert.X509Certificate
 
 import akka.util.ByteString
-import play.api.inject.guice.GuiceInjectorBuilder
-import play.api.inject.{ BindingKey, Binding, Injector }
+import play.api.inject.{ Binding, Injector }
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
 import scala.xml.NodeSeq
-
-/**
- * Utilities to help with testing
- */
-object Fakes {
-
-  /**
-   * Create an injector from the given bindings.
-   *
-   * @param bindings The bindings
-   * @return The injector
-   */
-  def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
-    new GuiceInjectorBuilder().bindings(bindings).injector
-  }
-
-}
 
 /**
  * Fake HTTP headers implementation.

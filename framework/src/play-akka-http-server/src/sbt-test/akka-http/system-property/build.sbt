@@ -11,11 +11,12 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.7")
 // because the "test" directory clashes with the scripted test file
 scalaSource in Test <<= baseDirectory(_ / "tests")
 
-libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % sys.props("project.version")
-
-libraryDependencies += ws
-
-libraryDependencies += specs2 % Test
+libraryDependencies ++= Seq(
+  "com.typesafe.play" %% "play-akka-http-server-experimental" % sys.props("project.version"),
+  guiceSupport,
+  ws,
+  specs2 % Test
+)
 
 fork in Test := true
 

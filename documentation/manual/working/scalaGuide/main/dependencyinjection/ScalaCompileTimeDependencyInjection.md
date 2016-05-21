@@ -27,6 +27,8 @@ To configure Play to use this application loader, configure the `play.applicatio
 
     play.application.loader=MyApplicationLoader
 
+In addition, if you're modifying an existing project that uses the built-in Guice module, you should be able to remove `guiceSupport` from your `libraryDependencies` in `build.sbt`.
+
 ## Configuring Logging
 
 To correctly configure logging in Play, the `LoggerConfigurator` must be run before the application is returned.  The default  [BuiltInComponentsFromContext](api/scala/play/api/BuiltInComponentsFromContext.html) does not call `LoggerConfigurator` for you.

@@ -7,6 +7,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 scalaVersion := "%SCALA_VERSION%"
 
 libraryDependencies ++= Seq(
+  guiceSupport,
   jdbc,
   cache,
   ws,

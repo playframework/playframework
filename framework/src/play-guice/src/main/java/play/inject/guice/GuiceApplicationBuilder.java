@@ -104,7 +104,7 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
      */
     @Deprecated
     public GuiceApplicationBuilder load(BiFunction<Environment, Configuration, List<GuiceableModule>> loader) {
-        return withModuleLoader((env, conf) -> loader.apply(env, new play.Configuration(conf)));
+        return withModuleLoader((env, conf) -> loader.apply(env, new Configuration(conf)));
     }
 
     /**

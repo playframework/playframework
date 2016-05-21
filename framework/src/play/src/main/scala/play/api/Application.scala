@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.google.inject.Singleton
+import javax.inject.Singleton
 import play.api.http._
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Crypto
@@ -78,18 +78,6 @@ trait Application {
    * so it will end up consistent across threads anyway.
    */
   private var cachedRoutes: Router = null
-
-  /**
-   * The router used by this application.
-   */
-  @deprecated("Either use HttpRequestHandler, or have the router injected", "2.4.0")
-  def routes: Router = {
-    // Use a cached value because the injector might be slow
-    if (cachedRoutes != null) cachedRoutes else {
-      cachedRoutes = injector.instanceOf[Router]
-      cachedRoutes
-    }
-  }
 
   /**
    * The HTTP request handler
