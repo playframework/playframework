@@ -123,7 +123,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     config.getDeprecated[Option[String]]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
     config.getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
 
-    val wrappedDataSource = ConnectionPool.maybeWrapDataSource(datasource, conf)
+    val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, conf)
 
     // Bind in JNDI
     dbConfig.jndiName foreach { jndiName =>
@@ -138,7 +138,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
    * Close the given data source.
    */
   def close(ds: DataSource): Unit = {
-    ConnectionPool.unwrapDataSource(ds) match {
+    ConnectionPool.unwrap(ds) match {
       case bcp: BoneCPDataSource => bcp.close()
       case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
     }

@@ -56,7 +56,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 
       val hikariConfig = new HikariCPConfig(dbConfig, config).toHikariConfig
       val datasource = new HikariDataSource(hikariConfig)
-      val wrappedDataSource = ConnectionPool.maybeWrapDataSource(datasource, configuration)
+      val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, configuration)
 
       // Bind in JNDI
       dbConfig.jndiName.foreach { jndiName =>
@@ -78,7 +78,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
    */
   override def close(dataSource: DataSource) = {
     Logger.info("Shutting down connection pool.")
-    ConnectionPool.unwrapDataSource(dataSource) match {
+    ConnectionPool.unwrap(dataSource) match {
       case ds: HikariDataSource => ds.close()
       case _ => sys.error("Unable to close data source: not a HikariDataSource")
     }
