@@ -33,7 +33,7 @@ object PlayReload {
   }
 
   def originalSource(file: File): Option[File] = {
-    play.twirl.compiler.MaybeGeneratedSource.unapply(file).map(_.file)
+    play.twirl.compiler.MaybeGeneratedSource.unapply(file).flatMap(_.source)
   }
 
   def compileFailure(streams: Option[Streams])(incomplete: Incomplete): CompileResult = {

@@ -163,7 +163,8 @@ object Dependencies {
   }
 
   def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
-    sbtIO(sbtVersion, scalaVersion)
+    sbtIO(sbtVersion, scalaVersion),
+    "com.typesafe.play" %% "twirl-compiler" % BuildInfo.sbtTwirlVersion
   ) ++ specsBuild.map(_ % Test) ++ logback.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
