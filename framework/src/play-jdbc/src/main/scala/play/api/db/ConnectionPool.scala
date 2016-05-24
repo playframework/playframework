@@ -6,6 +6,7 @@ package play.api.db
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
+import org.jdbcdslog.LogSqlDataSource
 import play.api.{ Environment, Mode }
 import play.api.inject.Injector
 import play.utils.Reflect
@@ -77,5 +78,28 @@ object ConnectionPool {
         None -> None
     }
 
+  }
+
+  /**
+   * Wraps a data source in a org.jdbcdslog.LogSqlDataSource if the logSql configuration property is set to true.
+   */
+  private[db] def wrapToLogSql(dataSource: DataSource, configuration: Config): DataSource = {
+    if (configuration.getBoolean("logSql")) {
+      val proxyDataSource = new LogSqlDataSource()
+      proxyDataSource.setTargetDSDirect(dataSource)
+      proxyDataSource
+    } else {
+      dataSource
+    }
+  }
+
+  /**
+   * Unwraps a data source if it has been previously wrapped in a org.jdbcdslog.LogSqlDataSource.
+   */
+  private[db] def unwrap(dataSource: DataSource): DataSource = {
+    dataSource match {
+      case ds: LogSqlDataSource => ds.getTargetDatasource
+      case _ => dataSource
+    }
   }
 }

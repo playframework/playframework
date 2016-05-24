@@ -123,22 +123,25 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     config.getDeprecated[Option[String]]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
     config.getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
 
+    val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, conf)
+
     // Bind in JNDI
-    dbConfig.jndiName foreach { name =>
-      JNDI.initialContext.rebind(name, datasource)
-      val visibleUrl = datasource.getJdbcUrl
-      logger.info(s"""datasource [$visibleUrl] bound to JNDI as $name""")
+    dbConfig.jndiName foreach { jndiName =>
+      JNDI.initialContext.rebind(jndiName, wrappedDataSource)
+      logger.info(s"""datasource [$name] bound to JNDI as $jndiName""")
     }
 
-    datasource
+    wrappedDataSource
   }
 
   /**
    * Close the given data source.
    */
-  def close(ds: DataSource): Unit = ds match {
-    case bcp: BoneCPDataSource => bcp.close()
-    case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
+  def close(ds: DataSource): Unit = {
+    ConnectionPool.unwrap(ds) match {
+      case bcp: BoneCPDataSource => bcp.close()
+      case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
+    }
   }
 
 }
