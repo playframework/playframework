@@ -72,6 +72,22 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       }
     }
 
+    "do not use LogSqlDataSource by default" in new WithApplication(_.configure(
+      "db.default.driver" -> "org.h2.Driver",
+      "db.default.url" -> "jdbc:h2:mem:default"
+    )) {
+      val db = app.injector.instanceOf[DBApi]
+      db.database("default").dataSource.getClass.getName must not contain ("LogSqlDataSource")
+    }
+
+    "use LogSqlDataSource when logSql is true" in new WithApplication(_.configure(
+      "db.default.driver" -> "org.h2.Driver",
+      "db.default.url" -> "jdbc:h2:mem:default",
+      "db.default.logSql" -> "true"
+    )) {
+      val db = app.injector.instanceOf[DBApi]
+      db.database("default").dataSource.getClass.getName must contain("LogSqlDataSource")
+    }
   }
 
 }
