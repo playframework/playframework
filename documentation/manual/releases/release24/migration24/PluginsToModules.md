@@ -46,6 +46,7 @@ play.modules.enabled  += "my.module.MyModule"
 ```
 
 If you are working on a library that will be used by other projects (including sub projects), add the above line in your `reference.conf` file (if you don't have a `reference.conf` yet, create one and place it under `src/main/resources`). Otherwise, if it's in an end Play project, it should be in `application.conf`.
+If it's and end Play project, you could also create a class called `Module` and put it in the root package (the "app" directory).
 
 > **Note:** If you are working on a library, it is highly discouraged to use `play.modules.disabled` to disable modules, as it can lead to nondeterministic results when modules are loaded by the application (see [this issue](https://github.com/playframework/play-slick/issues/245) for reasons on why you should not touch `play.modules.disabled`). In fact, `play.modules.disabled` is intended for end users to be able to override what modules are enabled by default.
 
