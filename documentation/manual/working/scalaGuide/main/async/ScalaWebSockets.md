@@ -59,7 +59,7 @@ For example, let's say we want to receive JSON messages, and we want to parse in
 
 @[actor-json-formats](code/ScalaWebSockets.scala)
 
-Now we can create WebSocket `FrameFormatter`'s for these types:
+Now we can create a `MessageFlowTransformer` for these types:
 
 @[actor-json-frames](code/ScalaWebSockets.scala)
 
