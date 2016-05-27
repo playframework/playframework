@@ -104,7 +104,7 @@ public class DefaultJPAApi implements JPAApi {
      * @return code execution result
      */
     public <T> T withTransaction(String name, Function<EntityManager, T> block) {
-        return withTransaction("default", false, block);
+        return withTransaction(name, false, block);
     }
 
     /**
