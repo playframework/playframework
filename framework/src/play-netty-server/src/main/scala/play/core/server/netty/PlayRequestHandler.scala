@@ -249,25 +249,30 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
     import play.core.Execution.Implicits.trampoline
 
-    val body = modelConversion.convertRequestBody(request)
-    val bodyParser = action(requestHeader)
-    val resultFuture = body match {
-      case None =>
-        bodyParser.run()
-      case Some(source) =>
-        bodyParser.run(source)
-    }
-
-    resultFuture.recoverWith {
-      case error =>
-        logger.error("Cannot invoke the action", error)
-        errorHandler(app).onServerError(requestHeader, error)
-    }.map {
-      case result =>
-        val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, result)
-        val validated = ServerResultUtils.validateResult(requestHeader, cleanedResult)
-        modelConversion.convertResult(validated, requestHeader, request.getProtocolVersion)
-    }
+    for {
+      // Execute the action and get a result
+      actionResult <- {
+        val body = modelConversion.convertRequestBody(request)
+        val bodyParser = action(requestHeader)
+        (body match {
+          case None => bodyParser.run()
+          case Some(source) => bodyParser.run(source)
+        }).recoverWith {
+          case error =>
+            logger.error("Cannot invoke the action", error)
+            errorHandler(app).onServerError(requestHeader, error)
+        }
+      }
+      // Clean and validate the action's result
+      validatedResult <- {
+        val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, actionResult)
+        ServerResultUtils.validateResult(requestHeader, cleanedResult, errorHandler(app))
+      }
+      // Convert the result to a Netty HttpResponse
+      convertedResult <- {
+        modelConversion.convertResult(validatedResult, requestHeader, request.getProtocolVersion, errorHandler(app))
+      }
+    } yield convertedResult
   }
 
   /**
