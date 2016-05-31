@@ -10,8 +10,7 @@ All Play artifacts are published to the Typesafe repository at <https://repo.typ
 To enable it in your sbt build, you must add a proper resolver (typically in `plugins.sbt`):
 
 ```scala
-// The Typesafe repository
-resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/maven-releases/"
+resolvers += Resolver.typesafeRepo("releases")
 ```
 
 ## Accessing snapshots
