@@ -6,6 +6,7 @@ package play.core.server.netty
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api._
+import play.api.http.HttpErrorHandler
 import play.core.server.common.ServerResultUtils
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.buffer.ChannelBuffers
@@ -49,33 +50,31 @@ object NettyResultStreamer {
    *
    * @return A Future that will be redeemed when the result is completely sent
    */
-  def sendResult(requestHeader: RequestHeader, result: Result, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
+  def sendResult(
+    requestHeader: RequestHeader,
+    result: Result,
+    httpVersion: HttpVersion,
+    startSequence: Int,
+    errorHandler: HttpErrorHandler)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     // Break out sending logic because when the first result is invalid we may
     // need to call send again with an error result.
     def send(result: Result): Future[ChannelStatus] = {
       // Result of this iteratee is a completion status
-      val resultStreaming = ServerResultUtils.determineResultStreaming(requestHeader, result)
-      resultStreaming.flatMap {
-        case Left(ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
-          logger.warn(s"Cannot send result, sending error result instead: $reason")
-          send(alternativeResult)
-        case Right((streaming, connectionHeader)) =>
-          // Create our base response. It may be modified, depending on the
-          // streaming strategy.
-          val nettyResponse = createNettyResponse(result.header, connectionHeader, httpVersion)
+      createNettyResponse(requestHeader, result, httpVersion, errorHandler).flatMap {
+        case (nettyResponse, streaming, connectionHeader) =>
 
           // Streams whatever content that has been added to the nettyResponse, or
           // no content if none was added
-          def sendContent() = {
+          def sendContent(): Future[ChannelStatus] = {
             val future = sendDownstream(startSequence, !connectionHeader.willClose, nettyResponse).toScala
             val channelStatus = new ChannelStatus(connectionHeader.willClose, startSequence)
             future.map(_ => channelStatus).recover { case _ => channelStatus }
           }
 
           // Streams the value of an enumerator into the nettyResponse
-          def streamEnum(enum: Enumerator[Array[Byte]]) = {
+          def streamEnum(enum: Enumerator[Array[Byte]]): Future[ChannelStatus] = {
             enum |>>> nettyStreamIteratee(nettyResponse, startSequence, connectionHeader.willClose)
           }
 
@@ -140,41 +139,59 @@ object NettyResultStreamer {
     nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1), new ChannelStatus(closeConnection, startSequence))
   }
 
-  def createNettyResponse(header: ResponseHeader, connectionHeader: ServerResultUtils.ConnectionHeader, httpVersion: HttpVersion) = {
-    val responseStatus = header.reasonPhrase match {
-      case Some(phrase) => new HttpResponseStatus(header.status, phrase)
-      case None => HttpResponseStatus.valueOf(header.status)
-    }
-    val nettyResponse = new DefaultHttpResponse(httpVersion, responseStatus)
-    val nettyHeaders = nettyResponse.headers()
+  /**
+   * Create a Netty HttpResponse from a Play Result object. This method may call itself
+   * recursively if the first attempt to create a response fails. The HttpResponse may
+   * be modified later, depending on the streaming strategy.
+   */
+  def createNettyResponse(
+    requestHeader: RequestHeader,
+    result: Result,
+    httpVersion: HttpVersion,
+    errorHandler: HttpErrorHandler): Future[(HttpResponse, ServerResultUtils.ResultStreaming, ServerResultUtils.ConnectionHeader)] = {
 
-    // Set response headers
-    val headers = ServerResultUtils.splitSetCookieHeaders(header.headers)
-    try {
-      headers foreach {
-        case (name, value) => nettyHeaders.add(name, value)
+    // Wrap the conversion logic with some error handling
+    ServerResultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
+
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+      val resultStreaming = ServerResultUtils.determineResultStreaming(requestHeader, result, errorHandler)
+      resultStreaming.flatMap {
+        case Left(ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
+          logger.warn(s"Cannot send result, sending error result instead: $reason")
+          // Try conversion again with new result
+          createNettyResponse(requestHeader, alternativeResult, httpVersion, errorHandler)
+        case Right((streaming, connectionHeader)) =>
+
+          val responseStatus: HttpResponseStatus = result.header.reasonPhrase match {
+            case Some(phrase) => new HttpResponseStatus(result.header.status, phrase)
+            case None => HttpResponseStatus.valueOf(result.header.status)
+          }
+
+          val nettyResponse = new DefaultHttpResponse(httpVersion, responseStatus)
+          // Set response headers
+          val nettyHeaders = nettyResponse.headers()
+          ServerResultUtils.splitSetCookieHeaders(result.header.headers).foreach {
+            case (name, value) => nettyHeaders.add(name, value)
+          }
+          connectionHeader.header foreach { headerValue =>
+            nettyHeaders.set(CONNECTION, headerValue)
+          }
+          // Netty doesn't add the required Date header for us, so make sure there is one here
+          if (!nettyHeaders.contains(DATE)) {
+            nettyHeaders.add(DATE, dateHeader)
+          }
+          Future.successful((nettyResponse, streaming, connectionHeader))
       }
-    } catch {
-      case NonFatal(e) =>
-        if (logger.isErrorEnabled) {
-          val prettyHeaders = headers.map { case (name, value) => s"$name -> $value" }.mkString("[", ",", "]")
-          val msg = s"Exception occurred while setting response's headers to $prettyHeaders. Action taken is to set the response's status to ${HttpResponseStatus.INTERNAL_SERVER_ERROR} and discard all headers."
-          logger.error(msg, e)
-        }
-        nettyResponse.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR)
-        nettyHeaders.clear()
+    } {
+      // Fallback response if an unrecoverable error occurs
+      val nettyResponse = new DefaultHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR)
+      HttpHeaders.setContentLength(nettyResponse, 0)
+      nettyResponse.headers().add(DATE, dateHeader)
+      nettyResponse.headers().add(CONNECTION, "close")
+      val emptyBytes = new Array[Byte](0)
+      (nettyResponse, ServerResultUtils.StreamWithStrictBody(emptyBytes), ServerResultUtils.SendClose)
     }
-
-    connectionHeader.header foreach { headerValue =>
-      nettyHeaders.set(CONNECTION, headerValue)
-    }
-
-    // Netty doesn't add the required Date header for us, so make sure there is one here
-    if (!nettyHeaders.contains(DATE)) {
-      nettyHeaders.add(DATE, dateHeader)
-    }
-
-    nettyResponse
   }
 
   def sendDownstream(subSequence: Int, last: Boolean, message: Object)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {

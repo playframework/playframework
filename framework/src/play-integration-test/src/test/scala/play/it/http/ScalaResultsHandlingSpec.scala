@@ -3,12 +3,21 @@
  */
 package play.it.http
 
+import akka.util.Timeout
 import java.io.IOException
+import java.util.concurrent.{ LinkedBlockingQueue, TimeUnit }
+import play.api.http._
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.iteratee._
+import play.api.routing.Router
+import play.core.server.common.ServerResultException
 import play.it._
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 import scala.util.{ Failure, Success, Try }
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 import play.api.http.Status
@@ -31,15 +40,35 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       tryRequest(result)(tryResult => block(tryResult.get))
     }
 
-    def withServer[T](result: => Result)(block: Port => T) = {
+    def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => Action(result)
-        }
-      ))) {
+      val app = new GuiceApplicationBuilder()
+        .overrides(
+          bind[HttpErrorHandler].to(errorHandler),
+          bind[Router].to(Router.from {
+            case _ => Action(result)
+          }))
+        .build()
+      running(TestServer(port, app)) {
         block(port)
       }
+    }
+
+    // For testing server error handling
+    class TestingHttpErrorHandler(result: => Result) extends HttpErrorHandler {
+      private val errorQueue = new LinkedBlockingQueue[(RequestHeader, Throwable)]()
+      override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
+      override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+        errorQueue.put((request, exception))
+        Future.successful(result)
+      }
+      def nextError(): (RequestHeader, Throwable) = {
+        val timeout: Duration = implicitly[Timeout].duration
+        val result = errorQueue.poll(timeout.length, timeout.unit)
+        if (result == null) { throw new NoSuchElementException("Error queue is empty") }
+        result
+      }
+      def hasErrors: Boolean = errorQueue.peek != null
     }
 
     "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
@@ -213,26 +242,49 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.body must beLeft
       }
 
-    "reject HTTP 1.0 requests for chunked results" in withServer(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-        )(0)
-        response.status must_== HTTP_VERSION_NOT_SUPPORTED
-        response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-      }
+    "reject HTTP 1.0 requests for chunked results" in {
+      val errorHandler = new TestingHttpErrorHandler(Results.InternalServerError("Custom error message"))
+      withServer(
+        Results.Ok.chunked(Enumerator("a", "b", "c")),
+        errorHandler = errorHandler
+      ) { port =>
+          val response = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+          ).head
+          response.status must_== HTTP_VERSION_NOT_SUPPORTED
+          response.body must beLeft("Custom error message")
+          val (request, exception) = errorHandler.nextError()
+          request.path must_== "/"
+          exception must beLike {
+            case e: ServerResultException =>
+              // Check original result
+              e.result.header.status must_== 200
+          }
+          errorHandler.hasErrors must beFalse
+        }
+    }
 
-    "return a 500 error on response with null header" in withServer(
-      Results.Ok("some body").withHeaders("X-Null" -> null)
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        )(0)
+    "return a 500 error on response with null header" in {
+      val errorHandler = new TestingHttpErrorHandler(Results.InternalServerError("Null error message"))
+      withServer(
+        Results.Ok("some body").withHeaders("X-Null" -> null),
+        errorHandler = errorHandler
+      ) { port =>
+          val response = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          ).head
 
-        response.status must_== 500
-        response.body must beLeft
-      }
+          response.status must_== 500
+          response.body must beLeft("Null error message")
+          val (request, exception) = errorHandler.nextError()
+          request.path must_== "/"
+          exception must beLike {
+            case e: NullPointerException =>
+              e.getMessage must contain("X-Null") // Check we're giving the header name in the exception
+          }
+          errorHandler.hasErrors must beFalse
+        }
+    }
 
     "not send empty chunks before the end of the enumerator stream" in makeRequest(
       Results.Ok.chunked(Enumerator("foo", "", "bar"))
@@ -340,15 +392,54 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.headers.get(CONTENT_LENGTH) must beOneOf(None, Some("0")) // Both header values are valid
       }
 
-    "return a 500 response if a forbidden character is used in a response's header field" in withServer(
-      // both colon and space characters are not allowed in a header's field name
-      Results.Ok.withHeaders("BadFieldName: " -> "SomeContent")
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).apply(0)
-        response.status must_== Status.INTERNAL_SERVER_ERROR
-        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
-      }
+    "return a 500 response if a forbidden character is used in a response's header field" in {
+      val errorHandler = new TestingHttpErrorHandler(Results.InternalServerError("Another error message"))
+      withServer(
+        Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
+        errorHandler = errorHandler
+      ) { port =>
+          val response = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          ).head
+          response.status must_== INTERNAL_SERVER_ERROR
+          response.body must beLeft("Another error message")
+          val (request, exception) = errorHandler.nextError()
+          request.path must_== "/"
+          exception must beLike {
+            case e: ServerResultException =>
+              // Check original result
+              e.result.header.status must_== 200
+              e.getCause must not be (null)
+          }
+          errorHandler.hasErrors must beFalse
+        }
+    }
+
+    "return a 500 response if an error occurs during the onError" in {
+      val errorHandler = new TestingHttpErrorHandler(throw new Exception("Failing on purpose :)"))
+      withServer(
+        Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
+        errorHandler = errorHandler
+      ) { port =>
+          val response = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          ).head
+          response.status must_== INTERNAL_SERVER_ERROR
+
+          // Original error should be handled
+          val (request, exception) = errorHandler.nextError()
+          request.path must_== "/"
+          exception must beLike {
+            case e: ServerResultException =>
+              // Check original result
+              e.result.header.status must_== 200
+              e.getCause must not be (null)
+          }
+
+          // Error in handler should not be handled
+          errorHandler.hasErrors must beFalse
+        }
+    }
+
   }
 }
