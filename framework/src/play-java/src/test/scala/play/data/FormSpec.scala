@@ -17,6 +17,7 @@ import play.api.test.WithApplication
 import play.data.FormFactory
 import play.data.format.Formatters
 import play.twirl.api.Html
+import javax.validation.groups.Default
 import javax.validation.Validation
 
 object FormSpec extends Specification {
@@ -249,6 +250,113 @@ object FormSpec extends Specification {
           fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
         ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
             "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+      }
+    }
+
+    "return the appropriate constraints for the desired validation group(s)" in {
+      "when NOT supplying a group all constraints that have the javax.validation.groups.Default group should be returned" in {
+        // (When a constraint annotation doesn't define a "groups" attribute, it's default group will be Default.class by default)
+        val myForm = formFactory.form(classOf[SomeUser])
+        myForm.field("email").constraints().size() must beEqualTo(2)
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("firstName").constraints().size() must beEqualTo(2)
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("lastName").constraints().size() must beEqualTo(3)
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("password").constraints().size() must beEqualTo(2)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(2)
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+      }
+
+      "when NOT supplying the Default.class group all constraints that have the javax.validation.groups.Default group should be returned" in {
+        // The exact same tests again, but now we explicitly supply the Default.class group
+        val myForm = formFactory.form(classOf[SomeUser], classOf[Default])
+        myForm.field("email").constraints().size() must beEqualTo(2)
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("firstName").constraints().size() must beEqualTo(2)
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("lastName").constraints().size() must beEqualTo(3)
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("password").constraints().size() must beEqualTo(2)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(2)
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+      }
+
+      "only return constraints for a specific group" in {
+        // Only return the constraints for the PasswordCheck
+        val myForm = formFactory.form(classOf[SomeUser], classOf[PasswordCheck])
+        myForm.field("email").constraints().size() must beEqualTo(0)
+        myForm.field("firstName").constraints().size() must beEqualTo(0)
+        myForm.field("lastName").constraints().size() must beEqualTo(0)
+        myForm.field("password").constraints().size() must beEqualTo(1)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(1)
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.required")
+      }
+
+      "only return constraints for another specific group" in {
+        // Only return the constraints for the LoginCheck
+        val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck])
+        myForm.field("email").constraints().size() must beEqualTo(2)
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.email")
+        myForm.field("firstName").constraints().size() must beEqualTo(0)
+        myForm.field("lastName").constraints().size() must beEqualTo(0)
+        myForm.field("password").constraints().size() must beEqualTo(1)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(0)
+      }
+
+      "return constraints for two given groups" in {
+        // Only return the required constraint for the LoginCheck and the PasswordCheck
+        val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck], classOf[PasswordCheck])
+        myForm.field("email").constraints().size() must beEqualTo(2)
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.email")
+        myForm.field("firstName").constraints().size() must beEqualTo(0)
+        myForm.field("lastName").constraints().size() must beEqualTo(0)
+        myForm.field("password").constraints().size() must beEqualTo(1)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(1)
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.required")
+      }
+
+      "return constraints for three given groups where on of them is the Default group" in {
+        // Only return the required constraint for the LoginCheck, PasswordCheck and the Default group
+        val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck], classOf[PasswordCheck], classOf[Default])
+        myForm.field("email").constraints().size() must beEqualTo(3)
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.email")
+        myForm.field("email").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("firstName").constraints().size() must beEqualTo(2)
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("firstName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("lastName").constraints().size() must beEqualTo(3)
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("lastName").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("password").constraints().size() must beEqualTo(3)
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("password").constraints().asScala.map(_._1) must contain("constraint.maxLength")
+        myForm.field("repeatPassword").constraints().size() must beEqualTo(3)
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.required")
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.minLength")
+        myForm.field("repeatPassword").constraints().asScala.map(_._1) must contain("constraint.maxLength")
       }
     }
   }
