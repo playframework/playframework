@@ -86,6 +86,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
   class MyAction extends Controller {
     @AddCSRFToken
     def add(): Result = {
+      require(Controller.request()._underlyingRequest() != null) // Make sure request is set
       // Simulate a template that adds a CSRF token
       import play.core.j.PlayMagicForJava.requestHeader
       Results.ok(CSRF.getToken.get.value)
