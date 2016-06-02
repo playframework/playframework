@@ -17,13 +17,12 @@ import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
-import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http.{ Status, HttpChunk, HttpEntity }
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 import scala.util.control.NonFatal
 
@@ -154,39 +153,36 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   }
 
   /** Create a Netty response from the result */
-  def convertResult(
-    result: Result, requestHeader: RequestHeader, httpVersion: HttpVersion, errorHandler: HttpErrorHandler)(
-      implicit mat: Materializer): Future[HttpResponse] = {
+  def convertResult(result: Result, requestHeader: RequestHeader, httpVersion: HttpVersion)(implicit mat: Materializer): HttpResponse = {
 
-    ServerResultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
+    val responseStatus = result.header.reasonPhrase match {
+      case Some(phrase) => new HttpResponseStatus(result.header.status, phrase)
+      case None => HttpResponseStatus.valueOf(result.header.status)
+    }
 
-      val responseStatus = result.header.reasonPhrase match {
-        case Some(phrase) => new HttpResponseStatus(result.header.status, phrase)
-        case None => HttpResponseStatus.valueOf(result.header.status)
-      }
+    val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeader, result)
+    val skipEntity = requestHeader.method == HttpMethod.HEAD.name()
 
-      val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeader, result)
-      val skipEntity = requestHeader.method == HttpMethod.HEAD.name()
+    val response: HttpResponse = result.body match {
 
-      val response: HttpResponse = result.body match {
+      case any if skipEntity =>
+        ServerResultUtils.cancelEntity(any)
+        new DefaultFullHttpResponse(httpVersion, responseStatus, Unpooled.EMPTY_BUFFER)
 
-        case any if skipEntity =>
-          ServerResultUtils.cancelEntity(any)
-          new DefaultFullHttpResponse(httpVersion, responseStatus, Unpooled.EMPTY_BUFFER)
+      case HttpEntity.Strict(data, _) =>
+        new DefaultFullHttpResponse(httpVersion, responseStatus, byteStringToByteBuf(data))
 
-        case HttpEntity.Strict(data, _) =>
-          new DefaultFullHttpResponse(httpVersion, responseStatus, byteStringToByteBuf(data))
+      case HttpEntity.Streamed(stream, _, _) =>
+        createStreamedResponse(stream, httpVersion, responseStatus)
 
-        case HttpEntity.Streamed(stream, _, _) =>
-          createStreamedResponse(stream, httpVersion, responseStatus)
+      case HttpEntity.Chunked(chunks, _) =>
+        createChunkedResponse(chunks, httpVersion, responseStatus)
+    }
 
-        case HttpEntity.Chunked(chunks, _) =>
-          createChunkedResponse(chunks, httpVersion, responseStatus)
-      }
+    // Set response headers
+    val headers = ServerResultUtils.splitSetCookieHeaders(result.header.headers)
 
-      // Set response headers
-      val headers = ServerResultUtils.splitSetCookieHeaders(result.header.headers)
-
+    try {
       headers foreach {
         case (name, value) => response.headers().add(name, value)
       }
@@ -222,14 +218,19 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
         response.headers().add(DATE, dateHeader)
       }
 
-      Future.successful(response)
-    } {
-      // Fallback response
-      val response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.EMPTY_BUFFER)
-      HttpHeaders.setContentLength(response, 0)
-      response.headers().add(DATE, dateHeader)
-      response.headers().add(CONNECTION, "close")
       response
+    } catch {
+      case NonFatal(e) =>
+        if (logger.isErrorEnabled) {
+          val prettyHeaders = headers.map { case (name, value) => s"$name -> $value" }.mkString("[", ",", "]")
+          val msg = s"Exception occurred while setting response's headers to $prettyHeaders. Action taken is to set the response's status to ${HttpResponseStatus.INTERNAL_SERVER_ERROR} and discard all headers."
+          logger.error(msg, e)
+        }
+        val response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.EMPTY_BUFFER)
+        HttpHeaders.setContentLength(response, 0)
+        response.headers().add(DATE, dateHeader)
+        response.headers().add(CONNECTION, "close")
+        response
     }
   }
 

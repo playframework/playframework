@@ -12,11 +12,11 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
-import play.api.http.{ HttpChunk, HttpErrorHandler, HttpEntity => PlayHttpEntity, Status }
+import play.api.http.{ HttpChunk, HttpEntity => PlayHttpEntity }
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+
 import scala.collection.immutable
-import scala.concurrent.Future
 
 /**
  * Conversions between Akka's and Play's HTTP model objects.
@@ -125,35 +125,19 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   def convertResult(
     requestHeaders: RequestHeader,
     unvalidated: Result,
-    protocol: HttpProtocol,
-    errorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[HttpResponse] = {
+    protocol: HttpProtocol)(implicit mat: Materializer): HttpResponse = {
 
-    import play.core.Execution.Implicits.trampoline
-
-    ServerResultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
-      // Convert result
-      ServerResultUtils.validateResult(requestHeaders, unvalidated, errorHandler).map { validated: Result =>
-        val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
-        val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
-        val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, validated)
-        val closeHeader = connectionHeader.header.map(Connection(_))
-        val response = HttpResponse(
-          status = validated.header.status,
-          headers = convertedHeaders.misc ++ closeHeader,
-          entity = entity,
-          protocol = protocol
-        )
-        response
-      }
-    } {
-      // Fallback response in case an exception is thrown during normal error handling
-      HttpResponse(
-        status = Status.INTERNAL_SERVER_ERROR,
-        headers = immutable.Seq(Connection("close")),
-        entity = HttpEntity.Empty,
-        protocol = protocol
-      )
-    }
+    val result = ServerResultUtils.validateResult(requestHeaders, unvalidated)
+    val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
+    val entity = convertResultBody(requestHeaders, convertedHeaders, result, protocol)
+    val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, result)
+    val closeHeader = connectionHeader.header.map(Connection(_))
+    HttpResponse(
+      status = result.header.status,
+      headers = convertedHeaders.misc ++ closeHeader,
+      entity = entity,
+      protocol = protocol
+    )
   }
 
   def convertResultBody(

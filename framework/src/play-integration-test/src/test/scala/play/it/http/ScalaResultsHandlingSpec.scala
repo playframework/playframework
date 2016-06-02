@@ -4,24 +4,16 @@
 package play.it.http
 
 import java.util.Locale.ENGLISH
-import java.util.concurrent.{ LinkedBlockingQueue }
 import akka.stream.scaladsl.Source
-import akka.util.{ ByteString, Timeout }
-import play.api._
-import play.api.http._
-import play.api.inject.bind
+import akka.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.routing.Router
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.iteratee._
 import play.api.libs.EventSource
-import play.core.server.common.ServerResultException
 import play.it._
 import scala.util.Try
-import scala.concurrent.Future
 import play.api.http.{ HttpEntity, HttpChunk, Status }
 
 object NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
@@ -42,13 +34,9 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       tryRequest(result)(tryResult => block(tryResult.get))
     }
 
-    def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
+    def withServer[T](result: => Result)(block: Port => T) = {
       val port = testServerPort
-      val app = GuiceApplicationBuilder()
-        .overrides(bind[HttpErrorHandler].to(errorHandler))
-        .routes { case _ => Action(result) }
-        .build()
-      running(TestServer(port, app)) {
+      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => Action(result) }.build())) {
         block(port)
       }
     }
@@ -201,17 +189,6 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         trailers.get("Chunks") must beSome("3")
       }
 
-    "keep chunked connections alive by default" in withServer(
-      Results.Ok.chunked(Source(List("a", "b", "c")))
-    ) { port =>
-        val responses = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        )
-        responses(0).status must_== 200
-        responses(1).status must_== 200
-      }
-
     "Strip malformed cookies" in withServer(
       Results.Ok
     ) { port =>
@@ -224,24 +201,13 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "reject HTTP 1.0 requests for chunked results" in withServer(
-      Results.Ok.chunked(Source(List("a", "b", "c"))),
-      errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          request.path must_== "/"
-          exception must beLike {
-            case e: ServerResultException =>
-              // Check original result
-              e.result.header.status must_== 200
-          }
-          Future.successful(Results.Status(500))
-        }
-      }
+      Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-        ).head
-        response.status must_== 505
+        )(0)
+        response.status must_== HTTP_VERSION_NOT_SUPPORTED
+        response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
       }
 
     "return a 500 error on response with null header" in withServer(
@@ -355,42 +321,12 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
     "return a 500 response if a forbidden character is used in a response's header field" in withServer(
       // both colon and space characters are not allowed in a header's field name
-      Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
-      errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          request.path must_== "/"
-          exception must beLike {
-            case e: ServerResultException =>
-              // Check original result
-              e.result.header.status must_== 200
-              e.result.header.headers.get("BadFieldName: ") must beSome("SomeContent")
-          }
-          Future.successful(Results.Status(500))
-        }
-      }
+      Results.Ok.withHeaders("BadFieldName: " -> "SomeContent")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         ).head
-        response.status must_== 500
-        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
-      }
-
-    "return a 500 response if an error occurs during the onError" in withServer(
-      // both colon and space characters are not allowed in a header's field name
-      Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
-      errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          throw new Exception("Failing on purpose :)")
-        }
-      }
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
-        response.status must_== 500
+        response.status must_== Status.INTERNAL_SERVER_ERROR
         (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
       }
   }
