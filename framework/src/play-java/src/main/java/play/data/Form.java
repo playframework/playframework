@@ -721,8 +721,21 @@ public class Form<T> {
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
                 if (property != null) {
+                    Annotation[] orderedAnnotations = null;
+                    for (Class<?> c = classType; c != null; c = c.getSuperclass()) { // we also check the fields of all superclasses
+                        java.lang.reflect.Field field = null;
+                        try {
+                            field = c.getDeclaredField(leafKey);
+                        } catch (NoSuchFieldException | SecurityException e) {
+                            continue;
+                        }
+                        // getDeclaredAnnotations also looks for private fields; also it provides the annotations in a guaranteed order
+                        orderedAnnotations = field.getDeclaredAnnotations();
+                        break;
+                    }
                     constraints = Constraints.displayableConstraint(
-                            property.findConstraints().unorderedAndMatchingGroups(groups != null ? groups : new Class[]{Default.class}).getConstraintDescriptors()
+                            property.findConstraints().unorderedAndMatchingGroups(groups != null ? groups : new Class[]{Default.class}).getConstraintDescriptors(),
+                            orderedAnnotations
                         );
                 }
             }
