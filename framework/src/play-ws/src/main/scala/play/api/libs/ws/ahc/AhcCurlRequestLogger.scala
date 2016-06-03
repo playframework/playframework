@@ -8,9 +8,9 @@ import java.nio.charset.StandardCharsets
 import org.asynchttpclient.util.HttpUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.ws._
-
 import scala.concurrent.Future
-
+import com.google.common.io.BaseEncoding
+import com.google.common.base.Charsets
 /**
  * Logs WSRequest and pulls information into Curl format to an SLF4J logger.
  *
@@ -52,6 +52,17 @@ trait CurlFormat {
     // method
     b.append(s"  --request ${request.method}")
     b.append(" \\\n")
+
+    //authentication
+    request.auth match {
+      case Some((userName, password, WSAuthScheme.BASIC)) => {
+        val encodedPassword = BaseEncoding.base64()
+          .encode(s"$userName:$password".getBytes(Charsets.US_ASCII))
+        b.append(s"""  --header "Authorization: Basic ${quote(encodedPassword)}""")
+        b.append(" \\\n")
+      }
+      case _ => Unit
+    }
 
     // headers
     request.headers.foreach {

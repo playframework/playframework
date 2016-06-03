@@ -8,8 +8,10 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import play.api.libs.ws._
 import play.api.test.{ WithServer, WsTestClient, PlaySpecification, WithApplication }
-
 import scala.concurrent.Future
+
+import com.google.common.io.BaseEncoding
+import com.google.common.base.Charsets
 
 class AhcCurlRequestLoggerSpec extends PlaySpecification
     with WsTestClient
@@ -135,6 +137,26 @@ class AhcCurlRequestLoggerSpec extends PlaySpecification
                               |  --data 'key=value' \\
                               |  'http://localhost:$testServerPort/'""".stripMargin
 
+        there was one(logger).info(curlStatement)
+      }
+
+      "log a request with Basic auth" in new WithServer {
+        val client = wsUrl("/")
+        val logger = mock[Logger]
+        val username = "username1"
+        val password = "pa$$w0rd"
+        val responseFuture = client.withRequestFilter(AhcCurlRequestLogger(logger))
+          .withAuth(username, password, WSAuthScheme.BASIC)
+          .get()
+
+        val expectedPassword = BaseEncoding.base64()
+          .encode(s"$username:$password".getBytes(Charsets.US_ASCII))
+        responseFuture must beAnInstanceOf[AhcWSResponse].await
+        val curlStatement = s"""curl \\
+                                |  --verbose \\
+                                |  --request GET \\
+                                |  --header "Authorization: Basic $expectedPassword \\
+                                |  'http://localhost:$testServerPort/'""".stripMargin
         there was one(logger).info(curlStatement)
       }
       //
