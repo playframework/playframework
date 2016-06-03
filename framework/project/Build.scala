@@ -264,18 +264,31 @@ object PlayBuild extends Build {
     )
 
   lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
-    .settings(libraryDependencies ++= playServerDependencies)
+    .settings(
+      libraryDependencies ++= playServerDependencies,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ServerResultUtils.validateResult")
+      ))
     .dependsOn(
       PlayProject,
       IterateesProject % "test->test;compile->compile"
     )
 
   lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
-    .settings(libraryDependencies ++= netty)
+    .settings(
+      libraryDependencies ++= netty,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertResult")
+      ))
     .dependsOn(PlayServerProject)
 
   lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental", "play-akka-http-server")
-    .settings(libraryDependencies ++= akkaHttp)
+    .settings(
+      libraryDependencies ++= akkaHttp,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.AkkaHttpServer.executeAction"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.akkahttp.ModelConversion.convertResult")
+      ))
      // Include scripted tests here as well as in the SBT Plugin, because we
      // don't want the SBT Plugin to have a dependency on an experimental module.
     .settings(playFullScriptedSettings: _*)

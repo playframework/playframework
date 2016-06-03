@@ -6,11 +6,16 @@ package play.core.server.common
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
+import play.api.Logger
 import play.api.mvc._
-import play.api.http.{ Status, HttpEntity, HttpProtocol }
+import play.api.http._
 import play.api.http.HeaderNames._
+import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 object ServerResultUtils {
+
+  private val logger = Logger(ServerResultUtils.getClass)
 
   /**
    * Determine whether the connection should be closed, and what header, if any, should be added to the response.
@@ -44,18 +49,85 @@ object ServerResultUtils {
    *
    * Returns the validated result, which may be an error result if validation failed.
    */
-  def validateResult(request: RequestHeader, result: Result)(implicit mat: Materializer): Result = {
+  def validateResult(request: RequestHeader, result: Result, httpErrorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[Result] = {
     if (request.version == HttpProtocol.HTTP_1_0 && result.body.isInstanceOf[HttpEntity.Chunked]) {
       cancelEntity(result.body)
-      Results.Status(Status.HTTP_VERSION_NOT_SUPPORTED)
-        .apply("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-        .withHeaders(CONNECTION -> CLOSE)
+      val exception = new ServerResultException("HTTP 1.0 client does not support chunked response", result, null)
+      val errorResult: Future[Result] = httpErrorHandler.onServerError(request, exception)
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      errorResult.map { originalErrorResult: Result =>
+        // Update the original error with a new status code and a "Connection: close" header
+        import originalErrorResult.{ header => h }
+        val newHeader = h.copy(
+          status = Status.HTTP_VERSION_NOT_SUPPORTED,
+          headers = h.headers + (CONNECTION -> CLOSE)
+        )
+        originalErrorResult.copy(header = newHeader)
+      }
     } else if (!mayHaveEntity(result.header.status) && !result.body.isKnownEmpty) {
       cancelEntity(result.body)
-      result.copy(body = HttpEntity.Strict(ByteString.empty, result.body.contentType))
+      Future.successful(result.copy(body = HttpEntity.Strict(ByteString.empty, result.body.contentType)))
     } else {
-      result
+      Future.successful(result)
     }
+  }
+
+  /**
+   * Handles result conversion in a safe way.
+   *
+   * 1. Tries to convert the `Result`.
+   * 2. If there's an error, calls the `HttpErrorHandler` to get a new
+   *    `Result`, then converts that.
+   * 3. If there's an error with *that* `Result`, uses the
+   *    `DefaultHttpErrorHandler` to get another `Result`, then converts
+   *    that.
+   * 4. Hopefully there are no more errors. :)
+   * 5. If calling an `HttpErrorHandler` throws an exception, then a
+   *    fallback response is returned, without an conversion.
+   */
+  def resultConversionWithErrorHandling[R](
+    requestHeader: RequestHeader,
+    result: Result,
+    errorHandler: HttpErrorHandler)(resultConverter: Result => Future[R])(fallbackResponse: => R): Future[R] = {
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    def handleConversionError(conversionError: Throwable): Future[R] = {
+      try {
+        // Log some information about the error
+        if (logger.isErrorEnabled) {
+          val prettyHeaders = result.header.headers.map { case (name, value) => s"<$name>: <$value>" }.mkString("[", ", ", "]")
+          val msg = s"Exception occurred while converting Result with headers $prettyHeaders. Calling HttpErrorHandler to get alternative Result."
+          logger.error(msg, conversionError)
+        }
+
+        // Call the HttpErrorHandler to generate an alternative error
+        errorHandler.onServerError(
+          requestHeader,
+          new ServerResultException("Error converting Play Result for server backend", result, conversionError)
+        ).flatMap { errorResult =>
+            // Convert errorResult using normal conversion logic. This time use
+            // the DefaultErrorHandler if there are any problems, e.g. if the
+            // current HttpErrorHandler returns an invalid Result.
+            resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(fallbackResponse)
+          }
+      } catch {
+        case NonFatal(onErrorError) =>
+          // Conservatively handle exceptions thrown by HttpErrorHandlers by
+          // returning a fallback response.
+          logger.error("Error occurred during error handling. Original error: ", conversionError)
+          logger.error("Error occurred during error handling. Error handling error: ", onErrorError)
+          Future.successful(fallbackResponse)
+      }
+    }
+
+    try {
+      // Try to convert the result
+      resultConverter(result).recoverWith { case t => handleConversionError(t) }
+    } catch {
+      case NonFatal(e) => handleConversionError(e)
+    }
+
   }
 
   private def mayHaveEntity(status: Int) =

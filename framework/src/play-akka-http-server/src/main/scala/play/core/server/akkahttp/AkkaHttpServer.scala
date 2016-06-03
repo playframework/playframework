@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 import akka.http.scaladsl.settings.ServerSettings
 import akka.util.ByteString
 import play.api._
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.{ Accumulator, MaterializeOnDemandPublisher }
 import play.api.mvc._
 import play.core.ApplicationProvider
@@ -158,25 +158,33 @@ class AkkaHttpServer(
 
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
+    // Get the app's HttpErroHandler or fallback to a default value
+    val errorHandler: HttpErrorHandler = {
+      tryApp match {
+        case Success(app) => app.errorHandler
+        case Failure(_) => DefaultHttpErrorHandler
+      }
+    }
+
     (handler, upgradeToWebSocket) match {
       //execute normal action
       case (action: EssentialAction, _) =>
         val actionWithErrorHandling = EssentialAction { rh =>
           import play.api.libs.iteratee.Execution.Implicits.trampoline
           action(rh).recoverWith {
-            case error => handleHandlerError(tryApp, taggedRequestHeader, error)
+            case error => errorHandler.onServerError(taggedRequestHeader, error)
           }
         }
-        executeAction(tryApp, request, taggedRequestHeader, requestBodySource, actionWithErrorHandling)
+        executeAction(request, taggedRequestHeader, requestBodySource, actionWithErrorHandling, errorHandler)
 
       case (websocket: WebSocket, Some(upgrade)) =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-        websocket(taggedRequestHeader).map {
+        websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
-            modelConversion.convertResult(taggedRequestHeader, result, request.protocol)
+            modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            WebSocketHandler.handleWebSocket(upgrade, flow, 16384)
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, 16384))
         }
 
       case (websocket: WebSocket, None) =>
@@ -187,20 +195,12 @@ class AkkaHttpServer(
     }
   }
 
-  /** Error handling to use during execution of a handler (e.g. an action) */
-  private def handleHandlerError(tryApp: Try[Application], rh: RequestHeader, t: Throwable): Future[Result] = {
-    tryApp match {
-      case Success(app) => app.errorHandler.onServerError(rh, t)
-      case Failure(_) => DefaultHttpErrorHandler.onServerError(rh, t)
-    }
-  }
-
   def executeAction(
-    tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Option[Source[ByteString, _]],
-    action: EssentialAction): Future[HttpResponse] = {
+    action: EssentialAction,
+    errorHandler: HttpErrorHandler): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     val actionAccumulator: Accumulator[ByteString, Result] = action(taggedRequestHeader)
@@ -220,9 +220,9 @@ class AkkaHttpServer(
       case None => actionAccumulator.run()
       case Some(s) => actionAccumulator.run(s)
     }
-    val responseFuture: Future[HttpResponse] = resultFuture.map { result =>
+    val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
-      modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol)
+      modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
     }
     responseFuture
   }
