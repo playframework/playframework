@@ -10,6 +10,7 @@ import java.util.jar.JarFile
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
+import play.twirl.compiler.MaybeGeneratedSource
 import sbt.{ PathFinder, WatchState, SourceModificationWatch }
 
 object Reloader {
@@ -370,7 +371,15 @@ class Reloader(
     val topType = className.split('$').head
     currentSourceMap.flatMap { sources =>
       sources.get(topType).map { source =>
-        Array[java.lang.Object](source.original.getOrElse(source.file), line)
+        source.original match {
+          case Some(origFile) if line != null =>
+            val origLine: java.lang.Integer = MaybeGeneratedSource.unapply(source.file).map(_.mapLine(line): java.lang.Integer).orNull
+            Array[java.lang.Object](origFile, origLine)
+          case Some(origFile) =>
+            Array[java.lang.Object](origFile, null)
+          case None =>
+            Array[java.lang.Object](source.file, line)
+        }
       }
     }.orNull
   }
