@@ -3,6 +3,8 @@
  */
 package play.data.validation;
 
+import play.data.Form.Display;
+
 import play.libs.F.*;
 import static play.libs.F.*;
 
@@ -17,6 +19,8 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Defines a set of built-in validation constraints.
@@ -48,23 +52,30 @@ public class Constraints {
 
     /**
      * Converts a set of constraints to human-readable values.
+     * Does not guarantee the order of the returned constraints.
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
-        List<Tuple<String,List<Object>>> displayable = new ArrayList<Tuple<String,List<Object>>>();
-        for(ConstraintDescriptor<?> c: constraints) {
-            Class<?> annotationType = c.getAnnotation().annotationType();
-            if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
-                play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
-                String name = d.name();
-                List<Object> attributes = new ArrayList<Object>();
-                Map<String,Object> annotationAttributes = c.getAttributes();
-                for(String attr: d.attributes()) {
-                    attributes.add(annotationAttributes.get(attr));
-                }
-                displayable.add(Tuple(name, attributes));
-            }
-        }
-        return displayable;
+        return constraints.parallelStream().filter(c -> c.getAnnotation().annotationType().isAnnotationPresent(Display.class)).map(c -> displayableConstraint(c)).collect(Collectors.toList());
+    }
+    
+    /**
+     * Converts a set of constraints to human-readable values in guaranteed order.
+     * Only constraints that have an annotation that intersect with the {@code orderedAnnotations} parameter will be considered.
+     * The order of the returned constraints corresponds to the order of the {@code orderedAnnotations parameter}. 
+     */
+    public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
+        return Stream.of(orderedAnnotations).filter(constraints.stream().map(c -> c.getAnnotation()).collect(Collectors.toList())::contains) // only use annotations for which we actually have a constraint
+            .filter(a -> a.annotationType().isAnnotationPresent(Display.class)).map(a -> 
+                displayableConstraint(constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get())
+        ).collect(Collectors.toList());
+    }
+    
+    /**
+     * Converts a constraint to a human-readable value.
+     */
+    public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
+        final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
+        return Tuple(displayAnnotation.name(), Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList()));
     }
 
     // --- Required
