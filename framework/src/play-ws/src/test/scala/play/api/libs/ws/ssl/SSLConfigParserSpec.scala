@@ -6,8 +6,8 @@
 package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
-
 import com.typesafe.config.ConfigFactory
+import org.slf4j.LoggerFactory
 import play.api.PlayConfig
 import play.api.test.WithApplication
 
@@ -199,6 +199,28 @@ object SSLConfigParserSpec extends Specification {
                    |  ]
                    |}
                  """.stripMargin).must(throwAn[AssertionError])
+    }
+
+    "log a warning if ws.ssl.loose.acceptAnyCertificate is true" in {
+      import ch.qos.logback.classic.spi._
+      import ch.qos.logback.classic._
+
+      val config = ConfigFactory.parseString("loose.acceptAnyCertificate = true").withFallback(ConfigFactory.defaultReference().getConfig("play.ws.ssl"))
+      val configParser = new SSLConfigParser(PlayConfig(config), this.getClass.getClassLoader)
+
+      // this only works with test:test, has a different type in test:testQuick and test:testOnly!
+      val logger = configParser.logger.asInstanceOf[ch.qos.logback.classic.Logger]
+      val appender = new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
+      val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+      appender.setContext(lc)
+      appender.start()
+      logger.addAppender(appender)
+      logger.setLevel(Level.WARN)
+
+      configParser.parse()
+
+      val warahcs = appender.list
+      warahcs.size must beGreaterThan(0)
     }
 
   }
