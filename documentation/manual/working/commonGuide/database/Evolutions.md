@@ -15,6 +15,10 @@ Add `evolutions` into your dependencies list. For example, in `build.sbt`:
 libraryDependencies += evolutions
 ```
 
+### Running evolutions using compile-time DI
+
+If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. Since `applicationEvolutions` is a lazy val, you either need to explicitly access that val, for example in your `ApplicationLoader`, or have an explicit dependency from another component to make sure the evolutions run.
+
 ## Evolutions scripts
 
 Play tracks your database evolutions using several evolutions script. These scripts are written in plain old SQL and should be located in the `conf/evolutions/{database name}` directory of your application. If the evolutions apply to your default database, this path is `conf/evolutions/default`.
@@ -30,9 +34,9 @@ For example, take a look at this first evolution script that bootstrap a basic a
 
 ```
 # Users schema
- 
+
 # --- !Ups
- 
+
 CREATE TABLE User (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     email varchar(255) NOT NULL,
@@ -41,9 +45,9 @@ CREATE TABLE User (
     isAdmin boolean NOT NULL,
     PRIMARY KEY (id)
 );
- 
+
 # --- !Downs
- 
+
 DROP TABLE User;
 ```
 
@@ -78,7 +82,7 @@ Now let’s imagine that we have two developers working on this project. Develop
 
 ```
 # Add Post
- 
+
 # --- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -89,7 +93,7 @@ CREATE TABLE Post (
     FOREIGN KEY (author_id) REFERENCES User(id),
     PRIMARY KEY (id)
 );
- 
+
 # --- !Downs
 DROP TABLE Post;
 ```
@@ -100,10 +104,10 @@ On the other hand, developer B will work on a feature that requires altering the
 
 ```
 # Update User
- 
+
 # --- !Ups
 ALTER TABLE User ADD age INT;
- 
+
 # --- !Downs
 ALTER TABLE User DROP age;
 ```
@@ -121,7 +125,7 @@ Each developer has created a `2.sql` evolution script. So developer A needs to m
 ```
 <<<<<<< HEAD
 # Add Post
- 
+
 # --- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -132,15 +136,15 @@ CREATE TABLE Post (
     FOREIGN KEY (author_id) REFERENCES User(id),
     PRIMARY KEY (id)
 );
- 
+
 # --- !Downs
 DROP TABLE Post;
 =======
 # Update User
- 
+
 # --- !Ups
 ALTER TABLE User ADD age INT;
- 
+
 # --- !Downs
 ALTER TABLE User DROP age;
 >>>>>>> devB
@@ -150,10 +154,10 @@ The merge is really easy to do:
 
 ```
 # Add Post and update User
- 
+
 # --- !Ups
 ALTER TABLE User ADD age INT;
- 
+
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
@@ -163,10 +167,10 @@ CREATE TABLE Post (
     FOREIGN KEY (author_id) REFERENCES User(id),
     PRIMARY KEY (id)
 );
- 
+
 # --- !Downs
 ALTER TABLE User DROP age;
- 
+
 DROP TABLE Post;
 ```
 
@@ -182,10 +186,10 @@ For example, the Ups script of this evolution has an error:
 
 ```
 # Add another column to User
-  
+
 # --- !Ups
 ALTER TABLE Userxxx ADD company varchar(255);
- 
+
 # --- !Downs
 ALTER TABLE User DROP company;
 ```
@@ -206,10 +210,10 @@ But because your evolution script has errors, you probably want to fix it. So yo
 
 ```
 # Add another column to User
-  
+
 # --- !Ups
 ALTER TABLE User ADD company varchar(255);
- 
+
 # --- !Downs
 ALTER TABLE User DROP company;
 ```
