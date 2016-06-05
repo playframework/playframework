@@ -5,10 +5,13 @@
  */
 package play.api.libs.ws.ssl
 
+import java.net.URL
+
 import play.api.PlayConfig
 import java.security.{ KeyStore, SecureRandom }
-import java.net.URL
-import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory }
+
+import org.slf4j.LoggerFactory
+import javax.net.ssl.{ KeyManagerFactory, TrustManagerFactory }
 
 /**
  * Configuration for a keystore.
@@ -140,9 +143,9 @@ case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = f
  * @param allowWeakCiphers Whether weak ciphers should be allowed or not.
  * @param allowWeakProtocols Whether weak protocols should be allowed or not.
  * @param allowLegacyHelloMessages Whether legacy hello messages should be allowed or not.  If None, uses the platform
- *                                 default.
+ * default.
  * @param allowUnsafeRenegotiation Whether unsafe renegotiation should be allowed or not. If None, uses the platform
- *                                 default.
+ * default.
  * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not.
  */
 case class SSLLooseConfig(
@@ -191,12 +194,15 @@ object SSLConfigFactory {
 
   /**
    * Create an instance of the default config
+   *
    * @return
    */
   def defaultConfig = SSLConfig()
 }
 
 class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
+
+  private[ssl] val logger = LoggerFactory.getLogger(this.getClass)
 
   def parse(): SSLConfig = {
 
@@ -246,6 +252,13 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
     val allowMessages = config.get[Option[Boolean]]("allowLegacyHelloMessages")
     val allowUnsafeRenegotiation = config.get[Option[Boolean]]("allowUnsafeRenegotiation")
     val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
+
+    if (acceptAnyCertificate) {
+      logger.warn("""
+        |You've enabled play.ws.ssl.loose.acceptAnyCertificate,
+        |please be sure to disable that on production!
+        |""".stripMargin)
+    }
 
     SSLLooseConfig(
       allowWeakCiphers = allowWeakCiphers,
