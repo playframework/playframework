@@ -55,7 +55,7 @@ templateParameters := Map(
   "LESS_VERSION" -> "1.1.0",
   "JSHINT_VERSION" -> "1.0.3",
   "DIGEST_VERSION" -> "1.1.0",
-  "RJS_VERSION" -> "1.0.7",
+  "RJS_VERSION" -> "1.0.8",
   "MOCHA_VERSION" -> "1.1.0",
   "SASSIFY_VERSION" -> "1.4.4",
   "ENHANCER_VERSION" -> "1.1.0",
