@@ -144,34 +144,34 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         WebSocket.using[String] { req =>
           (getChunks[String](Nil, consumed.success _), Enumerator.empty)
         }
-    }.pendingUntilAkkaHttpFixed // All tests in this class are waiting on https://github.com/akka/akka/issues/16848
+    }.skipUntilAkkaHttpFixed // All tests in this class are waiting on https://github.com/akka/akka/issues/16848
 
     "allow sending messages" in allowSendingMessages { _ =>
       messages =>
         WebSocket.using[String] { req =>
           (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
         }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
       WebSocket.using[String] { req =>
         (Iteratee.head, Enumerator.empty)
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "clean up when closed" in cleanUpWhenClosed { _ =>
       cleanedUp =>
         WebSocket.using[String] { req =>
           (Iteratee.ignore, Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
         }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
       statusCode =>
         WebSocket.tryAccept[String] { req =>
           Future.successful(Left(Results.Status(statusCode)))
         }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "aggregate text frames" in {
       val consumed = Promise[List[String]]()
@@ -191,7 +191,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         result must_== Seq("first", "second", "third")
       }
 
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "aggregate binary frames" in {
       val consumed = Promise[List[Array[Byte]]]()
@@ -211,7 +211,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         }
         result.map(b => b.toSeq) must_== Seq("first".getBytes("utf-8").toSeq, "second".getBytes("utf-8").toSeq, "third".getBytes("utf-8").toSeq)
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "close the websocket when the buffer limit is exceeded" in {
       withServer(app => WebSocket.using[String] { req =>
@@ -228,7 +228,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           closeFrame(1009)
         ))
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "close the websocket when the wrong type of frame is received" in {
       withServer(app => WebSocket.using[Array[Byte]] { req =>
@@ -244,7 +244,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           closeFrame(1003)
         ))
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "respond to pings" in {
       withServer(app => WebSocket.using[String] { req =>
@@ -262,7 +262,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           closeFrame()
         ))
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "not respond to pongs" in {
       withServer(app => WebSocket.using[String] { req =>
@@ -279,7 +279,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           closeFrame()
         ))
       }
-    }.pendingUntilAkkaHttpFixed
+    }.skipUntilAkkaHttpFixed
 
     "allow handling a WebSocket with an actor" in {
 
@@ -298,7 +298,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 }
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "allow sending messages" in allowSendingMessages { implicit app =>
         messages =>
@@ -312,7 +312,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 def receive = PartialFunction.empty
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
         WebSocket.acceptWithActor[String, String] { req =>
@@ -322,7 +322,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               def receive = PartialFunction.empty
             })
         }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "clean up when closed" in cleanUpWhenClosed { implicit app =>
         cleanedUp =>
@@ -335,14 +335,14 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 }
               })
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
         statusCode =>
           WebSocket.tryAcceptWithActor[String, String] { req =>
             Future.successful(Left(Results.Status(statusCode)))
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
     }
 
@@ -374,7 +374,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               })
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "allow sending messages" in allowSendingMessages { _ =>
         messages =>
@@ -386,7 +386,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               out.close()
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "clean up when closed" in cleanUpWhenClosed { _ =>
         cleanedUp =>
@@ -397,12 +397,12 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               })
             }
           }
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
         statusCode =>
           JWebSocket.reject[String](JResults.status(statusCode))
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
 
       "allow handling a websocket with an actor" in allowSendingMessages { _ =>
         messages =>
@@ -417,7 +417,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               })
             }
           })
-      }.pendingUntilAkkaHttpFixed
+      }.skipUntilAkkaHttpFixed
     }
   }
 }
