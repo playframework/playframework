@@ -160,6 +160,12 @@ To revert back to the earlier behavior (if you have "object MyController" in you
 routesGenerator := StaticRoutesGenerator
 ```
 
+If you're using `Build.scala` instead of `build.sbt` you will need to import the `routesGenerator` settings key: 
+
+````scala
+import play.sbt.routes.RoutesCompiler.autoImport._
+````
+
 Using static controllers with the static routes generator is not deprecated, but it is recommended that you migrate to using classes with dependency injection.
 
 ## Replaced static controllers with dependency injection
