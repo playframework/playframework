@@ -290,6 +290,7 @@ object PlayBuild extends Build {
       binaryIssueFilters := Seq(
         ProblemFilters.exclude[MissingClassProblem]("play.core.server.common.ServerRequestUtils"),
         ProblemFilters.exclude[MissingClassProblem]("play.core.server.common.ServerRequestUtils$"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ServerResultUtils.determineResultStreaming"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.play$core$server$common$ForwardedHeaderHandler$$isTrusted"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.remoteAddress"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.common.ForwardedHeaderHandler.remoteProtocol"),
@@ -364,7 +365,9 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$tryToCreateRequest$1"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$rSecure$1"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$createRequestHeader$1"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.NettyServer#PlayPipelineFactory.this")
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.NettyServer#PlayPipelineFactory.this"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.NettyResultStreamer.sendResult"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.NettyResultStreamer.createNettyResponse")
       )
     )
     .dependsOn(PlayServerProject)
@@ -375,8 +378,11 @@ object PlayBuild extends Build {
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.ModelConversion.convertRequest"),
+      ProblemFilters.exclude[MissingMethodProblem]("play.core.server.akkahttp.ModelConversion.convertResultBody"),
+      ProblemFilters.exclude[MissingMethodProblem]("play.core.server.akkahttp.ModelConversion.convertResult"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.akkahttp.AkkaHttpServer.materializer"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.AkkaStreamsConversion.sourceToEnumerator")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.AkkaStreamsConversion.sourceToEnumerator"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.AkkaHttpServer.executeAction")
     )
   }
 
