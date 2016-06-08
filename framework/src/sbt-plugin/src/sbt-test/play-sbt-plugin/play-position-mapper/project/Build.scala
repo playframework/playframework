@@ -3,8 +3,8 @@
  */
 
 import play.sbt.PlayScala
+import sbt.Keys._
 import sbt._
-import Keys._
 
 object ApplicationBuild extends Build {
 

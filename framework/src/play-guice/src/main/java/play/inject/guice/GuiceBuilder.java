@@ -128,7 +128,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @param modules the set of Guice modules whose bindings to apply
      * @return a copy of this builder configured with the provided bindings
      */
-    public final Self bindings(com.google.inject.Module... modules) {
+    public final Self bindings(Module... modules) {
         return bindings(Guiceable.modules(modules));
     }
 
@@ -168,7 +168,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @param modules the set of Guice modules whose bindings override some previously configured ones
      * @return a copy of this builder re-configured with the provided bindings
      */
-    public final Self overrides(com.google.inject.Module... modules) {
+    public final Self overrides(Module... modules) {
         return overrides(Guiceable.modules(modules));
     }
 

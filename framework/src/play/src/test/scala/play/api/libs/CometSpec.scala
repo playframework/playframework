@@ -3,12 +3,13 @@
  */
 package play.api.libs
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
+import akka.stream.{ ActorMaterializer, Materializer }
 import akka.stream.scaladsl._
 import akka.util.{ ByteString, Timeout }
 import org.specs2.mutable._
+import play.api.PlayCoreTestApplication
 import play.api.http.ContentTypes
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{ JsString, JsValue }
 import play.api.mvc.{ Action, Controller, Result }
 import play.core.test.FakeRequest
@@ -36,10 +37,15 @@ class CometSpec extends Specification {
     //#comet-json
   }
 
+  def newTestApplication(): play.api.Application = new PlayCoreTestApplication() {
+    override lazy val actorSystem = ActorSystem()
+    override lazy val materializer = ActorMaterializer()(actorSystem)
+  }
+
   "play comet" should {
 
     "work with string" in {
-      val app = new GuiceApplicationBuilder().build()
+      val app = newTestApplication()
       try {
         implicit val m = app.materializer
         val controller = new MockController(m)
@@ -51,7 +57,7 @@ class CometSpec extends Specification {
     }
 
     "work with json" in {
-      val app = new GuiceApplicationBuilder().build()
+      val app = newTestApplication()
       try {
         implicit val m = app.materializer
         val controller = new MockController(m)

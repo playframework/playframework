@@ -4,6 +4,8 @@
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+libraryDependencies += guiceSupport
+
 DevModeBuild.settings
 
 fork in run := true

@@ -5,6 +5,8 @@ import scala.reflect._
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+libraryDependencies += guiceSupport
+
 scalaVersion := sys.props.get("scala.version").getOrElse("2.11.7")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")

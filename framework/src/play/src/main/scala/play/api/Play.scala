@@ -103,12 +103,6 @@ object Play {
 
     _currentApp = app
 
-    Threads.withContextClassLoader(app.classloader) {
-      // Ensure routes are eagerly loaded, so that the reverse routers are
-      // correctly initialised before plugins are started.
-      app.routes
-    }
-
     app.mode match {
       case Mode.Test =>
       case mode => logger.info("Application started (" + mode + ")")

@@ -3,15 +3,13 @@
  */
 package play.sbt
 
-import sbt._
-import sbt.Keys._
-
-import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.jse.SbtJsTask
-import play.twirl.sbt.SbtTwirl
-
-import play.sbt.routes.RoutesCompiler
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import play.sbt.PlayImport.PlayKeys
+import play.sbt.routes.RoutesCompiler
+import play.twirl.sbt.SbtTwirl
+import sbt.Keys._
+import sbt._
 
 /**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.

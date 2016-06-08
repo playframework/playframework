@@ -8,7 +8,7 @@ import javax.inject.Inject
 import org.specs2.mutable.Specification
 import play.api.inject.Binding
 import play.api.inject.guice.GuiceInjectorBuilder
-import play.api.{ PlayException, Configuration, Environment }
+import play.api.{ Configuration, Environment, PlayException }
 
 import scala.reflect.ClassTag
 

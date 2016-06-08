@@ -1,0 +1,8 @@
+error.custom=This is a {0}
+error.customarg=custom error
+
+constraint.custom=I am a {0}
+constraint.customarg=custom constraint
+
+format.custom=Look at me! I am a {0}
+format.customarg=custom format pattern

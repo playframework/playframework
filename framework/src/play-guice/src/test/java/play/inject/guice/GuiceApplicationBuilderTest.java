@@ -72,8 +72,6 @@ public class GuiceApplicationBuilderTest {
     public void disableLoadedModules() {
         Injector injector = new GuiceApplicationBuilder()
             .disable(play.api.i18n.I18nModule.class)
-            .disable(play.data.FormFactoryModule.class)
-            .disable(play.data.format.FormattersModule.class)
             .injector();
 
         exception.expect(com.google.inject.ConfigurationException.class);
@@ -94,7 +92,7 @@ public class GuiceApplicationBuilderTest {
     public void setModuleLoader() {
         Injector injector = new GuiceApplicationBuilder()
             .load((env, conf) -> ImmutableList.of(
-                Guiceable.modules(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()),
+                Guiceable.modules(new play.api.inject.BuiltinModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();
 
@@ -105,7 +103,7 @@ public class GuiceApplicationBuilderTest {
     public void setLoadedModulesDirectly() {
         Injector injector = new GuiceApplicationBuilder()
             .load(
-                Guiceable.modules(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()),
+                Guiceable.modules(new play.api.inject.BuiltinModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class)))
             .injector();
 

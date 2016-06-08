@@ -42,7 +42,7 @@ public class GuiceApplicationLoaderTest {
     public void extendLoaderAndSetConfiguration() {
         ApplicationLoader loader = new GuiceApplicationLoader() {
             @Override
-            public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
+            public GuiceApplicationBuilder builder(Context context) {
                 Config extra = ConfigFactory.parseString("a = 1");
                 return initialBuilder
                     .in(context.environment())

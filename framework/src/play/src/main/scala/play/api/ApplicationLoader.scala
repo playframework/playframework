@@ -3,8 +3,7 @@
  */
 package play.api
 
-import play.api.inject.guice.GuiceApplicationLoader
-import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
+import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
 
 /**
@@ -17,8 +16,8 @@ import play.utils.Reflect
  * During dev mode, an ApplicationLoader will be instantiated once, and called once, each time the application is
  * reloaded. In prod mode, the ApplicationLoader will be instantiated and called once when the application is started.
  *
- * Out of the box Play provides a Java and Scala default implementation based on Guice. The Scala implementation is the
- * [[play.api.inject.guice.GuiceApplicationLoader]].
+ * Out of the box Play provides a Guice module that defines a Java and Scala default implementation based on Guice.
+ * These can be used simply by depending on the play-guice or play-java-guice modules.
  *
  * A custom application loader can be configured using the `play.application.loader` configuration property.
  * Implementations must define a no-arg constructor.
@@ -33,6 +32,17 @@ trait ApplicationLoader {
 }
 
 object ApplicationLoader {
+
+  // Method to call if we cannot find a configured ApplicationLoader
+  private def loaderNotFound(): Nothing = {
+    sys.error("No application loader is configured. Please configure an application loader either using the " +
+      "play.application.loader configuration property, or by depending on a module that configures one, " +
+      "for example by adding the play-guice dependency.")
+  }
+
+  private[play] final class NoApplicationLoader extends ApplicationLoader {
+    override def load(context: Context) = loaderNotFound()
+  }
 
   /**
    * The context for loading an application.
@@ -50,11 +60,16 @@ object ApplicationLoader {
    * Locate and instantiate the ApplicationLoader.
    */
   def apply(context: Context): ApplicationLoader = {
-    Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, GuiceApplicationLoader](
-      context.environment, context.initialConfiguration, "play.application.loader", classOf[GuiceApplicationLoader].getName
+    val LoaderKey = "play.application.loader"
+    if (!context.initialConfiguration.has(LoaderKey)) {
+      loaderNotFound()
+    }
+
+    Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, NoApplicationLoader](
+      context.environment, context.initialConfiguration, LoaderKey, classOf[NoApplicationLoader].getName
     ) match {
         case None =>
-          new GuiceApplicationLoader
+          loaderNotFound()
         case Some(Left(scalaClass)) =>
           scalaClass.newInstance
         case Some(Right(javaClass)) =>
