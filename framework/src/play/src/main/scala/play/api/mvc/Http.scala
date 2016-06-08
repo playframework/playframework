@@ -11,12 +11,15 @@ package play.api.mvc {
   import play.api.http._
   import play.api.i18n.Lang
   import play.api.libs.crypto.CookieSigner
+  import play.api.libs.prop.HasProps.{Behavior, State}
+  import play.api.libs.prop._
   import play.core.utils.CaseInsensitiveOrdered
 
   import scala.annotation._
   import scala.collection.immutable.{TreeMap, TreeSet}
   import scala.util.Try
   import scala.util.control.NonFatal
+  import scala.language.higherKinds
 
   private[mvc] object GlobalStateHttpConfiguration {
     def httpConfiguration: HttpConfiguration = HttpConfiguration.current
@@ -28,17 +31,35 @@ package play.api.mvc {
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
   @implicitNotFound("Cannot find any HTTP Request Header here")
-  trait RequestHeader {
+  trait RequestHeader extends RequestHeaderLike[RequestHeader,Request]
+
+  /**
+   * A generic RequestHeader.
+   * @tparam Repr The concrete representation of this header. This
+   *              type is used when constructing a new instance.
+   * @tparam ReqRepr The concrete representation of a request. This
+   *              type is used when constructing a request from the header.
+   */
+  trait RequestHeaderLike[+Repr,+ReqRepr[+_]] extends HasProps[Repr] {
+
+    /**
+     * Attach a body to the RequestHeader, creating a Request.
+     *
+     * @param body The body to attach.
+     * @tparam A The type of body.
+     * @return The request.
+     */
+    def withBody[A](body: A): ReqRepr[A]
 
     /**
      * The request ID.
      */
-    def id: Long
+    def id: Long = prop(RequestHeaderProp.Id)
 
     /**
      * The request Tags.
      */
-    def tags: Map[String, String]
+    def tags: Map[String, String] = prop(RequestHeaderProp.Tags)
 
     /**
      * The complete request URI, containing both path and query string.
@@ -46,32 +67,32 @@ package play.api.mvc {
      * E.g. in "GET /foo/bar?q=s HTTP/1.1" the URI should be /foo/bar?q=s.
      * It could be absolute, some clients send absolute URLs, especially proxies.
      */
-    def uri: String
+    def uri: String = prop(RequestHeaderProp.Uri)
 
     /**
      * The URI path.
      */
-    def path: String
+    def path: String = prop(RequestHeaderProp.Path)
 
     /**
      * The HTTP method.
      */
-    def method: String
+    def method: String = prop(RequestHeaderProp.Method)
 
     /**
      * The HTTP version.
      */
-    def version: String
+    def version: String = prop(RequestHeaderProp.Version)
 
     /**
      * The parsed query string.
      */
-    def queryString: Map[String, Seq[String]]
+    def queryString: Map[String, Seq[String]] = prop(RequestHeaderProp.QueryString)
 
     /**
      * The HTTP headers.
      */
-    def headers: Headers
+    def headers: Headers = prop(RequestHeaderProp.Headers)
 
     /**
      * The client IP address.
@@ -81,17 +102,17 @@ package play.api.mvc {
      *
      *
      */
-    def remoteAddress: String
+    def remoteAddress: String = prop(RequestHeaderProp.RemoteAddress)
 
     /**
      * Is the client using SSL?
      */
-    def secure: Boolean
+    def secure: Boolean = prop(RequestHeaderProp.Secure)
 
     /**
      * The X509 certificate chain presented by a client during SSL requests.
      */
-    def clientCertificateChain: Option[Seq[X509Certificate]]
+    def clientCertificateChain: Option[Seq[X509Certificate]] = prop(RequestHeaderProp.ClientCertificateChain)
 
     // -- Computed
 
@@ -194,49 +215,75 @@ package play.api.mvc {
       *
       * @return the tagged request
       */
-    def withTag(tagName: String, tagValue: String): RequestHeader = {
-      copy(tags = tags + (tagName -> tagValue))
+    def withTag(tagName: String, tagValue: String): Repr = {
+      withProp(RequestHeaderProp.Tags, tags + (tagName -> tagValue))
     }
 
     /**
      * Copy the request.
      */
+    @deprecated("Use withProp or another with* method instead", "2.6.0")
     def copy(
-      id: Long = this.id,
-      tags: Map[String, String] = this.tags,
-      uri: String = this.uri,
-      path: String = this.path,
-      method: String = this.method,
-      version: String = this.version,
-      queryString: Map[String, Seq[String]] = this.queryString,
-      headers: Headers = this.headers,
-      remoteAddress: => String = this.remoteAddress,
-      secure: => Boolean = this.secure,
-      clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain, _hasBody) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain, hasBody)
-      new RequestHeader {
-        override val id = _id
-        override val tags = _tags
-        override val uri = _uri
-        override val path = _path
-        override val method = _method
-        override val version = _version
-        override val queryString = _queryString
-        override val headers = _headers
-        override lazy val remoteAddress = _remoteAddress()
-        override lazy val secure = _secure()
-        override val clientCertificateChain = _clientCertificateChain
-        override val hasBody = _hasBody || super.hasBody
-      }
+      id: java.lang.Long = null,
+      tags: Map[String, String] = null,
+      uri: String = null,
+      path: String = null,
+      method: String = null,
+      version: String = null,
+      queryString: Map[String, Seq[String]] = null,
+      headers: Headers = null,
+      remoteAddress: String = null,
+      secure: java.lang.Boolean = null,
+      clientCertificateChain: Option[Seq[X509Certificate]] = null): Repr = {
+
+      val b: HasProps.Behavior = propBehavior
+      var s: HasProps.State[Repr] = propState
+      // Only update a property if it has a non-null argument
+      if (id != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Id, id.longValue()) }
+      if (tags != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Tags, tags) }
+      if (uri != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Uri, uri) }
+      if (path != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Path, path) }
+      if (method != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Method, method) }
+      if (version != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Version, version) }
+      if (queryString != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.QueryString, queryString) }
+      if (headers != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Headers, headers) }
+      if (remoteAddress != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.RemoteAddress, remoteAddress) }
+      if (secure != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Secure, secure.booleanValue()) }
+      if (clientCertificateChain != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.ClientCertificateChain, clientCertificateChain) }
+      s.propStateToRepr
     }
 
-    override def toString = {
-      method + " " + uri
-    }
-
+    override def toString = "RequestHeader(" + propState.propStateToString + ")"
   }
 
   object RequestHeader {
+
+    val defaultBehavior: HasProps.Behavior = new HasProps.Behavior {
+
+      override def propBehaviorGet[A](behavior: Behavior, state: State[_], p: Prop[A]): A = p match {
+        case RequestHeaderProp.Headers =>
+          // Provide a default value for the headers property
+          state.propStateGetOrElse(RequestHeaderProp.Headers, Headers.Empty).asInstanceOf[A]
+        case _ =>
+          // All other properties just retrieve their value from the state
+          state.propStateGet(p)
+      }
+
+      override def propBehaviorContains[A](behavior: Behavior, state: State[_], p: Prop[A]): Boolean = p match {
+        case RequestHeaderProp.Headers =>
+          // Headers are always implicitly present, even if they're not stored in the state
+          true
+        case _ =>
+          // Other props are only there if they're stored
+          state.propStateContains(p)
+      }
+
+      override def propBehaviorUpdate[Repr, A](behavior: Behavior, state: State[Repr], p: Prop[A], v: A): State[Repr] = p match {
+        case _ => state.propStateUpdate(p, v)
+      }
+    }
+
+
     // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
     val qPattern = ";\\s*q=([0-9.]+)".r
 
@@ -255,30 +302,62 @@ package play.api.mvc {
         }
       }
     }
-  }
 
-  private[play] class RequestHeaderImpl(
-      override val id: Long,
-      override val tags: Map[String, String],
-      override val uri: String,
-      override val path: String,
-      override val method: String,
-      override val version: String,
-      override val queryString: Map[String, Seq[String]],
-      override val headers: Headers,
-      override val remoteAddress: String,
-      override val secure: Boolean,
-      override val clientCertificateChain: Option[Seq[X509Certificate]]) extends RequestHeader {
   }
 
   /**
-   * The complete HTTP request.
+   * Standard properties defined for a [[RequestHeader]] object.
+   */
+  object RequestHeaderProp {
+    val Id = Prop[Long]("id")
+    val Tags = Prop[Map[String, String]]("tags")
+    val Uri = Prop[String]("uri")
+    val Path = Prop[String]("path")
+    val Method = Prop[String]("method")
+    val Version = Prop[String]("version")
+    val QueryString = Prop[Map[String, Seq[String]]]("queryString")
+    val Headers = Prop[Headers]("Headers")
+    val RemoteAddress = Prop[String]("RemoteAddress")
+    val Secure = Prop[Boolean]("secure")
+    val ClientCertificateChain = Prop[Option[Seq[X509Certificate]]]("clientCertificateChain")
+    val HasBody = Prop[Boolean]("hasBody")
+  }
+
+  private[play] class RequestHeaderImpl(
+    override protected val propBehavior: HasProps.Behavior,
+    override protected val propMap: PropMap
+  ) extends RequestHeaderLike[RequestHeaderImpl,RequestImpl] with RequestHeader with HasProps.WithMapState[RequestHeaderImpl] {
+    override protected def newState(newMap: PropMap): RequestHeaderImpl = new RequestHeaderImpl(propBehavior, newMap)
+    override def withBody[B](newBody: B): RequestImpl[B] = {
+      new RequestImpl[B](propBehavior, propMap.updated(RequestProp.Body[B], newBody))
+    }
+  }
+
+  /**
+   * The complete HTTP request, made up of a header and a body.
    *
    * @tparam A the body content type.
    */
   @implicitNotFound("Cannot find any HTTP Request here")
-  trait Request[+A] extends RequestHeader {
+  trait Request[+A] extends RequestHeader with RequestLike[A, Request]
+
+  /**
+   * A generic [[Request]].
+   * @tparam A The type of the request body.
+   * @tparam ReqRepr The concrete representation of this request. This
+   *              type is used when constructing a new instance.
+   */
+  trait RequestLike[+A, +ReqRepr[+_]] extends RequestHeaderLike[ReqRepr[A],ReqRepr] {
     self =>
+
+    /**
+     * Change the body on this request.
+     *
+     * @param newBody The body of the new request.
+     * @tparam B The type of the new body.
+     * @return The new request.
+     */
+    override def withBody[B](newBody: B): ReqRepr[B] = withProp(RequestProp.Body[B], newBody).asInstanceOf[ReqRepr[B]]
 
     /**
      * True if this request has a body. This is either done by inspecting the body itself to see if it is an entity
@@ -297,79 +376,70 @@ package play.api.mvc {
     /**
      * The body content.
      */
-    def body: A
+    def body: A = prop(RequestProp.Body[A])
 
     /**
      * Transform the request body.
      */
-    def map[B](f: A => B): Request[B] = new Request[B] {
-      override def id = self.id
-      override def tags = self.tags
-      override def uri = self.uri
-      override def path = self.path
-      override def method = self.method
-      override def version = self.version
-      override def queryString = self.queryString
-      override def headers = self.headers
-      override def remoteAddress = self.remoteAddress
-      override def secure = self.secure
-      override def clientCertificateChain = self.clientCertificateChain
-
-      override lazy val body = f(self.body)
+    def map[B](f: A => B): ReqRepr[B] = {
+      val existingBody: A = body
+      val newBody = f(existingBody)
+      withBody(newBody)
     }
 
-  }
-
-  /** Used by Java wrapper */
-  private[play] class RequestImpl[A](
-      override val body: A,
-      override val id: Long,
-      override val tags: Map[String, String],
-      override val uri: String,
-      override val path: String,
-      override val method: String,
-      override val version: String,
-      override val queryString: Map[String, Seq[String]],
-      override val headers: Headers,
-      override val remoteAddress: String,
-      override val secure: Boolean,
-      override val clientCertificateChain: Option[Seq[X509Certificate]]) extends Request[A] {
   }
 
   object Request {
 
-    def apply[A](rh: RequestHeader, a: A): Request[A] = new Request[A] {
-      override def id = rh.id
-      override def tags = rh.tags
-      override def uri = rh.uri
-      override def path = rh.path
-      override def method = rh.method
-      override def version = rh.version
-      override def queryString = rh.queryString
-      override def headers = rh.headers
-      override lazy val remoteAddress = rh.remoteAddress
-      override lazy val secure = rh.secure
-      override val clientCertificateChain = rh.clientCertificateChain
-      override val body = a
-    }
+    val defaultBehavior: HasProps.Behavior = RequestHeader.defaultBehavior // FIXME
+
+    def apply[A](rh: RequestHeader, a: A): Request[A] = rh.withBody(a)
   }
+
+  /**
+   * Built-in properties defined for a [[Request]] object.
+   */
+  object RequestProp {
+    private val _Body = Prop[Nothing]("body")
+    def Body[A] = _Body.asInstanceOf[Prop[A]]
+  }
+
+  private[play] class RequestImpl[+A](
+    override protected val propBehavior: HasProps.Behavior,
+    override protected val propMap: PropMap
+  ) extends RequestLike[A,RequestImpl] with Request[A] with HasProps.WithMapState[RequestImpl[A]] {
+    override protected def newState(newMap: PropMap): RequestImpl[A] = new RequestImpl[A](propBehavior, newMap)
+  }
+
 
   /**
    * Wrap an existing request. Useful to extend a request.
    */
-  class WrappedRequest[+A](request: Request[A]) extends Request[A] {
-    override def id = request.id
-    override def tags = request.tags
-    override def body = request.body
-    override def headers = request.headers
-    override def queryString = request.queryString
-    override def path = request.path
-    override def uri = request.uri
-    override def method = request.method
-    override def version = request.version
-    override def remoteAddress = request.remoteAddress
-    override def secure = request.secure
-    override def clientCertificateChain = request.clientCertificateChain
+  class WrappedRequest[+B](request: Request[B]) extends Request[B] with HasProps[WrappedRequest[B]] with State[WrappedRequest[B]] {
+
+    protected def newWrappedRequest[B1](request: Request[B1]): WrappedRequest[B1] = new WrappedRequest[B1](request)
+
+    // HasProps methods
+
+    override protected def propBehavior: HasProps.Behavior = Request.defaultBehavior
+    override protected def propState: HasProps.State[WrappedRequest[B]] = this
+
+    // HasProps.State methods
+    override def propStateToRepr: WrappedRequest[B] = this
+    override def propStateToString: String = request.toString
+    override def propStateGet[P](p: Prop[P]): P = {
+      request.prop(p)
+    }
+    override def propStateGetOrElse[P](p: Prop[P], default: => P): P = {
+      request.prop(p)
+    }
+    override def propStateUpdate[P](p: Prop[P], v: P): HasProps.State[WrappedRequest[B]] = {
+      newWrappedRequest[B](request.withProp(p, v))
+    }
+    override def propStateContains[P](p: Prop[P]): Boolean = {
+      request.containsProp(p)
+    }
+
   }
 
   /**
@@ -515,6 +585,8 @@ package play.api.mvc {
   object Headers {
 
     def apply(headers: (String, String)*) = new Headers(headers)
+
+    val Empty: Headers = new Headers(Vector.empty)
 
   }
 

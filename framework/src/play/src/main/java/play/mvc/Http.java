@@ -11,8 +11,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import play.api.libs.prop.PropMap;
 import play.api.libs.json.JsValue;
 import play.api.mvc.Headers;
+import play.api.mvc.RequestHeaderProp;
+import play.api.mvc.RequestProp;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
@@ -817,7 +820,7 @@ public class Http {
          */
         protected RequestBuilder body(RequestBody body) {
             if (body == null || body.as(Object.class) == null) {
-                // assume null sigifies no body; RequestBody is a wrapper for the actual body content
+                // assume null signifies no body; RequestBody is a wrapper for the actual body content
                 this.headers.remove(HeaderNames.CONTENT_LENGTH);
                 this.headers.remove(HeaderNames.TRANSFER_ENCODING);
             } else {
@@ -962,19 +965,25 @@ public class Http {
          * @return a build of the given parameters
          */
         public RequestImpl build() {
-            return new RequestImpl(new play.api.mvc.RequestImpl(
-                body(),
-                id,
-                asScala(tags()),
-                uri.toString(),
-                uri.getRawPath(),
-                method,
-                version,
-                mapListToScala(splitQuery()),
-                buildHeaders(),
-                remoteAddress,
-                secure,
-                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq()))));
+            PropMap propMap = PropMap.withProps(
+                RequestProp.Body().withValue(body()),
+                RequestHeaderProp.Id().withValue(id),
+                RequestHeaderProp.Tags().withValue(asScala(tags())),
+                RequestHeaderProp.Uri().withValue(uri.toString()),
+                RequestHeaderProp.Path().withValue(uri.getRawPath()),
+                RequestHeaderProp.Method().withValue(method),
+                RequestHeaderProp.Version().withValue(version),
+                RequestHeaderProp.QueryString().withValue(mapListToScala(splitQuery())),
+                RequestHeaderProp.Headers().withValue(buildHeaders()),
+                RequestHeaderProp.RemoteAddress().withValue(remoteAddress),
+                RequestHeaderProp.Secure().withValue(secure),
+                RequestHeaderProp.ClientCertificateChain().withValue(OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq())))
+            );
+            return new RequestImpl(
+                new play.api.mvc.RequestImpl<>(
+                    play.api.mvc.RequestHeader$.MODULE$.defaultBehavior(),
+                    propMap
+                ));
         }
 
         // -------------------

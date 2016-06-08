@@ -13,6 +13,7 @@ import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
 import play.api.http.{ HttpChunk, HttpEntity => PlayHttpEntity }
+import play.api.libs.prop.PropMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
@@ -48,36 +49,31 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
-    val remoteHostAddress = remoteAddress.getAddress.getHostAddress
-    // Taken from PlayDefaultUpstreamHander
 
-    // Avoid clash between method arg and RequestHeader field
-    val remoteAddressArg = remoteAddress
-
-    new RequestHeader {
-      override val id = requestId
-      // Send a tag so our tests can tell which kind of server we're using.
-      // We could get NettyServer to send a similar tag, but for the moment
-      // let's not, just in case it slows NettyServer down a bit.
-      override val tags = Map("HTTP_SERVER" -> "akka-http")
-      // Note: Akka HTTP doesn't provide a direct way to get the raw URI
-      // This will only work properly if
-      override def uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
-        logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
-        request.uri.toString
-      }
-      override def path = request.uri.path.toString
-      override def method = request.method.name
-      override def version = request.protocol.value
-      override def queryString = request.uri.query().toMultiMap
-      override val headers = convertRequestHeaders(request)
-      private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(remoteAddressArg.getAddress, secureProtocol, headers)
-      }
-      override def remoteAddress = remoteConnection.address.getHostAddress
-      override def secure = remoteConnection.secure
-      override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
+    // FIXME: Make properties lazy
+    val uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
+      logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
+      request.uri.toString
     }
+    val headers = convertRequestHeaders(request)
+    val remoteConnection: ConnectionInfo = {
+      forwardedHeaderHandler.remoteConnection(remoteAddress.getAddress, secureProtocol, headers)
+    }
+
+    val propMap = PropMap(
+      RequestHeaderProp.Id ~> requestId,
+      RequestHeaderProp.Tags ~> Map("HTTP_SERVER" -> "akka-http"),
+      RequestHeaderProp.Uri ~> uri,
+      RequestHeaderProp.Path ~> request.uri.path.toString,
+      RequestHeaderProp.Method ~> request.method.name,
+      RequestHeaderProp.Version ~> request.protocol.value,
+      RequestHeaderProp.QueryString ~> request.uri.query().toMultiMap,
+      RequestHeaderProp.Headers ~> headers,
+      RequestHeaderProp.RemoteAddress ~> remoteConnection.address.getHostAddress,
+      RequestHeaderProp.Secure ~> remoteConnection.secure,
+      RequestHeaderProp.ClientCertificateChain ~> None
+    )
+    new RequestHeaderImpl(RequestHeader.defaultBehavior, propMap)
   }
 
   /**

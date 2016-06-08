@@ -7,8 +7,9 @@ import java.security.cert.X509Certificate
 
 import akka.util.ByteString
 import play.api.inject.guice.GuiceInjectorBuilder
-import play.api.inject.{ BindingKey, Binding, Injector }
+import play.api.inject.{ Binding, Injector }
 import play.api.libs.Files.TemporaryFile
+import play.api.libs.prop.{ HasProps, PropMap }
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -39,41 +40,27 @@ object Fakes {
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, clientCertificateChain: Option[Seq[X509Certificate]] = None) extends Request[A] {
+class FakeRequest[+A](override protected val propBehavior: HasProps.Behavior,
+    override protected val propMap: PropMap) extends RequestLike[A, FakeRequest] with Request[A] with HasProps.WithMapState[FakeRequest[A]] {
 
-  private def _copy[B](
-    id: Long = this.id,
-    tags: Map[String, String] = this.tags,
-    uri: String = this.uri,
-    path: String = this.path,
-    method: String = this.method,
-    version: String = this.version,
-    headers: Headers = this.headers,
-    remoteAddress: String = this.remoteAddress,
-    secure: Boolean = this.secure,
-    clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain,
-    body: B = this.body): FakeRequest[B] = {
-    new FakeRequest[B](
-      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain
-    )
-  }
+  override protected def newState(newMap: PropMap): HasProps.State[FakeRequest[A]] = new FakeRequest[A](propBehavior, newMap)
 
   /**
    * The request path.
    */
-  lazy val path = uri.split('?').take(1).mkString
+  override lazy val path = uri.split('?').take(1).mkString // FIXME: Use property
 
   /**
    * The request query String
    */
-  lazy val queryString: Map[String, Seq[String]] =
+  override lazy val queryString: Map[String, Seq[String]] = // FIXME: Use property
     play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = headers.replace(newHeaders: _*))
+    withProp(RequestHeaderProp.Headers, prop(RequestHeaderProp.Headers).replace(newHeaders: _*))
   }
 
   /**
@@ -111,7 +98,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
+    withBody(AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   def certs = Future.successful(IndexedSeq.empty)
@@ -120,42 +107,35 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    * Adds a JSON body to the request.
    */
   def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
-    _copy(body = AnyContentAsJson(json))
+    withBody(AnyContentAsJson(json))
   }
 
   /**
    * Adds an XML body to the request.
    */
   def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
-    _copy(body = AnyContentAsXml(xml))
+    withBody(AnyContentAsXml(xml))
   }
 
   /**
    * Adds a text body to the request.
    */
   def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
-    _copy(body = AnyContentAsText(text))
+    withBody(AnyContentAsText(text))
   }
 
   /**
    * Adds a raw body to the request
    */
   def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
+    withBody(AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
   }
 
   /**
    * Adds a multipart form data body to the request
    */
   def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
-    _copy(body = AnyContentAsMultipartFormData(form))
-  }
-
-  /**
-   * Adds a body to the request.
-   */
-  def withBody[B](body: B): FakeRequest[B] = {
-    _copy(body = body)
+    withBody(AnyContentAsMultipartFormData(form))
   }
 
   /**
@@ -168,6 +148,32 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
  * Helper utilities to build FakeRequest values.
  */
 object FakeRequest {
+
+  def apply[B](
+    method: String,
+    uri: String,
+    headers: Headers,
+    body: B,
+    remoteAddress: String = "127.0.0.1",
+    version: String = "HTTP/1.1",
+    id: Long = 666,
+    tags: Map[String, String] = Map.empty[String, String],
+    secure: Boolean = false,
+    clientCertificateChain: Option[Seq[X509Certificate]] = None): FakeRequest[B] = {
+    val propMap = PropMap(
+      RequestHeaderProp.Method ~> method,
+      RequestHeaderProp.Uri ~> uri,
+      RequestHeaderProp.Headers ~> headers,
+      RequestProp.Body ~> body,
+      RequestHeaderProp.RemoteAddress ~> remoteAddress,
+      RequestHeaderProp.Version ~> version,
+      RequestHeaderProp.Id ~> id,
+      RequestHeaderProp.Tags ~> tags,
+      RequestHeaderProp.Secure ~> secure,
+      RequestHeaderProp.ClientCertificateChain ~> clientCertificateChain
+    )
+    new FakeRequest[B](Request.defaultBehavior, propMap)
+  }
 
   /**
    * Constructs a new GET / fake request.
