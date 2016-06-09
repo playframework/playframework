@@ -311,7 +311,7 @@ object QueryStringBindable {
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends QueryStringBindable[A] {
 
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { p =>
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { p =>
       try {
         Right(parse(p))
       } catch {
@@ -334,7 +334,7 @@ object QueryStringBindable {
    * QueryString binder for Char.
    */
   implicit object bindableChar extends QueryStringBindable[Char] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { value =>
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { value =>
       if (value.length != 1) Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
       else Right(value.charAt(0))
     }
