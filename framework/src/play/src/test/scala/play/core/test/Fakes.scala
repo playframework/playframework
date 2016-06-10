@@ -9,7 +9,7 @@ import akka.util.ByteString
 import play.api.inject.guice.GuiceInjectorBuilder
 import play.api.inject.{ Binding, Injector }
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.prop.{ HasProps, PropMap }
+import play.api.libs.prop._
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -40,10 +40,12 @@ object Fakes {
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-class FakeRequest[+A](override protected val propBehavior: HasProps.Behavior,
-    override protected val propMap: PropMap) extends RequestLike[A, FakeRequest] with Request[A] with HasProps.WithMapState[FakeRequest[A]] {
+class FakeRequest[+A](propBehavior: PropBehavior, propState: PropState)
+    extends DefaultHasProps[FakeRequest[A]](propBehavior, propState)
+    with Request[A] with RequestLike[A, FakeRequest] {
 
-  override protected def newState(newMap: PropMap): HasProps.State[FakeRequest[A]] = new FakeRequest[A](propBehavior, newMap)
+  override protected def withPropState(newState: PropState): FakeRequest[A] =
+    new FakeRequest[A](propBehavior, newState)
 
   /**
    * The request path.

@@ -11,7 +11,6 @@ package play.api.mvc {
   import play.api.http._
   import play.api.i18n.Lang
   import play.api.libs.crypto.CookieSigner
-  import play.api.libs.prop.HasProps.{Behavior, State}
   import play.api.libs.prop._
   import play.core.utils.CaseInsensitiveOrdered
 
@@ -35,12 +34,15 @@ package play.api.mvc {
 
   /**
    * A generic RequestHeader.
+   *
    * @tparam Repr The concrete representation of this header. This
    *              type is used when constructing a new instance.
    * @tparam ReqRepr The concrete representation of a request. This
    *              type is used when constructing a request from the header.
    */
-  trait RequestHeaderLike[+Repr,+ReqRepr[+_]] extends HasProps[Repr] {
+  trait RequestHeaderLike[
+    +Repr <: RequestHeader,
+    +ReqRepr[+_] <: Request[_]] extends HasProps[Repr] {
 
     /**
      * Attach a body to the RequestHeader, creating a Request.
@@ -236,50 +238,59 @@ package play.api.mvc {
       secure: java.lang.Boolean = null,
       clientCertificateChain: Option[Seq[X509Certificate]] = null): Repr = {
 
-      val b: HasProps.Behavior = propBehavior
-      var s: HasProps.State[Repr] = propState
+      val b: PropBehavior = propBehavior
+      var s: PropState = propState
       // Only update a property if it has a non-null argument
-      if (id != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Id, id.longValue()) }
-      if (tags != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Tags, tags) }
-      if (uri != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Uri, uri) }
-      if (path != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Path, path) }
-      if (method != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Method, method) }
-      if (version != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Version, version) }
-      if (queryString != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.QueryString, queryString) }
-      if (headers != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Headers, headers) }
-      if (remoteAddress != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.RemoteAddress, remoteAddress) }
-      if (secure != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.Secure, secure.booleanValue()) }
-      if (clientCertificateChain != null) { s = b.propBehaviorUpdate(b, s, RequestHeaderProp.ClientCertificateChain, clientCertificateChain) }
-      s.propStateToRepr
+      if (id != null) { s = b.doUpdate(b, s, RequestHeaderProp.Id, id.longValue()) }
+      if (tags != null) { s = b.doUpdate(b, s, RequestHeaderProp.Tags, tags) }
+      if (uri != null) { s = b.doUpdate(b, s, RequestHeaderProp.Uri, uri) }
+      if (path != null) { s = b.doUpdate(b, s, RequestHeaderProp.Path, path) }
+      if (method != null) { s = b.doUpdate(b, s, RequestHeaderProp.Method, method) }
+      if (version != null) { s = b.doUpdate(b, s, RequestHeaderProp.Version, version) }
+      if (queryString != null) { s = b.doUpdate(b, s, RequestHeaderProp.QueryString, queryString) }
+      if (headers != null) { s = b.doUpdate(b, s, RequestHeaderProp.Headers, headers) }
+      if (remoteAddress != null) { s = b.doUpdate(b, s, RequestHeaderProp.RemoteAddress, remoteAddress) }
+      if (secure != null) { s = b.doUpdate(b, s, RequestHeaderProp.Secure, secure.booleanValue()) }
+      if (clientCertificateChain != null) { s = b.doUpdate(b, s, RequestHeaderProp.ClientCertificateChain, clientCertificateChain) }
+      withPropState(s)
     }
 
-    override def toString = "RequestHeader(" + propState.propStateToString + ")"
+    override def toString = "RequestHeader(" + propState.toString + ")"
   }
 
   object RequestHeader {
 
-    val defaultBehavior: HasProps.Behavior = new HasProps.Behavior {
+    val defaultBehavior: PropBehavior = new PropBehavior {
 
-      override def propBehaviorGet[A](behavior: Behavior, state: State[_], p: Prop[A]): A = p match {
+      override def doGet[A](behavior: PropBehavior, state: PropState, p: Prop[A]): (PropState, A) = p match {
         case RequestHeaderProp.Headers =>
           // Provide a default value for the headers property
-          state.propStateGetOrElse(RequestHeaderProp.Headers, Headers.Empty).asInstanceOf[A]
+          (state, state.getOrElse(RequestHeaderProp.Headers, Headers.Empty).asInstanceOf[A])
+        case RequestHeaderProp.Id =>
+          // Lazily get the id
+          if (state.contains(RequestHeaderProp.Id)) {
+            (state, state(RequestHeaderProp.Id).asInstanceOf[A])
+          } else {
+            val newId = 1L
+            val newState = state.update(RequestHeaderProp.Id, newId)
+            (newState, newId.asInstanceOf[A])
+          }
         case _ =>
-          // All other properties just retrieve their value from the state
-          state.propStateGet(p)
+          // All other properties just retrieve their value from the propState
+          (state, state(p))
       }
 
-      override def propBehaviorContains[A](behavior: Behavior, state: State[_], p: Prop[A]): Boolean = p match {
+      override def doContains[A](behavior: PropBehavior, state: PropState, p: Prop[A]): (PropState, Boolean) = p match {
         case RequestHeaderProp.Headers =>
-          // Headers are always implicitly present, even if they're not stored in the state
-          true
+          // Headers are always implicitly present, even if they're not stored in the propState
+          (state, true)
         case _ =>
           // Other props are only there if they're stored
-          state.propStateContains(p)
+          (state, state.contains(p))
       }
 
-      override def propBehaviorUpdate[Repr, A](behavior: Behavior, state: State[Repr], p: Prop[A], v: A): State[Repr] = p match {
-        case _ => state.propStateUpdate(p, v)
+      override def doUpdate[A](behavior: PropBehavior, state: PropState, p: Prop[A], v: A): PropState = p match {
+        case _ => state.update(p, v)
       }
     }
 
@@ -323,14 +334,12 @@ package play.api.mvc {
     val HasBody = Prop[Boolean]("hasBody")
   }
 
-  private[play] class RequestHeaderImpl(
-    override protected val propBehavior: HasProps.Behavior,
-    override protected val propMap: PropMap
-  ) extends RequestHeaderLike[RequestHeaderImpl,RequestImpl] with RequestHeader with HasProps.WithMapState[RequestHeaderImpl] {
-    override protected def newState(newMap: PropMap): RequestHeaderImpl = new RequestHeaderImpl(propBehavior, newMap)
-    override def withBody[B](newBody: B): RequestImpl[B] = {
-      new RequestImpl[B](propBehavior, propMap.updated(RequestProp.Body[B], newBody))
-    }
+  private[play] class RequestHeaderImpl(propBehavior: PropBehavior, propState: PropState)
+      extends DefaultHasProps[RequestHeader](propBehavior, propState) with RequestHeader {
+    override protected def withPropState(newState: PropState): RequestHeader =
+      new RequestHeaderImpl(propBehavior, newState)
+    override def withBody[B](newBody: B): Request[B] =
+      new RequestImpl[B](propBehavior, propState.update(RequestProp.Body[B], newBody))
   }
 
   /**
@@ -343,12 +352,12 @@ package play.api.mvc {
 
   /**
    * A generic [[Request]].
+   *
    * @tparam A The type of the request body.
    * @tparam ReqRepr The concrete representation of this request. This
    *              type is used when constructing a new instance.
    */
-  trait RequestLike[+A, +ReqRepr[+_]] extends RequestHeaderLike[ReqRepr[A],ReqRepr] {
-    self =>
+  trait RequestLike[+A, +ReqRepr[+_] <: Request[_]] extends RequestHeaderLike[ReqRepr[A],ReqRepr] {
 
     /**
      * Change the body on this request.
@@ -391,7 +400,7 @@ package play.api.mvc {
 
   object Request {
 
-    val defaultBehavior: HasProps.Behavior = RequestHeader.defaultBehavior // FIXME
+    val defaultBehavior: PropBehavior = RequestHeader.defaultBehavior // FIXME
 
     def apply[A](rh: RequestHeader, a: A): Request[A] = rh.withBody(a)
   }
@@ -404,42 +413,40 @@ package play.api.mvc {
     def Body[A] = _Body.asInstanceOf[Prop[A]]
   }
 
-  private[play] class RequestImpl[+A](
-    override protected val propBehavior: HasProps.Behavior,
-    override protected val propMap: PropMap
-  ) extends RequestLike[A,RequestImpl] with Request[A] with HasProps.WithMapState[RequestImpl[A]] {
-    override protected def newState(newMap: PropMap): RequestImpl[A] = new RequestImpl[A](propBehavior, newMap)
+  private[play] class RequestImpl[+A](propBehavior: PropBehavior, propState: PropState)
+      extends DefaultHasProps[Request[A]](propBehavior, propState) with Request[A] {
+    override protected def withPropState(newState: PropState): Request[A] =
+      new RequestImpl[A](propBehavior, newState)
   }
-
 
   /**
    * Wrap an existing request. Useful to extend a request.
    */
-  class WrappedRequest[+B](request: Request[B]) extends Request[B] with HasProps[WrappedRequest[B]] with State[WrappedRequest[B]] {
+  class WrappedRequest[+B] private (
+    protected var propState: PropState) extends RequestLike[B,WrappedRequest] with Request[B] {
+
+    def this(request: Request[B]) = this(new WrappedRequestState(request))
 
     protected def newWrappedRequest[B1](request: Request[B1]): WrappedRequest[B1] = new WrappedRequest[B1](request)
 
     // HasProps methods
+    override protected val propBehavior: PropBehavior = PropBehavior.Basic
+    protected def withPropState(s: PropState): WrappedRequest[B] = new WrappedRequest(propState)
+  }
 
-    override protected def propBehavior: HasProps.Behavior = Request.defaultBehavior
-    override protected def propState: HasProps.State[WrappedRequest[B]] = this
-
-    // HasProps.State methods
-    override def propStateToRepr: WrappedRequest[B] = this
-    override def propStateToString: String = request.toString
-    override def propStateGet[P](p: Prop[P]): P = {
+  private class WrappedRequestState[B](request: Request[B]) extends PropState {
+    override def apply[A](p: Prop[A]): A =
       request.prop(p)
+    override def update[A](p: Prop[A], v: A): PropState = {
+      val r: Request[B] = request.withProp(p, v).asInstanceOf[Request[B]]
+      new WrappedRequestState(r)
     }
-    override def propStateGetOrElse[P](p: Prop[P], default: => P): P = {
-      request.prop(p)
-    }
-    override def propStateUpdate[P](p: Prop[P], v: P): HasProps.State[WrappedRequest[B]] = {
-      newWrappedRequest[B](request.withProp(p, v))
-    }
-    override def propStateContains[P](p: Prop[P]): Boolean = {
+    override def get[A](p: Prop[A]): Option[A] =
+      if (request.containsProp(p)) Some(request.prop(p)) else None
+    override def getOrElse[A](p: Prop[A], default: => A): A =
+      if (request.containsProp(p)) request.prop(p) else default
+    override def contains[A](p: Prop[A]): Boolean =
       request.containsProp(p)
-    }
-
   }
 
   /**

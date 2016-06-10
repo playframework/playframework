@@ -3,33 +3,58 @@
  */
 package play.api.mvc
 
-import java.net.URI
-
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.i18n.Lang
-import play.api.libs.prop.{ Prop, PropMap }
+import play.api.libs.prop._
 
 class RequestHeaderSpec extends Specification {
 
-  def newRequestHeader(ps: Prop.WithValue[_]*): RequestHeader = new RequestHeaderImpl(RequestHeader.defaultBehavior, PropMap(ps: _*))
+  private class TestRequestHeader(
+      override protected val propBehavior: PropBehavior,
+      // Make propState public for testing purposes
+      override var propState: PropState) extends RequestHeader with RequestHeaderLike[TestRequestHeader, Request] {
+    override protected def withPropState(newState: PropState): TestRequestHeader =
+      new TestRequestHeader(propBehavior, newState)
+    override def withBody[B](newBody: B): RequestImpl[B] = {
+      new RequestImpl[B](propBehavior, propState.update(RequestProp.Body[B], newBody))
+    }
+  }
+
+  private def newRequestHeader(ps: Prop.WithValue[_]*): TestRequestHeader = new TestRequestHeader(RequestHeader.defaultBehavior, PropMap(ps: _*))
 
   "request header" should {
 
     "have default values for its properties" in {
       "headers should be present and empty" in {
         val rh = newRequestHeader()
+        // Headers should have a default value
         rh.containsProp(RequestHeaderProp.Headers) must beTrue
         val headers: Headers = rh.prop(RequestHeaderProp.Headers)
         headers must not(beNull)
         headers.toMap must beEmpty
+        // The default value doesn't need to be stored in the state
+        rh.propState.contains(RequestHeaderProp.Headers) must beFalse
       }
     }
 
     "allow some properties to be accessed through helpers" in {
+      "id" in {
+        val rh = newRequestHeader(RequestHeaderProp.Id ~> 123L)
+        rh.id must_== 123L
+      }
       "headers" in {
         val rh = newRequestHeader(RequestHeaderProp.Headers ~> Headers("X" -> "y"))
         rh.headers must_== Headers("X" -> "y")
+      }
+    }
+
+    "have some lazy properties" in {
+      "id" in {
+        val rh = newRequestHeader()
+        rh.propState.contains(RequestHeaderProp.Id) must beFalse
+        rh.id must not be (null)
+        rh.propState.contains(RequestHeaderProp.Id) must beTrue
       }
     }
 
