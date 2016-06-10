@@ -1,65 +1,147 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Play Tutorials
 
-Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials come in.
+Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials and examples come in.
 
-Tutorials are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
+Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-## Activator Templates
+## Activator Templates Overview
 
-Many Activator templates come with comprehensive tutorials that guide you to creating an application using the technologies featured by that template.
+Many tutorials come in the form of templates, which can be downloaded as projects onto your computer.
 
-A full list of templates can be discovered in the [Activator Web Interface](https://www.lightbend.com/activator/docs).
+A full list of templates can be discovered in the [Activator Web Interface](https://www.lightbend.com/activator/docs) or by typing "activator list-templates" at the command line.
 
-Additionally, templates are also published on the Lightbend website, a full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
+Templates are also published on the Lightbend website.  A full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
 
-Lightbend maintains a number of Activator templates.  These have built-in tutorials that you can see by running the application with `activator ui` and then opening the web interface at [http://127.0.0.1:8888/](http://127.0.0.1:8888/) and clicking on the Tutorial tab.
+Finally, the core Play templates are available as git repositories on Github under [https://github.com/playframework/](https://github.com/playframework/) and can be cloned directly from there.
 
-### Introduction
+### Creating a Project From A Template
 
-This is where you should start with Play to see a simple example CRUD application.
+In general, whenever you see a template, you can download the template by using the Github project name.  For example, if you have an example Play project on Github called "some-awesome-play-template", you can download and use the template by typing
 
-* [Play Intro in Scala](https://www.lightbend.com/activator/template/play-scala-intro) with [video](https://youtu.be/eNCerkVyQdc)
-* [Play Intro in Java](https://www.lightbend.com/activator/template/play-java-intro) with [video](https://youtu.be/bLrmnjPQsZc)
+```
+activator new my-local-project-directory some-awesome-play-template 
+```
 
-### Reactive Stocks
+If you do not have activator installed or would prefer to use git, you can always clone the project the old fashioned way:
 
-Reactive Stocks shows several stock prices displayed on a single page web application.
+```
+git clone https://github.com/playframework/some-awesome-play-template my-local-project-directory
+```
 
-* [Reactive Stocks in Scala](https://github.com/typesafehub/reactive-stocks#master)
-* [Reactive Stocks in Java](https://www.lightbend.com/activator/template/reactive-stocks-java8)
+Creating new projects is covered in more detail in [[Creating a new application|NewApplication]].
 
-### Reactive Maps
+## Play Maintained Seeds and Example Templates
 
-Reactive Maps shows the Lightbend Platform with a series of moving actors updated in real time.
+This section covers the core tutorials and examples from Play.  These are maintained by the core Play team, and so will be based on the latest Play release.
 
-* [Reactive Maps in Scala](https://www.lightbend.com/activator/template/reactive-maps)
-* [Reactive Maps in Java](https://www.lightbend.com/activator/template/reactive-maps-java)
+### Creating a Seed Template
 
-### Database
+If you are starting off a new Play project and don't want any extras, you can use the seed templates by typing the following at the command prompt:
 
-* [Play Java with Spring Data JPA](https://www.lightbend.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).
-* [Play Scala with Slick](https://www.lightbend.com/activator/template/activator-play-slick-app): This template combines Play Framework with [Slick](http://slick.typesafe.com/).
-* [Play Scala with Isolated Slick](https://github.com/wsargent/play-slick-3.0): This template creates module that hides Slick behind a DAO object.
-* [Play Java with Ebean](https://github.com/typesafehub/activator-computer-database-java): This is a Play example that uses [EBean](https://ebean-orm.github.io/).
-* [Play Scala with Anorm](https://github.com/typesafehub/activator-computer-database-scala): This is a Play example that uses [Anorm](https://github.com/playframework/anorm).
+``` shell
+activator new my-scala-project play-scala 
+```
 
-## Third Party Tutorials
+or
 
-The Play community also has a number of tutorials that cover aspects of Play than the documentation can, or has a different angle.  This is an incomplete list of several helpful blog posts.
+``` shell
+activator new my-java-project play-java
+```
 
-Because some of the blog posts have been written a while ago, this section is organized by Play version.
+If you want to look at the template code without creating a new project, you can see the templates below:
+
+* [play-scala](https://github.com/playframework/playframework/tree/master/templates/play-scala)
+* [play-java](https://github.com/playframework/playframework/tree/master/templates/play-java)
+
+### Database / ORM Access
+
+Play is unopinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
+
+#### Slick
+
+[Slick](http://slick.typesafe.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
+
+* [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
+* [play-scala-intro](https://github.com/playframework/playframework/tree/master/templates/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
+* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
+
+#### JPA
+
+This is a example template showing Play with Java Persistence API (JPA), using Hibernate Entity Manager.  It is included in the Play project itself.
+
+* [play-java-intro](https://github.com/playframework/playframework/tree/master/templates/play-java-intro)
+
+#### Anorm
+
+This is an example template showing Play with [Anorm](https://github.com/playframework/anorm) using Play's [Anorm Integration](https://www.playframework.com/documentation/latest/ScalaAnorm).  It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
+
+* [playframework/play-anorm](https://github.com/playframework/play-anorm)
+
+#### EBean
+
+This is an example template that uses [EBean](https://ebean-orm.github.io/) using Play's [Ebean integration](https://www.playframework.com/documentation/2.5.x/JavaEbean). It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
+
+* [playframework/play-ebean-example](https://github.com/playframework/play-ebean-example)
+
+### Comet / Server Sent Events (SSE)
+
+This is an example template that shows streaming responses through Comet or Server Sent Events, using Akka Streams:
+
+* [playframework/play-streaming-scala](https://github.com/playframework/play-streaming-scala)
+* [playframework/play-streaming-java](https://github.com/playframework/play-streaming-java)
+
+### WebSocket
+
+This is an example template that shows bidirectional streaming through the WebSocket API, using Akka Streams:
+
+* [playframework/play-websocket-scala](https://github.com/playframework/play-websocket-scala)
+* [playframework/play-websocket-java](https://github.com/playframework/play-websocket-java)
+
+### Cryptography
+
+This is an example template showing how to encrypt and sign data securely with [Kalium](https://github.com/abstractj/kalium):
+
+* [playframework/play-kalium](https://github.com/playframework/play-kalium)
+
+### Compile Time Dependency Injection
+
+[[Compile time dependency injection|ScalaCompileTimeDependencyInjection]] can be done in Play in a number of different DI frameworks.  
+
+There are two examples shown here, but there are other compile time DI frameworks such as Scaldi, which has [Play integration](http://scaldi.org/learn/#play-integration) built in, and [Dagger 2](https://google.github.io/dagger/), which is written in Java.
+
+#### Manual Compile Time Dependency Injection
+
+This is an example template showing how to use manual compile time dependency injection and manual routing with the [SIRD router](https://www.playframework.com/documentation/2.5.x/ScalaSirdRouter), useful for minimal REST APIs and people used to Spray style routing:
+
+* [playframework/play-scala-compile-di-with-tests](https://github.com/playframework/play-scala-compile-di-with-tests)
+
+#### Macwire Dependency Injection
+
+This is an example template showing compile time dependency injection using [Macwire](https://github.com/adamw/macwire).
+
+* [playframework/play-macwire-di](https://github.com/playframework/play-macwire-di)
+
+## Third Party Tutorials and Templates
+
+The Play community also has a number of tutorials and templates that cover aspects of Play than the documentation can, or has a different angle.  Templates listed here are not maintained by the Play team, and so may be out of date.
+
+This is an incomplete list of several helpful blog posts, and because some of the blog posts have been written a while ago, this section is organized by Play version.
 
 ### 2.5.x
 
 #### Dependency Injection
 
-* [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado. 
+* [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado.
 
 #### Akka Streams
 
 * [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-akka-streams/) by Loïc Descotte.
 * [Playing with Akka Streams and Twitter](https://loicdescotte.github.io/posts/play-akka-streams-twitter/) by Loïc Descotte.
+
+#### Database
+
+* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an activator project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
 
 ### 2.4.x
 
@@ -97,6 +179,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 * [Play framework, Slick and MySQL Tutorial](http://pedrorijo.com/blog/play-slick/) by Pedro Rijo.
 
 #### RethinkDB
+
 * [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions)
 
 #### Forms
@@ -119,23 +202,22 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 #### React JS
 
 * [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
-* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](http://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus /
-[activator template](https://github.com/knoldus/playing-reactjs#master)
+* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master)
 
 ### 2.3.x
 
 #### REST APIs
 
-* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](http://blog.shinetech.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
+* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](https://blog.shinetech.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
 
 #### Anorm
 
 Knoldus has a nice series of blog posts on Anorm:
 
-* [Employee-Self-Service – Building Reactive Play application with Anorm SQL data access – (Part-1)](http://blog.knoldus.com/2014/03/24/employee-self-service-building-reactive-play-application-with-anorm-sql-data-access/)
-* [Employee-Self-Service – Building Reactive Play application with Anorm SQL data access – (Part-2)](http://blog.knoldus.com/2014/03/31/employee-self-service-2/)
-* [Employee-Self-Service: Reactive and Non-Blocking Database Access using Play Framework and Anorm – (Part-3)](http://blog.knoldus.com/2014/04/06/employee-self-service-3/)
-* [Employee-Self-Service: Reactive and Non-Blocking Database Access using Play Framework and Anorm – (Part-4)](http://blog.knoldus.com/2014/04/13/employee-self-service-reactive-and-non-blocking-database-access-using-play-framework-and-anorm-part-4/)
+* [Employee-Self-Service – Building Reactive Play application with Anorm SQL data access – (Part-1)](https://blog.knoldus.com/2014/03/24/employee-self-service-building-reactive-play-application-with-anorm-sql-data-access/)
+* [Employee-Self-Service – Building Reactive Play application with Anorm SQL data access – (Part-2)](https://blog.knoldus.com/2014/03/31/employee-self-service-2/)
+* [Employee-Self-Service: Reactive and Non-Blocking Database Access using Play Framework and Anorm – (Part-3)](https://blog.knoldus.com/2014/04/06/employee-self-service-3/)
+* [Employee-Self-Service: Reactive and Non-Blocking Database Access using Play Framework and Anorm – (Part-4)](https://blog.knoldus.com/2014/04/13/employee-self-service-reactive-and-non-blocking-database-access-using-play-framework-and-anorm-part-4/)
 
 #### Forms
 
