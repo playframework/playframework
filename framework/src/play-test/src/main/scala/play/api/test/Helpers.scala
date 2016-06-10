@@ -10,24 +10,20 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.mvc.Http.RequestBody
 
 import scala.language.reflectiveCalls
-
 import play.api._
 import play.api.mvc._
 import play.api.http._
-
-import play.api.libs.json.{ Json, JsValue }
-
+import play.api.libs.json.{ JsValue, Json }
 import play.twirl.api.Content
-
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import scala.concurrent.Future
 import akka.util.{ ByteString, Timeout }
+import play.api.libs.streams.Accumulator
 
 /**
  * Helper functions to run tests.
@@ -308,6 +304,13 @@ trait ResultExtractors {
   }
 
   /**
+   * Extracts the Content-Type of this Result value.
+   */
+  def contentType(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] = {
+    contentType(of.run())
+  }
+
+  /**
    * Extracts the Charset of this Result value.
    */
   def charset(of: Future[Result])(implicit timeout: Timeout): Option[String] = {
@@ -318,10 +321,22 @@ trait ResultExtractors {
   }
 
   /**
+   * Extracts the Charset of this Result value.
+   */
+  def charset(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] = {
+    charset(of.run())
+  }
+
+  /**
    * Extracts the content as String.
    */
   def contentAsString(of: Future[Result])(implicit timeout: Timeout, mat: Materializer = NoMaterializer): String =
     contentAsBytes(of).decodeString(charset(of).getOrElse("utf-8"))
+
+  /**
+   * Extracts the content as String.
+   */
+  def contentAsString(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): String = contentAsString(of.run())
 
   /**
    * Extracts the content as bytes.
@@ -332,9 +347,19 @@ trait ResultExtractors {
   }
 
   /**
+   * Extracts the content as bytes.
+   */
+  def contentAsBytes(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): ByteString = contentAsBytes(of.run())
+
+  /**
    * Extracts the content as Json.
    */
   def contentAsJson(of: Future[Result])(implicit timeout: Timeout, mat: Materializer = NoMaterializer): JsValue = Json.parse(contentAsString(of))
+
+  /**
+   * Extracts the content as Json.
+   */
+  def contentAsJson(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): JsValue = contentAsJson(of.run())
 
   /**
    * Extracts the Status code of this Result value.
@@ -342,9 +367,19 @@ trait ResultExtractors {
   def status(of: Future[Result])(implicit timeout: Timeout): Int = Await.result(of, timeout.duration).header.status
 
   /**
+   * Extracts the Status code of this Result value.
+   */
+  def status(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Int = status(of.run())
+
+  /**
    * Extracts the Cookies of this Result value.
    */
   def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = Cookies.fromSetCookieHeader(header(SET_COOKIE, of))
+
+  /**
+   * Extracts the Cookies of this Result value.
+   */
+  def cookies(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Cookies = cookies(of.run())
 
   /**
    * Extracts the Flash values of this Result value.
@@ -352,10 +387,21 @@ trait ResultExtractors {
   def flash(of: Future[Result])(implicit timeout: Timeout): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
 
   /**
+   * Extracts the Flash values of this Result value.
+   */
+  def flash(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Flash = flash(of.run())
+
+  /**
    * Extracts the Session of this Result value.
    * Extracts the Session from this Result value.
    */
   def session(of: Future[Result])(implicit timeout: Timeout): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
+
+  /**
+   * Extracts the Session of this Result value.
+   * Extracts the Session from this Result value.
+   */
+  def session(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Session = session(of.run())
 
   /**
    * Extracts the Location header of this Result value if this Result is a Redirect.
@@ -369,14 +415,33 @@ trait ResultExtractors {
   }
 
   /**
+   * Extracts the Location header of this Result value if this Result is a Redirect.
+   */
+  def redirectLocation(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] =
+    redirectLocation(of.run())
+
+  /**
    * Extracts an Header value of this Result value.
    */
   def header(header: String, of: Future[Result])(implicit timeout: Timeout): Option[String] = headers(of).get(header)
 
   /**
+   * Extracts an Header value of this Result value.
+   */
+  def header(header: String, of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] =
+    this.header(header, of.run())
+
+  /**
    * Extracts all Headers of this Result value.
    */
   def headers(of: Future[Result])(implicit timeout: Timeout): Map[String, String] = Await.result(of, timeout.duration).header.headers
+
+  /**
+   * Extracts all Headers of this Result value.
+   */
+  def headers(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Map[String, String] =
+    headers(of.run())
+
 }
 
 object Helpers extends PlayRunners
