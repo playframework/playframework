@@ -817,7 +817,7 @@ public class Http {
          */
         protected RequestBuilder body(RequestBody body) {
             if (body == null || body.as(Object.class) == null) {
-                // assume null sigifies no body; RequestBody is a wrapper for the actual body content
+                // assume null signifies no body; RequestBody is a wrapper for the actual body content
                 this.headers.remove(HeaderNames.CONTENT_LENGTH);
                 this.headers.remove(HeaderNames.TRANSFER_ENCODING);
             } else {
@@ -1346,7 +1346,7 @@ public class Http {
         protected Map<String, List<String>> splitQuery() {
             try {
                 Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
-                String query = uri.getQuery();
+                String query = uri.getRawQuery();
                 if (query == null) {
                     return new HashMap<>();
                 }
@@ -1355,7 +1355,7 @@ public class Http {
                     int idx = pair.indexOf("=");
                     String key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), "UTF-8") : pair;
                     if (!query_pairs.containsKey(key)) {
-                        query_pairs.put(key, new LinkedList<String>());
+                        query_pairs.put(key, new LinkedList<>());
                     }
                     String value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : null;
                     query_pairs.get(key).add(value);
