@@ -599,7 +599,7 @@ trait DefaultReads extends LowPriorityDefaultReads {
 
   /**
    * The default typeclass to reads `java.time.Instant` from JSON.
-   * Accepts instant formats as '2011-12-03T10:15:30', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
+   * Accepts instant formats as '2011-12-03T10:15:30Z', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
    */
   implicit val DefaultInstantReads =
     instantReads(DateTimeFormatter.ISO_DATE_TIME)
