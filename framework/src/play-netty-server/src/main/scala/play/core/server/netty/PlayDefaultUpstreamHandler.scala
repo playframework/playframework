@@ -28,6 +28,9 @@ import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, Order
 import scala.concurrent.Future
 import java.net.{ InetSocketAddress, URI }
 import java.io.IOException
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLPeerUnverifiedException
 
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 import org.jboss.netty.handler.timeout.{ IdleStateAwareChannelUpstreamHandler, IdleStateEvent }
@@ -105,6 +108,16 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           createRequestHeader(path, parameters)
         }
 
+        def clientCertificatesFromSslEngine(sslEngine: Option[SSLEngine]): Option[Seq[X509Certificate]] = {
+          try {
+            sslEngine.map { engine =>
+              engine.getSession.getPeerCertificates.toSeq.collect { case x509: X509Certificate => x509 }
+            }
+          } catch {
+            case e: SSLPeerUnverifiedException => None
+          }
+        }
+
         def createRequestHeader(parsedPath: String, parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
           //mapping netty request to Play's
           val untaggedRequestHeader = new RequestHeader {
@@ -123,6 +136,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             }
             override def remoteAddress = remoteConnection.address.getHostAddress
             override def secure = remoteConnection.secure
+            override lazy val clientCertificateChain = clientCertificatesFromSslEngine(Option(ctx.getPipeline.get(classOf[SslHandler])).map(_.getEngine()))
           }
           untaggedRequestHeader
         }

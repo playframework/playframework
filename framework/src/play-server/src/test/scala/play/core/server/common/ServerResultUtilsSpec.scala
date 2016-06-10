@@ -23,6 +23,7 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    def clientCertificateChain = None
     val headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq)
   }
 

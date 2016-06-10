@@ -70,6 +70,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       }
       override def remoteAddress = remoteConnection.address.getHostAddress
       override def secure = remoteConnection.secure
+      override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
     }
   }
 

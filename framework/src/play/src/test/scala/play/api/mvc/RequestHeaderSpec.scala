@@ -53,5 +53,6 @@ class RequestHeaderSpec extends Specification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    def clientCertificateChain = None
   }
 }

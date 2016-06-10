@@ -3,14 +3,18 @@
  */
 package play.mvc;
 
+import static play.libs.Scala.Option;
 import static play.libs.Scala.asScala;
 
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.Map.Entry;
+
+import scala.Option;
 import scala.Predef;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
@@ -497,6 +501,13 @@ public class Http {
         boolean hasHeader(String headerName);
 
         /**
+         * The X509 certificate chain presented by a client during SSL requests.
+         *
+         * @return The chain of X509Certificates used for the request if the request is secure and the server supports it.
+         */
+        Optional<List<X509Certificate>> clientCertificateChain();
+
+        /**
          * For internal Play-use only
          */
         play.api.mvc.RequestHeader _underlyingHeader();
@@ -781,7 +792,8 @@ public class Http {
                 mapListToScala(splitQuery()),
                 buildHeaders(),
                 remoteAddress,
-                secure));
+                secure,
+                Option.apply(clientCertificateChain.orElse(null))));
         }
 
         // -------------------
@@ -795,6 +807,7 @@ public class Http {
         protected String version;
         protected Map<String, String[]> headers = new HashMap<>();
         protected String remoteAddress;
+        protected Optional<List<X509Certificate>> clientCertificateChain = Optional.empty();
 
         /**
          * @return the id of the request
@@ -1127,6 +1140,23 @@ public class Http {
          */
         public RequestBuilder remoteAddress(String remoteAddress) {
             this.remoteAddress = remoteAddress;
+            return this;
+        }
+
+        /**
+         * @return the client X509Certificates if they have been set
+         */
+        public Optional<List<X509Certificate>> clientCertificateChain() {
+            return clientCertificateChain;
+        }
+
+        /**
+         *
+         * @param clientCertificateChain sets the X509Certificates to use
+         * @return the builder instance
+         */
+        public RequestBuilder clientCertificateChain(List<X509Certificate> clientCertificateChain) {
+            this.clientCertificateChain = Optional.ofNullable(clientCertificateChain);
             return this;
         }
 

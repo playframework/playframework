@@ -3,11 +3,13 @@
  */
 package play.core.j
 
+import java.util.Optional
+
 import play.libs.F
 import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
 import play.mvc.{ Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.Http.RequestBody
 
 import scala.concurrent.Future
@@ -190,6 +192,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   def accepts(mediaType: String) = header.accepts(mediaType)
 
   def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
+
+  override def clientCertificateChain() = Optional.ofNullable(header.clientCertificateChain.map(_.asJava).orNull)
 
   def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
