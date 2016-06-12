@@ -12,7 +12,7 @@ public class DefaultHttpFilters implements HttpFilters {
   private final EssentialFilter[] filters;
 
   public DefaultHttpFilters(play.api.mvc.EssentialFilter... filters) {
-    this.filters = (EssentialFilter[]) Arrays.stream(filters).map(f -> f.asJava()).toArray();
+    this.filters = Arrays.stream(filters).map(f -> f.asJava()).toArray(EssentialFilter[]::new);
   }
 
   @Override
