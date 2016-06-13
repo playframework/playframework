@@ -246,7 +246,7 @@ object Dependencies {
   val iterateesDependencies = Seq(
     "org.scala-stm" %% "scala-stm" % "0.7",
     typesafeConfig,
-    logback
+    logback % Test
   ) ++ specsBuild.map(_ % Test)
 
   val streamsDependencies = Seq(
