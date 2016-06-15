@@ -222,7 +222,7 @@ Knoldus has a nice series of blog posts on Anorm:
 #### Forms
 
 * [Example form including multiple checkboxes and selection](https://ics-software-engineering.github.io/play-example-form/) by Philip Johnson.
-* [UX-friendly conditional form mapping in Play](http://blog.ntcoding.com/2016/02/play-framework-conditional-form-mappings.html) by the VOA
+* [UX-friendly conditional form mapping in Play](http://blog.ntcoding.com/2016/02/play-framework-conditional-form-mappings.html) by Nick Tune.
 
 ### 2.2.x
 
