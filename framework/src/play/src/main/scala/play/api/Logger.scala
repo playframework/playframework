@@ -6,7 +6,9 @@ package play.api
 import java.io.File
 import java.net.URL
 
+import ch.qos.logback.core.status.StatusUtil
 import org.slf4j.{ LoggerFactory, Logger => Slf4jLogger }
+
 import scala.util.control.NonFatal
 
 /**
@@ -257,39 +259,38 @@ object Logger extends LoggerLike {
       import ch.qos.logback.core.util._
       import ch.qos.logback.classic._
 
-      try {
-        val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-        val configurator = new JoranConfigurator
-        configurator.setContext(ctx)
-        ctx.reset()
+      val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+      val configurator = new JoranConfigurator
+      configurator.setContext(ctx)
+      ctx.reset()
 
-        // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
-        // logging
-        val frameworkPackages = ctx.getFrameworkPackages
-        frameworkPackages.add(classOf[play.Logger].getName)
-        frameworkPackages.add(classOf[play.api.Logger].getName)
+      // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
+      // logging
+      val frameworkPackages = ctx.getFrameworkPackages
+      frameworkPackages.add(classOf[play.Logger].getName)
+      frameworkPackages.add(classOf[play.api.Logger].getName)
 
-        properties.foreach {
-          case (name, value) => ctx.putProperty(name, value)
-        }
-
-        try {
-          config match {
-            case Some(url) => configurator.doConfigure(url)
-            case None =>
-              System.err.println("Could not detect a logback configuration file, not configuring logback")
-          }
-        } catch {
-          case NonFatal(e) =>
-            System.err.println("Error encountered while configuring logback:")
-            e.printStackTrace()
-        }
-
-        StatusPrinter.printIfErrorsOccured(ctx)
-      } catch {
-        case NonFatal(_) =>
+      properties.foreach {
+        case (name, value) => ctx.putProperty(name, value)
       }
 
+      try {
+        config match {
+          case Some(url) => configurator.doConfigure(url)
+          case None =>
+            System.err.println("Could not detect a logback configuration file, not configuring logback")
+        }
+      } catch {
+        case NonFatal(e) =>
+          System.err.println("Error encountered while configuring logback:")
+          e.printStackTrace()
+          throw e
+      }
+
+      StatusPrinter.printIfErrorsOccured(ctx)
+      if (!new StatusUtil(ctx).isErrorFree(0)) {
+        throw new RuntimeException("One or more errors were found during logback configuration; see above. The application will not be started.")
+      }
     }
 
   }
