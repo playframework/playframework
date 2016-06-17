@@ -616,6 +616,72 @@ object Forms {
    */
   val boolean: Mapping[Boolean] = of[Boolean]
 
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDate type`).
+   *
+   * For example:
+   * {{{
+   * Form("birthdate" -> localDate)
+   * }}}
+   */
+  val localDate: Mapping[java.time.LocalDate] = of[java.time.LocalDate]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDate type`).
+   *
+   * For example:
+   * {{{
+   * Form("birthdate" -> localDate("dd-MM-yyyy"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate] as localDateFormat(pattern)
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("dateTime" -> localDateTime)
+   * }}}
+   */
+  val localDateTime: Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("dateTime" -> localDateTime("dd-MM-yyyy HH:mm:ss"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime] as localDateTimeFormat(pattern)
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("time" -> localTime)
+   * }}}
+   */
+  val localTime: Mapping[java.time.LocalTime] = of[java.time.LocalTime]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("time" -> localTime("HH:mm:ss"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime] as localTimeFormat(pattern)
+
   def checked(msg: String): Mapping[Boolean] = boolean verifying (msg, _ == true)
 
 }

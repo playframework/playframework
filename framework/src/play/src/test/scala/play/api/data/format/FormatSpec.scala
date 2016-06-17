@@ -24,6 +24,28 @@ object FormatSpec extends Specification {
     }
   }
 
+  "java.time Types" should {
+    import java.time.LocalDateTime
+    "support LocalDateTime formatting with a pattern" in {
+      val pattern = "yyyy/MM/dd HH:mm:ss"
+      val data = Map("localDateTime" -> "2016/06/06 00:30:30")
+
+      val format = Formats.localDateTimeFormat(pattern)
+      val bind: Either[Seq[FormError], LocalDateTime] = format.bind("localDateTime", data)
+      bind.right.map(dt => {
+        (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
+      }) should beRight((2016, 6, 6, 0, 30, 30))
+    }
+
+    "support LocalDateTime formatting with default pattern" in {
+      val data = Map("localDateTime" -> "2016-10-10 11:11:11")
+      val format = Formats.localDateTimeFormat
+      format.bind("localDateTime", data).right.map { dt =>
+        (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
+      } should beRight((2016, 10, 10, 11, 11, 11))
+    }
+  }
+
   "A simple mapping of BigDecimalFormat" should {
     "return a BigDecimal" in {
       Form("value" -> bigDecimal).bind(Map("value" -> "10.23")).fold(

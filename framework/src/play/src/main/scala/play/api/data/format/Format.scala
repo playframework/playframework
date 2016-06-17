@@ -281,6 +281,79 @@ object Formats {
   implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
 
   /**
+   * Formatter for the `java.time.LocalDate` type.
+   *
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
+   */
+  def localDateFormat(pattern: String): Formatter[java.time.LocalDate] = new Formatter[java.time.LocalDate] {
+
+    import java.time.LocalDate
+
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    def localDateParse(data: String) = LocalDate.parse(data, formatter)
+
+    override val format = Some(("format.date", Seq(pattern)))
+
+    def bind(key: String, data: Map[String, String]) = parsing(localDateParse, "error.date", Nil)(key, data)
+
+    def unbind(key: String, value: LocalDate) = Map(key -> value.format(formatter))
+  }
+
+  /**
+   * Default formatter for `java.time.LocalDate` type with pattern `yyyy-MM-dd`.
+   */
+  implicit val localDateFormat: Formatter[java.time.LocalDate] = localDateFormat("yyyy-MM-dd")
+
+  /**
+   * Formatter for the `java.time.LocalDateTime` type.
+   *
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
+   * @param zoneId the `java.time.ZoneId` to use for parsing and formatting
+   */
+  def localDateTimeFormat(pattern: String, zoneId: java.time.ZoneId = java.time.ZoneId.systemDefault()): Formatter[java.time.LocalDateTime] = new Formatter[java.time.LocalDateTime] {
+
+    import java.time.LocalDateTime
+
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
+    def localDateTimeParse(data: String) = LocalDateTime.parse(data, formatter)
+
+    override val format = Some(("format.localDateTime", Seq(pattern)))
+
+    def bind(key: String, data: Map[String, String]) = parsing(localDateTimeParse, "error.localDateTime", Nil)(key, data)
+
+    def unbind(key: String, value: LocalDateTime) = Map(key -> value.format(formatter))
+  }
+
+  /**
+   * Default formatter for `java.time.LocalDateTime` type with pattern `yyyy-MM-dd`.
+   */
+  implicit val localDateTimeFormat: Formatter[java.time.LocalDateTime] = localDateTimeFormat("yyyy-MM-dd HH:mm:ss")
+
+  /**
+   * Formatter for the `java.time.LocalTime` type.
+   *
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
+   */
+  def localTimeFormat(pattern: String): Formatter[java.time.LocalTime] = new Formatter[java.time.LocalTime] {
+
+    import java.time.LocalTime
+
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    def localTimeParse(data: String) = LocalTime.parse(data, formatter)
+
+    override val format = Some(("format.localTime", Seq(pattern)))
+
+    def bind(key: String, data: Map[String, String]) = parsing(localTimeParse, "error.localTime", Nil)(key, data)
+
+    def unbind(key: String, value: LocalTime) = Map(key -> value.format(formatter))
+  }
+
+  /**
+   * Default formatter for `java.time.LocalTime` type with pattern `HH:mm:ss`.
+   */
+  implicit val localTimeFormat: Formatter[java.time.LocalTime] = localTimeFormat("HH:mm:ss")
+
+  /**
    * Default formatter for the `java.util.UUID` type.
    */
   implicit def uuidFormat: Formatter[UUID] = new Formatter[UUID] {
