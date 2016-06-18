@@ -21,7 +21,7 @@ import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
 import scala.annotation.implicitNotFound
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
 /**
@@ -246,6 +246,7 @@ trait BuiltInComponents {
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
+  implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
 

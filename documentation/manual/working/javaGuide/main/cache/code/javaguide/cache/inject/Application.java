@@ -10,10 +10,10 @@ import javax.inject.Inject;
 
 public class Application extends Controller {
 
-    private CacheApi cache;
+    private AsyncCacheApi cache;
 
     @Inject
-    public Application(CacheApi cache) {
+    public Application(AsyncCacheApi cache) {
         this.cache = cache;
     }
 

@@ -17,33 +17,24 @@ import javax.inject.Inject;
  */
 public class CachedAction extends Action<Cached> {
 
-    private CacheApi cacheApi;
+    private AsyncCacheApi cacheApi;
 
     @Inject
-    public CachedAction(CacheApi cacheApi) {
+    public CachedAction(AsyncCacheApi cacheApi) {
         this.cacheApi = cacheApi;
     }
 
     public CompletionStage<Result> call(Context ctx) {
-        try {
-            final String key = configuration.key();
-            final Integer duration = configuration.duration();
-            Result cacheResult = cacheApi.get(key);
-
-            if (cacheResult == null) {
-                return delegate.call(ctx).thenApply(result -> {
-                    cacheApi.set(key, result, duration);
-                    return result;
-                });
-            } else {
+        final String key = configuration.key();
+        final Integer duration = configuration.duration();
+        return cacheApi.<Result>get(key).thenComposeAsync(cacheResult -> {
+            if (cacheResult != null) {
                 return CompletableFuture.completedFuture(cacheResult);
             }
-
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
+            return delegate.call(ctx).thenComposeAsync(result ->
+                    cacheApi.set(key, result, duration).thenApply(ignore -> result)
+            );
+        });
     }
 
 }
