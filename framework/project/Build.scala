@@ -27,8 +27,6 @@ import interplay.PlayBuildBase.autoImport._
 import scala.util.control.NonFatal
 
 object BuildSettings {
-  // Binary compatibility is tested against these versions
-  val previousVersions = (0 to 4).map(patch => s"2.5.$patch").toSet
 
   // Argument for setting size of permgen space or meta space for all forked processes
   val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
@@ -71,12 +69,21 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
     previousArtifacts := {
+      // Binary compatibility is tested against these versions
+      val previousVersions = {
+        val VersionPattern = """^(\d+).(\d+).(\d+)(-SNAPSHOT|-RC\d+)?""".r
+        version.value match {
+          case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
+          case _ => sys.error(s"Cannot find previous versions for ${version.value}")
+        }
+      }.toSet
       if (crossPaths.value) {
         previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" %  v)
       } else {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
+    // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   )
 
