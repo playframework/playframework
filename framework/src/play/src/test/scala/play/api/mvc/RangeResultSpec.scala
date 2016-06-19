@@ -3,22 +3,20 @@
  */
 package play.api.mvc
 
-import java.io.{ File, FileOutputStream }
+import java.io.{ File, FileOutputStream, InputStream }
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import org.specs2.mutable.Specification
 import play.api.http.HttpEntity
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import org.specs2.mutable.Specification
-
-import scala.tools.nsc.interpreter.InputStream
 
 object ByteRangeSpec extends Specification {
 
