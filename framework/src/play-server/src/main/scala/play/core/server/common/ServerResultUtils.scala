@@ -3,13 +3,17 @@
  */
 package play.core.server.common
 
+import play.api.Logger
 import play.api.mvc._
-import play.api.http.HttpProtocol
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, HttpProtocol, Status }
 import play.api.http.HeaderNames._
 import play.api.libs.iteratee._
 import scala.concurrent.{ Future, Promise }
+import scala.util.control.NonFatal
 
 object ServerResultUtils {
+
+  private val logger = Logger(ServerResultUtils.getClass)
 
   /** Save allocation by caching an empty array */
   private val emptyBytes = new Array[Byte](0)
@@ -24,6 +28,7 @@ object ServerResultUtils {
    * Indicates the streaming strategy to use for returning the response.
    */
   sealed trait ResultStreaming
+
   /**
    * Used for responses that may not contain a body, e.g. 204 or 304 responses.
    * The server shouldn't send a body and, since the response cannot have a
@@ -121,7 +126,8 @@ object ServerResultUtils {
    */
   def determineResultStreaming(
     requestHeader: RequestHeader,
-    result: Result): Future[Either[InvalidResult, (ResultStreaming, ConnectionHeader)]] = {
+    result: Result,
+    errorHandler: HttpErrorHandler): Future[Either[InvalidResult, (ResultStreaming, ConnectionHeader)]] = {
 
     // The protocol version will affect how we stream the result and
     // the value of the Connection header that we set
@@ -151,8 +157,17 @@ object ServerResultUtils {
     }
 
     // Helpers for creating return values for this method
-    def invalid(reason: String, alternativeResult: Result): Future[Left[InvalidResult, Nothing]] = {
-      Future.successful(Left(InvalidResult(reason, alternativeResult)))
+    def invalid(reason: String, statusCode: Int): Future[Left[InvalidResult, Nothing]] = {
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      // Use the HttpErrorHandler to generate an error response. Then patch the status code
+      // since the HttpErrorHandler won't generate non-500 errors. Finally wrap all of this
+      // in an InvalidResult so that the caller can detect the error and do any extra handling
+      // that is needed.
+      val exception = new ServerResultException(s"Invalid result: $reason", result, null)
+      errorHandler.onServerError(requestHeader, exception).map { errorResult: Result =>
+        val patchedErrorResult: Result = errorResult.copy(header = errorResult.header.copy(status = statusCode))
+        Left(InvalidResult(reason, patchedErrorResult))
+      }
     }
     def valid(streaming: ResultStreaming, connection: ConnectionHeader): Future[Right[Nothing, (ResultStreaming, ConnectionHeader)]] = {
       Future.successful(Right((streaming, connection)))
@@ -164,7 +179,7 @@ object ServerResultUtils {
       case _ if result.header.headers.exists(_._2 == null) =>
         invalid(
           "A header was set to null",
-          Results.InternalServerError("")
+          Status.INTERNAL_SERVER_ERROR
         )
 
       // The HTTP spec requires that some responses don't have a body
@@ -176,7 +191,7 @@ object ServerResultUtils {
         if (isHttp10) {
           invalid(
             "Chunked response to HTTP/1.0 request",
-            Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
+            Status.HTTP_VERSION_NOT_SUPPORTED
           )
         } else {
           valid(UseExistingTransferEncoding(result.body), connection)
@@ -211,6 +226,64 @@ object ServerResultUtils {
               Right((PerformChunkedTransferEncoding(bodyEnum), connection))
             }
         }
+    }
+
+  }
+
+  /**
+   * Handles result conversion in a safe way.
+   *
+   * 1. Tries to convert the `Result`.
+   * 2. If there's an error, calls the `HttpErrorHandler` to get a new
+   *    `Result`, then converts that.
+   * 3. If there's an error with *that* `Result`, uses the
+   *    `DefaultHttpErrorHandler` to get another `Result`, then converts
+   *    that.
+   * 4. Hopefully there are no more errors. :)
+   * 5. If calling an `HttpErrorHandler` throws an exception, then a
+   *    fallback response is returned, without an conversion.
+   */
+  def resultConversionWithErrorHandling[R](
+    requestHeader: RequestHeader,
+    result: Result,
+    errorHandler: HttpErrorHandler)(resultConverter: Result => Future[R])(fallbackResponse: => R): Future[R] = {
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    def handleConversionError(conversionError: Throwable): Future[R] = {
+      try {
+        // Log some information about the error
+        if (logger.isErrorEnabled) {
+          val prettyHeaders = result.header.headers.map { case (name, value) => s"<$name>: <$value>" }.mkString("[", ", ", "]")
+          val msg = s"Exception occurred while converting Result with headers $prettyHeaders. Calling HttpErrorHandler to get alternative Result."
+          logger.error(msg, conversionError)
+        }
+
+        // Call the HttpErrorHandler to generate an alternative error
+        errorHandler.onServerError(
+          requestHeader,
+          new ServerResultException("Error converting Play Result for server backend", result, conversionError)
+        ).flatMap { errorResult =>
+            // Convert errorResult using normal conversion logic. This time use
+            // the DefaultErrorHandler if there are any problems, e.g. if the
+            // current HttpErrorHandler returns an invalid Result.
+            resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(fallbackResponse)
+          }
+      } catch {
+        case NonFatal(onErrorError) =>
+          // Conservatively handle exceptions thrown by HttpErrorHandlers by
+          // returning a fallback response.
+          logger.error("Error occurred during error handling. Original error: ", conversionError)
+          logger.error("Error occurred during error handling. Error handling error: ", onErrorError)
+          Future.successful(fallbackResponse)
+      }
+    }
+
+    try {
+      // Try to convert the result
+      resultConverter(result).recoverWith { case t => handleConversionError(t) }
+    } catch {
+      case NonFatal(e) => handleConversionError(e)
     }
 
   }

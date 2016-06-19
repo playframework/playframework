@@ -9,6 +9,7 @@ import akka.util.ByteString
 import java.net.InetSocketAddress
 import org.reactivestreams.Publisher
 import play.api.Logger
+import play.api.http.{ HttpErrorHandler, Status }
 import play.api.http.HeaderNames._
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
@@ -119,21 +120,33 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   def convertResult(
     requestHeaders: RequestHeader,
     result: Result,
-    protocol: HttpProtocol): Future[HttpResponse] = {
+    protocol: HttpProtocol,
+    errorHandler: HttpErrorHandler): Future[HttpResponse] = {
 
-    val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
     import play.api.libs.iteratee.Execution.Implicits.trampoline
-    convertResultBody(requestHeaders, convertedHeaders, result, protocol).flatMap {
-      case Left(alternativeResult) =>
-        convertResult(requestHeaders, alternativeResult, protocol)
-      case Right((entity, connection)) =>
-        Future.successful(
-          HttpResponse(
-            status = result.header.status,
-            headers = convertedHeaders.misc ++ connection,
-            entity = entity,
-            protocol = protocol)
-        )
+
+    ServerResultUtils.resultConversionWithErrorHandling(requestHeaders, result, errorHandler) { result =>
+      val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
+      convertResultBody(requestHeaders, convertedHeaders, result, protocol, errorHandler).flatMap {
+        case Left(alternativeResult) =>
+          convertResult(requestHeaders, alternativeResult, protocol, errorHandler)
+        case Right((entity, connection)) =>
+          Future.successful(
+            HttpResponse(
+              status = result.header.status,
+              headers = convertedHeaders.misc ++ connection,
+              entity = entity,
+              protocol = protocol)
+          )
+      }
+    } {
+      // Fallback response in case an exception is thrown during normal error handling
+      HttpResponse(
+        status = Status.INTERNAL_SERVER_ERROR,
+        headers = immutable.Seq(Connection("close")),
+        entity = HttpEntity.Empty,
+        protocol = protocol
+      )
     }
   }
 
@@ -141,7 +154,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestHeaders: RequestHeader,
     convertedHeaders: AkkaHttpHeaders,
     result: Result,
-    protocol: HttpProtocol): Future[Either[Result, (ResponseEntity, Option[Connection])]] = {
+    protocol: HttpProtocol,
+    errorHandler: HttpErrorHandler): Future[Either[Result, (ResponseEntity, Option[Connection])]] = {
 
     import Execution.Implicits.trampoline
 
@@ -150,7 +164,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       AkkaStreamsConversion.enumeratorToSource(dataEnum)
     }
 
-    ServerResultUtils.determineResultStreaming(requestHeaders, result).map {
+    ServerResultUtils.determineResultStreaming(requestHeaders, result, errorHandler).map {
       case Left(ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
         logger.warn(s"Cannot send result, sending error result instead: $reason")
         Left(alternativeResult)

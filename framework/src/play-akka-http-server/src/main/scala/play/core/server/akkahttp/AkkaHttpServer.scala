@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import akka.http.ServerSettings
 import org.reactivestreams._
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpRequestHandler, MediaType }
+import play.api.http._
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
@@ -125,43 +125,44 @@ class AkkaHttpServer(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodyEnumerator: Enumerator[Array[Byte]],
-    handler: Handler): Future[HttpResponse] = handler match {
-    //execute normal action
-    case action: EssentialAction =>
-      val actionWithErrorHandling = EssentialAction { rh =>
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
-        Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
-          case error =>
-            Iteratee.flatten(
-              handleHandlerError(tryApp, taggedRequestHeader, error).map(result => Done(result, Input.Empty))
-            ): Iteratee[Array[Byte], Result]
-        })
-      }
-      executeAction(tryApp, request, taggedRequestHeader, requestBodyEnumerator, actionWithErrorHandling)
-    case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
-  }
+    handler: Handler): Future[HttpResponse] = {
 
-  /** Error handling to use during execution of a handler (e.g. an action) */
-  private def handleHandlerError(tryApp: Try[Application], rh: RequestHeader, t: Throwable): Future[Result] = {
-    tryApp match {
-      case Success(app) => app.errorHandler.onServerError(rh, t)
-      case Failure(_) => DefaultHttpErrorHandler.onServerError(rh, t)
+    // Get the app's HttpErroHandler or fallback to a default value
+    val errorHandler: HttpErrorHandler = {
+      tryApp match {
+        case Success(app) => app.errorHandler
+        case Failure(_) => DefaultHttpErrorHandler
+      }
     }
+
+    handler match {
+      //execute normal action
+      case action: EssentialAction =>
+        val actionWithErrorHandling = EssentialAction { rh =>
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          Iteratee.flatten(action(rh).unflatten.map(_.it).recoverWith {
+            case error => errorHandler.onServerError(taggedRequestHeader, error).map(Done(_))
+          })
+        }
+        executeAction(request, taggedRequestHeader, requestBodyEnumerator, actionWithErrorHandling, errorHandler)
+      case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
+    }
+
   }
 
   def executeAction(
-    tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodyEnumerator: Enumerator[Array[Byte]],
-    action: EssentialAction): Future[HttpResponse] = {
+    action: EssentialAction,
+    errorHandler: HttpErrorHandler): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)
     val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
-      modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol)
+      modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
     }
     responseFuture
   }

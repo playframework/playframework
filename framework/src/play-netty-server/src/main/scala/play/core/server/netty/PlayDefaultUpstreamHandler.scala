@@ -279,7 +279,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           }.flatMap {
             case (result, sequence) =>
               val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, result)
-              NettyResultStreamer.sendResult(requestHeader, cleanedResult, nettyVersion, sequence)
+              NettyResultStreamer.sendResult(requestHeader, cleanedResult, nettyVersion, sequence, errorHandler(app))
           }
 
         }
