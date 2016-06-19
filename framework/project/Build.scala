@@ -27,8 +27,6 @@ import interplay.PlayBuildBase.autoImport._
 import scala.util.control.NonFatal
 
 object BuildSettings {
-  // Binary compatibility is tested against this version
-  val previousVersion = "2.5.0"
 
   // Argument for setting size of permgen space or meta space for all forked processes
   val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
@@ -71,12 +69,21 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
     previousArtifacts := {
+      // Binary compatibility is tested against these versions
+      val previousVersions = {
+        val VersionPattern = """^(\d+).(\d+).(\d+)(-SNAPSHOT|-RC\d+)?""".r
+        version.value match {
+          case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
+          case _ => sys.error(s"Cannot find previous versions for ${version.value}")
+        }
+      }.toSet
       if (crossPaths.value) {
-        Set(organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion)
+        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" %  v)
       } else {
-        Set(organization.value % moduleName.value % previousVersion)
+        previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
+    // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   )
 
@@ -252,7 +259,32 @@ object PlayBuild extends Build {
       binaryIssueFilters := Seq(
         ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart.partParser"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.crypto"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.aesCrypter")
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.aesCrypter"),
+
+        // All these methods are private[play.api.mvc]
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.copy"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.entityLength"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.this"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.SatisfiableRangeSet.apply"),
+        ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Range$"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.mvc.Range.unapply"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.mvc.Range.apply"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Range.apply"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.apply"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultRangeSet.this"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.RangeSet.entityLength"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.mvc.RangeSet.entityLength"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.mvc.RangeSet.RangeSetPattern"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.RangeSet.apply"),
+        ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.mvc.Range"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.apply"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.SatisfiableRangeSet.copy"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.SatisfiableRangeSet.entityLength"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.SatisfiableRangeSet.this"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.copy"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.NoHeaderRangeSet.entityLength"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.this")
+      
       )
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
