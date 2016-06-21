@@ -6,12 +6,16 @@ package play.inject;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
-import play.data.validation.ValidatorProvider;
 import play.data.validation.DefaultConstraintValidatorFactory;
-import play.libs.Crypto;
+import play.data.validation.ValidatorProvider;
+import play.libs.crypto.CSRFTokenSigner;
+import play.libs.crypto.CookieSigner;
+import play.libs.crypto.DefaultCSRFTokenSigner;
+import play.libs.crypto.HMACSHA1CookieSigner;
 import scala.collection.Seq;
-import javax.validation.Validator;
+
 import javax.validation.ConstraintValidatorFactory;
+import javax.validation.Validator;
 
 public class BuiltInModule extends play.api.inject.Module {
     @Override
@@ -21,7 +25,8 @@ public class BuiltInModule extends play.api.inject.Module {
           bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
           bind(ConstraintValidatorFactory.class).to(DefaultConstraintValidatorFactory.class),
           bind(Validator.class).toProvider(ValidatorProvider.class),
-          bind(Crypto.class).toSelf()
+          bind(CSRFTokenSigner.class).to(DefaultCSRFTokenSigner.class),
+          bind(CookieSigner.class).to(HMACSHA1CookieSigner.class)
         );
     }
 }

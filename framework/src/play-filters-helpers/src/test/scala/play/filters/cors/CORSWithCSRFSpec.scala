@@ -30,7 +30,7 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
   import java.time.{ Clock, Instant, ZoneId }
 
   def tokenSigner = {
-    val cryptoConfig = CryptoConfig("0123456789abcdef", None, "AES")
+    val cryptoConfig = CryptoConfig("0123456789abcdef", None)
     val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
     val signer = new HMACSHA1CookieSigner(cryptoConfig)
     new DefaultCSRFTokenSigner(signer, clock)
@@ -40,8 +40,8 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
     running(_.configure(conf).overrides(
       bind[Router].to(Router.from {
         case p"/error" => Action { req => throw sys.error("error") }
-        case _ => 
-          val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
+        case _ =>
+         val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
           csrfCheck(Action(Results.Ok), CSRF.DefaultErrorHandler)
       }),
       bind[HttpFilters].to(filters)

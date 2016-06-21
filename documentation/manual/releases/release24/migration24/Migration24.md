@@ -196,7 +196,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
-| [`Crypto`](api/scala/play/api/libs/Crypto$.html) | [`Crypto`](api/scala/play/api/libs/Crypto.html) | |
+| `Crypto` | `Crypto` | |
 | `GlobalSettings` | [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and [`HttpFilters`](api/scala/play/api/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
 
 #### Java
@@ -210,7 +210,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | `Cache` | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
-| [`Crypto`](api/java/play/libs/Crypto.html) | [`Crypto`](api/java/play/libs/Crypto.html) | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
+| `Crypto` | `Crypto` | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
 | `GlobalSettings` | [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), and [`HttpFilters`](api/java/play/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
 
 ### GlobalSettings
@@ -470,7 +470,7 @@ Old format | _hex(cipher(plaintext))_ | writes | reads | | reads
 New format I | "1-" + _base64(cipher(plaintext))_ | | | writes | reads
 New format II | "2-" + _base64(iv + cipher(plaintext, iv))_ | | | writes | reads
 
-Usage of the [Java Crypto API](api/java/play/libs/Crypto.html) remains the same even though the output is different:
+Usage of the Java Crypto API remains the same even though the output is different:
 
 ```java
 import play.libs.Crypto;
@@ -479,7 +479,7 @@ String enc = Crypto.encryptAES(orig);
 String dec = Crypto.decryptAES(enc);
 ```
 
-Usage of the [Scala Crypto API](api/scala/play/api/libs/Crypto.html) is also the same:
+Usage of the Scala Crypto API is also the same:
 
 ```scala
 import play.api.libs.Crypto

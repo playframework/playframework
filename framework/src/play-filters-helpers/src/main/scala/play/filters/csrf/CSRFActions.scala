@@ -12,7 +12,6 @@ import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
 import play.api.http.HeaderNames._
-import play.api.libs.Crypto
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -26,14 +25,15 @@ import scala.concurrent.Future
  * An action that provides CSRF protection.
  *
  * @param config The CSRF configuration.
+ * @param tokenSigner The CSRF token signer.
  * @param tokenProvider A token provider to use.
  * @param next The composed action that is being protected.
  * @param errorHandler handling failed token error.
  */
 class CSRFAction(next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
-    tokenSigner: CSRFTokenSigner = Crypto.crypto,
-    tokenProvider: TokenProvider = new SignedTokenProvider(Crypto.crypto),
+    tokenSigner: CSRFTokenSigner,
+    tokenProvider: TokenProvider,
     errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._

@@ -73,7 +73,7 @@ object Session extends CookieBaker[Session] {
   override def httpOnly = config.httpOnly
   override def path = HttpConfiguration.current.context
   override def domain = config.domain
-  override def cookieSigner = play.api.libs.Crypto.crypto
+  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
   def deserialize(data: Map[String, String]) = new Session(data)
 

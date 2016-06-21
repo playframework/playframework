@@ -3,9 +3,11 @@
  */
 package play.filters.csrf
 
-import javax.inject.{ Provider, Inject }
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import javax.inject.{ Inject, Provider }
+
 import akka.stream.Materializer
-import play.api.libs.Crypto
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc._
 import play.filters.csrf.CSRF._
@@ -18,13 +20,14 @@ import play.filters.csrf.CSRF._
  * and hence depend on a started application, they must be by name.
  *
  * @param config A csrf configuration object
+ * @param tokenSigner the CSRF token signer.
  * @param tokenProvider A token provider to use.
  * @param errorHandler handling failed token error.
  */
 class CSRFFilter(
     config: => CSRFConfig,
     tokenSigner: => CSRFTokenSigner,
-    val tokenProvider: TokenProvider = new SignedTokenProvider(Crypto.crypto),
+    val tokenProvider: TokenProvider,
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialFilter {
 
   @Inject
@@ -38,4 +41,5 @@ class CSRFFilter(
   }
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenSigner, tokenProvider, errorHandler)
+
 }

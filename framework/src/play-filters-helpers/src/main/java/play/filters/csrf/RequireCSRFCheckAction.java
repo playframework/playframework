@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage;
 
 import javax.inject.Inject;
 
-import play.api.libs.Crypto;
+import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.inject.Injector;
@@ -21,14 +21,14 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     private final CSRFConfig config;
     private final CSRF.TokenProvider tokenProvider;
-    private final Crypto crypto;
+    private final CSRFTokenSigner crypto;
     private final Injector injector;
 
     @Inject
-    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Crypto crypto, Injector injector) {
+    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
         this.config = config;
         this.tokenProvider = tokenProvider;
-        this.crypto = crypto;
+        this.crypto = csrfTokenSigner;
         this.injector = injector;
     }
 
