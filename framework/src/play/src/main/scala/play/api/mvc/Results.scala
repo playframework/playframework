@@ -493,6 +493,12 @@ trait Results {
     }
   }
 
+  /** Generates a ‘100 Continue’ result. */
+  val Continue = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.NoEntity)
+
+  /** Generates a ‘101 Switching Protocols’ result. */
+  val SwitchingProtocols = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.NoEntity)
+
   /** Generates a ‘200 OK’ result. */
   val Ok = new Status(OK)
 

@@ -9,10 +9,9 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
-import play.api.test.Helpers._
 import org.apache.commons.io.IOUtils
-
-import scala.annotation.tailrec
+import play.api.test.Helpers._
+import play.core.server.common.ServerResultUtils
 
 object BasicHttpClient {
 
@@ -225,7 +224,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         headers.get(CONTENT_LENGTH).map { length =>
           readCompletely(length.toInt)
         } getOrElse {
-          if (status != CONTINUE && status != NOT_MODIFIED && status != NO_CONTENT) {
+          if (ServerResultUtils.mayHaveEntity(status)) {
             consumeRemaining(reader)
           } else {
             ""
