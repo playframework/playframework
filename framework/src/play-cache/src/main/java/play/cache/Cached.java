@@ -15,6 +15,8 @@ import java.lang.annotation.*;
 public @interface Cached {
     /**
      * The cache key to store the result in
+     *
+     * @return the cache key
      */
     String key();
 

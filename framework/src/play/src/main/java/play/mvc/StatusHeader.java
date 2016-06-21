@@ -209,9 +209,10 @@ public class StatusHeader extends Result {
     }
 
     /**
-     * Sends the given file.
+     * Sends the given file using the default inline mode.
      *
      * @param file The file to send.
+     * @return a '200 OK' result containing the file.
      */
     public Result sendFile(File file) {
         return sendFile(file, DEFAULT_INLINE_MODE);

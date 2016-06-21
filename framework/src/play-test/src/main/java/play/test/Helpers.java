@@ -38,14 +38,19 @@ import static play.mvc.Http.*;
  */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
 
+    /**
+     * Default Timeout (milliseconds) for fake requests issued by these Helpers.
+     * This value is determined from System property <b>test.timeout</b>.
+     * The default value is <b>30000</b> (30 seconds).
+     */
+    public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
     public static String GET = "GET";
     public static String POST = "POST";
     public static String PUT = "PUT";
     public static String DELETE = "DELETE";
-    public static String HEAD = "HEAD";
 
     // --
-
+    public static String HEAD = "HEAD";
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
 
@@ -65,13 +70,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
         }
     }
-
-    /**
-     * Default Timeout (milliseconds) for fake requests issued by these Helpers.
-     * This value is determined from System property <b>test.timeout</b>.
-     * The default value is <b>30000</b> (30 seconds).
-     */
-    public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
 
     private static Result wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
         if (result == null) {
@@ -130,7 +128,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new fake application.
+     * Builds a new fake application.
+     *
+     * @return an application from the current path with no additional configuration.
      */
     public static Application fakeApplication() {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<>());
@@ -138,6 +138,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @return a map of String containing database config info.
      */
     public static Map<String,String> inMemoryDatabase() {
         return inMemoryDatabase("default");
@@ -145,6 +147,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @return a map of String containing database config info.
      */
     public static Map<String,String> inMemoryDatabase(String name) {
         return inMemoryDatabase(name, Collections.<String, String>emptyMap());
@@ -152,6 +156,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @return a map of String containing database config info.
      */
     public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
@@ -159,6 +165,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Build a new fake application.
+     *
+     * @param additionalConfiguration map containing config info for the app.
+     * @return an application from the current path with additional configuration.
      */
     public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
@@ -213,6 +222,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Extracts the content as bytes.
+     *
+     * @param content the content to be turned into bytes.
+     * @return the body of the content as a byte string.
      */
     public static ByteString contentAsBytes(Content content) {
         return ByteString.fromString(content.body());
@@ -220,6 +232,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Extracts the content as a String.
+     *
+     * @param content the content.
+     * @return the body of the content as a String.
      */
     public static String contentAsString(Content content) {
         return content.body();
@@ -346,6 +361,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Starts a new application.
+     *
+     * @param application the application to start.
      */
     public static void start(Application application) {
         play.api.Play.start(application.getWrappedApplication());
@@ -353,6 +370,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Stops an application.
+     *
+     * @param application the application to stop.
      */
     public static void stop(Application application) {
         play.api.Play.stop(application.getWrappedApplication());
@@ -360,6 +379,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running application.
+     *
+     * @param application the application context.
      */
     public static void running(Application application, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
@@ -375,6 +396,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001).
+     *
+     * @return the test server.
      */
     public static TestServer testServer() {
         return testServer(play.api.test.Helpers.testServerPort());
@@ -382,6 +405,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given Application.
+     *
+     * @return the test server.
+     * @param app the application.
      */
     public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);
@@ -389,6 +415,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server.
+     * @return the test server.
      */
     public static TestServer testServer(int port) {
         return new TestServer(port, fakeApplication());
@@ -396,6 +423,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server.
+     *  @return the test server.
      */
     public static TestServer testServer(int port, Application app) {
         return new TestServer(port, app);
@@ -431,6 +459,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running server, with a test browser.
+     *
+     * @param server the test server.
+     * @param webDriver the web driver class.
+     * @param block the block of code to execute.
      */
     public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Consumer<TestBrowser> block) {
         running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
@@ -438,6 +470,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running server, with a test browser.
+     *
+     * @param server the test server.
+     * @param webDriver the web driver instance.
+     * @param block the block of code to execute.
      */
     public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
@@ -461,7 +497,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Creates a Test Browser.
+     *  Creates a Test Browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser() {
         return testBrowser(HTMLUNIT);
@@ -469,6 +507,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *  @return the test browser.
      */
     public static TestBrowser testBrowser(int port) {
         return testBrowser(HTMLUNIT, port);
@@ -476,6 +515,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *  @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
         return testBrowser(webDriver, Helpers$.MODULE$.testServerPort());
@@ -483,6 +523,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
         try {
@@ -496,6 +538,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *  @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of, int port) {
         return new TestBrowser(of, "http://localhost:" + port);
@@ -503,6 +546,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *  @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());

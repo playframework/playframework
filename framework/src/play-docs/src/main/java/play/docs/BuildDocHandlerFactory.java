@@ -17,11 +17,11 @@ import scala.Option;
 
 /**
  * Provides a way for build code to create BuildDocHandler objects.
- * <p/>
+ *
  * <p>This class is used by the Play build plugin run command (to serve
  * documentation from a JAR) and by the Play documentation project (to
  * serve documentation from the filesystem).
- * <p/>
+ *
  * <p>This class is written in Java and uses only Java types so that
  * communication can work even when the build code and the play-docs project
  * are built with different versions of Scala.
@@ -35,6 +35,7 @@ public class BuildDocHandlerFactory {
      *
      * @param files The directories or jar files to serve documentation from.
      * @param baseDirs The base directories for the jar files.  Entries may be null.
+     * @return a BuildDocHandler.
      */
     public static BuildDocHandler fromResources(File[] files, String[] baseDirs) throws IOException {
         assert(files.length == baseDirs.length);

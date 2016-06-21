@@ -37,7 +37,8 @@ public class Server {
     /**
      * Get the HTTP port the server is running on.
      *
-     * throws IllegalStateException if it is not running on the HTTP protocol
+     * @throws IllegalStateException if it is not running on the HTTP protocol
+     * @return the port number.
      */
     public int httpPort() {
         if (server.httpPort().isDefined()) {
@@ -50,7 +51,8 @@ public class Server {
     /**
      * Get the HTTPS port the server is running on.
      *
-     * throws IllegalStateException if it is not running on the HTTPS protocol.
+     * @throws IllegalStateException if it is not running on the HTTPS protocol.
+     * @return the port number.
      */
     public int httpsPort() {
         if (server.httpsPort().isDefined()) {
@@ -62,6 +64,7 @@ public class Server {
 
     /**
      * Get the address the server is running on.
+     * @return the address
      */
     public InetSocketAddress mainAddress() {
         return server.mainAddress();
@@ -171,6 +174,7 @@ public class Server {
          * Passing 0 will make it serve on a random available port.
          *
          * @param port the port on which to serve http traffic
+         * @return the builder with port set.
          */
         public Builder http(int port) {
             return _protocol(Protocol.HTTP, port);
@@ -182,6 +186,7 @@ public class Server {
          * Passing 0 will make it serve on a random available port.
          *
          * @param port the port on which to serve ssl traffic
+         * @return the builder with port set.
          */
         public Builder https(int port) {
             return _protocol(Protocol.HTTPS, port);
@@ -189,6 +194,9 @@ public class Server {
 
         /**
          * Set the mode the server should be run on (defaults to TEST)
+         *
+         * @param mode the Play mode (dev, prod, test)
+         * @return the builder with Server.Config set to mode.
          */
         public Builder mode(Mode mode) {
             _config = new Server.Config(_config.ports(), mode);
@@ -198,6 +206,7 @@ public class Server {
         /**
          * Build the server and begin serving the provided routes as configured.
          *
+         * @param router the router to use.
          * @return the actively running server.
          */
         public Server build(Router router) {

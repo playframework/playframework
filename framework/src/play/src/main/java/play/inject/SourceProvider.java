@@ -43,7 +43,11 @@ public final class SourceProvider {
     this.classNamesToSkip = Collections.unmodifiableSet(new HashSet<String>(classesToSkip));
   }
 
-  /** Returns a new instance that also skips {@code moreClassesToSkip}. */
+  /**
+   * Returns a new instance that also skips {@code moreClassesToSkip}.
+   *
+   * @param moreClassesToSkip a list of classes to skip in from source provider.
+   */
   public SourceProvider plusSkippedClasses(Class... moreClassesToSkip) {
     Set<String> toSkip = new HashSet<String>(classNamesToSkip);
     toSkip.addAll(asStrings(moreClassesToSkip));
@@ -62,6 +66,8 @@ public final class SourceProvider {
   /**
    * Returns the calling line of code. The selected line is the nearest to the top of the stack that
    * is not skipped.
+   *
+   * @return a stack trace element containing the caller.
    */
   public StackTraceElement get() {
     for (final StackTraceElement element : new Throwable().getStackTrace()) {

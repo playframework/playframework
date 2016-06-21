@@ -219,6 +219,7 @@ public class Formatters {
      * @param clazz class handled by this formatter
      * @param <T> the type that this formatter will parse and print
      * @param formatter the formatter to register
+     * @return the modified Formatters object.
      */
     public <T> Formatters register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
         conversion.addFormatterForFieldType(clazz, new org.springframework.format.Formatter<T>() {
@@ -247,6 +248,7 @@ public class Formatters {
      * @param formatter the formatter to register
      * @param <A> the annotation type
      * @param <T> the type that will be parsed or printed
+     * @return the modified Formatters object.
      */
     @SuppressWarnings("unchecked")
     public <A extends Annotation,T> Formatters register(final Class<T> clazz, final AnnotationFormatter<A,T> formatter) {

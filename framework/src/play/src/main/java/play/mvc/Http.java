@@ -577,6 +577,8 @@ public class Http {
 
         /**
          * Checks if the request has a body.
+         *
+         * @return true if request has a body, false otherwise.
          */
         boolean hasBody();
 

@@ -28,11 +28,14 @@ public class ActorFlow {
      * if the actor is unable to process the messages, they will queue up in the actors mailbox. The upstream can be
      * cancelled by the actor terminating itself.
      *
+     * @param <In> the In type parameter for a Flow
+     * @param <Out> the Out type parameter for a Flow
      * @param props A function that creates the props for actor to handle the flow.
      * @param bufferSize The maximum number of elements to buffer.
      * @param overflowStrategy The strategy for how to handle a buffer overflow.
      * @param factory The Actor Factory used to create the actor to handle the flow - for example, an ActorSystem.
      * @param mat The materializer to materialize the flow.
+     * @return the flow itself.
      */
     public static <In, Out> Flow<In, Out, ?> actorRef(Function<ActorRef, Props> props, int bufferSize, OverflowStrategy overflowStrategy, ActorRefFactory factory, Materializer mat) {
 
@@ -56,9 +59,12 @@ public class ActorFlow {
      * if the actor is unable to process the messages, they will queue up in the actors mailbox. The upstream can be
      * cancelled by the actor terminating itself.
      *
+     * @param <In> the In type parameter for a Flow
+     * @param <Out> the Out type parameter for a Flow
      * @param props A function that creates the props for actor to handle the flow.
      * @param factory The Actor Factory used to create the actor to handle the flow - for example, an ActorSystem.
      * @param mat The materializer to materialize the flow.
+     * @return the flow itself.
      */
     public static <In, Out> Flow<In, Out, ?> actorRef(Function<ActorRef, Props> props, ActorRefFactory factory, Materializer mat) {
 
