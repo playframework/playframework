@@ -71,7 +71,7 @@ object BuildSettings {
     previousArtifacts := {
       // Binary compatibility is tested against these versions
       val previousVersions = {
-        val VersionPattern = """^(\d+).(\d+).(\d+)(-SNAPSHOT|-RC\d+)?""".r
+        val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
         version.value match {
           case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
           case _ => sys.error(s"Cannot find previous versions for ${version.value}")
