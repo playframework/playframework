@@ -58,6 +58,34 @@ class RequestHeaderSpec extends Specification {
       }
     }
 
+    "support typed headers" in {
+
+      def checkTypedHeader[P](typedHeaderProp: Prop[P], typedValue: P, headers: Headers) = {
+        s"for typed header $typedHeaderProp" in {
+          "lazily initialize typed header from raw string headers" in {
+            val rh = newRequestHeader(RequestHeaderProp.Headers ~> headers)
+            rh.propState.contains(typedHeaderProp) must beFalse
+            rh.prop(typedHeaderProp) must_== typedValue
+            rh.propState.contains(typedHeaderProp) must beTrue
+          }
+          "not initialize typed header when checked if present" in {
+            val rh = newRequestHeader(RequestHeaderProp.Headers ~> headers)
+            rh.propState.contains(typedHeaderProp) must beFalse
+            rh.containsProp(typedHeaderProp) must beTrue
+            rh.propState.contains(typedHeaderProp) must beFalse
+          }
+          "eagerly initialize raw string headers from typed header" in {
+            var rh = newRequestHeader()
+            rh.prop(RequestHeaderProp.Headers) must_== Headers()
+            rh = rh.withProp(typedHeaderProp, typedValue)
+            rh.prop(RequestHeaderProp.Headers) must_== headers
+          }
+        }
+      }
+
+      checkTypedHeader(RequestHeaderProp.AcceptLanguage, Seq(Lang("en")), Headers("Accept-Language" -> "en"))
+    }
+
     "support the copy method" in {
       "for copying headers" in {
         val rh = newRequestHeader()

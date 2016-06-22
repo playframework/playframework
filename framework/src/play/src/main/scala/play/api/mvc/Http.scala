@@ -152,10 +152,7 @@ package play.api.mvc {
     /**
      * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
      */
-    lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-      val langs = RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
-      langs.sortWith((a, b) => a._1 > b._1).map(_._2).flatten
-    }
+    def acceptLanguages: Seq[play.api.i18n.Lang] = prop(RequestHeaderProp.AcceptLanguage)
 
     /**
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
@@ -275,14 +272,25 @@ package play.api.mvc {
             val newState = state.update(RequestHeaderProp.Id, newId)
             (newState, newId.asInstanceOf[A])
           }
+        case RequestHeaderProp.AcceptLanguage =>
+          state.getOrElse(RequestHeaderProp.AcceptLanguage, null) match {
+            case null =>
+              val (state2, headers) = behavior.doGet(behavior, state, RequestHeaderProp.Headers)
+              val langs: Seq[Lang] = acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE)
+                  .sortBy(_._1)(Ordering.Double.reverse)
+                  .flatMap(item => Lang.get(item._2))
+              val state3 = state2.update(RequestHeaderProp.AcceptLanguage, langs)
+              (state3, langs.asInstanceOf[A])
+            case langs => (state, langs.asInstanceOf[A])
+          }
         case _ =>
           // All other properties just retrieve their value from the propState
           (state, state(p))
       }
 
       override def doContains[A](behavior: PropBehavior, state: PropState, p: Prop[A]): (PropState, Boolean) = p match {
-        case RequestHeaderProp.Headers =>
-          // Headers are always implicitly present, even if they're not stored in the propState
+        case RequestHeaderProp.Headers | RequestHeaderProp.AcceptLanguage =>
+          // Some values are always present, even if they're not stored in the propState
           (state, true)
         case _ =>
           // Other props are only there if they're stored
@@ -290,7 +298,29 @@ package play.api.mvc {
       }
 
       override def doUpdate[A](behavior: PropBehavior, state: PropState, p: Prop[A], v: A): PropState = p match {
-        case _ => state.update(p, v)
+        case RequestHeaderProp.AcceptLanguage =>
+          // Get the current raw headers
+          val (state2, currentHeaders) = behavior.doGet(behavior, state, RequestHeaderProp.Headers)
+
+          val langs = v.asInstanceOf[Seq[Lang]]
+          val newHeader: Option[String] = {
+            langs.size match {
+              case 0 => None
+              case 1 => Some(langs.head.code)
+              case _ =>
+                // Make up arbitrary quality values between 1.0 and 0.5
+                Some(langs.zipWithIndex.map {
+                  case (lang, index) => lang.code + "; q=" + (1.0 - (index / 2.0 / langs.size))
+                }.mkString(", "))
+            }
+          }
+          val newHeaders: Headers = newHeader match {
+            case None => currentHeaders.remove(HeaderNames.ACCEPT_LANGUAGE)
+            case Some(h) => currentHeaders.replace(HeaderNames.ACCEPT_LANGUAGE -> h)
+          }
+          state2.update(RequestHeaderProp.Headers, newHeaders) // FIXME: Update via behavior
+        case _ =>
+          state.update(p, v)
       }
     }
 
@@ -332,6 +362,11 @@ package play.api.mvc {
     val Secure = Prop[Boolean]("secure")
     val ClientCertificateChain = Prop[Option[Seq[X509Certificate]]]("clientCertificateChain")
     val HasBody = Prop[Boolean]("hasBody")
+
+    // TODO: Maybe move headers props into "HeaderProp" so we can
+    // use the same values for both requests and responses in the future.
+
+    val AcceptLanguage = Prop[Seq[Lang]]("acceptLanguage")
   }
 
   private[play] class RequestHeaderImpl(propBehavior: PropBehavior, propState: PropState)
