@@ -89,6 +89,20 @@ class BasicHttpClient(port: Int, secure: Boolean) {
     }
   }
 
+  def sendRaw(data: Array[Byte], headers: Map[String, String]): BasicResponse = {
+    val outputStream = s.getOutputStream
+    outputStream.write("POST / HTTP/1.1\r\n".getBytes("UTF-8"))
+    outputStream.write("Host: localhost\r\n".getBytes("UTF-8"))
+    headers.foreach { header =>
+      outputStream.write(s"${header._1}: ${header._2}\r\n".getBytes("UTF-8"))
+    }
+    outputStream.flush()
+
+    outputStream.write("\r\n".getBytes("UTF-8"))
+    outputStream.write(data)
+    readResponse("0 continue")
+  }
+
   /**
    * Send a request
    *
