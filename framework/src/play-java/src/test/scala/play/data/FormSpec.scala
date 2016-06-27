@@ -51,6 +51,25 @@ object FormSpec extends Specification {
       myForm.errors.get("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
       myForm.errors.get("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
       myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
+
+      // make sure we can access the values of an invalid form
+      myForm.value().get().getId() must beEqualTo(1234567891)
+      myForm.value().get().getName() must beEqualTo("peter")
+    }
+    "throws an exception when trying to access value of invalid form via get()" in new WithApplication() {
+      val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm.get must throwAn[IllegalStateException]
+    }
+    "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication() {
+      val req = dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm.value().get().getId() must beEqualTo(0)
+      myForm.value().get().getName() must_== null
     }
     "have an error due to badly formatted date after using setTransientLang" in new WithApplication(GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en", "en-US", "fr")).build()) {
       val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
