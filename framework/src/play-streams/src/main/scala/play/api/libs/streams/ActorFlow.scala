@@ -40,7 +40,7 @@ object ActorFlow {
 
         def receive = {
           case Status.Success(_) | Status.Failure(_) => flowActor ! PoisonPill
-          case Terminated =>
+          case Terminated(_) =>
             println("Child terminated, stopping")
             context.stop(self)
           case other => flowActor ! other

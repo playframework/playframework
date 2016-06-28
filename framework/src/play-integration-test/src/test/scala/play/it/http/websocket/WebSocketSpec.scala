@@ -348,6 +348,20 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         }
       }
 
+      "close when the consumer is terminated" in closeWhenTheConsumerIsDone { implicit app =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              def receive = {
+                case _ => context.stop(self)
+              }
+            })
+          })
+        }
+      }
+
       "clean up when closed" in cleanUpWhenClosed { implicit app =>
         cleanedUp =>
           import app.materializer
