@@ -103,6 +103,7 @@ trait Application {
    * @param relativePath relative path of the file to fetch
    * @return a file instance; it is not guaranteed that the file exists
    */
+  @deprecated("Use Environment#getFile instead", "2.6.0")
   def getFile(relativePath: String): File = new File(path, relativePath)
 
   /**
@@ -120,6 +121,7 @@ trait Application {
    * @param relativePath the relative path of the file to fetch
    * @return an existing file
    */
+  @deprecated("Use Environment#getExistingFile instead", "2.6.0")
   def getExistingFile(relativePath: String): Option[File] = Some(getFile(relativePath)).filter(_.exists)
 
   /**
@@ -136,6 +138,7 @@ trait Application {
    * @param name the absolute name of the resource (from the classpath root)
    * @return the resource URL, if found
    */
+  @deprecated("Use Environment#resource instead", "2.6.0")
   def resource(name: String): Option[java.net.URL] = {
     val n = name.stripPrefix("/")
     Option(classloader.getResource(n))
@@ -155,6 +158,7 @@ trait Application {
    * @param name the absolute name of the resource (from the classpath root)
    * @return a stream, if found
    */
+  @deprecated("Use Environment#resourceAsStream instead", "2.6.0")
   def resourceAsStream(name: String): Option[InputStream] = {
     val n = name.stripPrefix("/")
     Option(classloader.getResourceAsStream(n))
