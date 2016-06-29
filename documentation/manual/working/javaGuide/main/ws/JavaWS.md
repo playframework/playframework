@@ -236,7 +236,7 @@ Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`
 * `play.ws.ahc.maxConnectionsTotal`
-* `play.ws.ahc.maxConnectionLifeTime`
+* `play.ws.ahc.maxConnectionLifetime`
 * `play.ws.ahc.idleConnectionInPoolTimeout`
 * `play.ws.ahc.maxNumberOfRedirects`
 * `play.ws.ahc.maxRequestRetry`
