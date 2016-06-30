@@ -3,19 +3,19 @@
  */
 package play.mvc;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Optional;
+
 import akka.util.ByteString;
-
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.http.HttpEntity;
-
 import play.twirl.api.Content;
 
-import java.io.*;
-import java.util.*;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
+import static play.mvc.Http.HeaderNames.LOCATION;
 import static play.mvc.Http.Status.*;
-import static play.mvc.Http.HeaderNames.*;
 
 /**
  * Common results.
@@ -104,7 +104,7 @@ public class Results {
      *
      */
     public static Result status(int status, JsonNode content) {
-        return status(status, content, UTF8);
+        return status(status, content, JsonEncoding.UTF8);
     }
 
     /**
@@ -113,14 +113,35 @@ public class Results {
      * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
      * @param content the result's body content, as a play-json object
      * @param charset the charset into which the json should be encoded
+     *
+     * @deprecated As of 2.6.0, use status(int, JsonNode, JsonEncoding)
+     *
      * @return the result
      *
      */
+    @Deprecated
     public static Result status(int status, JsonNode content, String charset) {
         if (content == null) {
             throw new NullPointerException("Null content");
         }
         return status(status).sendJson(content, charset);
+    }
+
+    /**
+     * Generates a simple result with json content.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the result's body content, as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     *
+     * @return the result
+     *
+     */
+    public static Result status(int status, JsonNode content, JsonEncoding encoding) {
+        if (content == null) {
+            throw new NullPointerException("Null content");
+        }
+        return status(status).sendJson(content, encoding);
     }
 
     /**
@@ -294,9 +315,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use ok(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result ok(JsonNode content, String charset) {
         return status(OK, content, charset);
+    }
+
+    /**
+     * Generates a 200 OK result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result ok(JsonNode content, JsonEncoding encoding) {
+        return status(OK, content, encoding);
     }
 
     /**
@@ -431,9 +466,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use created(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result created(JsonNode content, String charset) {
         return status(CREATED, content, charset);
+    }
+
+    /**
+     * Generates a 201 Created result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result created(JsonNode content, JsonEncoding encoding) {
+        return status(CREATED, content, encoding);
     }
 
     /**
@@ -567,9 +616,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use badRequest(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result badRequest(JsonNode content, String charset) {
         return status(BAD_REQUEST, content, charset);
+    }
+
+    /**
+     * Generates a 400 Bad Request result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result badRequest(JsonNode content, JsonEncoding encoding) {
+        return status(BAD_REQUEST, content, encoding);
     }
 
     /**
@@ -711,6 +774,17 @@ public class Results {
     /**
      * Generates a 401 Unauthorized result.
      *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result unauthorized(JsonNode content, JsonEncoding encoding) {
+        return status(UNAUTHORIZED, content, encoding);
+    }
+
+    /**
+     * Generates a 401 Unauthorized result.
+     *
      * @param content the result's body content
      * @return the result
      */
@@ -847,6 +921,20 @@ public class Results {
     /**
      * Generates a 402 Payment Required result.
      *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     *
+     * @deprecated As of 2.6.0, use paymentRequired(JsonNode, JsonEncoding)
+     */
+    @Deprecated
+    public static Result paymentRequired(JsonNode content, JsonEncoding encoding) {
+        return status(PAYMENT_REQUIRED, content, encoding);
+    }
+
+    /**
+     * Generates a 402 Payment Required result.
+     *
      * @param content the result's body content
      * @return the result
      */
@@ -975,9 +1063,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use forbidden(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result forbidden(JsonNode content, String charset) {
         return status(FORBIDDEN, content, charset);
+    }
+
+    /**
+     * Generates a 403 Forbidden result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result forbidden(JsonNode content, JsonEncoding encoding) {
+        return status(FORBIDDEN, content, encoding);
     }
 
     /**
@@ -1111,9 +1213,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use notFound(JsonNode, JsonEncoding
      */
+    @Deprecated
     public static Result notFound(JsonNode content, String charset) {
         return status(NOT_FOUND, content, charset);
+    }
+
+    /**
+     * Generates a 404 Not Found result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result notFound(JsonNode content, JsonEncoding encoding) {
+        return status(NOT_FOUND, content, encoding);
     }
 
     /**
@@ -1247,9 +1363,23 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use internalServerError(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result internalServerError(JsonNode content, String charset) {
         return status(INTERNAL_SERVER_ERROR, content, charset);
+    }
+
+    /**
+     * Generates a 500 Internal Server Error result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result internalServerError(JsonNode content, JsonEncoding encoding) {
+        return status(INTERNAL_SERVER_ERROR, content, encoding);
     }
 
     /**
