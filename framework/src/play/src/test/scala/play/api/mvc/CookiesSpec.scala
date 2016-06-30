@@ -39,6 +39,11 @@ object CookiesSpec extends Specification {
       val output = encoder.encode("TestCookie", "!#$%&'()*+-./:<=>?@[]^_`{|}~")
       output must be_==("TestCookie=!#$%&'()*+-./:<=>?@[]^_`{|}~")
     }
+
+    "properly encode field name which starts with $" in {
+      val output = encoder.encode("$Test", "Test")
+      output must be_==("$Test=Test")
+    }
   }
 
   "trait Cookies#get" should {
