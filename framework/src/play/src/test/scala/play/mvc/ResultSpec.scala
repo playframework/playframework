@@ -4,9 +4,7 @@
 package play.test
 
 import org.specs2.mutable._
-import play.mvc.Result
-import scala.concurrent.Future
-import play.api.mvc.{ Cookie, Results, Result => ScalaResult }
+import play.api.mvc.{ Cookie, Result => ScalaResult, Results }
 
 /**
  *
@@ -14,6 +12,21 @@ import play.api.mvc.{ Cookie, Results, Result => ScalaResult }
 object ResultSpec extends Specification {
 
   "Result" should {
+
+    "allow sending JSON as UTF-16LE" in {
+      val charset = "utf-16le"
+      val node = play.libs.Json.newObject()
+      node.put("foo", 1)
+      val javaResult = play.mvc.Results.ok(node, charset)
+      javaResult.charset().get().toLowerCase must_== charset
+    }
+
+    "not allow sending JSON as ISO-8859-1" in {
+      val charset = "iso-8859-1"
+      val node = play.libs.Json.newObject()
+      node.put("foo", 1)
+      play.mvc.Results.ok(node, charset) should throwAn[IllegalArgumentException]
+    }
 
     // This is in Scala because building wrapped scala results is easier.
     "test for cookies" in {
