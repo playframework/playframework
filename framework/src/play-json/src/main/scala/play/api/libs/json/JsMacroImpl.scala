@@ -225,11 +225,13 @@ object JsMacroImpl {
 
     val unapplyFunction = q"$unlift($companionObject.$effectiveUnapply)"
 
+    val multiParam = params.length > 1
     // if case class has one single field, needs to use map/contramap/inmap on the Reads/Writes/Format instead of
     // canbuild.apply
-    val applyOrMap = TermName(if (params.length > 1) "apply" else mapLikeMethod)
+    val applyOrMap = TermName(if (multiParam) "apply" else mapLikeMethod)
+    val syntaxImport = if(!multiParam && !writes) q"" else q"import $syntax._"
     val finalTree = q"""
-      import $syntax._
+      $syntaxImport
 
       $canBuild.$applyOrMap(..${conditionalList(applyFunction, unapplyFunction)})
     """
