@@ -4,12 +4,16 @@
 package scalaguide.tests.specs2
 
 import play.api.mvc._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc.Results._
 import play.api.libs.json.Json
 
 // #scalatest-exampleessentialactionspec
 object ExampleEssentialActionSpec extends PlaySpecification {
+
+  lazy val app = new GuiceApplicationBuilder().build()
+  implicit lazy val mat = app.materializer
 
   "An essential action" should {
     "can parse a JSON body" in new WithApplication() {
