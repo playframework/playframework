@@ -38,8 +38,7 @@ public class PersonController extends Controller {
 
     @Transactional(readOnly = true)
     public Result getPersons() {
-        //noinspection unchecked
-        List<Person> persons = (List<Person>) jpaApi.em().createQuery("select p from Person p").getResultList();
+        List<Person> persons = jpaApi.em().createQuery("select p from Person p", Person.class).getResultList();
         return ok(toJson(persons));
     }
 }
