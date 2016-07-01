@@ -3,8 +3,14 @@
  */
 package play.test
 
+import java.nio.charset.StandardCharsets
+import java.util.Optional
+
+import akka.util.ByteString
 import org.specs2.mutable._
-import play.api.mvc.{ Cookie, Result => ScalaResult, Results }
+
+import play.api.http.HttpEntity.Strict
+import play.api.mvc.{ Cookie, Results }
 
 /**
  *
@@ -38,6 +44,13 @@ object ResultSpec extends Specification {
 
       cookie.name() must be_==("name1")
       cookie.value() must be_==("value1")
+    }
+
+    "get charset correctly" in {
+      val charset = StandardCharsets.ISO_8859_1.name()
+      val contentType = s"text/plain;charset=$charset"
+      val javaResult = Results.Ok.sendEntity(new Strict(ByteString.fromString("foo", charset), Some(contentType))).asJava
+      javaResult.charset() must_== Optional.of(charset)
     }
   }
 }
