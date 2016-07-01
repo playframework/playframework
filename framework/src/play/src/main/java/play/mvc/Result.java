@@ -173,8 +173,10 @@ public class Result {
      */
     public Optional<String> charset() {
         return body.contentType().flatMap(h -> {
-            if (h.contains("; charset=")) {
-                return Optional.of(h.substring(h.indexOf("; charset=") + 10, h.length()).trim());
+            String[] parts = h.split("(?i);\\s*charset=", 2);
+            if (parts.length > 1) {
+                String charset = parts[1];
+                return Optional.of(charset.trim());
             } else {
                 return Optional.empty();
             }
