@@ -14,6 +14,7 @@ import org.specs2.matcher.Matcher
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.streams.ActorFlow
 import play.api.libs.iteratee._
 import play.api.mvc.{Handler, Results, WebSocket}
 import play.api.test._
@@ -386,6 +387,20 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
               app.actorSystem.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
               def receive = PartialFunction.empty
             })
+        }
+      }
+
+      "close when the consumer is terminated" in closeWhenTheConsumerIsDone { implicit app =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              def receive = {
+                case _ => context.stop(self)
+              }
+            })
+          })
         }
       }
 
