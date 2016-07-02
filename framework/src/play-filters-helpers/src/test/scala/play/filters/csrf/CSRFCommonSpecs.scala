@@ -3,11 +3,9 @@
  */
 package play.filters.csrf
 
-import javax.inject.Inject
-
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
-import play.api.http.{ ContentTypeOf, ContentTypes, HttpFilters, Writeable }
+import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.ws._
@@ -129,7 +127,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   "a CSRF filter" should {
 
     "work with signed session tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest(false)
+      def csrfCheckRequest = buildCsrfCheckRequest(sendUnauthorizedResult = false)
       def csrfAddToken = buildCsrfAddToken()
       def generate = crypto.generateSignedToken
       def addToken(req: WSRequest, token: String) = req.withSession(TokenName -> token)
@@ -278,12 +276,12 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormWriteable: Writeable[Map[String, String]] = Writeable.writeableOf_urlEncodedForm.map[Map[String, String]](_.mapValues(v => Seq(v)))
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
-  def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = {
-    import play.api.inject._
-    running(TestServer(testServerPort, GuiceApplicationBuilder()
+  def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
+    val app = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
       .routes(router)
       .build()
-    ))(block)
+    val ws = app.injector.instanceOf[WSClient]
+    running(TestServer(testServerPort, app))(block(ws))
   }
 }

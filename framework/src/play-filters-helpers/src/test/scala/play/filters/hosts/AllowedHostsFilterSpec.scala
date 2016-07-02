@@ -9,7 +9,7 @@ import com.typesafe.config.ConfigFactory
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.{ WSClient, WS }
+import play.api.libs.ws.WSClient
 import play.api.mvc.Results._
 import play.api.mvc.{ Action, RequestHeader, Result }
 import play.api.routing.Router

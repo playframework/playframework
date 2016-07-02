@@ -48,7 +48,8 @@ trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecifi
 
       import scala.concurrent.Future
 
-      val future: Future[WSResponse] = WS.url("http://localhost:" + port + "/").
+      val ws = app.injector.instanceOf[WSClient]
+      val future: Future[WSResponse] = ws.url("http://localhost:" + port + "/").
         withHeaders("Content-Type" -> contentType).
         withRequestTimeout(10000.millis).post(urlEncoded)
 
