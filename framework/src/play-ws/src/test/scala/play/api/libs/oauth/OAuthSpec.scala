@@ -4,9 +4,8 @@
 package play.api.libs.oauth
 
 import akka.util.ByteString
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WS
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.test._
 
@@ -23,31 +22,31 @@ class OAuthSpec extends PlaySpecification {
   "OAuth" should {
 
     "sign a simple get request" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
+      val (request, body, hostUrl) = receiveRequest { ws =>
         hostUrl =>
-          WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
+          ws.url(hostUrl + "/foo").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
 
     "sign a get request with query parameters" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
+      val (request, body, hostUrl) = receiveRequest { ws =>
         hostUrl =>
-          WS.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
+          ws.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
 
     "sign a post request with a body" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app =>
+      val (request, body, hostUrl) = receiveRequest { ws =>
         hostUrl =>
-          WS.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
+          ws.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
   }
 
-  def receiveRequest(makeRequest: Application => String => Future[_]): (RequestHeader, ByteString, String) = {
+  def receiveRequest(makeRequest: WSClient => String => Future[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
     val promise = Promise[(RequestHeader, ByteString)]()
     val app = GuiceApplicationBuilder().routes {
@@ -57,7 +56,8 @@ class OAuthSpec extends PlaySpecification {
       }
     }.build()
     running(TestServer(testServerPort, app)) {
-      await(makeRequest(app)(hostUrl))
+      val ws = app.injector.instanceOf[WSClient]
+      await(makeRequest(ws)(hostUrl))
     }
     val (request, body) = await(promise.future)
     (request, body, hostUrl)

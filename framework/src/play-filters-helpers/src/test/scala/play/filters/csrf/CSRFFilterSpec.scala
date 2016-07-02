@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.http.HttpFilters
-import play.filters.csrf.CSRFConfig
 import play.mvc.Http
 
 import scala.concurrent.Future
@@ -55,16 +54,16 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
     // extra conditions for doing a check
     "check non form bodies" in {
-      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
     }
     "check all methods" in {
-      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
     }
     "not check safe methods" in {
-      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").options())(_.status must_== OK)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").options())(_.status must_== OK)
     }
     "not check requests with no cookies" in {
-      buildCsrfCheckRequest(false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
     }
 
     // other
@@ -78,10 +77,9 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .flatMap(_.headOption)
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound))
-      } {
+      } { ws =>
         val token = crypto.generateSignedToken
-        import play.api.Play.current
-        await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
+        await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
       }
     }
@@ -109,7 +107,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
     "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
       val token = crypto.generateSignedToken
-      val response = await(WS.url("http://localhost:" + port).withSession(TokenName -> token)
+      val ws = app.injector.instanceOf[WSClient]
+      val response = await(ws.url("http://localhost:" + port).withSession(TokenName -> token)
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
           Seq(
@@ -161,9 +160,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       }
       withServer(config) {
         case _ => Action(Results.Ok)
-      } {
-        import play.api.Play.current
-        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+      } { ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
     }
   }
@@ -176,9 +174,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
         "play.filters.csrf.errorHandler" -> "play.filters.csrf.JavaErrorHandler"
       )) {
         case _ => Action(Results.Ok)
-      } {
-        import play.api.Play.current
-        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+      } { ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
     }
   }
@@ -192,9 +189,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             Results.Ok(token.value)
           } getOrElse Results.NotFound
         }
-      } {
-        import play.api.Play.current
-        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+      } { ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
   }
 
@@ -203,9 +199,8 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       Seq("play.http.filters" -> classOf[CsrfFilters].getName)
     ) {
         case _ => Action(Results.Ok.withHeaders(responseHeaders: _*))
-      } {
-        import play.api.Play.current
-        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+      } { ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
   }
 

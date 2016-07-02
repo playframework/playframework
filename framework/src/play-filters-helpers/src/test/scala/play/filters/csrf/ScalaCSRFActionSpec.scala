@@ -3,9 +3,10 @@
  */
 package play.filters.csrf
 
-import scala.concurrent.Future
-import play.api.libs.ws.{ WS, WSResponse, WSRequest }
+import play.api.libs.ws.{ WSRequest, WSResponse }
 import play.api.mvc._
+
+import scala.concurrent.Future
 
 /**
  * Specs for the Scala per action CSRF actions
@@ -19,9 +20,8 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
       } else {
         csrfCheck(Action(req => Results.Ok))
       }
-    } {
-      import play.api.Play.current
-      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+    } { ws =>
+      handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
   }
 
@@ -34,9 +34,9 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
               Results.Ok(token.value)
           } getOrElse Results.NotFound
       })
-    } {
-      import play.api.Play.current
-      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+    } { ws =>
+
+      handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
   }
 
