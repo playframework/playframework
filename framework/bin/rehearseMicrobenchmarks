@@ -1,0 +1,20 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
+
+cd $FRAMEWORK
+
+# Don't build first, let sbt automatically build any dependencies that
+# are needed when we run the microbenchmarks. This should be quicker
+# than doing an explicit publish step.
+
+echo "[info]"
+echo "[info] ---- REHEARSING MICROBENCHMARKS"
+echo "[info]"
+
+# Just run single iteration of microbenchmark to test that they
+# run properly. The results will be inaccurate, but this ensures that
+# the microbenchmarks at least compile and run.
+build "$@" "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1"
