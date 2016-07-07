@@ -12,7 +12,7 @@ import com.typesafe.tools.mima.plugin.MimaKeys.{
 import com.typesafe.tools.mima.core._
 
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
-
+import pl.project13.scala.sbt.JmhPlugin
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
 
@@ -422,6 +422,18 @@ object PlayBuild extends Build {
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayAkkaHttpServerProject)
 
+  // This project is just for microbenchmarking Play, not really a public artifact
+  lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
+    .enablePlugins(JmhPlugin)
+    .settings(
+      parallelExecution in Test := false,
+      previousArtifacts := Set.empty
+    )
+    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
+    .dependsOn(PlayFiltersHelpersProject)
+    .dependsOn(PlayJavaProject)
+    .dependsOn(PlayAkkaHttpServerProject)
+
   lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(
       libraryDependencies ++= playCacheDeps,
@@ -471,6 +483,7 @@ object PlayBuild extends Build {
     PlayDocsProject,
     PlayFiltersHelpersProject,
     PlayIntegrationTestProject,
+    PlayMicrobenchmarkProject,
     PlayDocsSbtPlugin,
     StreamsProject
   )

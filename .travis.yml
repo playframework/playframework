@@ -16,6 +16,7 @@ env:
   - SCRIPT=testSbtPlugins
   - SCRIPT=testDocumentation
   - SCRIPT=testTemplates
+  - SCRIPT=rehearseMicrobenchmarks
 script:
   # Force sbt to run on a single CPU, this limits the resources Play uses
   - framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
