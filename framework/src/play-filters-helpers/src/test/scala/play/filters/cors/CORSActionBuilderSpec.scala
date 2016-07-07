@@ -3,26 +3,33 @@
  */
 package play.filters.cors
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import play.api.mvc.Results
 import play.api.{ Application, Configuration }
 
 class CORSActionBuilderSpec extends CORSCommonSpec {
 
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+  implicit val ec = play.core.Execution.trampoline
+
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
     running(_.routes {
-      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)) { req =>
+      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply { req =>
         throw sys.error("error")
       }
-      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf))(Results.Ok)
+      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply(Results.Ok)
     })(block)
   }
 
   def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
+    val action = CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)
     running(_.configure(conf).routes {
-      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath) { req =>
+      case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath).apply { req =>
         throw sys.error("error")
       }
-      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)(Results.Ok)
+      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath).apply (Results.Ok)
     })(block)
   }
 

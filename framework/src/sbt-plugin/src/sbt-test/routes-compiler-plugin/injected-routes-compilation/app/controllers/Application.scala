@@ -5,8 +5,9 @@ package controllers
 
 import play.api.mvc._
 import scala.collection.JavaConversions._
+import javax.inject.Inject
 
-class Application extends Controller {
+class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }

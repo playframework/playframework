@@ -11,21 +11,33 @@ import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results._
-import play.api.mvc.{ Action, RequestHeader, Result }
-import play.api.routing.Router
+import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Result }
+import play.api.routing.{ SimpleRouterImpl, Router }
 import play.api.test.{ FakeRequest, PlaySpecification, TestServer }
 import play.api.{ Application, Configuration }
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
-  def filters = Seq(allowedHostsFilter)
+object AllowedHostsFilterSpec {
+  class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
+    def filters = Seq(allowedHostsFilter)
+  }
+
+  case class ActionHandler(result: RequestHeader => Result) extends (RequestHeader => Result) {
+    def apply(rh: RequestHeader) = result(rh)
+  }
+
+  class MyRouter @Inject() (action: DefaultActionBuilder, result: ActionHandler) extends SimpleRouterImpl({
+    case request => action(result(request))
+  })
 }
 
 class AllowedHostsFilterSpec extends PlaySpecification {
 
   sequential
+
+  import AllowedHostsFilterSpec._
 
   private def request(app: Application, hostHeader: String, uri: String = "/", headers: Seq[(String, String)] = Seq()) = {
     val req = FakeRequest(method = "GET", path = uri)
@@ -40,7 +52,8 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     new GuiceApplicationBuilder()
       .configure(Configuration(ConfigFactory.parseString(config)))
       .overrides(
-        bind[Router].to(Router.from { case request => Action(result(request)) }),
+        bind[ActionHandler].to(ActionHandler(result)),
+        bind[Router].to[MyRouter],
         bind[HttpFilters].to[Filters]
       )
       .build()

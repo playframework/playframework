@@ -4,15 +4,20 @@
  */
 package scalaguide.http.scalaactionscomposition {
 
+import javax.inject.Inject
+import akka.actor._
 import akka.stream.ActorMaterializer
+import play.api.http._
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.mvc.BodyParsers
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
 import play.api.mvc.Controller
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 import org.specs2.execute.AsResult
 
 case class User(name: String)
@@ -29,16 +34,23 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#basic-logging
       import play.api.mvc._
 
-      object LoggingAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+      class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
+        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           Logger.info("Calling action")
           block(request)
         }
       }
       //#basic-logging
+      implicit val system = ActorSystem()
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      val eh: HttpErrorHandler =
+        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parser = new BodyParsers.Default(parse)
+      val loggingAction = new LoggingAction(parser)
 
       //#basic-logging-index
-      def index = LoggingAction {
+      def index = loggingAction {
         Ok("Hello World")
       }
       //#basic-logging-index
@@ -46,7 +58,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       testAction(index)
 
       //#basic-logging-parse
-      def submit = LoggingAction(parse.text) { request =>
+      def submit = loggingAction(parse.text) { request =>
         Ok("Got a body " + request.body.length + " bytes long")
       }
       //#basic-logging-parse
@@ -72,17 +84,25 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#actions-class-wrapping
 
       //#actions-wrapping-builder
-      object LoggingAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+      class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
+        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           block(request)
         }
         override def composeAction[A](action: Action[A]) = new Logging(action)
       }
       //#actions-wrapping-builder
 
+      implicit val system = ActorSystem()
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      val eh: HttpErrorHandler =
+        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parser = new BodyParsers.Default(parse)
+      val loggingAction = new LoggingAction(parser)
+
       {
         //#actions-wrapping-index
-        def index = LoggingAction {
+        def index = loggingAction {
           Ok("Hello World")
         }
         //#actions-wrapping-index
@@ -178,15 +198,21 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
 
       class UserRequest[A](val username: Option[String], request: Request[A]) extends WrappedRequest[A](request)
 
-      object UserAction extends
-          ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
+      class UserAction @Inject()(val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
+        extends ActionBuilder[UserRequest, AnyContent] with ActionTransformer[Request, UserRequest] {
         def transform[A](request: Request[A]) = Future.successful {
           new UserRequest(request.session.get("username"), request)
         }
       }
       //#authenticated-action-builder
+      implicit val system = ActorSystem()
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      val eh: HttpErrorHandler =
+        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
+      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer())
+      val userAction = new UserAction(parser)
 
-      def currentUser = UserAction { request =>
+      def currentUser = userAction { request =>
         Ok("The current user is " + request.username.getOrElse("anonymous"))
       }
 
@@ -209,7 +235,8 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#request-with-item
 
       //#item-action-builder
-      def ItemAction(itemId: String) = new ActionRefiner[UserRequest, ItemRequest] {
+      def ItemAction(itemId: String)(implicit ec: ExecutionContext) = new ActionRefiner[UserRequest, ItemRequest] {
+        def executionContext = ec
         def refine[A](input: UserRequest[A]) = Future.successful {
           ItemDao.findById(itemId)
             .map(new ItemRequest(_, input))
@@ -219,7 +246,8 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#item-action-builder
 
       //#permission-check-action
-      object PermissionCheckAction extends ActionFilter[ItemRequest] {
+      def PermissionCheckAction(implicit ec: ExecutionContext) = new ActionFilter[ItemRequest] {
+        def executionContext = ec
         def filter[A](input: ItemRequest[A]) = Future.successful {
           if (!input.item.accessibleByUser(input.username))
             Some(Forbidden)
@@ -230,13 +258,14 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#permission-check-action
 
       //#item-action-use
-      def tagItem(itemId: String, tag: String) =
-        (UserAction andThen ItemAction(itemId) andThen PermissionCheckAction) { request =>
+      def tagItem(itemId: String, tag: String)(implicit ec: ExecutionContext) =
+        (userAction andThen ItemAction(itemId) andThen PermissionCheckAction) { request =>
           request.item.addTag(tag)
           Ok("User " + request.username + " tagged " + request.item.id)
         }
       //#item-action-use
 
+      import scala.concurrent.ExecutionContext.Implicits.global
       testAction(tagItem("foo", "bar"), expectedResponse = FORBIDDEN)
     }
 

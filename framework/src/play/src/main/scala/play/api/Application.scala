@@ -14,7 +14,7 @@ import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjec
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
-import play.api.mvc.EssentialFilter
+import play.api.mvc._
 import play.api.routing.Router
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
@@ -237,6 +237,10 @@ trait BuiltInComponents {
   def router: Router
 
   lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator
+
+  lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer)
+  lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
+  lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)

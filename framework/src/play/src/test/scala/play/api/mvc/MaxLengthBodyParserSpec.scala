@@ -2,16 +2,17 @@ package play.api.mvc
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Source, Sink }
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
-import play.api.http.Status
+import play.api.http.{ DefaultHttpErrorHandler, ParserConfiguration, Status }
 import play.api.libs.streams.Accumulator
+import play.api.{ Configuration, Environment }
 import play.core.test.FakeRequest
 
-import scala.concurrent.{ Await, Promise, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future, Promise }
 import scala.util.{ Failure, Try }
 
 /**
@@ -27,6 +28,8 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   implicit val system = ActorSystem()
   import system.dispatcher
   implicit val mat = ActorMaterializer()
+  val parse = new PlayBodyParsersImpl(
+    ParserConfiguration(), new DefaultHttpErrorHandler(Environment.simple(), Configuration.empty), mat)
 
   override def afterAll: Unit = {
     system.terminate()
@@ -73,42 +76,42 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "be exceeded when using the default max length handling" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.enforceMaxLength(req, MaxLength10, parser))
+      val result = feed(parse.enforceMaxLength(req, MaxLength10, parser))
       enforceMaxLengthEnforced(result)
       assertDidNotParse(parsed)
     }
 
     "be exceeded when using the maxLength body parser" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.maxLength(MaxLength10, BodyParser(req => parser)).apply(req))
+      val result = feed(parse.maxLength(MaxLength10, BodyParser(req => parser)).apply(req))
       maxLengthParserEnforced(result)
       assertDidNotParse(parsed)
     }
 
     "be exceeded when using the maxLength body parser and an equal enforceMaxLength" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.maxLength(MaxLength10, BodyParser(req => BodyParsers.parse.enforceMaxLength(req, MaxLength10, parser))).apply(req))
+      val result = feed(parse.maxLength(MaxLength10, BodyParser(req => parse.enforceMaxLength(req, MaxLength10, parser))).apply(req))
       maxLengthParserEnforced(result)
       assertDidNotParse(parsed)
     }
 
     "be exceeded when using the maxLength body parser and a longer enforceMaxLength" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.maxLength(MaxLength10, BodyParser(req => BodyParsers.parse.enforceMaxLength(req, MaxLength20, parser))).apply(req))
+      val result = feed(parse.maxLength(MaxLength10, BodyParser(req => parse.enforceMaxLength(req, MaxLength20, parser))).apply(req))
       maxLengthParserEnforced(result)
       assertDidNotParse(parsed)
     }
 
     "be exceeded when using enforceMaxLength and a longer maxLength body parser" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.maxLength(MaxLength20, BodyParser(req => BodyParsers.parse.enforceMaxLength(req, MaxLength10, parser))).apply(req))
+      val result = feed(parse.maxLength(MaxLength20, BodyParser(req => parse.enforceMaxLength(req, MaxLength10, parser))).apply(req))
       enforceMaxLengthEnforced(result)
       assertDidNotParse(parsed)
     }
 
     "not be exceeded when nothing is exceeded" in {
       val (parser, parsed) = bodyParser
-      val result = feed(BodyParsers.parse.maxLength(MaxLength20, BodyParser(req => BodyParsers.parse.enforceMaxLength(req, MaxLength20, parser))).apply(req))
+      val result = feed(parse.maxLength(MaxLength20, BodyParser(req => parse.enforceMaxLength(req, MaxLength20, parser))).apply(req))
       result must beRight.which { inner =>
         inner must beRight(Body15)
       }

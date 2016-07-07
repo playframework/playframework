@@ -7,6 +7,27 @@ This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate 
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
 
+## Scala ActionBuilder and BodyParser changes:
+
+The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
+
+The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively.
+
+To provide a mostly source-compatible API, controllers can extend the `AbstractController` class and pass through the `ControllerComponents` in the constructor:
+
+```
+class FooController @Inject() (components: ControllerComponents) extends AbstractController(components) {
+  // Action and parse now use the injected components
+  def foo = Action(parse.text) {
+    Ok
+  }
+}
+```
+
+This trait makes `Action` and `parse` refer to injected instances rather than the global objects.
+
+`ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `BaseController` and injecting your own bundle of components (though Play does not require controllers to implement any particular trait).
+
 ## JPA Migration Notes
 
 See [[JPAMigration26]].
@@ -312,7 +333,7 @@ and then inject your custom execution context as appropriate:
 
 ```scala
 class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionContext) {
-   // do things with custom execution context  
+   // do things with custom execution context
 }
 ```
 

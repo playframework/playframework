@@ -189,7 +189,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "when posting data" should {
 
       "post with form url encoded body" in withServer {
-        case ("POST", "/") => Action(BodyParsers.parse.urlFormEncoded)(r => Ok(r.body("key").head))
+        case ("POST", "/") => Action(BodyParsers.parse.formUrlEncoded)(r => Ok(r.body("key").head))
       } { ws =>
         val response =
           //#url-encoded

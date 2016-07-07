@@ -1,24 +1,24 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
-import play.api._
-import play.api.mvc._
-import play.api.libs._
 import java.io._
 import java.net.{JarURLConnection, URL, URLConnection}
-
 import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.regex.Pattern
+import javax.inject.{Inject, Singleton}
+
+import play.api._
+import play.api.http.{ContentTypes, HttpErrorHandler, LazyHttpErrorHandler}
+import play.api.libs._
+import play.api.mvc._
+import play.core.routing.ReverseRouteContext
 import play.utils.{InvalidUriEncodingException, Resources, UriEncoding}
 
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future, Promise, blocking}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-import java.util.Date
-import java.util.regex.Pattern
-import play.api.http.{ LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
-import scala.collection.concurrent.TrieMap
-import play.core.routing.ReverseRouteContext
-import javax.inject.{ Inject, Singleton }
 
 package play.api.controllers {
 
@@ -354,10 +354,12 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
 @Singleton
 class Assets @Inject()(errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler)
 
-class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
+class AssetsBuilder(errorHandler: HttpErrorHandler) extends BaseController {
 
-  import Assets._
   import AssetInfo._
+  import Assets._
+
+  private val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
   private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
     // First check etag. Important, if there is an If-None-Match header, we MUST not check the
