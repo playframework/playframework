@@ -198,7 +198,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * Example:
    * {{{
    *   def validateJson[A : Reads] = parse.json.validate(
-   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
    *   )
    * }}}
    *

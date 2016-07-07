@@ -71,7 +71,7 @@ object JsonBodyParserSpec extends PlaySpecification {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val fooParser = BodyParsers.parse.json.validate {
-        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toJson(e)))
       }
       parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8", fooParser) must beRight
       parse("""{"foo":"bar"}""", Some("application/json"), "utf-8", fooParser) must beLeft
