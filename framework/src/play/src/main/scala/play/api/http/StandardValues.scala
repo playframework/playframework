@@ -257,6 +257,7 @@ trait HeaderNames {
   val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
 
   val LAST_MODIFIED = "Last-Modified"
+  val LINK = "Link"
   val LOCATION = "Location"
 
   val MAX_FORWARDS = "Max-Forwards"
