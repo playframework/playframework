@@ -82,11 +82,20 @@ As for any controller mapped in the routes file, a reverse controller is created
 <script src="@routes.Assets.at("javascripts/jquery.js")"></script>
 ```
 
-This will produce the following result:
+In `DEV` mode this will by default produce the following result:
 
 ```html
 <script src="/assets/javascripts/jquery.js"></script>
 ```
+
+If your app is not running in `DEV` mode **and** a `jquery.min.js` or `jquery-min.js` file exists then by default the minified file will be used instead:
+
+```html
+<script src="/assets/javascripts/jquery.min.js"></script>
+```
+
+This makes debugging of JavaScript files easier during development. Of course this not only works for JavaScript files but for any file extension.
+If you don't want Play to automatically resolve the `.min.*` or `-min.*` files, regardless of the mode your application is running in, you can set `assets.checkForMinified = false` in your `application.conf` (or to `true` to always resolve the min file, even in `DEV` mode).
 
 Note that we don’t specify the first `folder` parameter when we reverse the route. This is because our routes file defines a single mapping for the `Assets.at` action, where the `folder` parameter is fixed. So it doesn't need to be specified.
 
