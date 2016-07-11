@@ -8,11 +8,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.index;
 
-import javax.inject.Inject;
+import javax.inject.*;
 import java.util.List;
 
 import static play.libs.Json.toJson;
 
+@Singleton
 public class PersonController extends Controller {
 
     private final FormFactory formFactory;
