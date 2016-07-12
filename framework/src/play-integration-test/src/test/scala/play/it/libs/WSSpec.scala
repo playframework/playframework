@@ -4,31 +4,28 @@
 package play.it.libs
 
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.charset.{ Charset, StandardCharsets }
 import java.util
 import java.util.concurrent.TimeUnit
 
-import akka.stream.scaladsl.FileIO
+import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.Sink
 import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 import play.api.http.Port
 import play.api.libs.json.JsString
 import play.api.libs.oauth._
+import play.api.libs.streams.Accumulator
+import play.api.mvc.Results.Ok
 import play.api.mvc._
 import play.api.test._
 import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication
-import play.api.mvc.Results.Ok
-import play.api.libs.streams.Accumulator
-import play.api.libs.ws.StreamedBody
-import play.libs.ws.WSResponse
 import play.mvc.Http
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
@@ -43,6 +40,15 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
   def app = HttpBinApplication.app
 
   val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+
+  val isoString = {
+    // Converts the String "Hello €" to the ISO Counterparty
+    val sourceCharset = StandardCharsets.UTF_8
+    val buffer = ByteBuffer.wrap("Hello €".getBytes(sourceCharset))
+    val data = sourceCharset.decode(buffer)
+    val targetCharset = Charset.forName("Windows-1252")
+    new String(targetCharset.encode(data).array(), targetCharset)
+  }
 
   "WS@java" should {
 
@@ -92,6 +98,17 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
           val contentLength = req.headers.get(CONTENT_LENGTH)
           val transferEncoding = req.headers.get(TRANSFER_ENCODING)
           Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+        }
+      } { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withXmlServer[T](block: play.libs.ws.WSClient => T) = {
+      Server.withRouter() {
+        case _ => Action { req =>
+          val elem = <name>{ isoString }</name>.toString()
+          Ok(elem).as("application/xml;charset=Windows-1252")
         }
       } { implicit port =>
         withClient(block)
@@ -198,6 +215,11 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       body.path("file").textValue() must_== "This is a test asset."
     }
 
+    "response asXml with correct contentType" in withXmlServer { ws =>
+      val body = ws.url("/xml").get().toCompletableFuture.get().asXml()
+      new String(body.getElementsByTagName("name").item(0).getTextContent.getBytes("Windows-1252")) must_== isoString
+    }
+
     class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
       def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
@@ -220,8 +242,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "WS@scala" should {
 
-    import play.api.libs.ws.WSSignatureCalculator
-    import play.api.libs.ws.StreamedBody
+    import play.api.libs.ws.{ StreamedBody, WSSignatureCalculator }
 
     implicit val materializer = app.materializer
 
