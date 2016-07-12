@@ -5,6 +5,7 @@ package play.api.libs.streams
 
 import akka.stream.scaladsl.Flow
 import akka.stream.stage._
+import akka.stream._
 import org.reactivestreams.{ Processor, Subscription, Subscriber, Publisher }
 
 /**
@@ -78,19 +79,33 @@ object Probes {
   }
 
   def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, _] = {
-    Flow[T].transform(() => new PushPullStage[T, T] with Probe {
+    Flow[T].via(new GraphStage[FlowShape[T, T]] with Probe {
+
+      val in = Inlet[T]("in")
+      val out = Outlet[T]("out")
+
+      override def shape: FlowShape[T, T] = FlowShape.of(in, out)
+
       override def startTime: Long = System.nanoTime()
       override def probeName: String = name
 
-      override def onPush(elem: T, ctx: Context[T]) = log("onPush", messageLogger(elem))(ctx.push(elem))
-      override def onPull(ctx: Context[T]) = log("onPull")(ctx.pull())
-      override def preStart(ctx: LifecycleContext) = log("preStart")(super.preStart(ctx))
-      override def onUpstreamFinish(ctx: Context[T]) = log("onUpstreamFinish")(super.onUpstreamFinish(ctx))
-      override def onDownstreamFinish(ctx: Context[T]) = log("onDownstreamFinish")(super.onDownstreamFinish(ctx))
-      override def onUpstreamFailure(cause: Throwable, ctx: Context[T]) = log("onUpstreamFailure", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace())(super.onUpstreamFailure(cause, ctx))
-      override def postStop() = log("postStop")(super.postStop())
-      override def decide(t: Throwable) = log("decide")(super.decide(t))
-      override def restart() = log("restart")(super.restart())
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+        new GraphStageLogic(shape) with OutHandler with InHandler {
+
+          override def onPush(): Unit = {
+            val elem = grab(in)
+            log("onPush", messageLogger(elem))(push(out, elem))
+          }
+          override def onPull(): Unit = log("onPull")(pull(in))
+          override def preStart() = log("preStart")(super.preStart())
+          override def onUpstreamFinish() = log("onUpstreamFinish")(super.onUpstreamFinish())
+          override def onDownstreamFinish() = log("onDownstreamFinish")(super.onDownstreamFinish())
+          override def onUpstreamFailure(cause: Throwable) = log("onUpstreamFailure", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace())(super.onUpstreamFailure(cause))
+          override def postStop() = log("postStop")(super.postStop())
+
+          setHandlers(in, out, this)
+        }
+
     })
   }
 }

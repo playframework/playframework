@@ -10,10 +10,10 @@ import java.util.concurrent.ThreadLocalRandom
 
 import akka.NotUsed
 import akka.stream.scaladsl.{ Flow, Source }
-import akka.stream.stage.{ Context, PushPullStage, SyncDirective, TerminationDirective }
+import akka.stream.stage._
+import akka.stream._
 import akka.util.{ ByteString, ByteStringBuilder }
 import play.api.mvc.MultipartFormData
-import play.api.mvc.MultipartFormData.Part
 
 import scala.annotation.tailrec
 
@@ -33,7 +33,7 @@ object Multipart {
    * Provides a Formatting Flow which could be used to format a MultipartFormData.Part source to a multipart/form data body
    */
   def format(boundary: String, nioCharset: Charset, chunkSize: Int): Flow[MultipartFormData.Part[Source[ByteString, _]], ByteString, NotUsed] = {
-    Flow[MultipartFormData.Part[Source[ByteString, _]]].transform(() => streamed(boundary, nioCharset, chunkSize))
+    Flow[MultipartFormData.Part[Source[ByteString, _]]].via(streamed(boundary, nioCharset, chunkSize))
       .flatMapConcat(identity)
   }
 
@@ -116,53 +116,69 @@ object Multipart {
   }
 
   private def streamed(boundary: String,
-    nioCharset: Charset,
-    chunkSize: Int): PushPullStage[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]] =
-    new PushPullStage[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]] {
-      var firstBoundaryRendered = false
+    nioCharset: Charset, chunkSize: Int): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
 
-      override def onPush(bodyPart: Part[Source[ByteString, _]], ctx: Context[Source[ByteString, Any]]): SyncDirective = {
-        val f = new CustomCharsetByteStringFormatter(nioCharset, chunkSize)
+    new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
 
-        def bodyPartChunks(data: Source[ByteString, Any]): Source[ByteString, Any] = {
-          (Source.single(f.get) ++ data).mapMaterializedValue((_) => ())
+      val in = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("in")
+      val out = Outlet[Source[ByteString, Any]]("out")
+
+      override def shape = FlowShape.of(in, out)
+
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+        new GraphStageLogic(shape) with OutHandler with InHandler {
+
+          var firstBoundaryRendered = false
+
+          override def onPush(): Unit = {
+            val f = new CustomCharsetByteStringFormatter(nioCharset, chunkSize)
+
+            val bodyPart = grab(in)
+
+            def bodyPartChunks(data: Source[ByteString, Any]): Source[ByteString, Any] = {
+              (Source.single(f.get) ++ data).mapMaterializedValue((_) => ())
+            }
+
+            def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
+              case MultipartFormData.DataPart(_, data) => Source.single((f ~~ ByteString(data)).get)
+              case MultipartFormData.FilePart(_, _, _, ref) => bodyPartChunks(ref)
+              case _ => throw new UnsupportedOperationException()
+            }
+
+            renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
+            firstBoundaryRendered = true
+
+            val (key, filename, contentType) = bodyPart match {
+              case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"))
+              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) => (innerKey, Option(innerFilename), innerContentType)
+              case _ => throw new UnsupportedOperationException()
+            }
+            renderDisposition(f, key, filename)
+            contentType.foreach { ct => renderContentType(f, ct) }
+            renderBuffer(f)
+            push(out, completePartFormatting())
+          }
+
+          override def onPull(): Unit = {
+            val finishing = isClosed(in)
+            if (finishing && firstBoundaryRendered) {
+              val f = new ByteStringFormatter(boundary.length + 4)
+              renderFinalBoundary(f, boundary)
+              push(out, Source.single(f.get))
+              completeStage()
+            } else if (finishing) {
+              completeStage()
+            } else {
+              pull(in)
+            }
+          }
+
+          override def onUpstreamFinish(): Unit = {
+            if (isAvailable(out)) onPull()
+          }
+
+          setHandlers(in, out, this)
         }
-
-        def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
-          case MultipartFormData.DataPart(_, data) => Source.single((f ~~ ByteString(data)).get)
-          case MultipartFormData.FilePart(_, _, _, ref) => bodyPartChunks(ref)
-          case _ => throw new UnsupportedOperationException()
-        }
-
-        renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
-        firstBoundaryRendered = true
-
-        val (key, filename, contentType) = bodyPart match {
-          case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"))
-          case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) => (innerKey, Option(innerFilename), innerContentType)
-          case _ => throw new UnsupportedOperationException()
-        }
-        renderDisposition(f, key, filename)
-        contentType.foreach { ct => renderContentType(f, ct) }
-        renderBuffer(f)
-        ctx.push(completePartFormatting())
-      }
-
-      override def onPull(ctx: Context[Source[ByteString, Any]]): SyncDirective = {
-        val finishing = ctx.isFinishing
-        if (finishing && firstBoundaryRendered) {
-          val f = new ByteStringFormatter(boundary.length + 4)
-          renderFinalBoundary(f, boundary)
-          ctx.pushAndFinish(Source.single(f.get))
-        } else if (finishing) {
-          ctx.finish()
-        } else {
-          ctx.pull()
-        }
-      }
-
-      override def onUpstreamFinish(ctx: Context[Source[ByteString, Any]]): TerminationDirective = ctx.absorbTermination()
-
     }
 
   private def renderBoundary(f: Formatter, boundary: String, suppressInitialCrLf: Boolean = false): Unit = {
