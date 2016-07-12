@@ -8,30 +8,51 @@ import java.net.URI
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.i18n.Lang
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 
 class RequestHeaderSpec extends Specification {
 
   "request header" should {
 
+    "have typed properties" in {
+      "can set and get a single property" in {
+        val x = TypedKey[Int]("x")
+        (dummyRequestHeader() + (x -> 3))(x) must_== 3
+      }
+      "can set two properties and get one back" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        (dummyRequestHeader() + (x -> 3, y -> "hello"))(y) must_== "hello"
+      }
+      "getting a set property should be Some" in {
+        val x = TypedKey[Int]("x")
+        (dummyRequestHeader() + (x -> 5)).get(x) must beSome(5)
+      }
+      "getting a nonexistent property should be None" in {
+        val x = TypedKey[Int]("x")
+        dummyRequestHeader().get(x) must beNone
+      }
+    }
+
     "handle host" in {
       "relative uri with host header" in {
-        val rh = DummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
         rh.host must_== "playframework.com"
       }
       "absolute uri" in {
-        val rh = DummyRequestHeader("GET", "https://example.com/test", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader("GET", "https://example.com/test", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com"
       }
       "absolute uri with port" in {
-        val rh = DummyRequestHeader("GET", "https://example.com:8080/test", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader("GET", "https://example.com:8080/test", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com:8080"
       }
       "absolute uri with port and invalid characters" in {
-        val rh = DummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com:8080"
       }
       "relative uri with invalid characters" in {
-        val rh = DummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
         rh.host must_== "playframework.com"
       }
     }
@@ -39,7 +60,7 @@ class RequestHeaderSpec extends Specification {
     "parse accept languages" in {
 
       "return an empty sequence when no accept languages specified" in {
-        DummyRequestHeader().acceptLanguages must beEmpty
+        dummyRequestHeader().acceptLanguages must beEmpty
       }
 
       "parse a single accept language" in {
@@ -67,23 +88,27 @@ class RequestHeaderSpec extends Specification {
     }
   }
 
-  def accept(value: String) = DummyRequestHeader(
+  private def accept(value: String) = dummyRequestHeader(
     headers = Headers("Accept-Language" -> value)
   ).acceptLanguages
 
-  case class DummyRequestHeader(
-      requestMethod: String = "GET",
-      requestUri: String = "/",
-      headers: Headers = Headers()) extends RequestHeader {
-    def id = 1
-    def tags = Map()
-    def uri = requestUri
-    def path = new URI(requestUri).getPath // this just won't work for invalid URIs
-    def method = requestMethod
-    def version = ""
-    def queryString = Map()
-    def remoteAddress = ""
-    def secure = false
-    override def clientCertificateChain = None
+  private def dummyRequestHeader(
+    requestMethod: String = "GET",
+    requestUri: String = "/",
+    headers: Headers = Headers()): RequestHeader = {
+    new RequestHeaderImpl(
+      id = 1L,
+      tags = Map.empty,
+      uri = requestUri,
+      path = "",
+      method = requestMethod,
+      version = "",
+      queryString = Map.empty,
+      headers = headers,
+      remoteAddress = "",
+      secure = false,
+      clientCertificateChain = None,
+      properties = TypedMap.empty
+    )
   }
 }

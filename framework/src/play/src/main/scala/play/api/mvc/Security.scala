@@ -91,7 +91,9 @@ object Security {
    *
    * @param user The user that made the request
    */
-  class AuthenticatedRequest[A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request)
+  class AuthenticatedRequest[A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request) {
+    override protected def newWrapper[B](newRequest: Request[B]): AuthenticatedRequest[B, U] = new AuthenticatedRequest[B, U](user, newRequest)
+  }
 
   /**
    * An authenticated action builder.

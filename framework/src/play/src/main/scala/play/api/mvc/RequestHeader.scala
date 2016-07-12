@@ -7,6 +7,7 @@ import java.security.cert.X509Certificate
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
 import play.api.i18n.Lang
+import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
 
 import scala.annotation.implicitNotFound
 
@@ -78,6 +79,13 @@ trait RequestHeader {
    * The X509 certificate chain presented by a client during SSL requests.
    */
   def clientCertificateChain: Option[Seq[X509Certificate]]
+
+  def apply[A](key: TypedKey[A]): A
+  def get[A](key: TypedKey[A]): Option[A]
+  def updated[A](key: TypedKey[A], value: A): RequestHeader
+  def contains(key: TypedKey[_]): Boolean
+  def +(entry: TypedEntry[_]): RequestHeader
+  def +(entry: TypedEntry[_], entries: TypedEntry[_]*): RequestHeader
 
   // -- Computed
 
@@ -199,21 +207,20 @@ trait RequestHeader {
     remoteAddress: => String = this.remoteAddress,
     secure: => Boolean = this.secure,
     clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
-    val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain, _hasBody) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain, hasBody)
-    new RequestHeader {
-      override val id = _id
-      override val tags = _tags
-      override val uri = _uri
-      override val path = _path
-      override val method = _method
-      override val version = _version
-      override val queryString = _queryString
-      override val headers = _headers
-      override lazy val remoteAddress = _remoteAddress()
-      override lazy val secure = _secure()
-      override val clientCertificateChain = _clientCertificateChain
-      override val hasBody = _hasBody || super.hasBody
-    }
+    new RequestHeaderImpl(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      properties = TypedMap.empty
+    )
   }
 
   override def toString = {
@@ -243,6 +250,13 @@ object RequestHeader {
   }
 }
 
+/**
+ * A standard implementation of a RequestHeader.
+ *
+ * @param remoteAddressFunc A function that evaluates to the remote address.
+ * @param secureFunc A function that evaluates to the security status.
+ * @param properties A map of the RequestHeader's typed properties.
+ */
 private[play] class RequestHeaderImpl(
     override val id: Long,
     override val tags: Map[String, String],
@@ -252,7 +266,92 @@ private[play] class RequestHeaderImpl(
     override val version: String,
     override val queryString: Map[String, Seq[String]],
     override val headers: Headers,
-    override val remoteAddress: String,
-    override val secure: Boolean,
-    override val clientCertificateChain: Option[Seq[X509Certificate]]) extends RequestHeader {
+    remoteAddressFunc: () => String,
+    secureFunc: () => Boolean,
+    override val clientCertificateChain: Option[Seq[X509Certificate]],
+    override protected val properties: TypedMap) extends RequestHeader with WithPropertiesMap[RequestHeader] {
+
+  def this(
+    id: Long,
+    tags: Map[String, String],
+    uri: String,
+    path: String,
+    method: String,
+    version: String,
+    queryString: Map[String, Seq[String]],
+    headers: Headers,
+    remoteAddress: String,
+    secure: Boolean,
+    clientCertificateChain: Option[Seq[X509Certificate]],
+    properties: TypedMap) = {
+    this(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      properties = properties
+    )
+  }
+
+  override lazy val remoteAddress: String = remoteAddressFunc()
+  override lazy val secure: Boolean = secureFunc()
+
+  override protected def withProperties(newProperties: TypedMap): RequestHeaderImpl = {
+    new RequestHeaderImpl(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      properties = newProperties
+    )
+  }
+}
+
+/**
+ * Mixin to help build a RequestHeader that has properties. This mixin
+ * assumes the properties are stored in a TypedMap.
+ *
+ * @tparam Repr The type of object to return when a copy is made.
+ */
+private[play] trait WithPropertiesMap[+Repr <: RequestHeader] {
+  self: RequestHeader =>
+
+  /**
+   * The TypeMap holding this RequestHeader's properties.
+   */
+  protected def properties: TypedMap
+
+  /**
+   * Create a new instance with a new set of properties.
+   */
+  protected def withProperties(newProperties: TypedMap): Repr
+
+  // Mixin methods
+
+  override def apply[A](key: TypedKey[A]): A =
+    properties.apply(key)
+  override def get[A](key: TypedKey[A]): Option[A] =
+    properties.get(key)
+  override def contains(key: TypedKey[_]): Boolean =
+    properties.contains(key)
+  override def updated[A](key: TypedKey[A], value: A): Repr =
+    withProperties(properties.updated(key, value))
+  override def +(entry: TypedEntry[_]): Repr =
+    withProperties(properties.+(entry))
+  override def +(entry: TypedEntry[_], entries: TypedEntry[_]*): Repr =
+    withProperties(properties.+(entry, entries: _*))
 }

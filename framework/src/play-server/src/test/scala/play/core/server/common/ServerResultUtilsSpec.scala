@@ -4,28 +4,32 @@
 package play.core.server.common
 
 import org.specs2.mutable.Specification
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.Results._
 
 object ServerResultUtilsSpec extends Specification {
 
-  case class CookieRequestHeader(cookie: Option[(String, String)]) extends RequestHeader {
-    def id = 1
-    def tags = Map()
-    def uri = ""
-    def path = ""
-    def method = ""
-    def version = ""
-    def queryString = Map()
-    def remoteAddress = ""
-    def secure = false
-    override def clientCertificateChain = None
-    val headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq)
+  private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
+    new RequestHeaderImpl(
+      id = 1L,
+      tags = Map.empty,
+      uri = "",
+      path = "",
+      method = "",
+      version = "",
+      queryString = Map.empty,
+      headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq),
+      remoteAddress = "",
+      secure = false,
+      clientCertificateChain = None,
+      properties = TypedMap.empty
+    )
   }
 
   "ServerResultUtils.cleanFlashCookie" should {
     def flashCookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
-      val rh = CookieRequestHeader(cookie)
+      val rh = cookieRequestHeader(cookie)
       ServerResultUtils.cleanFlashCookie(rh, result).header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
     }
 
