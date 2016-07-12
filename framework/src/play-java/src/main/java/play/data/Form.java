@@ -429,7 +429,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -458,7 +458,7 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.empty(), groups, messagesApi, formatters, this.validator);
+                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
             return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
@@ -489,7 +489,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieves the actual form value.
+     * Retrieves the actual form value - even when the form contains validation errors.
      */
     public Optional<T> value() {
         return value;
@@ -624,7 +624,8 @@ public class Form<T> {
     }
 
     /**
-     * Gets the concrete value if the submission was a success.
+     * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors this method will throw an exception.
+     * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
      *
      * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
      */
