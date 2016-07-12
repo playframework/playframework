@@ -18,7 +18,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static java.util.stream.Collectors.toList;
 
@@ -98,15 +100,20 @@ public class AhcWSResponse implements WSResponse {
         return null;
     }
 
-    public String getBody() {
-        // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
-        // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
-        // set and content type is not text/*, otherwise default to ISO-8859-1
+    private String contentType() {
         String contentType = ahcResponse.getContentType();
         if (contentType == null) {
             // As defined by RFC-2616#7.2.1
             contentType = "application/octet-stream";
         }
+        return contentType;
+    }
+
+    public String getBody() {
+        // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
+        // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
+        // set and content type is not text/*, otherwise default to ISO-8859-1
+        String contentType = contentType();
         Charset charset = HttpUtils.parseCharset(contentType);
 
         if (charset != null) {
@@ -120,15 +127,22 @@ public class AhcWSResponse implements WSResponse {
 
     /**
      * Get the response body as a {@link Document DOM document}
+     *
      * @return a DOM document
      */
     @Override
     public Document asXml() {
-        return play.libs.XML.fromInputStream(ahcResponse.getResponseBodyAsStream(), "utf-8");
+        String contentType = contentType();
+        Charset charset = HttpUtils.parseCharset(contentType);
+        if (charset == null) {
+            charset = StandardCharsets.UTF_8;
+        }
+        return play.libs.XML.fromInputStream(ahcResponse.getResponseBodyAsStream(), charset.name());
     }
 
     /**
      * Get the response body as a {@link JsonNode}
+     *
      * @return the json response
      */
     @Override
@@ -139,6 +153,7 @@ public class AhcWSResponse implements WSResponse {
 
     /**
      * Get the response body as a stream
+     *
      * @return The stream to read the response body from
      */
     @Override
@@ -148,6 +163,7 @@ public class AhcWSResponse implements WSResponse {
 
     /**
      * Get the response body as a byte array
+     *
      * @return The byte array
      */
     @Override
