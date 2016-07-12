@@ -11,6 +11,7 @@ import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.routing.Router;
 import play.http.DefaultHttpErrorHandler;
+import play.http.HttpClientError;
 import play.mvc.Http.*;
 import play.mvc.*;
 
@@ -33,7 +34,7 @@ public class ErrorHandler extends DefaultHttpErrorHandler {
         );
     }
 
-    protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
+    protected CompletionStage<Result> onForbidden(HttpClientError error) {
         return CompletableFuture.completedFuture(
                 Results.forbidden("You're not allowed to access this resource.")
         );

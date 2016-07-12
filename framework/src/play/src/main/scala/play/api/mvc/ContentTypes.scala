@@ -8,13 +8,11 @@ import java.util.Locale
 
 import scala.util.control.NonFatal
 import scala.xml._
-import scala.concurrent.{ Future, ExecutionContext, Promise }
-
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import akka.stream._
 import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
 import akka.stream.stage._
 import akka.util.ByteString
-
 import play.api._
 import play.api.data.Form
 import play.api.http.Status._
@@ -392,7 +390,7 @@ trait BodyParsers {
     def json(maxLength: Int): BodyParser[JsValue] = when(
       _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
       tolerantJson(maxLength),
-      createBadResult("Expecting text/json or application/json body", UNSUPPORTED_MEDIA_TYPE)
+      createBadResult(JsError.toJson(JsError("Expecting text/json or application/json body")), UNSUPPORTED_MEDIA_TYPE)
     )
 
     /**
@@ -417,8 +415,7 @@ trait BodyParsers {
             jsValue.validate(reader) map { a =>
               Future.successful(Right(a))
             } recoverTotal { jsError =>
-              val msg = s"Json validation error ${JsError.toFlatForm(jsError)}"
-              createBadResult(msg)(request) map Left.apply
+              createBadResult(JsError.toJson(jsError), BAD_REQUEST).apply(request).map(Left.apply)
             }
         }
       }
@@ -725,8 +722,9 @@ trait BodyParsers {
       }
     }
 
-    private def createBadResult(msg: String, statusCode: Int = BAD_REQUEST): RequestHeader => Future[Result] = { request =>
-      LazyHttpErrorHandler.onClientError(request, statusCode, msg)
+    private def createBadResult[C <: AnyRef](message: C, statusCode: Int = BAD_REQUEST)(implicit writeable: Writeable[C]): RequestHeader => Future[Result] = {
+      request =>
+      LazyHttpErrorHandler.onError(new HttpClientError(request, statusCode, message, writeable.toEntity(message)))
     }
 
     /**
@@ -740,7 +738,7 @@ trait BodyParsers {
 
         statusFuture.flatMap {
           case MaxSizeExceeded(_) =>
-            val badResult = Future.successful(()).flatMap(_ => createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request))(defaultCtx)
+            val badResult = Future.successful(()).flatMap(_ => createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE).apply(request))(defaultCtx)
             badResult.map(Left(_))
           case MaxSizeNotExceeded => resultFuture
         }
@@ -767,7 +765,7 @@ trait BodyParsers {
             } catch {
               case NonFatal(e) =>
                 logger.debug(errorMessage, e)
-                createBadResult(errorMessage + ": " + e.getMessage)(request).map(Left(_))
+                createBadResult(errorMessage + ": " + e.getMessage).apply(request).map(Left(_))
             }
           })
       }

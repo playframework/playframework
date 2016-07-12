@@ -3,8 +3,13 @@
  */
 package play.http;
 
+
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
+import scala.Enumeration;
+import scala.Function1;
+import scala.Option;
+import scala.Tuple3;
 
 import java.util.concurrent.CompletionStage;
 
@@ -16,19 +21,10 @@ import java.util.concurrent.CompletionStage;
 public interface HttpErrorHandler {
 
     /**
-     * Invoked when a client error occurs, that is, an error in the 4xx series.
+     * Invoked when a error occurs.
      *
-     * @param request The request that caused the client error.
-     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-     * @param message The error message.
+     * @param error The error.
      */
-    CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message);
+    CompletionStage<Result> onError(HttpError<?> error);
 
-    /**
-     * Invoked when a server error occurs.
-     *
-     * @param request The request that triggered the server error.
-     * @param exception The server error.
-     */
-    CompletionStage<Result> onServerError(RequestHeader request, Throwable exception);
 }

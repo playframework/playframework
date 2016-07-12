@@ -108,7 +108,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   def handlerForRequest(request: RequestHeader) = {
 
     def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      errorHandler.onClientError(req, NOT_FOUND)
+      errorHandler.onError(HttpError.fromString(req, NOT_FOUND))
     )
 
     val (routedRequest, handler) = routeRequest(request) map {

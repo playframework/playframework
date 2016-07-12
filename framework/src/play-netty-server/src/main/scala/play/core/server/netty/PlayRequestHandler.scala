@@ -17,7 +17,7 @@ import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateEvent
 import play.api.{ Application, Logger }
-import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpErrorHandler, Status }
+import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, RequestHeader, Results, WebSocket }
 import play.core.server.NettyServer
@@ -68,8 +68,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     def clientError(statusCode: Int, message: String) = {
       val requestHeader = modelConversion.createUnparsedRequestHeader(requestId, request,
         channel.remoteAddress().asInstanceOf[InetSocketAddress], Option(channel.pipeline().get(classOf[SslHandler])))
-      val result = errorHandler(server.applicationProvider.current).onClientError(requestHeader, statusCode,
-        if (message == null) "" else message)
+      val result = errorHandler(server.applicationProvider.current).onError(HttpError.fromString(requestHeader, statusCode,
+        if (message == null) "" else message))
       // If there's a problem in parsing the request, then we should close the connection, once done with it
       requestHeader -> Left(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
@@ -97,7 +97,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         val recovered = EssentialAction { rh =>
           import play.core.Execution.Implicits.trampoline
           action(rh).recoverWith {
-            case error => app.errorHandler.onServerError(rh, error)
+            case error => app.errorHandler.onError(new HttpServerError(rh, error))
           }
         }
         handleAction(recovered, requestHeader, request, Some(app))
@@ -126,7 +126,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
         }.recoverWith {
           case error =>
-            app.errorHandler.onServerError(requestHeader, error).flatMap { result =>
+            app.errorHandler.onError(new HttpServerError(requestHeader, error)).flatMap { result =>
               val action = EssentialAction(_ => Accumulator.done(result))
               handleAction(action, requestHeader, request, Some(app))
             }
@@ -260,7 +260,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         }).recoverWith {
           case error =>
             logger.error("Cannot invoke the action", error)
-            errorHandler(app).onServerError(requestHeader, error)
+            errorHandler(app).onError(new HttpServerError(requestHeader, error))
         }
       }
       // Clean and validate the action's result

@@ -4,6 +4,7 @@
 package scalaguide.advanced.embedding
 
 import org.specs2.mutable.Specification
+import play.api.http.HttpClientError
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -79,7 +80,7 @@ object ScalaEmbeddingPlay extends Specification with WsTestClient {
         override lazy val httpErrorHandler = new DefaultHttpErrorHandler(environment,
           configuration, sourceMapper, Some(router)) {
 
-          override protected def onNotFound(request: RequestHeader, message: String) = {
+          override protected def onNotFound(error: HttpClientError) = {
             Future.successful(Results.NotFound("Nothing was found!"))
           }
         }

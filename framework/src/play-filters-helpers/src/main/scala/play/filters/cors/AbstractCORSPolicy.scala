@@ -7,12 +7,11 @@ import java.util.Locale
 
 import scala.collection.immutable
 import scala.concurrent.Future
-
 import java.net.{ URI, URISyntaxException }
 
 import play.api.LoggerLike
-import play.api.http.{ HttpErrorHandler, HeaderNames, HttpVerbs }
-import play.api.mvc.{ RequestHeader, Results, Result }
+import play.api.http._
+import play.api.mvc.{ RequestHeader, Result, Results }
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
@@ -143,10 +142,10 @@ private[cors] trait AbstractCORSPolicy {
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {
         next(taggedRequest).recoverWith {
-          case e: Throwable => errorHandler.onServerError(taggedRequest, e)
+          case e: Throwable => errorHandler.onError(new HttpServerError(taggedRequest, e))
         }
       } catch {
-        case e: Throwable => errorHandler.onServerError(taggedRequest, e)
+        case e: Throwable => errorHandler.onError(new HttpServerError(taggedRequest, e))
       }
       result.map(_.withHeaders(headerBuilder.result(): _*))
     }

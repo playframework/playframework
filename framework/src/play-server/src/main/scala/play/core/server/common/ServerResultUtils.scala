@@ -53,7 +53,7 @@ object ServerResultUtils {
     if (request.version == HttpProtocol.HTTP_1_0 && result.body.isInstanceOf[HttpEntity.Chunked]) {
       cancelEntity(result.body)
       val exception = new ServerResultException("HTTP 1.0 client does not support chunked response", result, null)
-      val errorResult: Future[Result] = httpErrorHandler.onServerError(request, exception)
+      val errorResult: Future[Result] = httpErrorHandler.onError(new HttpServerError(request, exception))
       import play.core.Execution.Implicits.trampoline
       errorResult.map { originalErrorResult: Result =>
         // Update the original error with a new status code and a "Connection: close" header
@@ -102,9 +102,11 @@ object ServerResultUtils {
         }
 
         // Call the HttpErrorHandler to generate an alternative error
-        errorHandler.onServerError(
-          requestHeader,
-          new ServerResultException("Error converting Play Result for server backend", result, conversionError)
+        errorHandler.onError(
+          new HttpServerError(
+            requestHeader,
+            new ServerResultException("Error converting Play Result for server backend", result, conversionError)
+          )
         ).flatMap { errorResult =>
             // Convert errorResult using normal conversion logic. This time use
             // the DefaultErrorHandler if there are any problems, e.g. if the

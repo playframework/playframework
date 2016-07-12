@@ -46,26 +46,26 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
 package root {
 //#root
-import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpClientError, HttpError, HttpErrorHandler, HttpServerError }
 import play.api.mvc._
 import play.api.mvc.Results._
+
 import scala.concurrent._
-import javax.inject.Singleton;
+import javax.inject.Singleton
 
 @Singleton
 class ErrorHandler extends HttpErrorHandler {
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
-    Future.successful(
-      Status(statusCode)("A client error occurred: " + message)
-    )
-  }
-
-  def onServerError(request: RequestHeader, exception: Throwable) = {
-    Future.successful(
+  override def onError(error: HttpError[_]): Future[Result] = error match {
+    case clientError: HttpClientError => clientError.error match {
+      case message: String => Future.successful(Status(clientError.statusCode)("A client error occurred: " + message))
+      case _ => Future.successful(clientError.asResult)
+    }
+    case HttpServerError(_, exception) => Future.successful(
       InternalServerError("A server error occurred: " + exception.getMessage)
     )
   }
+
 }
 //#root
 }
@@ -74,11 +74,12 @@ package default {
 //#default
 import javax.inject._
 
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.{ DefaultHttpErrorHandler, HttpClientError }
 import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.routing.Router
+
 import scala.concurrent._
 
 @Singleton
@@ -95,7 +96,7 @@ class ErrorHandler @Inject() (
     )
   }
 
-  override def onForbidden(request: RequestHeader, message: String) = {
+  override def onForbidden(error: HttpClientError) = {
     Future.successful(
       Forbidden("You're not allowed to access this resource.")
     )

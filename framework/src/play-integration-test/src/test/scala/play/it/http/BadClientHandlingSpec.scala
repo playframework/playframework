@@ -3,12 +3,13 @@
  */
 package play.it.http
 
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ Port => _, _ }
 import play.api._
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
 import play.it._
+
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -54,9 +55,10 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
     }
 
     "allow accessing the raw unparsed path from an error handler" in withServer(new HttpErrorHandler() {
-      def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-        Future.successful(Results.BadRequest("Bad path: " + request.path))
-      def onServerError(request: RequestHeader, exception: Throwable) = Future.successful(Results.Ok)
+      override def onError(error: HttpError[_]): Future[Result] = error match {
+        case hce: HttpClientError => Future.successful(Results.BadRequest("Bad path: " + hce.request.path))
+        case HttpServerError(_, _) => Future.successful(Results.Ok)
+      }
     }) { port =>
       val response = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")

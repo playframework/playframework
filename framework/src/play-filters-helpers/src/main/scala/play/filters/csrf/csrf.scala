@@ -16,6 +16,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import play.core.j.JavaHelpers
 import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, Token, _ }
+import play.api.http.HttpError
 import play.mvc.Http
 import play.utils.Reflect
 
@@ -235,7 +236,7 @@ object CSRF {
 
   class CSRFHttpErrorHandler @Inject() (httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
     import play.api.http.Status.FORBIDDEN
-    def handle(req: RequestHeader, msg: String) = httpErrorHandler.onClientError(req, FORBIDDEN, msg)
+    def handle(req: RequestHeader, msg: String) = httpErrorHandler.onError(HttpError.fromString(req, FORBIDDEN, msg))
   }
 
   object DefaultErrorHandler extends ErrorHandler {

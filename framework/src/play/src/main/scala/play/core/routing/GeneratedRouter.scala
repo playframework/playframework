@@ -3,7 +3,7 @@
  */
 package play.core.routing
 
-import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpError, HttpErrorHandler }
 import play.api.mvc._
 import play.api.routing.Router
 
@@ -86,7 +86,7 @@ abstract class GeneratedRouter extends Router {
   def errorHandler: HttpErrorHandler
 
   def badRequest(error: String) = Action.async { request =>
-    errorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
+    errorHandler.onError(HttpError.fromString(request, play.api.http.Status.BAD_REQUEST, error))
   }
 
   def call(generator: => Handler): Handler = {

@@ -3,6 +3,7 @@
  */
 package play.api.http
 
+import java.util.concurrent.CompletionStage
 import javax.inject._
 
 import play.api._
@@ -13,8 +14,7 @@ import play.api.http.Status._
 import play.api.routing.Router
 import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
-import play.mvc.Http
-import play.utils.{ Reflect, PlayIO }
+import play.utils.{ PlayIO, Reflect }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
@@ -28,21 +28,12 @@ import scala.util.control.NonFatal
 trait HttpErrorHandler {
 
   /**
-   * Invoked when a client error occurs, that is, an error in the 4xx series.
+   * Invoked when a error occurs
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param error The http Error
    */
-  def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result]
+  def onError(error: HttpError[_]): Future[Result]
 
-  /**
-   * Invoked when a server error occurs.
-   *
-   * @param request The request that triggered the server error.
-   * @param exception The server error.
-   */
-  def onServerError(request: RequestHeader, exception: Throwable): Future[Result]
 }
 
 object HttpErrorHandler {
@@ -91,63 +82,70 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   }
 
   /**
-   * Invoked when a client error occurs, that is, an error in the 4xx series.
+   * Invoked when a error occurs.
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param error The error message.
    */
-  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
-    case BAD_REQUEST => onBadRequest(request, message)
-    case FORBIDDEN => onForbidden(request, message)
-    case NOT_FOUND => onNotFound(request, message)
-    case clientError if statusCode >= 400 && statusCode < 500 => onOtherClientError(request, statusCode, message)
-    case nonClientError =>
-      throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
+  override def onError(error: HttpError[_]): Future[Result] = error match {
+    case clientError: HttpClientError => clientError.statusCode match {
+      case BAD_REQUEST => onBadRequest(clientError)
+      case FORBIDDEN => onForbidden(clientError)
+      case NOT_FOUND => onNotFound(clientError)
+      case _ if clientError.statusCode >= 400 && clientError.statusCode < 500 =>
+        onOtherClientError(clientError)
+      case nonClientError =>
+        throw new IllegalArgumentException(s"onClientError invoked with non client error status code ${clientError.statusCode}: ${clientError.error.toString}")
+      case _ => onOtherClientError(clientError)
+    }
+    case HttpServerError(request, throwable) => onServerError(request, throwable)
   }
 
   /**
    * Invoked when a client makes a bad request.
    *
-   * @param request The request that was bad.
-   * @param message The error message.
+   * @param error The client error.
    */
-  protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)))
+  protected def onBadRequest(error: HttpClientError): Future[Result] = error.error match {
+    case message: String =>
+      Future.successful(BadRequest(views.html.defaultpages.badRequest(error.request.method, error.request.uri, message)))
+    case _ => Future.successful(error.asResult)
+  }
 
   /**
    * Invoked when a client makes a request that was forbidden.
    *
-   * @param request The forbidden request.
-   * @param message The error message.
+   * @param error The error message.
    */
-  protected def onForbidden(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
+  protected def onForbidden(error: HttpClientError): Future[Result] = error.error match {
+    case _: String => Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
+    case _ => Future.successful(error.asResult)
+  }
 
   /**
    * Invoked when a handler or resource is not found.
    *
-   * @param request The request that no handler was found to handle.
-   * @param message A message.
+   * @param error A message.
    */
-  protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(NotFound(environment.mode match {
-      case Mode.Prod => views.html.defaultpages.notFound(request.method, request.uri)
-      case _ => views.html.defaultpages.devNotFound(request.method, request.uri, router)
+  protected def onNotFound(error: HttpClientError): Future[Result] = error.error match {
+    case _: String => Future.successful(NotFound(environment.mode match {
+      case Mode.Prod => views.html.defaultpages.notFound(error.request.method, error.request.uri)
+      case _ => views.html.defaultpages.devNotFound(error.request.method, error.request.uri, router)
     }))
+    case _ => Future.successful(error.asResult)
   }
 
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled by any of
    * the other methods in this class already.
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param error The error message.
    */
-  protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    Future.successful(Results.Status(statusCode)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
-  }
+  protected def onOtherClientError(error: HttpClientError): Future[Result] =
+    error.error match {
+      case message: String =>
+        Future.successful(Results.Status(error.statusCode)(views.html.defaultpages.badRequest(error.request.method, error.request.uri, message)))
+      case _ => Future.successful(error.asResult)
+    }
 
   /**
    * Invoked when a server error occurs.
@@ -261,11 +259,9 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
 
   private def errorHandler = Play.privateMaybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-    errorHandler.onClientError(request, statusCode, message)
+  def onError(error: HttpError[_]) =
+    errorHandler.onError(error)
 
-  def onServerError(request: RequestHeader, exception: Throwable) =
-    errorHandler.onServerError(request, exception)
 }
 
 /**
@@ -275,9 +271,5 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
 private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler) extends play.http.HttpErrorHandler {
   import play.core.Execution.Implicits.trampoline
 
-  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
-    FutureConverters.toJava(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
-
-  def onServerError(request: Http.RequestHeader, exception: Throwable) =
-    FutureConverters.toJava(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
+  override def onError(error: play.http.HttpError[_]): CompletionStage[play.mvc.Result] = FutureConverters.toJava(delegate.onError(error.asScala()).map(_.asJava))
 }

@@ -31,8 +31,9 @@ package play.api.controllers {
 
 package controllers {
 
-import akka.stream.scaladsl.{StreamConverters, Source}
+import akka.stream.scaladsl.{ Source, StreamConverters }
 import play.api.controllers.TrampolineContextProvider
+import play.api.http.{ HttpError, HttpServerError }
 
 object Execution extends TrampolineContextProvider
 
@@ -442,7 +443,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       assetInfoForRequest(request, name)
     } getOrElse Future.successful(None)
 
-    def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
+    def notFound = errorHandler.onError(HttpError.fromString(request, NOT_FOUND, "Resource not found by Assets controller"))
 
     val pendingResult: Future[Result] = assetInfoFuture.flatMap {
       case Some((assetInfo, gzipRequested)) =>
@@ -471,10 +472,10 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
     pendingResult.recoverWith {
       case e: InvalidUriEncodingException =>
-        errorHandler.onClientError(request, BAD_REQUEST, s"Invalid URI encoding for $file at $path: " + e.getMessage)
+        errorHandler.onError(HttpError.fromString(request, BAD_REQUEST, s"Invalid URI encoding for $file at $path: " + e.getMessage))
       case NonFatal(e) =>
         // Add a bit more information to the exception for better error reporting later
-        errorHandler.onServerError(request, new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e))
+        errorHandler.onError(new HttpServerError(request, new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e)))
     }
   }
 

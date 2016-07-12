@@ -9,6 +9,7 @@ import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api.Play
+import play.api.http.HttpError
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -18,7 +19,6 @@ import play.api.http.Status._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
-
 import play.core.Execution.Implicits.trampoline
 
 /**
@@ -213,7 +213,7 @@ object Multipart {
 
   private def createBadResult[A](msg: String, status: Int = BAD_REQUEST): RequestHeader => Future[Either[Result, A]] = { request =>
     Play.privateMaybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
-      _.errorHandler.onClientError(request, status, msg).map(Left(_)))
+      _.errorHandler.onError(HttpError.fromString(request, status, msg)).map(Left(_)))
   }
 
   private type RawPart = Either[Part[Unit], ByteString]

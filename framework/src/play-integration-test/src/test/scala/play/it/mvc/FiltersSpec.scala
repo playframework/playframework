@@ -6,16 +6,18 @@ package play.it.mvc
 import akka.stream.Materializer
 import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
+
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HttpError, HttpErrorHandler, HttpServerError, HttpClientError }
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
-import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
+import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
 import play.api.mvc._
 import play.api.test._
 import play.core.server.Server
 import play.it._
+
 import scala.concurrent.duration.Duration
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
@@ -205,10 +207,17 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     }
 
     object CustomErrorHandler extends HttpErrorHandler {
+      def onClientError(request: RequestHeader, statusCode: Int, error: HttpError[_]) = {
+        Future.successful(Results.NotFound(request.headers.get(filterAddedHeaderKey).getOrElse("undefined header")))
+      }
       def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
         Future.successful(Results.NotFound(request.headers.get(filterAddedHeaderKey).getOrElse("undefined header")))
       }
-      def onServerError(request: RequestHeader, exception: Throwable) = Future.successful(Results.InternalServerError)
+      def onError(error: HttpError[_]) = error match {
+        case clientError: HttpClientError =>
+          Future.successful(Results.NotFound(clientError.request.headers.get(filterAddedHeaderKey).getOrElse("undefined header")))
+        case _: HttpServerError => Future.successful(Results.InternalServerError)
+      }
     }
 
     "requests not matching a route should receive a RequestHeader modified by upstream filters" in withServer(errorHandler = Some(CustomErrorHandler))(CustomHeaderFilter) { ws =>

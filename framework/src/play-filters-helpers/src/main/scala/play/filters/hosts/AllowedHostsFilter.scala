@@ -5,7 +5,7 @@ package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import play.api.http.{ HttpErrorHandler, Status }
+import play.api.http.{ HttpError, HttpErrorHandler, Status }
 import play.api.inject.Module
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
@@ -29,7 +29,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
     if (hostMatchers.exists(_(req.host))) {
       next(req)
     } else {
-      Accumulator.done(errorHandler.onClientError(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}"))
+      Accumulator.done(errorHandler.onError(HttpError.fromString(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}")))
     }
   }
 }
