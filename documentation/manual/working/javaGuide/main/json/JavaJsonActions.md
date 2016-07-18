@@ -74,6 +74,23 @@ You can also return a Java object and have it automatically serialized to JSON b
 
 Because Play uses Jackson, you can use your own `ObjectMapper` to create `JsonNode`s. The [documentation for jackson-databind](https://github.com/FasterXML/jackson-databind/blob/master/README.md) explains how you can further customize JSON conversion process.
 
-If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you can create a custom [[`ApplicationLoader`|JavaApplication]]:
+If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you first need to disable the default `ObjectMapper` in your `application.conf`:
+ 
+```
+play.modules.disabled += "play.core.ObjectMapperModule"
+```
 
-@[custom-apploader-object-mapper](code/javaguide/json/JavaJsonCustomObjectMapper.java)
+Then you can create a custom `ObjectMapper`:
+
+@[custom-java-object-mapper](code/javaguide/json/JavaJsonCustomObjectMapper.java)
+
+and bind it via Guice:
+
+@[custom-java-object-mapper2](code/javaguide/json/JavaJsonCustomObjectMapperModule.java)
+
+Afterwards enable the Module:
+
+```
+play.modules.enabled += "path.to.JavaJsonCustomObjectMapperModule"
+```
+
