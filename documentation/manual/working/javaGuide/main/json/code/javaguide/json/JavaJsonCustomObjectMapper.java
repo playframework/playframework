@@ -13,20 +13,17 @@ import play.libs.Json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
+//#custom-java-object-mapper
 public class JavaJsonCustomObjectMapper {
 
-    //#custom-apploader-object-mapper
-    public class ObjectMapperApplicationLoader extends GuiceApplicationLoader {
-        @Override
-        public GuiceApplicationBuilder builder(Context context) {
-            ObjectMapper mapper = Json.newDefaultMapper()
-                    // enable features and customize the object mapper here ...
-                    .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                    // etc.
-            Json.setObjectMapper(mapper);
-            return super.builder(context);
-        }
+    JavaJsonCustomObjectMapper() {
+        ObjectMapper mapper = Json.newDefaultMapper()
+                // enable features and customize the object mapper here ...
+                .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        // etc.
+        Json.setObjectMapper(mapper);
     }
-    //#custom-apploader-object-mapper
+
 }
+//#custom-java-object-mapper
