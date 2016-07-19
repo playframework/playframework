@@ -47,8 +47,10 @@ public class ApplicationTest extends WithApplication {
   //#test-controller-routes
   @Test
   public void testCallIndex() {
+    //###replace: RequestBuilder request = fakeRequest("GET", "/");
     Result result = route(
       //###replace:     controllers.routes.HomeController.index(),
+      //###replace:     request
       javaguide.tests.controllers.routes.HomeController.index()
     );
     assertEquals(OK, result.status());
