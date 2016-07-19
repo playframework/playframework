@@ -266,7 +266,7 @@ private[mvc] object RangeSet {
         }
       }).getOrElse(
         header match {
-          case WithoutEntityLengthRangeSetPattern() => headerToRanges(entityLength, header)
+          case WithoutEntityLengthRangeSetPattern(_) => headerToRanges(entityLength, header)
           case _ => NoHeaderRangeSet(entityLength)
         }
       ).normalize

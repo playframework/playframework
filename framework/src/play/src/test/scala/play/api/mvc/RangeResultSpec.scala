@@ -320,7 +320,7 @@ object RangeSetSpec extends Specification {
     }
     "Satisfiable when both first-byte-pos and last-byte-pos are specified and first-byte-pos is less last-byte-pos" in {
       val rangeSet = RangeSet(entityLength = None, rangeHeader = Some("bytes=20-30,200-210"))
-      rangeSet must beAnInstanceOf[UnsatisfiableRangeSet]
+      rangeSet must beAnInstanceOf[SatisfiableRangeSet]
     }
   }
 }
@@ -379,6 +379,17 @@ object RangeResultSpec extends Specification {
       implicit val materializer = ActorMaterializer()
       val result = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
       mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5)))
+    }
+
+    "support last byte position without entity length" in {
+      val bytes: List[Byte] = List[Byte](1, 2, 3, 4, 5, 6)
+      val source = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _)) = RangeResult.ofSource(None, source, Some("bytes=2-4"), None, None)
+      headers must havePair("Content-Range" -> "bytes 2-4/*")
+      implicit val system = ActorSystem()
+      implicit val materializer = ActorMaterializer()
+      val result = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
+      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5, 6)))
     }
 
     "support sending path" in {
