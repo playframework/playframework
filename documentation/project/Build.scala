@@ -18,6 +18,7 @@ object ApplicationBuild extends Build {
     resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
+      "com.h2database" % "h2" % "1.4.191" % Test,
       "org.mockito" % "mockito-core" % "1.9.5" % "test"
     ),
 

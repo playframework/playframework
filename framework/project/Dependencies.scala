@@ -44,12 +44,10 @@ object Dependencies {
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
     "com.zaxxer" % "HikariCP" % "2.4.3",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
-    h2database,
+    h2database % Test,
     acolyte % Test,
     logback % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
-
-  val javaJdbcDeps = Seq(acolyte % Test)
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",

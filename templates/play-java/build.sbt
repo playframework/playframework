@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
   guiceSupport,
   javaJdbc,
   cache,
-  javaWs
+  javaWs,
+  "com.h2database" % "h2" % "1.4.191" % Test
 )

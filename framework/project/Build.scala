@@ -286,23 +286,22 @@ object PlayBuild extends Build {
     .settings(libraryDependencies += derbyDatabase % Test)
     .dependsOn(PlayJdbcApiProject)
     .dependsOn(PlaySpecs2Project % "test")
-    .dependsOn(PlayJdbcProject % "test")
+    .dependsOn(PlayJdbcProject % "test->test")
     .dependsOn(PlayJavaJdbcProject % "test")
 
   lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
-    .settings(libraryDependencies ++= javaJdbcDeps)
-    .dependsOn(PlayJdbcProject, PlayJavaProject)
+    .dependsOn(PlayJdbcProject % "compile->compile;test->test", PlayJavaProject)
     .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
   lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
     .settings(libraryDependencies ++= jpaDeps)
-    .dependsOn(PlayJavaJdbcProject)
+    .dependsOn(PlayJavaJdbcProject % "compile->compile;test->test")
     .dependsOn(PlayJdbcEvolutionsProject % "test")
     .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
     .settings(
-      libraryDependencies ++= testDependencies,
+      libraryDependencies ++= testDependencies ++ Seq(h2database % "test"),
       parallelExecution in Test := false
     ).dependsOn(
       PlayGuiceProject,
@@ -414,6 +413,7 @@ object PlayBuild extends Build {
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
     .settings(
+      libraryDependencies += h2database % Test,
       parallelExecution in Test := false,
       previousArtifacts := Set.empty
     )
