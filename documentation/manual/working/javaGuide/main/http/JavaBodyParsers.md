@@ -13,7 +13,7 @@ Most typical web apps will not need to use custom body parsers, they can simply 
 
 ### The default body parser
 
-The default body parser that's used if you do not explicitly select a body parser will look at the incoming `Content-Type` header, and parses the body accordingly.  So for example, a `Content-Type` of type `application/json` will be parsed as a `JsonNode`, while a `Content-Type` of `application/x-form-www-urlencoded` will be parsed as a `Map<String, String[]>`.
+The default body parser that's used if you do not explicitly select a body parser will look at the incoming `Content-Type` header, and parses the body accordingly.  So for example, a `Content-Type` of type `application/json` will be parsed as a `JsonNode`, while a `Content-Type` of `application/x-www-form-urlencoded` will be parsed as a `Map<String, String[]>`.
 
 The request body can be accessed through the `body()` method on [`Request`](api/java/play/mvc/Http.Request.html), and is wrapped in a [`RequestBody`](api/java/play/mvc/Http.RequestBody.html) object, which provides convenient accessors to the various types that the body could be.  For example, to access a JSON body:
 
@@ -24,7 +24,7 @@ The following is a mapping of types supported by the default body parser:
 - **`text/plain`**: `String`, accessible via `asText()`.
 - **`application/json`**: `com.fasterxml.jackson.databind.JsonNode`, accessible via `asJson()`.
 - **`application/xml`**, **`text/xml`** or **`application/XXX+xml`**: `org.w3c.Document`, accessible via `asXml()`.
-- **`application/form-url-encoded`**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`.
+- **`application/x-www-form-urlencoded`**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`.
 - **`multipart/form-data`**: [`MultipartFormData`](api/java/play/mvc/Http.MultipartFormData.html), accessible via `asMultipartFormData()`.
 - Any other content type: [`RawBuffer`](api/java/play/mvc/Http.RawBuffer.html), accessible via `asRaw()`.
 

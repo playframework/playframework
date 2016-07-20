@@ -32,7 +32,7 @@ import play.utils.PlayIO
 sealed trait AnyContent {
 
   /**
-   * application/form-url-encoded
+   * application/x-www-form-urlencoded
    */
   def asFormUrlEncoded: Option[Map[String, Seq[String]]] = this match {
     case AnyContentAsFormUrlEncoded(data) => Some(data)
