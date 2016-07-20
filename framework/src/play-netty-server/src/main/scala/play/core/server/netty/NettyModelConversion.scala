@@ -3,8 +3,9 @@
  */
 package play.core.server.netty
 
-import java.net.{ URI, InetSocketAddress }
+import java.net.{ InetSocketAddress, URI }
 import java.security.cert.X509Certificate
+import java.time.Instant
 import javax.net.ssl.SSLEngine
 import javax.net.ssl.SSLPeerUnverifiedException
 
@@ -20,7 +21,7 @@ import play.api.Logger
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.mvc._
-import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
+import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -299,7 +300,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       case (cachedSeconds, dateHeaderString) if cachedSeconds == currentTimeSeconds =>
         dateHeaderString
       case _ =>
-        val dateHeaderString = ResponseHeader.httpDateFormat.print(currentTimeMillis)
+        val dateHeaderString = ResponseHeader.httpDateFormat.format(Instant.ofEpochMilli(currentTimeMillis))
         cachedDateHeader = currentTimeSeconds -> dateHeaderString
         dateHeaderString
     }

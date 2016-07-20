@@ -10,7 +10,6 @@ import play.api.data.format.Formats._
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
-import org.joda.time.{ DateTime, LocalDate }
 
 object FormSpec extends Specification {
   "A form" should {
@@ -228,24 +227,6 @@ object FormSpec extends Specification {
 
   "render a form with max 18 fields" in {
     ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
-  }
-
-  "render form using jodaDate" in {
-    val dateForm = Form(("date" -> jodaDate))
-    val data = Map("date" -> "2012-01-01")
-    dateForm.bind(data).get mustEqual (new DateTime(2012, 1, 1, 0, 0))
-  }
-
-  "render form using jodaDate with format(30/1/2012)" in {
-    val dateForm = Form(("date" -> jodaDate("dd/MM/yyyy")))
-    val data = Map("date" -> "30/1/2012")
-    dateForm.bind(data).get mustEqual (new DateTime(2012, 1, 30, 0, 0))
-  }
-
-  "render form using jodaLocalDate with format(30/1/2012)" in {
-    val dateForm = Form(("date" -> jodaLocalDate("dd/MM/yyyy")))
-    val data = Map("date" -> "30/1/2012")
-    dateForm.bind(data).get mustEqual (new LocalDate(2012, 1, 30))
   }
 
   "reject input if it contains global errors" in {

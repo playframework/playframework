@@ -4,7 +4,6 @@
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
-import org.joda.time.LocalTime;
 import org.junit.Test;
 import play.Application;
 import play.data.DynamicForm;
@@ -21,6 +20,7 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.forms.u1.User;
 
 import java.text.ParseException;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -212,7 +212,7 @@ public class JavaForms extends WithApplication {
 
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
-        assertThat(obj.getTime(), equalTo(new LocalTime(23, 45)));
+        assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
         assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));
     }
 

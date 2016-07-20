@@ -6,9 +6,11 @@
 package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
+import java.security.{ KeyPairGenerator, SecureRandom }
+import java.time.Instant
+import java.time.temporal.{ ChronoUnit, TemporalUnit }
+import java.util.Date
 
-import java.security.{ SecureRandom, KeyPairGenerator }
-import org.joda.time.Instant
 import play.core.server.ssl.CertificateGenerator
 import sun.security.x509.AlgorithmId
 
@@ -20,13 +22,13 @@ object AlgorithmsSpec extends Specification {
     "show a keysize of 1024 for RSA" in {
       val dn = "cn=Common Name, ou=eng  ineering, o=company, c=US"
       val from = Instant.now
-      val to = from.plus(5000000)
+      val to = from.plus(5000000, ChronoUnit.MILLIS)
 
       // Use RSA with a SHA1 certificate signing algoirthm.
       val keyGen = KeyPairGenerator.getInstance("RSA")
       keyGen.initialize(1024, new SecureRandom())
       val pair = keyGen.generateKeyPair()
-      val cert = CertificateGenerator.generateCertificate(dn, pair, from.toDate, to.toDate, "SHA1WithRSA", AlgorithmId.sha1WithRSAEncryption_oid)
+      val cert = CertificateGenerator.generateCertificate(dn, pair, Date.from(from), Date.from(to), "SHA1WithRSA", AlgorithmId.sha1WithRSAEncryption_oid)
 
       // RSA is getModulus.bitLength
       keySize(cert.getPublicKey) must_== Some(1024)
@@ -35,13 +37,13 @@ object AlgorithmsSpec extends Specification {
     "show a keysize of 1024 for DSA" in {
       val dn = "cn=Common Name, ou=engineering, o=company, c=US"
       val from = Instant.now
-      val to = from.plus(5000000)
+      val to = from.plus(5000000, ChronoUnit.MILLIS)
 
       // Use RSA with a DSA certificate signing algoirthm.
       val keyGen = KeyPairGenerator.getInstance("DSA")
       keyGen.initialize(1024, new SecureRandom())
       val pair = keyGen.generateKeyPair()
-      val cert = CertificateGenerator.generateCertificate(dn, pair, from.toDate, to.toDate, "SHA1WithDSA", AlgorithmId.sha1WithDSA_oid)
+      val cert = CertificateGenerator.generateCertificate(dn, pair, Date.from(from), Date.from(to), "SHA1WithDSA", AlgorithmId.sha1WithDSA_oid)
 
       // DSA is getP.bitLength
       keySize(cert.getPublicKey) must_== Some(1024)

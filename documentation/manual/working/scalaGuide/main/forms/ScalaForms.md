@@ -76,8 +76,7 @@ The out of the box constraints are defined on the [Forms object](api/scala/play/
 * [`number`](api/scala/play/api/data/Forms$.html#number%3AMapping%5BInt%5D): maps to `scala.Int`, optionally takes `min`, `max`, and `strict`.
 * [`longNumber`](api/scala/play/api/data/Forms$.html#longNumber%3AMapping%5BLong%5D): maps to `scala.Long`, optionally takes `min`, `max`, and `strict`.
 * [`bigDecimal`](api/scala/play/api/data/Forms$.html#bigDecimal%3AMapping%5BBigDecimal%5D): takes `precision` and `scale`.
-* [`date`](api/scala/play/api/data/Forms$.html#date%3AMapping%5BDate%5D), [`sqlDate`](api/scala/play/api/data/Forms$.html#sqlDate%3AMapping%5BDate%5D), [`jodaDate`](api/scala/play/api/data/Forms$.html#jodaDate%3AMapping%5BDateTime%5D): maps to `java.util.Date`, `java.sql.Date` and `org.joda.time.DateTime`, optionally takes `pattern` and `timeZone`.
-* [`jodaLocalDate`](api/scala/play/api/data/Forms$.html#jodaLocalDate%3AMapping%5BLocalDate%5D): maps to `org.joda.time.LocalDate`, optionally takes `pattern`.
+* [`date`](api/scala/play/api/data/Forms$.html#date%3AMapping%5BDate%5D), [`sqlDate`](api/scala/play/api/data/Forms$.html#sqlDate%3AMapping%5BDate%5D): maps to `java.util.Date`, `java.sql.Date`, optionally takes `pattern` and `timeZone`.
 * [`email`](api/scala/play/api/data/Forms$.html#email%3AMapping%5BString%5D): maps to `scala.String`, using an email regular expression.
 * [`boolean`](api/scala/play/api/data/Forms$.html#boolean%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
 * [`checked`](api/scala/play/api/data/Forms$.html#checked%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.

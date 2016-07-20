@@ -3,8 +3,8 @@
  */
 package play.api
 
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.DateTimeZone
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
 
 /**
  * Contains standard HTTP constants.
@@ -17,5 +17,5 @@ import org.joda.time.DateTimeZone
  */
 package object http {
   /** HTTP date formatter, compliant to RFC 1123 */
-  val dateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID("GMT"))
+  val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(java.util.Locale.ENGLISH).withZone(ZoneId.of("GMT"))
 }

@@ -3,10 +3,11 @@
  */
 package controllers
 
+import java.time._
+
 import org.specs2.mutable.Specification
 import java.util.Date
-import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.DateTimeZone
+import java.time.format.DateTimeFormatter
 
 object AssetInfoSpec extends Specification {
 
@@ -15,8 +16,8 @@ object AssetInfoSpec extends Specification {
     def parseAndReformat(s: String): Option[String] = {
       val parsed: Option[Date] = AssetInfo.parseModifiedDate(s)
       parsed.map { date =>
-        val format = ISODateTimeFormat.dateTime.withZone(DateTimeZone.UTC)
-        format.print(date.getTime)
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.000z")
+          .format(ZonedDateTime.ofInstant(date.toInstant, ZoneOffset.UTC))
       }
     }
 

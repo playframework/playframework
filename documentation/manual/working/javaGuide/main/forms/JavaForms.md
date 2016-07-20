@@ -80,7 +80,7 @@ You can use a `DynamicForm` if you need to retrieve data from an html form that 
 
 In case you want to define a mapping from a custom object to a form field string and vice versa you need to register a new Formatter for this object.
 You can achieve this by registering a provider for `Formatters` which will do the proper initialization.
-For an object like JodaTime's `LocalTime` it could look like this:
+For an object like JavaTime's `LocalTime` it could look like this:
 
 @[register-formatter](code/javaguide/forms/FormattersProvider.java)
 
