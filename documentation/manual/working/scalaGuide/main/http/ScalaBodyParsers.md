@@ -27,7 +27,7 @@ Most typical web apps will not need to use custom body parsers, they can simply 
 
 ### The default body parser
 
-The default body parser that's used if you do not explicitly select a body parser will look at the incoming `Content-Type` header, and parses the body accordingly.  So for example, a `Content-Type` of type `application/json` will be parsed as a `JsValue`, while a `Content-Type` of `application/x-form-www-urlencoded` will be parsed as a `Map[String, Seq[String]]`.
+The default body parser that's used if you do not explicitly select a body parser will look at the incoming `Content-Type` header, and parses the body accordingly.  So for example, a `Content-Type` of type `application/json` will be parsed as a `JsValue`, while a `Content-Type` of `application/x-www-form-urlencoded` will be parsed as a `Map[String, Seq[String]]`.
 
 The default body parser produces a body of type [`AnyContent`](api/scala/play/api/mvc/AnyContent.html).  The various types supported by `AnyContent` are accessible via `as` methods, such as `asJson`, which returns an `Option` of the body type:
 
@@ -38,7 +38,7 @@ The following is a mapping of types supported by the default body parser:
 - **text/plain**: `String`, accessible via `asText`.
 - **application/json**: [`JsValue`](api/scala/play/api/libs/json/JsValue.html), accessible via `asJson`.
 - **application/xml**, **text/xml** or **application/XXX+xml**: `scala.xml.NodeSeq`, accessible via `asXml`.
-- **application/form-url-encoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
+- **application/x-www-form-urlencoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
 - **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.
 - Any other content type: [`RawBuffer`](api/scala/play/api/mvc/RawBuffer.html), accessible via `asRaw`.
 
