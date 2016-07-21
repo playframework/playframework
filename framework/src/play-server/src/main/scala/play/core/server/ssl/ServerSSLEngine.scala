@@ -11,7 +11,7 @@ import play.core.ApplicationProvider
 
 /**
  * This singleton object looks for a class of {{play.server.api.SSLEngineProvider}} or {{play.server.SSLEngineProvider}}
- * in the system property <pre>play.http.sslengineprovider</pre>.  if there is no instance found, it uses
+ * in the system property <pre>play.server.https.engineProvider</pre>.  if there is no instance found, it uses
  * DefaultSSLEngineProvider.
  *
  * If the class of {{SSLEngineProvider}} defined has a constructor with {{play.core.ApplicationProvider}} (for Scala) or
