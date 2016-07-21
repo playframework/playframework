@@ -333,14 +333,14 @@ Modify any `play.server.netty.option` keys to use the new keys defined in [Chann
 
 Java (`play.mvc.StatusHeader`) and Scala (`play.api.mvc.Results.Status`) APIs had the following behavior before:
 
-| API   | Method                                    | Default      |
-|:------|:------------------------------------------|:-------------|
-| Scala | `play.api.mvc.Results.StatussendResource` | `inline`     |
-| Scala | `play.api.mvc.Results.StatussendPath`     | `attachment` |
-| Scala | `play.api.mvc.Results.StatussendFile`     | `attachment` |
-| Java  | `play.mvc.StatusHeader.sendInputStream`   | `none`       |
-| Java  | `play.mvc.StatusHeader.sendResource`      | `inline`     |
-| Java  | `play.mvc.StatusHeader.sendPath`          | `attachment` |
-| Java  | `play.mvc.StatusHeader.sendFile`          | `inline`     |
+| API   | Method                                     | Default      |
+|:------|:-------------------------------------------|:-------------|
+| Scala | `play.api.mvc.Results.Status.sendResource` | `inline`     |
+| Scala | `play.api.mvc.Results.Status.sendPath`     | `attachment` |
+| Scala | `play.api.mvc.Results.Status.sendFile`     | `attachment` |
+| Java  | `play.mvc.StatusHeader.sendInputStream`    | `none`       |
+| Java  | `play.mvc.StatusHeader.sendResource`       | `inline`     |
+| Java  | `play.mvc.StatusHeader.sendPath`           | `attachment` |
+| Java  | `play.mvc.StatusHeader.sendFile`           | `inline`     |
 
 In other words, they were mixing `inline` and `attachment` modes when delivering files. Now, when delivering files, paths and resources uses `inline` as the default behavior. Of course, you can alternate between these two modes using the parameters present in these methods.
