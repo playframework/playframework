@@ -220,6 +220,19 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       new String(body.getElementsByTagName("name").item(0).getTextContent.getBytes("Windows-1252")) must_== isoString
     }
 
+    "send a multipart request body via setMultipartBody" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
+      val dp = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
+      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+
+      val res = ws.url("/post").setMultipartBody(source).setMethod("POST").execute()
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+      body.path("file").textValue() must_== "This is a test asset."
+    }
+
     class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
       def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
@@ -337,6 +350,18 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromFile(file))
       val source = Source(List(dp, fp))
       val res = ws.url("/post").post(source)
+      val body = await(res).json
+
+      (body \ "form" \ "hello").toOption must beSome(JsString("world"))
+      (body \ "file").toOption must beSome(JsString("This is a test asset."))
+    }
+
+    "send a multipart request body via withBody" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
+      val dp = MultipartFormData.DataPart("hello", "world")
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file.toPath))
+      val source = Source(List(dp, fp))
+      val res = ws.url("/post").withBody(source).withMethod("POST").execute()
       val body = await(res).json
 
       (body \ "form" \ "hello").toOption must beSome(JsString("world"))

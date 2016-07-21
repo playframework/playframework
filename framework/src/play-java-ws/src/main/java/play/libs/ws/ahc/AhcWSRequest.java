@@ -230,6 +230,14 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+        String boundary = MultipartFormatter.randomBoundary();
+        this.body = MultipartFormatter.transform(body, boundary);
+        setHeader("Content-Type", MultipartFormatter.boundaryToContentType(boundary));
+        return this;
+    }
+
+    @Override
     public String getUrl() {
         return this.url;
     }
@@ -319,7 +327,8 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
         setMethod("PATCH");
-        return executeWithBody(body);
+        setMultipartBody(body);
+        return execute();
     }
 
     //-------------------------------------------------------------------------
@@ -357,7 +366,8 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
         setMethod("POST");
-        return executeWithBody(body);
+        setMultipartBody(body);
+        return execute();
     }
 
     //-------------------------------------------------------------------------
@@ -395,7 +405,8 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
         setMethod("PUT");
-        return executeWithBody(body);
+        setMultipartBody(body);
+        return execute();
     }
 
     @Override
@@ -427,15 +438,6 @@ public class AhcWSRequest implements WSRequest {
             return ahcWsRequest.execute(ahcRequest);
         }, filters.iterator());
         return executor.apply(this);
-    }
-
-
-    private CompletionStage<WSResponse> executeWithBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
-        String boundary = MultipartFormatter.randomBoundary();
-        Source<ByteString, ?> innerBody = MultipartFormatter.transform(body, boundary);
-        setBody(innerBody);
-        setHeader("Content-Type", MultipartFormatter.boundaryToContentType(boundary));
-        return execute();
     }
 
     @Override

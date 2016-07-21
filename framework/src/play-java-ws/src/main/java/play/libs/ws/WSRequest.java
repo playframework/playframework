@@ -272,6 +272,11 @@ public interface WSRequest {
     WSRequest setBody(Source<ByteString,?> body);
 
     /**
+     * Set the multipart body this request should use.
+     */
+    WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+    /**
      * Adds a header to the request.  Note that duplicate headers are allowed
      * by the HTTP specification, and removing a header is not available
      * through this API.

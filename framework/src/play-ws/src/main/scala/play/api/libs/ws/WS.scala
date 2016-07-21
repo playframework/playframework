@@ -432,9 +432,9 @@ trait WSRequest {
   }
 
   /**
-   * Helper method for multipart body
+   * Sets a multipart body for this request
    */
-  private[libs] def withMultipartBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): WSRequest = {
+  def withBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): WSRequest = {
     val boundary = Multipart.randomBoundary()
     val contentType = s"multipart/form-data; boundary=$boundary"
     withBody(StreamedBody(Multipart.transform(body, boundary))).withHeaders("Content-Type" -> contentType)
@@ -466,7 +466,7 @@ trait WSRequest {
    * Perform a PATCH on the request asynchronously.
    */
   def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    withMethod("PATCH").withMultipartBody(body).execute()
+    withMethod("PATCH").withBody(body).execute()
   }
 
   /**
@@ -485,7 +485,7 @@ trait WSRequest {
    * Perform a POST on the request asynchronously.
    */
   def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    withMethod("POST").withMultipartBody(body).execute()
+    withMethod("POST").withBody(body).execute()
   }
 
   /**
@@ -504,7 +504,7 @@ trait WSRequest {
    * Perform a PUT on the request asynchronously.
    */
   def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    withMethod("PUT").withMultipartBody(body).execute()
+    withMethod("PUT").withBody(body).execute()
   }
 
   /**
