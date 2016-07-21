@@ -128,8 +128,6 @@ object Dependencies {
 
       "org.apache.commons" % "commons-lang3" % "3.4",
 
-      "xerces" % "xercesImpl" % "2.11.0",
-
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
 
