@@ -12,7 +12,7 @@ import javax.net.ssl.SSLEngine
  * If you want to specify your own SSL engine, define a class implementing this interface.  If the implementing class
  * takes ApplicationProvider in the constructor, then the applicationProvider is passed into it, if available.
  *
- * The path to this class should be configured with the system property <pre>play.http.sslengineprovider</pre>
+ * The path to this class should be configured with the system property <pre>play.server.https.engineProvider</pre>
  */
 trait SSLEngineProvider extends play.server.SSLEngineProvider {
 
