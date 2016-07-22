@@ -16,6 +16,7 @@ import play.api.mvc.MaxSizeNotExceeded$;
 import play.api.mvc.MaxSizeStatus;
 import play.core.j.JavaParsers;
 import play.core.parsers.FormUrlEncodedParser;
+import play.http.HttpError;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
@@ -366,7 +367,7 @@ public interface BodyParser<A> {
                   if (status instanceof MaxSizeNotExceeded$) {
                       return resultFuture;
                   } else {
-                      return errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
+                      return errorHandler.onError(HttpError.fromString(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large"))
                               .thenApply(F.Either::<Result, A>Left);
                   }
                })
@@ -405,7 +406,7 @@ public interface BodyParser<A> {
                 try {
                     return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
-                    return errorHandler.onClientError(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage())
+                    return errorHandler.onError(HttpError.fromString(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage()))
                             .thenApply(F.Either::<Result, A>Left);
                 }
             }, JavaParsers.trampoline());

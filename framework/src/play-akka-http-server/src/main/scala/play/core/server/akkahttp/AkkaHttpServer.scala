@@ -19,7 +19,7 @@ import java.net.InetSocketAddress
 import akka.http.scaladsl.settings.ServerSettings
 import akka.util.ByteString
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, HttpServerError }
 import play.api.libs.streams.{ Accumulator, MaterializeOnDemandPublisher }
 import play.api.mvc._
 import play.core.ApplicationProvider
@@ -170,7 +170,7 @@ class AkkaHttpServer(
         val actionWithErrorHandling = EssentialAction { rh =>
           import play.core.Execution.Implicits.trampoline
           action(rh).recoverWith {
-            case error => errorHandler.onServerError(taggedRequestHeader, error)
+            case error => errorHandler.onError(new HttpServerError(taggedRequestHeader, error))
           }
         }
         executeAction(request, taggedRequestHeader, requestBodySource, actionWithErrorHandling, errorHandler)

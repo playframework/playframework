@@ -225,15 +225,16 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
     "reject HTTP 1.0 requests for chunked results" in withServer(
       Results.Ok.chunked(Source(List("a", "b", "c"))),
       errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          request.path must_== "/"
-          exception must beLike {
-            case e: ServerResultException =>
-              // Check original result
-              e.result.header.status must_== 200
-          }
-          Future.successful(Results.Status(500))
+        override def onError(error: HttpError[_]): Future[Result] = error match {
+          case HttpServerError(request, exception) =>
+            request.path must_== "/"
+            exception must beLike {
+              case e: ServerResultException =>
+                // Check original result
+                e.result.header.status must_== 200
+            }
+            Future.successful(Results.Status(500))
+          case _ => ???
         }
       }
     ) { port =>
@@ -356,16 +357,17 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       // both colon and space characters are not allowed in a header's field name
       Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
       errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          request.path must_== "/"
-          exception must beLike {
-            case e: ServerResultException =>
-              // Check original result
-              e.result.header.status must_== 200
-              e.result.header.headers.get("BadFieldName: ") must beSome("SomeContent")
-          }
-          Future.successful(Results.Status(500))
+        override def onError(error: HttpError[_]): Future[Result] = error match {
+          case HttpServerError(request, exception) =>
+            request.path must_== "/"
+            exception must beLike {
+              case e: ServerResultException =>
+                // Check original result
+                e.result.header.status must_== 200
+                e.result.header.headers.get("BadFieldName: ") must beSome("SomeContent")
+            }
+            Future.successful(Results.Status(500))
+          case _ => ???
         }
       }
     ) { port =>
@@ -380,9 +382,10 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       // both colon and space characters are not allowed in a header's field name
       Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
       errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          throw new Exception("Failing on purpose :)")
+        override def onError(error: HttpError[_]): Future[Result] = error match {
+          case HttpServerError(request, exception) =>
+            throw new Exception("Failing on purpose :)")
+          case _ => ???
         }
       }
     ) { port =>

@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture
 import com.typesafe.config.Config
 import org.specs2.mutable.Specification
 import play.api.inject.BindingKey
-import play.api.mvc.{ RequestHeader, Results }
+import play.api.mvc.{ RequestHeader, Result, Results }
 import play.api.routing._
 import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
 import play.core.test.{ FakeRequest, Fakes }
@@ -23,23 +23,23 @@ object HttpErrorHandlerSpec extends Specification {
   "HttpErrorHandler" should {
     def sharedSpecs(errorHandler: HttpErrorHandler) = {
       "render a bad request" in {
-        await(errorHandler.onClientError(FakeRequest(), 400)).header.status must_== 400
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 400))).header.status must_== 400
       }
       "render forbidden" in {
-        await(errorHandler.onClientError(FakeRequest(), 403)).header.status must_== 403
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 403))).header.status must_== 403
       }
       "render not found" in {
-        await(errorHandler.onClientError(FakeRequest(), 404)).header.status must_== 404
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 404))).header.status must_== 404
       }
       "render a generic client error" in {
-        await(errorHandler.onClientError(FakeRequest(), 418)).header.status must_== 418
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 418))).header.status must_== 418
       }
       "refuse to render something that isn't a client error" in {
-        await(errorHandler.onClientError(FakeRequest(), 500)).header.status must throwAn[IllegalArgumentException]
-        await(errorHandler.onClientError(FakeRequest(), 399)).header.status must throwAn[IllegalArgumentException]
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 500))).header.status must throwAn[IllegalArgumentException]
+        await(errorHandler.onError(HttpError.fromString(FakeRequest(), 399))).header.status must throwAn[IllegalArgumentException]
       }
       "render a server error" in {
-        await(errorHandler.onServerError(FakeRequest(), new RuntimeException())).header.status must_== 500
+        await(errorHandler.onError(HttpServerError(FakeRequest(), new RuntimeException()))).header.status must_== 500
       }
     }
 
@@ -54,12 +54,12 @@ object HttpErrorHandlerSpec extends Specification {
     }
 
     "work with a custom scala handler" in {
-      val result = handler(classOf[CustomScalaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
+      val result = handler(classOf[CustomScalaErrorHandler].getName, Mode.Prod).onError(HttpError.fromString(FakeRequest(), 400))
       await(result).header.status must_== 200
     }
 
     "work with a custom java handler" in {
-      val result = handler(classOf[CustomJavaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
+      val result = handler(classOf[CustomJavaErrorHandler].getName, Mode.Prod).onError(HttpError.fromString(FakeRequest(), 400))
       await(result).header.status must_== 200
     }
 
@@ -79,16 +79,12 @@ object HttpErrorHandlerSpec extends Specification {
   }
 
   class CustomScalaErrorHandler extends HttpErrorHandler {
-    def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-      Future.successful(Results.Ok)
-    def onServerError(request: RequestHeader, exception: Throwable) =
+    override def onError(error: HttpError[_]): Future[Result] =
       Future.successful(Results.Ok)
   }
 
   class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
-    def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
-      CompletableFuture.completedFuture(play.mvc.Results.ok())
-    def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
+    override def onError(error: play.http.HttpError[_]) =
       CompletableFuture.completedFuture(play.mvc.Results.ok())
   }
 

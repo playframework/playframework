@@ -52,63 +52,85 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     }
 
     /**
-     * Invoked when a client error occurs, that is, an error in the 4xx series.
+     * Invoked when a error occurs.
      *
-     * @param request The request that caused the client error.
-     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-     * @param message The error message.
+     * @param error The error message.
      */
     @Override
-    public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
-        if (statusCode == 400) {
-            return onBadRequest(request, message);
-        } else if (statusCode == 403) {
-            return onForbidden(request, message);
-        } else if (statusCode == 404) {
-            return onNotFound(request, message);
-        } else if (statusCode >= 400 && statusCode < 500) {
-            return onOtherClientError(request, statusCode, message);
+    public CompletionStage<Result> onError(HttpError<?> error) {
+        if (error instanceof HttpServerError) {
+            return onServerError((HttpServerError)error);
+        } else if (error instanceof HttpClientError) {
+            return onClientError((HttpClientError)error);
         } else {
-            throw new IllegalArgumentException("onClientError invoked with non client error status code " + statusCode + ": " + message);
+            throw new IllegalStateException("HttpError needs to be either of type HttpServerError or of type HttpClientError");
+        }
+    }
+
+    /**
+     * Invoked when a client error occurs, that is, an error in the 4xx series.
+     *
+     * @param error The error.
+     */
+    public CompletionStage<Result> onClientError(HttpClientError error) {
+        if (error.statusCode() == 400) {
+            return onBadRequest(error);
+        } else if (error.statusCode() == 403) {
+            return onForbidden(error);
+        } else if (error.statusCode() == 404) {
+            return onNotFound(error);
+        } else if (error.statusCode() >= 400 && error.statusCode() < 500) {
+            return onOtherClientError(error);
+        } else {
+            throw new IllegalArgumentException("onClientError invoked with non client error status code " + error.statusCode() + ": " + error.error().toString());
         }
     }
 
     /**
      * Invoked when a client makes a bad request.
      *
-     * @param request The request that was bad.
-     * @param message The error message.
+     * @param error The error error.
      */
-    protected CompletionStage<Result> onBadRequest(RequestHeader request, String message) {
-        return CompletableFuture.completedFuture(Results.badRequest(views.html.defaultpages.badRequest.render(
-                request.method(), request.uri(), message
-        )));
+    protected CompletionStage<Result> onBadRequest(HttpClientError error) {
+        if (error.error() instanceof String) {
+            return CompletableFuture.completedFuture(Results.badRequest(views.html.defaultpages.badRequest.render(
+                    error.request().method(), error.request().uri(), (String)error.error()
+            )));
+        } else {
+            return CompletableFuture.completedFuture(error.asResult());
+        }
     }
 
     /**
      * Invoked when a client makes a request that was forbidden.
      *
-     * @param request The forbidden request.
-     * @param message The error message.
+     * @param error The error.
      */
-    protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
-        return CompletableFuture.completedFuture(Results.forbidden(views.html.defaultpages.unauthorized.render()));
+    protected CompletionStage<Result> onForbidden(HttpClientError error) {
+        if (error.error() instanceof String) {
+            return CompletableFuture.completedFuture(Results.forbidden(views.html.defaultpages.unauthorized.render()));
+        } else {
+            return CompletableFuture.completedFuture(error.asResult());
+        }
     }
 
     /**
      * Invoked when a handler or resource is not found.
      *
-     * @param request The request that no handler was found to handle.
-     * @param message A message.
+     * @param error The error.
      */
-    protected CompletionStage<Result> onNotFound(RequestHeader request, String message){
-        if (environment.isProd()) {
-            return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.notFound.render(
-                    request.method(), request.uri())));
+    protected CompletionStage<Result> onNotFound(HttpClientError error){
+        if (error.error() instanceof String) {
+            if (environment.isProd()) {
+                return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.notFound.render(
+                        error.request().method(), error.request().uri())));
+            } else {
+                return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.devNotFound.render(
+                        error.request().method(), error.request().uri(), Some.apply(routes.get())
+                )));
+            }
         } else {
-            return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.devNotFound.render(
-                    request.method(), request.uri(), Some.apply(routes.get())
-            )));
+            return CompletableFuture.completedFuture(error.asResult());
         }
     }
 
@@ -116,14 +138,16 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled
      * by any of the other methods in this class already.
      *
-     * @param request The request that caused the client error.
-     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-     * @param message The error message.
+     * @param error The error.
      */
-    protected CompletionStage<Result> onOtherClientError(RequestHeader request, int statusCode, String message) {
-        return CompletableFuture.completedFuture(Results.status(statusCode, views.html.defaultpages.badRequest.render(
-                request.method(), request.uri(), message
-        )));
+    protected CompletionStage<Result> onOtherClientError(HttpClientError error) {
+        if (error.error() instanceof String) {
+            return CompletableFuture.completedFuture(Results.status(error.statusCode(), views.html.defaultpages.badRequest.render(
+                    error.request().method(), error.request().uri(), (String)error.error()
+            )));
+        } else {
+            return CompletableFuture.completedFuture(error.asResult());
+        }
     }
 
     /**
@@ -133,21 +157,19 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * [[onDevServerError()]] in dev mode.  It is recommended, if you want Play's debug info on the error page in dev
      * mode, that you override [[onProdServerError()]] instead of this method.
      *
-     * @param request The request that triggered the server error.
      * @param exception The server error.
      */
-    @Override
-    public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception) {
+    public CompletionStage<Result> onServerError(HttpServerError exception) {
         try {
-            UsefulException usefulException = throwableToUsefulException(exception);
+            UsefulException usefulException = throwableToUsefulException(exception.error());
 
-            logServerError(request, usefulException);
+            logServerError(exception.request(), usefulException);
 
             switch (environment.mode()) {
                 case PROD:
-                    return onProdServerError(request, usefulException);
+                    return onProdServerError(exception.request(), usefulException);
                 default:
-                    return onDevServerError(request, usefulException);
+                    return onDevServerError(exception.request(), usefulException);
             }
         } catch (Exception e) {
             Logger.error("Error while handling error", e);

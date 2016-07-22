@@ -5,20 +5,20 @@ package play.core.j
 
 import javax.inject.Inject
 
-import play.api.http.HttpErrorHandler
-import play.api.mvc.RequestHeader
+import play.api.http.{ HttpError, HttpErrorHandler }
+import play.api.mvc.{ RequestHeader, Result }
 import play.http.{ HttpErrorHandler => JHttpErrorHandler }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.compat.java8.FutureConverters
+import scala.concurrent.Future
 
 /**
  * Adapter from a Java HttpErrorHandler to a Scala HttpErrorHandler
  */
 class JavaHttpErrorHandlerAdapter @Inject() (underlying: JHttpErrorHandler) extends HttpErrorHandler {
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
-    JavaHelpers.invokeWithContext(request, req => underlying.onClientError(req, statusCode, message))
+  override def onError(error: HttpError[_]): Future[Result] = {
+    FutureConverters.toScala(underlying.onError(error.asJava)).map(_.asScala())
   }
 
-  def onServerError(request: RequestHeader, exception: Throwable) = {
-    JavaHelpers.invokeWithContext(request, req => underlying.onServerError(req, exception))
-  }
 }

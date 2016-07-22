@@ -7,6 +7,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 import play.api.http.Status$;
+import play.http.HttpError;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.streams.Accumulator;
@@ -41,7 +42,7 @@ public class BodyParsers {
             return parser.apply(request);
         } else {
             CompletionStage<Result> result =
-                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
+                    errorHandler.onError(HttpError.fromString(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage));
             return Accumulator.done(result.thenApply(F.Either::Left));
         }
     }
