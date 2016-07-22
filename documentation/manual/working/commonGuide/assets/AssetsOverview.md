@@ -95,7 +95,7 @@ If your app is not running in `DEV` mode **and** a `jquery.min.js` or `jquery-mi
 ```
 
 This makes debugging of JavaScript files easier during development. Of course this not only works for JavaScript files but for any file extension.
-If you don't want Play to automatically resolve the `.min.*` or `-min.*` files, regardless of the mode your application is running in, you can set `assets.checkForMinified = false` in your `application.conf` (or to `true` to always resolve the min file, even in `DEV` mode).
+If you don't want Play to automatically resolve the `.min.*` or `-min.*` files, regardless of the mode your application is running in, you can set `play.assets.checkForMinified = false` in your `application.conf` (or to `true` to always resolve the min file, even in `DEV` mode).
 
 Note that we don’t specify the first `folder` parameter when we reverse the route. This is because our routes file defines a single mapping for the `Assets.at` action, where the `folder` parameter is fixed. So it doesn't need to be specified.
 
@@ -161,7 +161,7 @@ Using Etag is usually enough for the purposes of caching. However if you want to
 ```
 # Assets configuration
 # ~~~~~
-"assets.cache./public/stylesheets/bootstrap.min.css"="max-age=3600"
+"play.assets.cache./public/stylesheets/bootstrap.min.css"="max-age=3600"
 ```
 
 ## Managed assets
