@@ -271,7 +271,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified = config(_.getBoolean("play.assets.checkForMinified")).getOrElse(!isDev)
+  lazy val checkForMinified = config(_.getOptional[Boolean]("play.assets.checkForMinified")).getOrElse(!isDev)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
