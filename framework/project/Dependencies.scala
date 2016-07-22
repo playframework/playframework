@@ -8,7 +8,7 @@ object Dependencies {
 
   val akkaVersion = "2.4.8"
 
-  val specsVersion = "3.6.6"
+  val specsVersion = "3.8.3"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -25,7 +25,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.3")
+  ).map(_ % "2.7.5")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
@@ -34,7 +34,7 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.191"
+  val h2database = "com.h2database" % "h2" % "1.4.192"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.12.1.1"
 
   val acolyteVersion = "1.0.36-j7p"
@@ -42,7 +42,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.4.3",
+    "com.zaxxer" % "HikariCP" % "2.4.6",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -60,7 +60,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.2.5.RELEASE"
+  val springFrameworkVersion = "4.3.0.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -87,13 +87,13 @@ object Dependencies {
       .exclude("com.google.code.findbugs", "annotations"),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.4",
+    "net.jodah" % "typetools" % "0.4.6",
 
     guava,
     findBugs,
     logback % Test,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.5.3"
   ) ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -106,12 +106,12 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.9.3"
+  val jodatime = "joda-time" % "joda-time" % "2.9.4"
   val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
 
   val guiceDeps = Seq(
-    "com.google.inject" % "guice" % "4.0",
-    "com.google.inject.extensions" % "guice-assistedinject" % "4.0"
+    "com.google.inject" % "guice" % "4.1.0",
+    "com.google.inject.extensions" % "guice-assistedinject" % "4.1.0"
   )
 
   def runtime(scalaVersion: String) =
@@ -154,7 +154,7 @@ object Dependencies {
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
-    "commons-io" % "commons-io" % "2.4",
+    "commons-io" % "commons-io" % "2.5",
     specsMatcherExtra % Test,
     logback % Test
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
@@ -259,7 +259,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.12.2"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.13.1"     % Test
   )
 
   val playServerDependencies = Seq(
@@ -284,7 +284,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.2",
+    "org.asynchttpclient" % "async-http-client" % "2.0.6",
     logback % Test
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++

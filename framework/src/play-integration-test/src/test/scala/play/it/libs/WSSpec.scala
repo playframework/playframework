@@ -181,7 +181,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     "streaming a request body" in withEchoServer { ws =>
       val source = Source(List("a", "b", "c").map(ByteString.apply)).asJava
       val res = ws.url("/post").setMethod("POST").setBody(source).execute()
-      val body = res.toCompletableFuture.get().getBody
+      val body = res.toCompletableFuture.get(10, TimeUnit.SECONDS).getBody
 
       body must_== "abc"
     }
@@ -189,7 +189,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
       val source = Source.single(ByteString("abc")).asJava
       val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(source).execute()
-      val body = res.toCompletableFuture.get().getBody
+      val body = res.toCompletableFuture.get(10, TimeUnit.SECONDS).getBody
 
       body must_== s"Content-Length: 3; Transfer-Encoding: -1"
     }
@@ -197,7 +197,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     "sending a simple multipart form body" in withServer { ws =>
       val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava
       val res = ws.url("/post").post(source)
-      val body = res.toCompletableFuture.get().asJson()
+      val body = res.toCompletableFuture.get(10, TimeUnit.SECONDS).asJson()
 
       body.path("form").path("hello").textValue() must_== "world"
     }
