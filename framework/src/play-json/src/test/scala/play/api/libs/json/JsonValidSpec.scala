@@ -132,24 +132,9 @@ object JsonValidSpec extends Specification {
       Json.toJson[java.util.Date](dd).validate[java.util.Date] must beEqualTo(JsSuccess(dd))
       JsNumber(dd.getTime).validate[java.util.Date] must beEqualTo(JsSuccess(dd))
 
-      val dj = new org.joda.time.DateTime()
-      val dfj = org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd")
-      val ddj = org.joda.time.DateTime.parse(dfj.print(dj), dfj)
-
-      Json.toJson[org.joda.time.DateTime](ddj).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
-      JsNumber(ddj.getMillis).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
-
-      val ldj = org.joda.time.LocalDate.parse(dfj.print(dj), dfj)
-      Json.toJson[org.joda.time.LocalDate](ldj).validate[org.joda.time.LocalDate] must beEqualTo(JsSuccess(ldj))
-
       val ds = new java.sql.Date(dd.getTime())
-
-      val dtfj = org.joda.time.format.DateTimeFormat.forPattern("HH:mm:ss.SSS")
       Json.toJson[java.sql.Date](ds).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
       JsNumber(dd.getTime).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
-
-      val ltj = org.joda.time.LocalTime.parse(dtfj.print(dj), dtfj)
-      Json.toJson[org.joda.time.LocalTime](ltj).validate[org.joda.time.LocalTime] must beEqualTo(JsSuccess(ltj))
 
       // very poor test to do really crappy java date APIs
       // TODO ISO8601 test doesn't work on CI platform...

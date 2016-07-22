@@ -6,9 +6,9 @@ package play.api.mvc
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path, Paths }
+import java.time.{ LocalDateTime, ZoneOffset }
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.joda.time.{ DateTime, DateTimeZone }
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
@@ -67,7 +67,7 @@ object ResultsSpec extends Specification {
     "support date headers manipulation" in {
       val Result(ResponseHeader(_, headers, _), _) =
         Ok("hello").as("text/html").withDateHeaders(DATE ->
-          new DateTime(2015, 4, 1, 0, 0).withZoneRetainFields(DateTimeZone.UTC))
+          LocalDateTime.of(2015, 4, 1, 0, 0).atZone(ZoneOffset.UTC))
       headers must havePair(DATE -> "Wed, 01 Apr 2015 00:00:00 GMT")
     }
 

@@ -3,6 +3,7 @@
  */
 package play.api.cache
 
+import java.time.Instant
 import javax.inject.Inject
 
 import akka.stream.Materializer
@@ -169,7 +170,7 @@ final class CachedBuilder(
   private def handleResult(result: Result, etagKey: String, resultKey: String): Result = {
     cachingWithEternity.andThen { duration =>
       // Format expiration date according to http standard
-      val expirationDate = http.dateFormat.print(System.currentTimeMillis() + duration.toMillis)
+      val expirationDate = http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
       // Generate a fresh ETAG for it
       // Use quoted sha1 hash of expiration date as ETAG
       val etag = s""""${Codecs.sha1(expirationDate)}""""

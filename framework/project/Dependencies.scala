@@ -106,9 +106,6 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.9.3"
-  val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
-
   val guiceDeps = Seq(
     "com.google.inject" % "guice" % "4.0",
     "com.google.inject.extensions" % "guice-assistedinject" % "4.0"
@@ -123,8 +120,6 @@ object Dependencies {
       "commons-codec" % "commons-codec" % "1.10",
 
       guava,
-      jodatime,
-      jodaConvert,
 
       "org.apache.commons" % "commons-lang3" % "3.4",
 
@@ -250,8 +245,6 @@ object Dependencies {
   ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
 
   def jsonDependencies(scalaVersion: String) = Seq(
-    jodatime,
-    jodaConvert,
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     logback % Test) ++
   jacksons ++

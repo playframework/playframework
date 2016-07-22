@@ -3,10 +3,10 @@
  */
 package play.api.cache
 
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject._
 
-import org.joda.time.DateTime
 import play.api.cache.ehcache.EhCacheApi
 import play.api.{ Application, http }
 import play.api.mvc.{ Action, Results }
@@ -207,8 +207,8 @@ class CachedSpec extends PlaySpecification {
       val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
 
       def toDuration(header: String) = {
-        val now = DateTime.now().getMillis
-        val target = http.dateFormat.parseDateTime(header).getMillis
+        val now = Instant.now().toEpochMilli
+        val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
         Duration(target - now, MILLISECONDS)
       }
 

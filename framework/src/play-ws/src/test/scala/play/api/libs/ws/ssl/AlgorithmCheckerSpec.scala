@@ -6,9 +6,9 @@
 package play.api.libs.ws.ssl
 
 import java.security.cert.{ CertPathValidatorException, Certificate, X509Certificate }
+import java.time.{ Duration, Instant, LocalDateTime }
 import java.util.Collections._
 
-import org.joda.time.{ DateTime, Days, Instant }
 import org.specs2.mutable._
 import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
 import play.core.server.ssl.CertificateGenerator
@@ -45,16 +45,16 @@ object AlgorithmCheckerSpec extends Specification {
     }
 
     "neither info nor warning on a signature containing sha-1 that expires before 1 June 2016" in {
-      val oneHundredAndEightyDays = Days.days(180).toStandardDuration
+      val oneHundredAndEightyDays = Duration.ofDays(180)
       val certificate = CertificateGenerator.generateRSAWithSHA1(2048, from = Instant.parse("2015-06-01T12:00:00Z"), duration = oneHundredAndEightyDays)
 
       var infoCalled = false
       var warningCalled = false
       val checker = new AlgorithmChecker(Set.empty, Set.empty) {
-        override def infoOnSunset(x509Cert: X509Certificate, expirationDate: DateTime): Unit = {
+        override def infoOnSunset(x509Cert: X509Certificate, expirationDate: LocalDateTime): Unit = {
           infoCalled = true
         }
-        override def warnOnSunset(x509Cert: X509Certificate, expirationDate: DateTime): Unit = {
+        override def warnOnSunset(x509Cert: X509Certificate, expirationDate: LocalDateTime): Unit = {
           warningCalled = true
         }
       }
@@ -65,12 +65,12 @@ object AlgorithmCheckerSpec extends Specification {
     }
 
     "info on a signature containing sha-1 that expires between 1 June 2016 to 31 December 2016" in {
-      val thirtyDays = Days.days(30).toStandardDuration
+      val thirtyDays = Duration.ofDays(30)
       val certificate = CertificateGenerator.generateRSAWithSHA1(2048, from = Instant.parse("2016-06-01T12:00:00Z"), duration = thirtyDays)
 
       var infoCalled = false
       val checker = new AlgorithmChecker(Set.empty, Set.empty) {
-        override def infoOnSunset(x509Cert: X509Certificate, expirationDate: DateTime): Unit = {
+        override def infoOnSunset(x509Cert: X509Certificate, expirationDate: LocalDateTime): Unit = {
           infoCalled = true
         }
       }
@@ -80,12 +80,12 @@ object AlgorithmCheckerSpec extends Specification {
     }
 
     "warn on a signature containing sha-1 that expires after 2017" in {
-      val tenYears = Days.days(365 * 10).toStandardDuration
+      val tenYears = Duration.ofDays(365 * 10)
       val certificate = CertificateGenerator.generateRSAWithSHA1(2048, from = Instant.parse("2016-06-01T12:00:00Z"), duration = tenYears)
 
       var warningCalled = false
       val checker = new AlgorithmChecker(Set.empty, Set.empty) {
-        override def warnOnSunset(x509Cert: X509Certificate, expirationDate: DateTime): Unit = {
+        override def warnOnSunset(x509Cert: X509Certificate, expirationDate: LocalDateTime): Unit = {
           warningCalled = true
         }
       }

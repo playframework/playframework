@@ -5,6 +5,7 @@ package javaguide.forms;
 
 //#register-formatter
 import java.text.ParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,7 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.joda.time.LocalTime;
+import java.time.LocalTime;
 
 import play.data.format.Formatters;
 import play.data.format.Formatters.SimpleFormatter;
@@ -46,12 +47,12 @@ public class FormattersProvider implements Provider<Formatters> {
                 if (!m.find()) throw new ParseException("No valid Input", 0);
                 int hour = Integer.valueOf(m.group(1));
                 int min = m.group(2) == null ? 0 : Integer.valueOf(m.group(2));
-                return new LocalTime(hour, min);
+                return LocalTime.of(hour, min);
             }
 
             @Override
             public String print(LocalTime localTime, Locale l) {
-                return localTime.toString("HH:mm");
+                return localTime.format(DateTimeFormatter.ofPattern("HH:mm"));
             }
 
         });

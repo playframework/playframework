@@ -7,8 +7,7 @@ import play.api.libs._
 import java.io._
 import java.net.{JarURLConnection, URL, URLConnection}
 
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import org.joda.time.DateTimeZone
+import java.time.format.DateTimeFormatter
 import play.utils.{InvalidUriEncodingException, Resources, UriEncoding}
 
 import scala.concurrent.{ExecutionContext, Future, Promise, blocking}
@@ -31,7 +30,9 @@ package play.api.controllers {
 
 package controllers {
 
-import akka.stream.scaladsl.{StreamConverters, Source}
+import java.time._
+
+import akka.stream.scaladsl.{ Source, StreamConverters }
 import play.api.controllers.TrampolineContextProvider
 
 object Execution extends TrampolineContextProvider
@@ -109,9 +110,9 @@ private object AssetInfo {
   import ResponseHeader.basicDateFormatPattern
 
   val standardDateParserWithoutTZ: DateTimeFormatter =
-    DateTimeFormat.forPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC)
+    DateTimeFormatter.ofPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(ZoneOffset.UTC)
   val alternativeDateFormatWithTZOffset: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC).withOffsetParsed
+    DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z").withLocale(java.util.Locale.ENGLISH)
 
   /**
     * A regex to find two types of date format. This regex silently ignores any
@@ -125,19 +126,16 @@ private object AssetInfo {
     """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
       """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
 
-  /*
-   * jodatime does not parse timezones, so we handle that manually
-   */
   def parseModifiedDate(date: String): Option[Date] = {
     val matcher = dateRecognizer.matcher(date)
     if (matcher.matches()) {
       val standardDate = matcher.group(3)
       try {
         if (standardDate != null) {
-          Some(standardDateParserWithoutTZ.parseDateTime(standardDate).toDate)
+          Some(Date.from(ZonedDateTime.parse(standardDate, standardDateParserWithoutTZ).toInstant))
         } else {
           val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
-          Some(alternativeDateFormatWithTZOffset.parseDateTime(alternativeDate).toDate)
+          Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
         }
       } catch {
         case e: IllegalArgumentException =>
@@ -187,11 +185,11 @@ private class AssetInfo(
           } finally {
             Resources.closeUrlConnection(urlConnection)
           }
-      }.filterNot(_ == -1).map(httpDateFormat.print)
+      }.filterNot(_ == -1).map(millis => httpDateFormat.format(Instant.ofEpochMilli(millis)))
     }
 
     url.getProtocol match {
-      case "file" => Some(httpDateFormat.print(new File(url.toURI).lastModified))
+      case "file" => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
       case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
       case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
       case _ => None

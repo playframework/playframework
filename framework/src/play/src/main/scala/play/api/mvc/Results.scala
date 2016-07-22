@@ -5,11 +5,11 @@ package play.api.mvc
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path }
+import java.time.{ ZoneOffset, ZonedDateTime }
+import java.time.format.DateTimeFormatter
 
 import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
 import akka.util.ByteString
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.http.HeaderNames._
 import play.api.http._
 import play.api.i18n.{ Lang, MessagesApi }
@@ -51,9 +51,9 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
 object ResponseHeader {
   val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
   val httpDateFormat: DateTimeFormatter =
-    DateTimeFormat.forPattern(basicDateFormatPattern + " 'GMT'")
+    DateTimeFormatter.ofPattern(basicDateFormatPattern + " 'GMT'")
       .withLocale(java.util.Locale.ENGLISH)
-      .withZone(DateTimeZone.UTC)
+      .withZone(ZoneOffset.UTC)
 
   def apply(status: Int, headers: Map[String, String] = Map.empty, reasonPhrase: Option[String] = None): ResponseHeader =
     new ResponseHeader(status, headers)
@@ -89,9 +89,9 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @param headers the headers with a DateTime to add to this result.
    * @return the new result.
    */
-  def withDateHeaders(headers: (String, DateTime)*): Result = {
+  def withDateHeaders(headers: (String, ZonedDateTime)*): Result = {
     copy(header = header.copy(headers = header.headers ++ headers.map {
-      case (name, dateTime) => (name, ResponseHeader.httpDateFormat.print(dateTime.getMillis))
+      case (name, dateTime) => (name, dateTime.format(ResponseHeader.httpDateFormat))
     }))
   }
 
