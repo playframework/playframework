@@ -24,9 +24,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param controller The controller to be evaluated
  * @param method     The method to be evaluated
  */
-class JavaActionAnnotations(val controller: Class[_], val method: java.lang.reflect.Method) {
-  private def config: ActionCompositionConfiguration = HttpConfiguration.current.actionComposition
-
+class JavaActionAnnotations(val controller: Class[_], val method: java.lang.reflect.Method, config: ActionCompositionConfiguration) {
   val parser: Class[_ <: JBodyParser[_]] =
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
@@ -54,8 +52,8 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 /*
  * An action that's handling Java requests
  */
-abstract class JavaAction(components: JavaHandlerComponents) extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
-  private def config: ActionCompositionConfiguration = HttpConfiguration.current.actionComposition
+abstract class JavaAction(val components: JavaHandlerComponents) extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+  private def config: ActionCompositionConfiguration = components.httpConfiguration.actionComposition
 
   def invocation: CompletionStage[JResult]
   val annotations: JavaActionAnnotations
@@ -132,12 +130,17 @@ trait JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A
   def getAction[A <: JAction[_]](actionClass: Class[A]): A
   def actionCreator: play.http.ActionCreator
+  def httpConfiguration: HttpConfiguration
 }
 
 /**
  * The components necessary to handle a Java handler.
  */
-class DefaultJavaHandlerComponents @Inject() (injector: Injector, val actionCreator: play.http.ActionCreator) extends JavaHandlerComponents {
+class DefaultJavaHandlerComponents @Inject() (
+  injector: Injector,
+  val actionCreator: play.http.ActionCreator,
+  val httpConfiguration: HttpConfiguration
+) extends JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
   def getAction[A <: JAction[_]](actionClass: Class[A]): A = injector.instanceOf(actionClass)
 }

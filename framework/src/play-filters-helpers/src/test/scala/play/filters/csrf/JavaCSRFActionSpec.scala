@@ -28,7 +28,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
     def invocation = CompletableFuture.completedFuture(inv)
-    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method))
+    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), components.httpConfiguration.actionComposition)
   }
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
