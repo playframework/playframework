@@ -101,11 +101,11 @@ private object AssetInfo {
 
   lazy val defaultCharSet = config(_.getOptional[String]("default.charset")).getOrElse("utf-8")
 
-  lazy val defaultCacheControl = config(_.getOptional[String]("play.assets.defaultCache")).getOrElse("public, max-age=3600")
+  lazy val defaultCacheControl = config(_.getDeprecated[Option[String]]("play.assets.defaultCache", "assets.defaultCache")).getOrElse("public, max-age=3600")
 
-  lazy val aggressiveCacheControl = config(_.getOptional[String]("play.assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+  lazy val aggressiveCacheControl = config(_.getDeprecated[Option[String]]("play.assets.aggressiveCache", "assets.aggressiveCache")).getOrElse("public, max-age=31536000")
 
-  lazy val digestAlgorithm = config(_.getOptional[String]("play.assets.digest.algorithm")).getOrElse("md5")
+  lazy val digestAlgorithm = config(_.getDeprecated[Option[String]]("play.assets.digest.algorithm", "assets.digest.algorithm")).getOrElse("md5")
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -271,7 +271,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified = config(_.getOptional[Boolean]("play.assets.checkForMinified")).getOrElse(!isDev)
+  lazy val checkForMinified = config(_.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")).getOrElse(!isDev)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
