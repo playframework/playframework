@@ -5,12 +5,10 @@ package play.sbt
 
 import java.nio.file.Path
 
-import sbt._
-import sbt.Keys._
-
-import play.sbt.PlayInternalKeys._
-
 import com.typesafe.sbt.web.SbtWeb.autoImport._
+import play.sbt.PlayInternalKeys._
+import sbt.Keys._
+import sbt._
 
 object PlayCommands {
 
@@ -77,7 +75,9 @@ object PlayCommands {
       val h2ServerClass = commonLoader.loadClass("org.h2.tools.Server")
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
-      case e: Exception => e.printStackTrace
+      case _: ClassNotFoundException => state.log.error(s"""|H2 Dependency not loaded, please add H2 to your Classpath!
+                                                             |Take a look at https://www.playframework.com/documentation/${play.core.PlayVersion.current}/Developing-with-the-H2-Database#H2-database on how to do it.""".stripMargin)
+      case e: Exception => e.printStackTrace()
     }
     state
   }

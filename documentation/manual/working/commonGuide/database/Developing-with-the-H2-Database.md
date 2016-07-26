@@ -1,6 +1,12 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # H2 database
 
+> **Note:** From Play 2.6.x onwards you actually need to include the H2 Dependency on your own. To do this you just need to add the following to your build.sbt:
+>
+> ```
+> libraryDependencies += "com.h2database" % "h2" % "1.4.192"
+> ```
+
 The H2 in memory database is very convenient for development because your evolutions are run from scratch when play is restarted.  If you are using Anorm, you probably need it to closely mimic your planned production database.  To tell h2 that you want to mimic a particular database you add a parameter to the database url in your application.conf file, for example:
 
 ```
