@@ -5,7 +5,7 @@ Play provides a DSL for routers directly in code.  This DSL has many uses, inclu
 
 The DSL uses a path pattern syntax similar to Play's compiled routes files, extracting parameters out, and invoking actions implemented using lambdas.
 
-The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import tha static methods from [`Controller`](api/java/play/mvc/Controller.html), which includes factory methods for creating results, accessing the request, response and session.  So typically you will want at least the following imports:
+The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import the static methods from [`Controller`](api/java/play/mvc/Controller.html), which includes factory methods for creating results, accessing the request, response and session.  So typically you will want at least the following imports:
 
 @[imports](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
