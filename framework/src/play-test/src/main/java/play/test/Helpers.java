@@ -63,8 +63,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } else if (handler instanceof JavaHandler) {
             final play.api.inject.Injector injector = play.api.Play.current().injector();
             return invokeHandler(
-                ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
-                requestBuilder, timeout
+                    ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
+                    requestBuilder, timeout
             );
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
@@ -96,14 +96,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Calls a Callable which invokes a Controller or some other method with a Context
      */
     public static <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
-      try {
-        Context.current.set(new Context(requestBuilder));
-        return callable.call();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      } finally {
-        Context.current.remove();
-      }
+        try {
+            Context.current.set(new Context(requestBuilder));
+            return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            Context.current.remove();
+        }
     }
 
     /**
@@ -141,7 +141,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @return a map of String containing database config info.
      */
-    public static Map<String,String> inMemoryDatabase() {
+    public static Map<String, String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
 
@@ -150,7 +150,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @return a map of String containing database config info.
      */
-    public static Map<String,String> inMemoryDatabase(String name) {
+    public static Map<String, String> inMemoryDatabase(String name) {
         return inMemoryDatabase(name, Collections.<String, String>emptyMap());
     }
 
@@ -159,7 +159,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @return a map of String containing database config info.
      */
-    public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
+    public static Map<String, String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
     }
 
@@ -175,7 +175,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Extracts the content as a {@link akka.util.ByteString}.
-     *
+     * <p>
      * This method is only capable of extracting the content of results with strict entities. To extract the content of
      * results with streamed entities, use {@link #contentAsBytes(Result, Materializer)}.
      *
@@ -195,7 +195,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a {@link akka.util.ByteString}.
      *
      * @param result The result to extract the content from.
-     * @param mat The materializer to use to extract the body from the result stream.
+     * @param mat    The materializer to use to extract the body from the result stream.
      * @return The content of the result as a ByteString.
      */
     public static ByteString contentAsBytes(Result result, Materializer mat) {
@@ -205,8 +205,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Extracts the content as a {@link akka.util.ByteString}.
      *
-     * @param result The result to extract the content from.
-     * @param mat The materializer to use to extract the body from the result stream.
+     * @param result  The result to extract the content from.
+     * @param mat     The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a ByteString.
      */
@@ -242,7 +242,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Extracts the content as a String.
-     *
+     * <p>
      * This method is only capable of extracting the content of results with strict entities. To extract the content of
      * results with streamed entities, use {@link #contentAsString(Result, Materializer)}.
      *
@@ -259,19 +259,19 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      *
      * @param result The result to extract the content from.
-     * @param mat The materializer to use to extract the body from the result stream.
+     * @param mat    The materializer to use to extract the body from the result stream.
      * @return The content of the result as a String.
      */
     public static String contentAsString(Result result, Materializer mat) {
         return contentAsBytes(result, mat, DEFAULT_TIMEOUT)
-            .decodeString(result.charset().orElse("utf-8"));
+                .decodeString(result.charset().orElse("utf-8"));
     }
 
     /**
      * Extracts the content as a String.
      *
-     * @param result The result to extract the content from.
-     * @param mat The materializer to use to extract the body from the result stream.
+     * @param result  The result to extract the content from.
+     * @param mat     The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a String.
      */
@@ -284,9 +284,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result routeAndCall(RequestBuilder requestBuilder, long timeout) {
         try {
             return routeAndCall((Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
@@ -296,11 +296,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             return routes.route(request).map(handler ->
-                invokeHandler(handler, request, timeout)
+                    invokeHandler(handler, request, timeout)
             ).orElse(null);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
@@ -313,33 +313,33 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         try {
             Request request = requestBuilder.build();
             return router.route(request).map(handler ->
-                invokeHandler(handler, request, timeout)
+                    invokeHandler(handler, request, timeout)
             ).orElse(null);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
 
     public static Result route(Call call) {
-      return route(fakeRequest(call));
+        return route(fakeRequest(call));
     }
 
     public static Result route(Call call, long timeout) {
-      return route(fakeRequest(call), timeout);
+        return route(fakeRequest(call), timeout);
     }
 
     public static Result route(Application app, Call call) {
-      return route(app, fakeRequest(call));
+        return route(app, fakeRequest(call));
     }
 
     public static Result route(Application app, Call call, long timeout) {
-      return route(app, fakeRequest(call), timeout);
+        return route(app, fakeRequest(call), timeout);
     }
 
     public static Result route(RequestBuilder requestBuilder) {
-      return route(requestBuilder, DEFAULT_TIMEOUT);
+        return route(requestBuilder, DEFAULT_TIMEOUT);
     }
 
     public static Result route(RequestBuilder requestBuilder, long timeout) {
@@ -349,14 +349,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(Application app, RequestBuilder requestBuilder) {
-      return route(app, requestBuilder, DEFAULT_TIMEOUT);
+        return route(app, requestBuilder, DEFAULT_TIMEOUT);
     }
 
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
-      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
-          app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.body());
-      return wrapScalaResult(Scala.orNull(opt), timeout);
+        final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
+                app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.body());
+        return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
     /**
@@ -406,8 +406,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given Application.
      *
-     * @return the test server.
      * @param app the application.
+     * @return the test server.
      */
     public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);
@@ -415,6 +415,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server.
+     *
      * @return the test server.
      */
     public static TestServer testServer(int port) {
@@ -423,7 +424,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server.
-     *  @return the test server.
+     *
+     * @return the test server.
      */
     public static TestServer testServer(int port, Application app) {
         return new TestServer(port, app);
@@ -460,9 +462,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server, with a test browser.
      *
-     * @param server the test server.
+     * @param server    the test server.
      * @param webDriver the web driver class.
-     * @param block the block of code to execute.
+     * @param block     the block of code to execute.
      */
     public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Consumer<TestBrowser> block) {
         running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
@@ -471,9 +473,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server, with a test browser.
      *
-     * @param server the test server.
+     * @param server    the test server.
      * @param webDriver the web driver instance.
-     * @param block the block of code to execute.
+     * @param block     the block of code to execute.
      */
     public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
@@ -484,8 +486,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 startedServer = server;
                 browser = testBrowser(webDriver, (Integer) OptionConverters.toJava(server.config().port()).get());
                 block.accept(browser);
-            }
-            finally {
+            } finally {
                 if (browser != null) {
                     browser.quit();
                 }
@@ -497,7 +498,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     *  Creates a Test Browser.
+     * Creates a Test Browser.
      *
      * @return the test browser.
      */
@@ -507,7 +508,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
-     *  @return the test browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(int port) {
         return testBrowser(HTMLUNIT, port);
@@ -515,7 +517,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
-     *  @return the test browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
         return testBrowser(webDriver, Helpers$.MODULE$.testServerPort());
@@ -529,16 +532,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
         try {
             return new TestBrowser(webDriver, "http://localhost:" + port);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
 
     /**
      * Creates a Test Browser.
-     *  @return the test browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of, int port) {
         return new TestBrowser(of, "http://localhost:" + port);
@@ -546,7 +550,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
-     *  @return the test browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());
