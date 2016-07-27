@@ -23,8 +23,8 @@ trait AssetsSpec extends PlaySpecification
 
   "Assets controller" should {
 
-    val defaultCacheControl = Some("public, max-age=3600")
-    val aggressiveCacheControl = Some("public, max-age=31536000")
+    def defaultCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.defaultCache")
+    def aggressiveCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.aggressiveCache")
 
     def withServer[T](block: WSClient => T): T = {
       Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {

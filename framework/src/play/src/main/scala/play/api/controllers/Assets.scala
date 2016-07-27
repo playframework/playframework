@@ -32,7 +32,7 @@ package controllers {
 
 import java.time._
 
-import akka.stream.scaladsl.{ Source, StreamConverters }
+import akka.stream.scaladsl.StreamConverters
 import play.api.controllers.TrampolineContextProvider
 
 object Execution extends TrampolineContextProvider
@@ -85,10 +85,7 @@ private class SelfPopulatingMap[K, V] {
  */
 private object AssetInfo {
 
-  def config[T](lookup: Configuration => Option[T]): Option[T] = for {
-    app <- Play.maybeApplication
-    value <- lookup(app.configuration)
-  } yield value
+  def config[T](lookup: Configuration => T): Option[T] = Play.maybeApplication.map(app => lookup(app.configuration))
 
   def isDev = Play.maybeApplication.fold(false)(_.mode == Mode.Dev)
 
@@ -99,13 +96,13 @@ private object AssetInfo {
     resource <- app.resource(name)
   } yield resource
 
-  lazy val defaultCharSet = config(_.getOptional[String]("default.charset")).getOrElse("utf-8")
+  lazy val defaultCharSet = config(_.getDeprecated[String]("play.assets.default.charset", "default.charset")).getOrElse("utf-8")
 
-  lazy val defaultCacheControl = config(_.getOptional[String]("assets.defaultCache")).getOrElse("public, max-age=3600")
+  lazy val defaultCacheControl = config(_.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache")).getOrElse("public, max-age=3600")
 
-  lazy val aggressiveCacheControl = config(_.getOptional[String]("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+  lazy val aggressiveCacheControl = config(_.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache")).getOrElse("public, max-age=31536000")
 
-  lazy val digestAlgorithm = config(_.getOptional[String]("assets.digest.algorithm")).getOrElse("md5")
+  lazy val digestAlgorithm = config(_.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm")).getOrElse("md5")
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -164,7 +161,7 @@ private class AssetInfo(
   def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-  val configuredCacheControl = config(_.getOptional[String]("\"assets.cache." + name + "\""))
+  val configuredCacheControl = config(_.getOptional[String]("\"play.assets.cache." + name + "\"")).flatten
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {
@@ -232,13 +229,13 @@ private class AssetInfo(
   * algorithm is preferred:
   *
   * {{{
-  * "assets.digest.algorithm" = "sha1"
+  * "play.assets.digest.algorithm" = "sha1"
   * }}}
   *
   * You can set a custom Cache directive for a particular resource if needed. For example in your application.conf file:
   *
   * {{{
-  * "assets.cache./public/images/logo.png" = "max-age=3600"
+  * "play.assets.cache./public/images/logo.png" = "max-age=3600"
   * }}}
   *
   * You can use this controller in any application, just by declaring the appropriate route. For example:
@@ -271,7 +268,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified = config(_.getBoolean("assets.checkForMinified")).getOrElse(!isDev)
+  lazy val checkForMinified = config(_.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified").getOrElse(!isDev)).getOrElse(true)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
