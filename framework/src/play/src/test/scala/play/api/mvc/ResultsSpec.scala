@@ -9,12 +9,19 @@ import java.nio.file.{ Files, Path, Paths }
 import java.time.{ LocalDateTime, ZoneOffset }
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.{ Configuration, Environment, Play }
 import play.core.test._
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object ResultsSpec extends Specification {
 
@@ -230,6 +237,26 @@ object ResultsSpec extends Specification {
       val rh = Ok.sendPath(file)
 
       rh.body.contentLength must beSome(content.length)
+    }
+
+    "sendFile should honor onClose" in withFile { (file, fileName) =>
+      implicit val system = ActorSystem()
+      implicit val mat = ActorMaterializer()
+      try {
+        var fileSent = false
+        val res = Results.Ok.sendFile(file, onClose = () => {
+          fileSent = true
+        })
+
+        // Actually we need to wait until the Stream completes
+        Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
+        // and then we need to wait until the onClose completes
+        Thread.sleep(500)
+
+        fileSent must be_==(true)
+      } finally {
+        Await.ready(system.terminate(), 60.seconds)
+      }
     }
 
     "support redirects for reverse routed calls" in {

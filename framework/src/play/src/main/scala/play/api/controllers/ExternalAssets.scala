@@ -7,8 +7,9 @@ import javax.inject.Inject
 
 import play.api._
 import play.api.mvc._
-
 import java.io._
+
+import scala.concurrent.ExecutionContext
 
 /**
  * Controller that serves static resources from an external folder.
@@ -27,7 +28,7 @@ import java.io._
  * }}}
  *
  */
-class ExternalAssets @Inject() (environment: Environment) extends Controller {
+class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext) extends Controller {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
