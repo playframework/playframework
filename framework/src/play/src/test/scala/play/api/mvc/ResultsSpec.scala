@@ -266,5 +266,19 @@ object ResultsSpec extends Specification {
     "support redirects for reverse routed calls with custom statuses" in {
       Results.Redirect(Call("GET", "/path"), TEMPORARY_REDIRECT).header must_== Status(TEMPORARY_REDIRECT).withHeaders(LOCATION -> "/path").header
     }
+
+    "redirect with a fragment" in {
+      val url = "http://host:port/path?k1=v1&k2=v2"
+      val fragment = "my-fragment"
+      val expectedLocation = url + "#" + fragment
+      Results.Redirect(Call("GET", url, fragment)).header.headers.get(LOCATION) must_== Option(expectedLocation)
+    }
+
+    "redirect with a fragment and status" in {
+      val url = "http://host:port/path?k1=v1&k2=v2"
+      val fragment = "my-fragment"
+      val expectedLocation = url + "#" + fragment
+      Results.Redirect(Call("GET", url, fragment), 301).header.headers.get(LOCATION) must_== Option(expectedLocation)
+    }
   }
 }
