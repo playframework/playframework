@@ -13,6 +13,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.http.HeaderNames._
 import play.api.http._
 import play.api.i18n.{ Lang, MessagesApi }
+import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.core.utils.CaseInsensitiveOrdered
@@ -403,7 +404,7 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
+      sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
     }
 
     /**
@@ -414,7 +415,10 @@ trait Results {
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
     def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      streamFile(FileIO.fromFile(content.toFile), fileName(content), Files.size(content), inline)
+      val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
+        onClose()
+      }(Execution.defaultContext))
+      streamFile(io, fileName(content), Files.size(content), inline)
     }
 
     /**
