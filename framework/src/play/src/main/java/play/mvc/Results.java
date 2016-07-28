@@ -1778,7 +1778,7 @@ public class Results {
      * @return the result
      */
     public static Result movedPermanently(Call call) {
-        return new Result(MOVED_PERMANENTLY, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(MOVED_PERMANENTLY, Collections.singletonMap(LOCATION, call.path()));
     }
 
     /**
@@ -1798,7 +1798,7 @@ public class Results {
      * @return the result
      */
     public static Result found(Call call) {
-        return new Result(FOUND, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(FOUND, Collections.singletonMap(LOCATION, call.path()));
     }
 
     /**
@@ -1818,7 +1818,7 @@ public class Results {
      * @return the result
      */
     public static Result seeOther(Call call) {
-        return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.path()));
     }
 
     /**
@@ -1838,7 +1838,7 @@ public class Results {
      * @return the result
      */
     public static Result redirect(Call call) {
-        return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, call.path()));
     }
 
     /**
@@ -1858,7 +1858,7 @@ public class Results {
      * @return the result
      */
     public static Result temporaryRedirect(Call call) {
-        return new Result(TEMPORARY_REDIRECT, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(TEMPORARY_REDIRECT, Collections.singletonMap(LOCATION, call.path()));
     }
 
     /**
@@ -1878,7 +1878,7 @@ public class Results {
      * @return the result
      */
     public static Result permanentRedirect(Call call) {
-        return new Result(PERMANENT_REDIRECT, Collections.singletonMap(LOCATION, call.url()));
+        return new Result(PERMANENT_REDIRECT, Collections.singletonMap(LOCATION, call.path()));
     }
 
 }
