@@ -17,6 +17,7 @@ import play.core.utils.CaseInsensitiveOrdered
 import play.utils.UriEncoding
 
 import scala.collection.immutable.TreeMap
+import scala.concurrent.ExecutionContext
 
 /**
  * A simple HTTP response header, used for standard responses.
@@ -400,8 +401,8 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      streamFile(FileIO.fromFile(content), fileName(content), content.length, inline)
+    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(implicit ec: ExecutionContext): Result = {
+      sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
     }
 
     /**
@@ -411,8 +412,11 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      streamFile(FileIO.fromFile(content.toFile), fileName(content), Files.size(content), inline)
+    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ())(implicit ec: ExecutionContext): Result = {
+      val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
+        onClose()
+      })
+      streamFile(io, fileName(content), Files.size(content), inline)
     }
 
     /**

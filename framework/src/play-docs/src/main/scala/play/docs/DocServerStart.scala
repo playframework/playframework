@@ -13,6 +13,8 @@ import play.core.server._
 import scala.concurrent.Future
 import scala.util.Success
 
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 /**
  * Used to start the documentation server.
  */
