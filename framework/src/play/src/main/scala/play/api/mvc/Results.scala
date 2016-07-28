@@ -650,6 +650,6 @@ trait Results {
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
+  def Redirect(call: Call, status: Int): Result = Redirect(call.path, Map.empty, status)
 
 }
