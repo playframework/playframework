@@ -9,8 +9,9 @@ import java.util.Optional
 import akka.util.ByteString
 import org.specs2.mutable._
 
+import play.api.http.HeaderNames
 import play.api.http.HttpEntity.Strict
-import play.api.mvc.{ Cookie, Results }
+import play.api.mvc.{ Call, Cookie, Results }
 
 /**
  *
@@ -51,6 +52,13 @@ object ResultSpec extends Specification {
       val contentType = s"text/plain;charset=$charset"
       val javaResult = Results.Ok.sendEntity(new Strict(ByteString.fromString("foo", charset), Some(contentType))).asJava
       javaResult.charset() must_== Optional.of(charset)
+    }
+
+    "redirect with a fragment" in {
+      val url = "http://host:port/path?k1=v1&k2=v2"
+      val fragment = "my-fragment"
+      val expectedLocation = url + "#" + fragment
+      Results.Redirect(Call("GET", url, fragment)).header.headers.get(HeaderNames.LOCATION) must_== Option(expectedLocation)
     }
   }
 }
