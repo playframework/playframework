@@ -1019,7 +1019,7 @@ public class Results {
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
     public static Result redirect(Call call) {
-        return new Redirect(303, call.url());
+        return new Redirect(303, call.path());
     }
 
     // -- Found
@@ -1039,7 +1039,7 @@ public class Results {
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
     public static Result found(Call call) {
-        return new Redirect(302, call.url());
+        return new Redirect(302, call.path());
     }
 
     // -- Moved Permanently
@@ -1059,7 +1059,7 @@ public class Results {
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
     public static Result movedPermanently(Call call) {
-        return new Redirect(301, call.url());
+        return new Redirect(301, call.path());
     }
 
     // -- See Other
@@ -1079,7 +1079,7 @@ public class Results {
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
     public static Result seeOther(Call call) {
-        return new Redirect(303, call.url());
+        return new Redirect(303, call.path());
     }
 
     // -- Temporary Redirect
@@ -1099,7 +1099,7 @@ public class Results {
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
     public static Result temporaryRedirect(Call call) {
-        return new Redirect(307, call.url());
+        return new Redirect(307, call.path());
     }
 
     // -- Definitions
