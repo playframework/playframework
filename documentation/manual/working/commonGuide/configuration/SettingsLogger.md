@@ -60,7 +60,6 @@ Here's an example of configuration that uses a rolling file appender, as well as
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
             <fileNamePattern>application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -73,7 +72,6 @@ Here's an example of configuration that uses a rolling file appender, as well as
     </appender>
 
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with compression -->
             <fileNamePattern>access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
