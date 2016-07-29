@@ -201,7 +201,7 @@ object Logger extends LoggerLike {
     val properties = Map("application.home" -> rootPath.getAbsolutePath)
     val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
     val resourceUrl = Option(Logger.getClass.getClassLoader.getResource(resourceName))
-    configure(properties, resourceUrl)
+    configure(properties, resourceUrl, Option(mode))
   }
 
   /**
@@ -231,13 +231,15 @@ object Logger extends LoggerLike {
 
     val configUrl = explicitResourceUrl orElse explicitFileUrl orElse resourceUrl
 
-    configure(properties, configUrl)
+    configure(properties, configUrl, Option(env.mode))
   }
 
   /**
    * Reconfigures the underlying logback infrastructure.
    */
-  def configure(properties: Map[String, String], config: Option[URL]): Unit = synchronized {
+  def configure(properties: Map[String, String], config: Option[URL]): Unit = configure(properties, config, None)
+
+  def configure(properties: Map[String, String], config: Option[URL], mode: Option[Mode.Mode]): Unit = synchronized {
     // Redirect JUL -> SL4FJ
     {
       import org.slf4j.bridge._
@@ -256,13 +258,18 @@ object Logger extends LoggerLike {
       import org.slf4j._
 
       import ch.qos.logback.classic.joran._
+      import ch.qos.logback.core._
       import ch.qos.logback.core.util._
       import ch.qos.logback.classic._
 
       val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
       val configurator = new JoranConfigurator
       configurator.setContext(ctx)
-      ctx.reset()
+      try {
+        ctx.reset()
+      } catch {
+        case cme: java.util.ConcurrentModificationException => // ignore
+      }
 
       // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
       // logging
@@ -288,8 +295,8 @@ object Logger extends LoggerLike {
       }
 
       StatusPrinter.printIfErrorsOccured(ctx)
-      if (!new StatusUtil(ctx).isErrorFree(0)) {
-        throw new RuntimeException("One or more errors were found during logback configuration; see above. The application will not be started.")
+      if (!new StatusUtil(ctx).isErrorFree(0) && mode.map(_ != Mode.Test).getOrElse(true)) {
+        throw new LogbackException("One or more errors were found during logback configuration; see above. The application will not be started.")
       }
     }
 
