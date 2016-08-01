@@ -42,6 +42,8 @@ A very simple request handler that simply delegates to a router might look like 
 
 @[simple](code/javaguide/http/SimpleHttpRequestHandler.java)
 
+Note that we need to inject `JavaHandlerComponents` and call `handler.withComponents` for the Java handler. This is required for Java actions to work. This will also be handled for you automatically if you extend `DefaultHttpRequestHandler` and call `super.handlerForRequest()`.
+
 Note that `HttpRequestHandler` currently has two legacy methods with default implementations that have since been moved to `ActionCreator`.
 
 ### Configuring the http request handler
