@@ -10,6 +10,7 @@ import play.api.mvc.{Action, Request}
 import play.core.j.{DefaultJavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultActionCreator
 import play.mvc.{Controller, Http, Result}
+import play.api.http.HttpConfiguration
 import play.api.test.Helpers
 import java.lang.reflect.Method
 
@@ -17,11 +18,11 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   self =>
 
   private lazy val components = new DefaultJavaHandlerComponents(
-    play.api.Play.current.injector, new DefaultActionCreator
+    play.api.Play.current.injector, new DefaultActionCreator, HttpConfiguration()
   )
 
   private lazy val action = new JavaAction(components) {
-    val annotations = new JavaActionAnnotations(controller, method)
+    val annotations = new JavaActionAnnotations(controller, method, components.httpConfiguration.actionComposition)
 
     def parser = {
       play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(

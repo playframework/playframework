@@ -8,6 +8,7 @@ import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
+import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.core.j
 import play.core.j.{JavaHelpers, JavaActionAnnotations, JavaHandler, JavaHandlerComponents}
@@ -119,16 +120,22 @@ object HandlerInvokerFactory {
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
     def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
       val cachedHandlerTags = handlerTags(handlerDef)
-      val cachedAnnotations = {
-        val controller = loadJavaControllerClass(handlerDef)
-        val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
-        new JavaActionAnnotations(controller, method)
+      private[this] var _annotations: JavaActionAnnotations = null
+      def cachedAnnotations(config: ActionCompositionConfiguration) = {
+        if (_annotations == null) {
+          _annotations = {
+            val controller = loadJavaControllerClass(handlerDef)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method, config)
+          }
+        }
+        _annotations
       }
       def call(call: => A): Handler = new JavaHandler {
         def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
-          val annotations = cachedAnnotations
+          val annotations = cachedAnnotations(components.httpConfiguration.actionComposition)
           val parser = {
-            val javaParser = components.getBodyParser(cachedAnnotations.parser)
+            val javaParser = components.getBodyParser(annotations.parser)
             javaBodyParserToScala(javaParser)
           }
           def invocation: CompletionStage[JResult] = resultCall(call)

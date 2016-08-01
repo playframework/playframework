@@ -29,7 +29,7 @@ object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
     val components = app.injector.instanceOf[JavaHandlerComponents]
     new JavaAction(components) {
-      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
+      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), components.httpConfiguration.actionComposition)
       val parser = HandlerInvokerFactory.javaBodyParserToScala(components.getBodyParser(annotations.parser))
       def invocation = c.invocation
     }
