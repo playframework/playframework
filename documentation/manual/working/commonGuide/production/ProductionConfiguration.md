@@ -104,6 +104,17 @@ my.key = ${?MY_KEY_ENV}
 
 Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no value for `MY_KEY_ENV`, but if you set an environment variable `MY_KEY_ENV` for example, it would be used.
 
+Because you can reference variables from within other variables, ensure you don't name your environmental variable the same as the field name.
+
+For example:
+
+```
+MY_TOKEN = foo
+MY_TOKEN = ${?MY_TOKEN} # Will reference the previous line, NOT your environmentally set variable
+```
+
+
+
 ### Server configuration options
 
 Play's default HTTP server implementation is Netty, and this provides a large number of ways to tune and configure the server, including the size of parser buffers, whether keep alive is used, and so on.
