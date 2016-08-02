@@ -113,14 +113,26 @@ For more detailed information, see the Play Framework 2.x tutorial at the follow
 
 Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page.  This will link to runtime exceptions thrown when Play is running development mode.
 
-> NOTE: Play can only display runtime exceptions, and compilation errors (even involving Twirl templates or routes) cannot be displayed in an error page. 
+You can easily navigate from error pages to IntelliJ directly into the source code, by using IntelliJ's "remote file" REST API with the built in IntelliJ web server on port 63342.
 
-You can easily navigate from error pages to IntelliJ directly into the source code, by installing the [Remote Call IntelliJ plugin](https://github.com/Zolotov/RemoteCall).
-
-Install the Remote Call plugin and run your app with the following options:
+Enable the following line in `application.conf` to provide hyperlinks:
 
 ```
--Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s -Dapplication.mode=dev
+play.editor="http://localhost:63342/api/file/?file=%s&line=%s"
+```
+
+You can also set play.editor from `build.sbt`:
+
+```
+fork := true // required for "sbt run" to pick up javaOptions
+
+javaOptions += "-Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s"
+```
+
+or set the PLAY_EDITOR environment variable:
+
+```
+PLAY_EDITOR="http://localhost:63342/api/file/?file=%s&line=%s"
 ```
 
 ## Netbeans
