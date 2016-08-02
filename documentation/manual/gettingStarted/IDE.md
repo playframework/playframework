@@ -129,6 +129,12 @@ fork := true // required for "sbt run" to pick up javaOptions
 javaOptions += "-Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s"
 ```
 
+or set the PLAY_EDITOR environment variable:
+
+```
+PLAY_EDITOR="http://localhost:63342/api/file/?file=%s&line=%s"
+```
+
 ## Netbeans
 
 ### Generate Configuration
