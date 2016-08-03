@@ -278,6 +278,36 @@ object JsonSpec extends org.specs2.mutable.Specification {
       parse(stringify(json)) must equalTo(json)
     }
 
+    "Write BigDecimals with large exponents in scientific notation" in {
+      val n = BigDecimal("1.2e1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "1.2E+1000"
+    }
+
+    "Write negative BigDecimals with large exponents in scientific notation" in {
+      val n = BigDecimal("-2.5e1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "-2.5E+1000"
+    }
+
+    "Write BigDecimals with large negative exponents in scientific notation" in {
+      val n = BigDecimal("6.75e-1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "6.75E-1000"
+    }
+
+    "Write BigDecimals with small exponents as a plain string" in {
+      val n = BigDecimal("1.234e3")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "1234"
+    }
+
+    "Write BigDecimals with small negative exponents as a plain string" in {
+      val n = BigDecimal("1.234e-3")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "0.001234"
+    }
+
     "Not lose precision when parsing big integers" in {
       // By big integers, we just mean integers that overflow long, since Jackson has different code paths for them
       // from decimals
