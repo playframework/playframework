@@ -25,7 +25,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.6")
+  ).map(_ % "2.7.3")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
@@ -34,7 +34,7 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.192"
+  val h2database = "com.h2database" % "h2" % "1.4.191"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.12.1.1"
 
   val acolyteVersion = "1.0.36-j7p"
@@ -42,7 +42,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.4.7",
+    "com.zaxxer" % "HikariCP" % "2.4.3",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -60,7 +60,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.2.7.RELEASE"
+  val springFrameworkVersion = "4.2.5.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -229,7 +229,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.2.4"    % "webjars",
+    "org.webjars" % "jquery"   % "2.2.0"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
@@ -252,7 +252,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.12.5"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.12.2"     % Test
   )
 
   val playServerDependencies = Seq(
@@ -277,7 +277,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.11",
+    "org.asynchttpclient" % "async-http-client" % "2.0.2",
     logback % Test
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
