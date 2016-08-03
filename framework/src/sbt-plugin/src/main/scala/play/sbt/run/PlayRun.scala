@@ -14,9 +14,8 @@ import play.sbt.PlayImport._
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.Colors
-import play.core.{ Build, BuildLink, BuildDocHandler }
-import play.runsupport.classloader._
-import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
+import play.core.BuildLink
+import play.runsupport.{ AssetsClassLoader, Reloader }
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys.executableScriptName
