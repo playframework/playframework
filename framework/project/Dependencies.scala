@@ -25,7 +25,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.5")
+  ).map(_ % "2.7.6")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
@@ -42,7 +42,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.4.6",
+    "com.zaxxer" % "HikariCP" % "2.4.7",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database,
     acolyte % Test,
@@ -62,7 +62,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.2.6.RELEASE"
+  val springFrameworkVersion = "4.2.7.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -235,7 +235,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.2.2"    % "webjars",
+    "org.webjars" % "jquery"   % "2.2.4"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
@@ -291,7 +291,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.6",
+    "org.asynchttpclient" % "async-http-client" % "2.0.11",
     logback % Test
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
