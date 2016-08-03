@@ -91,6 +91,23 @@ To upload a file you need to pass a `play.api.mvc.MultipartFormData.FilePart[Sou
 
 @[multipart-encoded2](code/ScalaWSSpec.scala)
 
+To upload arbitrary data like a json part you can pass it to a `play.api.mvc.MultipartFormData.SourcePart`:
+
+@[multipart-encoded3-encoding](code/ScalaWSSpec.scala)
+
+@[multipart-encoded3](code/ScalaWSSpec.scala)
+
+This will generate something like the following:
+
+```
+--boundary
+Content-Disposition: form-data; name="key"
+Content-Type: application/json
+
+{"hello":"world"}
+--boundary--
+```
+
 ### Submitting JSON data
 
 The easiest way to post JSON data is to use the [[JSON|ScalaJson]] library.

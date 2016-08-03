@@ -28,6 +28,8 @@ public class MultipartFormatter {
             if (part instanceof Http.MultipartFormData.DataPart) {
                 Http.MultipartFormData.DataPart dp = (Http.MultipartFormData.DataPart) part;
                 return (MultipartFormData.Part) new MultipartFormData.DataPart(dp.getKey(), dp.getValue());
+            } else if (part instanceof Http.MultipartFormData.SourcePart) {
+                return ((Http.MultipartFormData.SourcePart)part).asScala();
             } else if (part instanceof Http.MultipartFormData.FilePart) {
                 Http.MultipartFormData.FilePart fp = (Http.MultipartFormData.FilePart) part;
                 if (fp.file instanceof Source) {

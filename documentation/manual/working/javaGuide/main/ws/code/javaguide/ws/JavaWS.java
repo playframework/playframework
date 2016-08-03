@@ -134,6 +134,15 @@ public class JavaWS {
             ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
             // #ws-post-multipart2
 
+            // #ws-post-multipart3
+            Source<ByteString, ?> multipartJson = Source.single(Json.newObject()
+                    .put("hello", "world").toString())
+                    .map(ByteString::fromString);
+            Optional<String> contentType = Optional.of("application/json");
+            SourcePart sp = new SourcePart("key", multipartJson, contentType);
+            ws.url(url).post(Source.from(Collections.singletonList(sp)));
+            // #ws-post-multipart3
+
             String value = IntStream.range(0,100).boxed().
                 map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
             ByteString seedValue = ByteString.fromString(value);

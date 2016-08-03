@@ -13,7 +13,7 @@ import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
 import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 import play.api.http.Port
-import play.api.libs.json.JsString
+import play.api.libs.json.{ JsString, Json }
 import play.api.libs.oauth._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Results.Ok
@@ -23,6 +23,7 @@ import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication
 import play.mvc.Http
+import scala.compat.java8.OptionConverters._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -202,6 +203,15 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       body.path("form").path("hello").textValue() must_== "world"
     }
 
+    "sending a json multipart form body" in withServer { ws =>
+      val contentType = Option("application/json").asJava
+      val source = new Http.MultipartFormData.SourcePart("key", Source.single("""{"hello":"world"}""").map(ByteString.fromString).asJava, contentType)
+      val res = ws.url("/post").post(Source.single(source).asJava)
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("key").textValue() must_== """{"hello":"world"}"""
+    }
+
     "sending a multipart form body" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
       val dp = new Http.MultipartFormData.DataPart("hello", "world")
@@ -354,6 +364,15 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
       (body \ "form" \ "hello").toOption must beSome(JsString("world"))
       (body \ "file").toOption must beSome(JsString("This is a test asset."))
+    }
+
+    "send a multipart request body with json" in withServer { ws =>
+      val json = Source.single(Json.stringify(Json.obj("hello" -> "world"))).map(ByteString.apply)
+      val sp = MultipartFormData.SourcePart("hello", json, Option("application/json"), None, None, None)
+      val res = ws.url("/post").post(Source.single(sp))
+      val body = await(res).json
+
+      (body \ "form" \ "hello").toOption must beSome(JsString("""{"hello":"world"}"""))
     }
 
     "send a multipart request body via withBody" in withServer { ws =>

@@ -1515,6 +1515,89 @@ public class Http {
 
         }
 
+        public static class SourcePart implements Part<Source<ByteString, ?>> {
+            private final String key;
+            private final Source<ByteString, ?> value;
+            private final Optional<String> contentType;
+            private final Optional<String> charset;
+            private final Optional<String> transferEncoding;
+            private final Optional<String> contentId;
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> contentType) {
+                this(key, value, contentType, Optional.empty(),
+                        Optional.empty(), Optional.empty());
+            }
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> contentType,
+                              Optional<String> charset) {
+                this(key, value, contentType, charset,
+                        Optional.empty(), Optional.empty());
+            }
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> contentType,
+                              Optional<String> charset,
+                              Optional<String> transferEncoding) {
+                this(key, value, contentType, charset,
+                        transferEncoding, Optional.empty());
+            }
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> contentType,
+                              Optional<String> charset,
+                              Optional<String> transferEncoding,
+                              Optional<String> contentId) {
+                this.key = key;
+                this.value = value;
+                this.contentType = contentType;
+                this.charset = charset;
+                this.transferEncoding = transferEncoding;
+                this.contentId = contentId;
+            }
+
+            public String getKey() {
+                return key;
+            }
+
+            public Source<ByteString, ?> getValue() {
+                return value;
+            }
+
+            public Optional<String> getContentType() {
+                return contentType;
+            }
+
+            public Optional<String> getCharset() {
+                return charset;
+            }
+
+            public Optional<String> getTransferEncoding() {
+                return transferEncoding;
+            }
+
+            public Optional<String> getContentId() {
+                return contentId;
+            }
+
+            public play.api.mvc.MultipartFormData.SourcePart asScala() {
+                return new play.api.mvc.MultipartFormData.SourcePart(
+                        key,
+                        value.asScala(),
+                        OptionConverters.toScala(contentType),
+                        OptionConverters.toScala(charset),
+                        OptionConverters.toScala(transferEncoding),
+                        OptionConverters.toScala(contentId)
+                );
+            }
+
+        }
+
         public static class DataPart implements Part<Source<ByteString, ?>> {
             private final String key;
             private final String value;
