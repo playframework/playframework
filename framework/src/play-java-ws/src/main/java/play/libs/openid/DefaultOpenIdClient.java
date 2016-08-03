@@ -24,34 +24,22 @@ public class DefaultOpenIdClient implements OpenIdClient {
         this.client = client;
     }
 
-    /**
-     * Retrieve the URL where the user should be redirected to start the OpenID authentication process
-     */
     @Override
     public CompletionStage<String> redirectURL(String openID, String callbackURL) {
         return redirectURL(openID, callbackURL, null, null, null);
     }
 
-    /**
-     * Retrieve the URL where the user should be redirected to start the OpenID authentication process
-     */
     @Override
     public CompletionStage<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
         return redirectURL(openID, callbackURL, axRequired, null, null);
     }
 
-    /**
-     * Retrieve the URL where the user should be redirected to start the OpenID authentication process
-     */
     @Override
     public CompletionStage<String> redirectURL(
             String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional) {
         return redirectURL(openID, callbackURL, axRequired, axOptional, null);
     }
 
-    /**
-     * Retrieve the URL where the user should be redirected to start the OpenID authentication process
-     */
     @Override
     public CompletionStage<String> redirectURL(
             String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional, String realm) {
@@ -64,9 +52,6 @@ public class DefaultOpenIdClient implements OpenIdClient {
                 Scala.Option(realm)));
     }
 
-    /**
-     * Check the identity of the user from the current request, that should be the callback from the OpenID server
-     */
     @Override
     public CompletionStage<UserInfo> verifiedId(Http.RequestHeader request) {
         scala.concurrent.Future<UserInfo> scalaPromise = client.verifiedId(request.queryString()).map(
@@ -79,9 +64,6 @@ public class DefaultOpenIdClient implements OpenIdClient {
         return FutureConverters.toJava(scalaPromise);
     }
 
-    /**
-     * Check the identity of the user from the current request, that should be the callback from the OpenID server
-     */
     @Override
     public CompletionStage<UserInfo> verifiedId() {
         return verifiedId(Http.Context.current().request());

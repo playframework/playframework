@@ -17,7 +17,7 @@ public class ValidationError {
     private List<Object> arguments;
 
     /**
-     * Constructs a new <code>ValidationError</code>.
+     * Constructs a new {@code ValidationError}.
      *
      * @param key the error key
      * @param message the error message
@@ -27,7 +27,7 @@ public class ValidationError {
     }
     
     /**
-     * Constructs a new <code>ValidationError</code>.
+     * Constructs a new {@code ValidationError}.
      *
      * @param key the error key
      * @param message the error message
@@ -40,7 +40,7 @@ public class ValidationError {
     }
 
     /**
-     * Constructs a new <code>ValidationError</code>.
+     * Constructs a new {@code ValidationError}.
      *
      * @param key the error key
      * @param messages the list of error messages
@@ -54,6 +54,8 @@ public class ValidationError {
 
     /**
      * Returns the error key.
+     *
+     * @return the error key of the message.
      */
     public String key() {
         return key;
@@ -61,6 +63,8 @@ public class ValidationError {
 
     /**
      * Returns the error message.
+     *
+     * @return the last message in the list of messages.
      */
     public String message() {
         return messages.get(messages.size()-1);
@@ -68,6 +72,8 @@ public class ValidationError {
 
     /**
      * Returns the error messages.
+     *
+     * @return a list of messages.
      */
     public List<String> messages() {
         return messages;
@@ -75,6 +81,8 @@ public class ValidationError {
 
     /**
      * Returns the error arguments.
+     *
+     * @return a list of error arguments.
      */
     public List<Object> arguments() {
         return arguments;

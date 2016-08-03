@@ -33,14 +33,17 @@ public class Constraints {
     public static abstract class Validator<T> {
 
         /**
-         * Returns <code>true</code> if this value is valid.
+         * Returns {@code true} if this value is valid.
+         *
+         * @return {@code true} if this value is valid.
          */
         public abstract boolean isValid(T object);
 
         /**
-         * Returns <code>true</code> if this value is valid for the given constraint.
+         * Returns {@code true} if this value is valid for the given constraint.
          *
          * @param constraintContext The JSR-303 validation context.
+         * @return {@code true} if this value is valid for the given constraint.
          */
         public boolean isValid(T object, ConstraintValidatorContext constraintContext) {
             return isValid(object);
@@ -53,6 +56,10 @@ public class Constraints {
     /**
      * Converts a set of constraints to human-readable values.
      * Does not guarantee the order of the returned constraints.
+     *
+     * This method calls {@code displayableConstraint} under the hood.
+     *
+     * @return a list of pairs of tuples assembled from displayableConstraint.
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
         return constraints.parallelStream().filter(c -> c.getAnnotation().annotationType().isAnnotationPresent(Display.class)).map(c -> displayableConstraint(c)).collect(Collectors.toList());
@@ -72,6 +79,8 @@ public class Constraints {
     
     /**
      * Converts a constraint to a human-readable value.
+     *
+     * @return A tuple containing the constraint's display name and the constraint attributes.
      */
     public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
         final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
@@ -94,7 +103,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@Required</code> fields.
+     * Validator for {@code @Required} fields.
      */
     public static class RequiredValidator extends Validator<Object> implements ConstraintValidator<Required, Object> {
 
@@ -148,7 +157,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@Min</code> fields.
+     * Validator for {@code @Min} fields.
      */
     public static class MinValidator extends Validator<Number> implements ConstraintValidator<Min, Number> {
 
@@ -181,6 +190,9 @@ public class Constraints {
 
     /**
      * Constructs a 'min' validator.
+     *
+     * @param value the minimum value
+     * @return a validator for number.
      */
     public static Validator<Number> min(long value) {
         return new MinValidator(value);
@@ -236,6 +248,9 @@ public class Constraints {
 
     /**
      * Constructs a 'max' validator.
+     *
+     * @param value maximum value
+     * @return a validator using MaxValidator.
      */
     public static Validator<Number> max(long value) {
         return new MaxValidator(value);
@@ -258,7 +273,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@MinLength</code> fields.
+     * Validator for {@code @MinLength} fields.
      */
     public static class MinLengthValidator extends Validator<String> implements ConstraintValidator<MinLength, String> {
 
@@ -313,7 +328,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@MaxLength</code> fields.
+     * Validator for {@code @MaxLength} fields.
      */
     public static class MaxLengthValidator extends Validator<String> implements ConstraintValidator<MaxLength, String> {
 
@@ -367,7 +382,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@Email</code> fields.
+     * Validator for {@code @Email} fields.
      */
     public static class EmailValidator extends Validator<String> implements ConstraintValidator<Email, String> {
 
@@ -418,7 +433,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@Pattern</code> fields.
+     * Validator for {@code @Pattern} fields.
      */
     public static class PatternValidator extends Validator<String> implements ConstraintValidator<Pattern, String> {
 
@@ -471,7 +486,7 @@ public class Constraints {
     }
 
     /**
-     * Validator for <code>@ValidateWith</code> fields.
+     * Validator for {@code @ValidateWith} fields.
      */
     public static class ValidateWithValidator extends Validator<Object> implements ConstraintValidator<ValidateWith, Object> {
 

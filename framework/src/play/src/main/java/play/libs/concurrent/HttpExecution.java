@@ -20,6 +20,8 @@ public class HttpExecution {
      * An ExecutionContext that executes work on the given ExecutionContext. The
      * current thread's context ClassLoader and Http.Context are captured when
      * this method is called and preserved for all executed tasks.
+     *
+     * @return the execution context.
      */
     public static ExecutionContextExecutor fromThread(ExecutionContext delegate) {
         return HttpExecutionContext.fromThread(delegate);
@@ -29,6 +31,8 @@ public class HttpExecution {
      * An ExecutionContext that executes work on the given ExecutionContext. The
      * current thread's context ClassLoader and Http.Context are captured when
      * this method is called and preserved for all executed tasks.
+     *
+     * @return the execution context.
      */
     public static ExecutionContextExecutor fromThread(Executor delegate) {
         return HttpExecutionContext.fromThread(delegate);
@@ -39,6 +43,8 @@ public class HttpExecution {
      * ActorSystem dispatcher. The current thread's context ClassLoader and
      * Http.Context are captured when this method is called and preserved
      * for all executed tasks.
+     *
+     * @return the execution context.
      */
     public static ExecutionContextExecutor defaultContext() {
         return HttpExecutionContext.fromThread(Execution.internalContext());

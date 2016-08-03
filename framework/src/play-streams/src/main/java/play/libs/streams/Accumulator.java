@@ -23,14 +23,14 @@ import java.util.function.Function;
  * Accumulates inputs asynchronously into an output value.
  *
  * An accumulator is a view over an Akka streams Sink that materialises to a future, that is focused on the value of
- * that future, rather than the Stream. This means methods such as <code>map</code>, <code>recover</code> and so on are
+ * that future, rather than the Stream. This means methods such as {@code map}, {@code recover} and so on are
  * provided for the eventually redeemed future value.
  *
  * In order to be in line with the Java ecosystem, the future implementation that this uses for the materialised value
  * of the Sink is java.util.concurrent.CompletionStage, and running this accumulator will yield a CompletionStage. The
  * constructor allows an accumulator to be created from such a sink. Many methods in the Akka streams API however
- * materialise a scala.concurrent.Future, hence the <code>fromSink</code> method is provided to create an accumulator
- * from a typical Akka streams <code>Sink</code>.
+ * materialise a scala.concurrent.Future, hence the {@code fromSink} method is provided to create an accumulator
+ * from a typical Akka streams {@code Sink}.
  */
 public abstract class Accumulator<E, A> {
 
@@ -39,6 +39,7 @@ public abstract class Accumulator<E, A> {
     /**
      * Map the accumulated value.
      *
+     * @param <B> the mapped value type
      * @param f The function to perform the map with.
      * @param executor The executor to run the function in.
      * @return A new accumulator with the mapped value.
@@ -48,6 +49,7 @@ public abstract class Accumulator<E, A> {
     /**
      * Map the accumulated value with a function that returns a future.
      *
+     * @param <B> the mapped value type
      * @param f The function to perform the map with.
      * @param executor The executor to run the function in.
      * @return A new accumulator with the mapped value.
@@ -75,6 +77,7 @@ public abstract class Accumulator<E, A> {
     /**
      * Pass the stream through the given flow before forwarding it to the accumulator.
      *
+     * @param <D> the "In" type for the flow parameter.
      * @param flow The flow to send the stream through first.
      * @return A new accumulator with the given flow in its graph.
      */
@@ -114,6 +117,8 @@ public abstract class Accumulator<E, A> {
     /**
      * Create an accumulator from an Akka streams sink.
      *
+     * @param <E> the "in" type of the sink parameter.
+     * @param <A> the materialized result of the accumulator.
      * @param sink The sink.
      * @return An accumulator created from the sink.
      */

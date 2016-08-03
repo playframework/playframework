@@ -11,7 +11,7 @@ import akka.Done
 import scala.concurrent.Future
 
 /**
- * Utilities for
+ * Utilities for Akka Streams merging and bypassing of packets.
  */
 object AkkaStreams {
 

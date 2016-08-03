@@ -38,6 +38,9 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
 
     /**
      * Get the EntityManager stack.
+     *
+     * @param threadLocalFallback if true, fall back to a ThreadLocal queue of entity managers if no HTTP.Context object is found.
+     * @return the queue of entity managers.
      */
     @SuppressWarnings("unchecked")
     public Deque<EntityManager> emStack(boolean threadLocalFallback) {
@@ -82,6 +85,8 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      * is non-null, then em is pushed onto the stack and becomes the current EntityManager.
      *
      * @deprecated use push or pop methods
+     * @param em the entity manager to push, if null then will pop one off the stack.
+     * @param threadLocalFallback if true, fall back to a ThreadLocal queue of entity managers if no HTTP.Context object is found.
      */
     @Deprecated
     public void pushOrPopEm(EntityManager em, boolean threadLocalFallback) {

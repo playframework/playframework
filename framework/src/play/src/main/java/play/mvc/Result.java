@@ -27,6 +27,9 @@ public class Result {
 
     /**
      * Create a result from a Scala ResponseHeader and a body.
+     *
+     * @param header the response header
+     * @param body the response body.
      */
     public Result(ResponseHeader header, HttpEntity body) {
         this.header = header;
@@ -134,6 +137,7 @@ public class Result {
     /**
      * Extracts an Header value of this Result value.
      *
+     * @param header the header name.
      * @return the header (if it was set)
      */
     public Optional<String> header(String header) {
@@ -204,6 +208,7 @@ public class Result {
     /**
      * Extracts a Cookie value from this Result value
      *
+     * @param name the cookie's name.
      * @return the cookie (if it was set)
      */
     public Cookie cookie(String name) {
@@ -219,6 +224,11 @@ public class Result {
         return JavaResultExtractor.getCookies(header);
     }
 
+    /**
+     * Returns a copy of this result with the given cookies.
+     * @param cookies the cookies to add to the result.
+     * @return the transformed copy.
+     */
     public Result withCookies(Cookie... cookies) {
         return new Result(JavaResultExtractor.withCookies(header, cookies), body);
     }
@@ -226,6 +236,8 @@ public class Result {
     /**
      * Return a copy of this result with the given header.
      *
+     * @param name the header name
+     * @param value the header value
      * @return the transformed copy
      */
     public Result withHeader(String name, String value) {
@@ -235,6 +247,11 @@ public class Result {
     /**
      * Return a copy of this result with the given headers.
      *
+     * The headers are processed in pairs, so nameValues(0) is the first header's name, and
+     * nameValues(1) is the first header's value, nameValues(2) is second header's name,
+     * and so on.
+     *
+     * @param nameValues the array of names and values.
      * @return the transformed copy
      */
     public Result withHeaders(String... nameValues) {
@@ -244,6 +261,7 @@ public class Result {
     /**
      * Return a copy of the result with a different Content-Type header.
      *
+     * @param contentType the content type to set
      * @return the transformed copy
      */
     public Result as(String contentType) {
