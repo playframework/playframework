@@ -5,7 +5,7 @@ package play.api.inject
 
 import java.util.concurrent.{ CompletionStage, Callable }
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
 
 import scala.compat.java8.FutureConverters
@@ -71,7 +71,7 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle extends ApplicationLifecycle {
+class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
   private val mutex = new Object()
   @volatile private var hooks = List.empty[() => Future[_]]
 

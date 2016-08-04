@@ -50,7 +50,7 @@ object HttpFilters {
 /**
  * A filters provider that provides no filters.
  */
-class NoHttpFilters extends DefaultHttpFilters
+class NoHttpFilters @Inject() () extends DefaultHttpFilters
 
 object NoHttpFilters extends NoHttpFilters
 
