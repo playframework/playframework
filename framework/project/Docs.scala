@@ -130,7 +130,6 @@ object Docs {
         "-notimestamp",
         "-subpackages", "play",
         "-Xmaxwarns", "1000",
-        "-Xdoclint:none",
         "-exclude", "play.api:play.core"
       )
 

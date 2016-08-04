@@ -96,7 +96,7 @@ public class Classpath {
      *
      * @param packageName the root package to scan
      * @param classLoader class loader to be used in reflections
-     * @return
+     * @return the configuration builder
      */
     public static ConfigurationBuilder getReflectionsConfiguration(String packageName, ClassLoader classLoader) {
         return new ConfigurationBuilder()

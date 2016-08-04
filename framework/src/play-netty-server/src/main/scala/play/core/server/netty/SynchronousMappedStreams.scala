@@ -57,7 +57,7 @@ object SynchronousMappedStreams {
   /**
    * Does a map and contramap on the processor.
    *
-   * @see [[map()]] and [[contramap()]].
+   * @see [[map]] and [[contramap]].
    */
   def transform[A1, B1, A2, B2](processor: Processor[B1, A2], f: A1 => B1, g: A2 => B2): Processor[A1, B2] =
     new JoinedProcessor[A1, B2](contramap(processor, f), map(processor, g))
