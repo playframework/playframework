@@ -49,7 +49,7 @@ trait SyncCacheApi {
 /**
  * A cache API. This class is deprecated and will be removed in future versions.
  */
-@deprecated("Use SyncCacheApi or AsyncCacheApi instead")
+@deprecated("Use SyncCacheApi or AsyncCacheApi instead", "2.6.0")
 trait CacheApi {
 
   /**

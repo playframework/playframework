@@ -7,7 +7,7 @@ import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil
 import play.api.libs.logback.ColoredLevel
 
 /**
- * Provides the old play.api.Logger$ColoredLevel library so that a deprecation message can be logged.
+ * Provides the old play.api.Logger\$ColoredLevel library so that a deprecation message can be logged.
  */
 @deprecated("Use play.api.libs.logback.ColoredLevel instead", "2.5.0")
 class Logger$ColoredLevel extends ColoredLevel {
