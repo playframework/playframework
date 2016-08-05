@@ -8,6 +8,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import com.google.inject.{ ProvisionException, CreationException }
 import org.specs2.mutable.Specification
+import play.api.i18n.I18nModule
 import play.api.{ Configuration, Environment }
 
 object GuiceApplicationBuilderSpec extends Specification {
@@ -77,7 +78,15 @@ object GuiceApplicationBuilderSpec extends Specification {
       new GuiceApplicationBuilder()
         .load(new BuiltinModule, bind[C].to[C1])
         .eagerlyLoaded()
-        .injector() must throwAn[CreationException]
+        .injector() must throwA[CreationException]
+    }
+
+    "work with built in modules and requireAtInjectOnConstructors" in {
+      new GuiceApplicationBuilder()
+        .load(new BuiltinModule, new I18nModule)
+        .requireAtInjectOnConstructors()
+        .eagerlyLoaded()
+        .injector() must not(throwA[CreationException])
     }
 
     "set lazy load singletons" in {
