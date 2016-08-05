@@ -19,7 +19,11 @@ import play.api.{ Application, Configuration }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-object AllowedHostsFilterSpec extends PlaySpecification {
+class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
+  def filters = Seq(allowedHostsFilter)
+}
+
+class AllowedHostsFilterSpec extends PlaySpecification {
 
   sequential
 
@@ -31,10 +35,6 @@ object AllowedHostsFilterSpec extends PlaySpecification {
   }
 
   private val okWithHost = (req: RequestHeader) => Ok(req.host)
-
-  class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
-    def filters = Seq(allowedHostsFilter)
-  }
 
   def newApplication(result: RequestHeader => Result, config: String): Application = {
     new GuiceApplicationBuilder()

@@ -11,7 +11,7 @@ import play.api.test._
 
 import scala.reflect.ClassTag
 
-object JavaErrorHandling extends PlaySpecification with WsTestClient {
+class JavaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     GuiceApplicationBuilder()

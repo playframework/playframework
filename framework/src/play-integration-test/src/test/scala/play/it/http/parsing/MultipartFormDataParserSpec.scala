@@ -11,7 +11,7 @@ import play.api.test._
 import play.core.parsers.Multipart.FileInfoMatcher
 import play.utils.PlayIO
 
-object MultipartFormDataParserSpec extends PlaySpecification {
+class MultipartFormDataParserSpec extends PlaySpecification {
 
   val body =
     """

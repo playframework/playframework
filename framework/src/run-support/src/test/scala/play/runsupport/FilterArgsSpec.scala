@@ -6,7 +6,7 @@ package play.runsupport
 import org.specs2.mutable._
 import org.specs2.execute.Result
 
-object FilterArgsSpec extends Specification {
+class FilterArgsSpec extends Specification {
 
   val defaultHttpPort = 9000
   val defaultHttpAddress = "0.0.0.0"

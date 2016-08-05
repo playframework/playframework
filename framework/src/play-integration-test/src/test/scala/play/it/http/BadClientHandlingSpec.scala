@@ -12,8 +12,8 @@ import play.it._
 import scala.concurrent.Future
 import scala.util.Random
 
-object NettyBadClientHandlingSpec extends BadClientHandlingSpec with NettyIntegrationSpecification
-object AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
+class NettyBadClientHandlingSpec extends BadClientHandlingSpec with NettyIntegrationSpecification
+class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 

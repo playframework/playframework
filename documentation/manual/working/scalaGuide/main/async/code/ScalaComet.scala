@@ -15,28 +15,26 @@ import play.api.mvc._
 
 import play.api.test._
 
-object ScalaCometSpec extends PlaySpecification {
+class MockController(val materializer: Materializer) extends Controller {
 
-  class MockController(val materializer: Materializer) extends Controller {
-
-    //#comet-string
-    def cometString = Action {
-      implicit val m = materializer
-      def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
-      Ok.chunked(stringSource via Comet.string("parent.cometMessage")).as(ContentTypes.HTML)
-    }
-    //#comet-string
-
-    //#comet-json
-    def cometJson = Action {
-      implicit val m = materializer
-      def jsonSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
-      Ok.chunked(jsonSource via Comet.json("parent.cometMessage")).as(ContentTypes.HTML)
-    }
-    //#comet-json
+  //#comet-string
+  def cometString = Action {
+    implicit val m = materializer
+    def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
+    Ok.chunked(stringSource via Comet.string("parent.cometMessage")).as(ContentTypes.HTML)
   }
+  //#comet-string
 
+  //#comet-json
+  def cometJson = Action {
+    implicit val m = materializer
+    def jsonSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
+    Ok.chunked(jsonSource via Comet.json("parent.cometMessage")).as(ContentTypes.HTML)
+  }
+  //#comet-json
+}
 
+class ScalaCometSpec extends PlaySpecification {
 
   "play comet" should {
 

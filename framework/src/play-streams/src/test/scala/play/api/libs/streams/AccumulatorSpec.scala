@@ -15,7 +15,7 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AccumulatorSpec extends Specification {
+class AccumulatorSpec extends Specification {
 
   def withMaterializer[T](block: Materializer => T) = {
     val system = ActorSystem("test")

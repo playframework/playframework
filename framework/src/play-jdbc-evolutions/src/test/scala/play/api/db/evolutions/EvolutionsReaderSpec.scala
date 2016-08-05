@@ -7,7 +7,7 @@ import java.io.File
 import org.specs2.mutable.Specification
 import play.api.{ Environment, Mode }
 
-object EvolutionsReaderSpec extends Specification {
+class EvolutionsReaderSpec extends Specification {
 
   "EnvironmentEvolutionsReader" should {
 

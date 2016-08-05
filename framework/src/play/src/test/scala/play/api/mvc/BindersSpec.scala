@@ -6,7 +6,7 @@ package play.api.mvc
 import java.util.UUID
 import org.specs2.mutable._
 
-object BindersSpec extends Specification {
+class BindersSpec extends Specification {
 
   val uuid = UUID.randomUUID
 

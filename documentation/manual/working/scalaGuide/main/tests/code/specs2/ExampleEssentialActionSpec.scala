@@ -9,7 +9,7 @@ import play.api.mvc.Results._
 import play.api.libs.json.Json
 
 // #scalatest-exampleessentialactionspec
-object ExampleEssentialActionSpec extends PlaySpecification {
+class ExampleEssentialActionSpec extends PlaySpecification {
 
   "An essential action" should {
     "can parse a JSON body" in new WithApplication() {

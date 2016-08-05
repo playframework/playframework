@@ -6,86 +6,86 @@ package guice
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import com.google.inject.{ ProvisionException, CreationException }
+import com.google.inject.{ CreationException, ProvisionException }
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 
-object GuiceApplicationBuilderSpec extends Specification {
+class GuiceApplicationBuilderSpec extends Specification {
 
   "GuiceApplicationBuilder" should {
 
     "add bindings" in {
       val injector = new GuiceApplicationBuilder()
         .bindings(
-          new AModule,
-          bind[B].to[B1])
-        .injector
+          new GuiceApplicationBuilderSpec.AModule,
+          bind[GuiceApplicationBuilderSpec.B].to[GuiceApplicationBuilderSpec.B1])
+        .injector()
 
-      injector.instanceOf[A] must beAnInstanceOf[A1]
-      injector.instanceOf[B] must beAnInstanceOf[B1]
+      injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
+      injector.instanceOf[GuiceApplicationBuilderSpec.B] must beAnInstanceOf[GuiceApplicationBuilderSpec.B1]
     }
 
     "override bindings" in {
       val app = new GuiceApplicationBuilder()
-        .bindings(new AModule)
+        .bindings(new GuiceApplicationBuilderSpec.AModule)
         .overrides(
-          bind[Configuration] to new ExtendConfiguration("a" -> 1),
-          bind[A].to[A2])
-        .build
+          bind[Configuration] to new GuiceApplicationBuilderSpec.ExtendConfiguration("a" -> 1),
+          bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A2])
+        .build()
 
       app.configuration.get[Int]("a") must_== 1
-      app.injector.instanceOf[A] must beAnInstanceOf[A2]
+      app.injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A2]
     }
 
     "disable modules" in {
       val injector = new GuiceApplicationBuilder()
-        .bindings(new AModule)
+        .bindings(new GuiceApplicationBuilderSpec.AModule)
         .disable[play.api.i18n.I18nModule]
-        .disable(classOf[AModule])
-        .injector
+        .disable(classOf[GuiceApplicationBuilderSpec.AModule])
+        .injector()
 
       injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
-      injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[GuiceApplicationBuilderSpec.A] must throwA[com.google.inject.ConfigurationException]
     }
 
     "set initial configuration loader" in {
       val extraConfig = Configuration("a" -> 1)
       val app = new GuiceApplicationBuilder()
         .loadConfig(env => Configuration.load(env) ++ extraConfig)
-        .build
+        .build()
 
       app.configuration.get[Int]("a") must_== 1
     }
 
     "set module loader" in {
       val injector = new GuiceApplicationBuilder()
-        .load((env, conf) => Seq(new BuiltinModule, bind[A].to[A1]))
-        .injector
+        .load((env, conf) => Seq(new BuiltinModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]))
+        .injector()
 
-      injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
     }
 
     "set loaded modules directly" in {
       val injector = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[A].to[A1])
-        .injector
+        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1])
+        .injector()
 
-      injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
     }
 
     "eagerly load singletons" in {
       new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[C].to[C1])
+        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
         .eagerlyLoaded()
         .injector() must throwAn[CreationException]
     }
 
     "set lazy load singletons" in {
       val builder = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[C].to[C1])
+        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
 
       builder.injector() must throwAn[CreationException].not
-      builder.injector().instanceOf[C] must throwAn[ProvisionException]
+      builder.injector().instanceOf[GuiceApplicationBuilderSpec.C] must throwAn[ProvisionException]
     }
 
     "display logger deprecation message" in {
@@ -107,6 +107,19 @@ object GuiceApplicationBuilderSpec extends Specification {
     }
   }
 
+}
+
+object GuiceApplicationBuilderSpec {
+
+  class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
+    @Inject
+    var injector: Injector = _
+    lazy val get = {
+      val current = injector.instanceOf[ConfigurationProvider].get
+      current ++ Configuration.from(conf.toMap)
+    }
+  }
+
   trait A
   class A1 extends A
   class A2 extends A
@@ -119,15 +132,6 @@ object GuiceApplicationBuilderSpec extends Specification {
 
   trait B
   class B1 extends B
-
-  class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
-    @Inject
-    var injector: Injector = _
-    lazy val get = {
-      val current = injector.instanceOf[ConfigurationProvider].get
-      current ++ Configuration.from(conf.toMap)
-    }
-  }
 
   trait C
 

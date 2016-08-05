@@ -9,7 +9,7 @@ import play.api.test.WsTestClient
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object ScalaEmbeddingPlay extends Specification with WsTestClient {
+class ScalaEmbeddingPlay extends Specification with WsTestClient {
 
   "Embedding play" should {
     "be very simple" in {

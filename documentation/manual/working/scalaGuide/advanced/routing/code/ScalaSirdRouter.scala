@@ -7,7 +7,7 @@ import controllers.Assets
 import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
 
-object ScalaSirdRouter extends Specification {
+class ScalaSirdRouter extends Specification {
 
   //#imports
   import play.api.mvc._

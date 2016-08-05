@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 import play.api.mvc._
 import play.api.mvc.Results._
 
-object ServerResultUtilsSpec extends Specification {
+class ServerResultUtilsSpec extends Specification {
 
   case class CookieRequestHeader(cookie: Option[(String, String)]) extends RequestHeader {
     def id = 1

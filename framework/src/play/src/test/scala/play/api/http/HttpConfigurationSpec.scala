@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import play.api.{ PlayException, Configuration }
 import play.core.netty.utils.{ ClientCookieEncoder, ClientCookieDecoder, ServerCookieDecoder, ServerCookieEncoder }
 
-object HttpConfigurationSpec extends Specification {
+class HttpConfigurationSpec extends Specification {
 
   "HttpConfiguration" should {
 

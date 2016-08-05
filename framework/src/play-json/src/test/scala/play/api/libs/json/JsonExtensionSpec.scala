@@ -76,7 +76,7 @@ object CustomApply {
   def apply(): CustomApply = apply(10, "foo")
 }
 
-object JsonExtensionSpec extends Specification {
+class JsonExtensionSpec extends Specification {
 
   "JsonExtension" should {
     "create a reads[User]" in {

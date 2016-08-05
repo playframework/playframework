@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import java.io.{ File, FileOutputStream }
+import java.io.{ File, FileOutputStream, InputStream }
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
@@ -18,9 +18,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
 
-import scala.tools.nsc.interpreter.InputStream
-
-object ByteRangeSpec extends Specification {
+class ByteRangeSpec extends Specification {
 
   "Distance" in {
     "Between 0-10 and 20-30 is 10" in {
@@ -46,7 +44,7 @@ object ByteRangeSpec extends Specification {
   }
 }
 
-object RangeSpec extends Specification {
+class RangeSpec extends Specification {
 
   def checkRange(entityLength: Long, header: String, expected: Range) = {
     val range = Range(Some(entityLength), header)
@@ -240,7 +238,7 @@ object RangeSpec extends Specification {
   }
 }
 
-object RangeSetSpec extends Specification {
+class RangeSetSpec extends Specification {
 
   "Satisfiable range sets" in {
 
@@ -325,7 +323,7 @@ object RangeSetSpec extends Specification {
   }
 }
 
-object RangeResultSpec extends Specification {
+class RangeResultSpec extends Specification {
 
   "Result" should {
 

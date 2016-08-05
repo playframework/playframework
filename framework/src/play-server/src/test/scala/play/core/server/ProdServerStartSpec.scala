@@ -12,7 +12,53 @@ import org.specs2.mutable.Specification
 import play.api.{ Mode, Play, PlayException }
 import play.core.ApplicationProvider
 
-object ProdServerStartSpec extends Specification {
+case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
+
+/** A mocked ServerProcess */
+class FakeServerProcess(
+    val args: Seq[String] = Seq(),
+    propertyMap: Map[String, String] = Map(),
+    val pid: Option[String] = None) extends ServerProcess {
+
+  val classLoader: ClassLoader = getClass.getClassLoader
+
+  val properties = new Properties()
+  for ((k, v) <- propertyMap) { properties.put(k, v) }
+
+  private var hooks = Seq.empty[() => Unit]
+  def addShutdownHook(hook: => Unit) = {
+    hooks = hooks :+ (() => hook)
+  }
+  def shutdown(): Unit = {
+    for (h <- hooks) h.apply()
+  }
+
+  def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
+    throw new ExitException(message, cause, returnCode)
+  }
+}
+
+// A family of fake servers for us to test
+
+class FakeServer(context: ServerProvider.Context) extends Server with ServerWithStop {
+  def config = context.config
+  def applicationProvider = context.appProvider
+  def mode = config.mode
+  def mainAddress = ???
+  @volatile var stopCallCount = 0
+  override def stop() = {
+    stopCallCount += 1
+    super.stop()
+  }
+  def httpPort = config.port
+  def httpsPort = config.sslPort
+}
+
+class FakeServerProvider extends ServerProvider {
+  override def createServer(context: ServerProvider.Context) = new FakeServer(context)
+}
+
+class ProdServerStartSpec extends Specification {
 
   def withTempDir[T](block: File => T) = {
     val temp = Files.createTempDir()
@@ -29,56 +75,10 @@ object ProdServerStartSpec extends Specification {
     }
   }
 
-  case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
-
   def exitResult[A](f: => A): Either[(String, Option[String]), A] = try Right(f) catch {
     case ExitException(message, cause, _) =>
       val causeMessage: Option[String] = cause.flatMap(c => Option(c.getMessage))
       Left((message, causeMessage))
-  }
-
-  /** A mocked ServerProcess */
-  class FakeServerProcess(
-      val args: Seq[String] = Seq(),
-      propertyMap: Map[String, String] = Map(),
-      val pid: Option[String] = None) extends ServerProcess {
-
-    val classLoader: ClassLoader = getClass.getClassLoader
-
-    val properties = new Properties()
-    for ((k, v) <- propertyMap) { properties.put(k, v) }
-
-    private var hooks = Seq.empty[() => Unit]
-    def addShutdownHook(hook: => Unit) = {
-      hooks = hooks :+ (() => hook)
-    }
-    def shutdown(): Unit = {
-      for (h <- hooks) h.apply()
-    }
-
-    def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
-      throw new ExitException(message, cause, returnCode)
-    }
-  }
-
-  // A family of fake servers for us to test
-
-  class FakeServer(context: ServerProvider.Context) extends Server with ServerWithStop {
-    def config = context.config
-    def applicationProvider = context.appProvider
-    def mode = config.mode
-    def mainAddress = ???
-    @volatile var stopCallCount = 0
-    override def stop() = {
-      stopCallCount += 1
-      super.stop()
-    }
-    def httpPort = config.port
-    def httpsPort = config.sslPort
-  }
-
-  class FakeServerProvider extends ServerProvider {
-    override def createServer(context: ServerProvider.Context) = new FakeServer(context)
   }
 
   "ProdServerStartSpec.start" should {

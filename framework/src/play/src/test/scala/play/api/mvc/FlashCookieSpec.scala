@@ -8,7 +8,7 @@ import java.net.URLEncoder
 
 import play.api.http.HttpConfiguration
 
-object FlashCookieSpec extends Specification {
+class FlashCookieSpec extends Specification {
 
   def oldEncoder(data: Map[String, String]): String = {
     URLEncoder.encode(

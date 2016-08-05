@@ -7,7 +7,7 @@ import play.api.{ Configuration, Environment, Mode }
 import play.api.http.DefaultHttpErrorHandler
 import play.api.test._
 
-object DevErrorPageSpec extends PlaySpecification {
+class DevErrorPageSpec extends PlaySpecification {
 
   "devError.scala.html" should {
 

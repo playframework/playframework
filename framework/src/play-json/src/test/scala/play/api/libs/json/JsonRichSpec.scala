@@ -10,7 +10,7 @@ import play.api.libs.json.Json._
 import scala.util.control.Exception._
 import java.text.ParseException
 
-object JsonRichSpec extends Specification {
+class JsonRichSpec extends Specification {
 
   "JSON" should {
     "create json with rich syntax" in {

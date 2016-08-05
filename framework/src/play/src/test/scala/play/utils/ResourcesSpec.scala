@@ -13,7 +13,7 @@ import play.api.PlayCoreTestApplication
 /**
  * Tests for Resources object
  */
-object ResourcesSpec extends Specification {
+class ResourcesSpec extends Specification {
   import Resources._
 
   lazy val app = PlayCoreTestApplication()

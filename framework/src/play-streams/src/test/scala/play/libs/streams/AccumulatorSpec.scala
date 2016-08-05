@@ -20,7 +20,7 @@ import akka.japi.function.{ Function => JFn, Function2 => JFn2 }
 
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 
-object AccumulatorSpec extends org.specs2.mutable.Specification {
+class AccumulatorSpec extends org.specs2.mutable.Specification {
   import scala.collection.JavaConversions.asJavaIterable
 
   def withMaterializer[T](block: Materializer => T) = {

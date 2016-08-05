@@ -15,7 +15,7 @@ import play.api.mvc.{ Cookie, Results }
 /**
  *
  */
-object ResultSpec extends Specification {
+class ResultSpec extends Specification {
 
   "Result" should {
 

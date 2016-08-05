@@ -31,7 +31,7 @@ object routes {
 }
 
 
-object ScalaOAuthSpec extends PlaySpecification {
+class ScalaOAuthSpec extends PlaySpecification {
 
   "Scala OAuth" should {
     "be injectable" in new WithApplication() {

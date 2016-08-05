@@ -21,9 +21,9 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 import scala.collection.JavaConverters._
 
-object NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification
+class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification
 
-object AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
+class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
 
 trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
   val httpsPort = 9443

@@ -5,7 +5,7 @@ package play.core.routing
 
 import org.specs2.mutable.Specification
 
-object RouterSpec extends Specification {
+class RouterSpec extends Specification {
 
   "Router dynamic string builder" should {
     "handle empty parts" in {

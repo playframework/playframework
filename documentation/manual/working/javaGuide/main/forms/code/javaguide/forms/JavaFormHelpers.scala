@@ -9,7 +9,7 @@ import play.data.Form
 import javaguide.forms.html.{UserForm, User}
 import java.util
 
-object JavaFormHelpers extends PlaySpecification {
+class JavaFormHelpers extends PlaySpecification {
 
   "java form helpers" should {
     {

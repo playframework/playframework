@@ -8,7 +8,7 @@ import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
 
-object ScalaResultsSpec extends PlaySpecification {
+class ScalaResultsSpec extends PlaySpecification {
 
   "support session helper" in withApplication() {
 

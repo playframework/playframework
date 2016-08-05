@@ -6,7 +6,7 @@ package play.api.mvc
 import org.specs2.mutable._
 import play.core.test._
 
-object CookiesSpec extends Specification {
+class CookiesSpec extends Specification {
 
   "object Cookies#fromCookieHeader" should {
 

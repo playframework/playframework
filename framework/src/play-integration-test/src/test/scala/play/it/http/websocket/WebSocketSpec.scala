@@ -25,8 +25,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 
-object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
+class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
+class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 

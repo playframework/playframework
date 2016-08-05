@@ -11,7 +11,7 @@ import play.api.mvc.Results.BadRequest
 import play.api.mvc.{ BodyParser, BodyParsers }
 import play.api.test._
 
-object JsonBodyParserSpec extends PlaySpecification {
+class JsonBodyParserSpec extends PlaySpecification {
 
   private case class Foo(a: Int, b: String)
   private implicit val fooFormat = Json.format[Foo]

@@ -7,7 +7,7 @@ import scalaguide.tests.controllers
 
 import play.api.test._
 
-object FunctionalExampleControllerSpec extends PlaySpecification {
+class FunctionalExampleControllerSpec extends PlaySpecification {
 
   // #scalafunctionaltest-functionalexamplecontrollerspec
   "respond to the index Action" in {

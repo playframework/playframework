@@ -15,7 +15,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 
-object OpenIDSpec extends Specification with Mockito {
+class OpenIDSpec extends Specification with Mockito {
 
   val claimedId = "http://example.com/openid?id=C123"
   val identity = "http://example.com/openid?id=C123&id"

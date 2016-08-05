@@ -16,7 +16,7 @@ import play.api.test.FakeRequest
 import javaguide.testhelpers.MockJavaAction
 import play.libs.F
 
-object JavaRouting extends Specification {
+class JavaRouting extends Specification {
 
   "the java router" should {
     "support simple routing with a long parameter" in {

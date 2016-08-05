@@ -11,7 +11,7 @@ import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
 
-object FormSpec extends Specification {
+class FormSpec extends Specification {
   "A form" should {
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate(("john@", "John"))

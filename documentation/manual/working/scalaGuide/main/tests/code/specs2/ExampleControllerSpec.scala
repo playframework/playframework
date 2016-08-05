@@ -8,7 +8,7 @@ import play.api.mvc._
 import play.api.test._
 import scala.concurrent.Future
 
-object ExampleControllerSpec extends PlaySpecification with Results {
+class ExampleControllerSpec extends PlaySpecification with Results {
 
   "Example Page#index" should {
     "should be valid" in {

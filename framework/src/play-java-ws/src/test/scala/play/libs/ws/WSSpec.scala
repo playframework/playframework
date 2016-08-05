@@ -10,7 +10,7 @@ import play.api.test._
 import play.libs.ws.ahc.{ AhcWSRequest, AhcWSClient }
 import play.test.WithApplication
 
-object WSSpec extends PlaySpecification {
+class WSSpec extends PlaySpecification {
 
   sequential
 

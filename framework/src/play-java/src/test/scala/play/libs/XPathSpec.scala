@@ -6,7 +6,7 @@ package play.libs
 import org.specs2.mutable.Specification
 import scala.collection.JavaConverters._
 
-object XPathSpec extends Specification {
+class XPathSpec extends Specification {
   //XPathFactory.newInstance() used internally by XPath is not thread safe so forcing sequential execution
   sequential
 

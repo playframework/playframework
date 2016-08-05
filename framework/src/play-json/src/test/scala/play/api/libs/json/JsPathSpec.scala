@@ -12,7 +12,7 @@ import java.text.ParseException
 
 import play.api.data.validation.ValidationError
 
-object JsPathSpec extends Specification {
+class JsPathSpec extends Specification {
 
   "JsPath" should {
     "retrieve simple path" in {

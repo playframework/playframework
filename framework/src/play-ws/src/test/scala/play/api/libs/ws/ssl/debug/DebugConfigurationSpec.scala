@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.After
 import play.api.libs.ws.ssl.SSLDebugConfig
 
-object DebugConfigurationSpec extends Specification with After {
+class DebugConfigurationSpec extends Specification with After {
 
   def after = {
     System.clearProperty("java.security.debug")

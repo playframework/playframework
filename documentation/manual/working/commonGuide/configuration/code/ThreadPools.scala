@@ -18,7 +18,7 @@ import scala.collection.JavaConverters._
 import java.io.File
 import org.specs2.execute.AsResult
 
-object ThreadPoolsSpec extends PlaySpecification {
+class ThreadPoolsSpec extends PlaySpecification {
 
   "Play's thread pools" should {
 

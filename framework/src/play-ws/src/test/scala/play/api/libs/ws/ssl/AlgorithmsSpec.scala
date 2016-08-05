@@ -14,7 +14,7 @@ import java.util.Date
 import play.core.server.ssl.CertificateGenerator
 import sun.security.x509.AlgorithmId
 
-object AlgorithmsSpec extends Specification {
+class AlgorithmsSpec extends Specification {
   import Algorithms._
 
   "keySize" should {

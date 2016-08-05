@@ -8,7 +8,7 @@ import java.io.{ FileOutputStream, File }
 import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
 
-object XMLSpec extends Specification {
+class XMLSpec extends Specification {
 
   "The Java XML support" should {
 

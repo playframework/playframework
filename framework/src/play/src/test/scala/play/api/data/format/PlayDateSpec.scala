@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 
 import org.specs2.mutable.Specification
 
-object PlayDateSpec extends Specification {
+class PlayDateSpec extends Specification {
 
   "PlayDate.toZonedDateTime(ZoneId)" should {
     "return a valid date" in {

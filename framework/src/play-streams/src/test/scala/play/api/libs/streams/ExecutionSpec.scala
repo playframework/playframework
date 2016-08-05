@@ -10,7 +10,7 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.language.reflectiveCalls
 import scala.util.Try
 
-object ExecutionSpec extends Specification {
+class ExecutionSpec extends Specification {
   import Execution.trampoline
 
   val waitTime = Duration(5, SECONDS)

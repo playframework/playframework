@@ -8,7 +8,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.jdbcdslog.LogSqlDataSource
 import org.specs2.mutable.{ After, Specification }
 
-object DatabasesSpec extends Specification {
+class DatabasesSpec extends Specification {
 
   "Databases" should {
 

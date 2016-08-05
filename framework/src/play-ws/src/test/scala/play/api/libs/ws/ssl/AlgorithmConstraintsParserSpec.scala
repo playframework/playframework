@@ -9,7 +9,7 @@ import org.specs2.mutable._
 import scala.util.parsing.input.CharSequenceReader
 import org.specs2.matcher.{ ExpectedParsedResult, ParserMatchers }
 
-object AlgorithmConstraintsParserSpec extends Specification with ParserMatchers {
+class AlgorithmConstraintsParserSpec extends Specification with ParserMatchers {
 
   val parsers = AlgorithmConstraintsParser
 

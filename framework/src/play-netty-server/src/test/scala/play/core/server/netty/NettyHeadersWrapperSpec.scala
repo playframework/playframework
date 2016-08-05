@@ -7,7 +7,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.specs2.mutable._
 import play.api.mvc._
 
-object NettyHeadersWrapperSpec extends Specification {
+class NettyHeadersWrapperSpec extends Specification {
 
   val headers: Headers = {
     val nettyHeaders = new DefaultHttpHeaders()

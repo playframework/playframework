@@ -23,7 +23,11 @@ import scala.concurrent.Future
 import scala.util.Random
 import org.specs2.matcher.DataTables
 
-object GzipFilterSpec extends PlaySpecification with DataTables {
+class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
+  def filters = Seq(gzipFilter)
+}
+
+class GzipFilterSpec extends PlaySpecification with DataTables {
 
   sequential
 
@@ -136,10 +140,6 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzipped(result)
       header(VARY, result) must beSome.which(header => header.split(",").filter(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)).size == 1)
     }
-  }
-
-  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
-    def filters = Seq(gzipFilter)
   }
 
   def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {

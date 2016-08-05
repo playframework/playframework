@@ -7,7 +7,7 @@ import play.api.test.{ FakeRequest, PlaySpecification }
 import play.api.mvc.{ Action, Controller }
 import scala.concurrent.Future
 
-object ContentNegotiationSpec extends PlaySpecification with Controller {
+class ContentNegotiationSpec extends PlaySpecification with Controller {
 
   "rendering" should {
     "work with simple results" in {

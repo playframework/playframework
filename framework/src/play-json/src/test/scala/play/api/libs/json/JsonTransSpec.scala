@@ -14,7 +14,7 @@ import play.api.libs.json.util._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 
-object JsonTransSpec extends Specification {
+class JsonTransSpec extends Specification {
   "JSON transformers " should {
     val js = Json.obj(
       "field1" -> "alpha",

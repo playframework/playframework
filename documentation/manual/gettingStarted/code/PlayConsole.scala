@@ -6,7 +6,7 @@ package gettingStarted
 import org.specs2.mutable.Specification
 import play.api._
 
-object PlayConsole extends Specification {
+class PlayConsole extends Specification {
   "Play console" should { 
     "support creating an instance of the Play application" in { 
       val app = new consoleapp.MyConsole().createApplication()

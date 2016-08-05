@@ -17,7 +17,7 @@ import java.time.{
 import java.time.format.DateTimeFormatter
 import play.api.data.validation.ValidationError
 
-object ReadsSpec extends org.specs2.mutable.Specification {
+class ReadsSpec extends org.specs2.mutable.Specification {
 
   title("JSON Reads")
 

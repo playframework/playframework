@@ -10,7 +10,7 @@ import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.validation.Constraints._
 
-object ValidationSpec extends Specification {
+class ValidationSpec extends Specification {
 
   "text" should {
     "throw an IllegalArgumentException if maxLength is negative" in {

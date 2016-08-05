@@ -18,7 +18,7 @@ import org.specs2.specification.Scope
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object FakesSpec extends PlaySpecification {
+class FakesSpec extends PlaySpecification {
 
   sequential
 

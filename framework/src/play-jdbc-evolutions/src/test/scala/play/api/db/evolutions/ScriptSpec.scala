@@ -5,7 +5,7 @@ package play.api.db.evolutions
 
 import org.specs2.mutable.Specification
 
-object ScriptSpec extends Specification {
+class ScriptSpec extends Specification {
   "Script.statements" should {
 
     "separate SQL into semicolon-delimited statements" in {

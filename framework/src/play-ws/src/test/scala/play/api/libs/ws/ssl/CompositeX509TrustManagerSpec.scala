@@ -13,7 +13,7 @@ import java.security.cert.{ CertificateException, X509Certificate }
 
 import play.core.server.ssl.CertificateGenerator
 
-object CompositeX509TrustManagerSpec extends Specification with Mockito {
+class CompositeX509TrustManagerSpec extends Specification with Mockito {
 
   "CompositeX509TrustManager" should {
 

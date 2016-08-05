@@ -7,7 +7,7 @@ import java.sql.SQLException
 
 import org.specs2.mutable.Specification
 
-object ScalaTestingWithDatabases extends Specification {
+class ScalaTestingWithDatabases extends Specification {
 
   // We don't test this code because otherwise it would try to connect to MySQL
   class NotTested {

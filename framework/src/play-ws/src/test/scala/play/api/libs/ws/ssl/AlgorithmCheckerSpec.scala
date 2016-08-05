@@ -13,7 +13,7 @@ import org.specs2.mutable._
 import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
 import play.core.server.ssl.CertificateGenerator
 
-object AlgorithmCheckerSpec extends Specification {
+class AlgorithmCheckerSpec extends Specification {
 
   "AlgorithmChecker" should {
 

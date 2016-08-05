@@ -16,7 +16,7 @@ import play.core.test.{ FakeRequest, Fakes }
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
 
-object HttpErrorHandlerSpec extends Specification {
+class HttpErrorHandlerSpec extends Specification {
 
   def await[T](future: Future[T]) = Await.result(future, Duration.Inf)
 
@@ -78,18 +78,18 @@ object HttpErrorHandlerSpec extends Specification {
       )).instanceOf[HttpErrorHandler]
   }
 
-  class CustomScalaErrorHandler extends HttpErrorHandler {
-    def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-      Future.successful(Results.Ok)
-    def onServerError(request: RequestHeader, exception: Throwable) =
-      Future.successful(Results.Ok)
-  }
+}
 
-  class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
-    def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
-      CompletableFuture.completedFuture(play.mvc.Results.ok())
-    def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
-      CompletableFuture.completedFuture(play.mvc.Results.ok())
-  }
+class CustomScalaErrorHandler extends HttpErrorHandler {
+  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+    Future.successful(Results.Ok)
+  def onServerError(request: RequestHeader, exception: Throwable) =
+    Future.successful(Results.Ok)
+}
 
+class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
+  def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
+    CompletableFuture.completedFuture(play.mvc.Results.ok())
+  def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
+    CompletableFuture.completedFuture(play.mvc.Results.ok())
 }

@@ -9,7 +9,7 @@ import play.api.test._
 
 import scala.reflect.ClassTag
 
-object ScalaErrorHandling extends PlaySpecification with WsTestClient {
+class ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     GuiceApplicationBuilder()

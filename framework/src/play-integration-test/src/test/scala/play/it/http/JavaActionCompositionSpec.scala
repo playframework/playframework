@@ -10,7 +10,7 @@ import play.api.test.{PlaySpecification, TestServer, WsTestClient}
 import play.it.http.ActionCompositionOrderTest.{ActionAnnotation, ControllerAnnotation, WithUsername}
 import play.mvc.{Result, Results}
 
-object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
+class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
   def makeRequest[T](controller: MockController, configuration: Map[String, _ <: Any] = Map.empty)(block: WSResponse => T) = {
     implicit val port = testServerPort

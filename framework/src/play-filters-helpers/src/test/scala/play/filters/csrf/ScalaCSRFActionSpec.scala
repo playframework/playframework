@@ -11,7 +11,7 @@ import scala.concurrent.Future
 /**
  * Specs for the Scala per action CSRF actions
  */
-object ScalaCSRFActionSpec extends CSRFCommonSpecs {
+class ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {

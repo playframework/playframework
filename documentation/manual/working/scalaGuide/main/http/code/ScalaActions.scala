@@ -12,7 +12,7 @@ import play.api.libs.json._
 import scala.concurrent.Future
 import org.specs2.execute.AsResult
 
-object ScalaActionsSpec extends Specification with Controller {
+class ScalaActionsSpec extends Specification with Controller {
 
   "A scala action" should {
     "allow writing a simple echo action" in {

@@ -11,7 +11,7 @@ import play.api.{ PlayException, Mode, Environment, Configuration }
 import play.api.i18n.Messages.MessageSource
 import play.core.test.FakeRequest
 
-object MessagesSpec extends Specification {
+class MessagesSpec extends Specification {
   val testMessages = Map(
     "default" -> Map(
       "title" -> "English Title",

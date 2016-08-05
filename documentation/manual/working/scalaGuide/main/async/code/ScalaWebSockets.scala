@@ -7,7 +7,7 @@ import play.api.http.websocket.{ TextMessage, Message }
 import play.api.test._
 import scala.concurrent.{ Future, Promise }
 
-object ScalaWebSockets extends PlaySpecification {
+class ScalaWebSockets extends PlaySpecification {
 
   import java.io.Closeable
   import play.api.mvc.{Result, WebSocket}

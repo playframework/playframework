@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 import play.api.mvc.ResponseHeader
 import play.utils.InvalidUriEncodingException
 
-object AssetsSpec extends Specification {
+class AssetsSpec extends Specification {
 
   "Assets controller" should {
 
@@ -103,7 +103,7 @@ object AssetsSpec extends Specification {
     }
 
     "use the unescaped path when finding the last modified date of an asset" in {
-      val url = AssetsSpec.getClass.getClassLoader.getResource("file withspace.css")
+      val url = this.getClass.getClassLoader.getResource("file withspace.css")
       val assetInfo = new AssetInfo("file withspace.css", url, None, None)
       val lastModified = ResponseHeader.httpDateFormat.parse(assetInfo.lastModified.get)
       // If it uses the escaped path, the file won't be found, and so last modified will be 0

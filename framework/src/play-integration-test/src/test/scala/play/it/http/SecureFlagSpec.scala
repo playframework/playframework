@@ -14,8 +14,8 @@ import java.security.cert.X509Certificate
 import scala.io.Source
 import java.net.URL
 
-object NettySecureFlagSpec extends SecureFlagSpec with NettyIntegrationSpecification
-object AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpecification
+class NettySecureFlagSpec extends SecureFlagSpec with NettyIntegrationSpecification
+class AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpecification
 
 /**
  * Specs for the "secure" flag on requests

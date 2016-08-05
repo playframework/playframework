@@ -10,7 +10,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 import play.api.test.FakeApplication
 
-object SecuritySpec extends PlaySpecification {
+class SecuritySpec extends PlaySpecification {
 
   "AuthenticatedBuilder" should {
     "block unauthenticated requests" in withApplication {

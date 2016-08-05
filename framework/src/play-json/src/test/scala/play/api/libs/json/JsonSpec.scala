@@ -11,7 +11,7 @@ import play.api.libs.json.Json._
 
 import scala.collection.immutable.ListMap
 
-object JsonSpec extends org.specs2.mutable.Specification {
+class JsonSpec extends org.specs2.mutable.Specification {
 
   title("JSON")
 

@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object ClosableLazySpec extends Specification {
+class ClosableLazySpec extends Specification {
 
   "ClosableLazy" should {
 

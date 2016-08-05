@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 import java.util.Date
 import java.time.format.DateTimeFormatter
 
-object AssetInfoSpec extends Specification {
+class AssetsInfoSpec extends Specification {
 
   "AssetInfo.parseModifiedDate" should {
 
