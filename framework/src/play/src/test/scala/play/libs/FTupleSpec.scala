@@ -8,7 +8,7 @@ import org.scalacheck.{ Arbitrary, Gen }
 import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck
 
-object FTupleSpec extends Specification with ScalaCheck {
+class FTupleSpec extends Specification with ScalaCheck {
 
   import ArbitraryTuples._
 

@@ -19,10 +19,10 @@ import scala.reflect.ClassTag
 /**
  * Specs for the Java per action CSRF actions
  */
-object JavaCSRFActionSpec extends CSRFCommonSpecs {
+class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaHandlerComponents = Play.privateMaybeApplication.get.injector.instanceOf[JavaHandlerComponents]
-  def myAction = Play.privateMaybeApplication.get.injector.instanceOf[MyAction]
+  def myAction = Play.privateMaybeApplication.get.injector.instanceOf[JavaCSRFActionSpec.MyAction]
 
   def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
@@ -33,8 +33,8 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ if sendUnauthorizedResult => javaAction[MyUnauthorizedAction]("check", new MyUnauthorizedAction().check())
-      case _ => javaAction[MyAction]("check", myAction.check())
+      case _ if sendUnauthorizedResult => javaAction[JavaCSRFActionSpec.MyUnauthorizedAction]("check", new JavaCSRFActionSpec.MyUnauthorizedAction().check())
+      case _ => javaAction[JavaCSRFActionSpec.MyAction]("check", myAction.check())
     } { ws =>
       handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
@@ -42,7 +42,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => javaAction[MyAction]("add", myAction.add())
+      case _ => javaAction[JavaCSRFActionSpec.MyAction]("add", myAction.add())
     } { ws =>
       handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
@@ -50,7 +50,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfWithSession(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => javaAction[MyAction]("withSession", myAction.withSession())
+      case _ => javaAction[JavaCSRFActionSpec.MyAction]("withSession", myAction.withSession())
     } { ws =>
       handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
@@ -69,13 +69,17 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     "allow accessing the token from the http context" in withServer(Seq(
       "play.http.filters" -> "play.filters.csrf.CsrfFilters"
     )) {
-      case _ => javaAction[MyAction]("getToken", myAction.getToken)
+      case _ => javaAction[JavaCSRFActionSpec.MyAction]("getToken", myAction.getToken)
     } { ws =>
       lazy val token = crypto.generateSignedToken
       val returned = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
       crypto.compareSignedTokens(token, returned) must beTrue
     }
   }
+
+}
+
+object JavaCSRFActionSpec {
 
   class MyAction extends Controller {
     @AddCSRFToken
@@ -120,4 +124,5 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
       CompletableFuture.completedFuture(Results.unauthorized(msg))
     }
   }
+
 }

@@ -7,7 +7,7 @@ import akka.stream.ActorMaterializer
 import play.api.test._
 import detailedtopics.configuration.gzipencoding.CustomFilters
 
-object GzipEncoding extends PlaySpecification {
+class GzipEncoding extends PlaySpecification {
 
   //#filters
   import javax.inject.Inject
@@ -16,7 +16,7 @@ object GzipEncoding extends PlaySpecification {
   import play.filters.gzip.GzipFilter
 
   class Filters @Inject() (gzipFilter: GzipFilter)
-    extends DefaultHttpFilters(gzipFilter)
+      extends DefaultHttpFilters(gzipFilter)
   //#filters
 
   "gzip filter" should {

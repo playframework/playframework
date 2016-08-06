@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.data.format.Formatters;
+import play.data.format.Formatters
 import views.html.helper.inputText
 import play.core.j.PlayMagicForJava.javaFieldtoScalaField
 import views.html.helper.FieldConstructor.defaultField
@@ -17,7 +17,7 @@ import javax.validation.Validation
 /**
  * Specs for Java dynamic forms
  */
-object DynamicFormSpec extends Specification {
+class DynamicFormSpec extends Specification {
   val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
   implicit val messages = messagesApi.preferred(Seq.empty)
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)

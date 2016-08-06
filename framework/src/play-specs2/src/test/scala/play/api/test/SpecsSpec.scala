@@ -8,7 +8,7 @@ import org.specs2.mutable._
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Play, Application }
 
-object SpecsSpec extends Specification {
+class SpecsSpec extends Specification {
 
   def getConfig(key: String)(implicit app: Application) = app.configuration.getOptional[String](key)
 

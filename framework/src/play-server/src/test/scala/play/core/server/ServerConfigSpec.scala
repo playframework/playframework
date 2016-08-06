@@ -8,7 +8,7 @@ import java.util.Properties
 import org.specs2.mutable.Specification
 import play.core.ApplicationProvider
 
-object ServerConfigSpec extends Specification {
+class ServerConfigSpec extends Specification {
 
   "ServerConfig construction" should {
     "fail when both http and https ports are missing" in {

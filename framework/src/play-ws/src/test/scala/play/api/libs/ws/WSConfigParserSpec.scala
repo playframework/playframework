@@ -10,7 +10,7 @@ import play.api.test.WithApplication
 
 import scala.concurrent.duration._
 
-object WSConfigParserSpec extends Specification {
+class WSConfigParserSpec extends Specification {
 
   "WSConfigParser" should {
 

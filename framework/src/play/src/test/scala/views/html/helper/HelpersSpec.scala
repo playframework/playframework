@@ -11,7 +11,7 @@ import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
 import play.twirl.api.Html
 import scala.beans.BeanProperty
 
-object HelpersSpec extends Specification {
+class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
   val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
   implicit val messages = messagesApi.preferred(Seq.empty)

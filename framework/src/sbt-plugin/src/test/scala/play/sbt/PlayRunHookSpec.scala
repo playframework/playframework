@@ -7,7 +7,7 @@ import org.specs2.mutable._
 
 import scala.collection.mutable.HashMap
 
-object PlayRunHookSpec extends Specification {
+class PlayRunHookSpec extends Specification {
 
   "PlayRunHook runner" should {
 

@@ -23,7 +23,7 @@ import play.core.server.Server
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-object AhcWSSpec extends PlaySpecification with Mockito {
+class AhcWSSpec extends PlaySpecification with Mockito {
 
   sequential
 

@@ -9,7 +9,7 @@ import java.util.{ UUID, Date, TimeZone }
 import play.api.data._
 import play.api.data.Forms._
 
-object FormatSpec extends Specification {
+class FormatSpec extends Specification {
   "dateFormat" should {
     "support custom time zones" in {
       val data = Map("date" -> "00:00")

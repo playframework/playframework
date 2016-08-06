@@ -8,7 +8,7 @@ object Dependencies {
 
   val akkaVersion = "2.4.8"
 
-  val specsVersion = "3.6.6"
+  val specsVersion = "3.8.4"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -252,7 +252,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.12.5"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.13.2"     % Test
   )
 
   val playServerDependencies = Seq(

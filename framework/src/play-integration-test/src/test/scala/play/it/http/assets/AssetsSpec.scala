@@ -13,8 +13,8 @@ import play.api.Mode
 import play.core.server.{ ServerConfig, Server }
 import play.it._
 
-object NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
-object AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification
+class NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
+class AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification
 
 trait AssetsSpec extends PlaySpecification
     with WsTestClient with ServerIntegrationSpecification {

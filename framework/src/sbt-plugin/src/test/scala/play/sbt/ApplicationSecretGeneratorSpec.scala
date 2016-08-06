@@ -6,7 +6,7 @@ package play.sbt
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable._
 
-object ApplicationSecretGeneratorSpec extends Specification {
+class ApplicationSecretGeneratorSpec extends Specification {
   "ApplicationSecretGenerator" should {
     "override literal secret" in {
       val configContent =

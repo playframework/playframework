@@ -6,7 +6,7 @@ package scalaguide.tests.specs2
 import play.api.test._
 
 // #scalafunctionaltest-playspecification
-object ExamplePlaySpecificationSpec extends PlaySpecification {
+class ExamplePlaySpecificationSpec extends PlaySpecification {
   "The specification" should {
 
     "have access to HeaderNames" in {

@@ -13,7 +13,7 @@ import play.api.mvc._
 import play.api.test._
 import akka.pattern.after
 
-object ScalaAsyncSpec extends PlaySpecification {
+class ScalaAsyncSpec extends PlaySpecification {
 
   def samples(implicit app: Application): ScalaAsyncSamples = app.injector.instanceOf[ScalaAsyncSamples]
 

@@ -5,7 +5,7 @@ package play.core.parsers
 
 import org.specs2.mutable.Specification
 
-object FormUrlEncodedParserSpec extends Specification {
+class FormUrlEncodedParserSpec extends Specification {
   "FormUrlEncodedParser" should {
     "decode forms" in {
       FormUrlEncodedParser.parse("foo1=bar1&foo2=bar2") must_== Map("foo1" -> List("bar1"), "foo2" -> List("bar2"))

@@ -11,21 +11,21 @@ import play.api.mvc.Call
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
-object ScalaCsrf extends PlaySpecification {
+//#csrf-controller
+import play.api.mvc._
+import play.api.mvc.Results._
+import play.filters.csrf._
+import play.filters.csrf.CSRF.Token
 
-  //#csrf-controller
-  import play.api.mvc._
-  import play.api.mvc.Results._
-  import play.filters.csrf._
-  import play.filters.csrf.CSRF.Token
+class CSRFController(addToken: CSRFAddToken, checkToken: CSRFCheck) extends Controller {
+  def getToken = addToken(Action { implicit request =>
+    val Token(name, value) = CSRF.getToken.get
+    Ok(s"$name=$value")
+  })
+}
+//#csrf-controller
 
-  class CSRFController(addToken: CSRFAddToken, checkToken: CSRFCheck) extends Controller {
-    def getToken = addToken(Action { implicit request =>
-      val Token(name, value) = CSRF.getToken.get
-      Ok(s"$name=$value")
-    })
-  }
-  //#csrf-controller
+class ScalaCsrf extends PlaySpecification {
 
   // used to make sure CSRFController gets the proper things injected
   implicit def addToken[A](action: Action[A])(implicit app: Application): Action[A] = app.injector.instanceOf(classOf[CSRFAddToken])(action)

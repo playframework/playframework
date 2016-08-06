@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import play.api.http.ContentTypes
 import play.api.mvc.Results
 
-object EventSourceSpec extends Specification {
+class EventSourceSpec extends Specification {
 
   import EventSource.Event
 

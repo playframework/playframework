@@ -14,7 +14,7 @@ import org.specs2.mutable._
 
 import org.asynchttpclient.{ Response }
 
-object AhcWSResponseSpec extends Specification with Mockito {
+class AhcWSResponseSpec extends Specification with Mockito {
 
   private val emptyMap = new java.util.HashMap[String, java.util.Collection[String]]
 

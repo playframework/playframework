@@ -7,7 +7,7 @@ package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
 
-object DebugBuilderSpec extends Specification {
+class DebugBuilderSpec extends Specification {
 
   "JavaSecurityDebugBuilder" should {
 

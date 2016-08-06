@@ -10,7 +10,7 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 
-object FunctionalTemplateSpec extends Specification {
+class FunctionalTemplateSpec extends Specification {
 
   // #scalatest-functionaltemplatespec
   "render index template" in new WithApplication {

@@ -6,7 +6,7 @@ package play.routes.compiler.templates
 import org.specs2.mutable.Specification
 import play.routes.compiler._
 
-object TemplatesSpec extends Specification {
+class TemplatesSpec extends Specification {
   "javascript reverse routes" should {
     "collect parameter names with index appended" in {
       val reverseParams: Seq[(Parameter, Int)] = reverseParametersJavascript(Seq(

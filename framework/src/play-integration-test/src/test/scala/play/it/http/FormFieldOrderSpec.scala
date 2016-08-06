@@ -12,8 +12,8 @@ import play.api.test._
 import play.api.libs.ws._
 import play.it._
 
-object NettyFormFieldOrderSpec extends FormFieldOrderSpec with NettyIntegrationSpecification
-object AkkaHttpFormFieldOrderSpec extends FormFieldOrderSpec with AkkaHttpIntegrationSpecification
+class NettyFormFieldOrderSpec extends FormFieldOrderSpec with NettyIntegrationSpecification
+class AkkaHttpFormFieldOrderSpec extends FormFieldOrderSpec with AkkaHttpIntegrationSpecification
 
 trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecification {
 

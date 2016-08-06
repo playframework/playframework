@@ -22,7 +22,7 @@ import play.api.test.WithApplication
 
 import scala.concurrent.duration._
 
-object AhcConfigSpec extends Specification with Mockito {
+class AhcConfigSpec extends Specification with Mockito {
 
   val defaultWsConfig = new WSClientConfig()
   val defaultConfig = new AhcWSClientConfig(defaultWsConfig)

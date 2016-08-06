@@ -6,7 +6,7 @@ package play.api.http
 import org.specs2.mutable._
 import java.net.URLEncoder
 
-object MediaRangeSpec extends Specification {
+class MediaRangeSpec extends Specification {
 
   "A MediaRange" should {
 

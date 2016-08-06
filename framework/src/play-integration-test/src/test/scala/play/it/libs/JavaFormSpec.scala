@@ -11,7 +11,7 @@ import scala.annotation.meta.field
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
-object JavaFormSpec extends PlaySpecification {
+class JavaFormSpec extends PlaySpecification {
 
   "A Java form" should {
 

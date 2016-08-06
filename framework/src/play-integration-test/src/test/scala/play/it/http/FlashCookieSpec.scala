@@ -11,8 +11,8 @@ import play.api.libs.ws.{ WSClient, WSCookie, WSResponse }
 import play.core.server.Server
 import play.it._
 
-object NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
-object AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
+class NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
+class AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
 
 trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 

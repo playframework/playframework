@@ -10,7 +10,7 @@ import play.api.db.{ Database, Databases }
 
 // TODO: fuctional test with InvalidDatabaseRevision exception
 
-object EvolutionsSpec extends Specification {
+class EvolutionsSpec extends Specification {
 
   sequential
 

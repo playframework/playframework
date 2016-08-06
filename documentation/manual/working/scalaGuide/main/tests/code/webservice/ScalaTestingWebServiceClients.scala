@@ -40,7 +40,7 @@ import scala.concurrent.duration._
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
-object GitHubClientSpec extends Specification with NoTimeConversions {
+  class GitHubClientSpec extends Specification with NoTimeConversions {
 
   "GitHubClient" should {
     "get all repositories" in {
@@ -69,7 +69,7 @@ import scala.concurrent.duration._
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
-object ScalaTestingWebServiceClients extends Specification with NoTimeConversions {
+class ScalaTestingWebServiceClients extends Specification with NoTimeConversions {
 
   "webservice testing" should {
     "allow mocking a service" in {

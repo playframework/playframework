@@ -5,7 +5,7 @@ package play.api.libs.openid
 
 import org.specs2.mutable.Specification
 
-object UserInfoSpec extends Specification {
+class UserInfoSpec extends Specification {
 
   val claimedId = "http://example.com/openid?id=C123"
   val identity = "http://example.com/openid?id=C123&id"

@@ -8,11 +8,11 @@ import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.test._
 
-object NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
+class NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
   override def isAkkaHttpServer = false
   override def expectedServerTag = None
 }
-object AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with AkkaHttpIntegrationSpecification {
+class AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with AkkaHttpIntegrationSpecification {
   override def isAkkaHttpServer = true
   override def expectedServerTag = Some("akka-http")
 }

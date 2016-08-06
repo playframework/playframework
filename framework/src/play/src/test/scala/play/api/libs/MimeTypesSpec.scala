@@ -5,7 +5,7 @@ package play.api.libs
 
 import org.specs2.mutable._
 
-object MimeTypesSpec extends Specification {
+class MimeTypesSpec extends Specification {
 
   "Mime types" should {
     "choose the correct mime type for file with lowercase extension" in {

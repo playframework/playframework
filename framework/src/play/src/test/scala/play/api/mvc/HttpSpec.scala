@@ -7,7 +7,7 @@ import org.specs2.mutable._
 
 import play.core.test._
 
-object HttpSpec extends Specification {
+class HttpSpec extends Specification {
   "HTTP" title
 
   val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")

@@ -10,7 +10,7 @@ import play.api.test.{ FakeRequest, PlaySpecification }
 
 import scala.concurrent.Promise
 
-object EssentialActionSpec extends PlaySpecification {
+class EssentialActionSpec extends PlaySpecification {
 
   "an EssentialAction" should {
 

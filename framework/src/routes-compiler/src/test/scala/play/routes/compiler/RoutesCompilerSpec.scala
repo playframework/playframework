@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 import org.specs2.matcher.FileMatchers
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
-object RoutesCompilerSpec extends Specification with FileMatchers {
+class RoutesCompilerSpec extends Specification with FileMatchers {
 
   sequential
 

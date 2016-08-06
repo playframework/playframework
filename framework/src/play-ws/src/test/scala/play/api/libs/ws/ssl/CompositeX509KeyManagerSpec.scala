@@ -17,7 +17,7 @@ import org.specs2.mock._
 import org.specs2.mutable._
 import java.security.cert.X509Certificate
 
-object CompositeX509KeyManagerSpec extends Specification with Mockito {
+class CompositeX509KeyManagerSpec extends Specification with Mockito {
 
   def mockExtendedX509KeyManager(clientResponse: String = null, serverResponse: String = null) = new X509ExtendedKeyManager() {
 

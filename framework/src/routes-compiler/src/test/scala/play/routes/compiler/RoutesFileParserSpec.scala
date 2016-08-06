@@ -8,7 +8,7 @@ import java.io.File
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-object RoutesFileParserSpec extends Specification {
+class RoutesFileParserSpec extends Specification {
 
   "route file parser" should {
 

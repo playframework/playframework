@@ -17,7 +17,7 @@ import scala.util.{ Failure, Try }
 /**
  * All tests relating to max length handling
  */
-object MaxLengthBodyParserSpec extends Specification with AfterAll {
+class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
   val MaxLength10 = 10
   val MaxLength20 = 20

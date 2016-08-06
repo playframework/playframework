@@ -6,7 +6,7 @@ package play.api.libs.json
 import org.specs2.mutable._
 import play.api.libs.json.Json._
 
-object JsObjectSpec extends Specification {
+class JsObjectSpec extends Specification {
 
   "JsObject.deepMerge" should {
     "not fail when the objects are empty" in {

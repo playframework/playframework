@@ -6,7 +6,7 @@ package play.api.mvc
 import play.api.http.HeaderNames
 import play.api.test.FakeRequest
 
-object HttpSpec extends org.specs2.mutable.Specification {
+class HttpSpec extends org.specs2.mutable.Specification {
 
   title("HTTP")
 

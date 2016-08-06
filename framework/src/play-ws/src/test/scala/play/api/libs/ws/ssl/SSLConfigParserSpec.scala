@@ -10,10 +10,10 @@ import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 import play.api.Configuration
 import play.api.libs.ws.ahc.AhcConfigBuilder
-import play.api.libs.ws.ahc.AhcConfigSpec._
+
 import play.api.test.WithApplication
 
-object SSLConfigParserSpec extends Specification {
+class SSLConfigParserSpec extends Specification {
 
   // We can get horrible concurrent modification exceptions in the logger if we run
   // several WithApplication at the same time.  Usually happens in the build.

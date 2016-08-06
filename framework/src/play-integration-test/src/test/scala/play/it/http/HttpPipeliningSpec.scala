@@ -15,8 +15,8 @@ import akka.pattern.after
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object NettyHttpPipeliningSpec extends HttpPipeliningSpec with NettyIntegrationSpecification
-object AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
+class NettyHttpPipeliningSpec extends HttpPipeliningSpec with NettyIntegrationSpecification
+class AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
 

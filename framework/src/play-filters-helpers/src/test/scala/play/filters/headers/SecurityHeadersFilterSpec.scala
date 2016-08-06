@@ -17,15 +17,15 @@ import play.api.Configuration
 import play.api.inject.bind
 import play.api.Application
 
-object SecurityHeadersFilterSpec extends PlaySpecification {
+class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
+  def filters = Seq(securityHeadersFilter)
+}
+
+class SecurityHeadersFilterSpec extends PlaySpecification {
 
   import SecurityHeadersFilter._
 
   sequential
-
-  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
-    def filters = Seq(securityHeadersFilter)
-  }
 
   def configure(rawConfig: String) = {
     val typesafeConfig = ConfigFactory.parseString(rawConfig)

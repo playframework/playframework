@@ -10,7 +10,7 @@ import java.security.Security
 
 import play.api.libs.ws.WSClientConfig
 
-object SystemPropertiesSpec extends Specification with After {
+class SystemPropertiesSpec extends Specification with After {
 
   sequential
 

@@ -12,7 +12,7 @@ import scala.xml.NodeSeq
 import java.io.File
 import org.apache.commons.io.FileUtils
 
-object XmlBodyParserSpec extends PlaySpecification {
+class XmlBodyParserSpec extends PlaySpecification {
 
   "The XML body parser" should {
 

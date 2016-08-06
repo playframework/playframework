@@ -7,11 +7,11 @@ import java.io.File
 
 import org.specs2.mutable.Specification
 
-object CompileTimeDependencyInjection extends Specification {
+class CompileTimeDependencyInjection extends Specification {
 
   import play.api._
 
-  val environment = Environment(new File("."), CompileTimeDependencyInjection.getClass.getClassLoader, Mode.Test)
+  val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Test)
 
   "compile time dependency injection" should {
     "allow creating an application with the built in components from context" in {

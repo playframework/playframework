@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 import play.api.Configuration
 import scala.util.Try
 
-object DriverRegistrationSpec extends Specification {
+class DriverRegistrationSpec extends Specification {
 
   sequential
 

@@ -22,7 +22,7 @@ class Application @Inject() (openIdClient: OpenIdClient) extends Controller {
 //#dependency
 
 
-object ScalaOpenIdSpec extends PlaySpecification {
+class ScalaOpenIdSpec extends PlaySpecification {
 
   "Scala OpenId" should {
     "be injectable" in new WithApplication() {

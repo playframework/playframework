@@ -13,7 +13,7 @@ import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import play.api.libs.ws._
 
-object DiscoveryClientSpec extends Specification with Mockito {
+class DiscoveryClientSpec extends Specification with Mockito {
 
   val dur = Duration(10, TimeUnit.SECONDS)
 

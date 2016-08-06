@@ -5,7 +5,7 @@ package views.js.helper
 
 import org.specs2.mutable.Specification
 
-object HelpersSpec extends Specification {
+class HelpersSpec extends Specification {
 
   "@json" should {
     "Produce valid JavaScript strings" in {

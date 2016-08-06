@@ -8,7 +8,7 @@ import java.net.{ URL, URI }
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
-object UrlContextSpec extends Specification {
+class UrlContextSpec extends Specification {
 
   "path interpolation" should {
 

@@ -11,7 +11,7 @@ import java.text.ParseException
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 
-object JsonValidSpec extends Specification {
+class JsonValidSpec extends Specification {
   "JSON reads" should {
     "validate simple types" in {
       JsString("string").validate[String] must equalTo(JsSuccess("string"))

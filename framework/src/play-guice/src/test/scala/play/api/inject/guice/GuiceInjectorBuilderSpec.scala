@@ -10,15 +10,15 @@ import java.net.URLClassLoader
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment, Mode }
 
-object GuiceInjectorBuilderSpec extends Specification {
+class GuiceInjectorBuilderSpec extends Specification {
 
   "GuiceInjectorBuilder" should {
 
     "set environment" in {
       val env = new GuiceInjectorBuilder()
         .in(Environment.simple(mode = Mode.Dev))
-        .bindings(new EnvironmentModule)
-        .injector.instanceOf[Environment]
+        .bindings(new GuiceInjectorBuilderSpec.EnvironmentModule)
+        .injector().instanceOf[Environment]
 
       env.mode must_== Mode.Dev
     }
@@ -29,8 +29,8 @@ object GuiceInjectorBuilderSpec extends Specification {
         .in(new File("test"))
         .in(Mode.Dev)
         .in(classLoader)
-        .bindings(new EnvironmentModule)
-        .injector.instanceOf[Environment]
+        .bindings(new GuiceInjectorBuilderSpec.EnvironmentModule)
+        .injector().instanceOf[Environment]
 
       env.rootPath must_== new File("test")
       env.mode must_== Mode.Dev
@@ -43,8 +43,8 @@ object GuiceInjectorBuilderSpec extends Specification {
         .configure(Map("b" -> 2))
         .configure("c" -> 3)
         .configure("d.1" -> 4, "d.2" -> 5)
-        .bindings(new ConfigurationModule)
-        .injector.instanceOf[Configuration]
+        .bindings(new GuiceInjectorBuilderSpec.ConfigurationModule)
+        .injector().instanceOf[Configuration]
 
       conf.subKeys must contain(allOf("a", "b", "c", "d"))
       conf.get[Int]("a") must_== 1
@@ -57,21 +57,21 @@ object GuiceInjectorBuilderSpec extends Specification {
     "support various bindings" in {
       val injector = new GuiceInjectorBuilder()
         .bindings(
-          new EnvironmentModule,
-          Seq(new ConfigurationModule),
-          new AModule,
-          Seq(new BModule))
+          new GuiceInjectorBuilderSpec.EnvironmentModule,
+          Seq(new GuiceInjectorBuilderSpec.ConfigurationModule),
+          new GuiceInjectorBuilderSpec.AModule,
+          Seq(new GuiceInjectorBuilderSpec.BModule))
         .bindings(
-          bind[C].to[C1],
-          Seq(bind[D].to[D1]))
-        .injector
+          bind[GuiceInjectorBuilderSpec.C].to[GuiceInjectorBuilderSpec.C1],
+          Seq(bind[GuiceInjectorBuilderSpec.D].to[GuiceInjectorBuilderSpec.D1]))
+        .injector()
 
       injector.instanceOf[Environment] must beAnInstanceOf[Environment]
       injector.instanceOf[Configuration] must beAnInstanceOf[Configuration]
-      injector.instanceOf[A] must beAnInstanceOf[A1]
-      injector.instanceOf[B] must beAnInstanceOf[B1]
-      injector.instanceOf[C] must beAnInstanceOf[C1]
-      injector.instanceOf[D] must beAnInstanceOf[D1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.A] must beAnInstanceOf[GuiceInjectorBuilderSpec.A1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.B] must beAnInstanceOf[GuiceInjectorBuilderSpec.B1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.C] must beAnInstanceOf[GuiceInjectorBuilderSpec.C1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.D] must beAnInstanceOf[GuiceInjectorBuilderSpec.D1]
     }
 
     "override bindings" in {
@@ -79,12 +79,12 @@ object GuiceInjectorBuilderSpec extends Specification {
         .in(Mode.Dev)
         .configure("a" -> 1)
         .bindings(
-          new EnvironmentModule,
-          new ConfigurationModule)
+          new GuiceInjectorBuilderSpec.EnvironmentModule,
+          new GuiceInjectorBuilderSpec.ConfigurationModule)
         .overrides(
           bind[Environment] to Environment.simple(),
-          new SetConfigurationModule(Configuration("b" -> 2)))
-        .injector
+          new GuiceInjectorBuilderSpec.SetConfigurationModule(Configuration("b" -> 2)))
+        .injector()
 
       val env = injector.instanceOf[Environment]
       val conf = injector.instanceOf[Configuration]
@@ -96,40 +96,44 @@ object GuiceInjectorBuilderSpec extends Specification {
     "disable modules" in {
       val injector = new GuiceInjectorBuilder()
         .bindings(
-          new EnvironmentModule,
-          new ConfigurationModule,
-          new AModule,
-          new BModule,
-          bind[C].to[C1],
-          bind[D] to new D1)
-        .disable[EnvironmentModule]
-        .disable(classOf[AModule], classOf[CModule]) // C won't be disabled
-        .injector
+          new GuiceInjectorBuilderSpec.EnvironmentModule,
+          new GuiceInjectorBuilderSpec.ConfigurationModule,
+          new GuiceInjectorBuilderSpec.AModule,
+          new GuiceInjectorBuilderSpec.BModule,
+          bind[GuiceInjectorBuilderSpec.C].to[GuiceInjectorBuilderSpec.C1],
+          bind[GuiceInjectorBuilderSpec.D] to new GuiceInjectorBuilderSpec.D1)
+        .disable[GuiceInjectorBuilderSpec.EnvironmentModule]
+        .disable(classOf[GuiceInjectorBuilderSpec.AModule], classOf[GuiceInjectorBuilderSpec.CModule]) // C won't be disabled
+        .injector()
 
       injector.instanceOf[Environment] must throwA[com.google.inject.ConfigurationException]
-      injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[GuiceInjectorBuilderSpec.A] must throwA[com.google.inject.ConfigurationException]
 
       injector.instanceOf[Configuration] must beAnInstanceOf[Configuration]
-      injector.instanceOf[B] must beAnInstanceOf[B1]
-      injector.instanceOf[C] must beAnInstanceOf[C1]
-      injector.instanceOf[D] must beAnInstanceOf[D1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.B] must beAnInstanceOf[GuiceInjectorBuilderSpec.B1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.C] must beAnInstanceOf[GuiceInjectorBuilderSpec.C1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.D] must beAnInstanceOf[GuiceInjectorBuilderSpec.D1]
     }
 
     "configure binder" in {
       val injector = new GuiceInjectorBuilder()
         .requireExplicitBindings()
         .bindings(
-          bind[A].to[A1],
-          bind[B].to[B1]
+          bind[GuiceInjectorBuilderSpec.A].to[GuiceInjectorBuilderSpec.A1],
+          bind[GuiceInjectorBuilderSpec.B].to[GuiceInjectorBuilderSpec.B1]
         )
-        .injector
-      injector.instanceOf[A] must beAnInstanceOf[A1]
-      injector.instanceOf[B] must beAnInstanceOf[B1]
-      injector.instanceOf[B1] must throwA[com.google.inject.ConfigurationException]
-      injector.instanceOf[C1] must throwA[com.google.inject.ConfigurationException]
+        .injector()
+      injector.instanceOf[GuiceInjectorBuilderSpec.A] must beAnInstanceOf[GuiceInjectorBuilderSpec.A1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.B] must beAnInstanceOf[GuiceInjectorBuilderSpec.B1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.B1] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[GuiceInjectorBuilderSpec.C1] must throwA[com.google.inject.ConfigurationException]
     }
 
   }
+
+}
+
+object GuiceInjectorBuilderSpec {
 
   class EnvironmentModule extends Module {
     def bindings(env: Environment, conf: Configuration) = Seq(
@@ -144,28 +148,28 @@ object GuiceInjectorBuilderSpec extends Specification {
   }
 
   class SetConfigurationModule(conf: Configuration) extends AbstractModule {
-    def configure = bind(classOf[Configuration]) toInstance conf
+    def configure() = bind(classOf[Configuration]) toInstance conf
   }
 
   trait A
   class A1 extends A
 
   class AModule extends AbstractModule {
-    def configure = bind(classOf[A]) to classOf[A1]
+    def configure() = bind(classOf[A]) to classOf[A1]
   }
 
   trait B
   class B1 extends B
 
   class BModule extends AbstractModule {
-    def configure = bind(classOf[B]) to classOf[B1]
+    def configure() = bind(classOf[B]) to classOf[B1]
   }
 
   trait C
   class C1 extends C
 
   class CModule extends AbstractModule {
-    def configure = bind(classOf[C]) to classOf[C1]
+    def configure() = bind(classOf[C]) to classOf[C1]
   }
 
   trait D

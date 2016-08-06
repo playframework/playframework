@@ -22,8 +22,8 @@ import play.it.tools.HttpBinApplication._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.asynchttpclient.netty.NettyResponse
 
-object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
-object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+class NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
+class AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
 
 trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTimeout with ServerIntegrationSpecification {
 

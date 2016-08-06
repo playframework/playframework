@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
 
-object ConfigurationSpec extends Specification {
+class ConfigurationSpec extends Specification {
 
   def config(data: (String, Any)*) = Configuration.from(data.toMap)
 

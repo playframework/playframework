@@ -12,7 +12,7 @@ import play.api.{ Configuration, Environment, PlayException }
 
 import scala.reflect.ClassTag
 
-object ReflectSpec extends Specification {
+class ReflectSpec extends Specification {
 
   "Reflect" should {
 
@@ -62,36 +62,6 @@ object ReflectSpec extends Specification {
     bindings(configured, implicitly[ClassTag[Default]].runtimeClass.getName)
   }
 
-  trait Duck {
-    def quack: String
-  }
-
-  trait JavaDuck {
-    def getQuack: String
-  }
-
-  class JavaDuckAdapter @Inject() (underlying: JavaDuck) extends Duck {
-    def quack = underlying.getQuack
-  }
-
-  class DefaultDuck extends Duck {
-    def quack = "quack"
-  }
-
-  class CustomDuck extends Duck {
-    def quack = "custom quack"
-  }
-
-  class CustomJavaDuck extends JavaDuck {
-    def getQuack = "java quack"
-  }
-
-  class JavaDuckDelegate @Inject() (delegate: Duck) extends JavaDuck {
-    def getQuack = delegate.quack
-  }
-
-  class NotADuck
-
   def doQuack(bindings: Seq[Binding[_]]): String = {
     val injector = new GuiceInjectorBuilder().bindings(bindings).injector
     val duck = injector.instanceOf[Duck]
@@ -104,3 +74,33 @@ object ReflectSpec extends Specification {
   }
 
 }
+
+trait Duck {
+  def quack: String
+}
+
+trait JavaDuck {
+  def getQuack: String
+}
+
+class JavaDuckAdapter @Inject() (underlying: JavaDuck) extends Duck {
+  def quack = underlying.getQuack
+}
+
+class DefaultDuck extends Duck {
+  def quack = "quack"
+}
+
+class CustomDuck extends Duck {
+  def quack = "custom quack"
+}
+
+class CustomJavaDuck extends JavaDuck {
+  def getQuack = "java quack"
+}
+
+class JavaDuckDelegate @Inject() (delegate: Duck) extends JavaDuck {
+  def getQuack = delegate.quack
+}
+
+class NotADuck

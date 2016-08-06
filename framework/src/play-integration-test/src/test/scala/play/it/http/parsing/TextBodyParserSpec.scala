@@ -9,7 +9,7 @@ import akka.util.ByteString
 import play.api.test._
 import play.api.mvc.{ BodyParser, BodyParsers }
 
-object TextBodyParserSpec extends PlaySpecification {
+class TextBodyParserSpec extends PlaySpecification {
 
   "The text body parser" should {
 

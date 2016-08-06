@@ -20,8 +20,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
-object NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
-object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
+class NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
+class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
 

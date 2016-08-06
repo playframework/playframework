@@ -6,7 +6,7 @@ package play.db
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeApplication
 
-object DBSpec extends org.specs2.mutable.Specification {
+class DBSpec extends org.specs2.mutable.Specification {
 
   title("Java DB utility")
 

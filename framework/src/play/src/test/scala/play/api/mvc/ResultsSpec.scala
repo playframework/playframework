@@ -23,7 +23,7 @@ import play.core.test._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-object ResultsSpec extends Specification {
+class ResultsSpec extends Specification {
 
   import play.api.mvc.Results._
 

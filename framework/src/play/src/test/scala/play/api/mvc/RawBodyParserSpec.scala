@@ -20,7 +20,7 @@ import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object RawBodyParserSpec extends Specification with AfterAll {
+class RawBodyParserSpec extends Specification with AfterAll {
 
   implicit val system = ActorSystem("content-types-spec")
   implicit val materializer = ActorMaterializer()(system)

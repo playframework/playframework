@@ -8,7 +8,7 @@ import play.api.mvc.Controller
 import play.api.i18n._
 import play.api.Mode
 
-object MessagesSpec extends PlaySpecification with Controller {
+class MessagesSpec extends PlaySpecification with Controller {
 
   sequential
 

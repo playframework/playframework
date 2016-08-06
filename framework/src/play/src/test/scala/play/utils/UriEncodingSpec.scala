@@ -8,7 +8,7 @@ import org.specs2.mutable._
 /**
  * Tests for the UriEncoding object.
  */
-object UriEncodingSpec extends Specification {
+class UriEncodingSpec extends Specification {
   import UriEncoding._
 
   sealed trait EncodingResult

@@ -7,7 +7,7 @@ import play.api.libs.functional.Functor
 
 import JsResult.functorJsResult
 
-object JsResultSpec extends org.specs2.mutable.Specification {
+class JsResultSpec extends org.specs2.mutable.Specification {
 
   title("JSON result")
 

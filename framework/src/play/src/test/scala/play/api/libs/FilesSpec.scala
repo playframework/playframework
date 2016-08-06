@@ -16,7 +16,7 @@ import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFile }
 import play.api.routing.Router
 import play.utils.PlayIO
 
-object FilesSpec extends Specification with After {
+class FilesSpec extends Specification with After {
 
   val parentDirectory = new File("/tmp/play/specs/")
   val utf8 = Charset.forName("UTF8")

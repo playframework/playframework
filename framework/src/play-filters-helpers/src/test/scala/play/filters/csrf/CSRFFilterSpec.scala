@@ -23,7 +23,7 @@ import play.core.DefaultWebCommands
 /**
  * Specs for the global CSRF filter
  */
-object CSRFFilterSpec extends CSRFCommonSpecs {
+class CSRFFilterSpec extends CSRFCommonSpecs {
 
   sequential
 
@@ -204,10 +204,11 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       }
   }
 
-  class CustomErrorHandler extends CSRF.ErrorHandler {
-    import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
-  }
+}
+
+class CustomErrorHandler extends CSRF.ErrorHandler {
+  import play.api.mvc.Results.Unauthorized
+  def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {

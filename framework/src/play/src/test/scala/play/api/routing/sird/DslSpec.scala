@@ -6,7 +6,7 @@ package play.api.routing.sird
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
-object DslSpec extends Specification {
+class DslSpec extends Specification {
 
   "Play routing DSL" should {
 

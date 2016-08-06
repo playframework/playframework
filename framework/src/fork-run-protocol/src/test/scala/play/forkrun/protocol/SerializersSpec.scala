@@ -8,7 +8,7 @@ import play.forkrun.protocol.Serializers._
 import play.runsupport.Reloader.{ Source, CompileSuccess, CompileFailure, CompileResult }
 import sbt.serialization._
 
-object SerializersSpec extends Specification with PicklingTestUtils {
+class SerializersSpec extends Specification with PicklingTestUtils {
 
   def file(path: String): java.io.File = {
     (new java.io.File(path)).getAbsoluteFile

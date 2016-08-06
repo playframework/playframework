@@ -10,47 +10,46 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Result
 import play.mvc.Http.RequestHeader
 
+class MyMessagesApi extends MessagesApi {
+  override def messages: Map[String, Map[String, String]] = ???
+  override def preferred(candidates: Seq[Lang]): Messages = ???
+  override def preferred(request: mvc.RequestHeader): Messages = ???
+  override def preferred(request: RequestHeader): Messages = ???
+  override def langCookieHttpOnly: Boolean = ???
+  override def clearLang(result: Result): Result = ???
+  override def langCookieSecure: Boolean = ???
+  override def langCookieName: String = ???
+  override def setLang(result: Result, lang: Lang): Result = ???
+  override def apply(key: String, args: Any*)(implicit lang: Lang): String = ???
+  override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String = ???
+  override def isDefinedAt(key: String)(implicit lang: Lang): Boolean = ???
+  override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = ???
+}
 
-object ScalaExtendingPlay extends Specification {
+// #module-definition
+class MyCode {
+  // add functionality here
+}
 
-  class MyMessagesApi extends MessagesApi {
-    override def messages: Map[String, Map[String, String]] = ???
-    override def preferred(candidates: Seq[Lang]): Messages = ???
-    override def preferred(request: mvc.RequestHeader): Messages = ???
-    override def preferred(request: RequestHeader): Messages = ???
-    override def langCookieHttpOnly: Boolean = ???
-    override def clearLang(result: Result): Result = ???
-    override def langCookieSecure: Boolean = ???
-    override def langCookieName: String = ???
-    override def setLang(result: Result, lang: Lang): Result = ???
-    override def apply(key: String, args: Any*)(implicit lang: Lang): String = ???
-    override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String = ???
-    override def isDefinedAt(key: String)(implicit lang: Lang): Boolean = ???
-    override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = ???
+class MyModule extends play.api.inject.Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    Seq(bind[MyCode].toInstance(new MyCode))
   }
+}
+// #module-definition
 
-  // #module-definition
-  class MyCode {
-    // add functionality here
+// #builtin-module-definition
+class MyI18nModule extends play.api.inject.Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    Seq(
+      bind[Langs].to[DefaultLangs],
+      bind[MessagesApi].to[MyMessagesApi]
+    )
   }
+}
+// #builtin-module-definition
 
-  class MyModule extends play.api.inject.Module {
-    def bindings(environment: Environment, configuration: Configuration) = {
-        Seq(bind[MyCode].toInstance(new MyCode))
-    }
-  }
-  // #module-definition
-
-  // #builtin-module-definition
-  class MyI18nModule extends play.api.inject.Module {
-    def bindings(environment: Environment, configuration: Configuration) = {
-      Seq(
-        bind[Langs].to[DefaultLangs],
-        bind[MessagesApi].to[MyMessagesApi]
-      )
-    }
-  }
-  // #builtin-module-definition
+class ScalaExtendingPlay extends Specification {
 
   "Extending Play" should {
 
