@@ -438,7 +438,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
      * js.validate((__ \ 'key2).json.pick)
-     * => JsSuccess("value2",/key2)
+     * => JsSuccess(JsString("value2"))
      * }}}
      */
     def pick: Reads[JsValue] = pick[JsValue]
@@ -473,7 +473,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
      * js.validate( (__ \ 'key2).json.pickBranch )
-     * => JsSuccess({"key2":{"key21":"value2"}},/key2)
+     * => JsSuccess(JsObject(Seq(("key2", Json.obj("key21" -> "value2")))))
      * }}}
      */
     def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
