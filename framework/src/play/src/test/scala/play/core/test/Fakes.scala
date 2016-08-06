@@ -9,6 +9,7 @@ import akka.util.ByteString
 import play.api.inject.{ Binding, Injector }
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -21,7 +22,18 @@ import scala.xml.NodeSeq
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, clientCertificateChain: Option[Seq[X509Certificate]] = None) extends Request[A] {
+case class FakeRequest[A](
+    method: String,
+    uri: String,
+    headers: Headers,
+    body: A,
+    remoteAddress: String = "127.0.0.1",
+    version: String = "HTTP/1.1",
+    id: Long = 666,
+    tags: Map[String, String] = Map.empty[String, String],
+    secure: Boolean = false,
+    clientCertificateChain: Option[Seq[X509Certificate]] = None,
+    properties: TypedMap = TypedMap.empty) extends Request[A] with WithPropertiesMap[FakeRequest[A]] {
 
   private def _copy[B](
     id: Long = this.id,
@@ -34,6 +46,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
     clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain,
+    properties: TypedMap = this.properties,
     body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
       method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain
@@ -140,6 +153,11 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     _copy(body = body)
   }
 
+  override protected def withProperties(newProperties: TypedMap): FakeRequest[A] = {
+    new FakeRequest[A](
+      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain, newProperties
+    )
+  }
   /**
    * Returns the current method
    */

@@ -20,6 +20,7 @@ import io.netty.util.ReferenceCountUtil
 import play.api.Logger
 import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
@@ -74,41 +75,49 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     parameters: Map[String, Seq[String]], _remoteAddress: InetSocketAddress,
     sslHandler: Option[SslHandler]): RequestHeader = {
 
-    new RequestHeader {
-      override val id = requestId
-      override val tags = Map.empty[String, String]
-      override def uri = request.getUri
-      override def path = parsedPath
-      override def method = request.getMethod.name()
-      override def version = request.getProtocolVersion.text()
-      override def queryString = parameters
-      override val headers = new NettyHeadersWrapper(request.headers)
-      private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, sslHandler.isDefined, headers)
-      }
-      override def remoteAddress = remoteConnection.address.getHostAddress
-      override def secure = remoteConnection.secure
-      override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
+    val headers = new NettyHeadersWrapper(request.headers)
+    lazy val remoteConnection: ConnectionInfo = {
+      forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, sslHandler.isDefined, headers)
     }
+
+    new RequestHeaderImpl(
+      id = requestId,
+      tags = Map.empty,
+      uri = request.getUri,
+      path = parsedPath,
+      method = request.getMethod.name(),
+      version = request.getProtocolVersion.text(),
+      queryString = parameters,
+      headers = headers,
+      remoteAddressFunc = () => remoteConnection.address.toString,
+      secureFunc = () => remoteConnection.secure,
+      clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine())),
+      properties = TypedMap.empty
+    )
   }
 
   /** Create an unparsed request header. Used when even Netty couldn't parse the request. */
   def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]) = {
 
-    new RequestHeader {
-      override def id = requestId
-      override def tags = Map.empty[String, String]
-      override def uri = request.getUri
-      override lazy val path = {
+    val headers = new NettyHeadersWrapper(request.headers)
+    lazy val remoteConnection: ConnectionInfo = {
+      forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, sslHandler.isDefined, headers)
+    }
+
+    new RequestHeaderImpl(
+      id = requestId,
+      tags = Map.empty,
+      uri = request.getUri,
+      path = {
         // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
         // path, and don't decode.
         val withoutHost = request.getUri.dropWhile(_ != '/')
         val withoutQueryString = withoutHost.split('?').head
         if (withoutQueryString.isEmpty) "/" else withoutQueryString
-      }
-      override def method = request.getMethod.name()
-      override def version = request.getProtocolVersion.text()
-      override lazy val queryString: Map[String, Seq[String]] = {
+      },
+      method = request.getMethod.name(),
+      version = request.getProtocolVersion.text(),
+      queryString = {
         // Very rough parse of query string that doesn't decode
         if (request.getUri.contains("?")) {
           request.getUri.split("\\?", 2)(1).split('&').map { keyPair =>
@@ -122,12 +131,13 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
         } else {
           Map.empty
         }
-      }
-      override val headers = new NettyHeadersWrapper(request.headers)
-      override def remoteAddress = _remoteAddress.getAddress.toString
-      override def secure = sslHandler.isDefined
-      override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
-    }
+      },
+      headers = headers,
+      remoteAddressFunc = () => remoteConnection.address.toString,
+      secureFunc = () => remoteConnection.secure,
+      clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine())),
+      properties = TypedMap.empty
+    )
   }
 
   /** Create the source for the request body */

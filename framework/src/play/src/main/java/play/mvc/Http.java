@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.libs.json.JsValue;
+import play.api.libs.typedmap.TypedMap;
 import play.api.mvc.Headers;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
@@ -965,7 +966,6 @@ public class Http {
          */
         public RequestImpl build() {
             return new RequestImpl(new play.api.mvc.RequestImpl(
-                body(),
                 id,
                 asScala(tags()),
                 uri.toString(),
@@ -976,7 +976,10 @@ public class Http {
                 buildHeaders(),
                 remoteAddress,
                 secure,
-                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq()))));
+                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq())),
+                TypedMap.empty(),
+                body()
+            ));
         }
 
         // -------------------

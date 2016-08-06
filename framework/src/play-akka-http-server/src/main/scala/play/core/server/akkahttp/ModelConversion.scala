@@ -12,9 +12,11 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
-import play.api.http.{ HttpChunk, HttpErrorHandler, HttpEntity => PlayHttpEntity, Status }
+import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+
 import scala.collection.immutable
 import scala.concurrent.Future
 
@@ -48,36 +50,29 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
-    val remoteHostAddress = remoteAddress.getAddress.getHostAddress
-    // Taken from PlayDefaultUpstreamHander
 
-    // Avoid clash between method arg and RequestHeader field
-    val remoteAddressArg = remoteAddress
+    val headers = convertRequestHeaders(request)
+    lazy val remoteConnection: ConnectionInfo = {
+      forwardedHeaderHandler.remoteConnection(remoteAddress.getAddress, secureProtocol, headers)
+    }
 
-    new RequestHeader {
-      override val id = requestId
-      // Send a tag so our tests can tell which kind of server we're using.
-      // We could get NettyServer to send a similar tag, but for the moment
-      // let's not, just in case it slows NettyServer down a bit.
-      override val tags = Map("HTTP_SERVER" -> "akka-http")
-      // Note: Akka HTTP doesn't provide a direct way to get the raw URI
-      // This will only work properly if
-      override def uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
+    new RequestHeaderImpl(
+      id = requestId,
+      tags = Map("HTTP_SERVER" -> "akka-http"),
+      uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
         logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
         request.uri.toString
-      }
-      override def path = request.uri.path.toString
-      override def method = request.method.name
-      override def version = request.protocol.value
-      override def queryString = request.uri.query().toMultiMap
-      override val headers = convertRequestHeaders(request)
-      private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(remoteAddressArg.getAddress, secureProtocol, headers)
-      }
-      override def remoteAddress = remoteConnection.address.getHostAddress
-      override def secure = remoteConnection.secure
-      override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
-    }
+      },
+      path = request.uri.path.toString,
+      method = request.method.name,
+      version = request.protocol.value,
+      queryString = request.uri.query().toMultiMap,
+      headers = headers,
+      remoteAddressFunc = () => remoteConnection.address.toString,
+      secureFunc = () => remoteConnection.secure,
+      clientCertificateChain = None, // TODO - Akka does not yet expose the SSLEngine used for the request,
+      properties = TypedMap.empty
+    )
   }
 
   /**

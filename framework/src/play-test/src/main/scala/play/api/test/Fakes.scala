@@ -14,6 +14,7 @@ import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -36,7 +37,19 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false, clientCertificateChain: Option[Seq[X509Certificate]] = None) extends Request[A] {
+case class FakeRequest[A](
+    method: String,
+    uri: String,
+    headers: Headers,
+    body: A,
+    remoteAddress: String = "127.0.0.1",
+    version: String = "HTTP/1.1",
+    id: Long = 666,
+    tags: Map[String, String] = Map.empty[String, String],
+    secure: Boolean = false,
+    clientCertificateChain: Option[Seq[X509Certificate]] = None,
+    properties: TypedMap = TypedMap.empty
+  ) extends Request[A] with WithPropertiesMap[FakeRequest[A]] {
 
   def copyFakeRequest[B](
     id: Long = this.id,
@@ -51,7 +64,7 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
     clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain,
     body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
-      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain
+      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain, properties
     )
   }
 
@@ -153,6 +166,12 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
    */
   def withBody[B](body: B): FakeRequest[B] = {
     copyFakeRequest(body = body)
+  }
+
+  override protected def withProperties(newProperties: TypedMap): FakeRequest[A] = {
+    new FakeRequest[A](
+      method, uri, headers, body, remoteAddress, version, id, tags, secure, clientCertificateChain, newProperties
+    )
   }
 
   /**
