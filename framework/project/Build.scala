@@ -58,6 +58,7 @@ object BuildSettings {
     parallelExecution in Test := false,
     testListeners in (Test,test) := Nil,
     javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    scalacOptions in Compile ++= Seq("-Xmax-classfile-name", "128"),
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     bintrayPackage := "play-sbt-plugin",
     autoAPIMappings := true,
