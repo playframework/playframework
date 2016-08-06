@@ -6,6 +6,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "%SCALA_VERSION%"
 
+routesGenerator := InjectedRoutesGenerator
+
 libraryDependencies ++= Seq(
   guiceSupport,
   "com.typesafe.play" %% "play-slick" % "%PLAY_SLICK_VERSION%",
