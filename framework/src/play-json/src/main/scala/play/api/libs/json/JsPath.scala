@@ -204,6 +204,37 @@ case class JsPath(path: List[PathNode] = List()) {
   def ++(other: JsPath) = this compose other
 
   /**
+   * Transform the passed Json tree, at the current path, by applying the transform function.
+   * 
+   * Errs if the path is not met.
+   * 
+   * Example:
+   * {{{
+   * (__ \ "user" \ "email").transform(userJson)(oldEmail => JsString("coco@playframework.com"))
+   * }}}
+   */
+  def transform(json: JsValue)(transform: JsValue => JsValue): JsValue = {
+    def recursiveSet(nodes: List[PathNode], jsvalue: JsValue): JsValue = (nodes, jsvalue) match {
+      case (Nil, value) =>
+        transform(value)
+      case (KeyPathNode(key) :: tail, JsObject(fields)) =>
+        JsObject(fields.map {
+          case (k, v) if k == key =>
+            (k, recursiveSet(tail, v))
+          case x => x
+        })
+      case (IdxPathNode(idx) :: tail, JsArray(values)) =>
+        JsArray(values.zipWithIndex.map {
+          case (v, i) if i == idx =>
+            recursiveSet(tail, v)
+          case (v, _) => v
+        })
+      case x => sys.error(s"Unexpected $x when we still have path $nodes")
+    }
+    recursiveSet(this.path, json)
+  }
+
+  /**
    * Simple Prune for simple path and only JsObject
    */
   def prune(js: JsValue) = {
@@ -539,6 +570,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * }}}
      */
     def prune: Reads[JsObject] = Reads.jsPrune(self)
+
   }
 
 }
