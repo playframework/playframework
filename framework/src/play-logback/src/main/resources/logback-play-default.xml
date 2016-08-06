@@ -3,24 +3,13 @@
   -->
 <!-- The default logback configuration that Play uses if no other configuration is provided -->
 <configuration>
-    
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-     <file>${application.home:-.}/logs/application.log</file>
-     <encoder>
-       <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
-     </encoder>
-  </appender>
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%coloredLevel %logger{15} - %message%n%xException{10}</pattern>
     </encoder>
-  </appender>
-
-  <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="FILE" />
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
@@ -29,12 +18,11 @@
 
   <logger name="play" level="INFO" />
   <logger name="application" level="INFO" />
-  
+
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
   <root level="WARN">
-    <appender-ref ref="ASYNCFILE" />
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
-  
+
 </configuration>

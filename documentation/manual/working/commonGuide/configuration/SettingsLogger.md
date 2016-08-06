@@ -5,16 +5,46 @@ Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its 
 
 ## Default configuration
 
+In dev mode Play uses the following default configuration:
+
+@[](/confs/play-logback/logback-play-dev.xml)
+
 Play uses the following default configuration in production:
 
 @[](/confs/play-logback/logback-play-default.xml)
 
-A few things to note about this configuration:
+A few things to note about these configurations:
 
-* This specifies a file appender that writes to `logs/application.log`.
-* The file logger logs full exception stack traces, while the console logger only logs 10 lines of an exception stack trace.
+* These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* Play puts both the console and the file logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+
+To add a file logger, add the following appender to your `conf/logback.xml` file:
+
+```xml
+<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${application.home:-.}/logs/application.log</file>
+    <encoder>
+        <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
+    </encoder>
+</appender>
+```
+
+Optionally use the async appender to wrap the `FileAppender`:
+```xml
+<appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FILE" />
+</appender>
+```
+
+Add the necessary appender(s) to the root:
+```xml
+<root level="WARN">
+    <appender-ref ref="ASYNCFILE" />
+    <appender-ref ref="ASYNCSTDOUT" />
+</root>
+```
+
 
 ## Using a custom application loader
 
