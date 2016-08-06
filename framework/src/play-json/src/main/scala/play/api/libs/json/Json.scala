@@ -18,6 +18,20 @@ object Json {
    * @return the JsValue representing the string
    */
   def parse(input: String): JsValue = JacksonJson.parseJsValue(input)
+  
+  /**
+   * Parse a String representing a json, and return it as an Option[JsValue].
+   *
+   * @param input a String to parse
+   * @return the Option[JsValue] representing the string or None
+   */
+  def parseOpt(input: String): Option[JsValue] = {
+    try {
+      Some(parse(input))
+    } catch {
+      case e: JsonParseException => None
+    }
+  }
 
   /**
    * Parse an InputStream representing a json, and return it as a JsValue.
@@ -37,6 +51,23 @@ object Json {
    * @return the JsValue representing the byte array
    */
   def parse(input: Array[Byte]): JsValue = JacksonJson.parseJsValue(input)
+  
+  /**
+   * Parse a byte array representing a json, and return it as an Option[JsValue].
+   *
+   * The character encoding used will be automatically detected as UTF-8, UTF-16 or UTF-32, as per the heuristics in
+   * RFC-4627.
+   *
+   * @param input a byte array to parse
+   * @return the Option[JsValue] representing the byte array or None
+   */
+  def parse(input: Array[Byte]): Option[JsValue] = {
+    try {
+      Some(parse(input))
+    } catch {
+      case e: JsonParseException => None
+    }
+  }
 
   /**
    * Convert a JsValue to its string representation.
