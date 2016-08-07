@@ -116,7 +116,6 @@ object Dependencies {
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
     jacksons ++
     Seq(
-      "org.scala-stm" %% "scala-stm" % "0.7",
       "commons-codec" % "commons-codec" % "1.10",
 
       guava,
