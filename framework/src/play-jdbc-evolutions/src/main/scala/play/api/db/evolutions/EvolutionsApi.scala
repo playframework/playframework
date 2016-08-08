@@ -123,10 +123,8 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   private def databaseEvolutions(): Seq[Evolution] = {
     implicit val connection = database.getConnection(autocommit = true)
 
-    checkEvolutionsState()
-
     try {
-
+      checkEvolutionsState()
       Collections.unfoldLeft(executeQuery(
         """
             select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id
