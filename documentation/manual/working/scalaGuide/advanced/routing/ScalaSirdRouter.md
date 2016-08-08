@@ -59,26 +59,14 @@ Configuring an application to use a sird Router can be achieved in many ways, de
 
 ### Using SIRD router from a routes files
 
-To use SIRD in conjunction with a regular Play project that uses [[ScalaRouting]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
+To use the routing DSL in conjunction with a regular Play project that uses [[a routes file|ScalaRouting]] and [[controllers|ScalaActions]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
 
-```
-package api
-
-import play.api.mvc._
-import play.api.routing._
-import play.api.routing.sird._
-
-class MyRouter extends SimpleRouter {
-  def routes = {
-    ...
-  }
-}
-```
+@[inject-sird-router](code/ApiRouter.scala)
 
 Add the following line to conf/routes:
 
 ```
-->      /api                        api.MyRouter
+->      /api                        api.ApiRouter
 ```
 
 ### Embedding play
