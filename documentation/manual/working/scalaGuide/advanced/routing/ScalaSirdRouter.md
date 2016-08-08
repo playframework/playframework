@@ -69,6 +69,14 @@ Add the following line to conf/routes:
 ->      /api                        api.ApiRouter
 ```
 
+### Composing SIRD routers
+
+You can compose multiple routers together, because Routes are partial functions:
+
+``` scala
+mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
+```
+
 ### Embedding play
 
 An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlay]] section.
