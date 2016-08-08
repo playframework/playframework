@@ -26,11 +26,11 @@ class PersonControllerSpec extends PlaySpec with OneAppPerTest {
     }
 
     "post and create a new user" in  {
-      route(app, FakeRequest(POST, "/person").withFormUrlEncodedBody("name" -> "Play", "age" -> "5")).map(status(_)) mustBe Some(SEE_OTHER)
+      route(app, FakeRequest(POST, "/persons").withFormUrlEncodedBody("name" -> "Play", "age" -> "5")).map(status(_)) mustBe Some(SEE_OTHER)
     }
 
     "post and receive an error page" in  {
-      route(app, FakeRequest(POST, "/person").withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")).map(status(_)) mustBe Some(BAD_REQUEST)
+      route(app, FakeRequest(POST, "/persons").withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")).map(status(_)) mustBe Some(BAD_REQUEST)
     }
 
   }
