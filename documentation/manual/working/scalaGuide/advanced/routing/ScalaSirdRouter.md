@@ -57,7 +57,28 @@ To further the point that these are just regular extractor objects, you can see 
 
 Configuring an application to use a sird Router can be achieved in many ways, depending on use case:
 
+### Using SIRD router from a routes files
+
+To use the routing DSL in conjunction with a regular Play project that uses [[a routes file|ScalaRouting]] and [[controllers|ScalaActions]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
+
+@[inject-sird-router](code/ApiRouter.scala)
+
+Add the following line to conf/routes:
+
+```
+->      /api                        api.ApiRouter
+```
+
+### Composing SIRD routers
+
+You can compose multiple routers together, because Routes are partial functions:
+
+``` scala
+mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
+```
+
 ### Embedding play
+
 An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlay]] section.
 
 ### Providing a DI router

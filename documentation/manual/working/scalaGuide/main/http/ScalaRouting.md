@@ -38,6 +38,14 @@ You can also add comments to the route file, with the `#` character.
 
 @[clients-show-comment](code/scalaguide.http.routing.routes)
 
+You can tell the routes file to use a different router under a specific prefix by using "->" followed by the given prefix:
+
+```
+->      /api                        api.MyRouter
+```
+
+This is especially useful when combined with [String Interpolating Routing DSL|ScalaSirdRouter] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
+
 ## The HTTP method
 
 The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
@@ -149,5 +157,7 @@ You can then reverse the URL to the `hello` action method, by using the `control
 @[reverse-router](code/ScalaRouting.scala)
 
 ## Custom routing
+
+Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 See [[String Interpolating Routing DSL|ScalaSirdRouter]]
