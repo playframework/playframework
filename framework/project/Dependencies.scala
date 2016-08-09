@@ -91,9 +91,7 @@ object Dependencies {
 
     guava,
     findBugs,
-    logback % Test,
-
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
+    logback % Test
   ) ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
