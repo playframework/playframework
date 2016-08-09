@@ -28,7 +28,7 @@ public class ServerFunctionalTest extends WithServer {
     public void testInServer() throws Exception {
         int timeout = 5000;
         String url = "http://localhost:" + this.testServer.port() + "/";
-        try (WSClient ws = WS.newClient(this.testServer.port())) {
+        try (WSClient ws = play.test.WSTestClient.newClient(this.testServer.port())) {
             CompletionStage<WSResponse> stage = ws.url(url).get();
             WSResponse response = stage.toCompletableFuture().get();
             assertEquals(NOT_FOUND, response.getStatus());

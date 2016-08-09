@@ -195,7 +195,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | `Cache` | [`CacheApi`](api/scala/play/api/cache/CacheApi.html) or better | You can get a particular cache using the `@NamedCache` annotation. |
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
-| [`WS`](api/scala/play/api/libs/ws/WS$.html) | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
+| `WS` | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
 | [`Crypto`](api/scala/play/api/libs/Crypto$.html) | [`Crypto`](api/scala/play/api/libs/Crypto.html) | |
 | `GlobalSettings` | [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and [`HttpFilters`](api/scala/play/api/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
 

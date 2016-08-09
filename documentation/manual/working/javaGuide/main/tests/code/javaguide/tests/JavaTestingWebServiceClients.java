@@ -52,7 +52,7 @@ public class JavaTestingWebServiceClients {
 
         Server server = Server.forRouter(router);
 
-        WSClient ws = WS.newClient(server.httpPort());
+        WSClient ws = play.test.WSTestClient.newClient(server.httpPort());
         GitHubClient client = new GitHubClient(ws);
         client.baseUrl = "";
 

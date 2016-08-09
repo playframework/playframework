@@ -490,6 +490,20 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       //#async-result
     }
 
+    "allow simple programmatic configuration" in new WithApplication() {
+      //#simple-ws-custom-client
+      import play.api.libs.ws.ahc._
+
+      // usually injected through @Inject()(implicit mat: Materializer)
+      implicit val mat: akka.stream.Materializer = app.materializer
+      val wsClient = AhcWSClient()
+      //#simple-ws-custom-client
+
+      wsClient.close()
+
+      ok
+    }
+
     "allow programmatic configuration" in new WithApplication() {
 
       //#ws-custom-client
@@ -506,7 +520,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
       val parser = new WSConfigParser(configuration, environment)
-      val config = AhcWSClientConfig(wsClientConfig = parser.parse())
+      val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
       val builder = new AhcConfigBuilder(config)
       val logging = new AsyncHttpClientConfig.AdditionalChannelInitializer() {
         override def initChannel(channel: io.netty.channel.Channel): Unit = {
