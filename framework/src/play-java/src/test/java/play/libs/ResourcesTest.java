@@ -36,7 +36,10 @@ public class ResourcesTest {
 
         try {
             completionStage.toCompletableFuture().get();
-        } catch(Exception ignored) {}
+        } catch (Exception ignored) {
+            // print this so we can diagnose why it failed
+            ignored.printStackTrace();
+        }
 
         verify(inputStream).close();
     }
