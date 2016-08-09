@@ -1,9 +1,9 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # The Play WS API
 
-Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/package.html), which provides a way to make asynchronous HTTP calls.
+Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/package.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
 
-There are two important parts to using the WS API: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WS.  Finally, we'll discuss some common use cases.
+There are two important parts to using the WSClient: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WSClient.  Finally, we'll discuss some common use cases.
 
 ## Making a Request
 
@@ -192,9 +192,9 @@ Of course, you can use any other valid HTTP verb.
 
 ## Common Patterns and Use Cases
 
-### Chaining WS calls
+### Chaining WSClient calls
 
-Using for comprehensions is a good way to chain WS calls in a trusted environment.  You should use for comprehensions together with [Future.recover](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
+Using for comprehensions is a good way to chain WSClient calls in a trusted environment.  You should use for comprehensions together with [Future.recover](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
 
 @[scalaws-forcomprehension](code/ScalaWSSpec.scala)
 
@@ -204,7 +204,7 @@ When making a request from a controller, you can map the response to a `Future[R
 
 @[async-result](code/ScalaWSSpec.scala)
 
-## Using WSClient
+## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
@@ -228,7 +228,7 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
-## Configuring WS
+## Configuring WS client
 
 Use the following properties in `application.conf` to configure the WS client:
 
@@ -237,13 +237,13 @@ Use the following properties in `application.conf` to configure the WS client:
 * `play.ws.useragent`: To configure the User-Agent header field.
 * `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
-### Configuring WS with SSL
+### Configuring WS client with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
 ### Configuring Timeouts
 
-There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
+There are 3 different timeouts in WSClient. Reaching a timeout causes the WSClient request to interrupt.
 
 * `play.ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
 * `play.ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
