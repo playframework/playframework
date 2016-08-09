@@ -124,8 +124,10 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
+      val ws = app.injector.instanceOf[WSClient]
+
       // await is from play.api.test.FutureAwaits
-      val response = await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
+      val response = await(ws.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
       response.status must equalTo(OK)
     }
@@ -139,7 +141,8 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     }).build()
 
     "test WS logic" in new WithServer(app = appWithRoutes, port = 3333) {
-      await(WS.url("http://localhost:3333").get()).status must equalTo(OK)
+      val ws = app.injector.instanceOf[WSClient]
+      await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
     }
     // #scalafunctionaltest-testws
 
