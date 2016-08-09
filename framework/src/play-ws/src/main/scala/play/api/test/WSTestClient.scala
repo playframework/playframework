@@ -10,12 +10,51 @@ import play.api.libs.ws.ahc.{ AhcWSClientConfig, AhcWSClient }
 
 import play.api.mvc.Call
 
+/**
+ * A standalone test client that is useful for running standalone integration tests.
+ */
 trait WsTestClient {
 
   type Port = Int
 
   /**
-   * Constructs a WS request holder for the given reverse route.  Optionally takes a WSClient.  Note that the WS client used
+   * Creates a standalone WSClient, using its own ActorSystem and Netty thread pool.
+   *
+   * This client has no dependencies at all on the underlying system, but is wasteful of resources.
+   *
+   * @param port the port to connect to the server on.
+   * @param scheme the scheme to connect on ("http" or "https")
+   */
+  class InternalWSClient(scheme: String, port: Port) extends WSClient {
+    private val name = "ws-test-client-" + WsTestClient.instanceNumber.getAndIncrement
+    private val system = ActorSystem(name)
+    private val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+    // Don't retry for tests
+    private val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
+
+    def underlying[T] = client.underlying.asInstanceOf[T]
+
+    def url(url: String): WSRequest = {
+      if (url.startsWith("/") && port != -1) {
+        val httpPort = new play.api.http.Port(port)
+        client.url(s"$scheme://localhost:$httpPort$url")
+      } else {
+        client.url(url)
+      }
+    }
+
+    def close(): Unit = {
+      client.close()
+      system.terminate()
+    }
+  }
+
+  private val clientProducer: (Port, String) => WSClient = { (port, scheme) =>
+    new InternalWSClient(scheme, port)
+  }
+
+  /**
+   * Constructs a WS request for the given reverse route.  Optionally takes a WSClient producing function.  Note that the WS client used
    * by default requires a running Play application (use WithApplication for tests).
    *
    * For example:
@@ -25,14 +64,25 @@ trait WsTestClient {
    * }
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port, client: WSClient = WS.client(play.api.Play.privateMaybeApplication.get)): WSRequest = wsUrl(call.url)
+  def wsCall(call: Call)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
+    try {
+      wsUrl(call.url)
+    } finally {
+      client match {
+        case internal: InternalWSClient =>
+          internal.close()
+        case _ =>
+        // do nothing
+      }
+    }
+  }
 
   /**
-   * Constructs a WS request holder for the given relative URL.  Optionally takes a port and WSClient.  Note that the WS client used
+   * Constructs a WS request holder for the given relative URL.  Optionally takes a scheme, a port, or a client producing function.  Note that the WS client used
    * by default requires a running Play application (use WithApplication for tests).
    */
-  def wsUrl(url: String)(implicit port: Port, client: WSClient = WS.client(play.api.Play.privateMaybeApplication.get)) = {
-    WS.clientUrl("http://localhost:" + port + url)
+  def wsUrl(url: String)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
+    client(port, scheme).url(s"$scheme://localhost:" + port + url)
   }
 
   /**
@@ -57,29 +107,12 @@ trait WsTestClient {
    * @param port The port
    * @return The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1)) = {
-    val name = "ws-test-client-" + WsTestClient.instanceNumber.getAndIncrement
-    val system = ActorSystem(name)
-    val materializer = ActorMaterializer(namePrefix = Some(name))(system)
-    // Don't retry for tests
-    val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
-    val wrappedClient = new WSClient {
-      def underlying[T] = client.underlying.asInstanceOf[T]
-      def url(url: String) = {
-        if (url.startsWith("/") && port.value != -1) {
-          client.url(s"http://localhost:$port$url")
-        } else {
-          client.url(url)
-        }
-      }
-      def close() = ()
-    }
-
+  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http") = {
+    val client = clientProducer(port.value, scheme)
     try {
-      block(wrappedClient)
+      block(client)
     } finally {
       client.close()
-      system.terminate()
     }
   }
 }
