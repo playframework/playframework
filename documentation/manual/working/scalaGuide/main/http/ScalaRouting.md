@@ -58,23 +58,27 @@ If you want to define a route that retrieves a client by ID, you’ll need to ad
 
 @[clients-show](code/scalaguide.http.routing.routes)
 
-> Note that a URI pattern may have more than one dynamic part.
+> **Note:** A URI pattern may have more than one dynamic part.
 
-The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI part.
+The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment. Unlike other pattern types, path segments are automatically URI-decoded in the route, before being passed to your controller, and encoded in the reverse route.
 
 ### Dynamic parts spanning several `/`
 
-If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.+` regular expression:
+If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, also known as a wildcard pattern, which uses the `.*` regular expression:
 
 @[spanning-path](code/scalaguide.http.routing.routes)
 
 Here for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
+
+Note that *dynamic parts spanning several `/` are not decoded by the router or encoded by the reverse router*. It is your responsibility to validate the raw URI segment as you would for any user input. The reverse router simply does a string concatenation, so you will need to make sure the resulting path is valid, and does not, for example, contain multiple leading slashes or non-ASCII characters.
 
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for the dynamic part, using the `$id<regex>` syntax:
     
 @[regex-path](code/scalaguide.http.routing.routes)
+
+Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
 
 ## Call to the Action generator method
 
