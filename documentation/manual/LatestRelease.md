@@ -3,6 +3,6 @@
 
 Learn more about the latest Play release. You can download Play releases [here](https://www.playframework.com/download).
 
-- [[What's new in Play 2.5?|Highlights25]]
-- [[Play 2.5 Migration Guide|Migration25]]
+- [[What's new in Play 2.6?|Highlights26]]
+- [[Play 2.6 Migration Guide|Migration26]]
 - [[Other Play releases|Releases]]

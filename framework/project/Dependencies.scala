@@ -65,7 +65,6 @@ object Dependencies {
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    "org.yaml" % "snakeyaml" % "1.17",
     "org.hibernate" % "hibernate-validator" % "5.2.4.Final",
     "javax.el"      % "javax.el-api"        % "3.0.0", // required by hibernate-validator
 
