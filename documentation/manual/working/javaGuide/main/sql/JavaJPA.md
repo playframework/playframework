@@ -68,6 +68,8 @@ If your action runs only queries, you can set the `readOnly` attribute to `true`
 
 @[jpa-controller-transactional-readonly](code/controllers/JPAController.java)
 
+> Using JPA directly in an Action will limit your ability to use Play asynchronously.  Consider arranging your code so that all access to to JPA is wrapped in a custom [[execution context|ThreadPools]], and returns [`java.util.concurrent.CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to Play.
+
 ## Using `play.db.jpa.JPAApi`
 
 Play offers you a convenient API to work with [Entity Manager](https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html) and Transactions. This API is defined by `play.db.jpa.JPAApi`, which can be injected at other objects like the code below:
@@ -88,12 +90,12 @@ java.lang.RuntimeException: No EntityManager found in the context. Try to annota
 
 It is likely that you need to run transactions that are not coupled with requests, for instance, transactions executed inside a scheduled job. JPAApi has some methods that enable you to do so. The following methods are available to execute arbitrary code inside a JPA transaction:
 
-* `JPAApi.withTransaction(Function<EntityManager, T>)`
-* `JPAApi.withTransaction(String, Function<EntityManager, T>)`
-* `JPAApi.withTransaction(String, boolean, Function<EntityManager, T>)`
-* `JPAApi.withTransaction(Supplier<T>)`
-* `JPAApi.withTransaction(Runnable)`
-* `JPAApi.withTransaction(String, boolean, Supplier<T>)`
+* `play.db.jpa.JPAApi.withTransaction(Function<EntityManager, T>)`
+* `play.db.jpa.JPAApi.withTransaction(String, Function<EntityManager, T>)`
+* `play.db.jpa.JPAApi.withTransaction(String, boolean, Function<EntityManager, T>)`
+* `play.db.jpa.JPAApi.withTransaction(Supplier<T>)`
+* `play.db.jpa.JPAApi.withTransaction(Runnable)`
+* `play.db.jpa.JPAApi.withTransaction(String, boolean, Supplier<T>)`
 
 ### Examples:
 
