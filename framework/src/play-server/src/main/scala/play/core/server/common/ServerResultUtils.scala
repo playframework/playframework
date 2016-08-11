@@ -10,6 +10,7 @@ import play.api.Logger
 import play.api.mvc._
 import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http.Status._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
@@ -130,8 +131,13 @@ object ServerResultUtils {
 
   }
 
-  private def mayHaveEntity(status: Int) =
-    status != Status.NO_CONTENT && status != Status.NOT_MODIFIED
+  /** Whether the given status may have an entity or not. */
+  def mayHaveEntity(status: Int): Boolean = status match {
+    case CONTINUE | SWITCHING_PROTOCOLS | NO_CONTENT | NOT_MODIFIED =>
+      false
+    case _ =>
+      true
+  }
 
   /**
    * Cancel the entity.

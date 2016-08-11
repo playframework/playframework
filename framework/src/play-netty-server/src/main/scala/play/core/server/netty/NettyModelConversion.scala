@@ -26,7 +26,6 @@ import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerR
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Try }
-import scala.util.control.NonFatal
 
 private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
 
@@ -193,7 +192,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       }
 
       // Content type and length
-      if (mayHaveContentLength(result.header.status)) {
+      if (ServerResultUtils.mayHaveEntity(result.header.status)) {
         result.body.contentLength.foreach { contentLength =>
           if (HttpHeaders.isContentLengthSet(response)) {
             val manualContentLength = response.headers.get(CONTENT_LENGTH)
@@ -205,6 +204,10 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
           }
           HttpHeaders.setContentLength(response, contentLength)
         }
+      } else if (HttpHeaders.isContentLengthSet(response)) {
+        val manualContentLength = response.headers.get(CONTENT_LENGTH)
+        logger.warn(s"Ignoring manual Content-Length ($manualContentLength) since it is not allowed for ${result.header.status} responses.")
+        response.headers.remove(CONTENT_LENGTH)
       }
       result.body.contentType.foreach { contentType =>
         if (response.headers().contains(CONTENT_TYPE)) {
@@ -263,10 +266,6 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     HttpHeaders.setTransferEncodingChunked(response)
     response
   }
-
-  /** Whether the given status may have a content length header or not. */
-  private def mayHaveContentLength(status: Int) =
-    status != Status.NO_CONTENT && status != Status.NOT_MODIFIED
 
   /** Convert a ByteString to a Netty ByteBuf. */
   private def byteStringToByteBuf(bytes: ByteString): ByteBuf = {
