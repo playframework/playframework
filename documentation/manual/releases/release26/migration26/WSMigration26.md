@@ -32,11 +32,11 @@ The `ning` package has been replaced by the `ahc` package, and the Ning* classes
 In Java, the `play.libs.ws.WS` class has been deprecated.  An injected `WSClient` instance should be used instead.
 
 ``` java
-class MyService {
+public class MyService {
      private final WSClient ws;
 
      @Inject
-     public MyService(ws: WSClient) {
+     public MyService(WSClient ws) {
          this.ws = ws;
      }
 
