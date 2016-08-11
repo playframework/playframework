@@ -4,7 +4,7 @@
 
 # Home page
 GET     /                           controllers.PersonController.index()
-POST    /person                     controllers.PersonController.addPerson()
+POST    /persons                    controllers.PersonController.addPerson()
 GET     /persons                    controllers.PersonController.getPersons
 
 # Map static resources from the /public folder to the /assets URL path
