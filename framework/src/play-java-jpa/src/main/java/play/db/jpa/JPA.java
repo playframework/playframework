@@ -50,7 +50,7 @@ public class JPA {
     }
 
     /**
-     * Get the EntityManager for a particular persistence unit for this thread.
+     * Get a newly created EntityManager for a particular persistence unit.
      *
      * @param key name of the EntityManager to return
      * @return the EntityManager
@@ -59,7 +59,7 @@ public class JPA {
     public static EntityManager em(String key) {
         EntityManager em = jpaApi().em(key);
         if (em == null) {
-            throw new RuntimeException("No JPA EntityManagerFactory configured for name [" + key + "]");
+            throw new RuntimeException("Could not create JPA EntityManagerFactory for name [" + key + "]");
         }
 
         return em;
@@ -80,7 +80,10 @@ public class JPA {
      * If no HTTP context is available the EntityManager gets bound to the current thread instead.
      *
      * @param em the EntityManager to bind to this HTTP context.
+     *
+     * @deprecated Use JPAEntityManagerContext.push or JPAEntityManagerContext.pop
      */
+    @Deprecated
     public static void bindForSync(EntityManager em) {
         entityManagerContext.pushOrPopEm(em, true);
     }

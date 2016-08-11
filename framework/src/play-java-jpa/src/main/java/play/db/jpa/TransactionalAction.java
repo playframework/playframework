@@ -21,11 +21,12 @@ public class TransactionalAction extends Action<Transactional> {
         this.jpaApi = jpaApi;
     }
 
+    @Override
     public CompletionStage<Result> call(final Context ctx) {
         return jpaApi.withTransaction(
             configuration.value(),
             configuration.readOnly(),
-            () -> delegate.call(ctx)
+            (em) -> delegate.call(ctx)
         );
     }
 
