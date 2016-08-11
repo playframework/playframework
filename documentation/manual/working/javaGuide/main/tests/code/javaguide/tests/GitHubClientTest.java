@@ -37,7 +37,7 @@ public class GitHubClientTest {
             .build();
 
         server = Server.forRouter(router);
-        ws = WS.newClient(server.httpPort());
+        ws = play.test.WSTestClient.newClient(server.httpPort());
         client = new GitHubClient(ws);
         client.baseUrl = "";
     }

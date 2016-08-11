@@ -61,7 +61,7 @@ public class FunctionalTest extends WithApplication {
         TestServer server = testServer(3333);
         running(server, () -> {
             try {
-                WSClient ws = play.libs.ws.WS.newClient(3333);
+                WSClient ws = play.test.WSTestClient.newClient(3333);
                 CompletionStage<WSResponse> completionStage = ws.url("/").get();
                 WSResponse response = completionStage.toCompletableFuture().get();
                 ws.close();

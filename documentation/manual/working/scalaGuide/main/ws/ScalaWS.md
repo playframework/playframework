@@ -7,7 +7,7 @@ There are two important parts to using the WSClient: making a request, and proce
 
 ## Making a Request
 
-To use WS, first add `ws` to your `build.sbt` file:
+To use WSClient, first add `ws` to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
@@ -204,15 +204,39 @@ When making a request from a controller, you can map the response to a `Future[R
 
 @[async-result](code/ScalaWSSpec.scala)
 
+### Using WSClient with Future Timeout
+
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The canonical way to do this is with Akka's [after pattern](http://doc.akka.io/docs/akka/current/scala/futures.html#after):
+
+``` scala
+ def withTimeout[A](timeoutDuration: scala.concurrent.FiniteDuration)(result: => Future[A]): Future[A] = {
+    val timeoutResult = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
+      val msg = s"Timeout after $timeoutDuration"
+      Future.failed(new TimeoutException(msg))
+    }(actorSystem.dispatchers.defaultGlobalDispatcher)
+    Future.firstCompletedOf(Seq(result, timeoutResult))
+  }
+  
+  withTimeout(1 second) { ... }
+```
+
 ## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
-However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
+However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. 
+
+> **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
+
+You need an instance of an `akka.stream.Materializer` to create a `play.api.libs.ws.ahc.AhcWSClient` instance directly.  Usually you'll inject this into the service using dependency injection:
+
+@[simple-ws-custom-client](code/ScalaWSSpec.scala)
+
+Creating a client directly means that you can also change configuration at the AsyncHttpClient and Netty configuration layers as well:
 
 @[ws-custom-client](code/ScalaWSSpec.scala)
 
-Once you are done with your custom client work, you **must** close the client:
+Again, once you are done with your custom client work, you **must** close the client:
 
 @[close-client](code/ScalaWSSpec.scala)
 
@@ -224,20 +248,20 @@ You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/
 
 @[underlying](code/ScalaWSSpec.scala)
 
-This is important in a couple of cases.  WS has a couple of limitations that require access to the underlying client:
+This is important in a couple of cases.  WSClient has a couple of limitations that require access to the underlying client:
 
-* `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
+* `WSClient` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
-## Configuring WS client
+## Configuring WSClient
 
-Use the following properties in `application.conf` to configure the WS client:
+Use the following properties in `application.conf` to configure the WSClient:
 
 * `play.ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
 * `play.ws.useProxyProperties`: To use the JVM system's HTTP proxy settings (http.proxyHost, http.proxyPort) *(default is **true**)*.
 * `play.ws.useragent`: To configure the User-Agent header field.
 * `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
-### Configuring WS client with SSL
+### Configuring WSClient with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 

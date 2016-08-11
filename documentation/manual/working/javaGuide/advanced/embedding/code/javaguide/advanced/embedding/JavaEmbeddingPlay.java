@@ -89,7 +89,7 @@ public class JavaEmbeddingPlay {
     }
 
     private void withClient(Consumer<WSClient> callback) throws IOException {
-        try (WSClient client = play.libs.ws.WS.newClient(19000)) {
+        try (WSClient client = play.test.WSTestClient.newClient(19000)) {
             callback.accept(client);
         }
     }

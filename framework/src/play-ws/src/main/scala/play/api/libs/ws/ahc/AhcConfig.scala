@@ -110,13 +110,6 @@ class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
  */
 class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
 
-  /**
-   * Constructor for backwards compatibility with <= 2.3.X
-   */
-  @deprecated("Use AhcConfigBuilder(AhcWSClientConfig)", "2.5")
-  def this(config: WSClientConfig) =
-    this(AhcWSClientConfig(wsClientConfig = config))
-
   protected val addCustomSettings: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder = identity
 
   /**

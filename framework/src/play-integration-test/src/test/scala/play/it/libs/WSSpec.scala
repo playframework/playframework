@@ -84,7 +84,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     def withClient[T](block: play.libs.ws.WSClient => T)(implicit port: Port): T = {
-      val wsClient = play.libs.ws.WS.newClient(port.value)
+      val wsClient = play.test.WSTestClient.newClient(port.value)
       try {
         block(wsClient)
       } finally {
