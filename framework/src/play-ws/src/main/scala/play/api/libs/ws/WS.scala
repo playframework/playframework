@@ -42,15 +42,6 @@ trait WSClient extends Closeable {
   @throws[IOException] def close(): Unit
 }
 
-/**
- * WSRequestMagnet magnet.  Please see the companion object for implicit definitions.
- *
- * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
- */
-trait WSRequestMagnet {
-  def apply(): WSRequest
-}
-
 trait WSRequestExecutor {
   def execute(request: WSRequest): Future[WSResponse]
 }

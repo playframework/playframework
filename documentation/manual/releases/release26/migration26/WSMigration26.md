@@ -3,7 +3,7 @@
 
 ## Scala
 
-The deprecated Scala singleton object `play.api.libs.ws.WS` has been removed.  An instance of `WSClient` should be used instead.  
+The deprecated Scala singleton object `play.api.libs.ws.WS` has been removed.  An instance of `WSClient` should be used instead.  If compile time dependency injection is being used, then the `AhcWSComponents` trait should be mixed in.
 
 For Guice, there is a `WSClient` available in the system:
 
@@ -24,6 +24,8 @@ play.api.test.WsTestClient.withClient { ws =>
   ws.url("http://localhost:9000/foo").get()
 }
 ```
+
+The `ning` package has been replaced by the `ahc` package, and the Ning* classes replaced by AHC*.
 
 ## Java
 
