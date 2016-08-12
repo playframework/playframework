@@ -4,27 +4,21 @@
 package play.it.http
 
 import java.util.Locale.ENGLISH
-import java.util.concurrent.{ LinkedBlockingQueue }
 
 import akka.stream.scaladsl.Source
-import akka.util.{ ByteString, Timeout }
-import play.api._
+import akka.util.ByteString
 import play.api.http._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.routing.Router
 import play.api.test._
 import play.api.libs.ws._
-import play.api.libs.iteratee._
 import play.api.libs.EventSource
 import play.core.server.common.ServerResultException
 import play.it._
 
 import scala.util.Try
 import scala.concurrent.Future
-import play.api.http.{ HttpEntity, HttpChunk, Status }
 
 object NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
