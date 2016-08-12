@@ -191,7 +191,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | ------- | --------| -------- |
 | [`Lang`](api/scala/play/api/i18n/Lang$.html) | [`Langs`](api/scala/play/api/i18n/Langs.html) | |
 | [`Messages`](api/scala/play/api/i18n/Messages$.html) | [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a [`Messages`](api/scala/play/api/i18n/Messages.html) instance. |
-| [`DB`](api/scala/play/api/db/DB$.html) | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
+| `DB` | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
 | `Cache` | [`CacheApi`](api/scala/play/api/cache/CacheApi.html) or better | You can get a particular cache using the `@NamedCache` annotation. |
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
