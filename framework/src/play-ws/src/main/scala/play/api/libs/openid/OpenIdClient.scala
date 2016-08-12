@@ -64,7 +64,8 @@ trait OpenIdClient {
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
-  def redirectURL(openID: String,
+  def redirectURL(
+    openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
@@ -87,7 +88,8 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
-  def redirectURL(openID: String,
+  def redirectURL(
+    openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
@@ -126,7 +128,8 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Future[UserInfo] = {
-    (queryString.get("openid.mode").flatMap(_.headOption),
+    (
+      queryString.get("openid.mode").flatMap(_.headOption),
       queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
         case (Some("id_res"), Some(id)) => {
           // MUST perform discovery on the claimedId to resolve the op_endpoint.
@@ -150,7 +153,8 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
     })
   }
 
-  private def axParameters(axRequired: Seq[(String, String)],
+  private def axParameters(
+    axRequired: Seq[(String, String)],
     axOptional: Seq[(String, String)]): Seq[(String, String)] = {
     if (axRequired.isEmpty && axOptional.isEmpty)
       Nil

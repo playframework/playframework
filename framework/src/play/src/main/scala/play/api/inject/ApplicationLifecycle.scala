@@ -3,8 +3,8 @@
  */
 package play.api.inject
 
-import java.util.concurrent.{Callable, CompletionStage, ConcurrentLinkedDeque, LinkedBlockingDeque}
-import javax.inject.{Inject, Singleton}
+import java.util.concurrent.{ Callable, CompletionStage, ConcurrentLinkedDeque, LinkedBlockingDeque }
+import javax.inject.{ Inject, Singleton }
 
 import play.api.Logger
 
@@ -72,7 +72,7 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
   private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
   def addStopHook(hook: () => Future[_]) = hooks.push(hook)

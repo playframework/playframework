@@ -137,9 +137,9 @@ trait JavaHandlerComponents {
  * The components necessary to handle a Java handler.
  */
 class DefaultJavaHandlerComponents @Inject() (
-  injector: Injector,
-  val actionCreator: play.http.ActionCreator,
-  val httpConfiguration: HttpConfiguration
+    injector: Injector,
+    val actionCreator: play.http.ActionCreator,
+    val httpConfiguration: HttpConfiguration
 ) extends JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
   def getAction[A <: JAction[_]](actionClass: Class[A]): A = injector.instanceOf(actionClass)

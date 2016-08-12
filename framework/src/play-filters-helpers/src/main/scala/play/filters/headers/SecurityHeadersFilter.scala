@@ -68,7 +68,8 @@ object SecurityHeadersFilter {
  * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies".
  * @param contentSecurityPolicy "Content-Security-Policy"
  */
-case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),
+case class SecurityHeadersConfig(
+    frameOptions: Option[String] = Some("DENY"),
     xssProtection: Option[String] = Some("1; mode=block"),
     contentTypeOptions: Option[String] = Some("nosniff"),
     permittedCrossDomainPolicies: Option[String] = Some("master-only"),

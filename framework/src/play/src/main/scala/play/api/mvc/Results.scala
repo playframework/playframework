@@ -378,7 +378,8 @@ trait Results {
 
     private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean): Result = {
       Result(
-        ResponseHeader(status,
+        ResponseHeader(
+          status,
           Map(
             CONTENT_DISPOSITION -> {
               val dispositionType = if (inline) "inline" else "attachment"

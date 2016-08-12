@@ -12,7 +12,7 @@ import com.typesafe.config.impl.ConfigImpl
 import play.utils.PlayIO
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.{Duration, FiniteDuration, _}
+import scala.concurrent.duration.{ Duration, FiniteDuration, _ }
 import scala.util.control.NonFatal
 
 /**
@@ -179,18 +179,18 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Merge two configurations.
-    */
+   * Merge two configurations.
+   */
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
   }
 
   /**
-    * Reads a value from the underlying implementation.
-    * If the value is not set this will return None, otherwise returns Some.
-    *
-    * Does not check neither for incorrect type nor null value, but catches and wraps the error.
-    */
+   * Reads a value from the underlying implementation.
+   * If the value is not set this will return None, otherwise returns Some.
+   *
+   * Does not check neither for incorrect type nor null value, but catches and wraps the error.
+   */
   private def readValue[T](path: String, v: => T): Option[T] = {
     try {
       if (underlying.hasPathOrNull(path)) Some(v) else None
@@ -201,20 +201,20 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Check if the given path exists.
-    */
+   * Check if the given path exists.
+   */
   def has(path: String): Boolean = underlying.hasPath(path)
 
   /**
-    * Get the config at the given path.
-    */
+   * Get the config at the given path.
+   */
   def get[A](path: String)(implicit loader: ConfigLoader[A]): A = {
     loader.load(underlying, path)
   }
 
   /**
-    * Get the config at the given path and validate against a set of valid values.
-    */
+   * Get the config at the given path and validate against a set of valid values.
+   */
   def getAndValidate[A](path: String, values: Set[A])(implicit loader: ConfigLoader[A]): A = {
     val value = get(path)
     if (!values(value)) {
@@ -224,18 +224,18 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Get a value that may either not exist or be null. Note that this is not generally considered idiomatic Config
-    * usage. Instead you should define all config keys in a reference.conf file.
-    */
+   * Get a value that may either not exist or be null. Note that this is not generally considered idiomatic Config
+   * usage. Instead you should define all config keys in a reference.conf file.
+   */
   def getOptional[A](path: String)(implicit loader: ConfigLoader[A]): Option[A] = {
     readValue(path, get[A](path))
   }
 
   /**
-    * Get a prototyped sequence of objects.
-    *
-    * Each object in the sequence will fallback to the object loaded from prototype.\$path.
-    */
+   * Get a prototyped sequence of objects.
+   *
+   * Each object in the sequence will fallback to the object loaded from prototype.\$path.
+   */
   def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[Configuration] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Seq[Config]](path).map { config =>
@@ -244,10 +244,10 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Get a prototyped map of objects.
-    *
-    * Each value in the map will fallback to the object loaded from prototype.\$path.
-    */
+   * Get a prototyped map of objects.
+   *
+   * Each value in the map will fallback to the object loaded from prototype.\$path.
+   */
   def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, Configuration] = {
     val prototype = if (prototypePath.isEmpty) {
       underlying
@@ -260,12 +260,12 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Get a deprecated configuration item.
-    *
-    * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
-    *
-    * Otherwise, the configuration from path will be looked up.
-    */
+   * Get a deprecated configuration item.
+   *
+   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up.
+   */
   def getDeprecated[A: ConfigLoader](path: String, deprecatedPaths: String*): A = {
     deprecatedPaths.collectFirst {
       case deprecated if underlying.hasPath(deprecated) =>
@@ -277,13 +277,13 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-    * Get a deprecated configuration.
-    *
-    * If the deprecated configuration is defined, it will be returned, falling back to the new configuration, and a
-    * warning will be logged.
-    *
-    * Otherwise, the configuration from path will be looked up and used as is.
-    */
+   * Get a deprecated configuration.
+   *
+   * If the deprecated configuration is defined, it will be returned, falling back to the new configuration, and a
+   * warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up and used as is.
+   */
   def getDeprecatedWithFallback(path: String, deprecated: String, parent: String = ""): Configuration = {
     val config = get[Config](path)
     val merged = if (underlying.hasPath(deprecated)) {
@@ -372,20 +372,20 @@ case class Configuration(underlying: Config) {
   def getMilliseconds(path: String): Option[Long] = getOptional[Duration](path).map(_.toMillis)
 
   /**
-    * Retrieves a configuration value as `Milliseconds`.
-    *
-    * For example:
-    * {{{
-    * val configuration = Configuration.load()
-    * val timeout = configuration.getMillis("engine.timeout")
-    * }}}
-    *
-    * The configuration must be provided as:
-    *
-    * {{{
-    * engine.timeout = 1 second
-    * }}}
-    */
+   * Retrieves a configuration value as `Milliseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeout = configuration.getMillis("engine.timeout")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeout = 1 second
+   * }}}
+   */
   def getMillis(path: String): Long = get[Duration](path).toMillis
 
   /**
@@ -407,20 +407,20 @@ case class Configuration(underlying: Config) {
   def getNanoseconds(path: String): Option[Long] = getOptional[Duration](path).map(_.toNanos)
 
   /**
-    * Retrieves a configuration value as `Milliseconds`.
-    *
-    * For example:
-    * {{{
-    * val configuration = Configuration.load()
-    * val timeout = configuration.getNanos("engine.timeout")
-    * }}}
-    *
-    * The configuration must be provided as:
-    *
-    * {{{
-    * engine.timeout = 1 second
-    * }}}
-    */
+   * Retrieves a configuration value as `Milliseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeout = configuration.getNanos("engine.timeout")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeout = 1 second
+   * }}}
+   */
   def getNanos(path: String): Long = get[Duration](path).toNanos
 
   /**
@@ -953,8 +953,8 @@ case class Configuration(underlying: Config) {
    * val configuration = Configuration.load()
    * val subKeys = configuration.subKeys
    * }}}
-    *
-    * @return the set of direct sub-keys available in this configuration
+   *
+   * @return the set of direct sub-keys available in this configuration
    */
   def subKeys: Set[String] = underlying.root().keySet().asScala.toSet
 

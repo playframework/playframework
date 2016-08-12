@@ -140,7 +140,7 @@ final class TypedKey[A] private (val displayName: Option[String]) {
    * @param value The value to bind.
    * @return An entry binding this key to a value of the right type.
    */
-  def ->(value: A): TypedEntry[A] = bindValue(value)
+  def -> (value: A): TypedEntry[A] = bindValue(value)
 
   override def toString: String = displayName.getOrElse(super.toString)
 }

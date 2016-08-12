@@ -161,7 +161,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    */
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     try {
-      val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(sourceMapper,
+      val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
+        sourceMapper,
         environment.mode == Mode.Prod, exception)
 
       logServerError(request, usefulException)
@@ -186,7 +187,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * @param usefulException The server error.
    */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException) {
-    Logger.error("""
+    Logger.error(
+      """
                     |
                     |! @%s - Internal server error, for (%s) [%s] ->
                     | """.stripMargin.format(usefulException.id, request.method, request.uri),

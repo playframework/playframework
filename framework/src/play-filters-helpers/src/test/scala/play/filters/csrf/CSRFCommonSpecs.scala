@@ -229,7 +229,8 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     }
 
     "allow configuring a header bypass" in {
-      def csrfCheckRequest = buildCsrfCheckRequest(false,
+      def csrfCheckRequest = buildCsrfCheckRequest(
+        false,
         "play.filters.csrf.header.bypassHeaders.X-Requested-With" -> "*",
         "play.filters.csrf.header.bypassHeaders.Csrf-Token" -> "nocheck"
       )

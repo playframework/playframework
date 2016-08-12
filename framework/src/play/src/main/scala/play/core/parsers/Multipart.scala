@@ -202,9 +202,9 @@ object Multipart {
       for {
         values <- headers.get("content-disposition").map(
           _.split(";").map(_.trim).map {
-            case KeyValue(key, v) => (key.trim, v.trim)
-            case key => (key.trim, "")
-          }.toMap)
+          case KeyValue(key, v) => (key.trim, v.trim)
+          case key => (key.trim, "")
+        }.toMap)
         _ <- values.get("form-data")
         partName <- values.get("name")
       } yield partName

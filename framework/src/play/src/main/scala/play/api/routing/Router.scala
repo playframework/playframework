@@ -4,8 +4,8 @@
 package play.api.routing
 
 import play.api.libs.typedmap.TypedKey
-import play.api.{Configuration, Environment}
-import play.api.mvc.{Handler, RequestHeader}
+import play.api.{ Configuration, Environment }
+import play.api.mvc.{ Handler, RequestHeader }
 import play.core.j.JavaRouterAdapter
 import play.core.routing.HandlerDef
 import play.utils.Reflect

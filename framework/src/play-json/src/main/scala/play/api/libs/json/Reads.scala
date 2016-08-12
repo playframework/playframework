@@ -460,12 +460,12 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * @see [[DefaultWrites.TemporalFormatter]]
    *
    * {{{
-    * import play.api.libs.json.Reads.offsetDateTimeReads
-    *
-    * val customReads1 = offsetDateTimeReads("dd/MM/yyyy, HH:mm:ss (Z)")
-    * val customReads2 = offsetDateTimeReads(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    * val customReads3 = offsetDateTimeReads(
-    *   DateTimeFormatter.ISO_OFFSET_DATE_TIME, _.drop(1))
+   * import play.api.libs.json.Reads.offsetDateTimeReads
+   *
+   * val customReads1 = offsetDateTimeReads("dd/MM/yyyy, HH:mm:ss (Z)")
+   * val customReads2 = offsetDateTimeReads(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+   * val customReads3 = offsetDateTimeReads(
+   *   DateTimeFormatter.ISO_OFFSET_DATE_TIME, _.drop(1))
    * }}}
    */
   def offsetDateTimeReads[T](parsing: T, corrector: String => String = identity)(implicit p: T => TemporalParser[OffsetDateTime]): Reads[OffsetDateTime] = new Reads[OffsetDateTime] {

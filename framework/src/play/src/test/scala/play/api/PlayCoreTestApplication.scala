@@ -12,7 +12,8 @@ import java.io.File
  * Fake application as used by Play core tests.  This is needed since Play core can't depend on the Play test API.
  * It's also a lot simpler, doesn't load default config files etc.
  */
-private[play] case class PlayCoreTestApplication(config: Map[String, Any] = Map(),
+private[play] case class PlayCoreTestApplication(
+    config: Map[String, Any] = Map(),
     path: File = new File("."),
     mode: Mode.Mode = Mode.Test) extends Application {
 

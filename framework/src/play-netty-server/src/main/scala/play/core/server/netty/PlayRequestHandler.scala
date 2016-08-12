@@ -61,7 +61,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     import play.core.Execution.Implicits.trampoline
 
     val requestId = RequestIdProvider.requestIDs.incrementAndGet()
-    val tryRequest = modelConversion.convertRequest(requestId,
+    val tryRequest = modelConversion.convertRequest(
+      requestId,
       channel.remoteAddress().asInstanceOf[InetSocketAddress], Option(channel.pipeline().get(classOf[SslHandler])),
       request)
 

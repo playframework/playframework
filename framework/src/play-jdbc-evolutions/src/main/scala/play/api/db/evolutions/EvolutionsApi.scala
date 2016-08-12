@@ -485,7 +485,8 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
  * @param prefix A prefix that gets added to the resource file names, for example, this could be used to namespace
  *               evolutions in different environments to work with different databases.
  */
-class ClassLoaderEvolutionsReader(classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
+class ClassLoaderEvolutionsReader(
+    classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
     prefix: String = "") extends ResourceEvolutionsReader {
   def loadResource(db: String, revision: Int) = {
     Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(db, revision)))

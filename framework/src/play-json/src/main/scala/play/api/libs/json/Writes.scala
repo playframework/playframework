@@ -287,17 +287,17 @@ trait DefaultWrites extends LowPriorityWrites {
   }
 
   /**
-    * The default typeclass to write a `java.time.LocalDateTime`,
-    * using '2011-12-03T10:15:30' format.
-    */
+   * The default typeclass to write a `java.time.LocalDateTime`,
+   * using '2011-12-03T10:15:30' format.
+   */
   implicit val DefaultLocalDateTimeWrites =
     temporalWrites[LocalDateTime, DateTimeFormatter](
       DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
   /**
-    * The default typeclass to write a `java.time.OffsetDateTime`,
-    * using '2011-12-03T10:15:30+02:00' format.
-    */
+   * The default typeclass to write a `java.time.OffsetDateTime`,
+   * using '2011-12-03T10:15:30+02:00' format.
+   */
   implicit val DefaultOffsetDateTimeWrites =
     temporalWrites[OffsetDateTime, DateTimeFormatter](
       DateTimeFormatter.ISO_OFFSET_DATE_TIME)

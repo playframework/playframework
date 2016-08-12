@@ -22,9 +22,9 @@ class CacheApiSpec extends PlaySpecification {
       _.overrides(
         bind[CacheManager].toProvider[CustomCacheManagerProvider]
       ).configure(
-          "play.cache.createBoundCaches" -> false,
-          "play.cache.bindCaches" -> Seq("custom")
-        )
+        "play.cache.createBoundCaches" -> false,
+        "play.cache.bindCaches" -> Seq("custom")
+      )
     ) {
       app.injector.instanceOf[NamedCacheController]
     }

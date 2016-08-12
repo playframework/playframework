@@ -33,7 +33,8 @@ package object openid {
 
   // See 10.1 - Positive Assertions
   // http://openid.net/specs/openid-authentication-2_0.html#positive_assertions
-  def createDefaultResponse(claimedId: String,
+  def createDefaultResponse(
+    claimedId: String,
     identity: String,
     defaultSigned: String = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"): Map[String, Seq[String]] = Map(
     "openid.ns" -> "http://specs.openid.net/auth/2.0",

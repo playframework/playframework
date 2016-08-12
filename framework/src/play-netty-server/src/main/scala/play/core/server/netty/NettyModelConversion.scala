@@ -61,7 +61,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
    *
    * Will return a failure if there's a protocol error or some other error in the header.
    */
-  def convertRequest(requestId: Long,
+  def convertRequest(
+    requestId: Long,
     remoteAddress: InetSocketAddress,
     sslHandler: Option[SslHandler],
     request: HttpRequest): Try[RequestHeader] = {
@@ -167,7 +168,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   /** Create a Netty response from the result */
   def convertResult(
     result: Result, requestHeader: RequestHeader, httpVersion: HttpVersion, errorHandler: HttpErrorHandler)(
-      implicit mat: Materializer): Future[HttpResponse] = {
+    implicit
+    mat: Materializer): Future[HttpResponse] = {
 
     ServerResultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
 

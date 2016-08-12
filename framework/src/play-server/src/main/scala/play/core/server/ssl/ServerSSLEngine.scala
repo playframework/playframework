@@ -39,7 +39,8 @@ object ServerSSLEngine {
     }
   }
 
-  private def createJavaSSLEngineProvider(providerClass: Class[JavaSSLEngineProvider],
+  private def createJavaSSLEngineProvider(
+    providerClass: Class[JavaSSLEngineProvider],
     serverConfig: ServerConfig, applicationProvider: ApplicationProvider): JavaSSLEngineProvider = {
     var serverConfigProviderArgsConstructor: Constructor[_] = null
     var providerArgsConstructor: Constructor[_] = null
@@ -73,7 +74,8 @@ object ServerSSLEngine {
     }
   }
 
-  private def createScalaSSLEngineProvider(providerClass: Class[ScalaSSLEngineProvider],
+  private def createScalaSSLEngineProvider(
+    providerClass: Class[ScalaSSLEngineProvider],
     serverConfig: ServerConfig, applicationProvider: ApplicationProvider): ScalaSSLEngineProvider = {
 
     var serverConfigProviderArgsConstructor: Constructor[ScalaSSLEngineProvider] = null

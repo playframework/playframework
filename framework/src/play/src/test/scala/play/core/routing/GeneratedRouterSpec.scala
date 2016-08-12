@@ -50,7 +50,8 @@ object GeneratedRouterSpec extends Specification {
 
     "route requests to Scala controllers" in {
       val handler = Action(Results.Ok("Hello world"))
-      val handlerDef = HandlerDef(handler.getClass.getClassLoader,
+      val handlerDef = HandlerDef(
+        handler.getClass.getClassLoader,
         "router",
         "ControllerClassName",
         "handler",
@@ -76,7 +77,8 @@ object GeneratedRouterSpec extends Specification {
 
     "route requests to Java controllers" in {
       val controller = new JavaController
-      val handlerDef = HandlerDef(controller.getClass.getClassLoader,
+      val handlerDef = HandlerDef(
+        controller.getClass.getClassLoader,
         "router",
         controller.getClass.getName,
         "index",

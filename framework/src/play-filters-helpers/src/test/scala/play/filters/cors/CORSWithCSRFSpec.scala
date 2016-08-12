@@ -15,11 +15,11 @@ import play.filters.csrf._
 
 object CORSWithCSRFSpec {
 
-  class Filters @Inject()(corsFilter: CORSFilter, csrfFilter: CSRFFilter) extends HttpFilters {
+  class Filters @Inject() (corsFilter: CORSFilter, csrfFilter: CSRFFilter) extends HttpFilters {
     def filters = Seq(corsFilter, csrfFilter)
   }
 
-  class FiltersWithoutCors @Inject()(csrfFilter: CSRFFilter) extends HttpFilters {
+  class FiltersWithoutCors @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
     def filters = Seq(csrfFilter)
   }
 
@@ -53,12 +53,12 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
 
   private def corsRequest =
     fakeRequest("POST", "/baz")
-        .withHeaders(
-          ORIGIN -> "http://localhost",
-          CONTENT_TYPE -> ContentTypes.FORM,
-          COOKIE -> "foo=bar"
-        )
-        .withBody("foo=1&bar=2")
+      .withHeaders(
+        ORIGIN -> "http://localhost",
+        CONTENT_TYPE -> ContentTypes.FORM,
+        COOKIE -> "foo=bar"
+      )
+      .withBody("foo=1&bar=2")
 
   "The CORSFilter" should {
 

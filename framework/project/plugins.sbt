@@ -19,7 +19,7 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.1.2"))
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.8")
-addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.7")
 
 libraryDependencies ++= Seq(
@@ -27,8 +27,6 @@ libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % "0.26"
 )
 
-// override scalariform version to get some fixes
-libraryDependencies += "org.scalariform" %% "scalariform" % "0.1.5-20140822-69e2e30"
 resolvers += Resolver.typesafeRepo("releases")
 
 addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")

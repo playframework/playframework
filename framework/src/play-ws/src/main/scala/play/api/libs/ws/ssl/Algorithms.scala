@@ -106,19 +106,19 @@ object Algorithms {
     val keyAlgName = getKeyAlgorithmName(pubk)
     foldVersion(
       run16 = {
-        keyAlgName match {
-          case "EC" =>
-            // If we are on 1.6, then we can't use the EC factory and have to pull it directly.
-            translateECKey(pubk)
-          case _ =>
-            val keyFactory = KeyFactory.getInstance(keyAlgName)
-            keyFactory.translateKey(pubk)
-        }
-      },
-      runHigher = {
-        val keyFactory = KeyFactory.getInstance(keyAlgName)
-        keyFactory.translateKey(pubk)
+      keyAlgName match {
+        case "EC" =>
+          // If we are on 1.6, then we can't use the EC factory and have to pull it directly.
+          translateECKey(pubk)
+        case _ =>
+          val keyFactory = KeyFactory.getInstance(keyAlgName)
+          keyFactory.translateKey(pubk)
       }
+    },
+      runHigher = {
+      val keyFactory = KeyFactory.getInstance(keyAlgName)
+      keyFactory.translateKey(pubk)
+    }
     )
   }
 

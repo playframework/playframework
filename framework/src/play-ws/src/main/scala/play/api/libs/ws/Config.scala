@@ -15,7 +15,8 @@ import scala.concurrent.duration._
 /**
  * WS client config
  */
-case class WSClientConfig(connectionTimeout: Duration = 2.minutes,
+case class WSClientConfig(
+  connectionTimeout: Duration = 2.minutes,
   idleTimeout: Duration = 2.minutes,
   requestTimeout: Duration = 2.minutes,
   followRedirects: Boolean = true,

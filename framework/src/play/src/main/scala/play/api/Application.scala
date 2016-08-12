@@ -206,7 +206,8 @@ object Application {
 class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-class DefaultApplication @Inject() (environment: Environment,
+class DefaultApplication @Inject() (
+    environment: Environment,
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,

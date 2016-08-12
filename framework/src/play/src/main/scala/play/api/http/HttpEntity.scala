@@ -94,7 +94,8 @@ object HttpEntity {
   final case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty = false
     def dataStream = data
-    def asJava = new JHttpEntity.Streamed(data.asJava,
+    def asJava = new JHttpEntity.Streamed(
+      data.asJava,
       OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
       OptionConverters.toJava(contentType))
     def as(contentType: String) = copy(contentType = Some(contentType))
