@@ -42,7 +42,7 @@ class GzipEncoding extends PlaySpecification {
     "allow custom strategies for when to gzip (Java)" in {
 
       import play.api.mvc._
-      val app = FakeApplication()
+      val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
         implicit val mat = ActorMaterializer()(app.actorSystem)
 

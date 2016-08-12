@@ -104,7 +104,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #override-bindings
 
       running(application) {
-        val Some(result) = route(FakeRequest(GET, "/"))
+        val Some(result) = route(application, FakeRequest(GET, "/"))
         contentAsString(result) must_== "mock"
       }
     }

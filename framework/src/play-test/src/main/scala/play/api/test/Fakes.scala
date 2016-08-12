@@ -202,36 +202,3 @@ object FakeRequest {
     apply(call.method, call.url)
   }
 }
-
-import play.api.Application
-/**
- * A Fake application.
- *
- * @param path The application path
- * @param classloader The application classloader
- * @param additionalConfiguration Additional configuration
- * @param withRoutes A partial function of method name and path to a handler for handling the request
- */
-@deprecated("Use GuiceApplicationBuilder instead.", "2.5.0")
-case class FakeApplication(
-    override val path: java.io.File = new java.io.File("."),
-    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-    additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
-
-  private val app: Application = new GuiceApplicationBuilder()
-    .in(Environment(path, classloader, Mode.Test))
-    .configure(additionalConfiguration)
-    .routes(withRoutes)
-    .build
-
-  override def mode: Mode.Mode = app.mode
-  override def configuration: Configuration = app.configuration
-  override def actorSystem: ActorSystem = app.actorSystem
-  override implicit def materializer: Materializer = app.materializer
-  override def requestHandler: HttpRequestHandler = app.requestHandler
-  override def errorHandler: HttpErrorHandler = app.errorHandler
-  override def stop(): Future[_] = app.stop()
-  override def injector: Injector = app.injector
-}
-

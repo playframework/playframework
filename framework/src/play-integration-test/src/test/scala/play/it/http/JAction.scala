@@ -15,8 +15,7 @@ import play.mvc.{ Http, Result }
  * Use this to mock Java actions, eg:
  *
  * {{{
- *   new FakeApplication(
- *     withRouter = {
+ *   new GuiceApplicationBuilder().withRouter {
  *       case _ => JAction(new MockController() {
  *         @Security.Authenticated
  *         def action = ok

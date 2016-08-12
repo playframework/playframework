@@ -21,25 +21,6 @@ class FakesSpec extends PlaySpecification {
 
   private val Action = ActionBuilder.ignoringBody
 
-  "FakeApplication" should {
-
-    "allow adding routes inline" in {
-      running(_.routes {
-        case ("GET", "/inline") => Action {
-          Results.Ok("inline route")
-        }
-      }) { app =>
-        route(app, FakeRequest("GET", "/inline")) must beSome.which { result =>
-          status(result) must equalTo(OK)
-          contentAsString(result) must equalTo("inline route")
-        }
-        route(app, FakeRequest("GET", "/foo")) must beSome.which { result =>
-          status(result) must equalTo(NOT_FOUND)
-        }
-      }
-    }
-  }
-
   "FakeRequest" should {
     def app = GuiceApplicationBuilder().routes {
       case (PUT, "/process") => Action { req =>
@@ -57,7 +38,7 @@ class FakesSpec extends PlaySpecification {
       val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
-      route(req) aka "response" must beSome.which { resp =>
+      route(app, req) aka "response" must beSome.which { resp =>
         contentAsString(resp) aka "content" must_== "application/octet-stream"
       }
     }
@@ -75,7 +56,7 @@ class FakesSpec extends PlaySpecification {
         .withHeaders(
           CONTENT_TYPE -> "text/xml;charset=utf-16le"
         )
-      route(req) aka "response" must beSome.which { resp =>
+      route(app, req) aka "response" must beSome.which { resp =>
         contentAsString(resp) aka "content" must_== "text/xml;charset=utf-16le"
       }
     }

@@ -107,7 +107,7 @@ trait PlayRunners extends HttpVerbs {
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
 
   /**
-   * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+   * Constructs a in-memory (h2) database configuration to add to an Application.
    */
   def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
     val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
@@ -247,28 +247,9 @@ trait RouteInvokers extends EssentialActionCaller {
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
-   *
-   * @deprecated Use the version that takes an application, since 2.5.0
-   */
-  @deprecated("Use the version that takes an application", "2.5.0")
-  def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, rh, body)
-
-  /**
-   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
-   *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
   def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(app, req, req.body)
 
-  /**
-   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
-   *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
-   *
-   * @deprecated Use the version that takes an application, since 2.5.0
-   */
-  @deprecated("Use the version that takes an application", "2.5.0")
-  def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, req)
 }
 
 trait ResultExtractors {
