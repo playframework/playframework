@@ -40,7 +40,7 @@ object ApplicationBuild extends Build {
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
 
-    crossScalaVersions := Seq("2.11.7"),
+    crossScalaVersions := Seq("2.11.8"),
     scalaVersion := PlayVersion.scalaVersion,
 
     fork in Test := true,
