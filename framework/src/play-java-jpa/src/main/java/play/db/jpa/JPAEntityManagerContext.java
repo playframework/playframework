@@ -84,12 +84,10 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      * em argument. If em is null, then the current EntityManager is popped. If em
      * is non-null, then em is pushed onto the stack and becomes the current EntityManager.
      *
-     * @deprecated use push or pop methods
      * @param em the entity manager to push, if null then will pop one off the stack.
      * @param threadLocalFallback if true, fall back to a ThreadLocal queue of entity managers if no HTTP.Context object is found.
      */
-    @Deprecated
-    public void pushOrPopEm(EntityManager em, boolean threadLocalFallback) {
+    void pushOrPopEm(EntityManager em, boolean threadLocalFallback) {
         Deque<EntityManager> ems = this.emStack(threadLocalFallback);
         if (em != null) {
             ems.push(em);

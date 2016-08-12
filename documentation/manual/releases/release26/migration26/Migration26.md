@@ -7,6 +7,10 @@ This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate 
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
 
+## JPA Migration Notes
+
+See [[JPAMigration26]].
+
 ### Removed Yaml API
 
 We removed `play.libs.Yaml` since there was no use of it inside of play anymore.
