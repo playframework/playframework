@@ -1457,7 +1457,6 @@ public class Http {
         }
 
         public static interface Part<A> {
-
         }
 
         /**
@@ -1518,43 +1517,61 @@ public class Http {
         public static class SourcePart implements Part<Source<ByteString, ?>> {
             private final String key;
             private final Source<ByteString, ?> value;
+            private final Optional<String> filename;
             private final Optional<String> contentType;
             private final Optional<String> charset;
             private final Optional<String> transferEncoding;
             private final Optional<String> contentId;
 
             public SourcePart(String key,
-                              Source<ByteString, ?> value,
-                              Optional<String> contentType) {
-                this(key, value, contentType, Optional.empty(),
-                        Optional.empty(), Optional.empty());
+                              Source<ByteString, ?> value) {
+                this(key, value, Optional.empty());
             }
 
             public SourcePart(String key,
                               Source<ByteString, ?> value,
+                              Optional<String> filename) {
+                this(key, value, filename, Optional.empty());
+            }
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> filename,
+                              Optional<String> contentType) {
+                this(key, value, filename, contentType, Optional.empty());
+            }
+
+
+
+            public SourcePart(String key,
+                              Source<ByteString, ?> value,
+                              Optional<String> filename,
                               Optional<String> contentType,
                               Optional<String> charset) {
-                this(key, value, contentType, charset,
-                        Optional.empty(), Optional.empty());
+                this(key, value, filename, contentType, charset,
+                        Optional.empty());
             }
 
             public SourcePart(String key,
                               Source<ByteString, ?> value,
+                              Optional<String> filename,
                               Optional<String> contentType,
                               Optional<String> charset,
                               Optional<String> transferEncoding) {
-                this(key, value, contentType, charset,
+                this(key, value, filename, contentType, charset,
                         transferEncoding, Optional.empty());
             }
 
             public SourcePart(String key,
                               Source<ByteString, ?> value,
+                              Optional<String> filename,
                               Optional<String> contentType,
                               Optional<String> charset,
                               Optional<String> transferEncoding,
                               Optional<String> contentId) {
                 this.key = key;
                 this.value = value;
+                this.filename = filename;
                 this.contentType = contentType;
                 this.charset = charset;
                 this.transferEncoding = transferEncoding;
@@ -1567,6 +1584,10 @@ public class Http {
 
             public Source<ByteString, ?> getValue() {
                 return value;
+            }
+
+            public Optional<String> getFilename() {
+                return filename;
             }
 
             public Optional<String> getContentType() {
@@ -1589,6 +1610,7 @@ public class Http {
                 return new play.api.mvc.MultipartFormData.SourcePart(
                         key,
                         value.asScala(),
+                        OptionConverters.toScala(filename),
                         OptionConverters.toScala(contentType),
                         OptionConverters.toScala(charset),
                         OptionConverters.toScala(transferEncoding),
@@ -1624,6 +1646,8 @@ public class Http {
             public String getValue() {
                 return value;
             }
+
+
 
         }
 

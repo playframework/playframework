@@ -23,8 +23,8 @@ import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication
 import play.mvc.Http
-import scala.compat.java8.OptionConverters._
 
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
@@ -205,7 +205,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
     "sending a json multipart form body" in withServer { ws =>
       val contentType = Option("application/json").asJava
-      val source = new Http.MultipartFormData.SourcePart("key", Source.single("""{"hello":"world"}""").map(ByteString.fromString).asJava, contentType)
+      val source = new Http.MultipartFormData.SourcePart("key", Source.single("""{"hello":"world"}""").map(ByteString.fromString).asJava, java.util.Optional.empty(), contentType)
       val res = ws.url("/post").post(Source.single(source).asJava)
       val body = res.toCompletableFuture.get().asJson()
 
@@ -368,7 +368,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
     "send a multipart request body with json" in withServer { ws =>
       val json = Source.single(Json.stringify(Json.obj("hello" -> "world"))).map(ByteString.apply)
-      val sp = MultipartFormData.SourcePart("hello", json, Option("application/json"), None, None, None)
+      val sp = MultipartFormData.SourcePart("hello", json, None, Option("application/json"))
       val res = ws.url("/post").post(Source.single(sp))
       val body = await(res).json
 

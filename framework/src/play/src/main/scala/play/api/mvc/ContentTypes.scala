@@ -155,7 +155,7 @@ object MultipartFormData {
   /**
    * A source part.
    */
-  case class SourcePart(key: String, value: Source[ByteString, _], contentType: Option[String], charset: Option[String], transferEncoding: Option[String], contentId: Option[String]) extends Part[Source[ByteString, _]]
+  case class SourcePart(key: String, value: Source[ByteString, _], filename: Option[String] = None, contentType: Option[String] = None, charset: Option[String] = None, transferEncoding: Option[String] = None, contentId: Option[String] = None) extends Part[Source[ByteString, _]]
 
   /**
    * A part that has not been properly parsed.

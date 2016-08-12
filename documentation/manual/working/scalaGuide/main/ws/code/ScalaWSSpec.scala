@@ -220,7 +220,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         //#multipart-encoded3-encoding
         val response =
         //#multipart-encoded3
-         ws.url(url).post(Source.single(SourcePart("key", json, Option("application/json"), None, None, None)))
+         ws.url(url).post(Source.single(SourcePart("key", json, None, Option("application/json"))))
         //#multipart-encoded3
 
         await(response).body must_== """{"hello":"world"}"""

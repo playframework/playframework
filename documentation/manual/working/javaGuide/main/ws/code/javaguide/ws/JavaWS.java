@@ -139,7 +139,7 @@ public class JavaWS {
                     .put("hello", "world").toString())
                     .map(ByteString::fromString);
             Optional<String> contentType = Optional.of("application/json");
-            SourcePart sp = new SourcePart("key", multipartJson, contentType);
+            SourcePart sp = new SourcePart("key", multipartJson, Optional.empty(), contentType);
             ws.url(url).post(Source.from(Collections.singletonList(sp)));
             // #ws-post-multipart3
 
