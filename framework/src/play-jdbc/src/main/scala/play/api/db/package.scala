@@ -8,7 +8,7 @@ package play.api
  *
  * Example, retrieving a connection from the 'customers' datasource:
  * {{{
- * val conn = DB.getConnection("customers")
+ * val conn = db.getConnection("customers")
  * }}}
  */
 package object db {

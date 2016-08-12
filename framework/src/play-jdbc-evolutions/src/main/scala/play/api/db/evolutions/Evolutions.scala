@@ -108,7 +108,7 @@ object Evolutions {
   def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
 
   /**
-   * Apply pending evolutions for the given DB.
+   * Apply pending evolutions for the given database.
    */
   def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
     val evolutions = Play.current.injector.instanceOf[EvolutionsApi]
