@@ -26,12 +26,23 @@ object CORSWithCSRFSpec {
 }
 
 class CORSWithCSRFSpec extends CORSCommonSpec {
+  import play.api.libs.crypto._
+  import java.time.{ Clock, Instant, ZoneId }
+
+  def tokenSigner = {
+    val cryptoConfig = CryptoConfig("0123456789abcdef", None, "AES")
+    val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
+    val signer = new HMACSHA1CookieSigner(cryptoConfig)
+    new DefaultCSRFTokenSigner(signer, clock)
+  }
 
   def withApp[T](filters: Class[_ <: HttpFilters] = classOf[CORSWithCSRFSpec.Filters], conf: Map[String, _ <: Any] = Map())(block: Application => T): T = {
     running(_.configure(conf).overrides(
       bind[Router].to(Router.from {
         case p"/error" => Action { req => throw sys.error("error") }
-        case _ => CSRFCheck(Action(Results.Ok))
+        case _ => 
+          val csrfCheck: CSRFCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
+          Action(Results.Ok)
       }),
       bind[HttpFilters].to(filters)
     ))(block)

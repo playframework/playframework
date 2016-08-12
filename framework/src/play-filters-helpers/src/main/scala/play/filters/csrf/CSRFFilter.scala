@@ -37,24 +37,5 @@ class CSRFFilter(
     this(config, tokenSigner.asScala, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler))(mat)
   }
 
-  /**
-   * Default constructor, useful from Java
-   *
-   * @deprecated in 2.5.0. This constructor uses global state.
-   */
-  @Deprecated
-  def this()(implicit mat: Materializer) = this(CSRFConfig.global, Crypto.crypto, new ConfigTokenProvider(CSRFConfig.global, Crypto.crypto), DefaultErrorHandler)
-
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenSigner, tokenProvider, errorHandler)
-}
-
-object CSRFFilter {
-  @deprecated("Use dependency injection", "2.5.0")
-  def apply(
-    config: => CSRFConfig = CSRFConfig.global,
-    tokenSigner: => CSRFTokenSigner = Crypto.crypto,
-    tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global, Crypto.crypto),
-    errorHandler: ErrorHandler = DefaultErrorHandler)(implicit mat: Materializer): CSRFFilter = {
-    new CSRFFilter(config, tokenSigner, tokenProvider, errorHandler)
-  }
 }
