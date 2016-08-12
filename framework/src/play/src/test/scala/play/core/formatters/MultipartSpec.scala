@@ -29,7 +29,7 @@ class MultipartSpec extends Specification with AfterAll {
   def source(contentId: Option[String] = None, transferEncoding: Option[String] = None,
     contentType: Option[String] = None, charset: Option[String] = None) = {
     val data = Source.single(ByteString.fromString("world"))
-    Source.single(SourcePart("hello", data, contentType, charset, transferEncoding, contentId))
+    Source.single(SourcePart("hello", data, None, contentType, charset, transferEncoding, contentId))
   }
 
   "Multipart.transform" should {
