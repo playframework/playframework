@@ -82,14 +82,14 @@ Play 2.3 and 2.4 supported both Scala 2.10 and 2.11. Play 2.5 has dropped suppor
 To set the Scala version in sbt, simply set the `scalaVersion` key, eg:
 
 ```scala
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 ```
 
 If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi project build, then the scala version setting must be set on each project.  Typically, in a multi project build, you will have some common settings shared by every project, this is the best place to put the setting, eg:
 
 ```scala
 def common = Seq(
-  scalaVersion := "2.11.7"
+  scalaVersion := "2.11.8"
 )
 
 lazy val projectA = (project in file("projectA"))

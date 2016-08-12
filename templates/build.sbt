@@ -6,9 +6,9 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.11.7")
+crossScalaVersions := Seq("2.11.8")
 
 templates := {
   def template(name: String, lang: String, includeDirNames: String*): TemplateSources = {
