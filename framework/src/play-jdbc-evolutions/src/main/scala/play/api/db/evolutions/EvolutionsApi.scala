@@ -4,7 +4,7 @@
 package play.api.db.evolutions
 
 import java.io.{ FileInputStream, InputStream }
-import java.sql.{ Connection, Date, PreparedStatement, ResultSet, SQLException }
+import java.sql._
 import javax.inject.{ Inject, Singleton }
 
 import play.api.db.{ DBApi, Database }
@@ -156,7 +156,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
           ) { ps =>
               ps.setInt(1, e.revision)
               ps.setString(2, e.hash)
-              ps.setDate(3, new Date(System.currentTimeMillis()))
+              ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()))
               ps.setString(4, e.sql_up)
               ps.setString(5, e.sql_down)
               ps.setString(6, "applying_up")
