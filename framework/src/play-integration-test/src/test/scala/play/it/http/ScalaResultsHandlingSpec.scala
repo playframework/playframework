@@ -5,6 +5,7 @@ package play.it.http
 
 import java.util.Locale.ENGLISH
 import java.util.concurrent.{ LinkedBlockingQueue }
+
 import akka.stream.scaladsl.Source
 import akka.util.{ ByteString, Timeout }
 import play.api._
@@ -20,6 +21,7 @@ import play.api.libs.iteratee._
 import play.api.libs.EventSource
 import play.core.server.common.ServerResultException
 import play.it._
+
 import scala.util.Try
 import scala.concurrent.Future
 import play.api.http.{ HttpEntity, HttpChunk, Status }
@@ -52,6 +54,9 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         block(port)
       }
     }
+
+    val continueResult = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.NoEntity)
+    val switchingProtocolsResult = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.NoEntity)
 
     "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(DATE) must beSome
@@ -339,7 +344,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "not have a message body, nor Content-Length, when a 100 response is returned" in withServer(
-      Results.Continue
+      continueResult
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("POST", "/", "HTTP/1.1", Map(), "")
@@ -349,7 +354,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "not have a message body, nor Content-Length, when a 101 response is returned" in withServer(
-      Results.SwitchingProtocols
+      switchingProtocolsResult
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
@@ -379,7 +384,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "not have a message body, nor Content-Length, even when a 100 response with an explicit Content-Length is returned" in withServer(
-      Results.Continue.withHeaders("Content-Length" -> "0")
+      continueResult.withHeaders("Content-Length" -> "0")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("POST", "/", "HTTP/1.1", Map(), "")
@@ -389,7 +394,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "not have a message body, nor Content-Length, even when a 101 response with an explicit Content-Length is returned" in withServer(
-      Results.SwitchingProtocols.withHeaders("Content-Length" -> "0")
+      switchingProtocolsResult.withHeaders("Content-Length" -> "0")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
