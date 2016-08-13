@@ -6,7 +6,8 @@ package play.api.mvc
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
-import scala.concurrent.{ Promise, Future }
+
+import scala.concurrent.{ Future, Promise }
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction

@@ -231,7 +231,7 @@ object Dependencies {
   )
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.4.0"
+    "com.typesafe.play" %% "play-doc" % "1.6.0"
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
