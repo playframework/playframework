@@ -87,9 +87,6 @@ object CSRFConfig {
 
   private[play] val HeaderNoCheck = "nocheck"
 
-  @deprecated("Use dependency injection", "2.5.0")
-  def global = Play.privateMaybeApplication.map(_.injector.instanceOf[CSRFConfig]).getOrElse(CSRFConfig())
-
   def fromConfiguration(conf: Configuration): CSRFConfig = {
     val config = conf.getDeprecatedWithFallback("play.filters.csrf", "csrf")
 

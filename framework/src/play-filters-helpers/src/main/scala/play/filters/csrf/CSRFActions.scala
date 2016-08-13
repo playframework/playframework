@@ -521,13 +521,6 @@ case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner
     new CSRFCheckAction(new TokenProviderProvider(config, tokenSigner).get, CSRF.DefaultErrorHandler, action)
 }
 
-object CSRFCheck {
-  @deprecated("Use CSRFCheck class with dependency injection instead", "2.5.0")
-  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRF.DefaultErrorHandler, config: CSRFConfig = CSRFConfig.global, tokenSigner: CSRFTokenSigner = Crypto.crypto): Action[A] = {
-    CSRFCheck(config, tokenSigner)(action, errorHandler)
-  }
-}
-
 /**
  * CSRF add token action.
  *
@@ -562,9 +555,4 @@ case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner) 
    */
   def apply[A](action: Action[A]): Action[A] =
     new CSRFAddTokenAction(config, new TokenProviderProvider(config, crypto).get, action)
-}
-object CSRFAddToken {
-  @deprecated("Use CSRFAddToken class with dependency injection instead", "2.5.0")
-  def apply[A](action: Action[A], config: CSRFConfig = CSRFConfig.global, tokenSigner: CSRFTokenSigner = Crypto.crypto): Action[A] =
-    CSRFAddToken(config, tokenSigner)(action)
 }
