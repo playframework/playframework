@@ -45,14 +45,14 @@ class SecuritySpec extends PlaySpecification {
   object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
       AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-        DB.withConnection { conn =>
+        fakedb.withConnection { conn =>
           block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
         }
       })
     }
   }
 
-  object DB {
+  object fakedb {
     def withConnection[A](block: Connection => A) = {
       block(FakeConnection)
     }

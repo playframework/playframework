@@ -166,16 +166,14 @@ object Security {
    * It can also be used from an action builder, for example:
    *
    * {{{
-   * class AuthenticatedDbRequest[A](val user: User,
-   *                                 val conn: Connection,
-   *                                 request: Request[A]) extends WrappedRequest[A](request)
+   * class AuthMessagesRequest[A](val user: User,
+   *                               messagesApi: MessagesApi,
+   *                               request: Request[A]) extends WrappedRequest[A](request)
    *
-   * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
-   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
+   * class Authenticated @Inject()(messagesApi: MessagesApi) extends ActionBuilder[AuthMessagesRequest] {
+   *   def invokeBlock[A](request: Request[A], block: (AuthMessagesRequest[A]) => Future[Result]) = {
    *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-   *       DB.withConnection { conn =>
-   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
-   *       }
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, messagesApi, request))
    *     })
    *   }
    * }

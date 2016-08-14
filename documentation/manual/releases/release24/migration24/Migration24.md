@@ -191,7 +191,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | ------- | --------| -------- |
 | [`Lang`](api/scala/play/api/i18n/Lang$.html) | [`Langs`](api/scala/play/api/i18n/Langs.html) | |
 | [`Messages`](api/scala/play/api/i18n/Messages$.html) | [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a [`Messages`](api/scala/play/api/i18n/Messages.html) instance. |
-| [`DB`](api/scala/play/api/db/DB$.html) | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
+| `DB` | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
 | `Cache` | [`CacheApi`](api/scala/play/api/cache/CacheApi.html) or better | You can get a particular cache using the `@NamedCache` annotation. |
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
@@ -205,7 +205,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | ------- | --------| -------- |
 | [`Lang`](api/java/play/i18n/Lang.html) | [`Langs`](api/java/play/i18n/Langs.html) | Instances of `Lang` objects are still fine to use |
 | [`Messages`](api/java/play/i18n/Messages.html) | [`MessagesApi`](api/java/play/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a `Messages` instance, and you can then use `at` to get messages for that lang. |
-| [`DB`](api/java/play/db/DB.html) | [`DBApi`](api/java/play/db/DBApi.html) or better, [`Database`](api/java/play/db/Database.html) | You can get a particular database using the [`@NamedDatabase`](api/java/play/db/NamedDatabase.html) annotation. |
+| `DB` | [`DBApi`](api/java/play/db/DBApi.html) or better, [`Database`](api/java/play/db/Database.html) | You can get a particular database using the [`@NamedDatabase`](api/java/play/db/NamedDatabase.html) annotation. |
 | [`JPA`](api/java/play/db/jpa/JPA.html) | [`JPAApi`](api/java/play/db/jpa/JPAApi.html) | |
 | `Cache` | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
