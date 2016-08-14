@@ -7,8 +7,9 @@ import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
+import play.api.i18n._
 import play.twirl.api.Html
+
 import scala.beans.BeanProperty
 
 class HelpersSpec extends Specification {

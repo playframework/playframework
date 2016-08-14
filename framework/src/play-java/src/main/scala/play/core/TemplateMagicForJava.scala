@@ -29,14 +29,14 @@ object PlayMagicForJava {
 
   implicit def implicitJavaMessages: play.api.i18n.Messages =
     try {
-      val jmessages = play.mvc.Http.Context.current().messages()
-      play.api.i18n.Messages(jmessages.lang(), jmessages.messagesApi().scalaApi())
+      val context = play.mvc.Http.Context.current()
+      context.messages().asScala
     } catch {
       case NonFatal(_) =>
         val app = play.api.Play.privateMaybeApplication.get
         val api = play.api.i18n.Messages.messagesApiCache(app)
         val lang = play.api.i18n.Lang.defaultLang
-        play.api.i18n.Messages(lang, api)
+        play.api.i18n.MessagesImpl(lang, api)
     }
 
 }

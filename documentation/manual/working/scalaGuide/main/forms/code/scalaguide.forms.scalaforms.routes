@@ -7,3 +7,9 @@ POST        /user            controllers.Application.userPost
 POST        /submit          controllers.Application.submit
 
 POST        /contact/save    controllers.Application.saveContact
+
+GET         /messages        controllers.MessagesController.index
+
+GET         /messageRequest  controllers.MessagesRequestController.index
+
+POST        /messageRequest  controllers.MessagesRequestController.post

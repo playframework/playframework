@@ -9,8 +9,9 @@
  * @param field The form field.
  * @param args Set of extra HTML attributes ('''id''' and '''label''' are 2 special arguments).
  * @param handler The field constructor.
+ * @param messages the provider of messages
  *@
-@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.Messages)
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
 
 @boxValue = @{ args.toMap.get('value).getOrElse("true") }
 

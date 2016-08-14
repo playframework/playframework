@@ -50,6 +50,7 @@ public class MessagesApi {
      * Otherwise, it calls Arrays.asList on args
      * @param args arguments as a List
      */
+    @SafeVarargs
     private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
         List<T> out;
         if (ArrayUtils.isNotEmpty(args)
@@ -116,7 +117,7 @@ public class MessagesApi {
     public Messages preferred(Collection<Lang> candidates) {
         Seq<Lang> cs = JavaConversions.collectionAsScalaIterable(candidates).toSeq();
         play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
-        return new Messages(new Lang(msgs.lang()), this);
+        return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
 
@@ -131,7 +132,7 @@ public class MessagesApi {
      */
     public Messages preferred(Http.RequestHeader request) {
         play.api.i18n.Messages msgs = messages.preferred(request);
-        return new Messages(new Lang(msgs.lang()), this);
+        return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
     public String langCookieName() {

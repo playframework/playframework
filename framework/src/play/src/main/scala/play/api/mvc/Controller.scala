@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 import play.api.Play
 import play.api.http.{ ContentTypes, HeaderNames, HttpProtocol, Status }
-import play.api.i18n.Lang
+import play.api.i18n._
 import play.api.libs.concurrent.Execution
 import play.twirl.api.Html
 
@@ -82,7 +82,11 @@ trait Controller extends BodyParsers with BaseController {
    *   Ok("Got " + lang)
    * }
    * }}}
+   *
+   * @deprecated This class relies on MessagesApi. Use [[play.api.i18n.I18nSupport]]
+   *            and use `request.messages.lang`.
    */
+  @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
   implicit def request2lang(implicit request: RequestHeader): Lang = {
     play.api.Play.privateMaybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
       .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
@@ -100,6 +104,7 @@ trait Controller extends BodyParsers with BaseController {
 abstract class AbstractController(components: ControllerComponents) extends BaseController {
   def Action = components.actionBuilder
   def parse = components.parsers
+  implicit val messagesApi = components.messagesApi
   lazy val TODO: Action[AnyContent] = Action {
     NotImplemented[Html](views.html.defaultpages.todo())
   }
@@ -108,7 +113,15 @@ abstract class AbstractController(components: ControllerComponents) extends Base
 trait ControllerComponents {
   def actionBuilder: ActionBuilder[Request, AnyContent]
   def parsers: PlayBodyParsers
+  def messagesApi: MessagesApi
+  def langs: Langs
+  def executionContext: scala.concurrent.ExecutionContext
 }
 
-case class DefaultControllerComponents @Inject() (actionBuilder: DefaultActionBuilder, parsers: PlayBodyParsers)
-  extends ControllerComponents
+case class DefaultControllerComponents @Inject() (
+  actionBuilder: DefaultActionBuilder,
+  parsers: PlayBodyParsers,
+  messagesApi: MessagesApi,
+  langs: Langs,
+  executionContext: scala.concurrent.ExecutionContext)
+    extends ControllerComponents

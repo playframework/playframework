@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
  */
 package views.html.helper {
 
-  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], messages: play.api.i18n.Messages) {
+  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], p: play.api.i18n.MessagesProvider) {
 
     def infos: Seq[String] = {
       args.get('_help).map(m => Seq(m.toString)).getOrElse {
@@ -17,22 +17,22 @@ package views.html.helper {
           case Some(false) => false
           case _ => true
         }) {
-          field.constraints.map(c => messages(c._1, c._2.map(a => translateMsgArg(a)): _*)) ++
-            field.format.map(f => messages(f._1, f._2.map(a => translateMsgArg(a)): _*))
+          field.constraints.map(c => p.messages(c._1, c._2.map(a => translateMsgArg(a)): _*)) ++
+            field.format.map(f => p.messages(f._1, f._2.map(a => translateMsgArg(a)): _*))
         } else Nil)
       }
     }
 
     def errors: Seq[String] = {
       (args.get('_error) match {
-        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(messages(message, args.map(a => translateMsgArg(a)): _*)))
+        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(p.messages(message, args.map(a => translateMsgArg(a)): _*)))
         case _ => None
       }).getOrElse {
         (if (args.get('_showErrors) match {
           case Some(false) => false
           case _ => true
         }) {
-          field.errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
+          field.errors.map(e => p.messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
         } else Nil)
       }
     }
@@ -42,18 +42,19 @@ package views.html.helper {
     }
 
     def label: Any = {
-      args.get('_label).getOrElse(messages(field.label))
+      args.get('_label).getOrElse(p.messages(field.label))
     }
 
     def hasName: Boolean = args.get('_name).isDefined
 
     def name: Any = {
-      args.get('_name).getOrElse(messages(field.label))
+      args.get('_name).getOrElse(p.messages(field.label))
     }
 
     private def translateMsgArg(msgArg: Any) = msgArg match {
-      case key: String => messages(key)
-      case keys: Seq[_] => keys.asInstanceOf[Seq[String]].map(key => messages(key))
+      case key: String => p.messages(key)
+      case keys: Seq[_] =>
+        keys.asInstanceOf[Seq[String]].map(key => p.messages(key))
       case _ => msgArg
     }
 
