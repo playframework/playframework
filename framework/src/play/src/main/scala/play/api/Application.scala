@@ -233,6 +233,7 @@ trait BuiltInComponents {
   def sourceMapper: Option[SourceMapper]
   def webCommands: WebCommands
   def configuration: Configuration
+  def applicationLifecycle: DefaultApplicationLifecycle
 
   def router: Router
 
@@ -244,7 +245,6 @@ trait BuiltInComponents {
     Some(router))
   lazy val httpFilters: Seq[EssentialFilter] = Nil
 
-  lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
 

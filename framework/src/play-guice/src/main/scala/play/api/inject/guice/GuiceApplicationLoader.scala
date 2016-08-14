@@ -6,6 +6,7 @@ package play.api.inject.guice
 import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
 import play.api.inject.bind
 import play.core.WebCommands
+import play.api.inject.ApplicationLifecycle
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.
@@ -50,6 +51,7 @@ object GuiceApplicationLoader {
   def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     Seq(
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
-      bind[WebCommands] to context.webCommands)
+      bind[WebCommands] to context.webCommands,
+      bind[ApplicationLifecycle] to context.lifecycle)
   }
 }

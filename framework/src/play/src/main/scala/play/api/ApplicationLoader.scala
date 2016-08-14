@@ -5,6 +5,7 @@ package play.api
 
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
+import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -33,6 +34,8 @@ trait ApplicationLoader {
 
 object ApplicationLoader {
 
+  import play.api.inject.DefaultApplicationLifecycle
+
   // Method to call if we cannot find a configured ApplicationLoader
   private def loaderNotFound(): Nothing = {
     sys.error("No application loader is configured. Please configure an application loader either using the " +
@@ -54,7 +57,7 @@ object ApplicationLoader {
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration)
+  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration, lifecycle: DefaultApplicationLifecycle)
 
   /**
    * Locate and instantiate the ApplicationLoader.
@@ -102,9 +105,10 @@ object ApplicationLoader {
   def createContext(environment: Environment,
     initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
-    webCommands: WebCommands = new DefaultWebCommands) = {
+    webCommands: WebCommands = new DefaultWebCommands,
+    lifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle()) = {
     val configuration = Configuration.load(environment, initialSettings)
-    Context(environment, sourceMapper, webCommands, configuration)
+    Context(environment, sourceMapper, webCommands, configuration, lifecycle)
   }
 
 }
@@ -117,5 +121,6 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
+  lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
 }
 

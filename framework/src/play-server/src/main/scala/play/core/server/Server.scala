@@ -12,6 +12,7 @@ import scala.language.postfixOps
 import play.api._
 import play.api.mvc._
 import play.core.{ DefaultWebCommands, ApplicationProvider }
+import play.api.inject.DefaultApplicationLifecycle
 
 import scala.util.{ Success, Failure }
 import scala.concurrent.Future
@@ -138,7 +139,8 @@ object Server {
   def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      new DefaultApplicationLifecycle
     )) {
       def router = Router.from(routes)
     }.application
@@ -152,7 +154,8 @@ private[play] object JavaServerHelper {
     val r = router
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(mode = mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      new DefaultApplicationLifecycle
     )) {
       def router = r
     }.application
