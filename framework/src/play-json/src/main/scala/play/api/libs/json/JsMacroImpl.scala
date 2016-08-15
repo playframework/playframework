@@ -105,12 +105,15 @@ object JsMacroImpl {
     val applies =
       companionType.decl(TermName("apply")) match {
         case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
-        case s => s.asTerm.alternatives
+        case s => s.asTerm.alternatives.filter {
+          _.asMethod.paramLists.size == 1
+        }
       }
 
     // Find an apply method that matches the unapply
     val maybeApply = applies.collectFirst {
       case (apply: MethodSymbol) if hasVarArgs && {
+        // Option[List[c.universe.Type]]
         val someApplyTypes = apply.paramLists.headOption.map(_.map(_.asTerm.typeSignature))
         val someInitApply = someApplyTypes.map(_.init)
         val someApplyLast = someApplyTypes.map(_.last)
@@ -123,33 +126,62 @@ object JsMacroImpl {
         } yield lastApply <:< lastUnapply).getOrElse(false)
         initsMatch && lastMatch
       } => apply
-      case (apply: MethodSymbol) if apply.paramLists.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes => apply
+
+      case (apply: MethodSymbol) if {
+        val applyParams = apply.paramLists.headOption.
+          toList.flatten.map(_.typeSignature)
+        val unapplyParams = unapplyReturnTypes.toList.flatten
+
+        def paramsMatch = (applyParams, unapplyParams).zipped.forall {
+          case (TypeRef(NoPrefix, applyParam, _),
+            TypeRef(NoPrefix, unapplyParam, _)) => // for generic parameter
+            applyParam.fullName == unapplyParam.fullName
+
+          case (applyParam, unapplyParam) => applyParam =:= unapplyParam
+        }
+
+        (applyParams.size == unapplyParams.size && paramsMatch)
+      } => apply
     }
 
-    val params = maybeApply match {
-      case Some(apply) => apply.paramLists.head //verify there is a single parameter group
+    val (tparams, params) = maybeApply match {
+      case Some(apply) => {
+        apply.typeParams -> apply.paramLists.head
+        // assume there is a single parameter group
+      }
+
       case None => c.abort(c.enclosingPosition, "No apply function found matching unapply parameters")
     }
+
+    val TypeRef(_, _, tpeArgs) = atag.tpe
+
+    val boundTypes = tparams.zip(tpeArgs).map {
+      case (sym, ty) => sym.fullName -> ty
+    }.toMap
 
     // Now we find all the implicits that we need
     final case class Implicit(paramName: Name, paramType: Type, neededImplicit: Tree, isRecursive: Boolean, tpe: Type)
 
     val createImplicit = { (name: Name, implType: c.universe.type#Type) =>
-      val (isRecursive, tpe) = implType match {
-        case TypeRef(_, t, args) =>
+      val ptype = boundTypes.lift(implType.typeSymbol.fullName).
+        getOrElse(implType)
+
+      val (isRecursive, tpe) = ptype match {
+        case TypeRef(_, t, args) => {
           val isRec = args.exists(_.typeSymbol == companioned)
           // Option[_] needs special treatment because we need to use XXXOpt
-          val tp = if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else implType
+          val tp = if (ptype.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else ptype
           (isRec, tp)
-        case TypeRef(_, t, _) =>
-          (false, implType)
+        }
+
+        case TypeRef(_, t, _) => (false, ptype)
       }
 
       // builds M implicit from expected type
       val neededImplicitType = appliedType(natag.tpe.typeConstructor, tpe :: Nil)
       // infers implicit
       val neededImplicit = c.inferImplicitValue(neededImplicitType)
-      Implicit(name, implType, neededImplicit, isRecursive, tpe)
+      Implicit(name, ptype, neededImplicit, isRecursive, tpe)
     }
 
     val applyParamImplicits = params.map { param => createImplicit(param.name, param.typeSignature) }
