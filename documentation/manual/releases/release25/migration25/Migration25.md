@@ -112,7 +112,8 @@ You will need to update your Logback configuration files (`logback*.xml`) and ch
 The new configuration after the change will look something like this:
 
 ```xml
-<conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+<conversionRule conversionWord="coloredLevel"
+  converterClass="play.api.libs.logback.ColoredLevel" />
 ```
 
 If you use compile time dependency injection, you will need to change your application loader from using `Logger.configure(...)` to the following:
@@ -140,7 +141,7 @@ In addition, there are number of small changes:
 * The deprecated interface `play.libs.ws.WSRequestHolder` has been removed.
 * The `play.libs.ws.play.WSRequest` interface now returns `java.util.concurrent.CompletionStage` instead of `F.Promise`.
 * Static methods that rely on `Play.current` or `Play.application` have been deprecated.
-* Play WS would infer a charset from the content type and append a charset to the `Content-Type` header of the request if one was not already set.  This caused some confusion and bugs, and so in 2.5.x the `Content-Type` header does not automatically include an inferred charset.  If you explicitly set a `Content-Type` header, the setting is honored as is. 
+* Play WS would infer a charset from the content type and append a charset to the `Content-Type` header of the request if one was not already set.  This caused some confusion and bugs, and so in 2.5.x the `Content-Type` header does not automatically include an inferred charset.  If you explicitly set a `Content-Type` header, the setting is honored as is.
 
 ## Deprecated `GlobalSettings`
 
@@ -160,7 +161,7 @@ To revert back to the earlier behavior (if you have "object MyController" in you
 routesGenerator := StaticRoutesGenerator
 ```
 
-If you're using `Build.scala` instead of `build.sbt` you will need to import the `routesGenerator` settings key: 
+If you're using `Build.scala` instead of `build.sbt` you will need to import the `routesGenerator` settings key:
 
 ````scala
 import play.sbt.routes.RoutesCompiler.autoImport._
@@ -203,7 +204,9 @@ You should refer to the list of dependency injected components in the [[Play 2.4
 For example, the following code injects an environment and configuration into a Controller in Scala:
 
 ```scala
-class HomeController @Inject() (environment: play.api.Environment, configuration: play.api.Configuration) extends Controller {
+class HomeController @Inject() (environment: play.api.Environment,
+    configuration: play.api.Configuration)
+  extends Controller {
 
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
@@ -225,7 +228,8 @@ class HomeController @Inject() (environment: play.api.Environment, configuration
 Generally the components you use should not need to depend on the entire application, but sometimes you have to deal with legacy components that require one. You can handle this by injecting the application into one of your components:
 
 ```scala
-class FooController @Inject() (appProvider: Provider[Application]) extends Controller {
+class FooController @Inject() (appProvider: Provider[Application])
+  extends Controller {
   implicit lazy val app = appProvider.get()
   def bar = Action {
     Ok(Foo.bar(app))
