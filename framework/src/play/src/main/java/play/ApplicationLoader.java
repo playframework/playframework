@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import com.typesafe.config.Config;
+import play.api.inject.DefaultApplicationLifecycle;
 import play.core.SourceMapper;
 import play.core.DefaultWebCommands;
 import play.libs.Scala;
@@ -76,7 +77,8 @@ public interface ApplicationLoader {
            environment.underlying(),
            scala.Option.empty(),
            new play.core.DefaultWebCommands(),
-           play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)));
+           play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)),
+           new DefaultApplicationLifecycle());
     }
 
     /**
@@ -131,7 +133,8 @@ public interface ApplicationLoader {
            environment.underlying(),
            underlying.sourceMapper(),
            underlying.webCommands(),
-           underlying.initialConfiguration());
+           underlying.initialConfiguration(),
+           new DefaultApplicationLifecycle());
         return new Context(scalaContext);
     }
 
@@ -147,7 +150,8 @@ public interface ApplicationLoader {
            underlying.environment(),
            underlying.sourceMapper(),
            underlying.webCommands(),
-           initialConfiguration.getWrappedConfiguration());
+           initialConfiguration.getWrappedConfiguration(),
+           new DefaultApplicationLifecycle());
         return new Context(scalaContext);
     }
 
@@ -162,7 +166,8 @@ public interface ApplicationLoader {
           underlying.environment(),
           underlying.sourceMapper(),
           underlying.webCommands(),
-          new play.api.Configuration(initialConfiguration));
+          new play.api.Configuration(initialConfiguration),
+          new DefaultApplicationLifecycle());
       return new Context(scalaContext);
     }
 
@@ -188,7 +193,8 @@ public interface ApplicationLoader {
             environment.underlying(),
             Scala.asScala(initialSettings),
             Scala.<SourceMapper>None(),
-            new DefaultWebCommands());
+            new DefaultWebCommands(),
+            new DefaultApplicationLifecycle());
         return new Context(scalaContext);
     }
 

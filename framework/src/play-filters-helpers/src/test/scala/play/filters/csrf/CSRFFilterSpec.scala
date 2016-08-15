@@ -19,6 +19,7 @@ import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Mode, Configuration, Environment }
 import play.api.ApplicationLoader.Context
 import play.core.DefaultWebCommands
+import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Specs for the global CSRF filter
@@ -144,7 +145,8 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       environment,
       None,
       new DefaultWebCommands,
-      Configuration.load(environment)
+      Configuration.load(environment),
+      new DefaultApplicationLifecycle()
     )
     def loader = new GuiceApplicationLoader
     "allow injecting CSRF filters" in {

@@ -12,9 +12,10 @@ import play.core._
 import play.utils.Threads
 import scala.collection.JavaConverters._
 import scala.concurrent.{ Future, Await }
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
+import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Used to start servers in 'dev' mode, a mode where the application
@@ -99,6 +100,7 @@ object DevServerStart {
         val appProvider = new ApplicationProvider {
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
+          var lastLifecycle: Option[DefaultApplicationLifecycle] = None
           var currentWebCommands: Option[WebCommands] = None
 
           override def current: Option[Application] = lastState.toOption
@@ -137,6 +139,10 @@ object DevServerStart {
                       // First, stop the old application if it exists
                       lastState.foreach(Play.stop)
 
+                      // Basically no matter if the last state was a Success, we need to
+                      // call all remaining hooks
+                      lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
+
                       // Create the new environment
                       val environment = Environment(path, projectClassloader, Mode.Dev)
                       val sourceMapper = new SourceMapper {
@@ -151,9 +157,11 @@ object DevServerStart {
 
                       val webCommands = new DefaultWebCommands
                       currentWebCommands = Some(webCommands)
+                      val lifecycle = new DefaultApplicationLifecycle()
+                      lastLifecycle = Some(lifecycle)
 
                       val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                        val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands)
+                        val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands, lifecycle)
                         val loader = ApplicationLoader(context)
                         loader.load(context)
                       }

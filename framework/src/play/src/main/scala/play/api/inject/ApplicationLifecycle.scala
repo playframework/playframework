@@ -3,11 +3,12 @@
  */
 package play.api.inject
 
-import java.util.concurrent.{ CompletionStage, Callable }
-
+import java.util.concurrent.{Callable, CompletionStage, ConcurrentLinkedDeque, LinkedBlockingDeque}
 import javax.inject.{Inject, Singleton}
+
 import play.api.Logger
 
+import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
@@ -20,9 +21,9 @@ import scala.concurrent.Future
  *
  * - It simplifies implementation, if you want to start something, just do it in the constructor.
  * - It simplifies state, there's no transitional state where an object has been created but not started yet. Hence,
- *   as long as you have a reference to something, it's safe to use it.
+ * as long as you have a reference to something, it's safe to use it.
  * - It solves startup dependencies in a type safe manner - the order that components must be started is enforced by the
- *   order that they must be instantiated due to the component graph.
+ * order that they must be instantiated due to the component graph.
  *
  * Stop hooks are executed when the application is shutdown, in reverse from when they were registered. Due to this
  * reverse ordering, a component can know that it is safe to use the components it depends on as long as it hasn't
@@ -71,13 +72,10 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
-  private val mutex = new Object()
-  @volatile private var hooks = List.empty[() => Future[_]]
+class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+  private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
-  def addStopHook(hook: () => Future[_]) = mutex.synchronized {
-    hooks = hook :: hooks
-  }
+  def addStopHook(hook: () => Future[_]) = hooks.push(hook)
 
   /**
    * Call to shutdown the application.
@@ -89,12 +87,17 @@ class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
     // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
     import play.core.Execution.Implicits.trampoline
 
-    hooks.foldLeft(Future.successful[Any](())) { (future, hook) =>
-      future.flatMap { _ =>
+    @tailrec
+    def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
+      val hook = hooks.poll()
+      if (hook != null) clearHooks(previous.flatMap { _ =>
         hook().recover {
           case e => Logger.error("Error executing stop hook", e)
         }
-      }
+      })
+      else previous
     }
+
+    clearHooks()
   }
 }

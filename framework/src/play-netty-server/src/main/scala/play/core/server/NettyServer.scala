@@ -25,6 +25,7 @@ import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
 import play.core._
@@ -342,6 +343,7 @@ trait NettyServerComponents {
   lazy val sourceMapper: Option[SourceMapper] = None
   lazy val webCommands: WebCommands = new DefaultWebCommands
   lazy val configuration: Configuration = Configuration(ConfigFactory.load())
+  lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
 
   def application: Application
 
