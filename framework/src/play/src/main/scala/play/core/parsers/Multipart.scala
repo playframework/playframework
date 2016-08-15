@@ -78,7 +78,7 @@ object Multipart {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
           filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType)).run(filePart.ref)
-        case other: Part[Nothing] => Future.successful(other)
+        case other: Part[_] => Future.successful(other.asInstanceOf[Part[Nothing]])
       }
 
       val multipartAccumulator = Accumulator(Sink.fold[Seq[Part[A]], Part[A]](Vector.empty)(_ :+ _)).mapFuture { parts =>
