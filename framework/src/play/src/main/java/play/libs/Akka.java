@@ -21,16 +21,6 @@ import java.util.function.Function;
 public class Akka {
 
     /**
-     * Retrieve the application Akka Actor system.
-     *
-     * @deprecated Please use "@Inject ActorSystem actorSystem", since 2.5.0
-     */
-    @Deprecated
-    public static ActorSystem system() {
-        return play.api.libs.concurrent.Akka.system(Play.current());
-    }
-
-    /**
      * Create a provider for an actor implemented by the given class, with the given name.
      *
      * This will instantiate the actor using Play's injector, allowing it to be dependency injected itself.  The returned
