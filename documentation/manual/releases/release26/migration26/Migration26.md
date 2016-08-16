@@ -11,6 +11,10 @@ The following steps need to be taken to update your sbt build before you can loa
 
 See [[JPAMigration26]].
 
+## Removed Crypto API
+
+The Crypto API has removed the deprecated class `play.api.libs.Crypto` and `play.libs.Crypto`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
+
 ### Removed Yaml API
 
 We removed `play.libs.Yaml` since there was no use of it inside of play anymore.
