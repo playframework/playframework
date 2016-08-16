@@ -17,6 +17,24 @@ The [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html) actually 
 
 In 2.5, `HttpRequestHandler`'s main purpose is to provide a handler for the request right after it comes in. This is now consistent with what the Scala implementation does, and provides a way for Java users to intercept the handling of all HTTP requests. Normally, the `HttpRequestHandler` will call the router to find an action for the request, so the new API allows you to intercept that request in Java before it goes to the router.
 
+## Using CompletionStage inside an Action
+
+You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the HTTP.Context remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
+
+You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
+
+``` java
+public class Application extends Controller {
+    @Inject HttpExecutionContext ec;
+
+    public CompletionStage<Result> index() {
+        someCompletableFuture.supplyAsync(() -> { 
+          // do something with request()
+        }, ec.current());
+    }
+}
+```
+
 ## Replaced functional types with Java 8 functional types
 
 A big change in Play 2.5 is the change to use standard Java 8 classes where possible. All functional types have been replaced with their Java 8 counterparts, for example `F.Function1<A,R>` has been replaced with `java.util.function.Function<A,R>`.
