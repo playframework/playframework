@@ -3,11 +3,12 @@
  */
 package play.api.inject
 
-import java.util.concurrent.{ CompletionStage, Callable }
+import java.util.concurrent.{Callable, CompletionStage, ConcurrentLinkedDeque}
+import javax.inject.{Inject, Singleton}
 
-import javax.inject.Singleton
 import play.api.Logger
 
+import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
@@ -71,13 +72,10 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle extends ApplicationLifecycle {
-  private val mutex = new Object()
-  @volatile private var hooks = List.empty[() => Future[_]]
+class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+  private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
-  def addStopHook(hook: () => Future[_]) = mutex.synchronized {
-    hooks = hook :: hooks
-  }
+  def addStopHook(hook: () => Future[_]) = hooks.push(hook)
 
   /**
    * Call to shutdown the application.
@@ -89,12 +87,17 @@ class DefaultApplicationLifecycle extends ApplicationLifecycle {
     // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-    hooks.foldLeft(Future.successful[Any](())) { (future, hook) =>
-      future.flatMap { _ =>
+    @tailrec
+    def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
+      val hook = hooks.poll()
+      if (hook != null) clearHooks(previous.flatMap { _ =>
         hook().recover {
           case e => Logger.error("Error executing stop hook", e)
         }
-      }
+      })
+      else previous
     }
+
+    clearHooks()
   }
 }
