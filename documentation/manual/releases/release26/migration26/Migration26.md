@@ -134,3 +134,7 @@ Play removed the `tomcat-servlet-api` since it was of no use.
 ```
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ```
+
+### Akka Migration
+
+The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Please dependency inject an `ActorSystem` instance for access to the actor system.
