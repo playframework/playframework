@@ -174,8 +174,9 @@ final case class GuiceApplicationBuilder(
       values.exists {
         case (_, value: String) if deprecatedValues.contains(value) =>
           true
-        case (_, value: java.util.Map[String, AnyRef]) =>
-          hasDeprecatedValue(value.asScala)
+        case (_, value: java.util.Map[_, _]) =>
+          val v = value.asInstanceOf[java.util.Map[String, AnyRef]]
+          hasDeprecatedValue(v.asScala)
         case _ =>
           false
       }
@@ -185,8 +186,9 @@ final case class GuiceApplicationBuilder(
       appConfiguration.underlying.getAnyRef("logger") match {
         case value: String =>
           hasDeprecatedValue(mutable.Map("logger" -> value))
-        case value: java.util.Map[String, AnyRef] =>
-          hasDeprecatedValue(value.asScala)
+        case value: java.util.Map[_, _] =>
+          val v = value.asInstanceOf[java.util.Map[String, AnyRef]]
+          hasDeprecatedValue(v.asScala)
         case _ =>
           false
       }

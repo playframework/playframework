@@ -684,6 +684,7 @@ object PathBindable {
    * This is used by the Java RouterBuilder DSL.
    */
   private[play] lazy val pathBindableRegister: Map[Class[_], PathBindable[_]] = {
+    import scala.language.existentials
     def register[T](implicit pb: PathBindable[T], ct: ClassTag[T]) = ct.runtimeClass -> pb
     Map(
       register[String],

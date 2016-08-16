@@ -147,6 +147,7 @@ object HandlerInvokerFactory {
   }
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
+    import scala.language.existentials
     val accumulator = parser.apply(new play.core.j.RequestHeaderImpl(request)).asScala()
     import play.core.Execution.Implicits.trampoline
     accumulator.map { javaEither =>

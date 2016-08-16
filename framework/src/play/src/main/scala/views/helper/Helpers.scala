@@ -53,7 +53,7 @@ package views.html.helper {
 
     private def translateMsgArg(msgArg: Any) = msgArg match {
       case key: String => messages(key)
-      case keys: Seq[String] => keys.map(key => messages(key))
+      case keys: Seq[_] => keys.asInstanceOf[Seq[String]].map(key => messages(key))
       case _ => msgArg
     }
 
