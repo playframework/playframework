@@ -4,15 +4,19 @@
 package play.core.server
 
 import java.io._
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api._
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc._
 import play.core._
 import play.utils.Threads
+
 import scala.collection.JavaConverters._
-import scala.concurrent.{ Future, Await }
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -100,6 +104,7 @@ object DevServerStart {
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
           var currentWebCommands: Option[WebCommands] = None
+          var lastLifecycle: Option[DefaultApplicationLifecycle] = None
 
           override def current: Option[Application] = lastState.toOption
 
@@ -137,6 +142,10 @@ object DevServerStart {
                       // First, stop the old application if it exists
                       lastState.foreach(Play.stop)
 
+                      // Basically no matter if the last state was a Success, we need to
+                      // call all remaining hooks
+                      lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
+
                       // Create the new environment
                       val environment = Environment(path, projectClassloader, Mode.Dev)
                       val sourceMapper = new SourceMapper {
@@ -154,6 +163,7 @@ object DevServerStart {
 
                       val newApplication = Threads.withContextClassLoader(projectClassloader) {
                         val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands)
+                        lastLifecycle = Some(context.lifecycle)
                         val loader = ApplicationLoader(context)
                         loader.load(context)
                       }
