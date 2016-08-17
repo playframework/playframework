@@ -65,7 +65,7 @@ trait Reads[A] { self =>
   def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filterNot(JsError(error))(f) }
 
-  def collect[B](error: ValidationError)(f: PartialFunction[A, B]) =
+  def collect[B](error: ValidationError)(f: PartialFunction[A, B]): Reads[B] =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
   def orElse(v: Reads[A]): Reads[A] =

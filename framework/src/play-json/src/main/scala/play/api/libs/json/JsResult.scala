@@ -63,12 +63,12 @@ sealed trait JsResult[+A] { self =>
   def isSuccess: Boolean = this.isInstanceOf[JsSuccess[_]]
   def isError: Boolean = this.isInstanceOf[JsError]
 
-  def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: A => X): X = this match {
+  def fold[B](invalid: Seq[(JsPath, Seq[ValidationError])] => B, valid: A => B): B = this match {
     case JsSuccess(v, _) => valid(v)
     case JsError(e) => invalid(e)
   }
 
-  def map[X](f: A => X): JsResult[X] = this match {
+  def map[B](f: A => B): JsResult[B] = this match {
     case JsSuccess(v, path) => JsSuccess(f(v), path)
     case e: JsError => e
   }
@@ -90,7 +90,7 @@ sealed trait JsResult[+A] { self =>
     case _ => JsError(otherwise)
   }
 
-  def flatMap[X](f: A => JsResult[X]): JsResult[X] = this match {
+  def flatMap[B](f: A => JsResult[B]): JsResult[B] = this match {
     case JsSuccess(v, path) => f(v).repath(path)
     case e: JsError => e
   }
