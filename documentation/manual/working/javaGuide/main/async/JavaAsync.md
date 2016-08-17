@@ -35,6 +35,24 @@ A simple way to execute a block of code asynchronously and to get a `CompletionS
 >
 > It can also be helpful to use Actors for blocking operations. Actors provide a clean model for handling timeouts and failures, setting up blocking execution contexts, and managing any state that may be associated with the service. Also Actors provide patterns like `ScatterGatherFirstCompletedRouter` to address simultaneous cache and database requests and allow remote execution on a cluster of backend servers. But an Actor may be overkill depending on what you need.
 
+## Using CompletionStage inside an Action
+
+You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the HTTP.Context remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
+
+You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
+
+``` java
+public class Application extends Controller {
+    @Inject HttpExecutionContext ec;
+
+    public CompletionStage<Result> index() {
+        someCompletableFuture.supplyAsync(() -> { 
+          // do something with request()
+        }, ec.current());
+    }
+}
+```
+
 ## Async results
 
 We have been returning `Result` up until now. To send an asynchronous result our action needs to return a `CompletionStage<Result>`:
