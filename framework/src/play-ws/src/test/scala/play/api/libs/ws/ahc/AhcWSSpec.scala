@@ -9,7 +9,7 @@ import akka.util.{ ByteString, Timeout }
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Request => AHCRequest, Response => AHCResponse }
+import org.asynchttpclient.{ Param, Request => AHCRequest, Response => AHCResponse }
 import org.specs2.mock.Mockito
 import play.api.Play
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -150,21 +150,39 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD") // should result in byte data.
     }
 
-    "Have form params on POST of content type application/x-www-form-urlencoded when signed" in new WithApplication {
-      import scala.collection.JavaConverters._
-      val consumerKey = ConsumerKey("key", "secret")
-      val requestToken = RequestToken("token", "secret")
-      val calc = OAuthCalculator(consumerKey, requestToken)
-      val req: AHCRequest = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1")))
-        .sign(calc)
-        .asInstanceOf[AhcWSRequest]
-        .buildRequest()
-      // Note we use getFormParams instead of getByteData here.
-      req.getFormParams.asScala must containTheSameElementsAs(List(new org.asynchttpclient.Param("param1", "value1")))
-      req.getByteData must beNull // should NOT result in byte data.
+    "support a custom signature calculator" in {
+      var called = false
+      val calc = new org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
+        override def calculateAndAddSignature(request: org.asynchttpclient.Request,
+          requestBuilder: org.asynchttpclient.RequestBuilderBase[_]): Unit = {
+          called = true
+        }
+      }
+      WsTestClient.withClient { client =>
+        val req = client.url("http://playframework.com/").sign(calc)
+          .asInstanceOf[AhcWSRequest]
+          .buildRequest()
+        called must beTrue
+      }
+    }
 
-      val headers = req.getHeaders
-      headers.get("Content-Length") must beNull
+    "Have form params on POST of content type application/x-www-form-urlencoded when signed" in {
+      WsTestClient.withClient { client =>
+        import scala.collection.JavaConverters._
+        val consumerKey = ConsumerKey("key", "secret")
+        val requestToken = RequestToken("token", "secret")
+        val calc = OAuthCalculator(consumerKey, requestToken)
+        val req: AHCRequest = client.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1")))
+          .sign(calc)
+          .asInstanceOf[AhcWSRequest]
+          .buildRequest()
+        // Note we use getFormParams instead of getByteData here.
+        req.getFormParams.asScala must containTheSameElementsAs(List(new org.asynchttpclient.Param("param1", "value1")))
+        req.getByteData must beNull // should NOT result in byte data.
+
+        val headers = req.getHeaders
+        headers.get("Content-Length") must beNull
+      }
     }
 
     "Not remove a user defined content length header" in new WithApplication {
