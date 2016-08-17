@@ -3,13 +3,19 @@
  */
 package play.core.server.common
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.util.ByteString
 import org.specs2.mutable.Specification
-import play.api._
+import play.api.http.{ DefaultHttpErrorHandler, HttpEntity }
+import play.api.http.Status._
+import play.api.libs.iteratee._
 import play.api.mvc._
 import play.api.mvc.Results._
-import play.api.http.HeaderNames._
-import play.api.libs.iteratee._
-import scala.concurrent.{ Future, Promise }
+
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
+import scala.util.{ Success, Try }
 
 object ServerResultUtilsSpec extends Specification with IterateeSpecification {
 
@@ -70,6 +76,91 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
         cookie.name must_== "PLAY_FLASH"
         cookie.value must_== "c=d"
       }
+    }
+  }
+
+  "ServerResultUtils#validateResult" should {
+    implicit val system = ActorSystem()
+    implicit val materializer = ActorMaterializer()
+
+    val header = new RequestHeader {
+      def id = 1
+      def tags = Map()
+      def uri = ""
+      def path = ""
+      def method = ""
+      def version = ""
+      def queryString = Map()
+      def remoteAddress = ""
+      def secure = false
+      def clientCertificateChain = None
+      def headers = new Headers(Seq())
+    }
+
+    def hasNoEntity(response: Future[Result], responseStatus: Int) = {
+      Await.ready(response, 5.seconds)
+      response.value must beSome[Try[Result]].like {
+        case Success(res) =>
+          res.header.status must_== responseStatus
+          res.body must_== HttpEntity.NoEntity
+          ok
+        case _ =>
+          ko("failed to obtain a response.")
+      }
+    }
+
+    "cancel a message-body when a 100 response is returned" in {
+      val result = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.NoEntity)
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 100)
+    }
+
+    "cancel a message-body when a 101 response is returned" in {
+      val result = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.NoEntity)
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 101)
+    }
+
+    "cancel a message-body when a 204 response is returned" in {
+      val response = ServerResultUtils.validateResult(header, Results.NoContent, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 204)
+    }
+
+    "cancel a message-body when a 304 response is returned" in {
+      val response = ServerResultUtils.validateResult(header, Results.NotModified, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 304)
+    }
+
+    "cancel a message-body when a 100 response with a non-empty body is returned" in {
+      val result = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.Strict(ByteString("foo"), None))
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 100)
+    }
+
+    "cancel a message-body when a 101 response with a non-empty body is returned" in {
+      val result = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.Strict(ByteString("foo"), None))
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 101)
+    }
+
+    "cancel a message-body when a 204 response with a non-empty body is returned" in {
+      val result = Result(header = ResponseHeader(NO_CONTENT), body = HttpEntity.Strict(ByteString("foo"), None))
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 204)
+    }
+
+    "cancel a message-body when a 304 response with a non-empty body is returned" in {
+      val result = Result(header = ResponseHeader(NOT_MODIFIED), body = HttpEntity.Strict(ByteString("foo"), None))
+      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+
+      hasNoEntity(response, 304)
     }
   }
 }
