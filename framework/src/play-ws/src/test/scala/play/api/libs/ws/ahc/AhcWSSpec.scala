@@ -9,7 +9,7 @@ import akka.util.{ ByteString, Timeout }
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Request => AHCRequest, Response => AHCResponse }
+import org.asynchttpclient.{ Param, Request => AHCRequest, Response => AHCResponse }
 import org.specs2.mock.Mockito
 import play.api.Play
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -129,6 +129,22 @@ class AhcWSSpec extends PlaySpecification with Mockito {
           .asInstanceOf[AhcWSRequest]
           .buildRequest()
         (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD") // should result in byte data.
+      }
+    }
+
+    "support a custom signature calculator" in {
+      var called = false
+      val calc = new org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
+        override def calculateAndAddSignature(request: org.asynchttpclient.Request,
+          requestBuilder: org.asynchttpclient.RequestBuilderBase[_]): Unit = {
+          called = true
+        }
+      }
+      WsTestClient.withClient { client =>
+        val req = client.url("http://playframework.com/").sign(calc)
+          .asInstanceOf[AhcWSRequest]
+          .buildRequest()
+        called must beTrue
       }
     }
 

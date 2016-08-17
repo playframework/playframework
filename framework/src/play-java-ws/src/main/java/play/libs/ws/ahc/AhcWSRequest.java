@@ -555,7 +555,10 @@ public class AhcWSRequest implements WSRequest {
 
         if (this.calculator != null) {
             if (this.calculator instanceof OAuth.OAuthCalculator) {
-                OAuthSignatureCalculator calc = ((OAuth.OAuthCalculator) this.calculator).getCalculator();
+                SignatureCalculator calc = ((OAuth.OAuthCalculator) this.calculator).getCalculator();
+                builder.setSignatureCalculator(calc);
+            } else if (this.calculator instanceof SignatureCalculator) {
+                SignatureCalculator calc = ((SignatureCalculator) this.calculator);
                 builder.setSignatureCalculator(calc);
             } else {
                 throw new IllegalStateException("Use OAuth.OAuthCalculator");
