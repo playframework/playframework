@@ -3,8 +3,10 @@
  */
 package play.libs.ws.ahc
 
+import org.asynchttpclient.{ Request, RequestBuilderBase, SignatureCalculator }
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
+import play.libs.ws.WSSignatureCalculator
 import play.libs.oauth.OAuth
 
 class AhcWSRequestSpec extends Specification with Mockito {
@@ -81,6 +83,21 @@ class AhcWSRequestSpec extends Specification with Mockito {
       val headers = req.getHeaders
       req.getFormParams.asScala must containTheSameElementsAs(List(new org.asynchttpclient.Param("param1", "value1")))
       headers.get("Content-Length") must beNull // no content length!
+    }
+
+    "Use a custom signature calculator" in {
+      val client = mock[AhcWSClient]
+      var called = false
+      val calc = new SignatureCalculator with WSSignatureCalculator {
+        override def calculateAndAddSignature(request: Request, requestBuilder: RequestBuilderBase[_]): Unit = {
+          called = true
+        }
+      }
+      val req = new AhcWSRequest(client, "http://playframework.com/", null)
+        .sign(calc)
+        .asInstanceOf[AhcWSRequest]
+        .buildRequest()
+      called must beTrue
     }
 
     "support setting a request timeout" in {
