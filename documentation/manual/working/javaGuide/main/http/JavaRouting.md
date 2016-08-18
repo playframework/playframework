@@ -54,7 +54,7 @@ For example, to exactly match `GET /clients/all` incoming requests, you can defi
 
 @[static-path](code/javaguide.http.routing.routes)
 
-### Dynamic parts 
+### Dynamic parts
 
 If you want to define a route that, say, retrieves a client by id, you need to add a dynamic part:
 
@@ -77,7 +77,7 @@ Note that *dynamic parts spanning several `/` are not decoded by the router or e
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for a dynamic part, using the `$id<regex>` syntax:
-    
+
 @[regex-path](code/javaguide.http.routing.routes)
 
 
@@ -141,7 +141,7 @@ Many routes can match the same request. If there is a conflict, the first route 
 
 The router can be used to generate a URL from within a Java call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`. 
+For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`.
 
 The `play.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
 
@@ -157,4 +157,6 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 @[reverse-redirect](code/javaguide/http/routing/controllers/Application.java)
 
-> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello`.
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+
+The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.

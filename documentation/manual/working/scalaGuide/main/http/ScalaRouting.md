@@ -52,7 +52,7 @@ For example, to exactly match incoming `GET /clients/all` requests, you can defi
 
 @[static-path](code/scalaguide.http.routing.routes)
 
-### Dynamic parts 
+### Dynamic parts
 
 If you want to define a route that retrieves a client by ID, you’ll need to add a dynamic part:
 
@@ -75,7 +75,7 @@ Note that *dynamic parts spanning several `/` are not decoded by the router or e
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for the dynamic part, using the `$id<regex>` syntax:
-    
+
 @[regex-path](code/scalaguide.http.routing.routes)
 
 Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
@@ -136,7 +136,7 @@ Many routes can match the same request. If there is a conflict, the first route 
 
 The router can also be used to generate a URL from within a Scala call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.api.mvc.Call` instead of a `play.api.mvc.Action`. 
+For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.api.mvc.Call` instead of a `play.api.mvc.Action`.
 
 The `play.api.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
 
@@ -151,3 +151,7 @@ And if you map it in the `conf/routes` file:
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
 @[reverse-router](code/ScalaRouting.scala)
+
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+
+The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
