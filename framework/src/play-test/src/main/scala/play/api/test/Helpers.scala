@@ -216,13 +216,13 @@ trait EssentialActionCaller {
    */
   def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T], mat: Materializer): Future[Result] = {
     import play.api.http.HeaderNames._
-    val newContentType = rh.headers.get(CONTENT_TYPE).fold(w.contentType)(_ => None)
-    val rhWithCt = newContentType.map { ct =>
-      rh.copy(headers = rh.headers.replace(CONTENT_TYPE -> ct))
-    }.getOrElse(rh)
+    val bytes = w.transform(body)
 
-    val requestBody = Source.single(w.transform(body))
-    action(rhWithCt).run(requestBody)
+    val contentType = rh.headers.get(CONTENT_TYPE).orElse(w.contentType).map(CONTENT_TYPE -> _)
+    val contentLength = rh.headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
+    val newHeaders = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
+
+    action(rh.copy(headers = newHeaders)).run(Source.single(bytes))
   }
 }
 
