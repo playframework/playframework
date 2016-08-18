@@ -9,7 +9,7 @@ import akka.util.{ ByteString, Timeout }
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.{ Param, Request => AHCRequest, Response => AHCResponse }
+import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Param, Request => AHCRequest, Response => AHCResponse }
 import org.specs2.mock.Mockito
 import play.api.Play
 import play.api.inject.guice.GuiceApplicationBuilder
