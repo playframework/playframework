@@ -41,7 +41,7 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
       bind[Router].to(Router.from {
         case p"/error" => Action { req => throw sys.error("error") }
         case _ =>
-         val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
+          val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
           csrfCheck(Action(Results.Ok), CSRF.DefaultErrorHandler)
       }),
       bind[HttpFilters].to(filters)
