@@ -5,11 +5,10 @@ package scalaguide.async.scalaasync
 
 import javax.inject.Inject
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent._
 import akka.actor._
 import play.api._
 import play.api.mvc._
-
 import play.api.test._
 
 class ScalaAsyncSpec extends PlaySpecification {
@@ -92,20 +91,23 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: Execut
   }
 
   def timeout(t: Long) = {
-    def intensiveComputation() = {
+    def intensiveComputation() = Future {
       Thread.sleep(t)
       10
     }
+
     //#timeout
     import scala.concurrent.duration._
-    import akka.pattern.after
+    import play.api.libs.concurrent.Timeout
 
     def index = Action.async {
-      val futureInt = scala.concurrent.Future { intensiveComputation() }
-      val timeoutFuture = after(1.second, actorSystem.scheduler)(Future.successful("Oops"))
-      Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
-        case i: Int => Ok("Got result: " + i)
-        case t: String => InternalServerError(t)
+      Timeout.timeout(actorSystem, 1.seconds) {
+        intensiveComputation().map { i =>
+          Ok("Got result: " + i)
+        }
+      }.recover {
+        case e: TimeoutException =>
+          InternalServerError("timeout")
       }
     }
     //#timeout

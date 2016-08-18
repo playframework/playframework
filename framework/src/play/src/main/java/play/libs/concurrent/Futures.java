@@ -51,45 +51,64 @@ public class Futures {
     }
 
     /**
-     * Create a CompletionStage that is redeemed after a timeout.
+     * Create a CompletionStage that is redeemed after a timeout.  This method
+     * is useful for returning fallback values on timeout.
      *
-     * @param message The message to use to redeem the CompletionStage.
+     * The underlying implementation uses TimerTask, which has a
+     * resolution in milliseconds.
+     *
+     * @param value The result value to use to complete the CompletionStage.
      * @param delay The delay (expressed with the corresponding unit).
      * @param unit The time unit, i.e. java.util.concurrent.TimeUnit.MILLISECONDS
-     * @return the CompletionStage wrapping the message
+     * @return the CompletionStage wrapping the result value
      */
-    public static <A> CompletionStage<A> timeout(A message, long delay, TimeUnit unit) {
+    public static <A> CompletionStage<A> timeout(A value, long delay, TimeUnit unit) {
         CompletableFuture<A> future = new CompletableFuture<>();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                future.complete(message);
+                future.complete(value);
             }
         }, unit.toMillis(delay));
         return future;
     }
 
     /**
-     * Create a CompletionStage timer that throws a PromiseTimeoutException after
+     * Creates a CompletionStage timer that throws a PromiseTimeoutException after
      * a given timeout.
      *
-     * The returned CompletionStage is usually combined with other CompletionStage.
+     * The returned CompletionStage is usually combined with other CompletionStage,
+     * i.e. {@code completionStage.applyToEither(timeout, Function.identity()) }
      *
+     * The underlying implementation uses TimerTask, which has a
+     * resolution in milliseconds.
+     *
+     * A previous implementation used {@code CompletionStage<Void>} which made
+     * it unsuitable for composition.  Cast with {@code Futures.<Void>timeout} if
+     * necessary.
+     *
+     * @param <A> the given type (used when composing Futures)
      * @param delay The delay (expressed with the corresponding unit).
      * @param unit The time Unit.
-     * @return a CompletionStage without a real value
+     * @return a CompletionStage that failed exceptionally
      */
-    public static CompletionStage<Void> timeout(long delay, TimeUnit unit) {
-        return timeout(null, delay, unit).thenApply(n -> {
-            throw new F.PromiseTimeoutException("Timeout in promise");
-        });
+    public static <A> CompletionStage<A> timeout(long delay, TimeUnit unit) {
+        final CompletableFuture<A> future = new CompletableFuture<>();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                final F.PromiseTimeoutException ex = new F.PromiseTimeoutException("Timeout in promise");
+                future.completeExceptionally(ex);
+            }
+        }, unit.toMillis(delay));
+        return future;
     }
 
     /**
      * Create a CompletionStage which, after a delay, will be redeemed with the result of a
      * given supplier. The supplier will be called after the delay.
      *
-     * @param supplier The supplier to call to fulfill the Promise.
+     * @param supplier The supplier to call to fulfill the CompletionStage.
      * @param delay The time to wait.
      * @param unit The units to use for the delay.
      * @param executor The executor to run the supplier in.
