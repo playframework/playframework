@@ -120,7 +120,7 @@ object Multipart {
   def handleFilePartAsTemporaryFile: FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-      Accumulator(FileIO.toFile(tempFile.file)).map { _ =>
+      Accumulator(FileIO.toPath(tempFile.file.toPath)).map { _ =>
         FilePart(partName, filename, contentType, tempFile)
       }
   }
