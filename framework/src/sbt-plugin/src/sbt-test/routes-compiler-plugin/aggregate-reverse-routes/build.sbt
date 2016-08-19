@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
 
 def commonSettings: Seq[Setting[_]] = Seq(
   scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8"),
-  libraryDependencies += guiceSupport,
+  libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
   // This makes it possible to run tests on the output regardless of scala version
   crossPaths := false

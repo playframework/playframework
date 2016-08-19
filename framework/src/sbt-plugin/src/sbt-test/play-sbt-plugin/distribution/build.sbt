@@ -8,7 +8,7 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-libraryDependencies += guiceSupport
+libraryDependencies += guice
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 

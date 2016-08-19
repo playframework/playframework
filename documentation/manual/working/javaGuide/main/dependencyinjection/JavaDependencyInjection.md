@@ -3,10 +3,10 @@
 
 Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you don't have to do so manually.
 
-Out of the box, Play provides dependency injection support based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in. To enable the Play-provided Guice module, make sure you have `guiceSupport` in your library dependencies in build.sbt, e.g.:
+Out of the box, Play provides dependency injection support based on [JSR 330](https://jcp.org/en/jsr/detail?id=330).  The default JSR 330 implementation that comes with Play is [Guice](https://github.com/google/guice), but other JSR 330 implementations can be plugged in. To enable the Play-provided Guice module, make sure you have `guice` in your library dependencies in build.sbt, e.g.:
 
 ```scala
-libraryDependencies += guiceSupport
+libraryDependencies += guice
 ```
 
 The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.

@@ -13,7 +13,7 @@ scalaSource in Test <<= baseDirectory(_ / "tests")
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-akka-http-server-experimental" % sys.props("project.version"),
-  guiceSupport,
+  guice,
   ws,
   specs2 % Test
 )
