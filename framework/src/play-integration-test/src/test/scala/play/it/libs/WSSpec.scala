@@ -32,7 +32,7 @@ class NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 class AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
 trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
-  import play.core.Execution.Implicits._
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Web service client" title
 

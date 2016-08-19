@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 class DefaultApplicationLifecycleSpec extends Specification {
 
-  import play.core.Execution.Implicits._
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "DefaultApplicationLifecycle" should {
     // This test ensure's two things

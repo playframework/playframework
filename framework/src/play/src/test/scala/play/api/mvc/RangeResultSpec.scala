@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
 
 class ByteRangeSpec extends Specification {
-  import play.core.Execution.Implicits._
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Distance" in {
     "Between 0-10 and 20-30 is 10" in {
