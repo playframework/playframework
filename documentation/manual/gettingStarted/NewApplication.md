@@ -102,10 +102,10 @@ $ sbt
 
 sbt will load your project and fetch the dependencies.
 
-By default, the `PlayJava` and `PlayScala` plugins do not depend on any specific dependency injection solution. If you want to use Play's Guice module, add `guiceSupport` to your library dependencies:
+By default, the `PlayJava` and `PlayScala` plugins do not depend on any specific dependency injection solution. If you want to use Play's Guice module, add `guice` to your library dependencies:
 
 ```scala
-libraryDependencies += guiceSupport
+libraryDependencies += guice
 ```
 
-Be aware that you should either be manually defining an `ApplicationLoader` or have a dependency on another module (such as `guiceSupport`) that provides one.
+Be aware that you should either be manually defining an `ApplicationLoader` or have a dependency on another module (such as `guice`) that provides one.

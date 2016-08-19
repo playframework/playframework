@@ -5,7 +5,7 @@ import scala.reflect._
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-libraryDependencies += guiceSupport
+libraryDependencies += guice
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8")
 

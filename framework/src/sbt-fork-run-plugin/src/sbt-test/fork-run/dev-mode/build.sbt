@@ -4,7 +4,7 @@
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-libraryDependencies += guiceSupport
+libraryDependencies += guice
 
 DevModeBuild.settings
 

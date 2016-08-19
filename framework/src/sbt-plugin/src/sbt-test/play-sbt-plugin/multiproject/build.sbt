@@ -24,7 +24,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
 
 def common: Seq[Setting[_]] = Seq(
   scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8"),
-  libraryDependencies += guiceSupport
+  libraryDependencies += guice
 )
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {

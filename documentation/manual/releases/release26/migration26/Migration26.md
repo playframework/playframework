@@ -19,7 +19,7 @@ If you still need support for the Play YAML integration you need to add `snakeya
 ```
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 ```
- 
+
 And create the following Wrapper in your Code:
 
 ```
@@ -31,7 +31,7 @@ public class Yaml {
     public Yaml(play.Environment environment) {
         this.environment = environment;
     }
-    
+
     /**
      * Load a Yaml file from the classpath.
      */
@@ -41,8 +41,8 @@ public class Yaml {
             environment.classLoader()
         );
     }
-    
-    /** 
+
+    /**
      * Load the specified InputStream as Yaml.
      *
      * @param classloader The classloader to use to instantiate Java objects.
@@ -51,10 +51,21 @@ public class Yaml {
         org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader));
         return yaml.load(is);
     }
-    
+
 }
 ```
 
+### Guice DI support moved to separate module
+
+In Play 2.6, the core Play module no longer includes Guice. You can add it by adding `guice` to your `libraryDependencies`:
+
+```
+libraryDependencies += guice
+```
+
+If you explicitly depend on an alternate DI library for play, or have defined your own custom application loader, no changes should be required.
+
+Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
 
 ### Removed Libraries
 

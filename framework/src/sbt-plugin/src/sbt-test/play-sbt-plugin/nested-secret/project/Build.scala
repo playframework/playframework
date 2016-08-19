@@ -15,7 +15,7 @@ object ApplicationBuild extends Build {
 
   val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
-    libraryDependencies += guiceSupport,
+    libraryDependencies += guice,
     TaskKey[Unit]("checkSecret") := {
       val file: File = baseDirectory.value / "conf/application.conf"
       val config: Config = ConfigFactory.parseFileAnySyntax(file)

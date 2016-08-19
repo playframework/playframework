@@ -15,7 +15,7 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 scalaSource in Test <<= baseDirectory(_ / "tests")
 
 libraryDependencies ++= Seq(
-  guiceSupport,
+  guice,
   ws,
   specs2 % Test
 )

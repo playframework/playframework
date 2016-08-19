@@ -4,7 +4,7 @@
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-libraryDependencies ++= Seq(guiceSupport, specs2 % Test)
+libraryDependencies ++= Seq(guice, specs2 % Test)
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8")
 

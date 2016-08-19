@@ -27,7 +27,7 @@ To configure Play to use this application loader, configure the `play.applicatio
 
     play.application.loader=MyApplicationLoader
 
-In addition, if you're modifying an existing project that uses the built-in Guice module, you should be able to remove `guiceSupport` from your `libraryDependencies` in `build.sbt`.
+In addition, if you're modifying an existing project that uses the built-in Guice module, you should be able to remove `guice` from your `libraryDependencies` in `build.sbt`.
 
 ## Configuring Logging
 

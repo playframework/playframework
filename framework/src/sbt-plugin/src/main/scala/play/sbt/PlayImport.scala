@@ -47,7 +47,7 @@ object PlayImport {
 
   val json = component("play-json")
 
-  val guiceSupport = component("play-guice")
+  val guice = component("play-guice")
 
   val ws = component("play-ws")
 
