@@ -280,6 +280,22 @@ class AhcWSSpec extends PlaySpecification with Mockito {
     actual.getRealm.getScheme must be equalTo AuthScheme.NTLM
   }
 
+  "Set Realm.UsePreemptiveAuth to false when WSAuthScheme.DIGEST being used" in WsTestClient.withClient { client =>
+    val req = client.url("http://playframework.com/")
+      .withAuth("usr", "pwd", WSAuthScheme.DIGEST)
+      .asInstanceOf[AhcWSRequest]
+      .buildRequest()
+    req.getRealm.isUsePreemptiveAuth must beFalse
+  }
+
+  "Set Realm.UsePreemptiveAuth to true when WSAuthScheme.DIGEST not being used" in WsTestClient.withClient { client =>
+    val req = client.url("http://playframework.com/")
+      .withAuth("usr", "pwd", WSAuthScheme.BASIC)
+      .asInstanceOf[AhcWSRequest]
+      .buildRequest()
+    req.getRealm.isUsePreemptiveAuth must beTrue
+  }
+
   "support a proxy server" in WsTestClient.withClient { client =>
     val proxy = DefaultWSProxyServer(host = "localhost", port = 8080)
     val req: AHCRequest = client.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[AhcWSRequest].buildRequest()
