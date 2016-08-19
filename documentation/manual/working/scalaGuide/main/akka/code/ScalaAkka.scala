@@ -39,7 +39,6 @@ class ScalaAkkaSpec extends PlaySpecification {
       import actors.HelloActor.SayHello
 
       //#ask
-      import play.api.libs.concurrent.Execution.Implicits.defaultContext
       import scala.concurrent.duration._
       import akka.pattern.ask
       implicit val timeout = 5.seconds
@@ -69,7 +68,6 @@ class ScalaAkkaSpec extends PlaySpecification {
     ) { _ =>
       import play.api.inject.bind
       import akka.actor._
-      import play.api.libs.concurrent.Execution.Implicits.defaultContext
       import scala.concurrent.duration._
       import akka.pattern.ask
       implicit val timeout = 5.seconds
@@ -100,7 +98,6 @@ class ScalaAkkaSpec extends PlaySpecification {
       val file = new File("/tmp/nofile")
       file.mkdirs()
       //#schedule-callback
-      import play.api.libs.concurrent.Execution.Implicits.defaultContext
       system.scheduler.scheduleOnce(10.milliseconds) {
         file.delete()
       }

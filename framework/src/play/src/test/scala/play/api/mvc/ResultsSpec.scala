@@ -16,7 +16,6 @@ import org.specs2.mutable._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.{ Configuration, Environment, Play }
 import play.core.test._
 
@@ -24,6 +23,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ResultsSpec extends Specification {
+  import play.core.Execution.Implicits._
 
   import play.api.mvc.Results._
 

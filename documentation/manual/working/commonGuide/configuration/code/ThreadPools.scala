@@ -5,26 +5,24 @@ package detailedtopics.configuration.threadpools
 
 import javax.inject.Inject
 
-import play.api.libs.ws._
 import play.api.mvc._
 import play.api.test._
 import play.api._
 import com.typesafe.config.ConfigFactory
 import akka.actor.ActorSystem
-import play.api.libs.concurrent.Akka
-import scala.concurrent.{Future, ExecutionContext}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConverters._
-import java.io.File
+
+import scala.concurrent.{ExecutionContext, Future, TimeoutException}
+
 import org.specs2.execute.AsResult
 
 class ThreadPoolsSpec extends PlaySpecification {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Play's thread pools" should {
 
     "make a global thread pool available" in new WithApplication() {
       val controller = app.injector.instanceOf[Samples]
-      contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The response code was")
+      contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The answer is 42")
     }
 
     "have a global configuration" in {
@@ -208,19 +206,19 @@ class ThreadPoolsSpec extends PlaySpecification {
 }
 
 // since specs provides defaultContext, implicitly importing it doesn't work
-class Samples @Inject() (wsClient: WSClient) {
-
-  //#global-thread-pool
-  import play.api.libs.concurrent.Execution.Implicits._
-
+//#global-thread-pool
+class Samples @Inject()(implicit ec: ExecutionContext) extends Controller {
   def someAsyncAction = Action.async {
-    wsClient.url("http://www.example.com").get().map { response =>
-      // This code block is executed in the imported default execution context
-      // which happens to be the same thread pool in which the outer block of
-      // code in this action will be executed.
-      Results.Ok("The response code was " + response.status)
+    someCalculation().map { result =>
+      Ok(s"The answer is $result")
+    }.recover {
+      case e: TimeoutException =>
+        InternalServerError("Calculation timed out!")
     }
   }
-  //#global-thread-pool
 
+  def someCalculation(): Future[Int] = {
+    Future.successful(42)
+  }
 }
+//#global-thread-pool

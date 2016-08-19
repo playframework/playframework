@@ -28,7 +28,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
   def apply() = this
 
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
+    import play.core.Execution.Implicits._
     def apply(rh: play.mvc.Http.RequestHeader) = self(rh._underlyingHeader).map(_.asJava).asJava
     override def apply(rh: RequestHeader) = self(rh)
   }
@@ -103,7 +103,7 @@ trait Action[A] extends EssentialAction {
    *
    * @return The execution context to run the action in
    */
-  def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
+  protected def executionContext: ExecutionContext = play.core.Execution.internalContext
 
   /**
    * Returns itself, for better support in the routes file.
@@ -270,7 +270,7 @@ trait ActionFunction[-R[_], +P[_]] {
    *
    * @return The execution context
    */
-  protected def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
+  protected def executionContext: ExecutionContext = play.core.Execution.internalContext
 
   /**
    * Compose this ActionFunction with another, with this one applied first.

@@ -53,15 +53,13 @@ case class Person(name: String, age: Int)
 class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   // #scalaws-context-injected
-  class PersonService @Inject()(implicit context: ExecutionContext) {
+  // Configure with a custom execution context from akka.dispatchers.lookup()
+  class MyExecutionContext(ec: ExecutionContext)
+  class PersonService @Inject()(ec: MyExecutionContext) {
     // ...
   }
   // #scalaws-context-injected
   val url = s"http://localhost:$testServerPort/"
-
-  // #scalaws-context
-  implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
-  // #scalaws-context
 
   val system = ActorSystem()
   implicit val materializer = ActorMaterializer()(system)
@@ -100,6 +98,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   }
 
   "WS" should {
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     "allow making a request" in withSimpleServer { ws =>
       //#simple-holder

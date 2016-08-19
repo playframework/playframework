@@ -18,7 +18,8 @@ import play.core.server.Server
 import play.it._
 import scala.concurrent.duration.Duration
 import scala.concurrent._
-import play.api.libs.concurrent.Execution.{ defaultContext => ec }
+
+import scala.concurrent.ExecutionContext.Implicits.{ global => ec }
 
 class NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
 class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
@@ -224,7 +225,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         next(request).recover {
           case t: Throwable =>
             Results.InternalServerError(t.getMessage)
-        }(play.api.libs.concurrent.Execution.Implicits.defaultContext)
+        }(ec)
       } catch {
         case t: Throwable => Accumulator.done(Results.InternalServerError(t.getMessage))
       }

@@ -11,7 +11,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -19,6 +18,7 @@ import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
 
 class ByteRangeSpec extends Specification {
+  import play.core.Execution.Implicits._
 
   "Distance" in {
     "Between 0-10 and 20-30 is 10" in {
@@ -325,6 +325,7 @@ class RangeSetSpec extends Specification {
 }
 
 class RangeResultSpec extends Specification {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Result" should {
 

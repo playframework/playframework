@@ -257,9 +257,58 @@ If you used any of the `Router.Tags.*` tags, you should change your code to use 
 The attribute contains a `HandlerDef` object that contains all the information that is currently in the tags. The relationship between a `HandlerDef` object and its tags is as follows:
 
 ```scala
-RoutePattern -> handlerDef.path
+RoutePattern -> han
+dlerDef.path
 RouteVerb -> handlerDef.verb
 RouteController -> handlerDef.controller
 RouteActionMethod -> handlerDef.method
 RouteComments -> handlerDef.comments
 ```
+
+### Execution
+
+The `play.api.libs.concurrent.Execution` class has been deprecated, as it was using global mutable state under the hood to pull the "current" application's ExecutionContext.
+
+If you want to specify the implicit behavior that you had previously, then you should pass in the execution context implicitly in the constructor using [[dependency injection|ScalaDependencyInjection]]:
+
+```scala
+class MyController @Inject()(implicit ec:ExecutionContext) {
+
+}
+```
+
+or from BuiltInComponents if you are using [[compile time dependency injection|ScalaCompileTimeDependencyInjection]]:
+
+```
+class MyComponents(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context)
+val ec = myComponents.executionContext
+```
+
+However, there are some good reasons why you may not want to import an execution context even in the general case.  In the general case, the application's execution context is good for rendering actions, and executing CPU-bound activities that do not involve blocking API calls or I/O activity.  If you are calling out to a database, or making network calls, then you may want to define your own custom execution context:
+
+```scala
+class MyExecutionContext(val underlying: ExecutionContext)
+```
+
+and provide it through an Akka dispatcher:
+
+```scala
+@Singleton
+class MyExecutionContextProvider @Inject()(actorSystem: ActorSystem)
+  extends Provider[MyExecutionContext] {
+  override lazy val get: MyExecutionContext = {
+    val ec = actorSystem.dispatchers.lookup("my.dispatcher")
+    new MyExecutionContext(ec)
+  }
+}
+```
+
+and then inject your custom execution context as appropriate:
+
+```scala
+class MyBlockingRepository @Inject()(myExecutionContext: MyExecutionContext) {
+  private implicit val ec: ExecutionContext = myExecutionContext.underlying
+}
+```
+
+Please see [[ThreadPools]] page for more information on custom execution contexts.

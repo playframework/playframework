@@ -39,11 +39,19 @@ Play uses a number of different thread pools for different purposes:
 
 All actions in Play Framework use the default thread pool.  When doing certain asynchronous operations, for example, calling `map` or `flatMap` on a future, you may need to provide an implicit execution context to execute the given functions in.  An execution context is basically another name for a `ThreadPool`.
 
-In most situations, the appropriate execution context to use will be the **Play default thread pool**.   This is accessible through `play.api.libs.concurrent.Execution.Implicits._` This can be used by importing it into your Scala source file:
+In most situations, the appropriate execution context to use will be the **Play default thread pool**.   This is accessible through `@Inject()(implicit ec: ExecutionContext)` This can be used by importing it into your Scala source file:
 
 @[global-thread-pool](code/ThreadPools.scala)
 
-The Play thread pool connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.4.3/scala/dispatchers.html).
+or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) with an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) in Java code:
+
+```
+CompletionStage<Result> result = calculation().thenApplyAsync(result -> {
+         return ok("answer was " + result);
+ }, httpExecutionContext.current();
+```
+
+This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
 
 ### Configuring the default thread pool
 
@@ -57,7 +65,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.4.3/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/current/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
