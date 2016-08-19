@@ -4,12 +4,13 @@
 package play.api.inject.guice
 
 import org.specs2.mutable.Specification
-
 import com.google.inject.AbstractModule
+import play.{Configuration => JavaConfiguration, Environment => JavaEnvironment}
+import play.api.{ApplicationLoader, Configuration, Environment}
+import play.api.inject.{BuiltinModule, DefaultApplicationLifecycle}
 
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
-import play.api.{ ApplicationLoader, Configuration, Environment }
-import play.api.inject.BuiltinModule
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 class GuiceApplicationLoaderSpec extends Specification {
 
@@ -50,6 +51,16 @@ class GuiceApplicationLoaderSpec extends Specification {
       val loader = new GuiceApplicationLoader()
       val app = loader.load(fakeContextWithModule(classOf[JavaConfiguredModule]))
       app.injector.instanceOf[Foo] must beAnInstanceOf[JavaConfiguredFoo]
+    }
+
+    "call the stop hooks from the context" in {
+      val lifecycle = new DefaultApplicationLifecycle
+      var hooksCalled = false
+      lifecycle.addStopHook(() => Future.successful(hooksCalled = true))
+      val loader = new GuiceApplicationLoader()
+      val app = loader.load(ApplicationLoader.createContext(Environment.simple()).copy(lifecycle = lifecycle))
+      Await.ready(app.stop(), 5.minutes)
+      hooksCalled must_== true
     }
 
   }

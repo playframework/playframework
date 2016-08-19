@@ -4,9 +4,8 @@
 package play.api.inject.guice
 
 import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
-import play.api.inject.bind
+import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle, bind }
 import play.core.WebCommands
-import play.api.inject.ApplicationLifecycle
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.
@@ -52,6 +51,6 @@ object GuiceApplicationLoader {
     Seq(
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
       bind[WebCommands] to context.webCommands,
-      bind[ApplicationLifecycle] to context.lifecycle)
+      bind[DefaultApplicationLifecycle] to context.lifecycle)
   }
 }
