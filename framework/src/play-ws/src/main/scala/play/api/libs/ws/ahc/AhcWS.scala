@@ -31,7 +31,7 @@ import akka.stream.scaladsl.Sink
 /**
  * A WS client backed by an AsyncHttpClient.
  *
- * If you need to debug AsyncHttpClient, set logger.org.asynchttpclient=DEBUG in your application.conf file.
+ * If you need to debug AsyncHttpClient, add <logger name="org.asynchttpclient" level="DEBUG" /> into your conf/logback.xml file.
  *
  * @param config a client configuration object
  */
