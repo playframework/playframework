@@ -415,7 +415,6 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
       // LinkageError is similarly harmless in Play Framework, since automatic reloading could easily trigger it
       case e: LinkageError => throw new RuntimeException(e)
     }
-    override def executionContext = ActionBuilder.this.executionContext
   })
 
   /**
