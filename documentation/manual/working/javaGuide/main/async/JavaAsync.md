@@ -15,7 +15,7 @@ Because of the way Play works, action code must be as fast as possible, i.e., no
 
 Java 8 provides a generic promise API called [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html).  A `CompletionStage<Result>` will eventually be redeemed with a value of type `Result`. By using a `CompletionStage<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything. Play will then serve the result as soon as the promise is redeemed.
 
-The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
+The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients. 
 
 ## How to create a `CompletionStage<Result>`
 
@@ -42,7 +42,7 @@ You must supply the HTTP execution context explicitly as an executor when using 
 You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
 
 ``` java
-public class Application extends Controller {
+public class HomeController extends Controller {
     @Inject HttpExecutionContext ec;
 
     public CompletionStage<Result> index() {
@@ -52,6 +52,24 @@ public class Application extends Controller {
     }
 }
 ```
+
+Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/current/java/dispatchers.html).  
+
+```java
+class MyExecutionContext extends CustomExecutionContext {...}
+
+public class HomeController extends Controller {
+    @Inject MyExecutionContext myExecutionContext;
+
+    public CompletionStage<Result> index() {
+        someCompletableFuture.supplyAsync(() -> { 
+          // perform blocking operation using a different thread pool
+        }, myExecutionContext.current());
+    }
+}
+```
+
+Please see [[ThreadPools]] for more information on using custom execution contexts effectively.
 
 ## Async results
 

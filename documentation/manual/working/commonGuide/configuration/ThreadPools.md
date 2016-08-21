@@ -73,7 +73,9 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 @[my-context-usage](code/ThreadPools.scala)
 
-In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  To configure this Akka execution context, you can add the following configuration to your `application.conf`:
+In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.
+
+To configure this Akka execution context, you can add the following configuration to your `application.conf`:
 
 @[my-context-config](code/ThreadPools.scala)
 

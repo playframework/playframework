@@ -246,7 +246,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         try {
           next.apply(request).recover(new java.util.function.Function[Throwable, Result]() {
             def apply(t: Throwable) = getResult(t)
-          }, play.core.Execution.internalContext)
+          }, ec)
         } catch {
           case t: Throwable => Accumulator.done(getResult(t))
         }
