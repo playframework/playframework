@@ -3,7 +3,7 @@
 
 ## What is an Action?
 
-Most of the requests received by a Play application are handled by an *action*. 
+Most of the requests received by a Play application are handled by an *action*.
 
 An action is basically a Java method that processes the request parameters, and produces a result to be sent to the client.
 
@@ -11,7 +11,7 @@ An action is basically a Java method that processes the request parameters, and 
 
 An action returns a `play.mvc.Result` value, representing the HTTP response to send to the web client. In this example `ok` constructs a **200 OK** response containing a **text/plain** response body.
 
-## Controllers 
+## Controllers
 
 A controller is nothing more than a class extending `play.mvc.Controller` that groups several action methods.
 
@@ -38,6 +38,14 @@ Here are several examples that create various results:
 @[other-results](code/javaguide/http/JavaActions.java)
 
 All of these helpers can be found in the `play.mvc.Results` class.
+
+It is also possible to use a `Http.Context` by returning a functional interface from your action:
+
+@[result-context](code/javaguide/http/JavaActions.java)
+
+The same can be done for async actions that return a `CompletionStage`:
+
+@[result-context-async](code/javaguide/http/JavaActions.java)
 
 ## Redirects are simple results too
 

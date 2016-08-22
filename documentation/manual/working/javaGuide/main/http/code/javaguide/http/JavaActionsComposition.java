@@ -8,6 +8,8 @@ import play.cache.Cached;
 import play.libs.Json;
 import play.mvc.*;
 
+
+import java.util.function.Function;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,9 +21,9 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-action
     public class VerboseAction extends play.mvc.Action.Simple {
-        public CompletionStage<Result> call(Http.Context ctx) {
+        public CompletionStage<Result> call(Http.Context ctx, Function<Http.Context, CompletionStage<Result>> delegate) {
             Logger.info("Calling action for {}", ctx);
-            return delegate.call(ctx);
+            return delegate.apply(ctx);
         }
     }
     // #verbose-action
@@ -59,11 +61,11 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-annotation-action
     public class VerboseAnnotationAction extends Action<VerboseAnnotation> {
-        public CompletionStage<Result> call(Http.Context ctx) {
+        public CompletionStage<Result> call(Http.Context ctx, Function<Http.Context, CompletionStage<Result>> delegate) {
             if (configuration.value()) {
                 Logger.info("Calling action for {}", ctx);
             }
-            return delegate.call(ctx);
+            return delegate.apply(ctx);
         }
     }
     // #verbose-annotation-action
@@ -74,9 +76,9 @@ public class JavaActionsComposition extends Controller {
 
     // #pass-arg-action
     public class PassArgAction extends play.mvc.Action.Simple {
-        public CompletionStage<Result> call(Http.Context ctx) {
+        public CompletionStage<Result> call(Http.Context ctx, Function<Http.Context, CompletionStage<Result>> delegate) {
             ctx.args.put("user", User.findById(1234));
-            return delegate.call(ctx);
+            return delegate.apply(ctx);
         }
     }
     // #pass-arg-action

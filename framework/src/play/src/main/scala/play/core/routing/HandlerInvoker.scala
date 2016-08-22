@@ -5,14 +5,14 @@ package play.core.routing
 
 import java.util.Optional
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.function.{ Function => JFunction }
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.core.j
-import play.core.j._
-import play.i18n.{ Langs, MessagesApi }
+import play.core.j.{ JavaActionAnnotations, JavaHandler, JavaHandlerComponents, JavaHelpers }
 import play.mvc.Http.{ Context, RequestBody }
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }
@@ -106,7 +106,7 @@ object HandlerInvokerFactory {
               val javaParser = handlerComponents.getBodyParser(annotations.parser)
               javaBodyParserToScala(javaParser)
             }
-            override def invocation: CompletionStage[JResult] = resultCall(call)
+            override def invocation: JFunction[Context, CompletionStage[JResult]] = resultCall(call)
           }
         }
       }
@@ -115,7 +115,7 @@ object HandlerInvokerFactory {
     /**
      * The core logic for this Java action.
      */
-    def resultCall(call: => A): CompletionStage[JResult]
+    def resultCall(call: => A): JFunction[Context, CompletionStage[JResult]]
   }
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
@@ -132,10 +132,22 @@ object HandlerInvokerFactory {
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {
-    def resultCall(call: => JResult) = CompletableFuture.completedFuture(call)
+    def resultCall(call: => JResult) = new java.util.function.Function[Context, CompletionStage[JResult]] {
+      def apply(ctx: Context) = CompletableFuture.completedFuture(call)
+    }
   }
   implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] = new JavaActionInvokerFactory[CompletionStage[JResult]] {
-    def resultCall(call: => CompletionStage[JResult]) = call
+    def resultCall(call: => CompletionStage[JResult]) = new java.util.function.Function[Context, CompletionStage[JResult]] {
+      def apply(ctx: Context) = call
+    }
+  }
+  implicit def wrapJavaHandler: HandlerInvokerFactory[JFunction[Context, JResult]] = new JavaActionInvokerFactory[JFunction[Context, JResult]] {
+    def resultCall(call: => JFunction[Context, JResult]) = new JFunction[Context, CompletionStage[JResult]] {
+      override def apply(c: Context) = CompletableFuture.completedFuture(call(c))
+    }
+  }
+  implicit def wrapJavaAsyncHandler: HandlerInvokerFactory[JFunction[Context, CompletionStage[JResult]]] = new JavaActionInvokerFactory[JFunction[Context, CompletionStage[JResult]]] {
+    def resultCall(call: => JFunction[Context, CompletionStage[JResult]]) = call
   }
 
   /**

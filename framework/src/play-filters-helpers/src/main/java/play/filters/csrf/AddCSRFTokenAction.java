@@ -4,6 +4,7 @@
 package play.filters.csrf;
 
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -11,6 +12,7 @@ import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.Session;
 import play.mvc.Action;
 import play.mvc.Http;
+import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBody;
 import play.mvc.Http.RequestImpl;
@@ -33,7 +35,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Context ctx, Function<Context, CompletionStage<Result>> delegate) {
         play.api.mvc.Request<RequestBody> request =
             CSRFAction.tagRequestFromHeader(ctx.request()._underlyingRequest(), config, tokenSigner);
 
@@ -74,6 +76,6 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
         };
 
         Http.Context.current.set(newCtx);
-        return delegate.call(newCtx);
+        return delegate.apply(newCtx);
     }
 }

@@ -5,6 +5,7 @@ package play.filters.csrf;
 
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -14,6 +15,7 @@ import play.api.mvc.Session;
 import play.inject.Injector;
 import play.mvc.Action;
 import play.mvc.Http;
+import play.mvc.Http.Context;
 import play.mvc.Result;
 import scala.Option;
 
@@ -35,11 +37,11 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Context ctx, Function<Context, CompletionStage<Result>> delegate) {
         RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
         // Check for bypass
         if (!CSRFAction.requiresCsrfCheck(request, config)) {
-            return delegate.call(ctx);
+            return delegate.apply(ctx);
         } else {
             // Get token from cookie/session
             Option<String> headerToken = CSRFAction.getTokenToValidate(request, config, crypto);
@@ -69,7 +71,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
                 if (tokenToCheck != null) {
                     if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
-                        return delegate.call(ctx);
+                        return delegate.apply(ctx);
                     } else {
                         return handleTokenError(ctx, request, "CSRF tokens don't match");
                     }
