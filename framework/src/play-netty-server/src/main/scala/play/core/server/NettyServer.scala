@@ -41,6 +41,8 @@ class NettyServer(
 
   private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
+  private val idleTimeoutTimer = new HashedWheelTimer()
+
   import NettyServer._
 
   def mode = config.mode
@@ -121,7 +123,7 @@ class NettyServer(
       }
       idleTimeoutMs.foreach { idleTimeout =>
         logger.trace(s"using idle timeout of $idleTimeout ms on port $port")
-        newPipeline.addLast("idle-handler", new IdleStateHandler(new HashedWheelTimer(), idleTimeout, idleTimeout, idleTimeout, TimeUnit.MILLISECONDS))
+        newPipeline.addLast("idle-handler", new IdleStateHandler(idleTimeoutTimer, idleTimeout, idleTimeout, idleTimeout, TimeUnit.MILLISECONDS))
       }
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
