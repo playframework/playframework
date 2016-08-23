@@ -27,6 +27,7 @@ import scala.collection.immutable.TreeMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.Duration
 import akka.stream.scaladsl.Sink
+import org.asynchttpclient.Realm.AuthScheme
 
 /**
  * A WS client backed by an AsyncHttpClient.
@@ -223,9 +224,14 @@ case class AhcWSRequest(client: AhcWSClient,
    * Add http auth headers. Defaults to HTTP Basic.
    */
   private[libs] def auth(username: String, password: String, scheme: Realm.AuthScheme = Realm.AuthScheme.BASIC): Realm = {
+    val usePreemptiveAuth = scheme match {
+      case AuthScheme.DIGEST => false
+      case _ => true
+    }
+
     new Realm.Builder(username, password)
       .setScheme(scheme)
-      .setUsePreemptiveAuth(true)
+      .setUsePreemptiveAuth(usePreemptiveAuth)
       .build()
   }
 

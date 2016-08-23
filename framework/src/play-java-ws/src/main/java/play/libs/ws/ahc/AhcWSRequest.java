@@ -613,9 +613,10 @@ public class AhcWSRequest implements WSRequest {
 
     Realm auth(String username, String password, WSAuthScheme scheme) {
         Realm.AuthScheme authScheme = Realm.AuthScheme.valueOf(scheme.name());
+        Boolean usePreemptiveAuth = !(this.scheme != null && this.scheme == WSAuthScheme.DIGEST);
         return (new Realm.Builder(username, password))
                 .setScheme(authScheme)
-                .setUsePreemptiveAuth(true)
+                .setUsePreemptiveAuth(usePreemptiveAuth)
                 .build();
     }
 }

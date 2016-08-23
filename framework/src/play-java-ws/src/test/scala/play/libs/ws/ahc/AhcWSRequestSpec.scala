@@ -6,7 +6,7 @@ package play.libs.ws.ahc
 import org.asynchttpclient.{ Request, RequestBuilderBase, SignatureCalculator }
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import play.libs.ws.WSSignatureCalculator
+import play.libs.ws.{ WSAuthScheme, WSSignatureCalculator }
 import play.libs.oauth.OAuth
 
 class AhcWSRequestSpec extends Specification with Mockito {
@@ -165,6 +165,22 @@ class AhcWSRequestSpec extends Specification with Mockito {
       request.setHeader("Content-Type", "application/xml")
       val req = request.buildRequest()
       req.getHeaders.get("Content-Type") must be_==("application/json; charset=US-ASCII")
+    }
+
+    "Set Realm.UsePreemptiveAuth to false when WSAuthScheme.DIGEST being used" in {
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
+      request.setAuth("usr", "pwd", WSAuthScheme.DIGEST)
+      val req = request.buildRequest()
+      req.getRealm.isUsePreemptiveAuth must beFalse
+    }
+
+    "Set Realm.UsePreemptiveAuth to true when WSAuthScheme.DIGEST not being used" in {
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com", /*materializer*/ null)
+      request.setAuth("usr", "pwd", WSAuthScheme.BASIC)
+      val req = request.buildRequest()
+      req.getRealm.isUsePreemptiveAuth must beTrue
     }
   }
 
