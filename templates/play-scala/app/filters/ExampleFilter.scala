@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * This is a simple filter that adds a header to all requests. It's
  * added to the application's list of filters by the
- * [[ExampleFilters]] class.
+ * [[Filters]] class.
  *
  * @param mat This object is needed to handle streaming of requests
  * and responses.
