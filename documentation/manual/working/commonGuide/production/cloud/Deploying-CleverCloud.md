@@ -37,7 +37,7 @@ You can check the deployment of your application by visiting the ***logs*** sect
 
 
 ## [Optional] Configure your application
-You can custom your application with a `clevercloud/play.json` file.
+You can custom your application with a `clevercloud/sbt.json` file.
 
 The file must contain the following fields:
 
