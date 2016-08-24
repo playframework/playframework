@@ -71,7 +71,7 @@ object Flash extends CookieBaker[Flash] {
   override def secure = config.secure
   override def httpOnly = config.httpOnly
   override def domain = sessionConfig.domain
-  override def cookieSigner = play.api.libs.Crypto.crypto
+  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
   val emptyCookie = new Flash
 

@@ -18,8 +18,7 @@ class CryptoConfigParserSpec extends Specification {
       def parseSecret(mode: Mode.Mode, secret: Option[String] = None) = {
         new CryptoConfigParser(Environment.simple(mode = mode),
           Configuration.reference ++ Configuration.from(
-            secret.map("play.crypto.secret" -> _).toMap +
-              ("play.crypto.aes.transformation" -> "AES")
+            secret.map("play.crypto.secret" -> _).toMap
           )).get.secret
       }
 

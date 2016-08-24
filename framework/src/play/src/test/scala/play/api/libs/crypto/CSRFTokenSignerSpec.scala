@@ -10,7 +10,7 @@ import org.specs2.mutable._
 class CSRFTokenSignerSpec extends Specification {
 
   val key = "0123456789abcdef"
-  val cryptoConfig = CryptoConfig(key, None, "AES")
+  val cryptoConfig = CryptoConfig(key, None)
   val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
   val signer = new HMACSHA1CookieSigner(cryptoConfig)
   val tokenSigner = new DefaultCSRFTokenSigner(signer, clock)

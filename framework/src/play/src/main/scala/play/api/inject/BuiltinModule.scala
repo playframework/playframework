@@ -59,8 +59,6 @@ class BuiltinModule extends Module {
       bind[CryptoConfig].toProvider[CryptoConfigParser],
       bind[CookieSigner].toProvider[CookieSignerProvider],
       bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-      bind[AESCrypter].toProvider[AESCrypterProvider],
-      bind[play.api.libs.Crypto].toSelf,
       bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
