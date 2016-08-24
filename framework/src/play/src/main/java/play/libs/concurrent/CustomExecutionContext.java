@@ -36,6 +36,11 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
     }
 
     @Override
+    public ExecutionContext prepare() {
+        return executionContext.prepare();
+    }
+
+    @Override
     public void execute(Runnable command) {
         executionContext.execute(command);
     }

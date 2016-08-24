@@ -11,7 +11,6 @@ import play.api._
 import play.api.mvc._
 
 import play.api.test._
-import akka.pattern.after
 
 class ScalaAsyncSpec extends PlaySpecification {
 
@@ -36,6 +35,24 @@ class ScalaAsyncSpec extends PlaySpecification {
     }
   }
 }
+
+//#my-execution-context
+import play.api.libs.concurrent.CustomExecutionContext
+
+trait MyExecutionContext extends ExecutionContext
+
+class MyExecutionContextImpl @Inject()(system: ActorSystem)
+  extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
+
+class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends Controller {
+  def index = Action.async {
+    Future {
+      // Call some blocking API
+      Ok("result of blocking call")
+    }(myExecutionContext)
+  }
+}
+//#my-execution-context
 
 class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem,  ec: ExecutionContext) extends Controller {
 

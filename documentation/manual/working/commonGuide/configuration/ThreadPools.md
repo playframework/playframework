@@ -39,17 +39,13 @@ Play uses a number of different thread pools for different purposes:
 
 All actions in Play Framework use the default thread pool.  When doing certain asynchronous operations, for example, calling `map` or `flatMap` on a future, you may need to provide an implicit execution context to execute the given functions in.  An execution context is basically another name for a `ThreadPool`.
 
-In most situations, the appropriate execution context to use will be the **Play default thread pool**.   This is accessible through `@Inject()(implicit ec: ExecutionContext)` This can be used by importing it into your Scala source file:
+In most situations, the appropriate execution context to use will be the **Play default thread pool**.   This is accessible through `@Inject()(implicit ec: ExecutionContext)` This can be used by injecting it into your Scala source file:
 
 @[global-thread-pool](code/ThreadPools.scala)
 
 or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) with an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) in Java code:
 
-```
-CompletionStage<Result> result = calculation().thenApplyAsync(result -> {
-         return ok("answer was " + result);
- }, httpExecutionContext.current();
-```
+@[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
 This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
 

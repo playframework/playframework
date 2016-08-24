@@ -19,19 +19,7 @@ The web client will be blocked while waiting for the response, but nothing will 
 
 Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
 
-```scala
-class DatabaseExecutionContext @Inject()(system: ActorSystem)
-     extends CustomExecutionContext(system, "my.database.executor")
-
-class HomeController @Inject()(databaseExecutionContext: DatabaseExecutionContext) extends Controller {
-  def index = Action.async {
-    Future {
-      // Call some blocking API
-      Ok("result of database call")
-    }(databaseExecutionContext)
-  }
-}
-```
+@[my-execution-context](code/ScalaAsync.scala)
 
 Please see [[ThreadPools]] for more information on using custom execution contexts effectively.
 
