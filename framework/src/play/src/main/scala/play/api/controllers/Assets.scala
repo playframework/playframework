@@ -80,29 +80,46 @@ private class SelfPopulatingMap[K, V] {
   }
 }
 
+object AssetInfoBehaviorImpl extends AssetInfoBehaviorImpl(Environment.simple(), Configuration.load(Environment.simple()))
+
+trait AssetInfoBehavior {
+  def parseModifiedDate(date: String): Option[Date]
+
+  def config[T](lookup: Configuration => T): Option[T]
+
+  def defaultCharSet: String
+
+  def defaultCacheControl: String
+
+  def aggressiveCacheControl: String
+
+  def isDev: Boolean
+
+  def isProd: Boolean
+}
+
 /*
  * Retains meta information regarding an asset that can be readily cached.
  */
-private object AssetInfo {
+class AssetInfoBehaviorImpl(environment: Environment, configuration: Configuration) extends AssetInfoBehavior {
 
-  def config[T](lookup: Configuration => T): Option[T] = Play.maybeApplication.map(app => lookup(app.configuration))
+  def config[T](lookup: Configuration => T): Option[T] = Option(lookup(configuration))
 
-  def isDev = Play.maybeApplication.fold(false)(_.mode == Mode.Dev)
+  def isDev: Boolean = environment.mode == Mode.Dev
 
-  def isProd = Play.maybeApplication.fold(false)(_.mode == Mode.Prod)
+  def isProd: Boolean = environment.mode == Mode.Prod
 
   def resource(name: String): Option[URL] = for {
-    app <- Play.maybeApplication
-    resource <- app.resource(name)
+    resource <- environment.resource(name)
   } yield resource
 
-  lazy val defaultCharSet = config(_.getDeprecated[String]("play.assets.default.charset", "default.charset")).getOrElse("utf-8")
+  lazy val defaultCharSet: String = config(_.getDeprecated[String]("play.assets.default.charset", "default.charset")).getOrElse("utf-8")
 
-  lazy val defaultCacheControl = config(_.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache")).getOrElse("public, max-age=3600")
+  lazy val defaultCacheControl: String = config(_.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache")).getOrElse("public, max-age=3600")
 
-  lazy val aggressiveCacheControl = config(_.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+  lazy val aggressiveCacheControl: String = config(_.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache")).getOrElse("public, max-age=31536000")
 
-  lazy val digestAlgorithm = config(_.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm")).getOrElse("md5")
+  lazy val digestAlgorithm: String = config(_.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm")).getOrElse("md5")
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -149,14 +166,15 @@ private object AssetInfo {
 /*
  * Retain meta information regarding an asset.
  */
-private class AssetInfo(
+private class AssetInfo(behavior: AssetInfoBehavior,
                          val name: String,
                          val url: URL,
                          val gzipUrl: Option[URL],
                          val digest: Option[String]) {
 
-  import AssetInfo._
+  //import AssetInfo._
   import ResponseHeader._
+  import behavior._
 
   def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
@@ -165,7 +183,7 @@ private class AssetInfo(
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {
-      if (isProd) {
+      if (behavior.isProd) {
         if (aggressiveCaching) aggressiveCacheControl else defaultCacheControl
       } else {
         "no-cache"
@@ -200,7 +218,7 @@ private class AssetInfo(
 
   val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-  val parsedLastModified = lastModified flatMap parseModifiedDate
+  val parsedLastModified = lastModified flatMap behavior.parseModifiedDate
 
   def url(gzipAvailable: Boolean): URL = {
     gzipUrl match {
@@ -243,9 +261,10 @@ private class AssetInfo(
   * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
   * }}}
   */
-object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
+object Assets extends AssetsBuilder(LazyHttpErrorHandler, AssetInfoBehaviorImpl) {
 
-  import AssetInfo._
+  import AssetInfoBehaviorImpl._
+  //import AssetInfo._
 
   // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
   // part of asset information. The reason for this is that the assetInfo cache returns a Future[AssetInfo] in order to
@@ -296,7 +315,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
         url <- resource(name)
       } yield {
         val gzipUrl: Option[URL] = resource(name + ".gz")
-        new AssetInfo(name, url, gzipUrl, digest(name))
+        new AssetInfo(AssetInfoBehaviorImpl, name, url, gzipUrl, digest(name))
       }
     }
   }
@@ -352,12 +371,13 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
 }
 
 @Singleton
-class Assets @Inject()(errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler)
+class Assets @Inject()(errorHandler: HttpErrorHandler, behavior: AssetInfoBehavior) extends AssetsBuilder(errorHandler, behavior)
 
-class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
+class AssetsBuilder(errorHandler: HttpErrorHandler, behavior: AssetInfoBehavior) extends Controller {
 
-  import Assets._
-  import AssetInfo._
+  import behavior._
+  //import Assets._
+  //import AssetInfo._
 
   private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
     // First check etag. Important, if there is an If-None-Match header, we MUST not check the
@@ -403,7 +423,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   /**
     * Generates an `Action` that serves a versioned static resource.
     */
-  def versioned(path: String, file: Asset): Action[AnyContent] = Action.async { implicit request =>
+  def versioned(path: String, file: Assets.Asset): Action[AnyContent] = Action.async { implicit request =>
     val f = new File(file.name)
     // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
     // otherwise we can't.
@@ -411,7 +431,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     if (!requestedDigest.isEmpty) {
       val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
       val bareFullPath = path + "/" + bareFile
-      blocking(digest(bareFullPath)) match {
+      blocking(Assets.digest(bareFullPath)) match {
         case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
         case _ => assetAt(path, file.name, aggressiveCaching = false)
       }
@@ -434,7 +454,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
     val assetName: Option[String] = resourceNameAt(path, file)
     val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
-      assetInfoForRequest(request, name)
+      Assets.assetInfoForRequest(request, name)
     } getOrElse Future.successful(None)
 
     def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
