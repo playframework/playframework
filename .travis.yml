@@ -9,17 +9,8 @@ addons:
       - oracle-java8-installer
 jdk:
   - oraclejdk8
-env:
-  # Define scripts here so they run concurrently
-  - SCRIPT=checkCodeStyle
-  - SCRIPT=test
-  - SCRIPT=testSbtPlugins
-  - SCRIPT=testDocumentation
-  - SCRIPT=testTemplates
-  - SCRIPT=rehearseMicrobenchmarks
 script:
-  # Force sbt to run on a single CPU, this limits the resources Play uses
-  - framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
+  - framework/bin/travis
 cache:
   directories:
     - $HOME/.ivy2/cache
