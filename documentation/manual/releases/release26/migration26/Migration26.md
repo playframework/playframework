@@ -39,7 +39,7 @@ public class Yaml {
     /**
      * Load a Yaml file from the classpath.
      */
-    public static Object load(String resourceName) {
+    public Object load(String resourceName) {
         return load(
             environment.resourceAsStream(resourceName),
             environment.classLoader()
@@ -51,7 +51,7 @@ public class Yaml {
      *
      * @param classloader The classloader to use to instantiate Java objects.
      */
-    public static Object load(InputStream is, ClassLoader classloader) {
+    public Object load(InputStream is, ClassLoader classloader) {
         org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader));
         return yaml.load(is);
     }
