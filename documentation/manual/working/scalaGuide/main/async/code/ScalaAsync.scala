@@ -54,7 +54,7 @@ class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends C
 }
 //#my-execution-context
 
-class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem,  ec: ExecutionContext) extends Controller {
+class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: ExecutionContext) extends Controller {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
