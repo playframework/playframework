@@ -43,12 +43,9 @@ sbt.version=0.13.8
 
 ### Specs2 support in a separate module
 
-If you were previously using Play's specs2 support, you now need to explicitly add a dependency on that to your project.  Additionally, specs2 now requires `scalaz-stream` which isn't available on maven central or any other repositories that sbt uses by default, so you need to add the `scalaz-stream` repository as a resolver:
-
+If you were previously using Play's specs2 support, you now need to explicitly add a dependency on that to your project:
 ```scala
 libraryDependencies += specs2 % Test
-
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 ```
 If you are using a .scala build file, you will need to add the following import `import play.sbt.PlayImport._`
 
