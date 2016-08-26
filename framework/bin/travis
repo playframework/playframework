@@ -13,13 +13,13 @@
 #
 # We have SBT run with mx=2GB, and we get timeouts if we overstress the CPU, so
 # we can run the tasks serially.
-set -e
+set -ev
 
 declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation testTemplates rehearseMicrobenchmarks)
 
 for TASK in "${TASKS[@]}" 
-do
-  # Don't limit the number of cores the container runs on.
-  # "set concurrentRestrictions in Global += Tags.limitAll(1)"
-  framework/bin/$TASK 
+do  
+  # We have multi-threaded tests and see concurrent modification when starting logback,
+  # so always run tests sequentually.
+  framework/bin/$TASK "set concurrentRestrictions in Global += Tags.limitAll(1)" 
 done
