@@ -13,6 +13,8 @@
 #
 # We have SBT run with mx=2GB, and we get timeouts if we overstress the CPU, so
 # we can run the tasks serially.
+set -e
+
 declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation testTemplates rehearseMicrobenchmarks)
 
 for TASK in "${TASKS[@]}" 
