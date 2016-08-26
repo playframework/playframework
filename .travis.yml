@@ -9,26 +9,20 @@ addons:
       - oracle-java8-installer
 jdk:
   - oraclejdk8
-env:
-  # Define scripts here so they run concurrently
-  - SCRIPT=checkCodeStyle
-  - SCRIPT=test
-  - SCRIPT=testSbtPlugins
-  - SCRIPT=testDocumentation
-  - SCRIPT=testTemplates
-  - SCRIPT=rehearseMicrobenchmarks
 script:
-  # Force sbt to run on a single CPU, this limits the resources Play uses
-  - framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
+  - framework/bin/travis
 cache:
   directories:
     - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
 before_cache:
   # Ensure changes to the cache aren't persisted
   - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
   - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
   # Delete all ivydata files since ivy touches them on each build
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
+  # Delete any SBT lock files
+  - find $HOME/.sbt -name "*.lock" -delete
 notifications:
   webhooks:
     urls:
