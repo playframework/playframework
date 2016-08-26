@@ -356,3 +356,15 @@ The following deprecated test helpers have been removed in 2.6.x:
 * `play.test.FakeRequest` has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html)
 * `play.test.FakeApplication` has been replaced with `play.inject.guice.GuiceApplicationBuilder`.  You can create a new `Application` from [`play.test.Helpers.fakeApplication`](api/java/play/inject/guice/GuiceApplicationBuilder.html).
 * In `play.test.WithApplication`, the deprecated `provideFakeApplication` method has been removed -- the `provideApplication` method should be used.
+
+
+## Changes to Template Helpers
+
+The requireJs template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
+
+The requireJs template helper has an extra parameter `isProd` added to it that indicates whether the minified version of the helper should be used:
+
+```
+@requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url, isProd = true)
+```
+

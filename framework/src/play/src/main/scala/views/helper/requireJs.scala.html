@@ -15,6 +15,4 @@
 
 @(module: String, core: String, isProd: Boolean, productionFolderPrefix: String = "-min", folder: String = "javascripts")
 
-@* @defining(play.api.Mode.Prod == play.api.Play.maybeApplication.map(_.mode).getOrElse(play.api.Mode.Dev)) { isProd => *@
 <script type="text/javascript" data-main="@{if(isProd) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>
-@* } *@
