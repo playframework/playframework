@@ -11,9 +11,9 @@ package play.it.http.websocket
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.stream.FlowShape
 import akka.stream.scaladsl._
-import akka.stream.stage._
+import akka.stream.stage.{ Context, PushStage }
 import akka.util.ByteString
 import com.typesafe.netty.{ HandlerPublisher, HandlerSubscriber }
 import io.netty.bootstrap.Bootstrap
@@ -24,13 +24,13 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx._
-import java.net.URI
 
+import java.net.URI
 import io.netty.util.ReferenceCountUtil
 import play.api.http.websocket._
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{ Promise, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -58,7 +58,6 @@ object WebSocketClient {
     def finalFragment: Boolean
   }
   object ExtendedMessage {
-    import scala.language.implicitConversions
     implicit def messageToExtendedMessage(message: Message): ExtendedMessage =
       SimpleMessage(message, finalFragment = true)
   }
@@ -167,25 +166,14 @@ object WebSocketClient {
     def webSocketProtocol(clientConnection: Flow[WebSocketFrame, WebSocketFrame, _]): Flow[ExtendedMessage, ExtendedMessage, _] = {
       val clientInitiatedClose = new AtomicBoolean
 
-      val captureClientClose = Flow[WebSocketFrame].via(new GraphStage[FlowShape[WebSocketFrame, WebSocketFrame]] {
-        val in = Inlet[WebSocketFrame]("WebSocketClose.in")
-        val out = Outlet[WebSocketFrame]("WebSocketClose.out")
-        override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
-          override def onPush(): Unit = {
-            val elem = grab(in)
-            elem match {
-              case close: CloseWebSocketFrame =>
-                clientInitiatedClose.set(true)
-                push(out, close)
-              case other =>
-                push(out, other)
-            }
-          }
-
-          override def onPull(): Unit = pull(in)
+      val captureClientClose = Flow[WebSocketFrame].transform(() => new PushStage[WebSocketFrame, WebSocketFrame] {
+        def onPush(elem: WebSocketFrame, ctx: Context[WebSocketFrame]) = elem match {
+          case close: CloseWebSocketFrame =>
+            clientInitiatedClose.set(true)
+            ctx.push(close)
+          case other =>
+            ctx.push(other)
         }
-
-        override def shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape(in, out)
       })
 
       val messagesToFrames = Flow[ExtendedMessage].map {
@@ -227,33 +215,21 @@ object WebSocketClient {
           }
         }
 
-        // http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html#graphstage-scala
-        val handleConnectionTerminated = Flow[WebSocketFrame].via(new GraphStage[FlowShape[WebSocketFrame, WebSocketFrame]] {
-          val in = Inlet[WebSocketFrame]("WebSocketTerminated.in")
-          val out = Outlet[WebSocketFrame]("WebSocketTerminated.out")
-
-          override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
-            override def onPush(): Unit = {
-              val elem = grab(in)
-              push(out, elem)
-            }
-            override def onUpstreamFinish(): Unit = {
-              disconnected.trySuccess(())
-              super.onUpstreamFinish()
-            }
-            override def onUpstreamFailure(cause: Throwable): Unit = {
-              if (serverInitiatedClose.get()) {
-                disconnected.trySuccess(())
-                complete(out)
-              } else {
-                disconnected.tryFailure(cause)
-                fail(out, cause)
-              }
-            }
-            override def onPull(): Unit = pull(in)
+        val handleConnectionTerminated = Flow[WebSocketFrame].transform(() => new PushStage[WebSocketFrame, WebSocketFrame] {
+          def onPush(elem: WebSocketFrame, ctx: Context[WebSocketFrame]) = ctx.push(elem)
+          override def onUpstreamFinish(ctx: Context[WebSocketFrame]) = {
+            disconnected.trySuccess(())
+            super.onUpstreamFinish(ctx)
           }
-
-          override def shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape(in, out)
+          override def onUpstreamFailure(cause: Throwable, ctx: Context[WebSocketFrame]) = {
+            if (serverInitiatedClose.get()) {
+              disconnected.trySuccess(())
+              ctx.finish()
+            } else {
+              disconnected.tryFailure(cause)
+              ctx.fail(cause)
+            }
+          }
         })
 
         /**
