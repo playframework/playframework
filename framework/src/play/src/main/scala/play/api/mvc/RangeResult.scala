@@ -6,6 +6,8 @@ package play.api.mvc
 import java.nio.charset.StandardCharsets
 
 import akka.NotUsed
+import akka.stream.impl.fusing.GraphStages.SimpleLinearGraphStage
+import akka.stream.{ Attributes, FlowShape, SourceShape }
 import akka.stream.scaladsl.{ FileIO, Flow, Source, StreamConverters }
 import akka.stream.stage._
 import akka.util.ByteString
@@ -326,7 +328,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofPath(path: java.nio.file.Path, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromFile(path.toFile)
+    val source = FileIO.fromPath(path)
     ofSource(path.toFile.length(), source, rangeHeader, Option(fileName), contentType)
   }
 
@@ -350,7 +352,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromFile(file)
+    val source = FileIO.fromPath(file.toPath)
     ofSource(file.length(), source, rangeHeader, Option(fileName), contentType)
   }
 
@@ -413,38 +415,37 @@ object RangeResult {
     }
   }
 
-  // See https://github.com/akka/akka/blob/v2.4.2/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L83-L115
+  // See https://github.com/akka/akka/blob/release-2.4/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L76
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
-    val transformer = new StatefulStage[ByteString, ByteString] {
+    val transformer = new SimpleLinearGraphStage[ByteString] {
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
+        override def onPull() = pull(in)
 
-      def skipping = new State {
         var toSkip = start
 
-        override def onPush(element: ByteString, ctx: Context[ByteString]): SyncDirective =
-          if (element.length < toSkip) {
+        // Akka implementation takes Long rather than Option[Long] -- original StatefulStage impl
+        // used Int.MaxValue as the initial value, so carrying through here:
+        // https://github.com/playframework/playframework/blob/2.5.x/framework/src/play/src/main/scala/play/api/mvc/RangeResult.scala#L436
+        var remaining: Long = length.getOrElse(Int.MaxValue)
+
+        override def onPush(): Unit = {
+          val element = grab(in)
+          if (toSkip > 0 && element.length < toSkip) {
             // keep skipping
             toSkip -= element.length
-            ctx.pull()
+            pull(in)
           } else {
-            become(taking(length))
             // toSkip <= element.length <= Int.MaxValue
-            current.onPush(element.drop(toSkip.toInt), ctx)
+            val data = element.drop(toSkip.toInt).take(math.min(remaining, Int.MaxValue).toInt)
+            remaining -= data.size
+            push(out, data)
+            if (remaining <= 0) completeStage()
           }
-      }
-
-      def taking(initiallyRemaining: Option[Long]) = new State {
-        var remaining: Long = initiallyRemaining.getOrElse(Int.MaxValue)
-
-        override def onPush(element: ByteString, ctx: Context[ByteString]): SyncDirective = {
-          val data = element.take(math.min(remaining, Int.MaxValue).toInt)
-          remaining -= data.size
-          if (remaining <= 0) ctx.pushAndFinish(data)
-          else ctx.push(data)
         }
-      }
 
-      override def initial: State = if (start > 0) skipping else taking(length)
+        setHandlers(in, out, this)
+      }
     }
-    Flow[ByteString].transform(() ⇒ transformer).named("sliceBytes")
+    Flow[ByteString].via(transformer).named("sliceBytes")
   }
 }
