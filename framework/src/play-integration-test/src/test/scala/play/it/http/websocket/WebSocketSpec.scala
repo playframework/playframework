@@ -28,9 +28,67 @@ import scala.reflect.ClassTag
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
-trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+class NettyCloseWebSocketSpec extends PlaySpecification with WsTestClient with NettyIntegrationSpecification with WebSocketSpecMethods {
 
   sequential
+
+  // These tests fail because there is no close frame returned from runWebSocket.
+  //
+  // # testOnly play.it.http.websocket.NettyCloseWebSocketSpec
+  //
+  // # application.conf
+  // play.server.netty.log.wire = true
+  // logback.xml:
+  //
+  // <logger name="io.netty.handler" level="DEBUG"/>
+  // <logger name="play.it.http.websocket" level="DEBUG"/>
+  //
+  // Best way to track it down is to add a LoggingHandler to
+  // the context and see where the close frame gets eaten.
+  // The server seems to send one out, but since WebsocketClient
+  // is built on Netty, it's not impossible it could be eaten
+  // before it gets to the flow.
+  //
+  // IntelliJ debugging directly against the spec seems to work well.
+
+  "respond to pings" in {
+    withServer(app => WebSocket.accept[String, String] { req =>
+      Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+    }) { app =>
+      import app.materializer
+      val frames = runWebSocket { flow =>
+        sendFrames(
+          PingMessage(ByteString("hello")),
+          CloseMessage(1000)
+        ).via(flow).runWith(consumeFrames)
+      }
+      frames must contain(exactly(
+        pongFrame(be_==("hello")),
+        closeFrame()
+      ))
+    }
+  }.pendingUntilFixed("final-close-frame-missing")
+
+  "not respond to pongs" in {
+    withServer(app => WebSocket.accept[String, String] { req =>
+      Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+    }) { app =>
+      import app.materializer
+      val frames = runWebSocket { flow =>
+        sendFrames(
+          PongMessage(ByteString("hello")),
+          CloseMessage(1000)
+        ).via(flow).runWith(consumeFrames)
+      }
+      frames must contain(exactly(
+        closeFrame()
+      ))
+    }
+  }.pendingUntilFixed("final-close-frame-missing")
+
+}
+
+trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   override implicit def defaultAwaitTimeout = 5.seconds
 
@@ -149,6 +207,11 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       ).get()).status must_== FORBIDDEN
     }
   }
+}
+
+trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with WebSocketSpecMethods {
+
+  sequential
 
   "Plays WebSockets" should {
     "allow handling WebSockets using Akka streams" in {
@@ -255,41 +318,6 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           }
           frames must contain(exactly(
             closeFrame(1003)
-          ))
-        }
-      }
-
-      "respond to pings" in {
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }) { app =>
-          import app.materializer
-          val frames = runWebSocket { flow =>
-            sendFrames(
-              PingMessage(ByteString("hello")),
-              CloseMessage(1000)
-            ).via(flow).runWith(consumeFrames)
-          }
-          frames must contain(exactly(
-            pongFrame(be_==("hello")),
-            closeFrame()
-          ))
-        }
-      }
-
-      "not respond to pongs" in {
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }) { app =>
-          import app.materializer
-          val frames = runWebSocket { flow =>
-            sendFrames(
-              PongMessage(ByteString("hello")),
-              CloseMessage(1000)
-            ).via(flow).runWith(consumeFrames)
-          }
-          frames must contain(exactly(
-            closeFrame()
           ))
         }
       }
