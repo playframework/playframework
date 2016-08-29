@@ -447,7 +447,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   }
 
   def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
-    withServer(app => webSocket(app)(FORBIDDEN)) { implicit app =>
+    withServer(app => webSocket(app)(FORBIDDEN)) { app =>
       val ws = app.injector.instanceOf[WSClient]
       await(ws.url(s"http://localhost:$testServerPort/stream").withHeaders(
         "Upgrade" -> "websocket",

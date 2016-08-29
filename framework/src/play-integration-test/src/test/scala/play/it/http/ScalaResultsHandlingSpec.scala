@@ -37,13 +37,16 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
   "scala body handling" should {
 
-    def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
-      val response = Try(await(wsUrl("/").get()))
-      block(response)
-    }
-
-    def makeRequest[T](result: => Result)(block: WSResponse => T) = {
-      tryRequest(result)(tryResult => block(tryResult.get))
+    def makeRequest[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: WSResponse => T) = {
+      implicit val port = testServerPort
+      val app = GuiceApplicationBuilder()
+        .overrides(bind[HttpErrorHandler].to(errorHandler))
+        .routes { case _ => Action(result) }
+        .build()
+      running(TestServer(port, app)) {
+        val response = Try(await(app.wsUrl("/").get()))
+        block(response.get)
+      }
     }
 
     def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: play.api.test.Port => T) = {

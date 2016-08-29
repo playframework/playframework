@@ -76,6 +76,7 @@ public class WSTestClient {
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
+
             }
         };
     }

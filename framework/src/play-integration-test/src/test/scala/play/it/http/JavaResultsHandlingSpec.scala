@@ -32,7 +32,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       }.build()
 
       running(TestServer(port, app)) {
-        val response = await(wsUrl("/").get())
+        val response = await(app.wsUrl("/").get())
         block(response)
       }
     }
