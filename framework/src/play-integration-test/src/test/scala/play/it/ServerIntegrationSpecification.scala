@@ -42,6 +42,17 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
+  implicit class UntilNettyHttpFixed[T: AsResult](t: => T) {
+    /**
+     * We may want to skip some tests if they're slow due to timeouts. This tag
+     * won't remind us if the tests start passing.
+     */
+    def skipUntilNettyHttpFixed: Result = parent match {
+      case _: NettyIntegrationSpecification => Skipped()
+      case _: AkkaHttpIntegrationSpecification => ResultExecution.execute(AsResult(t))
+    }
+  }
+
   /**
    * Override the standard TestServer factory method.
    */
