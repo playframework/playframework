@@ -40,16 +40,12 @@ object ActorFlow {
 
         def receive = {
           case Status.Success(_) | Status.Failure(_) => flowActor ! PoisonPill
-          case Terminated(_) =>
-            println("Child terminated, stopping")
-            context.stop(self)
+          case Terminated(_) => context.stop(self)
           case other => flowActor ! other
         }
 
         override def supervisorStrategy = OneForOneStrategy() {
-          case _ =>
-            println("Stopping actor due to exception")
-            SupervisorStrategy.Stop
+          case _ => SupervisorStrategy.Stop
         }
       })), Status.Success(())),
       Source.fromPublisher(publisher)
