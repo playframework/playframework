@@ -21,7 +21,7 @@ public class Application extends Controller {
     final ActorRef helloActor;
 
     @Inject public Application(ActorSystem system) {
-        helloActor = system.actorOf(HelloActor.props);
+        helloActor = system.actorOf(HelloActor.getProps());
     }
 
     public CompletionStage<Result> sayHello(String name) {
