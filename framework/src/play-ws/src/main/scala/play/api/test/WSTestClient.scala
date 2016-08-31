@@ -6,9 +6,11 @@ package play.api.test
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.libs.ws._
-import play.api.libs.ws.ahc.{ AhcWSClientConfig, AhcWSClient }
-
+import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 import play.api.mvc.Call
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
  * A standalone test client that is useful for running standalone integration tests.
@@ -46,6 +48,7 @@ trait WsTestClient {
     def close(): Unit = {
       client.close()
       system.terminate()
+      Await.result(system.whenTerminated, Duration.Inf)
     }
   }
 
