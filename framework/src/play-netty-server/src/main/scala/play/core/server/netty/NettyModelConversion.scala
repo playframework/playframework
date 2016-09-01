@@ -13,7 +13,7 @@ import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
-import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.{ QueryStringDecoder => _, _ }
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
@@ -51,6 +51,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
 
     Try {
+      // In https://github.com/netty/netty/issues/5590 the QueryStringDecoder will now
+      // correctly decode the Whitespace so we need to provide our own
       val uri = new QueryStringDecoder(request.getUri)
       val parameters: Map[String, Seq[String]] = {
         val decodedParameters = uri.parameters()
