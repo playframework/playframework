@@ -3,10 +3,7 @@
  */
 package play.api.test
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import play.api.libs.ws._
-import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 import play.api.mvc.Call
 
 /**
@@ -77,37 +74,141 @@ trait WsTestClient {
 
 object WsTestClient extends WsTestClient {
 
-  // Accept the overhead of having a client open through all the integration tests
-  private lazy val singletonInstance: WSClient = {
-    val name = "ws-test-client"
-    val system = ActorSystem(name)
-    val materializer = ActorMaterializer(namePrefix = Some(name))(system)
-    // Don't retry for tests
-    AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
-  }
+  private val singletonClient = new SingletonWSClient()
 
   /**
    * Creates a standalone WSClient, using its own ActorSystem and Netty thread pool.
    *
    * This client has no dependencies at all on the underlying system, but is wasteful of resources.
    *
-   * @param port the port to connect to the server on.
+   * @param port   the port to connect to the server on.
    * @param scheme the scheme to connect on ("http" or "https")
    */
   class InternalWSClient(scheme: String, port: Port) extends WSClient {
 
-    def underlying[T] = singletonInstance.underlying.asInstanceOf[T]
+    singletonClient.addReference(this)
+
+    def underlying[T] = singletonClient.underlying.asInstanceOf[T]
 
     def url(url: String): WSRequest = {
       if (url.startsWith("/") && port != -1) {
         val httpPort = new play.api.http.Port(port)
-        singletonInstance.url(s"$scheme://localhost:$httpPort$url")
+        singletonClient.url(s"$scheme://localhost:$httpPort$url")
       } else {
-        singletonInstance.url(url)
+        singletonClient.url(url)
       }
     }
 
     /** Closes this client, and releases underlying resources. */
+    override def close(): Unit = {
+      singletonClient.removeReference(this)
+    }
+  }
+
+  /**
+   * A singleton ws client that keeps an ActorSystem / AHC client around only when
+   * it is needed.
+   */
+  private class SingletonWSClient extends WSClient {
+    import java.util.concurrent._
+    import java.util.concurrent.atomic._
+
+    import akka.actor.{ ActorSystem, Cancellable, Terminated }
+    import akka.stream.ActorMaterializer
+    import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
+
+    import scala.concurrent.Future
+    import scala.concurrent.duration._
+
+    private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
+
+    private val ref = new AtomicReference[WSClient]()
+
+    private val count = new AtomicInteger(1)
+
+    private val references = new ConcurrentLinkedQueue[WSClient]()
+
+    private val idleDuration = 5.seconds
+
+    private var idleCheckTask: Option[Cancellable] = None
+
+    def removeReference(client: InternalWSClient) = {
+      references.remove(client)
+    }
+
+    def addReference(client: InternalWSClient) = {
+      references.add(client)
+    }
+
+    private def closeIdleResources(client: WSClient, system: ActorSystem): Future[Terminated] = {
+      ref.set(null)
+      client.close()
+      system.terminate()
+    }
+
+    private def instance: WSClient = {
+      val client = ref.get()
+      if (client == null) {
+        val result = createNewClient()
+        ref.compareAndSet(null, result)
+        ref.get()
+      } else {
+        client
+      }
+    }
+
+    private def createNewClient(): WSClient = {
+      val name = "ws-test-client-" + count.getAndIncrement()
+      logger.warn(s"createNewClient: name = $name")
+
+      val system = ActorSystem(name)
+      implicit val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+      // Don't retry for tests
+      val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))
+      scheduleIdleCheck(client, system)
+      client
+    }
+
+    private def scheduleIdleCheck(client: WSClient, system: ActorSystem) = {
+      val scheduler = system.scheduler
+      idleCheckTask match {
+        case Some(cancellable) =>
+          // Something else got here first...
+          logger.error(s"scheduleIdleCheck: looks like a race condition of WsTestClient...")
+          closeIdleResources(client, system)
+
+        case None =>
+          //
+          idleCheckTask = Option(scheduler.schedule(initialDelay = idleDuration, interval = idleDuration) {
+            if (references.size() == 0) {
+              logger.debug(s"check: no references found on client $client, system $system")
+              idleCheckTask.map(_.cancel())
+              idleCheckTask = None
+              closeIdleResources(client, system)
+            } else {
+              logger.debug(s"check: client references = ${references.toArray.toSeq}")
+            }
+          }(system.dispatcher))
+      }
+    }
+
+    /**
+     * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
+     *
+     * @tparam T the type you are expecting (i.e. isInstanceOf)
+     * @return the backing class.
+     */
+    override def underlying[T]: T = instance.underlying
+
+    /**
+     * Generates a request holder which can be used to build requests.
+     *
+     * @param url The base URL to make HTTP requests to.
+     * @return a WSRequestHolder
+     */
+    override def url(url: String): WSRequest = instance.url(url)
+
     override def close(): Unit = {}
   }
+
 }
