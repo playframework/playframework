@@ -12,9 +12,11 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
-import play.api.http.{ HttpChunk, HttpErrorHandler, HttpEntity => PlayHttpEntity, Status }
+import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+
 import scala.collection.immutable
 import scala.concurrent.Future
 
@@ -48,13 +50,10 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
-    val remoteHostAddress = remoteAddress.getAddress.getHostAddress
-    // Taken from PlayDefaultUpstreamHander
-
     // Avoid clash between method arg and RequestHeader field
     val remoteAddressArg = remoteAddress
 
-    new RequestHeader {
+    new RequestHeader with WithAttrMap[RequestHeader] {
       override val id = requestId
       // Send a tag so our tests can tell which kind of server we're using.
       // We could get NettyServer to send a similar tag, but for the moment
@@ -77,6 +76,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       override def remoteAddress = remoteConnection.address.getHostAddress
       override def secure = remoteConnection.secure
       override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
+      override protected def attrMap = TypedMap.empty
+      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
     }
   }
 

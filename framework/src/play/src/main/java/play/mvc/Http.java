@@ -12,6 +12,9 @@ import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.libs.json.JsValue;
+import play.api.libs.typedmap.TypedEntry;
+import play.api.libs.typedmap.TypedKey;
+import play.api.libs.typedmap.TypedMap;
 import play.api.mvc.Headers;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
@@ -501,6 +504,66 @@ public class Http {
         boolean secure();
 
         /**
+         * Get an attribute by its key or throw an exception if it's not
+         * present.
+         *
+         * Use this method if the attribute is expected to be present. If the
+         * attribute is optional then use {@link #getAttr(TypedKey)} instead.
+         *
+         * @param key The attribute key.
+         * @param <T> The type of attribute.
+         * @return The attribute value, if it exists.
+         * @throws NoSuchElementException If the attribute doesn't exist.
+         */
+        <T> T attr(TypedKey<T> key);
+
+        /**
+         * Get an optional attribute by its key.
+         *
+         * Use this method if the attribute is optional. If the attribute is
+         * always present then use {@link #attr(TypedKey)} instead.
+         *
+         * @param key The attribute key.
+         * @param <T> The type of attribute.
+         * @return An optional attribute value, present if it exists, absent otherwise.
+         */
+        <T> Optional<T> getAttr(TypedKey<T> key);
+
+        /**
+         * Check if this object contains an attribute.
+         *
+         * @param key The attribute key to check for.
+         * @return True if the object contains the attribute, false otherwise.
+         */
+        boolean containsAttr(TypedKey<?> key);
+
+        /**
+         * Create a new version of this object with an attribute added to it.
+         *
+         * @param key The attribute key.
+         * @param value The new attribute value.
+         * @param <T> The type of attribute.
+         * @return The new version of this object with the attribute added.
+         */
+        <T> RequestHeader withAttr(TypedKey<T> key, T value);
+
+        /**
+         * Create a new version of this object with several attributes added to it.
+         *
+         * @param entries The new attributes to add.
+         * @return The new version of this object with the attributes added.
+         */
+        RequestHeader withAttrs(TypedEntry<?> ...entries);
+
+        /**
+         * Attach a body to this header.
+         *
+         * @param body The body to attach.
+         * @return A new request with the body attached to the header.
+         */
+        Request withBody(RequestBody body);
+
+        /**
          * The request host.
          *
          * @return the host
@@ -613,7 +676,9 @@ public class Http {
 
         /**
          * @return the tags for the request
+         * @deprecated Use <code>attr</code>, <code>withAttr</code>, etc.
          */
+        @Deprecated
         Map<String, String> tags();
 
         /**
@@ -636,29 +701,28 @@ public class Http {
          */
         RequestBody body();
 
+        Request withBody(RequestBody body);
+
+        <T> Request withAttr(TypedKey<T> key, T value);
+        Request withAttrs(TypedEntry<?> ...entries);
+
         /**
          * The user name for this request, if defined.
          * This is usually set by annotating your Action with <code>@Authenticated</code>.
          *
          * @return the username
+         * @deprecated As of release 2.6, use <code>attr(Security.USERNAME)</code> or <code>getAttr(Security.USERNAME)</code>.
          */
-        String username();
-
-        /**
-         * Defines the user name for this request.
-         *
-         * @deprecated As of release 2.4, use {@link #withUsername}
-         * @param username Deprecated
-         */
-        @Deprecated void setUsername(String username);
+        @Deprecated String username();
 
         /**
          * Returns a request updated with specified user name
          *
          * @param username the new user name
          * @return a copy of the request containing the specified user name
+         * @deprecated As of release 2.6, use <code>withAttr(Security.USERNAME, username)</code>.
          */
-        Request withUsername(String username);
+        @Deprecated Request withUsername(String username);
 
         /**
          * For internal Play-use only
@@ -671,18 +735,14 @@ public class Http {
     /**
      * An HTTP request.
      */
-    public static class RequestImpl extends play.core.j.RequestHeaderImpl implements Request {
-
-        private final play.api.mvc.Request<RequestBody> underlying;
-        private String username; // Keep it non-final until setUsername is removed
+    public static class RequestImpl extends play.core.j.RequestImpl {
 
         /**
          * Constructor only based on a header.
          * @param header the header from a request
          */
         public RequestImpl(play.api.mvc.RequestHeader header) {
-            super(header);
-            this.underlying = null;
+            super(header.withBody(null));
         }
 
         /**
@@ -691,68 +751,7 @@ public class Http {
          */
         public RequestImpl(play.api.mvc.Request<RequestBody> request) {
             super(request);
-            this.underlying = request;
         }
-
-        /**
-         * Constructor with a request and a username.
-         * @param request he body of the request
-         * @param username the user which is making the request
-         */
-        private RequestImpl(play.api.mvc.Request<RequestBody> request,
-                            String username) {
-
-            super(request);
-
-            this.underlying = request;
-            this.username = username;
-        }
-
-        /**
-         * @return the underlying body, if present otherwise null
-         */
-        public RequestBody body() {
-            return underlying != null ? underlying.body() : null;
-        }
-
-        /**
-         * @return whether the underlying request has a body.
-         */
-        public boolean hasBody() {
-            return underlying != null && underlying.hasBody();
-        }
-
-        /**
-         * @return the username
-         */
-        public String username() {
-            return username;
-        }
-
-        /**
-         * Sets the username.
-         * @param username the username of the requester
-         */
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        /**
-         * This method returns a new request, based on the current underlying with a giving username.
-         * @param username the new user name
-         * @return a new request with a request body based on the current request
-         */
-        public Request withUsername(String username) {
-            return new RequestImpl(this.underlying, username);
-        }
-
-        /**
-         * @return the underlying body of the request
-         */
-        public play.api.mvc.Request<RequestBody> _underlyingRequest() {
-            return underlying;
-        }
-
     }
 
     /**
@@ -783,18 +782,24 @@ public class Http {
         }
 
         /**
-         * @return the username
+         * Get the username. This method calls <code>getAttr(Security.USERNAME)</code>.
+         * @return the username or null
+         * @deprecated Use <code>attr(Security.USERNAME)</code> or <code>getAttr(Security.USERNAME)</code> instead.
          */
+        @Deprecated
         public String username() {
-            return username;
+            return getAttr(Security.USERNAME).orElse(null);
         }
 
         /**
+         * Set the username. This method calls <code>putAttr(Security.USERNAME, username)</code>.
          * @param username the username for the request
          * @return the modified builder
+         * @deprecated Use <code>putAttr(Security.USERNAME, username)</code> instead.
          */
+        @Deprecated
         public RequestBuilder username(String username) {
-            this.username = username;
+            putAttr(Security.USERNAME, username);
             return this;
         }
 
@@ -964,8 +969,7 @@ public class Http {
          * @return a build of the given parameters
          */
         public RequestImpl build() {
-            return new RequestImpl(new play.api.mvc.RequestImpl(
-                body(),
+            play.api.mvc.Request<RequestBody> underlyingRequest = new play.api.mvc.RequestImpl(
                 id,
                 asScala(tags()),
                 uri.toString(),
@@ -976,7 +980,13 @@ public class Http {
                 buildHeaders(),
                 remoteAddress,
                 secure,
-                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq()))));
+                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq())),
+                TypedMap.empty(),
+                body()
+            );
+            // Cast below is needed because Java doesn't pick up type properly
+            underlyingRequest = (play.api.mvc.Request<RequestBody>) underlyingRequest.withAttrs(attrs.entries());
+            return new RequestImpl(underlyingRequest);
         }
 
         // -------------------
@@ -984,6 +994,7 @@ public class Http {
 
         protected Long id = RequestIdProvider.requestIDs().incrementAndGet();
         protected Map<String, String> tags = new HashMap<>();
+        protected TypedMap attrs = TypedMap.empty();
         protected String method;
         protected boolean secure;
         protected URI uri;
@@ -1009,7 +1020,51 @@ public class Http {
         }
 
         /**
+         * Get the attribute for the given key.
+         *
+         * @param key The key of the attribute.
+         * @param <T> The type of the attribute.
+         * @return The attribute value, if present.
+         * @throws NoSuchElementException If the attribute is missing.
+         */
+        <T> T attr(TypedKey<T> key) {
+            return attrs.apply(key);
+        }
+
+        /**
+         * Get the attribute for the given key.
+         *
+         * @param key The key of the attribute.
+         * @param <T> The type of the attribute.
+         * @return An optional attribute value.
+         */
+        <T> Optional<T> getAttr(TypedKey<T> key) {
+            return OptionConverters.toJava(attrs.get(key));
+        }
+
+        /**
+         * Add an attribute to the request.
+         *
+         * @param key The key of the attribute to add.
+         * @param value The value of the attribute to add.
+         * @param <T> The type of the attribute to add.
+         */
+        <T> void putAttr(TypedKey<T> key, T value) {
+            attrs = attrs.updated(key, value);
+        }
+
+        /**
+         * Add several attributes to the request.
+         *
+         * @param entries The attribute entries to add.
+         */
+        void putAttrs(TypedEntry<?> ...entries) {
+            attrs = attrs.withEntries(entries);
+        }
+
+        /**
          * @return the tags for the request
+         * @deprecated Use <code>attr</code> or <code>getAttr</code> instead.
          */
         public Map<String, String> tags() {
             return tags;
@@ -1018,7 +1073,9 @@ public class Http {
         /**
          * @param tags overwrites the tags for this request
          * @return the builder instance
+         * @deprecated Use <code>putAttrs</code> instead.
          */
+        @Deprecated
         public RequestBuilder tags(Map<String, String> tags) {
             this.tags = tags;
             return this;
@@ -1029,7 +1086,9 @@ public class Http {
          * @param key the key for the tag
          * @param value the value for the tag
          * @return the builder
+         * @deprecated Use <code>putAttr</code> instead.
          */
+        @Deprecated
         public RequestBuilder tag(String key, String value) {
             tags.put(key, value);
             return this;

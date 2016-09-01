@@ -3,23 +3,32 @@
  */
 package play.core.j
 
+import java.util.Optional
 import java.util.concurrent.CompletionStage
 
+import play.api.libs.typedmap.{ TypedEntry, TypedKey }
 import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
+import play.mvc
 import play.mvc.{ Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.Http.RequestBody
+import play.mvc.Security
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.Future
 import collection.JavaConverters._
+import collection.JavaConversions._
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
  * creation
  */
 trait JavaHelpers {
+
+  def attrsToScalaSeq(attrs: java.util.List[TypedEntry[_]]): Seq[TypedEntry[_]] = {
+    asScalaBuffer(attrs)
+  }
 
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
     cookies.asScala.toSeq map { c =>
@@ -163,7 +172,7 @@ object JavaHelpers extends JavaHelpers
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
-  def _underlyingHeader = header
+  override def _underlyingHeader: RequestHeader = header
 
   def uri = header.uri
 
@@ -174,6 +183,16 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   def remoteAddress = header.remoteAddress
 
   def secure = header.secure
+
+  override def attr[A](key: TypedKey[A]): A = header.attr(key)
+  override def getAttr[A](key: TypedKey[A]): Optional[A] = OptionConverters.toJava(header.getAttr(key))
+  override def containsAttr(key: TypedKey[_]): Boolean = header.containsAttr(key)
+  override def withAttr[A](key: TypedKey[A], value: A): JRequestHeader =
+    new RequestHeaderImpl(header.withAttr(key, value))
+  override def withAttrs(entries: TypedEntry[_]*): JRequestHeader =
+    new RequestHeaderImpl(header.withAttrs(entries: _*))
+
+  def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
   def host = header.host
 
@@ -230,4 +249,26 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def toString = header.toString
 
+}
+
+class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
+  override def _underlyingRequest: Request[RequestBody] = request
+
+  override def attr[A](key: TypedKey[A]): A = _underlyingHeader.attr(key)
+  override def getAttr[A](key: TypedKey[A]): Optional[A] = OptionConverters.toJava(_underlyingHeader.getAttr(key))
+  override def containsAttr(key: TypedKey[_]): Boolean = _underlyingHeader.containsAttr(key)
+
+  override def withAttr[A](key: TypedKey[A], value: A): JRequest = {
+    new RequestImpl(request.withAttr(key, value))
+  }
+  override def withAttrs(entries: TypedEntry[_]*): JRequest = {
+    new RequestImpl(request.withAttrs(entries: _*))
+  }
+
+  override def body: RequestBody = request.body
+  override def hasBody: Boolean = request.hasBody
+  override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
+
+  override def username: String = getAttr(Security.USERNAME).orElse(null)
+  override def withUsername(username: String): JRequest = withAttr(Security.USERNAME, username)
 }

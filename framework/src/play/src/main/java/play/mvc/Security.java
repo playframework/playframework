@@ -3,6 +3,8 @@
  */
 package play.mvc;
 
+import play.api.libs.typedmap.TypedKey;
+import play.api.libs.typedmap.TypedKeyFactory;
 import play.inject.Injector;
 import play.mvc.Http.*;
 
@@ -15,6 +17,8 @@ import javax.inject.Inject;
  * Defines several security helpers.
  */
 public class Security {
+
+    public static final TypedKey<String> USERNAME = TypedKeyFactory.create("username");
 
     /**
      * Wraps the annotated action in an <code>AuthenticatedAction</code>.
@@ -48,15 +52,9 @@ public class Security {
                 Result unauthorized = authenticator.onUnauthorized(ctx);
                 return CompletableFuture.completedFuture(unauthorized);
             } else {
-                try {
-                    ctx.request().setUsername(username);
-                    return delegate.call(ctx).whenComplete(
-                        (result, error) -> ctx.request().setUsername(null)
-                    );
-                } catch (Exception e) {
-                    ctx.request().setUsername(null);
-                    throw e;
-                }
+                Request usernameReq = ctx.request().withAttr(USERNAME, username);
+                Context usernameCtx = ctx.withRequest(usernameReq);
+                return delegate.call(usernameCtx);
             }
         }
 

@@ -7,34 +7,38 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultHttpErrorHandler, HttpEntity }
 import play.api.http.Status._
-import play.api.mvc._
+import play.api.http.{ DefaultHttpErrorHandler, HttpEntity }
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
+import play.api.mvc._
 
-import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 import scala.util.{ Success, Try }
 
 class ServerResultUtilsSpec extends Specification {
 
-  case class CookieRequestHeader(cookie: Option[(String, String)]) extends RequestHeader {
-    def id = 1
-    def tags = Map()
-    def uri = ""
-    def path = ""
-    def method = ""
-    def version = ""
-    def queryString = Map()
-    def remoteAddress = ""
-    def secure = false
-    override def clientCertificateChain = None
-    val headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq)
+  private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
+    new RequestHeaderImpl(
+      id = 1L,
+      tags = Map.empty,
+      uri = "",
+      path = "",
+      method = "",
+      version = "",
+      queryString = Map.empty,
+      headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq),
+      remoteAddress = "",
+      secure = false,
+      clientCertificateChain = None,
+      attrMap = TypedMap.empty
+    )
   }
 
   "ServerResultUtils.cleanFlashCookie" should {
     def flashCookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
-      val rh = CookieRequestHeader(cookie)
+      val rh = cookieRequestHeader(cookie)
       ServerResultUtils.cleanFlashCookie(rh, result).header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
     }
 
@@ -82,19 +86,20 @@ class ServerResultUtilsSpec extends Specification {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
 
-    val header = new RequestHeader {
-      def id = 1
-      def tags = Map()
-      def uri = ""
-      def path = ""
-      def method = ""
-      def version = ""
-      def queryString = Map()
-      def remoteAddress = ""
-      def secure = false
-      def clientCertificateChain = None
-      def headers = new Headers(Seq())
-    }
+    val header = new RequestHeaderImpl(
+      id = 1L,
+      tags = Map(),
+      uri = "",
+      path = "",
+      method = "",
+      version = "",
+      queryString = Map(),
+      remoteAddressFunc = () => "",
+      secureFunc = () => false,
+      clientCertificateChain = None,
+      headers = new Headers(Seq()),
+      attrMap = TypedMap.empty
+    )
 
     def hasNoEntity(response: Future[Result], responseStatus: Int) = {
       Await.ready(response, 5.seconds)

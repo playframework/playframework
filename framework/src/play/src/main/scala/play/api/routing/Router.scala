@@ -3,9 +3,11 @@
  */
 package play.api.routing
 
-import play.api.{ Configuration, Environment }
-import play.api.mvc.{ RequestHeader, Handler }
+import play.api.libs.typedmap.TypedKey
+import play.api.{Configuration, Environment}
+import play.api.mvc.{Handler, RequestHeader}
 import play.core.j.JavaRouterAdapter
+import play.core.routing.HandlerDef
 import play.utils.Reflect
 
 /**
@@ -72,17 +74,29 @@ object Router {
     }
   }
 
+  /**
+   * The [[RequestHeader]] attribute key used to access the routing
+   * [[HandlerDef]] used to handle the request.
+   */
+  val HandlerDefAttr = TypedKey[HandlerDef]("HandlerDef")
+
   /** Tags that are added to requests by the router. */
+  @deprecated("Use HandlerDefAttr instead", "2.6.0")
   object Tags {
     /** The verb that the router matched */
+    @deprecated("Use HandlerDefAttr instead", "2.6.0")
     val RouteVerb = "ROUTE_VERB"
     /** The pattern that the router used to match the path */
+    @deprecated("Use HandlerDefAttr instead", "2.6.0")
     val RoutePattern = "ROUTE_PATTERN"
     /** The controller that was routed to */
+    @deprecated("Use HandlerDefAttr instead", "2.6.0")
     val RouteController = "ROUTE_CONTROLLER"
     /** The method on the controller that was invoked */
+    @deprecated("Use HandlerDefAttr instead", "2.6.0")
     val RouteActionMethod = "ROUTE_ACTION_METHOD"
     /** The comments in the routes file that were above the route */
+    @deprecated("Use HandlerDefAttr instead", "2.6.0")
     val RouteComments = "ROUTE_COMMENTS"
   }
 

@@ -231,8 +231,31 @@ abstract class GeneratedRouter extends Router {
   def createInvoker[T](
     fakeCall: => T,
     handlerDef: HandlerDef)(implicit hif: HandlerInvokerFactory[T]): HandlerInvoker[T] = {
-    val underlyingInvoker = hif.createInvoker(fakeCall, handlerDef)
-    new TaggingInvoker(underlyingInvoker, handlerDef)
+
+    // Get the implicit invoker factory and ask it for an invoker.
+    val underlyingInvoker: HandlerInvoker[T] = hif.createInvoker(fakeCall, handlerDef)
+
+    // Precalculate the function that adds routing information to the request
+    val tags = Map(
+      play.api.routing.Router.Tags.RoutePattern -> handlerDef.path,
+      play.api.routing.Router.Tags.RouteVerb -> handlerDef.verb,
+      play.api.routing.Router.Tags.RouteController -> handlerDef.controller,
+      play.api.routing.Router.Tags.RouteActionMethod -> handlerDef.method,
+      play.api.routing.Router.Tags.RouteComments -> handlerDef.comments
+    )
+    val modifyRequestFunc = { rh: RequestHeader =>
+      val newTags = if (rh.tags.isEmpty) tags else rh.tags ++ tags
+      rh.copy(tags = newTags).withAttr(play.api.routing.Router.HandlerDefAttr, handlerDef)
+    }
+
+    // Wrap the invoker with another invoker that preprocesses requests as they are made,
+    // adding routing information to each request.
+    new HandlerInvoker[T] {
+      override def call(call: => T): Handler = {
+        val nextHandler = underlyingInvoker.call(call)
+        Handler.Stage.modifyRequest(modifyRequestFunc, nextHandler)
+      }
+    }
   }
 }
 
