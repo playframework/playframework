@@ -5,6 +5,8 @@ package play.api.mvc
 
 import java.security.cert.X509Certificate
 
+import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
+
 import scala.annotation.{ implicitNotFound, tailrec }
 
 /**
@@ -38,45 +40,32 @@ trait Request[+A] extends RequestHeader {
   /**
    * Transform the request body.
    */
-  def map[B](f: A => B): Request[B] = new Request[B] {
-    override def id = self.id
-    override def tags = self.tags
-    override def uri = self.uri
-    override def path = self.path
-    override def method = self.method
-    override def version = self.version
-    override def queryString = self.queryString
-    override def headers = self.headers
-    override def remoteAddress = self.remoteAddress
-    override def secure = self.secure
-    override def clientCertificateChain = self.clientCertificateChain
+  def map[B](f: A => B): Request[B] = withBody(f(body))
 
-    override lazy val body = f(self.body)
-  }
+  // Override the return type of these RequestHeader methods
+  override def withAttr[T](key: TypedKey[T], value: T): Request[A]
+  override def withAttrs(entries: TypedEntry[_]*): Request[A]
 
 }
 
 object Request {
-
-  def apply[A](rh: RequestHeader, a: A): Request[A] = new Request[A] {
-    override def id = rh.id
-    override def tags = rh.tags
-    override def uri = rh.uri
-    override def path = rh.path
-    override def method = rh.method
-    override def version = rh.version
-    override def queryString = rh.queryString
-    override def headers = rh.headers
-    override lazy val remoteAddress = rh.remoteAddress
-    override lazy val secure = rh.secure
-    override val clientCertificateChain = rh.clientCertificateChain
-    override val body = a
-  }
+  /**
+   * Create a new Request from a RequestHeader and a body. The RequestHeader's
+   * methods aren't evaluated when this method is called.
+   */
+  def apply[A](rh: RequestHeader, body: A): Request[A] = rh.withBody(body)
 }
 
-/** Used by Java wrapper */
-private[play] class RequestImpl[A](
-    override val body: A,
+/**
+ * A standard implementation of a Request.
+ *
+ * @param remoteAddressFunc A function that evaluates to the remote address.
+ * @param secureFunc A function that evaluates to the security status.
+ * @param attrMap A map of the request's typed attributes.
+ * @param body The body of the request.
+ * @tparam A The type of the body content.
+ */
+private[play] class RequestImpl[+A](
     override val id: Long,
     override val tags: Map[String, String],
     override val uri: String,
@@ -85,7 +74,77 @@ private[play] class RequestImpl[A](
     override val version: String,
     override val queryString: Map[String, Seq[String]],
     override val headers: Headers,
-    override val remoteAddress: String,
-    override val secure: Boolean,
-    override val clientCertificateChain: Option[Seq[X509Certificate]]) extends Request[A] {
+    remoteAddressFunc: () => String,
+    secureFunc: () => Boolean,
+    override val clientCertificateChain: Option[Seq[X509Certificate]],
+    override protected val attrMap: TypedMap,
+    override val body: A) extends Request[A] with WithAttrMap[Request[A]] {
+
+  def this(
+    id: Long,
+    tags: Map[String, String],
+    uri: String,
+    path: String,
+    method: String,
+    version: String,
+    queryString: Map[String, Seq[String]],
+    headers: Headers,
+    remoteAddress: String,
+    secure: Boolean,
+    clientCertificateChain: Option[Seq[X509Certificate]],
+    attrMap: TypedMap,
+    body: A) = {
+    this(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      attrMap = attrMap,
+      body = body
+    )
+  }
+
+  override lazy val remoteAddress: String = remoteAddressFunc()
+  override lazy val secure: Boolean = secureFunc()
+
+  override protected def withAttrMap(newAttrMap: TypedMap): Request[A] = {
+    new RequestImpl[A](
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      attrMap = newAttrMap,
+      body = body
+    )
+  }
+
+  override def withBody[B](newBody: B): Request[B] = new RequestImpl[B](
+    id = id,
+    tags = tags,
+    uri = uri,
+    path = path,
+    method = method,
+    version = version,
+    queryString = queryString,
+    headers = headers,
+    remoteAddressFunc = () => remoteAddress,
+    secureFunc = () => secure,
+    clientCertificateChain = clientCertificateChain,
+    attrMap = attrMap,
+    body = newBody
+  )
 }

@@ -31,28 +31,6 @@ trait HandlerInvoker[-T] {
 }
 
 /**
- * An invoker that wraps another invoker, ensuring the request is tagged appropriately.
- */
-private class TaggingInvoker[-A](underlyingInvoker: HandlerInvoker[A], handlerDef: HandlerDef) extends HandlerInvoker[A] {
-  import HandlerInvokerFactory._
-  val cachedHandlerTags = handlerTags(handlerDef)
-  def call(call: => A): Handler = {
-    val handler = underlyingInvoker.call(call)
-    // All JavaAction's should already be tagged
-    handler match {
-      case alreadyTagged: RequestTaggingHandler => alreadyTagged
-      case action: EssentialAction => new EssentialAction with RequestTaggingHandler {
-        def apply(rh: RequestHeader) = action(rh)
-        def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
-      }
-      case ws: WebSocket =>
-        WebSocket(rh => ws(taggedRequest(rh, cachedHandlerTags)))
-      case other => other
-    }
-  }
-}
-
-/**
  * An object that creates a `HandlerInvoker`. Used by the `createInvoker` method
  * to create a `HandlerInvoker` for each route. The `Routes.createInvoker` method looks
  * for an implicit `HandlerInvokerFactory` and uses that to create a `HandlerInvoker`.
@@ -71,19 +49,6 @@ trait HandlerInvokerFactory[-T] {
 object HandlerInvokerFactory {
 
   import play.mvc.{ Result => JResult, WebSocket => JWebSocket }
-
-  private[routing] def handlerTags(handlerDef: HandlerDef): Map[String, String] = Map(
-    play.api.routing.Router.Tags.RoutePattern -> handlerDef.path,
-    play.api.routing.Router.Tags.RouteVerb -> handlerDef.verb,
-    play.api.routing.Router.Tags.RouteController -> handlerDef.controller,
-    play.api.routing.Router.Tags.RouteActionMethod -> handlerDef.method,
-    play.api.routing.Router.Tags.RouteComments -> handlerDef.comments
-  )
-
-  private[routing] def taggedRequest(rh: RequestHeader, tags: Map[String, String]): RequestHeader = {
-    val newTags = if (rh.tags.isEmpty) tags else rh.tags ++ tags
-    rh.copy(tags = newTags)
-  }
 
   /**
    * Create a `HandlerInvokerFactory` for a call that already produces a
@@ -118,31 +83,35 @@ object HandlerInvokerFactory {
    * tags and annotations.
    */
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
-    def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
-      val cachedHandlerTags = handlerTags(handlerDef)
-      private[this] var _annotations: JavaActionAnnotations = null
+
+    override def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
+      // Cache annotations, initializing on first use
+      // (It's OK that this is unsynchronized since the initialization should be idempotent.)
+      private var _annotations: JavaActionAnnotations = null
       def cachedAnnotations(config: ActionCompositionConfiguration) = {
         if (_annotations == null) {
-          _annotations = {
-            val controller = loadJavaControllerClass(handlerDef)
-            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
-            new JavaActionAnnotations(controller, method, config)
-          }
+          val controller = loadJavaControllerClass(handlerDef)
+          val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+          _annotations = new JavaActionAnnotations(controller, method, config)
         }
         _annotations
       }
-      def call(call: => A): Handler = new JavaHandler {
-        def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
-          val annotations = cachedAnnotations(components.httpConfiguration.actionComposition)
-          val parser = {
+
+      override def call(call: => A): Handler = new JavaHandler {
+        def withComponents(components: JavaHandlerComponents): Handler = new play.core.j.JavaAction(components) {
+          override val annotations = cachedAnnotations(components.httpConfiguration.actionComposition)
+          override val parser = {
             val javaParser = components.getBodyParser(annotations.parser)
             javaBodyParserToScala(javaParser)
           }
-          def invocation: CompletionStage[JResult] = resultCall(call)
-          def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
+          override def invocation: CompletionStage[JResult] = resultCall(call)
         }
       }
     }
+
+    /**
+     * The core logic for this Java action.
+     */
     def resultCall(call: => A): CompletionStage[JResult]
   }
 
@@ -172,8 +141,7 @@ object HandlerInvokerFactory {
   private abstract class JavaWebSocketInvokerFactory[A, B] extends HandlerInvokerFactory[A] {
     def webSocketCall(call: => A): WebSocket
     def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
-      val cachedHandlerTags = handlerTags(handlerDef)
-      def call(call: => A): WebSocket = webSocketCall(call)
+      override def call(call: => A): Handler = webSocketCall(call)
     }
   }
 

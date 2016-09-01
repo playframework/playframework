@@ -153,3 +153,113 @@ libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ### Akka Migration
 
 The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Please dependency inject an `ActorSystem` instance for access to the actor system.
+
+### Request tags deprecated, replaced with attributes
+
+In Play each `Request` and `RequestHeader` object carries a map of strings called *tags*. This map can be used to attach extra information to a request. In Play 2.6 request tags have been deprecated. A new alternative to tags, called *attributes*, should be used instead.
+
+Unlike tags, which can only be strings, attributes have types. Attributes are identified by a `TypedKey<T>` object that holds the attribute's type. This means the type system can catch errors in your code. It also means you can attach normal objects to a request, not just strings.
+
+In Play 2.6, tags are still provided and still work. However, tags will be removed in a future version of Play so you should update your existing code to use attributes instead.
+
+Existing Java code:
+
+```java
+// Tags have string keys
+final String USER_ID = "userId";
+...
+// Store the User object's id in the tags map
+User user = getUser(...);
+req.tags.put(USER_ID, Long.toString(user.getId()));
+...
+// Get the user's id out of the tags map then look up the original User object
+User user = getUserById(Long.parseLong(req.tags.get(USER_ID)));
+```
+
+Updated Java code:
+
+```java
+// Use a key with type User
+import play.api.libs.typedmap.TypedKey
+final TypedKey<User> USER = TypedKeyFactory.create("user");
+...
+// Create new copy of the request with the USER attribute added
+User user = getUser(...);
+Request reqWithUser = req.withAttr(USER, user);
+...
+// Get the USER attribute from the request
+User user = req.attr(USER);
+```
+
+Existing Scala code:
+
+```scala
+// Tags have string keys
+val UserId: String = "userId"
+...
+// Store the User object's id in the tags map
+val user: User = getUser(...)
+val reqWithUserId = req.copy(tags = req.tags + (UserId -> user.id.toString))
+...
+// Get the user's id out of the tags map then look up the original User object
+User user = getUserById(Long.parseLong(reqWithUserId.tags(UserId)))
+```
+
+Updated Scala code:
+
+```scala
+// Use a key with type User
+import play.api.libs.typedmap.TypedKey
+val User: TypedKey[User] = TypedKey("user")
+...
+// Create new copy of the request with the User attribute added
+val user: User = getUser(...)
+val reqWithUser = req.withAttr(User, user)
+...
+// Get the User attribute from the request
+val user: User = req.attr(User)
+```
+
+#### Request Security username property is now an attribute
+
+The Java Request object contains a `username` property which is set when the `Security.Authenticated` annotation is added to a Java action. In Play 2.6 the username property has been deprecated. The username property methods have been updated to store the username in the `Security.USERNAME` attribute. You should update your code to use the `Security.USERNAME` attribute directly. In a future version of Play we will remove the username property.
+
+The reason for this change is that the username property was provided as a special case for the `Security.Authenticated` annotation. Now that we have attributes we don't need a special case anymore.
+
+Existing Java code:
+
+```java
+// Set the username
+Request reqWithUsername = req.withUsername("admin");
+// Get the username
+String username = req1.username();
+// Set the username with a builder
+Request reqWithUsername = new RequestBuilder().username("admin").build();
+```
+
+Updated Java code:
+
+```java
+import play.mvc.Security.USERNAME;
+
+// Set the username
+Request reqWithUsername = req.withAttr(USERNAME, "admin");
+// Get the username
+String username = req1.attr(USERNAME);
+// Set the username with a builder
+Request reqWithUsername = new RequestBuilder().putAttr(USERNAME, "admin").build();
+```
+
+#### Router tags are now attributes
+
+If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.HandlerDefAttr` attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
+
+The attribute contains a `HandlerDef` object that contains all the information that is currently in the tags. The relationship between a `HandlerDef` object and its tags is as follows:
+
+```scala
+RoutePattern -> handlerDef.path
+RouteVerb -> handlerDef.verb
+RouteController -> handlerDef.controller
+RouteActionMethod -> handlerDef.method
+RouteComments -> handlerDef.comments
+```

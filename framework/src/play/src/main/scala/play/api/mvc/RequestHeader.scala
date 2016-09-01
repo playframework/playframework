@@ -7,6 +7,7 @@ import java.security.cert.X509Certificate
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
 import play.api.i18n.Lang
+import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
 
 import scala.annotation.implicitNotFound
 
@@ -24,6 +25,7 @@ trait RequestHeader {
   /**
    * The request Tags.
    */
+  @deprecated("Use attributes instead (e.g. attr(), getAttr(), withAttr(), etc)", "2.6.0")
   def tags: Map[String, String]
 
   /**
@@ -78,6 +80,58 @@ trait RequestHeader {
    * The X509 certificate chain presented by a client during SSL requests.
    */
   def clientCertificateChain: Option[Seq[X509Certificate]]
+
+  /**
+   * Get an attribute by its key or throw an exception if it's not
+   * present.
+   *
+   * Use this method if the attribute is expected to be present. If the
+   * attribute is optional then use [[getAttr()]] instead.
+   *
+   * @param key The attribute key.
+   * @tparam A The type of attribute.
+   * @return The attribute value, if it exists.
+   * @throws NoSuchElementException If the attribute doesn't exist.
+   */
+  def attr[A](key: TypedKey[A]): A
+
+  /**
+   * Get an optional attribute by its key.
+   *
+   * Use this method if the attribute is optional. If the attribute is
+   * always present then use [[attr()]] instead.
+   *
+   * @param key The attribute key.
+   * @tparam A The type of attribute.
+   * @return `Some` attribute value, if it exists, or `None` otherwise.
+   */
+  def getAttr[A](key: TypedKey[A]): Option[A]
+
+  /**
+   * Check if this object contains an attribute.
+   *
+   * @param key The attribute key to check for.
+   * @return True if the object contains the attribute, false otherwise.
+   */
+  def containsAttr(key: TypedKey[_]): Boolean
+
+  /**
+   * Create a new version of this object with an attribute added to it.
+   *
+   * @param key The attribute key.
+   * @param value The new attribute value.
+   * @tparam A The type of attribute.
+   * @return The new version of this object with the attribute added.
+   */
+  def withAttr[A](key: TypedKey[A], value: A): RequestHeader
+
+  /**
+   * Create a new version of this object with several attributes added to it.
+   *
+   * @param entries The new attributes to add.
+   * @return The new version of this object with the attributes added.
+   */
+  def withAttrs(entries: TypedEntry[_]*): RequestHeader
 
   // -- Computed
 
@@ -185,6 +239,15 @@ trait RequestHeader {
   }
 
   /**
+   * Attach a body to this header.
+   *
+   * @param body The body to attach.
+   * @tparam A The type of the body.
+   * @return A new request with the body attached to the header.
+   */
+  def withBody[A](body: A): Request[A] = new RequestHeaderWithBody[A](this, body)
+
+  /**
    * Copy the request.
    */
   def copy(
@@ -199,21 +262,20 @@ trait RequestHeader {
     remoteAddress: => String = this.remoteAddress,
     secure: => Boolean = this.secure,
     clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
-    val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure, _clientCertificateChain, _hasBody) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure, clientCertificateChain, hasBody)
-    new RequestHeader {
-      override val id = _id
-      override val tags = _tags
-      override val uri = _uri
-      override val path = _path
-      override val method = _method
-      override val version = _version
-      override val queryString = _queryString
-      override val headers = _headers
-      override lazy val remoteAddress = _remoteAddress()
-      override lazy val secure = _secure()
-      override val clientCertificateChain = _clientCertificateChain
-      override val hasBody = _hasBody || super.hasBody
-    }
+    new RequestHeaderImpl(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      attrMap = TypedMap.empty
+    )
   }
 
   override def toString = {
@@ -243,6 +305,13 @@ object RequestHeader {
   }
 }
 
+/**
+ * A standard implementation of a RequestHeader.
+ *
+ * @param remoteAddressFunc A function that evaluates to the remote address.
+ * @param secureFunc A function that evaluates to the security status.
+ * @param attrMap A map of the RequestHeader's typed attributes.
+ */
 private[play] class RequestHeaderImpl(
     override val id: Long,
     override val tags: Map[String, String],
@@ -252,7 +321,142 @@ private[play] class RequestHeaderImpl(
     override val version: String,
     override val queryString: Map[String, Seq[String]],
     override val headers: Headers,
-    override val remoteAddress: String,
-    override val secure: Boolean,
-    override val clientCertificateChain: Option[Seq[X509Certificate]]) extends RequestHeader {
+    remoteAddressFunc: () => String,
+    secureFunc: () => Boolean,
+    override val clientCertificateChain: Option[Seq[X509Certificate]],
+    override protected val attrMap: TypedMap) extends RequestHeader with WithAttrMap[RequestHeader] {
+
+  def this(
+    id: Long,
+    tags: Map[String, String],
+    uri: String,
+    path: String,
+    method: String,
+    version: String,
+    queryString: Map[String, Seq[String]],
+    headers: Headers,
+    remoteAddress: String,
+    secure: Boolean,
+    clientCertificateChain: Option[Seq[X509Certificate]],
+    attrMap: TypedMap) = {
+    this(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      attrMap = attrMap
+    )
+  }
+
+  override lazy val remoteAddress: String = remoteAddressFunc()
+  override lazy val secure: Boolean = secureFunc()
+
+  override protected def withAttrMap(newAttrMap: TypedMap): RequestHeaderImpl = {
+    new RequestHeaderImpl(
+      id = id,
+      tags = tags,
+      uri = uri,
+      path = path,
+      method = method,
+      version = version,
+      queryString = queryString,
+      headers = headers,
+      remoteAddressFunc = () => remoteAddress,
+      secureFunc = () => secure,
+      clientCertificateChain = clientCertificateChain,
+      attrMap = newAttrMap
+    )
+  }
+}
+
+/**
+ * Mixin to help build a RequestHeader that has attributes. This mixin
+ * assumes the attributes are stored in a TypedMap.
+ *
+ * @tparam Repr The type of object to return when a copy is made.
+ */
+private[play] trait WithAttrMap[+Repr <: RequestHeader] {
+  self: RequestHeader =>
+
+  /**
+   * The TypeMap holding this RequestHeader's attributes.
+   */
+  protected def attrMap: TypedMap
+
+  /**
+   * Create a new instance with a new set of attributes.
+   */
+  protected def withAttrMap(newAttrMap: TypedMap): Repr
+
+  // Mixin methods
+
+  override def attr[A](key: TypedKey[A]): A =
+    attrMap.apply(key)
+  override def getAttr[A](key: TypedKey[A]): Option[A] =
+    attrMap.get(key)
+  override def withAttr[A](key: TypedKey[A], value: A): Repr =
+    withAttrMap(attrMap.updated(key, value))
+  override def containsAttr(key: TypedKey[_]): Boolean =
+    attrMap.contains(key)
+  override def withAttrs(entries: TypedEntry[_]*): Repr =
+    withAttrMap(attrMap.+(entries: _*))
+}
+
+/**
+ * A Request formed from a RequestHeader and a body value. Most methods are delegated
+ * to the RequestHeader. This means that creating this object is very cheap because it
+ * doesn't evaluate any of the RequestHeader methods when it's constructed.
+ */
+private[play] class RequestHeaderWithBody[+A](
+    private[RequestHeaderWithBody] val rh: RequestHeader,
+    override val body: A) extends Request[A] {
+  override def id = rh.id
+  override def tags = rh.tags
+  override def headers = rh.headers
+  override def queryString = rh.queryString
+  override def path = rh.path
+  override def uri = rh.uri
+  override def method = rh.method
+  override def version = rh.version
+  override def remoteAddress = rh.remoteAddress
+  override def secure = rh.secure
+  override def clientCertificateChain = rh.clientCertificateChain
+
+  override def withBody[B](newBody: B): Request[B] = this match {
+    case wrapper: RequestHeaderWithBody[_] => new RequestHeaderWithBody(wrapper.rh, newBody)
+    case _ => new RequestHeaderWithBody(rh, newBody)
+  }
+  override def withAttr[B](key: TypedKey[B], value: B): Request[A] = new RequestHeaderWithBody(rh.withAttr(key, value), body)
+  override def withAttrs(entries: TypedEntry[_]*): Request[A] = new RequestHeaderWithBody(rh.withAttrs(entries: _*), body)
+  override def getAttr[A](key: TypedKey[A]): Option[A] = rh.getAttr(key)
+  override def attr[A](key: TypedKey[A]): A = rh.attr(key)
+  override def containsAttr(key: TypedKey[_]): Boolean = rh.containsAttr(key)
+}
+
+/**
+ * A Request formed from a RequestHeader and a new set of attributes. Most methods are delegated
+ * to the RequestHeader. This means that creating this object is very cheap because it
+ * doesn't evaluate any of the RequestHeader methods when it's constructed.
+ */
+private[play] class RequestHeaderWithAttributes(rh: RequestHeader, override val attrMap: TypedMap)
+    extends RequestHeader with WithAttrMap[RequestHeader] {
+  override def id = rh.id
+  override def tags = rh.tags
+  override def headers = rh.headers
+  override def queryString = rh.queryString
+  override def path = rh.path
+  override def uri = rh.uri
+  override def method = rh.method
+  override def version = rh.version
+  override def remoteAddress = rh.remoteAddress
+  override def secure = rh.secure
+  override def clientCertificateChain = rh.clientCertificateChain
+  override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(rh, newAttrMap)
 }

@@ -143,6 +143,12 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         ))
         handleAction(action, requestHeader, request, Some(app))
 
+      // This case usually indicates an error in Play's internal routing or handling logic
+      case Right((h, _)) =>
+        val ex = new IllegalStateException(s"Netty server doesn't handle Handlers of this type: $h")
+        logger.error(ex.getMessage, ex)
+        throw ex
+
       case Left(e) =>
         logger.trace("No handler, got direct result: " + e)
         val action = EssentialAction(_ => Accumulator.done(e))

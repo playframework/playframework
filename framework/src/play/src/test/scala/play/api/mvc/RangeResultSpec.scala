@@ -180,11 +180,12 @@ class RangeSpec extends Specification {
   "Merge ranges" in {
     val range1 = Range(entityLength = Some(10000), range = "0-10")
     val range2 = Range(entityLength = Some(10000), range = "5-15")
-    val merged = (range1, range2) match {
-      case (Some(r1), Some(r2)) => r1.merge(r2)
+    (range1, range2) must beLike {
+      case (Some(r1), Some(r2)) =>
+        val merged = r1.merge(r2)
+        merged.start must beSome(0)
+        merged.end must beSome(15)
     }
-    merged.start must beSome(0)
-    merged.end must beSome(15)
   }
 
   "Validate ranges" in {

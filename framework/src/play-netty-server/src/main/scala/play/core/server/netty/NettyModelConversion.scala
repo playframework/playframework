@@ -20,6 +20,7 @@ import io.netty.util.ReferenceCountUtil
 import play.api.Logger
 import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
@@ -73,7 +74,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     parameters: Map[String, Seq[String]], _remoteAddress: InetSocketAddress,
     sslHandler: Option[SslHandler]): RequestHeader = {
 
-    new RequestHeader {
+    new RequestHeader with WithAttrMap[RequestHeader] {
       override val id = requestId
       override val tags = Map.empty[String, String]
       override def uri = request.getUri
@@ -88,13 +89,15 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override def remoteAddress = remoteConnection.address.getHostAddress
       override def secure = remoteConnection.secure
       override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
+      override protected def attrMap = TypedMap.empty
+      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
     }
   }
 
   /** Create an unparsed request header. Used when even Netty couldn't parse the request. */
   def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]) = {
 
-    new RequestHeader {
+    new RequestHeader with WithAttrMap[RequestHeader] {
       override def id = requestId
       override def tags = Map.empty[String, String]
       override def uri = request.getUri
@@ -126,6 +129,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override def remoteAddress = _remoteAddress.getAddress.toString
       override def secure = sslHandler.isDefined
       override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
+      override protected def attrMap = TypedMap.empty
+      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
     }
   }
 

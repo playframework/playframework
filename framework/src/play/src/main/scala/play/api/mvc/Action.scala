@@ -6,26 +6,9 @@ package play.api.mvc
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
+
 import scala.concurrent._
 import scala.language.higherKinds
-
-/**
- * An Handler handles a request. Play understands several types of handlers,
- * for example `EssentialAction`s and `WebSocket`s.
- *
- * The `Handler` used to handle the request is controlled by `GlobalSetting`s's
- * `onRequestReceived` method. The default implementation of
- * `onRequestReceived` delegates to `onRouteRequest` which calls the default
- * `Router`.
- */
-trait Handler
-
-/**
- * A handler that is able to tag requests. Usually mixed in to other handlers.
- */
-trait RequestTaggingHandler extends Handler {
-  def tagRequest(request: RequestHeader): RequestHeader
-}
 
 /**
  * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an

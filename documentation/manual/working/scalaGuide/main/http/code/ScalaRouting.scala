@@ -142,9 +142,13 @@ object ScalaRoutingSpec extends Specification {
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running() { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
-      contentAsString(app.injector.instanceOf(router).routes(rh) match {
-        case e: EssentialAction => e(rh).run()
-      })
+      contentAsString {
+        val routedHandler = app.injector.instanceOf(router).routes(rh)
+        val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
+        terminalHandler match {
+          case e: EssentialAction => e(rh2).run()
+        }
+      }
     }
   }
 }
