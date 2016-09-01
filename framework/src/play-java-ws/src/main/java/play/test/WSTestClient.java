@@ -4,6 +4,7 @@
 package play.test;
 
 import akka.actor.ActorSystem;
+import akka.actor.Terminated;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
 
@@ -14,6 +15,9 @@ import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import play.libs.ws.ahc.AhcWSClient;
 import play.libs.ws.*;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,10 +63,15 @@ public class WSTestClient {
             }
             public void close() throws IOException {
                 try {
-                    client.close();
-                }
-                finally {
-                    system.terminate();
+                    try {
+                        client.close();
+                    }
+                    finally {
+                        final Future<Terminated> terminate = system.terminate();
+                        Await.result(terminate, Duration.Inf());
+                    }
+                } catch (Exception e) {
+                    throw new IOException(e);
                 }
             }
         };

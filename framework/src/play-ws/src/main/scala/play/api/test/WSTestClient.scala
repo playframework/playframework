@@ -6,8 +6,7 @@ package play.api.test
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.libs.ws._
-import play.api.libs.ws.ahc.{ AhcWSClientConfig, AhcWSClient }
-
+import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 import play.api.mvc.Call
 
 /**
@@ -17,40 +16,8 @@ trait WsTestClient {
 
   type Port = Int
 
-  /**
-   * Creates a standalone WSClient, using its own ActorSystem and Netty thread pool.
-   *
-   * This client has no dependencies at all on the underlying system, but is wasteful of resources.
-   *
-   * @param port the port to connect to the server on.
-   * @param scheme the scheme to connect on ("http" or "https")
-   */
-  class InternalWSClient(scheme: String, port: Port) extends WSClient {
-    private val name = "ws-test-client-" + WsTestClient.instanceNumber.getAndIncrement
-    private val system = ActorSystem(name)
-    private val materializer = ActorMaterializer(namePrefix = Some(name))(system)
-    // Don't retry for tests
-    private val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
-
-    def underlying[T] = client.underlying.asInstanceOf[T]
-
-    def url(url: String): WSRequest = {
-      if (url.startsWith("/") && port != -1) {
-        val httpPort = new play.api.http.Port(port)
-        client.url(s"$scheme://localhost:$httpPort$url")
-      } else {
-        client.url(url)
-      }
-    }
-
-    def close(): Unit = {
-      client.close()
-      system.terminate()
-    }
-  }
-
   private val clientProducer: (Port, String) => WSClient = { (port, scheme) =>
-    new InternalWSClient(scheme, port)
+    new WsTestClient.InternalWSClient(scheme, port)
   }
 
   /**
@@ -65,16 +32,7 @@ trait WsTestClient {
    * }}}
    */
   def wsCall(call: Call)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
-    try {
-      wsUrl(call.url)
-    } finally {
-      client match {
-        case internal: InternalWSClient =>
-          internal.close()
-        case _ =>
-        // do nothing
-      }
-    }
+    wsUrl(call.url)
   }
 
   /**
@@ -118,8 +76,38 @@ trait WsTestClient {
 }
 
 object WsTestClient extends WsTestClient {
-  import java.util.concurrent.atomic.AtomicInteger
-  // This is used to create fresh names when creating `ActorMaterializer` instances in `WsTestClient.withClient`.
-  // The motivation is that it can be useful for debugging.
-  private val instanceNumber = new AtomicInteger(1)
+
+  // Accept the overhead of having a client open through all the integration tests
+  private lazy val singletonInstance: WSClient = {
+    val name = "ws-test-client"
+    val system = ActorSystem(name)
+    val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+    // Don't retry for tests
+    AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))(materializer)
+  }
+
+  /**
+   * Creates a standalone WSClient, using its own ActorSystem and Netty thread pool.
+   *
+   * This client has no dependencies at all on the underlying system, but is wasteful of resources.
+   *
+   * @param port the port to connect to the server on.
+   * @param scheme the scheme to connect on ("http" or "https")
+   */
+  class InternalWSClient(scheme: String, port: Port) extends WSClient {
+
+    def underlying[T] = singletonInstance.underlying.asInstanceOf[T]
+
+    def url(url: String): WSRequest = {
+      if (url.startsWith("/") && port != -1) {
+        val httpPort = new play.api.http.Port(port)
+        singletonInstance.url(s"$scheme://localhost:$httpPort$url")
+      } else {
+        singletonInstance.url(url)
+      }
+    }
+
+    /** Closes this client, and releases underlying resources. */
+    override def close(): Unit = {}
+  }
 }
