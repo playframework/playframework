@@ -29,3 +29,22 @@ These macros rely on a few assumptions about the type they're working with :
 
 Case classes natively meet these requirements. For more custom classes or traits, you might
 have to implement them.
+
+## Custom Naming Strategies
+
+To use a custom Naming Strategy you need to define a implicit `JsonConfiguration` object and a `JsonNaming`.
+
+Two naming strategies are provided: the default one, using as-is the names of the class properties,
+and the `JsonNaming.SnakeCase` case one.
+
+A strategy other than the default one can be used as following:
+
+@[auto-naming-reads](code/ScalaJsonAutomatedSpec.scala)
+@[auto-naming-writes](code/ScalaJsonAutomatedSpec.scala)
+@[auto-naming-format](code/ScalaJsonAutomatedSpec.scala)
+
+### Implementing your own Naming Strategy
+
+To implement your own Naming Strategy you just need to implement the `JsonNaming` trait:
+
+@[auto-custom-naming-format](code/ScalaJsonAutomatedSpec.scala)

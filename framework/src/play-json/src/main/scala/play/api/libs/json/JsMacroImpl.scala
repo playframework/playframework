@@ -3,23 +3,26 @@
  */
 package play.api.libs.json
 
+import scala.language.experimental.macros
 import scala.language.higherKinds
-import scala.reflect.macros.blackbox.Context
-import language.experimental.macros
+import scala.reflect.macros.blackbox
 
 /**
  * Implementation for the JSON macro.
  */
 object JsMacroImpl {
 
-  def formatImpl[A: c.WeakTypeTag](c: Context): c.Expr[OFormat[A]] =
+  def formatImpl[A: c.WeakTypeTag](c: blackbox.Context): c.Expr[OFormat[A]] = {
     macroImpl[A, OFormat, Format](c, "format", "inmap", reads = true, writes = true)
+  }
 
-  def readsImpl[A: c.WeakTypeTag](c: Context): c.Expr[Reads[A]] =
+  def readsImpl[A: c.WeakTypeTag](c: blackbox.Context): c.Expr[Reads[A]] = {
     macroImpl[A, Reads, Reads](c, "read", "map", reads = true, writes = false)
+  }
 
-  def writesImpl[A: c.WeakTypeTag](c: Context): c.Expr[OWrites[A]] =
+  def writesImpl[A: c.WeakTypeTag](c: blackbox.Context): c.Expr[OWrites[A]] = {
     macroImpl[A, OWrites, Writes](c, "write", "contramap", reads = false, writes = true)
+  }
 
   /**
    * Generic implementation of the macro
@@ -32,20 +35,20 @@ object JsMacroImpl {
    * @param c The context
    * @param methodName The name of the method on JsPath that gets called, ie, read/write/format
    * @param mapLikeMethod The method that's used to map the type of thing being built, used in case there is
-   *                      only one field in the case class.
+   * only one field in the case class.
    * @param reads Whether we should generate a reads.
    * @param writes Whether we should generate a writes
    * @param atag The class of the type we're generating a reads/writes/format for.
    * @param matag The class of the reads/writes/format.
    * @param natag The class of the reads/writes/format.
    */
-  private def macroImpl[A, M[_], N[_]](c: Context, methodName: String, mapLikeMethod: String, reads: Boolean, writes: Boolean)(implicit atag: c.WeakTypeTag[A], matag: c.WeakTypeTag[M[A]], natag: c.WeakTypeTag[N[A]]): c.Expr[M[A]] = {
+  private def macroImpl[A, M[_], N[_]](c: blackbox.Context, methodName: String, mapLikeMethod: String, reads: Boolean, writes: Boolean)(implicit atag: c.WeakTypeTag[A], matag: c.WeakTypeTag[M[A]], natag: c.WeakTypeTag[N[A]]): c.Expr[M[A]] = {
 
     // Helper function to create parameter lists for function invocations based on whether this is a reads,
     // writes or both.
     def conditionalList[T](ifReads: T, ifWrites: T): List[T] =
       (if (reads) List(ifReads) else Nil) :::
-        (if (writes) List(ifWrites) else Nil)
+          (if (writes) List(ifWrites) else Nil)
 
     import c.universe._
 
@@ -90,8 +93,8 @@ object JsMacroImpl {
 
       case TypeRef(_, _, args) =>
         args.head match {
-          case t @ TypeRef(_, _, Nil) => Some(List(t))
-          case t @ TypeRef(_, _, args) =>
+          case t@TypeRef(_, _, Nil) => Some(List(t))
+          case t@TypeRef(_, _, args) =>
             import c.universe.definitions.TupleClass
             if (!TupleClass.seq.exists(tupleSym => t.baseType(tupleSym) ne NoType)) Some(List(t))
             else if (t <:< typeOf[Product]) Some(args)
@@ -200,8 +203,10 @@ object JsMacroImpl {
     // combines all reads into CanBuildX
     val canBuild = effectiveInferredImplicits.map {
       case Implicit(name, t, impl, rec, tpe) =>
-        // Equivalent to __ \ "name"
-        val jspathTree = q"""$JsPath \ ${name.decodedName.toString}"""
+        // Equivalent to __ \ "name", but uses a naming scheme
+        // of (String) => (String) to find the correct "name"
+        val cn = c.Expr[String](q"implicitly[$json.JsonConfiguration].naming(${name.decodedName.toString})")
+        val jspathTree = q"""$JsPath \ $cn"""
 
         // If we're not recursive, simple, just invoke read/write/format
         if (!rec) {
@@ -279,7 +284,20 @@ object JsMacroImpl {
         }.lazyStuff
        """
     }
+
+    if (debugEnabled) {
+      c.info(c.enclosingPosition, showCode(lazyFinalTree), force = true)
+    }
+
     c.Expr[M[A]](lazyFinalTree)
   }
 
+  private lazy val debugEnabled =
+    Option(System.getProperty("play.json.macro.debug")).
+        filterNot(_.isEmpty).map(_.toLowerCase).exists { v =>
+      "true".equals(v) || v.substring(0, 1) == "y"
+    }
+
 }
+
+

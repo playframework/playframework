@@ -6,10 +6,17 @@ package play.api.libs.json
 import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
+import play.api.libs.json.JsonNaming.SnakeCase
 
 case class User(age: Int, name: String)
 case class Dog(name: String, master: User)
-
+case class UserProfile(firstName: String, lastName: String, zip: Option[String], city: String)
+object UserProfile {
+  def obj1 = UserProfile("Christian", "Schmitt", None, "Kenzingen")
+  def json1 = Json.obj("first_name" -> "Christian", "last_name" -> "Schmitt", "city" -> "Kenzingen")
+  def json2 = Json.obj("lightbend_firstName" -> "Christian", "lightbend_lastName" -> "Schmitt", "lightbend_city" -> "Kenzingen")
+}
+case class UserProfileHolder(holder: String, profile: UserProfile)
 case class Cat(name: String)
 
 case class RecUser(name: String, cat: Option[Cat] = None, hobbies: List[String] = List(), friends: List[RecUser] = List())
@@ -559,6 +566,88 @@ class JsonExtensionSpec extends Specification {
       Json.fromJson[CustomApply](Json.obj("a" -> 5, "b" -> "foo")) must beEqualTo(JsSuccess(CustomApply(5, "foo")))
       Json.toJson(CustomApply(5, "foo")) must beEqualTo(Json.obj("a" -> 5, "b" -> "foo"))
       Json.toJson(CustomApply()) must beEqualTo(Json.obj("a" -> 10, "b" -> "foo"))
+    }
+
+    "create a writes[UserProfile] with SnakeCase" in {
+      import play.api.libs.json.Json
+
+      implicit val jsonConfiguration = JsonConfiguration(naming = JsonNaming.SnakeCase)
+      implicit val writes = Json.writes[UserProfile]
+
+      Json.toJson(UserProfile.obj1) must beEqualTo(UserProfile.json1)
+    }
+
+    "create a reads[UserProfile] with SnakeCase" in {
+      import play.api.libs.json.Json
+
+      implicit val jsonConfiguration = JsonConfiguration(naming = JsonNaming.SnakeCase)
+      implicit val reads = Json.reads[UserProfile]
+
+      Json.fromJson(UserProfile.json1) must beEqualTo(JsSuccess(UserProfile.obj1))
+    }
+
+    "create a format[UserProfile] with SnakeCase" in {
+      import play.api.libs.json.Json
+
+      implicit val jsonConfiguration = JsonConfiguration(naming = JsonNaming.SnakeCase)
+      implicit val format = Json.format[UserProfile]
+
+      Json.fromJson(UserProfile.json1) must beEqualTo(JsSuccess(UserProfile.obj1))
+      Json.toJson(UserProfile.obj1) must beEqualTo(UserProfile.json1)
+    }
+
+    "create a writes[UserProfile] with CustomNaming" in {
+      import play.api.libs.json.Json
+
+      object LightbendJsonNaming extends JsonNaming {
+
+        override def apply(property: String): String = s"lightbend_$property"
+      }
+
+      implicit val jsonConfiguration = JsonConfiguration(LightbendJsonNaming)
+      implicit val writes = Json.writes[UserProfile]
+
+      Json.toJson(UserProfile.obj1) must beEqualTo(UserProfile.json2)
+    }
+
+    "create a reads[UserProfile] with CustomNaming" in {
+      import play.api.libs.json.Json
+
+      object LightbendJsonNaming extends JsonNaming {
+
+        override def apply(property: String): String = s"lightbend_$property"
+      }
+
+      implicit val jsonConfiguration = JsonConfiguration(LightbendJsonNaming)
+      implicit val reads = Json.reads[UserProfile]
+
+      Json.fromJson(UserProfile.json2) must beEqualTo(JsSuccess(UserProfile.obj1))
+    }
+
+    "create a format[UserProfile] with CustomNaming" in {
+      import play.api.libs.json.Json
+
+      object LightbendJsonNaming extends JsonNaming {
+
+        override def apply(property: String): String = s"lightbend_$property"
+      }
+
+      implicit val jsonConfiguration = JsonConfiguration(LightbendJsonNaming)
+      implicit val format = Json.format[UserProfile]
+
+      Json.fromJson(UserProfile.json2) must beEqualTo(JsSuccess(UserProfile.obj1))
+      Json.toJson(UserProfile.obj1) must beEqualTo(UserProfile.json2)
+    }
+
+    "create a stackked format[UserProfile] with SnakeCase" in {
+      import play.api.libs.json.Json
+
+      implicit val jsonConfiguration = JsonConfiguration(SnakeCase)
+      implicit val format1 = Json.format[UserProfile]
+      implicit val format2 = Json.format[UserProfileHolder]
+
+      Json.fromJson[UserProfileHolder](Json.obj("holder" -> "Christian", "profile" -> UserProfile.json1)) must beEqualTo(JsSuccess(UserProfileHolder("Christian", UserProfile.obj1)))
+      Json.toJson(UserProfileHolder("Christian", UserProfile.obj1)) must beEqualTo(Json.obj("holder" -> "Christian", "profile" -> UserProfile.json1))
     }
 
   }

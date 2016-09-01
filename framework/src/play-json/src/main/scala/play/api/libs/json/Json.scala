@@ -4,6 +4,7 @@
 package play.api.libs.json
 
 import java.io.InputStream
+
 import play.api.libs.json.jackson.JacksonJson
 
 /**
@@ -156,7 +157,6 @@ object Json {
    * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using
    * new Scala 2.10 macro & reflection features.
    */
-  import scala.reflect.macros.Context
   import language.experimental.macros
 
   /**
@@ -166,14 +166,14 @@ object Json {
    * {{{
    *   import play.api.libs.json.Json
    *
-   *   case class User(name: String, age: Int)
+   *   case class User(userName: String, age: Int)
    *
    *   implicit val userReads = Json.reads[User]
    *   // macro-compiler replaces Json.reads[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userReads = (
-   *      (__ \ 'name).read[String] and
-   *      (__ \ 'age).read[Int]
+   *      (__ \ implicitly[JsonConfiguration].naming("userName")).read[String] and
+   *      (__ \ implicitly[JsonConfiguration].naming("age")).read[Int]
    *   )(User)
    * }}}
    */
@@ -186,14 +186,14 @@ object Json {
    * {{{
    *   import play.api.libs.json.Json
    *
-   *   case class User(name: String, age: Int)
+   *   case class User(userName: String, age: Int)
    *
    *   implicit val userWrites = Json.writes[User]
    *   // macro-compiler replaces Json.writes[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userWrites = (
-   *      (__ \ 'name).write[String] and
-   *      (__ \ 'age).write[Int]
+   *      (__ \ implicitly[JsonConfiguration].naming("userName")).write[String] and
+   *      (__ \ implicitly[JsonConfiguration].naming("age")).write[Int]
    *   )(unlift(User.unapply))
    * }}}
    */
@@ -206,14 +206,14 @@ object Json {
    * {{{
    *   import play.api.libs.json.Json
    *
-   *   case class User(name: String, age: Int)
+   *   case class User(userName: String, age: Int)
    *
    *   implicit val userWrites = Json.format[User]
    *   // macro-compiler replaces Json.format[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userWrites = (
-   *      (__ \ 'name).format[String] and
-   *      (__ \ 'age).format[Int]
+   *      (__ \ implicitly[JsonConfiguration].naming("userName")).format[String] and
+   *      (__ \ implicitly[JsonConfiguration].naming("age")).format[Int]
    *   )(User.apply, unlift(User.unapply))
    * }}}
    */
