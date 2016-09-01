@@ -72,7 +72,6 @@ trait WsTestClient {
   }
 }
 
-
 object WsTestClient extends WsTestClient {
 
   private val singletonClient = new SingletonWSClient()
@@ -114,9 +113,9 @@ object WsTestClient extends WsTestClient {
     import java.util.concurrent._
     import java.util.concurrent.atomic._
 
-    import akka.actor.{ActorSystem, Cancellable, Terminated}
+    import akka.actor.{ ActorSystem, Cancellable, Terminated }
     import akka.stream.ActorMaterializer
-    import play.api.libs.ws.ahc.{AhcWSClient, AhcWSClientConfig}
+    import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 
     import scala.concurrent.Future
     import scala.concurrent.duration._
