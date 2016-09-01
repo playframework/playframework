@@ -65,13 +65,13 @@ object Constraints extends Constraints
  */
 trait Constraints {
 
+  private val emailRegex = """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
   /**
    * Defines an ‘emailAddress’ constraint for `String` values which will validate email addresses.
    *
    * '''name'''[constraint.email]
    * '''error'''[error.email]
    */
-  private val emailRegex = """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
   def emailAddress: Constraint[String] = Constraint[String]("constraint.email") { e =>
     if (e == null) Invalid(ValidationError("error.email"))
     else if (e.trim.isEmpty) Invalid(ValidationError("error.email"))
