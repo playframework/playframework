@@ -68,7 +68,7 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
   "not respond to pongs" in {
     withServer(app => WebSocket.accept[String, String] { req =>
@@ -85,7 +85,7 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
 }
 
