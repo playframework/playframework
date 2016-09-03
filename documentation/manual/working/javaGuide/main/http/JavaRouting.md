@@ -161,6 +161,14 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
 
+## The Default Controller
+
+Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
+
+@[defaultcontroller](code/javaguide.http.routing.defaultcontroller.routes)
+
+In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+
 ## Advanced Routing
 
 See [[Routing DSL|JavaRoutingDsl]].
