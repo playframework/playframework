@@ -42,7 +42,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
       import scala.concurrent.duration._
       import akka.pattern.ask
-      implicit val timeout = 5.seconds
+      implicit val timeout: Timeout = 5.seconds
       
       def sayHello(name: String) = Action.async {
         (helloActor ? SayHello(name)).mapTo[String].map { message =>
@@ -72,7 +72,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
       import scala.concurrent.duration._
       import akka.pattern.ask
-      implicit val timeout = 5.seconds
+      implicit val timeout: Timeout = 5.seconds
 
       val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
       val futureConfig = for {
