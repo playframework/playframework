@@ -48,7 +48,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       val response = client.sendRaw(output, Map("Content-Type" -> "text/plain", "Content-Length" -> compressedDataLength.toString, "Content-Encoding" -> "deflate"))
       response.status must_== 200
       response.body.left.get must_== bodyString
-    }.skipUntilAkkaHttpFixed
+    }
 
     "handle large bodies" in withServer(EssentialAction { rh =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)

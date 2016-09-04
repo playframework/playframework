@@ -3,20 +3,19 @@
  */
 package play.core.server.akkahttp
 
+import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
 import javax.net.ssl._
 
 import akka.actor.ActorSystem
 import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.settings.ServerSettings
+import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
-import java.net.InetSocketAddress
-
-import akka.http.scaladsl.settings.ServerSettings
 import akka.util.ByteString
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
@@ -72,7 +71,9 @@ class AkkaHttpServer(
       Http().bind(interface = config.address, port = port, connectionContext = connectionContext, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
-      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, connectionContext.isSecure))
+      connection.handleWith(Flow[HttpRequest]
+        .map(HttpRequestDecoder.decodeRequest)
+        .mapAsync(parallelism = 1)(handleRequest(connection.remoteAddress, _, connectionContext.isSecure)))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
