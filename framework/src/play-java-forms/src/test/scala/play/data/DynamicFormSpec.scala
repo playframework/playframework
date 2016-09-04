@@ -3,22 +3,23 @@
  */
 package play.data
 
+import javax.validation.Validation
+
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.data.format.Formatters
-import views.html.helper.inputText
+import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
+import play.data.format.Formatters
 import views.html.helper.FieldConstructor.defaultField
+import views.html.helper.inputText
 
 import scala.collection.JavaConversions._
-import javax.validation.Validation
 
 /**
  * Specs for Java dynamic forms
  */
 class DynamicFormSpec extends Specification {
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+
+  val messagesApi = new DefaultMessagesApi()
   implicit val messages = messagesApi.preferred(Seq.empty)
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val validator = Validation.buildDefaultValidatorFactory().getValidator()

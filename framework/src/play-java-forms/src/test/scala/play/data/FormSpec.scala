@@ -5,32 +5,32 @@ package play.data
 
 import java.util
 import java.util.Optional
+import javax.validation.Validation
+import javax.validation.groups.Default
 
 import org.specs2.mutable.Specification
-import play.mvc.Http.{ Context, Request, RequestBuilder }
-
-import scala.collection.JavaConverters._
-import scala.beans.BeanProperty
-import play.api.{ Configuration, Environment }
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.http.HttpConfiguration
+import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
+import play.api.{ Configuration, Environment }
+import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.data.format.Formatters
+import play.mvc.Http.{ Context, Request, RequestBuilder }
 import play.twirl.api.Html
-import javax.validation.groups.Default
-import javax.validation.Validation
 
-import play.api.http.HttpConfiguration
-import play.core.j.{ DefaultJavaContextComponents, JavaContextComponents, JavaHelpers }
+import scala.beans.BeanProperty
+import scala.collection.JavaConverters._
 
 class FormSpec extends Specification {
 
   val environment = Environment.simple()
   val config = Configuration.load(environment)
-  val langs = new DefaultLangs(config)
-  val messagesApi = new DefaultMessagesApi(environment, config, langs)
-  val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val httpConfiguration = HttpConfiguration.fromConfiguration(config)
+  val langs = new DefaultLangsProvider(config).get
+  val messagesApi = new DefaultMessagesApiProvider(environment, config, langs, httpConfiguration).get
+
+  val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, httpConfiguration)
   val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), Validation.buildDefaultValidatorFactory().getValidator())
 

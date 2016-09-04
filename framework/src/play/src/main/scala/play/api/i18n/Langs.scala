@@ -4,12 +4,13 @@
 package play.api.i18n
 
 import java.util.Locale
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.{ Application, Configuration, Logger }
 
 import scala.util.Try
 import scala.util.control.NonFatal
+import scala.collection.JavaConverters._
 
 /**
  * A Lang supported by the application.
@@ -52,10 +53,8 @@ case class Lang(locale: Locale) {
    *
    * @param accept The accepted language
    */
-  def satisfies(accept: Lang): Boolean = {
-    import scala.collection.JavaConverters._
+  def satisfies(accept: Lang): Boolean =
     Locale.lookup(Seq(new Locale.LanguageRange(code)).asJava, Seq(accept.locale).asJava) != null
-  }
 
   /**
    * The language tag (such as fr or en-US).
@@ -147,9 +146,16 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject() (config: Configuration) extends Langs {
+class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
+  def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
+    availables.find(_.satisfies(lang))
+  }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
+}
 
-  val availables: Seq[Lang] = {
+@Singleton
+class DefaultLangsProvider @Inject() (config: Configuration) extends Provider[Langs] {
+
+  def availables: Seq[Lang] = {
     val langs = config.getOptional[String]("application.langs") map { langsStr =>
       Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
       langsStr.split(",").map(_.trim).toSeq
@@ -166,7 +172,7 @@ class DefaultLangs @Inject() (config: Configuration) extends Langs {
     }
   }
 
-  def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
-    availables.find(_.satisfies(lang))
-  }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
+  lazy val get: Langs = {
+    new DefaultLangs(availables)
+  }
 }

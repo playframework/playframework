@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
 
 import play.api.{ Configuration, Environment }
 import play.api.http.HttpConfiguration
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
+import play.api.i18n._
 import play.api.libs.typedmap.{ TypedEntry, TypedKey }
 import play.api.mvc._
 import play.core.Execution.Implicits.trampoline
@@ -129,9 +129,9 @@ trait JavaHelpers {
    * @return an instance of JavaContextComponents with default messagesApi and langs.
    */
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
-    val langs = new DefaultLangs(configuration)
-    val messagesApi = new DefaultMessagesApi(env, configuration, langs)
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+    val langs = new DefaultLangsProvider(configuration).get
+    val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
     createContextComponents(messagesApi, langs, httpConfiguration)
   }
 

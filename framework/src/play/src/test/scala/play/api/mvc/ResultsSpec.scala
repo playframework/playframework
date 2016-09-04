@@ -14,10 +14,10 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
-import play.api.http.{ FlashConfiguration, SessionConfiguration }
+import play.api.http.{ FlashConfiguration, HttpConfiguration, SessionConfiguration }
 import play.api.http.Status._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.api.{ Configuration, Environment, Play }
+import play.api.i18n._
+import play.api.{ Application, Configuration, Environment, Play }
 import play.core.test._
 
 import scala.concurrent.Await
@@ -155,9 +155,9 @@ class ResultsSpec extends Specification {
         Some(Set(preferencesCookie, sessionCookie)))
     }
 
-    "support clearing a language cookie using clearingLang" in withApplication {
-      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
-      val cookie = Cookies.decodeSetCookieHeader(bake { Ok.clearingLang }.header.headers("Set-Cookie")).head
+    "support clearing a language cookie using clearingLang" in withApplication { app: Application =>
+      implicit val messagesApi = app.injector.instanceOf[MessagesApi]
+      val cookie = Cookies.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""
     }

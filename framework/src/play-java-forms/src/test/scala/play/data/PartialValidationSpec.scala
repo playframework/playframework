@@ -3,18 +3,20 @@
  */
 package play.data
 
-import validation.Constraints.{ MaxLength, Required }
-import beans.BeanProperty
-import org.specs2.mutable.Specification
-import scala.collection.JavaConverters._
-import play.api.{ Configuration, Environment }
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.data.format.Formatters
 import javax.validation.Validation
+
+import org.specs2.mutable.Specification
+import play.api.i18n._
+import play.data.format.Formatters
+import play.data.validation.Constraints.{ MaxLength, Required }
+
+import scala.beans.BeanProperty
+import scala.collection.JavaConverters._
 
 class PartialValidationSpec extends Specification {
 
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+  val messagesApi = new DefaultMessagesApi()
+
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), Validation.buildDefaultValidatorFactory().getValidator())
 
