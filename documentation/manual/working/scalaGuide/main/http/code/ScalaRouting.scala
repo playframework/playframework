@@ -72,6 +72,20 @@ package defaultvalue.controllers {
   }
 }
 
+package defaultcontroller.controllers {
+  import _root_.controllers.{Default => PlayDefault}
+
+  class Default extends Controller {
+
+    def redirect(to: String) = PlayDefault.redirect(to)
+    def notFound = PlayDefault.notFound
+    def error = PlayDefault.error
+    def todo = PlayDefault.todo
+
+  }
+
+}
+
 // #reverse-controller
 // ###replace: package controllers
 package reverse.controllers {
@@ -120,6 +134,12 @@ object ScalaRoutingSpec extends Specification {
       contentOf(FakeRequest("GET", "/clients"), classOf[defaultvalue.Routes]) must_== "clients page 1"
       contentOf(FakeRequest("GET", "/clients?page=2"), classOf[defaultvalue.Routes]) must_== "clients page 2"
     }
+    "support invoking Default controller actions" in {
+      statusOf(FakeRequest("GET", "/about"), classOf[defaultcontroller.Routes]) must_== SEE_OTHER
+      statusOf(FakeRequest("GET", "/orders"), classOf[defaultcontroller.Routes]) must_== NOT_FOUND
+      statusOf(FakeRequest("GET", "/clients"), classOf[defaultcontroller.Routes]) must_== INTERNAL_SERVER_ERROR
+      statusOf(FakeRequest("GET", "/posts"), classOf[defaultcontroller.Routes]) must_== NOT_IMPLEMENTED
+    }
     "support optional values for parameters" in {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version None"
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version Some(3.0)"
@@ -143,6 +163,19 @@ object ScalaRoutingSpec extends Specification {
     running() { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
       contentAsString {
+        val routedHandler = app.injector.instanceOf(router).routes(rh)
+        val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
+        terminalHandler match {
+          case e: EssentialAction => e(rh2).run()
+        }
+      }
+    }
+  }
+
+  def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+    running() { app =>
+      implicit val mat = ActorMaterializer()(app.actorSystem)
+      status {
         val routedHandler = app.injector.instanceOf(router).routes(rh)
         val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
         terminalHandler match {
