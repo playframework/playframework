@@ -6,25 +6,24 @@ package play.core.server.netty
 import java.net.{ InetSocketAddress, URI }
 import java.security.cert.X509Certificate
 import java.time.Instant
-import javax.net.ssl.SSLEngine
-import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.{ SSLEngine, SSLPeerUnverifiedException }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
+import com.netaporter.uri.Uri
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
-import io.netty.handler.codec.http.{ QueryStringDecoder => _, _ }
+import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
-import play.api.http._
 import play.api.http.HeaderNames._
-import play.api.libs.typedmap.TypedMap
+import play.api.http._
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 
@@ -32,28 +31,12 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
 
   private val logger = Logger(classOf[NettyModelConversion])
 
-  private def pathError(uri: String): String = {
+  def pathError(uri: String): String = {
     // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
     // path, and don't decode.
     val withoutHost = uri.dropWhile(_ != '/')
     val withoutQueryString = withoutHost.split('?').head
     if (withoutQueryString.isEmpty) "/" else withoutQueryString
-  }
-
-  private def parseUri(rawUri: String): (String, Map[String, Seq[String]]) = {
-    // wrapping into URI to handle absoluteURI and Failures
-    val javaUri = new URI(rawUri)
-    val path = Option(javaUri.getRawPath).getOrElse {
-      // if the URI has no path, this will trigger a 400 error
-      throw new IllegalStateException(s"Cannot parse path from URI: ${pathError(rawUri)}")
-    }
-    val decoder = new QueryStringDecoder(javaUri)
-    val parameters: Map[String, Seq[String]] = {
-      val decodedParameters = decoder.parameters()
-      if (decodedParameters.isEmpty) Map.empty
-      else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
-    }
-    (path, parameters)
   }
 
   /**
@@ -75,16 +58,22 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
 
   /** Try to create the request. May fail if the path is invalid */
   private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
+
     Try {
-      val (path, parameters) = parseUri(request.getUri)
-      createRequestHeader(request, requestId, path, parameters, remoteAddress, sslHandler)
+      // Calling URI to grab any failures
+      val rawURI = Option(new URI(request.getUri)).getOrElse {
+        // if the URI has no path, this will trigger a 400 error
+        throw new IllegalStateException(s"Cannot parse path from URI: ${pathError(request.getUri)}")
+      }
+      val uri = Uri(rawURI)
+      createRequestHeader(request, requestId, uri.path, uri.query.paramMap, remoteAddress, sslHandler, uri)
     }
   }
 
   /** Create the request header */
   private def createRequestHeader(request: HttpRequest, requestId: Long, parsedPath: String,
     parameters: Map[String, Seq[String]], _remoteAddress: InetSocketAddress,
-    sslHandler: Option[SslHandler]): RequestHeader = {
+    sslHandler: Option[SslHandler], uri: Uri): RequestHeader = {
 
     new RequestHeader with WithAttrMap[RequestHeader] {
       override val id = requestId
@@ -103,12 +92,14 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
       override protected def attrMap = TypedMap.empty
       override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
+      // Appends the scala uri to the request
     }
   }
 
   /** Create an unparsed request header. Used when even Netty couldn't parse the request. */
   def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]) = {
-
+    // Scala URI won't yield a error
+    val scalaUri = Uri.parse(request.getUri)
     new RequestHeader with WithAttrMap[RequestHeader] {
       override def id = requestId
       override def tags = Map.empty[String, String]
@@ -116,21 +107,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override lazy val path = pathError(request.getUri)
       override def method = request.getMethod.name()
       override def version = request.getProtocolVersion.text()
-      override lazy val queryString: Map[String, Seq[String]] = {
-        // Very rough parse of query string that doesn't decode
-        if (request.getUri.contains("?")) {
-          request.getUri.split("\\?", 2)(1).split('&').map { keyPair =>
-            keyPair.split("=", 2) match {
-              case Array(key) => key -> ""
-              case Array(key, value) => key -> value
-            }
-          }.groupBy(_._1).map {
-            case (name, values) => name -> values.map(_._2).toSeq
-          }
-        } else {
-          Map.empty
-        }
-      }
+      override lazy val queryString: Map[String, Seq[String]] = scalaUri.query.paramMap
       override val headers = new NettyHeadersWrapper(request.headers)
       override def remoteAddress = _remoteAddress.getAddress.toString
       override def secure = sslHandler.isDefined

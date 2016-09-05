@@ -1,1 +1,3 @@
 Migration26:Migration Guide
+JPAMigration26:JPA Migration Guide
+WSMigration26:WS Migration Guide

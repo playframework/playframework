@@ -30,7 +30,7 @@ object HttpBinApplication {
     def writes(r: RequestHeader): JsValue = Json.obj(
       "origin" -> r.remoteAddress,
       "url" -> "",
-      "args" -> r.queryString.mapValues(_.head),
+      "args" -> r.queryString.mapValues(_.headOption.getOrElse("")),
       "headers" -> r.headers.toSimpleMap
     )
   }

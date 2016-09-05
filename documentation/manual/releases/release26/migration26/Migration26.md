@@ -7,6 +7,12 @@ This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate 
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
 
+## Uri Parsing
+
+Play now uses scala-uri to parse underlying URI's. This comes with some breaking changes.
+
+A Query String of `?foo` now yields a `Map(foo -> Nil)` instead of a `Map(foo -> Buffer(""))`.
+
 ## Scala ActionBuilder and BodyParser changes:
 
 The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
@@ -31,6 +37,10 @@ This trait makes `Action` and `parse` refer to injected instances rather than th
 ## JPA Migration Notes
 
 See [[JPAMigration26]].
+
+## WS Migration Notes
+
+See [[WSMigration26]].
 
 ## Removed Crypto API
 
