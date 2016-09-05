@@ -17,6 +17,8 @@ import java.time.{
 import java.time.format.DateTimeFormatter
 import play.api.data.validation.ValidationError
 
+case class Ipsum(id: Long, value: Either[String, Ipsum])
+
 class ReadsSpec extends org.specs2.mutable.Specification {
 
   title("JSON Reads")
@@ -445,22 +447,4 @@ class ReadsSpec extends org.specs2.mutable.Specification {
       }
     }
   }
-
-  "Macro" should {
-    "generate Reads for simple case class" in {
-      Json.reads[Foo].reads(Json.obj("bar" -> "lorem")).get must_== Foo("lorem")
-    }
-
-    "generate Formats for a generic case class" in {
-      val fmt = Json.format[Lorem[Double]]
-
-      fmt.reads(Json.obj("ipsum" -> 0.123D, "age" -> 1)).get must_== Lorem(
-        0.123D, 1)
-    }
-  }
-
-  // ---
-
-  case class Foo(bar: String)
-  case class Lorem[T](ipsum: T, age: Int)
 }

@@ -102,7 +102,7 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
 /**
  * Default Serializers.
  */
-trait DefaultWrites {
+trait DefaultWrites extends LowPriorityWrites {
   import scala.language.implicitConversions
 
   /**
@@ -187,13 +187,6 @@ trait DefaultWrites {
    */
   implicit def mapWrites[V: Writes]: OWrites[Map[String, V]] = OWrites[Map[String, V]] { ts =>
     JsObject(ts.mapValues(toJson(_)).toSeq)
-  }
-
-  /**
-   * Serializer for Traversables types.
-   */
-  implicit def traversableWrites[A: Writes] = Writes[Traversable[A]] { as =>
-    JsArray(as.map(toJson(_)).toSeq)
   }
 
   /**
@@ -433,4 +426,14 @@ trait DefaultWrites {
       case x => JsString(x.toString)
     }
   }
+}
+
+sealed trait LowPriorityWrites {
+  /**
+   * Serializer for Traversables types.
+   */
+  implicit def traversableWrites[A: Writes] = Writes[Traversable[A]] { as =>
+    JsArray(as.map(toJson(_)).toSeq)
+  } // Avoid resolution ambiguity with more specific Traversable Writes,
+  // such as OWrites.map
 }

@@ -33,8 +33,8 @@ object JsonNaming {
    * as is for its column (e.g. fooBar -> fooBar).
    */
   object Identity extends JsonNaming {
-
-    override def apply(property: String): String = property
+    def apply(property: String): String = property
+    override val toString = "Identity"
   }
 
   /**
@@ -42,7 +42,6 @@ object JsonNaming {
    * to name its column (e.g. fooBar -> foo_bar).
    */
   object SnakeCase extends JsonNaming {
-
     def apply(property: String): String = {
       val length = property.length
       val result = new StringBuilder(length * 2)
@@ -71,11 +70,11 @@ object JsonNaming {
       result.toString()
     }
 
-    /** Naming using a custom transformation function. */
-    def apply(transformation: String => String): JsonNaming =
-      new JsonNaming {
-        def apply(property: String): String = transformation(property)
-      }
+    override val toString = "SnakeCase"
   }
 
+  /** Naming using a custom transformation function. */
+  def apply(transformation: String => String): JsonNaming = new JsonNaming {
+    def apply(property: String): String = transformation(property)
+  }
 }
