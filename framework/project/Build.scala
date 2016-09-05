@@ -51,7 +51,8 @@ object BuildSettings {
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
-      Resolver.typesafeIvyRepo("releases")
+      Resolver.typesafeIvyRepo("releases"),
+      "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
     ),
     fork in Test := true,
     parallelExecution in Test := false,
