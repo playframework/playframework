@@ -8,7 +8,7 @@ import play.api.test._
 
 import play.api._
 import play.api.mvc._
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages, MessagesApi}
+import play.api.i18n._
 
 @RunWith(classOf[JUnitRunner])
 class ScalaI18nSpec extends PlaySpecification with Controller {
@@ -36,7 +36,7 @@ class ScalaI18nSpec extends PlaySpecification with Controller {
   }
 
   val conf = Configuration.reference ++ Configuration.from(Map("play.i18n.path" -> "scalaguide/i18n"))
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf))
+  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, new DefaultLangsProvider(conf).get).get
 
   new MyController(messagesApi)
 

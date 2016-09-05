@@ -9,7 +9,9 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
 import javax.inject.Singleton
+
 import play.api.http._
+import play.api.i18n.MessagesApi
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.ActorSystemProvider
@@ -236,10 +238,12 @@ trait BuiltInComponents {
 
   def router: Router
 
+  lazy val systemFilters: SystemFilters = new DefaultSystemFilters(new MessagesApiSystemFilter(injector))
+
   lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, systemFilters, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
   lazy val httpFilters: Seq[EssentialFilter] = Nil

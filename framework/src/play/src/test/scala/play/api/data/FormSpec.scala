@@ -7,7 +7,7 @@ import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.data.format.Formats._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.i18n._
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
 
@@ -268,7 +268,11 @@ class FormSpec extends Specification {
   }
 
   "correctly lookup error messages when using errorsAsJson" in {
-    val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+    val messagesApi: MessagesApi = {
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      new DefaultMessagesApiProvider(Environment.simple(), config, langs).get
+    }
     implicit val messages = messagesApi.preferred(Seq.empty)
 
     val form = Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)

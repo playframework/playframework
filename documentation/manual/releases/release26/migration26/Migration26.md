@@ -317,3 +317,47 @@ class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionCon
 ```
 
 Please see [[ThreadPools]] page for more information on custom execution contexts.
+
+### MessagesApi / i18n changes
+
+There are a number of changes to MessagesApi.
+
+### Providers for MessagesApi and Langs
+
+The configuration loading behavior `DefaultMessagesApi` and `DefaultLangs` classes have been broken apart so that the configuration and loading of messages and languages are done by `DefaultMessagesApiProvider` and `DefaultLangsProvider`, respectively.  These providers implement `javax.inject.Provider` and so can be safely used in JSR-330. 
+
+If you want to load messages from configuration in an integration test, you can add the following to code:
+
+```scala
+val conf = Configuration.reference
+val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, new DefaultLangsProvider(conf).get).get
+```
+
+But now, if you want to use a `MessagesApi` instance without going through configuration, you can create an instance of `DefaultMessagesApi` directly, or leave it empty:
+
+```scala 
+val messagesApi = new DefaultMessagesApi() // defaults to Seq.empty
+val langs: Langs = DefaultLangs() // defaults to Lang.defaultLang
+```
+
+This is especially useful in situations where a `MessagesApi` instance is required, but no error message needs to be handled in the test. 
+
+#### DefaultHttpRequestHandler takes SystemFilters
+
+There is an extra argument `SystemFilters` in `DefaultHttpRequestHandler` now -- if you are extending `DefaultHttpRequestHandler` or `JavaCompatibleHttpRequestHandler` then you will need to add this argument in your constructor.
+
+```scala
+class DefaultHttpRequestHandler(router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    systemFilters: SystemFilters,
+    filters: EssentialFilter*) extends HttpRequestHandler
+```
+
+For compile time dependency injection, the `BuiltinComponents` also supplies a `systemFilters` lazy val, so the `DefaultHttpRequestHandler` constructor should be as follows:
+
+```scala
+lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, systemFilters, httpFilters: _*)
+```
+
+The `SystemFilters` instance is internal to Play's API, and is automatically injected by the system.  You should not need to alter or touch system filters -- it is there to ensure that Play's internal filters are always run before any filters in user space.
