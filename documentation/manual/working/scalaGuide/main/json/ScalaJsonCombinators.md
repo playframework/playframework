@@ -67,9 +67,9 @@ The `JsValue.validate` method was introduced in [[JSON basics|ScalaJson]] as the
 Default validation for `Reads` is minimal, such as checking for type conversion errors. You can define custom validation rules by using `Reads` validation helpers. Here are some that are commonly used: 
 
 - `Reads.email` - Validates a String has email format.  
-- `Reads.minLength(nb)` - Validates the minimum length of a String.
-- `Reads.min` - Validates a minimum numeric value.
-- `Reads.max` - Validates a maximum numeric value.
+- `Reads.minLength(nb)` - Validates the minimum length of a collection or String.
+- `Reads.min` - Validates a minimum value.
+- `Reads.max` - Validates a maximum value.
 - `Reads[A] keepAnd Reads[B] => Reads[A]` - Operator that tries `Reads[A]` and `Reads[B]` but only keeps the result of `Reads[A]` (For those who know Scala parser combinators `keepAnd == <~` ).
 - `Reads[A] andKeep Reads[B] => Reads[B]` - Operator that tries `Reads[A]` and `Reads[B]` but only keeps the result of `Reads[B]` (For those who know Scala parser combinators `andKeep == ~>` ).
 - `Reads[A] or Reads[B] => Reads` - Operator that performs a logical OR and keeps the result of the last `Reads` checked.

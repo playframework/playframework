@@ -4,7 +4,6 @@
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
-import Json._
 
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
@@ -103,18 +102,18 @@ trait ConstraintReads {
   def map[A](implicit reads: Reads[A]): Reads[collection.immutable.Map[String, A]] = Reads.mapReads[A]
 
   /**
-   * Defines a minimum value for a numeric Reads. Combine with `max` using `or`, e.g.
-   * `.read(Reads.min(0) or Reads.max(100))`.
+   * Defines a minimum value for a Reads. Combine with `max` using `andKeep`, e.g.
+   * `.read(Reads.min(0) andKeep Reads.max(100))`.
    */
-  def min[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
-    filterNot[N](ValidationError("error.min", m))(num.lt(_, m))(reads)
+  def min[O](m: O)(implicit reads: Reads[O], ord: Ordering[O]) =
+    filterNot[O](ValidationError("error.min", m))(ord.lt(_, m))(reads)
 
   /**
-   * Defines a maximum value for a numeric Reads. Combine with `min` using `or`, e.g.
-   * `.read(Reads.min(0.1) or Reads.max(1.0))`.
+   * Defines a maximum value for a Reads. Combine with `min` using `andKeep`, e.g.
+   * `.read(Reads.min(0.1) andKeep Reads.max(1.0))`.
    */
-  def max[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
-    filterNot[N](ValidationError("error.max", m))(num.gt(_, m))(reads)
+  def max[O](m: O)(implicit reads: Reads[O], ord: Ordering[O]) =
+    filterNot[O](ValidationError("error.max", m))(ord.gt(_, m))(reads)
 
   def filterNot[A](error: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
     Reads[A](js => reads.reads(js).filterNot(JsError(error))(p))

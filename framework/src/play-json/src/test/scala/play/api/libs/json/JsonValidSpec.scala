@@ -6,8 +6,6 @@ package play.api.libs.json
 import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
-import scala.util.control.Exception._
-import java.text.ParseException
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 
@@ -277,7 +275,7 @@ class JsonValidSpec extends Specification {
       val bobby = User("bobby", 54)
 
       implicit val userFormats = {
-        import Format.path._; import Format.constraints._
+        import Format.constraints._
         (
           (__ \ "name").rw(Reads.minLength[String](5), of[String])
           and
@@ -392,29 +390,15 @@ class JsonValidSpec extends Specification {
       js.validate(reads1 andThen reads2).get must beEqualTo(345 -> "beta")
     }
 
-    "Apply min/max correctly on any numeric type" in {
-      case class Numbers(i: Int, l: Long, f: Float, d: Double, bd: BigDecimal)
+    "Apply min/max correctly on ordered types" in {
+      val format = Reads.min(1) andKeep Reads.max(3)
 
-      implicit val numbersFormat = (
-        (__ \ 'i).format[Int](Reads.min(5) andKeep Reads.max(100)) and
-        (__ \ 'l).format[Long](Reads.min(5L) andKeep Reads.max(100L)) and
-        (__ \ 'f).format[Float](Reads.min(13.0F) andKeep Reads.max(14.0F)) and
-        (__ \ 'd).format[Double](Reads.min(0.1) andKeep Reads.max(1.0)) and
-        (__ \ 'bd).format[BigDecimal](Reads.min(BigDecimal(5)) andKeep Reads.max(BigDecimal(100)))
-      )(Numbers.apply _, unlift(Numbers.unapply))
-
-      val ok = Numbers(42, 55L, 13.5F, 0.3, BigDecimal(33.5))
-      val fail = Numbers(42, 55L, 10.5F, 1.3, BigDecimal(33.5))
-      val jsOk = Json.toJson(ok)
-      val jsFail = Json.toJson(fail)
-
-      jsOk.validate[Numbers] must equalTo(JsSuccess(ok))
-      jsFail.validate[Numbers] must equalTo(
-        JsError((__ \ 'f), ValidationError("error.min", 13.0F)) ++
-          JsError((__ \ 'd), ValidationError("error.max", 1.0))
-      )
+      JsNumber(0).validate(format) must equalTo(JsError(__, ValidationError("error.min", 1)))
+      JsNumber(1).validate(format) must equalTo(JsSuccess(1, __))
+      JsNumber(2).validate(format) must equalTo(JsSuccess(2, __))
+      JsNumber(3).validate(format) must equalTo(JsSuccess(3, __))
+      JsNumber(4).validate(format) must equalTo(JsError(__, ValidationError("error.max", 3)))
     }
-
   }
 
   "JSON generators" should {
@@ -620,7 +604,6 @@ class JsonValidSpec extends Specification {
     }
 
     "recursive writes" in {
-      import Writes.constraints._
 
       case class User(id: Long, name: String, friend: Option[User] = None)
 
@@ -641,8 +624,6 @@ class JsonValidSpec extends Specification {
     }
 
     "recursive formats" in {
-      import Format.constraints._
-
       case class User(id: Long, name: String, friend: Option[User] = None)
 
       implicit lazy val UserFormats: Format[User] = (
