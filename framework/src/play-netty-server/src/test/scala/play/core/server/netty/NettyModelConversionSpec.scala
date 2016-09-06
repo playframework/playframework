@@ -19,12 +19,17 @@ class NettyModelConversionSpec extends Specification {
     "successfully parse a uri with special characters" in {
       val (path, query) = modelConversion.parseUri("/projects/1234/users/18620538586%20%7C%20上海/characteristic?hello=海")
       path must_== "/projects/1234/users/18620538586%20%7C%20上海/characteristic"
-      query must_== Map("hello" -> List("海"))
+      query must_== Map("hello" -> Seq("海"))
     }
 
     "parse all query params correctly" in {
       val (_, query) = modelConversion.parseUri("/?filter=a=b,c")
-      query must_== Map("filter" -> List("a=b", "c"))
+      query must havePair("filter" -> Seq("a=b", "c"))
+    }
+
+    "work against a empty query" in {
+      val (_, query) = modelConversion.parseUri("?a")
+      query must havePair("a" -> Seq(""))
     }
 
     "throw a URISyntaxException if it contains whitespace" in {

@@ -48,7 +48,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     val parameters: Map[String, Seq[String]] = {
       val decodedParameters = decoder.parameters()
       if (decodedParameters.isEmpty) Map.empty
-      else decodedParameters.asScala.mapValues(_.asScala).toMap
+      else decodedParameters.asScala.mapValues(_.asScala.mkString.split(",").toList).toMap
     }
     (path, parameters)
   }
