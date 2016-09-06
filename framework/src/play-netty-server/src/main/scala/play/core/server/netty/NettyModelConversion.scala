@@ -3,10 +3,9 @@
  */
 package play.core.server.netty
 
-import java.net.{ URI, InetSocketAddress }
+import java.net.{ InetSocketAddress, URI }
 import java.security.cert.X509Certificate
-import javax.net.ssl.SSLEngine
-import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.{ SSLEngine, SSLPeerUnverifiedException }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
@@ -17,10 +16,10 @@ import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
-import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http._
 import play.api.mvc._
-import play.core.server.common.{ ConnectionInfo, ServerResultUtils, ForwardedHeaderHandler }
+import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -29,6 +28,30 @@ import scala.util.{ Failure, Try }
 private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
 
   private val logger = Logger(classOf[NettyModelConversion])
+
+  def pathError(uri: String): String = {
+    // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
+    // path, and don't decode.
+    val withoutHost = uri.dropWhile(_ != '/')
+    val withoutQueryString = withoutHost.split('?').head
+    if (withoutQueryString.isEmpty) "/" else withoutQueryString
+  }
+
+  def parseUri(rawUri: String): (String, Map[String, Seq[String]]) = {
+    // wrapping into URI to handle absoluteURI and Failures
+    val javaUri = new URI(rawUri)
+    val path = Option(javaUri.getRawPath).getOrElse {
+      // if the URI has no path, this will trigger a 400 error
+      throw new IllegalStateException(s"Cannot parse path from URI: ${pathError(rawUri)}")
+    }
+    val decoder = new QueryStringDecoder(javaUri)
+    val parameters: Map[String, Seq[String]] = {
+      val decodedParameters = decoder.parameters()
+      if (decodedParameters.isEmpty) Map.empty
+      else decodedParameters.asScala.mapValues(_.asScala).toMap
+    }
+    (path, parameters)
+  }
 
   /**
    * Convert a Netty request to a Play RequestHeader.
@@ -51,18 +74,8 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
   private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
 
     Try {
-      val uri = new QueryStringDecoder(request.getUri)
-      val parameters: Map[String, Seq[String]] = {
-        val decodedParameters = uri.parameters()
-        if (decodedParameters.isEmpty) Map.empty else {
-          decodedParameters.asScala.mapValues(_.asScala).toMap
-        }
-      }
-      // wrapping into URI to handle absoluteURI
-      val path = Option(new URI(uri.path).getRawPath).getOrElse {
-        // if the URI has no path, this will trigger a 400 error
-        throw new IllegalStateException(s"Cannot parse path from URI: ${uri.path}")
-      }
+      val (path, parameters) = parseUri(request.getUri)
+
       createRequestHeader(request, requestId, path, parameters, remoteAddress, sslHandler)
     }
   }
@@ -97,13 +110,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       override def id = requestId
       override def tags = Map.empty[String, String]
       override def uri = request.getUri
-      override lazy val path = {
-        // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
-        // path, and don't decode.
-        val withoutHost = request.getUri.dropWhile(_ != '/')
-        val withoutQueryString = withoutHost.split('?').head
-        if (withoutQueryString.isEmpty) "/" else withoutQueryString
-      }
+      override lazy val path = pathError(request.getUri)
       override def method = request.getMethod.name()
       override def version = request.getProtocolVersion.text()
       override lazy val queryString: Map[String, Seq[String]] = {
