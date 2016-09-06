@@ -8,10 +8,11 @@ import java.util.Optional
 
 import org.specs2.mutable.Specification
 import play.mvc.Http.{ Context, Request, RequestBuilder }
+
 import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
 import play.api.{ Configuration, Environment }
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, LangsProvider, MessagesApiProvider }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.data.FormFactory
@@ -22,7 +23,9 @@ import javax.validation.Validation
 
 class FormSpec extends Specification {
 
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+  val langs = new LangsProvider(Configuration.reference).get
+  val messagesApi = new MessagesApiProvider(Environment.simple(), Configuration.reference, langs).get
+
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), Validation.buildDefaultValidatorFactory().getValidator())
 

@@ -18,16 +18,16 @@ class CompileTimeDependencyInjection extends Specification {
       val context = ApplicationLoader.createContext(environment,
         Map("play.application.loader" -> classOf[basic.MyApplicationLoader].getName)
       )
-      val components = new messages.MyComponents(context)
+      val components = new wscomponent.MyComponents(context)
       val application = ApplicationLoader(context).load(context)
       application must beAnInstanceOf[Application]
       components.router.documentation must beEmpty
     }
     "allow using other components" in {
       val context = ApplicationLoader.createContext(environment)
-      val components = new messages.MyComponents(context)
+      val components = new wscomponent.MyComponents(context)
       components.application must beAnInstanceOf[Application]
-      components.myComponent must beAnInstanceOf[messages.MyComponent]
+      components.myComponent must beAnInstanceOf[wscomponent.MyComponent]
     }
     "allow declaring a custom router" in {
       val context = ApplicationLoader.createContext(environment)
@@ -70,26 +70,26 @@ class MyApplicationLoaderWithInitialization extends ApplicationLoader {
 
 }
 
-package messages {
+package wscomponent {
 
 import play.api._
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
 
-//#messages
-import play.api.i18n._
+//#wscomponent
+import play.api.libs.ws._
+import play.api.libs.ws.ahc._
 
-class MyComponents(context: Context) extends BuiltInComponentsFromContext(context)
-                                     with I18nComponents {
+class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) with AhcWSComponents {
   lazy val router = Router.empty
 
-  lazy val myComponent = new MyComponent(messagesApi)
+  lazy val myComponent = new MyComponent(wsClient)
 }
 
-class MyComponent(messages: MessagesApi) {
+class MyComponent(ws: WSClient) {
   // ...
 }
-//#messages
+//#wscomponent
 
 }
 

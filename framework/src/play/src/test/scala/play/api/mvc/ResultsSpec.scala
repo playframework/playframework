@@ -15,7 +15,7 @@ import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.i18n._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.{ Configuration, Environment, Play }
 import play.core.test._
@@ -146,7 +146,8 @@ class ResultsSpec extends Specification {
     }
 
     "support clearing a language cookie using clearingLang" in withApplication {
-      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+      val langs = new LangsProvider(Configuration.reference).get
+      implicit val messagesApi = new MessagesApiProvider(Environment.simple(), Configuration.reference, langs).get
       val cookie = Cookies.decodeSetCookieHeader(Ok.clearingLang.header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""
