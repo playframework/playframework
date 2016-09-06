@@ -19,6 +19,8 @@ class JsonValidSpec extends Specification {
       JsNumber(123.5).validate[Float] must equalTo(JsSuccess(123.5))
       JsNumber(123456789123456.56).validate[Double] must equalTo(JsSuccess(123456789123456.56))
       JsBoolean(true).validate[Boolean] must equalTo(JsSuccess(true))
+      JsBoolean.JsTrue.validate[Boolean] must equalTo(JsSuccess(true))
+      JsBoolean.JsFalse.validate[Boolean] must equalTo(JsSuccess(false))
       JsString("123456789123456.56").validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(123456789123456.56)))
       JsNumber(123456789123456.56).validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(123456789123456.567891234)))
       JsNumber(123456789.56).validate[java.math.BigDecimal] must equalTo(JsSuccess(new java.math.BigDecimal("123456789.56")))

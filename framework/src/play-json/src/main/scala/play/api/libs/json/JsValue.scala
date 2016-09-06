@@ -36,6 +36,14 @@ case object JsNull extends JsValue
 case class JsBoolean(value: Boolean) extends JsValue
 
 /**
+ * JS Boolean creation helper.
+ */
+object JsBoolean {
+  val JsTrue = JsBoolean(true)
+  val JsFalse = JsBoolean(false)
+}
+
+/**
  * Represent a Json number value.
  */
 case class JsNumber(value: BigDecimal) extends JsValue
