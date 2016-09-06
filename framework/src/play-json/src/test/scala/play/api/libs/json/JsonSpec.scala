@@ -308,6 +308,12 @@ class JsonSpec extends org.specs2.mutable.Specification {
       jsonString must_== "0.001234"
     }
 
+    "Write BigDecimals with integer base" in {
+      val n = BigDecimal("2e128")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "2E+128"
+    }
+
     "Not lose precision when parsing big integers" in {
       // By big integers, we just mean integers that overflow long, since Jackson has different code paths for them
       // from decimals
