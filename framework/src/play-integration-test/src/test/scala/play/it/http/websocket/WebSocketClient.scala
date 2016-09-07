@@ -168,9 +168,9 @@ object WebSocketClient {
       val captureClientClose = Flow[WebSocketFrame].via(new GraphStage[FlowShape[WebSocketFrame, WebSocketFrame]] {
         val in = Inlet[WebSocketFrame]("WebSocketFrame.in")
         val out = Outlet[WebSocketFrame]("WebSocketFrame.out")
-        override def shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
-        override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
-          override def onPush(): Unit = {
+        val shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
+        def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
+          def onPush(): Unit = {
             grab(in) match {
               case close: CloseWebSocketFrame =>
                 clientInitiatedClose.set(true)
@@ -179,10 +179,9 @@ object WebSocketClient {
             }
           }
 
-          override def onPull(): Unit = pull(in)
+          def onPull(): Unit = pull(in)
 
-          setHandler(in, this)
-          setHandler(out, this)
+          setHandlers(in, out, this)
         }
       })
 
@@ -229,9 +228,9 @@ object WebSocketClient {
           val in = Inlet[WebSocketFrame]("WebSocketFrame.in")
           val out = Outlet[WebSocketFrame]("WebSocketFrame.out")
 
-          override def shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
-          override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
-            override def onPush(): Unit = {
+          val shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
+          def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
+            def onPush(): Unit = {
               push(out, grab(in))
             }
 
@@ -250,10 +249,9 @@ object WebSocketClient {
               }
             }
 
-            override def onPull(): Unit = pull(in)
+            def onPull(): Unit = pull(in)
 
-            setHandler(in, this)
-            setHandler(out, this)
+            setHandlers(in, out, this)
           }
         })
 
