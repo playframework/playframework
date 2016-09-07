@@ -173,9 +173,8 @@ object WebSocketClient {
           override def onPush(): Unit = {
             grab(in) match {
               case close: CloseWebSocketFrame =>
-                // First push the close frame, than initiate the close
-                push(out, close)
                 clientInitiatedClose.set(true)
+                push(out, close)
               case other => push(out, other)
             }
           }
@@ -242,8 +241,13 @@ object WebSocketClient {
             }
 
             override def onUpstreamFailure(cause: Throwable): Unit = {
-              disconnected.tryFailure(cause)
-              fail(out, cause)
+              if (serverInitiatedClose.get()) {
+                disconnected.trySuccess(())
+                completeStage()
+              } else {
+                disconnected.tryFailure(cause)
+                fail(out, cause)
+              }
             }
 
             override def onPull(): Unit = pull(in)
