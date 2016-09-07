@@ -6,12 +6,8 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.Done
 import akka.actor.{ Actor, Props, Status }
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ws.WebSocketRequest
 import akka.stream.scaladsl._
-import akka.http.scaladsl.model.{ws => akkaws}
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
 import play.api.Application
@@ -95,10 +91,10 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
 }
 
 trait WebSocketSpec extends PlaySpecification
-  with WsTestClient
-  with ServerIntegrationSpecification
-  with WebSocketSpecMethods
-  with PingWebSocketSpec {
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with WebSocketSpecMethods
+    with PingWebSocketSpec {
 
   sequential
 
@@ -297,7 +293,7 @@ trait WebSocketSpec extends PlaySpecification
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
         statusCode =>
-          import app.materializer
+
           WebSocket.acceptOrResult[String, String] { req =>
             Future.successful(Left(Results.Status(statusCode)))
           }
@@ -307,7 +303,7 @@ trait WebSocketSpec extends PlaySpecification
 
     "allow handling a WebSocket in java" in {
 
-      import java.util.{List => JList}
+      import java.util.{ List => JList }
 
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
@@ -347,7 +343,6 @@ trait WebSocketSpec extends PlaySpecification
 
   }
 }
-
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
