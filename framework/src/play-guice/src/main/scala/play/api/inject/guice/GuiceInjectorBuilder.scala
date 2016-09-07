@@ -4,13 +4,13 @@
 package play.api.inject
 package guice
 
-import com.google.inject.util.{Modules => GuiceModules, Providers => GuiceProviders}
-import com.google.inject.{Binder, CreationException, Guice, Provider, Stage, Module => GuiceModule}
+import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
+import com.google.inject.{ Binder, CreationException, Guice, Provider, Stage, Module => GuiceModule }
 import java.io.File
 import javax.inject.Inject
 
-import play.api.inject.{Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule}
-import play.api.{Configuration, Environment, Mode, PlayException}
+import play.api.inject.{ Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule }
+import play.api.{ Configuration, Environment, Mode, PlayException }
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
@@ -368,7 +368,7 @@ trait GuiceableModuleConversions {
             case ProviderConstructionTarget(provider) => builder.toProvider(provider)
             case ConstructionTarget(implementation) => builder.to(implementation)
             case BindingKeyTarget(key) => builder.to(GuiceKey(key))
-            case ft@FunctionTarget(_, _) => builder.toProvider(functionProvider(ft))
+            case ft @ FunctionTarget(_, _) => builder.toProvider(functionProvider(ft))
           }
           (binding.scope, binding.eager) match {
             case (Some(scope), false) => builder.in(scope)
