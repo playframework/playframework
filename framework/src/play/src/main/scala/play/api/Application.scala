@@ -4,11 +4,13 @@
 package play.api
 
 import java.io._
+import java.time.Clock
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
 import javax.inject.Singleton
+
 import play.api.http._
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
@@ -253,9 +255,9 @@ trait BuiltInComponents {
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
 
-  lazy val cookieSigner: CookieSigner = new CookieSignerProvider(cryptoConfig).get
+  lazy val cookieSigner: CookieSigner = new HMACSHA1CookieSigner(cryptoConfig)
 
-  lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
+  lazy val csrfTokenSigner: CSRFTokenSigner = new DefaultCSRFTokenSigner(cookieSigner, Clock.systemUTC())
 
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
 }

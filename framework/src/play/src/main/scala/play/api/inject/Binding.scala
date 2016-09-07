@@ -228,6 +228,14 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    */
   def toSelf: Binding[T] = Binding(this, None, None, false, SourceLocator.source)
 
+  def toFunction[T1: ClassTag, R <: T: ClassTag](f: T1 => R): Binding[T] =
+    toFunction(implicitly[ClassTag[T1]].runtimeClass.asInstanceOf[Class[T1]])(f)
+  def toFunction[T1, R <: T](c1: Class[_ <: T1])(f: T1 => R): Binding[T] =
+    toFunction(BindingKey(c1))(f)
+  def toFunction[T1, R <: T](k1: BindingKey[T1])(f: T1 => R): Binding[T] =
+    Binding(this, Some(FunctionTarget(Seq(k1), { case Seq(a1) => f(a1.asInstanceOf[T1]) })), None, false, SourceLocator.source)
+
+
   override def toString = {
     s"$clazz${qualifier.fold("")(" qualified with " + _)}"
   }
@@ -267,6 +275,10 @@ final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends Bi
  * A binding target that is provided by another key - essentially an alias.
  */
 final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTarget[T]
+
+final case class FunctionTarget[T](
+    argBindings: Seq[BindingKey[_]],
+    function: Seq[_] => T) extends BindingTarget[T]
 
 /**
  * A qualifier annotation.

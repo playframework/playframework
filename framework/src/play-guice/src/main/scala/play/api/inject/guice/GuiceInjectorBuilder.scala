@@ -4,12 +4,14 @@
 package play.api.inject
 package guice
 
-import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
-import com.google.inject.{ Module => GuiceModule, Binder, Stage, CreationException, Guice }
+import com.google.inject.util.{Modules => GuiceModules, Providers => GuiceProviders}
+import com.google.inject.{Binder, CreationException, Guice, Provider, Stage, Module => GuiceModule}
 import java.io.File
 import javax.inject.Inject
-import play.api.inject.{ Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule }
-import play.api.{ Configuration, Environment, Mode, PlayException }
+
+import play.api.inject.{Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule}
+import play.api.{Configuration, Environment, Mode, PlayException}
+
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
@@ -344,11 +346,29 @@ trait GuiceableModuleConversions {
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
           val builder = binder().withSource(binding).bind(GuiceKey(binding.key))
+
+          // Create a Provider for a FunctionTarget. Using a local method to help
+          // link the FunctionTarget's type parameter to the Provider's type
+          // parameter.
+          def functionProvider[T](ft: FunctionTarget[T]): Provider[T] = {
+            // Get providers for each argument
+            val argProviders: Seq[Provider[_]] = ft.argBindings.map(b => binder.getProvider(GuiceKey(b)))
+            new Provider[T] {
+              override def get(): T = {
+                // Ask the providers for the concrete values for the arguments
+                val args: Seq[_] = argProviders.map(_.get)
+                // Evaluate the function with the arguments
+                ft.function(args)
+              }
+            }
+          }
+
           binding.target.foreach {
             case ProviderTarget(provider) => builder.toProvider(GuiceProviders.guicify(provider))
             case ProviderConstructionTarget(provider) => builder.toProvider(provider)
             case ConstructionTarget(implementation) => builder.to(implementation)
             case BindingKeyTarget(key) => builder.to(GuiceKey(key))
+            case ft@FunctionTarget(_, _) => builder.toProvider(functionProvider(ft))
           }
           (binding.scope, binding.eager) match {
             case (Some(scope), false) => builder.in(scope)
