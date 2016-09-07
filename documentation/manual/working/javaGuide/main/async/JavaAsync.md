@@ -31,7 +31,7 @@ A simple way to execute a block of code asynchronously and to get a `CompletionS
 
 Using `supplyAsync` creates a new task which will be placed on the fork join pool, and may be called from a different thread -- although, here it's using the default executor, and in practice you will specify an executor explicitly.
 
-> Only the "*Async" methods from `CompletionStage` provide asynchronous execution. 
+> Only the "\*Async" methods from `CompletionStage` provide asynchronous execution.
 
 ## Using HttpExecutionContext
 
@@ -60,7 +60,7 @@ You will need to define a custom dispatcher in `application.conf`, which is done
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpExection.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
 
 @[async-explicit-ec](code/javaguide/async/controllers/Application.java)
-     
+
 > You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
 
 ## Actions are asynchronous by default

@@ -257,8 +257,7 @@ If you used any of the `Router.Tags.*` tags, you should change your code to use 
 The attribute contains a `HandlerDef` object that contains all the information that is currently in the tags. The relationship between a `HandlerDef` object and its tags is as follows:
 
 ```scala
-RoutePattern -> han
-dlerDef.path
+RoutePattern -> handlerDef.path
 RouteVerb -> handlerDef.verb
 RouteController -> handlerDef.controller
 RouteActionMethod -> handlerDef.method
