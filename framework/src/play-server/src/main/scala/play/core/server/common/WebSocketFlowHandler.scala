@@ -180,9 +180,11 @@ object WebSocketFlowHandler {
 
                       // This is a client initiated close, so send back
                       if (isAvailable(remoteOut)) {
-                        // We can send, send immediately then terminate the connection
+                        // We can send the close frame
                         push(remoteOut, close)
-                        completeStage()
+                        // And complete both remote out and remote in
+                        complete(remoteOut)
+                        cancel(appIn)
                       } else {
                         // Store so we can send later
                         state = ClientInitiatedClose(close)

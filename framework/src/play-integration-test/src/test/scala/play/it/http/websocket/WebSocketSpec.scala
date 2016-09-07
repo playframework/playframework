@@ -6,23 +6,27 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{Status, Actor, Props}
+import akka.Done
+import akka.actor.{ Actor, Props, Status }
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.ws.WebSocketRequest
 import akka.stream.scaladsl._
+import akka.http.scaladsl.model.{ws => akkaws}
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.{Handler, Results, WebSocket}
+import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.test._
 import play.core.routing.HandlerDef
 import play.it._
-import play.it.http.websocket.WebSocketClient.{ContinuationMessage, ExtendedMessage, SimpleMessage}
+import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.reflect.ClassTag
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
@@ -63,12 +67,13 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
           CloseMessage(1000)
         ).via(flow).runWith(consumeFrames)
       }
+
       frames must contain(exactly(
         pongFrame(be_==("hello")),
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
   "not respond to pongs" in {
     withServer(app => WebSocket.accept[String, String] { req =>
@@ -85,7 +90,7 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
 }
 
