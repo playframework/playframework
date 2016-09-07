@@ -228,11 +228,11 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    */
   def toSelf: Binding[T] = Binding(this, None, None, false, SourceLocator.source)
 
-  def toFunction[T1: ClassTag, R <: T: ClassTag](f: T1 => R): Binding[T] =
+  def toFunction[T1: ClassTag](f: T1 => T): Binding[T] =
     toFunction(implicitly[ClassTag[T1]].runtimeClass.asInstanceOf[Class[T1]])(f)
-  def toFunction[T1, R <: T](c1: Class[_ <: T1])(f: T1 => R): Binding[T] =
+  def toFunction[T1](c1: Class[_ <: T1])(f: T1 => T): Binding[T] =
     toFunction(BindingKey(c1))(f)
-  def toFunction[T1, R <: T](k1: BindingKey[T1])(f: T1 => R): Binding[T] =
+  def toFunction[T1](k1: BindingKey[T1])(f: T1 => T): Binding[T] =
     Binding(this, Some(FunctionTarget(Seq(k1), { case Seq(a1) => f(a1.asInstanceOf[T1]) })), None, false, SourceLocator.source)
 
 
