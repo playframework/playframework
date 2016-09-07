@@ -6,7 +6,7 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{Status, Actor, Props}
+import akka.actor.{ Actor, Props, Status }
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import org.specs2.matcher.Matcher
@@ -14,15 +14,15 @@ import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.{Handler, Results, WebSocket}
+import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.test._
 import play.core.routing.HandlerDef
 import play.it._
-import play.it.http.websocket.WebSocketClient.{ContinuationMessage, ExtendedMessage, SimpleMessage}
+import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.reflect.ClassTag
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
@@ -63,12 +63,13 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
           CloseMessage(1000)
         ).via(flow).runWith(consumeFrames)
       }
+
       frames must contain(exactly(
         pongFrame(be_==("hello")),
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
   "not respond to pongs" in {
     withServer(app => WebSocket.accept[String, String] { req =>
@@ -85,15 +86,15 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIn
         closeFrame()
       ))
     }
-  }.skipUntilNettyHttpFixed
+  }
 
 }
 
 trait WebSocketSpec extends PlaySpecification
-  with WsTestClient
-  with ServerIntegrationSpecification
-  with WebSocketSpecMethods
-  with PingWebSocketSpec {
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with WebSocketSpecMethods
+    with PingWebSocketSpec {
 
   sequential
 
@@ -292,7 +293,7 @@ trait WebSocketSpec extends PlaySpecification
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
         statusCode =>
-          import app.materializer
+
           WebSocket.acceptOrResult[String, String] { req =>
             Future.successful(Left(Results.Status(statusCode)))
           }
@@ -302,7 +303,7 @@ trait WebSocketSpec extends PlaySpecification
 
     "allow handling a WebSocket in java" in {
 
-      import java.util.{List => JList}
+      import java.util.{ List => JList }
 
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
@@ -342,7 +343,6 @@ trait WebSocketSpec extends PlaySpecification
 
   }
 }
-
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
