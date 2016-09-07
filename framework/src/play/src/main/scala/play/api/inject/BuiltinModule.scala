@@ -37,7 +37,7 @@ class BuiltinModule extends Module {
       bind[Environment] to env,
       bind[ConfigurationProvider].to(new ConfigurationProvider(configuration)),
       bind[Configuration].toProvider[ConfigurationProvider],
-      bind[Config].toFunction((c: Configuration) => c.underlying),
+      bind[Config].toProvider[ConfigProvider],
       bind[HttpConfiguration].toFunction((c: Configuration) => HttpConfiguration.fromConfiguration(c)),
 
       // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
@@ -73,6 +73,10 @@ class BuiltinModule extends Module {
 // This allows us to access the original configuration via this
 // provider while overriding the binding for Configuration itself.
 class ConfigurationProvider(val get: Configuration) extends Provider[Configuration]
+
+class ConfigProvider @Inject() (configuration: Configuration) extends Provider[Config] {
+  override def get() = configuration.underlying
+}
 
 @Singleton
 class RoutesProvider @Inject() (injector: Injector, environment: Environment, configuration: Configuration, httpConfig: HttpConfiguration) extends Provider[Router] {
