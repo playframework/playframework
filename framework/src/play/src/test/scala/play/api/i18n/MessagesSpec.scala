@@ -22,10 +22,13 @@ class MessagesSpec extends Specification {
       "foo" -> "foo francais"),
     "fr-CH" -> Map(
       "title" -> "Titre suisse"))
-  val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-    Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH"))))
-  ) {
-    override protected def loadAllMessages = testMessages
+  val api = {
+    val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+    val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
+    val langs = new LangsProvider(config).get
+    new MessagesApiProvider(env, config, langs) {
+      override def loadAllMessages = testMessages
+    }.get
   }
 
   def translate(msg: String, lang: String, reg: String): Option[String] = {
@@ -89,9 +92,10 @@ class MessagesSpec extends Specification {
     }
 
     "report error for invalid lang" in {
-      new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-        Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language"))))
-      ) must throwA[PlayException]
+      {
+        val langs = new LangsProvider(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))).get
+        val messagesApi = new MessagesApiProvider(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev), Configuration.reference, langs).get
+      } must throwA[PlayException]
     }
   }
 
