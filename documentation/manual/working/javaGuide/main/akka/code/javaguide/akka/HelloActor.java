@@ -11,7 +11,9 @@ import javaguide.akka.HelloActorProtocol.*;
 
 public class HelloActor extends UntypedActor {
 
-    public static Props props = Props.create(HelloActor.class);
+    public static Props getProps() {
+        return Props.create(HelloActor.class);
+    }
 
     public void onReceive(Object msg) throws Exception {
         if (msg instanceof SayHello) {
