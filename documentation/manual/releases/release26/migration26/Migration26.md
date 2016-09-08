@@ -263,3 +263,57 @@ RouteController -> handlerDef.controller
 RouteActionMethod -> handlerDef.method
 RouteComments -> handlerDef.comments
 ```
+
+### Execution
+
+The `play.api.libs.concurrent.Execution` class has been deprecated, as it was using global mutable state under the hood to pull the "current" application's ExecutionContext.
+
+If you want to specify the implicit behavior that you had previously, then you should pass in the execution context implicitly in the constructor using [[dependency injection|ScalaDependencyInjection]]:
+
+```scala
+class MyController @Inject()(implicit ec: ExecutionContext) {
+
+}
+```
+
+or from BuiltInComponents if you are using [[compile time dependency injection|ScalaCompileTimeDependencyInjection]]:
+
+```scala
+class MyComponentsFromContext(context: ApplicationLoader.Context)
+  extends BuiltInComponentsFromContext(context) {
+  val myComponent: MyComponent = new MyComponent(executionContext)
+}
+```
+
+However, there are some good reasons why you may not want to import an execution context even in the general case.  In the general case, the application's execution context is good for rendering actions, and executing CPU-bound activities that do not involve blocking API calls or I/O activity.  If you are calling out to a database, or making network calls, then you may want to define your own custom execution context.
+
+The recommended way to create a custom execution context is through `CustomExecutionContext`, which uses the Akka dispatcher system ([java](http://doc.akka.io/docs/akka/current/java/dispatchers.html) / [scala](http://doc.akka.io/docs/akka/current/scala/dispatchers.html))  so that executors can be defined through configuration.
+
+To use your own execution context, extend the `CustomExecutionContext` abstract class with the full path to the dispatcher in the `application.conf` file:
+
+```scala
+import play.api.libs.concurrent.CustomExecutionContext
+
+class MyExecutionContext @Inject()(actorSystem: ActorSystem)
+ extends CustomExecutionContext(actorSystem, "my.dispatcher.name")
+```
+
+``` java
+import play.libs.concurrent.CustomExecutionContext;
+class MyExecutionContext extends CustomExecutionContext {
+   @Inject
+   public MyExecutionContext(ActorSystem actorSystem) {
+     super(actorSystem, "my.dispatcher.name");
+   }
+}
+```
+
+and then inject your custom execution context as appropriate:
+
+```scala
+class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionContext) {
+   // do things with custom execution context  
+}
+```
+
+Please see [[ThreadPools]] page for more information on custom execution contexts.

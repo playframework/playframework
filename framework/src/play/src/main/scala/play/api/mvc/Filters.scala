@@ -5,7 +5,6 @@ package play.api.mvc
 
 import akka.stream.Materializer
 import akka.util.ByteString
-import play.api._
 import play.api.libs.streams.Accumulator
 import scala.concurrent.{ Promise, Future }
 
@@ -45,9 +44,8 @@ trait Filter extends EssentialFilter {
   def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result]
 
   def apply(next: EssentialAction): EssentialAction = {
+    implicit val ec = mat.executionContext
     new EssentialAction {
-      import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
       def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
 
         // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)

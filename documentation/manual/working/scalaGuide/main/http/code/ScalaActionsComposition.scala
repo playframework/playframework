@@ -160,7 +160,6 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
 
       //#modify-result
       import play.api.mvc._
-      import play.api.libs.concurrent.Execution.Implicits._
 
       def addUaHeader[A](action: Action[A]) = Action.async(action.parser) { request =>
         action(request).map(_.withHeaders("X-UA-Compatible" -> "Chrome=1"))

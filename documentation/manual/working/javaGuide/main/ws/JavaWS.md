@@ -17,6 +17,8 @@ Now any controller or component that wants to use WS will have to add the follow
 
 @[ws-controller](code/javaguide/ws/Application.java)
 
+> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
+
 To build an HTTP request, you start with `ws.url()` to specify the URL.
 
 @[ws-holder](code/javaguide/ws/JavaWS.java)

@@ -3,6 +3,8 @@
  */
 package scalaguide.upload.fileupload {
 
+  import scala.concurrent.ExecutionContext
+
   import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.mvc._
   import play.api.test._
@@ -35,6 +37,7 @@ package scalaguide.upload.fileupload {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFileUploadSpec extends PlaySpecification with Controller {
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     "A scala file upload" should {
 
@@ -107,7 +110,8 @@ package scalaguide.upload.fileupload {
 
   }
   package controllers {
-    class Application extends Controller {
+
+    class Application(implicit ec: ExecutionContext) extends Controller {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>
@@ -129,11 +133,11 @@ package scalaguide.upload.fileupload {
           val attr = PosixFilePermissions.asFileAttribute(perms)
           val path = Files.createTempFile("multipartBody", "tempFile", attr)
           val file = path.toFile
-          val fileSink = FileIO.toFile(file)
+          val fileSink = FileIO.toPath(path)
           val accumulator = Accumulator(fileSink)
           accumulator.map { case IOResult(count, status) =>
             FilePart(partName, filename, contentType, file)
-          }(play.api.libs.concurrent.Execution.defaultContext)
+          }(ec)
       }
 
       def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>

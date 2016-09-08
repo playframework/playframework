@@ -17,6 +17,12 @@ A `Future[Result]` will eventually be redeemed with a value of type `Result`. By
 
 The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
 
+Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
+
+@[my-execution-context](code/ScalaAsync.scala)
+
+Please see [[ThreadPools]] for more information on using custom execution contexts effectively.
+
 ## How to create a `Future[Result]`
 
 To create a `Future[Result]` we need another future first: the future that will give us the actual value we need to compute the result:

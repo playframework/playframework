@@ -5,13 +5,12 @@ package scalaguide.async.scalaasync
 
 import javax.inject.Inject
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext}
 import akka.actor._
 import play.api._
 import play.api.mvc._
 
 import play.api.test._
-import akka.pattern.after
 
 class ScalaAsyncSpec extends PlaySpecification {
 
@@ -37,14 +36,29 @@ class ScalaAsyncSpec extends PlaySpecification {
   }
 }
 
-// If we want to show examples of importing the Play defaultContext, it can't be in a spec, since
-// Specification already defines a field called defaultContext, and this interferes with the implicits
-class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem) extends Controller {
+//#my-execution-context
+import play.api.libs.concurrent.CustomExecutionContext
+
+trait MyExecutionContext extends ExecutionContext
+
+class MyExecutionContextImpl @Inject()(system: ActorSystem)
+  extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
+
+class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends Controller {
+  def index = Action.async {
+    Future {
+      // Call some blocking API
+      Ok("result of blocking call")
+    }(myExecutionContext)
+  }
+}
+//#my-execution-context
+
+class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: ExecutionContext) extends Controller {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
     //#future-result
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
     val futureResult: Future[Result] = futurePIValue.map { pi =>
@@ -58,8 +72,6 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem) extends Co
 
   def intensiveComp = {
     //#intensive-computation
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
     val futureInt: Future[Int] = scala.concurrent.Future {
       intensiveComputation()
     }
@@ -70,8 +82,6 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem) extends Co
   def asyncResult = {
 
     //#async-result
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
     def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
       futureInt.map(i => Ok("Got result: " + i))
@@ -87,7 +97,6 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem) extends Co
       10
     }
     //#timeout
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
     import scala.concurrent.duration._
     import akka.pattern.after
 

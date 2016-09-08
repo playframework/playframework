@@ -5,28 +5,32 @@ package detailedtopics.httpec;
 
 //#http-execution-context
 import play.libs.concurrent.HttpExecutionContext;
-import play.libs.ws.WSClient;
 import play.mvc.*;
 
 import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class MyController extends Controller {
-    private HttpExecutionContext ec;
-    private WSClient ws;
+
+    private HttpExecutionContext httpExecutionContext;
 
     @Inject
-    public MyController(HttpExecutionContext ec, WSClient ws) {
-        this.ec = ec;
-        this.ws = ws;
+    public MyController(HttpExecutionContext ec) {
+        this.httpExecutionContext = ec;
     }
 
     public CompletionStage<Result> index() {
-        String checkUrl = request().getQueryString("url");
-        return ws.url(checkUrl).get().thenApplyAsync((response) -> {
-            session().put("lastStatus", Integer.toString(response.getStatus()));
-            return ok();
-        }, ec.current());
+        // Use a different task with explicit EC
+        return calculateResponse().thenApplyAsync(answer -> {
+            // uses Http.Context
+            ctx().flash().put("info", "Response updated!");
+            return ok("answer was " + answer);
+        }, httpExecutionContext.current());
+    }
+
+    private static CompletionStage<String> calculateResponse() {
+        return CompletableFuture.completedFuture("42");
     }
 }
 //#http-execution-context

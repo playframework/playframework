@@ -55,7 +55,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
       Server.withRouter()(routes) { implicit port =>
-        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }
@@ -64,7 +63,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       Server.withRouter() {
         case _ => handler
       } { implicit port =>
-        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }

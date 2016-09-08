@@ -736,7 +736,7 @@ trait BodyParsers {
       val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
       Accumulator(takeUpToFlow.toMat(accumulator.toSink) { (statusFuture, resultFuture) =>
         import play.core.Execution.Implicits.trampoline
-        val defaultCtx = play.api.libs.concurrent.Execution.Implicits.defaultContext
+        val defaultCtx = play.core.Execution.internalContext
 
         statusFuture.flatMap {
           case MaxSizeExceeded(_) =>

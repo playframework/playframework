@@ -5,7 +5,6 @@ package javaguide.testhelpers {
 
 import java.util.concurrent.{CompletionStage, CompletableFuture}
 
-import akka.stream.Materializer
 import play.api.mvc.{Action, Request}
 import play.core.j.{DefaultJavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultActionCreator
@@ -13,6 +12,7 @@ import play.mvc.{Controller, Http, Result}
 import play.api.http.HttpConfiguration
 import play.api.test.Helpers
 import java.lang.reflect.Method
+import akka.stream.Materializer
 
 abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   self =>

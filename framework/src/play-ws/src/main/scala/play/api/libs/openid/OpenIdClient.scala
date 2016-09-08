@@ -3,22 +3,21 @@
  */
 package play.api.libs.openid
 
-import javax.inject.{ Singleton, Inject }
+import javax.inject.{ Inject, Singleton }
 
-import play.api.{ Configuration, Environment, Application }
+import play.api.{ Application, Configuration, Environment }
 import play.api.inject.Module
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.Exception._
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
 import play.api.libs.ws._
 import java.net._
-import play.api.mvc.{ RequestHeader, Request }
-import xml.Node
 
-//TODO do not use Play's internal execution context in libs
-import play.core.Execution.Implicits.internalContext
+import play.api.mvc.{ Request, RequestHeader }
+
+import xml.Node
 
 case class OpenIDServer(protocolVersion: String, url: String, delegate: Option[String])
 
@@ -83,7 +82,7 @@ trait OpenIdClient {
 }
 
 @Singleton
-class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends OpenIdClient {
+class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext) extends OpenIdClient {
 
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
@@ -190,7 +189,7 @@ trait Discovery {
  *   * The Discovery doesn't support XRIs at the moment
  */
 @Singleton
-class WsDiscovery @Inject() (ws: WSClient) extends Discovery {
+class WsDiscovery @Inject() (ws: WSClient)(implicit ec: ExecutionContext) extends Discovery {
   import Discovery._
 
   case class UrlIdentifier(url: String) {
@@ -293,8 +292,9 @@ class OpenIDModule extends Module {
  */
 trait OpenIDComponents {
   def wsClient: WSClient
+  def executionContext: ExecutionContext
 
-  lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)
-  lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)
+  lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)(executionContext)
+  lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)(executionContext)
 }
 

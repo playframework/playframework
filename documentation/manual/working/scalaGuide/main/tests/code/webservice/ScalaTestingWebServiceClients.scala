@@ -6,12 +6,13 @@ package scalaguide.tests.webservice
 package client {
 //#client
 import javax.inject.Inject
-import play.api.libs.ws.WSClient
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.concurrent.Future
 
-class GitHubClient(ws: WSClient, baseUrl: String) {
-  @Inject def this(ws: WSClient) = this(ws, "https://api.github.com")
+import play.api.libs.ws.WSClient
+
+import scala.concurrent.{ExecutionContext, Future}
+
+class GitHubClient(ws: WSClient, baseUrl: String)(implicit ec: ExecutionContext) {
+  @Inject def this(ws: WSClient, ec: ExecutionContext) = this(ws, "https://api.github.com")(ec)
 
   def repositories(): Future[Seq[String]] = {
     ws.url(baseUrl + "/repositories").get().map { response =>
@@ -40,7 +41,8 @@ import scala.concurrent.duration._
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
-  class GitHubClientSpec extends Specification with NoTimeConversions {
+class GitHubClientSpec extends Specification with NoTimeConversions {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "GitHubClient" should {
     "get all repositories" in {
@@ -70,6 +72,7 @@ import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
 class ScalaTestingWebServiceClients extends Specification with NoTimeConversions {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "webservice testing" should {
     "allow mocking a service" in {

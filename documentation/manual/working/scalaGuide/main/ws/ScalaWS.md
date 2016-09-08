@@ -15,9 +15,11 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Now any controller or component that wants to use WS will have to declare a dependency on the `WSClient`:
+Now any component that wants to use WS will have to declare a dependency on the `WSClient`:
 
 @[dependency](code/ScalaWSSpec.scala)
+
+> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using `play.api.libs.concurrent.Timeout` and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 We've called the `WSClient` instance `ws`, all the following examples will assume this name.
 

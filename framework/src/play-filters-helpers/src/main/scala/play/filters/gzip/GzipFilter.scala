@@ -19,7 +19,6 @@ import play.core.j
 import scala.concurrent.Future
 import play.api.mvc.RequestHeader.acceptHeader
 import play.api.http.{ HttpChunk, HttpEntity, Status }
-import play.api.libs.concurrent.Execution.Implicits._
 import scala.compat.java8.FunctionConverters._
 
 /**
@@ -49,6 +48,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
     this(GzipFilterConfig(bufferSize, chunkedThreshold, shouldGzip))
 
   def apply(next: EssentialAction) = new EssentialAction {
+    implicit val ec = mat.executionContext
     def apply(request: RequestHeader) = {
       if (mayCompress(request)) {
         next(request).mapFuture(result => handleResult(request, result))
@@ -59,6 +59,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
   }
 
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
+    implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
       val header = result.header.copy(headers = setupHeader(result.header.headers))
 

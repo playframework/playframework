@@ -13,7 +13,6 @@ import play.api.libs.Codecs
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Results.NotModified
 import play.api.mvc._
-import play.core.Execution.Implicits.internalContext
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -121,6 +120,8 @@ final class CachedBuilder(
    * Compose the cache with an action
    */
   def build(action: EssentialAction): EssentialAction = EssentialAction { request =>
+    implicit val ec = materializer.executionContext
+
     val resultKey = key(request)
     val etagKey = s"$resultKey-etag"
 

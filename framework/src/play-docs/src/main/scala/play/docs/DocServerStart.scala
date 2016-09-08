@@ -13,8 +13,6 @@ import play.core.server._
 import scala.concurrent.Future
 import scala.util.Success
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 /**
  * Used to start the documentation server.
  */
@@ -35,7 +33,7 @@ class DocServerStart {
     Play.start(application)
 
     val applicationProvider = new ApplicationProvider {
-
+      implicit val ec = application.actorSystem.dispatcher
       override def get = Success(application)
       override def handleWebCommand(request: RequestHeader) =
         buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(

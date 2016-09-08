@@ -18,6 +18,7 @@ import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends Specification with Controller {
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     def helloRequest = FakeRequest("POST", "/").withJsonBody(Json.obj("name" -> "foo"))
 
@@ -134,7 +135,6 @@ import org.specs2.execute.AsResult
         //#csv
         import play.api.mvc._
         import play.api.libs.streams._
-        import play.api.libs.concurrent.Execution.Implicits.defaultContext
         import akka.util.ByteString
         import akka.stream.scaladsl._
 

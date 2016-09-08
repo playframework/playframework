@@ -4,7 +4,7 @@
 package play.core
 
 import java.util.concurrent.ForkJoinPool
-import play.api.{ Application, Play }
+import play.api.Play
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 /**
@@ -22,10 +22,7 @@ private[play] object Execution {
   def trampoline = play.api.libs.streams.Execution.trampoline
 
   object Implicits {
-
-    implicit def internalContext = Execution.internalContext
-    implicit def trampoline = play.api.libs.streams.Execution.trampoline
-
+    implicit def trampoline = Execution.trampoline
   }
 
   /**
