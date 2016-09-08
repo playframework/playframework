@@ -33,6 +33,23 @@ The simplest way to get such an implicit value is to use the `I18nSupport` trait
 
 The `I18nSupport` trait gives you an implicit `Messages` value as long as there is a `Lang` or a `RequestHeader` in the implicit scope.
 
+It adds two convenient methods to `Result`, `clearingLang` and `withLang(lang: Lang)`, which can be used to set the language. For example:
+
+```scala
+  def homePageInFrench = Action {
+    Redirect("/user/home").withLang("fr")
+  }
+  
+  def homePageWithDefaultLang = Action {
+    Redirect("/user/home").clearingLang
+  }
+}  
+```
+
+The `withLang` method sets the cookie named `PLAY_LANG` for future requests, while clearingLang discards the cookie, and Play will choose the language based on the client's Accept-Language header.
+
+The cookie name can be changed by changing the configuration parameter: `play.i18n.langCookieName`.
+
 > **Note:** If you have a `RequestHeader` in the implicit scope, it will use the preferred language extracted from the `Accept-Language` header and matching one of the `MessagesApi` supported languages. You should add a `Messages` implicit parameter to your template like this: `@()(implicit messages: Messages)`.
 
 > **Note:** Also, Play “knows” out of the box how to inject a `MessagesApi` value (that uses the `DefaultMessagesApi` implementation), so you can just annotate your controller with the `@javax.inject.Inject` annotation and let Play automatically wire the components for you.
