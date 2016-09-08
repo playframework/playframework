@@ -29,7 +29,7 @@ class JsonRichSpec extends Specification {
             "key13" -> JsNull
           )),
           "key2" -> JsNumber(123),
-          "key3" -> JsBoolean.JsTrue,
+          "key3" -> JsTrue,
           "key4" -> JsArray(Seq(
             JsString("value41"), JsNumber(345.6),
             JsString("test"), JsObject(Seq("key411" -> JsObject(Seq("key4111" -> JsNumber(987.654)))))

@@ -33,14 +33,24 @@ case object JsNull extends JsValue
 /**
  * Represent a Json boolean value.
  */
-case class JsBoolean(value: Boolean) extends JsValue
+sealed abstract class JsBoolean(val value: Boolean) extends JsValue
 
 /**
- * JS Boolean creation helper.
+ * Represents Json Boolean True value.
  */
+case object JsTrue extends JsBoolean(true)
+
+/**
+ * Represents Json Boolean False value.
+ */
+case object JsFalse extends JsBoolean(false)
+
 object JsBoolean {
-  val JsTrue = JsBoolean(true)
-  val JsFalse = JsBoolean(false)
+  def apply(value: Boolean) = value match {
+    case true => JsTrue
+    case false => JsFalse
+  }
+  def unapply(b: JsBoolean): Option[Boolean] = Some(b.value)
 }
 
 /**
