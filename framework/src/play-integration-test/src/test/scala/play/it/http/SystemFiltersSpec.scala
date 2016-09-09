@@ -9,7 +9,7 @@ import play.api.mvc._
 import play.api.test._
 import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
 
-import scala.concurrent.{ Await }
+import scala.concurrent.Await
 import scala.reflect.ClassTag
 
 class NettySystemFiltersSpec extends SystemFiltersSpec with NettyIntegrationSpecification

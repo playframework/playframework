@@ -320,29 +320,11 @@ Please see [[ThreadPools]] page for more information on custom execution context
 
 ### MessagesApi / i18n changes
 
-There are a number of changes to MessagesApi.
+There are a number of changes to MessagesApi and the `play.api.i18n` package.
 
-### Providers for MessagesApi and Langs
+Please see [[I18nMigration]] for more details.
 
-The configuration loading behavior `DefaultMessagesApi` and `DefaultLangs` classes have been broken apart so that the configuration and loading of messages and languages are done by `DefaultMessagesApiProvider` and `DefaultLangsProvider`, respectively.  These providers implement `javax.inject.Provider` and so can be safely used in JSR-330. 
-
-If you want to load messages from configuration in an integration test, you can add the following to code:
-
-```scala
-val conf = Configuration.reference
-val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, new DefaultLangsProvider(conf).get).get
-```
-
-But now, if you want to use a `MessagesApi` instance without going through configuration, you can create an instance of `DefaultMessagesApi` directly, or leave it empty:
-
-```scala 
-val messagesApi = new DefaultMessagesApi() // defaults to Seq.empty
-val langs: Langs = DefaultLangs() // defaults to Lang.defaultLang
-```
-
-This is especially useful in situations where a `MessagesApi` instance is required, but no error message needs to be handled in the test. 
-
-#### DefaultHttpRequestHandler takes SystemFilters
+### DefaultHttpRequestHandler takes SystemFilters
 
 There is an extra argument `SystemFilters` in `DefaultHttpRequestHandler` now -- if you are extending `DefaultHttpRequestHandler` or `JavaCompatibleHttpRequestHandler` then you will need to add this argument in your constructor.
 

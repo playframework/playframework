@@ -3,9 +3,10 @@
  */
 package play.api
 
+import play.api.i18n.I18nComponents
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -124,3 +125,10 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
 }
 
+/**
+ * Helper that extends BuiltInComponentsFromContext with I18nComponents.
+ */
+abstract class BuiltInAndI18nComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context) with I18nComponents {
+  // you can't call super.injector from a lazy val :-(
+  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs
+}

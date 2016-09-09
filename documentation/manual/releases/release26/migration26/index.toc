@@ -1,1 +1,4 @@
 Migration26:Migration Guide
+I18nMigration26:Internationalization (I18N) and Messages Migration
+JPAMigration26:JPA Migration
+WSMigration26:Play WS Migration
