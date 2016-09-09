@@ -259,7 +259,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   private[controllers] def digest(path: String): Option[String] = {
     digestCache.getOrElse(path, {
       val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
-      val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString)
+      val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
       if (!isDev && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
       maybeDigest
     })
