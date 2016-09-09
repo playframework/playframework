@@ -60,10 +60,11 @@ class BuiltinModule extends Module {
       bind[CookieSigner].toProvider[CookieSignerProvider],
       bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
 
-      bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
+      bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
+
+      bind[SystemFilters].to[DefaultSystemFilters]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
-        SystemFilters.bindingsFromConfiguration,
         HttpFilters.bindingsFromConfiguration,
         HttpRequestHandler.bindingsFromConfiguration,
         ActionCreator.bindingsFromConfiguration

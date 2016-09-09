@@ -21,30 +21,9 @@ trait SystemFilters {
   def filters: Seq[EssentialFilter]
 }
 
-private[play] trait JavaSystemFilters extends SystemFilters
-
-object SystemFilters {
-
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[SystemFilters, JavaSystemFilters, JavaSystemFiltersAdapter, JavaSystemFiltersDelegate, DefaultSystemFilters](environment, configuration, "play.http.systemfilters", "play.api.http.DefaultSystemFilters")
-  }
-
-  def apply(list: EssentialFilter*): SystemFilters = new SystemFilters {
-    override val filters: Seq[EssentialFilter] = list
-  }
+private[play] class DefaultSystemFilters @Inject() (messagesApiSystemFilter: MessagesApiSystemFilter) extends SystemFilters {
+  override val filters: Seq[EssentialFilter] = Seq(messagesApiSystemFilter)
 }
-
-abstract class AbstractSystemFilters(val filters: EssentialFilter*) extends SystemFilters
-
-private class NoSystemFilters @Inject() () extends AbstractSystemFilters
-
-private class JavaSystemFiltersAdapter @Inject() (underlying: JavaSystemFilters) extends AbstractSystemFilters(underlying.filters: _*)
-
-private class JavaSystemFiltersDelegate @Inject() (delegate: SystemFilters) extends JavaSystemFilters {
-  override def filters: Seq[EssentialFilter] = delegate.filters
-}
-
-private[play] class DefaultSystemFilters @Inject() (messagesApiSystemFilter: MessagesApiSystemFilter) extends AbstractSystemFilters(messagesApiSystemFilter)
 
 /**
  * Adds a request attribute to the request with the key [[RequestAttributes.MessagesApiAttr]]
@@ -55,14 +34,17 @@ private[play] class DefaultSystemFilters @Inject() (messagesApiSystemFilter: Mes
 @Singleton
 private[play] class MessagesApiSystemFilter @Inject() (injector: Injector)(override implicit val mat: Materializer) extends Filter {
 
-  private lazy val messagesApi = {
-    try {
-      injector.instanceOf[MessagesApi]
-    } catch {
-      case e: Exception =>
-        new DefaultMessagesApi()
-    }
+  private val inlineCache: (Injector => MessagesApi) = {
+    new play.utils.InlineCache((inj: Injector) =>
+      try {
+        inj.instanceOf[MessagesApi]
+      } catch {
+        case e: Exception =>
+          new DefaultMessagesApi()
+      })
   }
+
+  private val messagesApi: MessagesApi = inlineCache(injector)
 
   override def apply(f: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
     f(rh.withAttr(RequestAttributes.MessagesApiAttr, messagesApi))
