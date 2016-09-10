@@ -20,7 +20,7 @@ final class DBModule extends Module {
   def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val dbKey = configuration.underlying.getString("play.db.config")
     val default = configuration.underlying.getString("play.db.default")
-    val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
+    val dbs = configuration.getOptional[Configuration](dbKey).getOrElse(Configuration.empty).subKeys
     Seq(
       bind[DBApi].toProvider[DBApiProvider]
     ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
