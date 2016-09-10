@@ -5,14 +5,14 @@
 A `play.api.i18n.MessagesApi` instance is now pulled from dependency injection and is inserted into every request as a required request attribute, using a system filter.
 
 This means that a dependency injected `MessagesApi` instance is a requirement for executing requests.
- 
-## Adding MessagesApi to Runtime DI 
- 
+
+## Adding MessagesApi to Runtime DI
+
 Play's `reference.conf` defines `play.api.i18n.I18nModule` as an enabled module out of the box, and so for applications using runtime dependency injection, this should have no effect in development.
 
 ## Adding MessagesApi to Compile Time DI
 
-There may be issues for integration tests that override Guice modules or make use of compile time dependency injection and use `BuiltInComponents` or `BuiltInComponentsFromContext` directly, without mixing in `I18nComponents`.  
+There may be issues for integration tests that override Guice modules or make use of compile time dependency injection and use `BuiltInComponents` or `BuiltInComponentsFromContext` directly, without mixing in `I18nComponents`.
 
 Because `BuiltInComponentsFromContext` does not include a `MessagesApi`, there is a new class `BuiltInAndI18nComponentsFromContext` which mixes in `I18nComponents` and adds `MessagesApi` and `Lang` to the injector.
 

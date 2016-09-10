@@ -322,7 +322,7 @@ Please see [[ThreadPools]] page for more information on custom execution context
 
 There are a number of changes to MessagesApi and the `play.api.i18n` package.
 
-Please see [[I18nMigration]] for more details.
+Please see [[I18nMigration26]] for more details.
 
 ### DefaultHttpRequestHandler takes SystemFilters
 
