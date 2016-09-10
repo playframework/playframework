@@ -133,21 +133,12 @@ private[play] class MessagesApiSystemFilter @Inject() (injector: Injector, envir
   /**
    * Defines a fallback MessagesApi object in the case that one is not explicitly bound.
    *
-   * Set this using `-Dplay.i18n.fallback=true` or in application.conf if necessary.
+   * Set this using `-Dplay.i18n.fallback=true|false` or in application.conf as necessary.
    *
-   * @return true if in development mode, or if `play.i18n.fallback` is true, false otherwise.
+   * @return true if `play.i18n.fallback` is true, false otherwise.
    */
   private def useFallback: Boolean = {
-    val mode = environment.mode match {
-      case Mode.Dev =>
-        true
-      case Mode.Test =>
-        false
-      case Mode.Prod =>
-        false
-    }
-    val property = configuration.get[Boolean]("play.i18n.fallback")
-    mode || property
+    configuration.get[Boolean]("play.i18n.fallback")
   }
 
   /**
