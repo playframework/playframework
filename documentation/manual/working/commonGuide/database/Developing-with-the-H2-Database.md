@@ -66,7 +66,7 @@ db.default.url="jdbc:h2:mem:play;MODE=MYSQL"
 
 H2, by default, drops your in memory database if there are no connections to it anymore.  You probably don't want this to happen.  To prevent this add `DB_CLOSE_DELAY=-1` to the url (use a semicolon as a separator) eg: `jdbc:h2:mem:play;MODE=MYSQL;DB_CLOSE_DELAY=-1`
 
-> **Note:** Play's builtin jdbc Module will automatically add `DB_CLOSE_DELAY=-1`, however if you are using play-slick with evolutions you need to manually add `;DB_CLOSE_DELAY=-1` to your database url, else the evolution will be in a endless loop since the play application will restart after the evolutions are run, so that the applied evolutions will directly be lost.
+> **Note:** Play's builtin JDBC Module will automatically add `DB_CLOSE_DELAY=-1`, however if you are using play-slick with evolutions you need to manually add `;DB_CLOSE_DELAY=-1` to your database url, else the evolution will be in a endless loop since the play application will restart after the evolutions are run, so that the applied evolutions will directly be lost.
 
 ## Caveats
 
