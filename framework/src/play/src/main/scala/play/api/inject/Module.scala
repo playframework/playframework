@@ -96,8 +96,8 @@ object Modules {
    */
   def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
 
-    val includes = configuration.getStringSeq("play.modules.enabled").getOrElse(Seq.empty)
-    val excludes = configuration.getStringSeq("play.modules.disabled").getOrElse(Seq.empty)
+    val includes = configuration.getOptional[Seq[String]]("play.modules.enabled").getOrElse(Seq.empty)
+    val excludes = configuration.getOptional[Seq[String]]("play.modules.disabled").getOrElse(Seq.empty)
 
     val moduleClassNames = includes.toSet -- excludes
 

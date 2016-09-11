@@ -331,8 +331,8 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
    * Convert configuration sections of key-boolean pairs to a set of enabled keys.
    */
   def enabledKeys(configuration: Configuration, section: String): Set[String] = {
-    configuration.getConfig(section).fold(Set.empty[String]) { conf =>
-      conf.keys.filter(conf.getBoolean(_).getOrElse(false))
+    configuration.getOptional[Configuration](section).fold(Set.empty[String]) { conf =>
+      conf.keys.filter(conf.getOptional[Boolean](_).getOrElse(false))
     }
   }
 }
