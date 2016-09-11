@@ -5,6 +5,7 @@ package play.api.inject.guice
 
 import org.specs2.mutable.Specification
 import com.google.inject.AbstractModule
+import play.api.i18n.I18nModule
 import play.{Configuration => JavaConfiguration, Environment => JavaEnvironment}
 import play.api.{ApplicationLoader, Configuration, Environment}
 import play.api.inject.{BuiltinModule, DefaultApplicationLifecycle}
@@ -29,7 +30,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new ManualTestModule)
+      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new I18nModule, new ManualTestModule)
       val loader = new GuiceApplicationLoader(builder)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]

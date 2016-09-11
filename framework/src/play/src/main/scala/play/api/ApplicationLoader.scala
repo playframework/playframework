@@ -124,11 +124,3 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val configuration = context.initialConfiguration
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
 }
-
-/**
- * Helper that extends BuiltInComponentsFromContext with I18nComponents.
- */
-abstract class BuiltInAndI18nComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context) with I18nComponents {
-  // you can't call super.injector from a lazy val :-(
-  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs
-}
