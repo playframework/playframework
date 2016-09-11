@@ -238,7 +238,8 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val systemFilters: SystemFilters = new DefaultSystemFilters(new MessagesApiSystemFilter(injector, environment, configuration))
+  lazy val messagesApiSystemsFilter = new MessagesApiSystemFilterProvider(injector, environment, configuration).get
+  lazy val systemFilters: SystemFilters = new DefaultSystemFilters(messagesApiSystemsFilter)
 
   lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator
 

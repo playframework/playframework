@@ -62,6 +62,7 @@ class BuiltinModule extends Module {
 
       bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
 
+      bind[MessagesApiSystemFilter].toProvider[MessagesApiSystemFilterProvider],
       bind[SystemFilters].to[DefaultSystemFilters]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
