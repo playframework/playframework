@@ -48,6 +48,12 @@ class JavaRouting extends Specification {
       contentOf(FakeRequest("GET", "/clients"), classOf[defaultvalue.Routes]) must_== "clients page 1"
       contentOf(FakeRequest("GET", "/clients?page=2"), classOf[defaultvalue.Routes]) must_== "clients page 2"
     }
+    "support invoking Default controller actions" in {
+      statusOf(FakeRequest("GET", "/about"), classOf[defaultcontroller.Routes]) must_== SEE_OTHER
+      statusOf(FakeRequest("GET", "/orders"), classOf[defaultcontroller.Routes]) must_== NOT_FOUND
+      statusOf(FakeRequest("GET", "/clients"), classOf[defaultcontroller.Routes]) must_== INTERNAL_SERVER_ERROR
+      statusOf(FakeRequest("GET", "/posts"), classOf[defaultcontroller.Routes]) must_== NOT_IMPLEMENTED
+    }
     "support optional values for parameters" in {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version null"
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version 3.0"
@@ -71,6 +77,17 @@ class JavaRouting extends Specification {
       })
     }
   }
+
+
+  def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+    running(_.configure("play.http.router" -> router.getName)) { app =>
+      implicit val mat = ActorMaterializer()(app.actorSystem)
+      status(app.requestHandler.handlerForRequest(rh)._2 match {
+        case e: EssentialAction => e(rh).run()
+      })
+    }
+  }
+
 }
 
 package routing.query.controllers {
@@ -106,3 +123,6 @@ class Clients extends Controller {
 }
 }
 
+package routing.defaultcontroller.controllers {
+class Default extends _root_.controllers.Default
+}
