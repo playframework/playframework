@@ -20,7 +20,7 @@ import io.netty.util.ReferenceCountUtil
 import play.api.Logger
 import play.api.http.HeaderNames._
 import play.api.http._
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 

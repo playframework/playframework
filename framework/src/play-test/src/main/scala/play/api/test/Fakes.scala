@@ -8,6 +8,7 @@ import java.security.cert.X509Certificate
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.util.ByteString
+import com.netaporter.uri.Uri
 import play.api._
 import play.api.http._
 import play.api.inject._
@@ -68,16 +69,17 @@ case class FakeRequest[A](
     )
   }
 
+  private lazy val parsedUri = Uri.parse(uri)
+
   /**
    * The request path.
    */
-  lazy val path = uri.split('?').take(1).mkString
+  lazy val path = parsedUri.path
 
   /**
    * The request query String
    */
-  lazy val queryString: Map[String, Seq[String]] =
-    play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
+  lazy val queryString: Map[String, Seq[String]] = parsedUri.query.paramMap
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
