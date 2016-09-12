@@ -45,7 +45,7 @@ class Default @Inject() () extends Controller {
   }
 
   /**
-   * Returns a 302 Redirect response.
+   * Returns a 303 SeeOther response.
    *
    * Example:
    * {{{
