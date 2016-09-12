@@ -140,10 +140,10 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.39.Final"
+  val nettyVersion = "4.0.41.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.7",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64",
     logback % Test
   ) ++ specsBuild.map(_ % Test)
