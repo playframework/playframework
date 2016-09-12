@@ -124,15 +124,5 @@ class Clients extends Controller {
 }
 
 package routing.defaultcontroller.controllers {
-import play.api.mvc.Controller
-import _root_.controllers.{Default => PlayDefault}
-
-class Default extends Controller {
-
-  def redirect(to: String) = PlayDefault.redirect(to)
-  def notFound = PlayDefault.notFound
-  def error = PlayDefault.error
-  def todo = PlayDefault.todo
-
-}
+class Default extends _root_.controllers.Default
 }
