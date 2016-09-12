@@ -86,7 +86,10 @@ This is exactly the same `JsValue.validate(reads)`
 
 In the code samples below, we’ll use the following JSON:
 
-```json
+```scala
+import play.api.libs.json._
+val json = Json.parse(
+"""
 {
   "key1" : "value1",
   "key2" : {
@@ -100,6 +103,7 @@ In the code samples below, we’ll use the following JSON:
   },
   "key3" : 234
 }
+""")
 ```
 
 ## Case 1: Pick JSON value in JsPath
