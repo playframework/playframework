@@ -29,7 +29,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       val classLoader = new URLClassLoader(Array.empty)
       // #set-environment
       val application = new GuiceApplicationBuilder()
-        .load(new play.api.inject.BuiltinModule) // ###skip
+        .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule) // ###skip
         .loadConfig(Configuration.reference) // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
         .build
@@ -44,7 +44,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       val classLoader = new URLClassLoader(Array.empty)
       // #set-environment-values
       val application = new GuiceApplicationBuilder()
-        .load(new play.api.inject.BuiltinModule) // ###skip
+        .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule) // ###skip
         .loadConfig(Configuration.reference) // ###skip
         .in(new File("path/to/app"))
         .in(Mode.Test)
