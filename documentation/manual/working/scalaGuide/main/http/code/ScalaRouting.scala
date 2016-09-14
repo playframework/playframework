@@ -11,6 +11,8 @@ import play.api.test.Helpers._
 import play.api.test._
 import play.api.routing.Router
 
+import scala.annotation.tailrec
+
 package controllers {
 
   object Client {
@@ -149,6 +151,31 @@ object ScalaRoutingSpec extends Specification {
 
   }
 
+  trait Stage extends Handler {
+    def apply(requestHeader: RequestHeader): (RequestHeader, Handler)
+  }
+
+  @tailrec
+  private def applyStages(requestHeader: RequestHeader, handler: Handler): (RequestHeader, Handler) = handler match {
+    case m: Stage =>
+      // Call the ModifyRequest logic to get the new header and handler. The
+      // new handler could have its own modifications to apply to the header
+      // so we call `applyPreprocessingHandlers` recursively on the result.
+      val (newRequestHeader, newHandler) = m.apply(requestHeader)
+      applyStages(newRequestHeader, newHandler)
+    case t: RequestTaggingHandler =>
+      // Call the RequestTaggingHandler logic on this request. This handler
+      // will change the request header, but not the handler itself. Since the
+      // handler hasn't been changed we don't need to call
+      // `applyAllModifications` again. This means RequestTaggingHandlers can
+      // only be one level deep; they do not compose.
+      val newRequestHeader = t.tagRequest(requestHeader)
+      (newRequestHeader, handler)
+    case _ =>
+      // This is a normal handler that doesn't do any preprocessing.
+      (requestHeader, handler)
+  }
+
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running() { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
@@ -163,7 +190,7 @@ object ScalaRoutingSpec extends Specification {
       implicit val mat = ActorMaterializer()(app.actorSystem)
       status {
         val routedHandler = app.injector.instanceOf(router).routes(rh)
-        val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
+        val (rh2, terminalHandler) = applyStages(rh, routedHandler)
         terminalHandler match {
           case e: EssentialAction => e(rh2).run()
         }
