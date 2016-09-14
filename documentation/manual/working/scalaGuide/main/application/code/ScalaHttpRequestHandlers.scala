@@ -38,10 +38,10 @@ import play.api.http._
 import play.api.mvc.RequestHeader
 
 class VirtualHostRequestHandler @Inject() (errorHandler: HttpErrorHandler,
-    configuration: HttpConfiguration, filters: HttpFilters,
+    configuration: HttpConfiguration, systemFilters: SystemFilters, filters: HttpFilters,
     fooRouter: foo.Routes, barRouter: bar.Routes
   ) extends DefaultHttpRequestHandler(
-    fooRouter, errorHandler, configuration, filters
+    fooRouter, errorHandler, configuration, systemFilters, filters
   ) {
 
   override def routeRequest(request: RequestHeader) = {

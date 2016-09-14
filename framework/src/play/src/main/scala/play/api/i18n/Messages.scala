@@ -5,11 +5,11 @@ package play.api.i18n
 
 import java.net.URL
 import java.util.Locale
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api._
 import play.api.inject.Module
-import play.api.mvc.{ Cookie, DiscardingCookie, RequestHeader, Result, Session }
+import play.api.mvc._
 import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
@@ -155,9 +155,9 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject() (config: Configuration) extends Langs {
+class DefaultLangsProvider @Inject() (config: Configuration) extends Provider[Langs] {
 
-  val availables: Seq[Lang] = {
+  def availables: Seq[Lang] = {
     val langs = config.getOptional[String]("application.langs") map { langsStr =>
       Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
       langsStr.split(",").map(_.trim).toSeq
@@ -173,6 +173,13 @@ class DefaultLangs @Inject() (config: Configuration) extends Langs {
     }
   }
 
+  lazy val get: Langs = {
+    new DefaultLangs(availables)
+  }
+}
+
+@Singleton
+class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
   def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
     availables.find(_.satisfies(lang))
   }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
@@ -465,17 +472,67 @@ trait MessagesApi {
 
 }
 
+@Singleton
+class DefaultMessagesApiProvider @Inject() (environment: Environment, config: Configuration, langs: Langs) extends Provider[MessagesApi] {
+
+  def messagesPrefix = config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
+
+  def loadMessages(file: String): Map[String, String] = {
+    import scala.collection.JavaConverters._
+
+    environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
+      .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
+      .map { messageFile =>
+        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
+      }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+  }
+
+  def loadAllMessages: Map[String, Map[String, String]] = {
+    langs.availables.map(_.code).map { lang =>
+      (lang, loadMessages("messages." + lang))
+    }.toMap
+      .+("default" -> loadMessages("messages"))
+      .+("default.play" -> loadMessages("messages.default"))
+  }
+
+  def joinPaths(first: Option[String], second: String) = first match {
+    case Some(parent) => new java.io.File(parent, second).getPath
+    case None => second
+  }
+
+  def langCookieName =
+    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
+
+  def langCookieSecure =
+    config.get[Boolean]("play.i18n.langCookieSecure")
+
+  def langCookieHttpOnly =
+    config.get[Boolean]("play.i18n.langCookieHttpOnly")
+
+  override lazy val get: MessagesApi = {
+    new DefaultMessagesApi(
+      loadAllMessages,
+      langs,
+      langCookieName = langCookieName,
+      langCookieSecure = langCookieSecure,
+      langCookieHttpOnly = langCookieHttpOnly
+    )
+  }
+
+}
+
 /**
  * The internationalisation API.
  */
 @Singleton
-class DefaultMessagesApi @Inject() (environment: Environment, config: Configuration, langs: Langs) extends MessagesApi {
+class DefaultMessagesApi @Inject() (
+    val messages: Map[String, Map[String, String]] = Map.empty,
+    langs: Langs = new DefaultLangs(),
+    val langCookieName: String = "PLAY_LANG",
+    val langCookieSecure: Boolean = false,
+    val langCookieHttpOnly: Boolean = false) extends MessagesApi {
 
   import java.text._
-
-  protected val messagesPrefix =
-    config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
-  val messages: Map[String, Map[String, String]] = loadAllMessages
 
   def preferred(candidates: Seq[Lang]) = Messages(langs.preferred(candidates), this)
 
@@ -522,46 +579,13 @@ class DefaultMessagesApi @Inject() (environment: Environment, config: Configurat
       acc || messages.get(lang).exists(_.isDefinedAt(key))
     })
   }
-
-  private def joinPaths(first: Option[String], second: String) = first match {
-    case Some(parent) => new java.io.File(parent, second).getPath
-    case None => second
-  }
-
-  protected def loadMessages(file: String): Map[String, String] = {
-    import scala.collection.JavaConverters._
-
-    environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
-      .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
-      .map { messageFile =>
-        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
-      }.foldLeft(Map.empty[String, String]) { _ ++ _ }
-  }
-
-  protected def loadAllMessages: Map[String, Map[String, String]] = {
-    langs.availables.map(_.code).map { lang =>
-      (lang, loadMessages("messages." + lang))
-    }.toMap
-      .+("default" -> loadMessages("messages"))
-      .+("default.play" -> loadMessages("messages.default"))
-  }
-
-  lazy val langCookieName =
-    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
-
-  lazy val langCookieSecure =
-    config.get[Boolean]("play.i18n.langCookieSecure")
-
-  lazy val langCookieHttpOnly =
-    config.get[Boolean]("play.i18n.langCookieHttpOnly")
-
 }
 
 class I18nModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
-      bind[Langs].to[DefaultLangs],
-      bind[MessagesApi].to[DefaultMessagesApi]
+      bind[Langs].toProvider[DefaultLangsProvider],
+      bind[MessagesApi].toProvider[DefaultMessagesApiProvider]
     )
   }
 }
@@ -574,7 +598,6 @@ trait I18nComponents {
   def environment: Environment
   def configuration: Configuration
 
-  lazy val messagesApi: MessagesApi = new DefaultMessagesApi(environment, configuration, langs)
-  lazy val langs: Langs = new DefaultLangs(configuration)
-
+  lazy val messagesApi: MessagesApi = new DefaultMessagesApiProvider(environment, configuration, langs).get
+  lazy val langs: Langs = new DefaultLangsProvider(configuration).get
 }

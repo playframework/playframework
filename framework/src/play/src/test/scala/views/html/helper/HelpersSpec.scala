@@ -7,13 +7,16 @@ import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
+import play.api.i18n._
 import play.twirl.api.Html
+
 import scala.beans.BeanProperty
 
 class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+
+  val langs = new DefaultLangsProvider(Configuration.reference).get
+  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), Configuration.reference, langs).get
   implicit val messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {

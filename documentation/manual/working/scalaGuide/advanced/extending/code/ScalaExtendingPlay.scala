@@ -42,7 +42,7 @@ class MyModule extends play.api.inject.Module {
 class MyI18nModule extends play.api.inject.Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
-      bind[Langs].to[DefaultLangs],
+      bind[Langs].toProvider[DefaultLangsProvider],
       bind[MessagesApi].to[MyMessagesApi]
     )
   }

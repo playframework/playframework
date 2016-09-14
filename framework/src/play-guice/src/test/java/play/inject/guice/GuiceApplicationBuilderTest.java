@@ -91,10 +91,10 @@ public class GuiceApplicationBuilderTest {
     @Test
     public void setModuleLoader() {
         Injector injector = new GuiceApplicationBuilder()
-            .load((env, conf) -> ImmutableList.of(
-                Guiceable.modules(new play.api.inject.BuiltinModule()),
-                Guiceable.bindings(bind(A.class).to(A1.class))))
-            .injector();
+                .load((env, conf) -> ImmutableList.of(
+                    Guiceable.modules(new play.api.inject.BuiltinModule()),
+                    Guiceable.bindings(bind(A.class).to(A1.class))))
+                .injector();
 
         assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
     }
@@ -102,10 +102,10 @@ public class GuiceApplicationBuilderTest {
     @Test
     public void setLoadedModulesDirectly() {
         Injector injector = new GuiceApplicationBuilder()
-            .load(
-                Guiceable.modules(new play.api.inject.BuiltinModule()),
-                Guiceable.bindings(bind(A.class).to(A1.class)))
-            .injector();
+                .load(
+                    Guiceable.modules(new play.api.inject.BuiltinModule()),
+                    Guiceable.bindings(bind(A.class).to(A1.class)))
+                .injector();
 
         assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
     }

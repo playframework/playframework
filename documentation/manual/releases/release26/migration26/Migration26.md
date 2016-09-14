@@ -317,3 +317,29 @@ class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionCon
 ```
 
 Please see [[ThreadPools]] page for more information on custom execution contexts.
+
+### MessagesApi / i18n changes
+
+There are a number of changes to MessagesApi and the `play.api.i18n` package.
+
+Please see [[I18nMigration26]] for more details.
+
+### DefaultHttpRequestHandler takes SystemFilters
+
+There is an extra argument `SystemFilters` in `DefaultHttpRequestHandler` now -- if you are extending `DefaultHttpRequestHandler` or `JavaCompatibleHttpRequestHandler` then you will need to add this argument in your constructor.
+
+```scala
+class DefaultHttpRequestHandler(router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    systemFilters: SystemFilters,
+    filters: EssentialFilter*) extends HttpRequestHandler
+```
+
+For compile time dependency injection, the `BuiltinComponents` also supplies a `systemFilters` lazy val, so the `DefaultHttpRequestHandler` constructor should be as follows:
+
+```scala
+lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, systemFilters, httpFilters: _*)
+```
+
+The `SystemFilters` instance is internal to Play's API, and is automatically injected by the system.  You should not need to alter or touch system filters -- it is there to ensure that Play's internal filters are always run before any filters in user space.

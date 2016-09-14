@@ -14,8 +14,6 @@ import play.api.{ Configuration, Environment }
 import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
 
-import scala.annotation.tailrec
-
 /**
  * Primary entry point for all HTTP requests on Play applications.
  */
@@ -83,12 +81,15 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
  * is the default one, in order to provide support for Java actions.
  */
-class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
+class DefaultHttpRequestHandler(router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    systemFilters: SystemFilters,
     filters: EssentialFilter*) extends HttpRequestHandler {
 
   @Inject
-  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
-    this(router, errorHandler, configuration, filters.filters: _*)
+  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, systemFilters: SystemFilters, filters: HttpFilters) =
+    this(router, errorHandler, configuration, systemFilters, filters.filters: _*)
 
   private val context = configuration.context.stripSuffix("/")
 
@@ -173,7 +174,8 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
    * Apply filters to the given action.
    */
   protected def filterAction(next: EssentialAction): EssentialAction = {
-    filters.foldRight(next)(_ apply _)
+    val systemNext = systemFilters.filters.foldRight(next)(_ apply _)
+    filters.foldRight(systemNext)(_ apply _)
   }
 
   /**
@@ -203,9 +205,13 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
-class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(router,
-  errorHandler, configuration, filters.filters: _*) {
+class JavaCompatibleHttpRequestHandler @Inject() (router: Router,
+  errorHandler: HttpErrorHandler,
+  configuration: HttpConfiguration,
+  systemFilters: SystemFilters,
+  filters: HttpFilters,
+  components: JavaHandlerComponents) extends DefaultHttpRequestHandler(router,
+  errorHandler, configuration, systemFilters, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
   // another handler.
