@@ -54,7 +54,7 @@ object Dependencies {
     "org.hibernate" % "hibernate-entitymanager" % "5.1.0.Final" % "test"
   )
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0-RC7"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
     case _ => Nil
