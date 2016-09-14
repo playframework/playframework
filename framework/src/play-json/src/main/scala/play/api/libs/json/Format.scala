@@ -19,10 +19,7 @@ object OFormat {
   implicit def functionalCanBuildFormats(implicit rcb: FunctionalCanBuild[Reads], wcb: FunctionalCanBuild[OWrites]): FunctionalCanBuild[OFormat] = new FunctionalCanBuild[OFormat] {
 
     def apply[A, B](fa: OFormat[A], fb: OFormat[B]): OFormat[A ~ B] =
-      OFormat[A ~ B](
-        rcb(fa, fb),
-        wcb(fa, fb)
-      )
+      OFormat[A ~ B](rcb(fa, fb), wcb(fa, fb))
 
   }
 
@@ -63,13 +60,10 @@ object Format extends PathFormat with ConstraintFormat with DefaultFormat {
         Format(fa.map(f1), Writes(b => fa.writes(f2(b))))
     }
 
-  def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
-    new Format[A] {
-      def reads(json: JsValue) = fjs.reads(json)
-      def writes(o: A) = tjs.writes(o)
-    }
+  def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = new Format[A] {
+    def reads(json: JsValue) = fjs.reads(json)
+    def writes(o: A) = tjs.writes(o)
   }
-
 }
 
 /**

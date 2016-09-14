@@ -90,8 +90,9 @@ class ScalaJsonAutomatedSpec extends Specification {
       implicit val residentFormat = Json.format[Resident]
       //#auto-format
 
-      sampleJson.as[Resident] must_=== sampleData
-      Json.toJson(sampleData) must_=== sampleJson
+      sampleJson.as[Resident] must_=== sampleData and {
+        Json.toJson(sampleData) must_=== sampleJson
+      }
     }
 
     "produce a working Writes with SnakeCase" in {
@@ -100,7 +101,7 @@ class ScalaJsonAutomatedSpec extends Specification {
 
       implicit val config = JsonConfiguration(SnakeCase)
 
-      implicit val userWrites: Writes[PlayUser] = Json.writes[PlayUser]
+      implicit val userWrites: OWrites[PlayUser] = Json.writes[PlayUser]
       //#auto-naming-writes
 
       Json.toJson(sampleData2) must_=== sampleJson2
@@ -112,11 +113,12 @@ class ScalaJsonAutomatedSpec extends Specification {
 
       implicit val config = JsonConfiguration(SnakeCase)
 
-      implicit val userFormat: Format[PlayUser] = Json.format[PlayUser]
+      implicit val userFormat: OFormat[PlayUser] = Json.format[PlayUser]
       //#auto-naming-format
 
-      sampleJson2.as[PlayUser] must_=== sampleData2
-      Json.toJson(sampleData2) must_=== sampleJson2
+      sampleJson2.as[PlayUser] must_=== sampleData2 and {
+        Json.toJson(sampleData2) must_=== sampleJson2
+      }
     }
 
     "produce a working Reads with SnakeCase" in {
@@ -141,12 +143,12 @@ class ScalaJsonAutomatedSpec extends Specification {
 
       implicit val config = JsonConfiguration(Lightbend)
 
-      implicit val customWrites: Format[PlayUser] = Json.format[PlayUser]
+      implicit val customWrites: OFormat[PlayUser] = Json.format[PlayUser]
       //#auto-custom-naming-format
 
-      sampleJson3.as[PlayUser] must_=== sampleData2
-      Json.toJson(sampleData2) must_=== sampleJson3
+      sampleJson3.as[PlayUser] must_=== sampleData2 and {
+        Json.toJson(sampleData2) must_=== sampleJson3
+      }
     }
   }
-
 }

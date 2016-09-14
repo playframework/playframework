@@ -173,21 +173,5 @@ class WritesSpec extends org.specs2.mutable.Specification {
     }
   }
 
-  "Macro" should {
-    "generate Writes for simple case class" in {
-      Json.writes[Foo].writes(Foo("lorem")) must_== Json.obj("bar" -> "lorem")
-    }
-
-    "generate Formats for a generic case class" in {
-      val fmt = Json.format[Lorem[Float]]
-
-      fmt.writes(Lorem(2, 2.34F)) must_== Json.obj(
-        "value" -> 2, "ipsum" -> 2.34F)
-    }
-  }
-
-  // ---
-
   case class Foo(bar: String)
-  case class Lorem[A](value: Int, ipsum: A)
 }
