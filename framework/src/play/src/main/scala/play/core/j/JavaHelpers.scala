@@ -18,7 +18,7 @@ import play.mvc.Security
 import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.Future
 import collection.JavaConverters._
-import collection.JavaConversions._
+import collection.JavaConversions
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
@@ -27,7 +27,7 @@ import collection.JavaConversions._
 trait JavaHelpers {
 
   def attrsToScalaSeq(attrs: java.util.List[TypedEntry[_]]): Seq[TypedEntry[_]] = {
-    asScalaBuffer(attrs)
+    JavaConversions.asScalaBuffer(attrs)
   }
 
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
