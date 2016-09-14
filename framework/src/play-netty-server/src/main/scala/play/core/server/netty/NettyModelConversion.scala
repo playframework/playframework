@@ -12,7 +12,7 @@ import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
-import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.{ QueryStringDecoder => _, _ }
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
@@ -48,7 +48,7 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     val parameters: Map[String, Seq[String]] = {
       val decodedParameters = decoder.parameters()
       if (decodedParameters.isEmpty) Map.empty
-      else decodedParameters.asScala.mapValues(_.asScala.mkString.split(",").toList).toMap
+      else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
     }
     (path, parameters)
   }
@@ -72,7 +72,6 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
 
   /** Try to create the request. May fail if the path is invalid */
   private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
-
     Try {
       val (path, parameters) = parseUri(request.getUri)
 
