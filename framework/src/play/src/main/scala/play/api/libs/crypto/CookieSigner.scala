@@ -41,11 +41,6 @@ trait CookieSigner {
   def sign(message: String): String
 }
 
-@Singleton
-class CookieSignerProvider @Inject() (config: CryptoConfig) extends Provider[CookieSigner] {
-  lazy val get: CookieSigner = new HMACSHA1CookieSigner(config)
-}
-
 /**
  * Uses an HMAC-SHA1 for signing cookies.
  */

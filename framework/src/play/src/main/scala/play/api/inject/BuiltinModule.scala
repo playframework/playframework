@@ -3,6 +3,7 @@
  */
 package play.api.inject
 
+import java.time.Clock
 import java.util.concurrent.Executor
 import javax.inject.{ Inject, Provider, Singleton }
 
@@ -37,7 +38,7 @@ class BuiltinModule extends Module {
       bind[ConfigurationProvider].to(new ConfigurationProvider(configuration)),
       bind[Configuration].toProvider[ConfigurationProvider],
       bind[Config].toProvider[ConfigProvider],
-      bind[HttpConfiguration].toProvider[HttpConfiguration.HttpConfigurationProvider],
+      bind[HttpConfiguration].toFunction((c: Configuration) => HttpConfiguration.fromConfiguration(c)),
 
       // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
       // to shut it down.
@@ -57,8 +58,8 @@ class BuiltinModule extends Module {
       bind[HttpExecutionContext].toSelf,
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
-      bind[CookieSigner].toProvider[CookieSignerProvider],
-      bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
+      bind[CookieSigner].to[HMACSHA1CookieSigner],
+      bind[CSRFTokenSigner].toFunction((s: CookieSigner) => new DefaultCSRFTokenSigner(s, Clock.systemUTC())),
       bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
     ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
