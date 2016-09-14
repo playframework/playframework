@@ -9,11 +9,11 @@ import java.nio.charset.StandardCharsets._
 import java.util.concurrent.ThreadLocalRandom
 
 import akka.NotUsed
+import akka.stream._
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.stream.stage._
-import akka.stream._
 import akka.util.{ ByteString, ByteStringBuilder }
-import play.api.mvc.MultipartFormData
+import play.api.mvc.MultipartFormData._
 
 import scala.annotation.tailrec
 
@@ -25,15 +25,16 @@ object Multipart {
   /**
    * Transforms a `Source[MultipartFormData.Part]` to a `Source[ByteString]`
    */
-  def transform(body: Source[MultipartFormData.Part[Source[ByteString, _]], _], boundary: String): Source[ByteString, _] = {
-    body.via(format(boundary, Charset.defaultCharset(), 4096))
+  def transform(body: Source[Part[Source[ByteString, _]], _], boundary: String): Source[ByteString, _] = {
+    body.via(partTransform).via(format(boundary, Charset.defaultCharset(), 4096))
   }
 
   /**
    * Provides a Formatting Flow which could be used to format a MultipartFormData.Part source to a multipart/form data body
    */
-  def format(boundary: String, nioCharset: Charset, chunkSize: Int): Flow[MultipartFormData.Part[Source[ByteString, _]], ByteString, NotUsed] = {
-    Flow[MultipartFormData.Part[Source[ByteString, _]]].via(streamed(boundary, nioCharset, chunkSize))
+  def format(boundary: String, nioCharset: Charset, chunkSize: Int): Flow[SourcePart, ByteString, NotUsed] = {
+    Flow[SourcePart]
+      .via(streamed(boundary, nioCharset, chunkSize))
       .flatMapConcat(identity)
   }
 
@@ -41,7 +42,7 @@ object Multipart {
    * Creates a new random number of the given length and base64 encodes it (using a custom "safe" alphabet).
    *
    * @throws java.lang.IllegalArgumentException if the length is greater than 70 or less than 1 as specified in
-   *                                  <a href="https://tools.ietf.org/html/rfc2046#section-5.1.1">rfc2046</a>
+   *                                            <a href="https://tools.ietf.org/html/rfc2046#section-5.1.1">rfc2046</a>
    */
   def randomBoundary(length: Int = 18, random: java.util.Random = ThreadLocalRandom.current()): String = {
     if (length < 1 && length > 70) throw new IllegalArgumentException("length can't be greater than 70 or less than 1")
@@ -55,7 +56,8 @@ object Multipart {
     def ~~(ch: Char): this.type
 
     def ~~(string: String): this.type = {
-      @tailrec def rec(ix: Int = 0): this.type =
+      @tailrec
+      def rec(ix: Int = 0): this.type =
         if (ix < string.length) {
           this ~~ string.charAt(ix)
           rec(ix + 1)
@@ -63,6 +65,16 @@ object Multipart {
       rec()
     }
 
+  }
+
+  private def partTransform: Flow[Part[Source[ByteString, _]], SourcePart, NotUsed] = {
+    Flow[Part[Source[ByteString, _]]].map {
+      case FilePart(key, filename, contentType, ref) => SourcePart(key, ref, Some(filename), contentType, None, None, None)
+      case DataPart(key, value) => SourcePart(key, Source.single(ByteString.fromString(value)))
+      // SourcePart should be transformed as is
+      case sp: SourcePart => sp
+      case _ => throw new IllegalArgumentException("you passed a invalid BodyPart")
+    }
   }
 
   private class CustomCharsetByteStringFormatter(nioCharset: Charset, sizeHint: Int) extends Formatter {
@@ -116,11 +128,11 @@ object Multipart {
   }
 
   private def streamed(boundary: String,
-    nioCharset: Charset, chunkSize: Int): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
+    nioCharset: Charset, chunkSize: Int): GraphStage[FlowShape[SourcePart, Source[ByteString, Any]]] =
 
-    new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
+    new GraphStage[FlowShape[SourcePart, Source[ByteString, Any]]] {
 
-      val in = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("in")
+      val in = Inlet[SourcePart]("in")
       val out = Outlet[Source[ByteString, Any]]("out")
 
       override def shape = FlowShape.of(in, out)
@@ -133,30 +145,21 @@ object Multipart {
           override def onPush(): Unit = {
             val f = new CustomCharsetByteStringFormatter(nioCharset, chunkSize)
 
-            val bodyPart = grab(in)
+            val part = grab(in)
 
             def bodyPartChunks(data: Source[ByteString, Any]): Source[ByteString, Any] = {
               (Source.single(f.get) ++ data).mapMaterializedValue((_) => ())
             }
 
-            def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
-              case MultipartFormData.DataPart(_, data) => Source.single((f ~~ ByteString(data)).get)
-              case MultipartFormData.FilePart(_, _, _, ref) => bodyPartChunks(ref)
-              case _ => throw new UnsupportedOperationException()
-            }
-
             renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
             firstBoundaryRendered = true
 
-            val (key, filename, contentType) = bodyPart match {
-              case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"))
-              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) => (innerKey, Option(innerFilename), innerContentType)
-              case _ => throw new UnsupportedOperationException()
-            }
-            renderDisposition(f, key, filename)
-            contentType.foreach { ct => renderContentType(f, ct) }
+            renderDisposition(f, part.key, part.filename)
+            part.contentType.foreach { ct => renderContentType(f, ct, part.charset) }
+            part.transferEncoding.foreach { te => renderTransferEncoding(f, te) }
+            part.contentId.foreach { cid => renderContentId(f, cid) }
             renderBuffer(f)
-            push(out, completePartFormatting())
+            push(out, bodyPartChunks(part.value))
           }
 
           override def onPull(): Unit = {
@@ -195,8 +198,18 @@ object Multipart {
     f ~~ CrLf
   }
 
-  private def renderContentType(f: Formatter, contentType: String): Unit = {
-    f ~~ "Content-Type: " ~~ contentType ~~ CrLf
+  private def renderContentType(f: Formatter, contentType: String, charset: Option[String]): Unit = {
+    f ~~ "Content-Type: " ~~ contentType
+    charset.foreach { cset => f ~~ s"; charset=$cset" }
+    f ~~ CrLf
+  }
+
+  private def renderContentId(f: Formatter, contentId: String): Unit = {
+    f ~~ "Content-ID: " ~~ contentId ~~ CrLf
+  }
+
+  private def renderTransferEncoding(f: Formatter, transferEncoding: String): Unit = {
+    f ~~ "Content-Transfer-Encoding: " ~~ transferEncoding ~~ CrLf
   }
 
   private def renderBuffer(f: Formatter): Unit = {

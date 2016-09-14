@@ -91,6 +91,10 @@ To Upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<Byte
 
 @[ws-post-multipart2](code/javaguide/ws/JavaWS.java)
 
+To Upload arbitrary data you need to pass a `Http.MultipartFormData.SourcePart`:
+
+@[ws-post-multipart3](code/javaguide/ws/JavaWS.java)
+
 ### Streaming data
 
 It's also possible to stream data.

@@ -7,17 +7,16 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.asynchttpclient.AsyncHttpClientConfig
-
-import play.api.{Mode, Environment}
+import play.api.{ Environment, Mode }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc._
 import play.api.test._
-
 import java.io._
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
+import play.api.libs.json.Json
 
 //#dependency
 import javax.inject.Inject
@@ -211,6 +210,21 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         await(response).body must_== "value"
       }
 
+      "post with multipart/form encoded body and different content types" in withServer{
+        case("POST", "/") => Action(BodyParsers.parse.multipartFormData)(r => Ok(r.body.asFormUrlEncoded("key").head))
+      } { ws =>
+        import play.api.mvc.MultipartFormData._
+        //#multipart-encoded3-encoding
+        val json = Source.single(Json.stringify(Json.obj("hello" -> "world"))).map(ByteString.apply)
+        //#multipart-encoded3-encoding
+        val response =
+        //#multipart-encoded3
+         ws.url(url).post(Source.single(SourcePart("key", json, None, Option("application/json"))))
+        //#multipart-encoded3
+
+        await(response).body must_== """{"hello":"world"}"""
+      }
+
       "post with multipart/form encoded body from a file" in withServer {
         case("POST", "/") => Action(BodyParsers.parse.multipartFormData){r =>
             val file = r.body.file("hello").head
@@ -223,7 +237,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         import play.api.mvc.MultipartFormData._
         val response =
         //#multipart-encoded2
-        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromFile(tmpFile)) :: DataPart("key", "value") :: List()))
+        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromPath(tmpFile.toPath)) :: DataPart("key", "value") :: List()))
         //#multipart-encoded2
 
         await(response).body must_== "world"

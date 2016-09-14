@@ -8,13 +8,11 @@ import java.util.Locale
 
 import scala.util.control.NonFatal
 import scala.xml._
-import scala.concurrent.{ Future, ExecutionContext, Promise }
-
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import akka.stream._
-import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
+import akka.stream.scaladsl.{ Flow, Sink, Source, StreamConverters }
 import akka.stream.stage._
 import akka.util.ByteString
-
 import play.api._
 import play.api.data.Form
 import play.api.http.Status._
@@ -153,6 +151,11 @@ object MultipartFormData {
    * A file part.
    */
   case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part[A]
+
+  /**
+   * A source part.
+   */
+  case class SourcePart(key: String, value: Source[ByteString, _], filename: Option[String] = None, contentType: Option[String] = None, charset: Option[String] = None, transferEncoding: Option[String] = None, contentId: Option[String] = None) extends Part[Source[ByteString, _]]
 
   /**
    * A part that has not been properly parsed.

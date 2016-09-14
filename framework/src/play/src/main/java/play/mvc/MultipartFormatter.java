@@ -10,6 +10,7 @@ import play.core.formatters.Multipart;
 import scala.Option;
 
 import java.nio.charset.Charset;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -24,22 +25,22 @@ public class MultipartFormatter {
     }
 
     public static Source<ByteString, ?> transform(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> parts, String boundary) {
-        Source<MultipartFormData.Part<akka.stream.scaladsl.Source<ByteString, ?>>, ?> source = parts.map((part) -> {
+        return parts.map((part) -> {
             if (part instanceof Http.MultipartFormData.DataPart) {
                 Http.MultipartFormData.DataPart dp = (Http.MultipartFormData.DataPart) part;
-                return (MultipartFormData.Part) new MultipartFormData.DataPart(dp.getKey(), dp.getValue());
+                return new Http.MultipartFormData.SourcePart(dp.getKey(), Source.single(ByteString.fromString(dp.getValue()))).asScala();
+            } else if (part instanceof Http.MultipartFormData.SourcePart) {
+                return ((Http.MultipartFormData.SourcePart) part).asScala();
             } else if (part instanceof Http.MultipartFormData.FilePart) {
                 Http.MultipartFormData.FilePart fp = (Http.MultipartFormData.FilePart) part;
                 if (fp.file instanceof Source) {
                     Source ref = (Source) fp.file;
-                    Option<String> ct = Option.apply(fp.getContentType());
-                    return (MultipartFormData.Part)new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(fp.getKey(), fp.getFilename(), ct, ref.asScala());
+                    return new Http.MultipartFormData.SourcePart(fp.getKey(), ref, Optional.of(fp.filename), Optional.of(fp.getContentType())).asScala();
                 }
             }
             throw new UnsupportedOperationException("Unsupported Part Class");
-        });
+        }).via(Multipart.format(boundary, Charset.defaultCharset(), 4096));
 
-        return source.via(Multipart.format(boundary, Charset.defaultCharset(), 4096));
     }
 
 
