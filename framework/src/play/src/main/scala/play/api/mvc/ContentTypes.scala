@@ -114,7 +114,7 @@ case class AnyContentAsJson(json: JsValue) extends AnyContent
 /**
  * AnyContent - Multipart form data body
  */
-case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) extends AnyContent
+case class AnyContentAsMultipartFormData(mfd: MultipartFormData[TemporaryFile]) extends AnyContent
 
 /**
  * Multipart form data body.
