@@ -3,6 +3,8 @@
  */
 package play.api.mvc
 
+import javax.inject.Inject
+
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
@@ -62,7 +64,7 @@ object EssentialAction {
  */
 trait Action[A] extends EssentialAction {
 
-  import Action._
+  private lazy val logger = Logger(getClass)
 
   /**
    * Type of the request body.
@@ -91,13 +93,7 @@ trait Action[A] extends EssentialAction {
     case Right(a) =>
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
-      Play.privateMaybeApplication.map { app =>
-        play.utils.Threads.withContextClassLoader(app.classloader) {
-          apply(request)
-        }
-      }.getOrElse {
-        apply(request)
-      }
+      apply(request)
   }(executionContext)
 
   /**
@@ -268,11 +264,12 @@ trait ActionFunction[-R[_], +P[_]] {
   def invokeBlock[A](request: R[A], block: P[A] => Future[Result]): Future[Result]
 
   /**
-   * Get the execution context to run the request in.  Override this if you want a custom execution context
+   * Get the execution context to run the request in.
    *
    * @return The execution context
    */
-  protected def executionContext: ExecutionContext = play.core.Execution.internalContext
+
+  protected def executionContext: ExecutionContext
 
   /**
    * Compose this ActionFunction with another, with this one applied first.
@@ -281,6 +278,7 @@ trait ActionFunction[-R[_], +P[_]] {
    * @return The new ActionFunction
    */
   def andThen[Q[_]](other: ActionFunction[P, Q]): ActionFunction[R, Q] = new ActionFunction[R, Q] {
+    def executionContext = self.executionContext
     def invokeBlock[A](request: R[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
   }
@@ -294,19 +292,24 @@ trait ActionFunction[-R[_], +P[_]] {
   def compose[Q[_]](other: ActionFunction[Q, R]): ActionFunction[Q, P] =
     other.andThen(this)
 
-  def compose(other: ActionBuilder[R]): ActionBuilder[P] =
+  def compose[B](other: ActionBuilder[R, B]): ActionBuilder[P, B] =
     other.andThen(this)
 
 }
 
 /**
- * Provides helpers for creating `Action` values.
+ * Provides helpers for creating [[Action]] values.
  */
-trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
+trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
   self =>
 
   /**
-   * Constructs an `Action`.
+   * @return The BodyParser to be used by this ActionBuilder if no other is specified
+   */
+  def parser: BodyParser[B]
+
+  /**
+   * Constructs an [[ActionBuilder]] with the given [[BodyParser]]. The result can then be applied directly to a block.
    *
    * For example:
    * {{{
@@ -317,11 +320,14 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    *
    * @tparam A the type of the request body
    * @param bodyParser the `BodyParser` to use to parse the request body
-   * @param block the action code
    * @return an action
    */
-  final def apply[A](bodyParser: BodyParser[A])(block: R[A] => Result): Action[A] = async(bodyParser) { req: R[A] =>
-    Future.successful(block(req))
+  final def apply[A](bodyParser: BodyParser[A]): ActionBuilder[R, A] = new ActionBuilder[R, A] {
+    override def parser = bodyParser
+    override protected def executionContext = self.executionContext
+    override protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
+    override protected def composeAction[A](action: Action[A]): Action[A] = self.composeAction(action)
+    override def invokeBlock[A](request: Request[A], block: R[A] => Future[Result]) = self.invokeBlock(request, block)
   }
 
   /**
@@ -337,7 +343,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def apply(block: R[AnyContent] => Result): Action[AnyContent] = apply(BodyParsers.parse.default)(block)
+  final def apply(block: R[B] => Result): Action[B] = async(block andThen Future.successful)
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -353,7 +359,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @return an action
    */
   final def apply(block: => Result): Action[AnyContent] =
-    apply(BodyParsers.parse.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
+    apply(BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content, and no request parameter.
@@ -371,7 +377,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @return an action
    */
   final def async(block: => Future[Result]): Action[AnyContent] =
-    async(BodyParsers.parse.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
+    async(BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -388,7 +394,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def async(block: R[AnyContent] => Future[Result]): Action[AnyContent] = async(BodyParsers.parse.default)(block)
+  final def async(block: R[B] => Future[Result]): Action[B] = async(parser)(block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -433,7 +439,9 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    */
   protected def composeAction[A](action: Action[A]): Action[A] = action
 
-  override def andThen[Q[_]](other: ActionFunction[R, Q]): ActionBuilder[Q] = new ActionBuilder[Q] {
+  override def andThen[Q[_]](other: ActionFunction[R, Q]): ActionBuilder[Q, B] = new ActionBuilder[Q, B] {
+    def executionContext = self.executionContext
+    def parser = self.parser
     def invokeBlock[A](request: Request[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
     override protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
@@ -441,13 +449,48 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
   }
 }
 
+object ActionBuilder {
+  class IgnoringBody()(implicit ec: ExecutionContext)
+    extends ActionBuilderImpl(BodyParsers.utils.ignore[AnyContent](AnyContentAsEmpty))(ec)
+
+  /**
+   * An ActionBuilder that ignores the body passed into it. This uses the trampoline execution context, which
+   * executes in the current thread. Since using this execution context in user code can cause unexpected
+   * consequences, this method is private[play].
+   */
+  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] =
+    new IgnoringBody()(play.core.Execution.trampoline)
+}
+
+/**
+ * A trait representing the default action builder used by Play's controllers.
+ */
+trait DefaultActionBuilder extends ActionBuilder[Request, AnyContent]
+
+object DefaultActionBuilder {
+  def apply(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext): DefaultActionBuilder =
+    new DefaultActionBuilderImpl(parser)
+}
+
+class ActionBuilderImpl[B](val parser: BodyParser[B])(implicit val executionContext: ExecutionContext)
+    extends ActionBuilder[Request, B] {
+  def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
+}
+
+class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
+    extends ActionBuilderImpl(parser) with DefaultActionBuilder {
+  @Inject
+  def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = this(parser: BodyParser[AnyContent])
+}
+
 /**
  * Helper object to create `Action` values.
  */
-object Action extends ActionBuilder[Request] {
-  private val logger = Logger(Action.getClass)
-
-  def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
+@deprecated("Inject an ActionBuilder (e.g. DefaultActionBuilder) or use AbstractController instead", "2.6.0")
+object Action extends DefaultActionBuilder {
+  override def executionContext: ExecutionContext = play.core.Execution.internalContext
+  override def parser: BodyParser[AnyContent] = BodyParsers.parse.default
+  override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
 }
 
 /* NOTE: the following are all example uses of ActionFunction, each subtly

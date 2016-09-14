@@ -14,6 +14,7 @@ import play.api.http.Status$;
 import play.api.libs.Files;
 import play.api.mvc.MaxSizeNotExceeded$;
 import play.api.mvc.MaxSizeStatus;
+import play.api.mvc.PlayBodyParsers;
 import play.core.j.JavaParsers;
 import play.core.parsers.FormUrlEncodedParser;
 import play.core.parsers.Multipart;
@@ -83,8 +84,8 @@ public interface BodyParser<A> {
      */
     class Default extends AnyContent {
         @Inject
-        public Default(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration) {
-            super(errorHandler, httpConfiguration);
+        public Default(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration, PlayBodyParsers parsers) {
+            super(errorHandler, httpConfiguration, parsers);
         }
 
         @Override
@@ -103,11 +104,13 @@ public interface BodyParser<A> {
     class AnyContent implements BodyParser<Object> {
         private final HttpErrorHandler errorHandler;
         private final HttpConfiguration httpConfiguration;
+        private final PlayBodyParsers parsers;
 
         @Inject
-        public AnyContent(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration) {
+        public AnyContent(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration, PlayBodyParsers parsers) {
             this.errorHandler = errorHandler;
             this.httpConfiguration = httpConfiguration;
+            this.parsers = parsers;
         }
 
         @Override
@@ -115,20 +118,20 @@ public interface BodyParser<A> {
             String contentType = request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
             BodyParser parser;
             if (contentType == null) {
-                parser = new Raw();
+                parser = new Raw(parsers);
             } else if (contentType.equals("text/plain")) {
                 parser = new TolerantText(httpConfiguration, errorHandler);
             } else if (contentType.equals("text/xml") || contentType.equals("application/xml") ||
-                    JavaParsers.parse().ApplicationXmlMatcher().pattern().matcher(contentType).matches()) {
+                    parsers.ApplicationXmlMatcher().pattern().matcher(contentType).matches()) {
                 parser = new TolerantXml(httpConfiguration, errorHandler);
             } else if (contentType.equals("text/json") || contentType.equals("application/json")) {
                 parser = new TolerantJson(httpConfiguration, errorHandler);
             } else if (contentType.equals("application/x-www-form-urlencoded")) {
                 parser = new FormUrlEncoded(httpConfiguration, errorHandler);
             } else if (contentType.equals("multipart/form-data")) {
-                parser = new MultipartFormData();
+                parser = new MultipartFormData(parsers);
             } else {
-                parser = new Raw();
+                parser = new Raw(parsers);
             }
             return parser.apply(request);
         }
@@ -184,23 +187,26 @@ public interface BodyParser<A> {
      */
     class Xml extends TolerantXml {
         private final HttpErrorHandler errorHandler;
+        private final PlayBodyParsers parsers;
 
-        public Xml(long maxLength, HttpErrorHandler errorHandler) {
+        public Xml(long maxLength, HttpErrorHandler errorHandler, PlayBodyParsers parsers) {
             super(maxLength, errorHandler);
             this.errorHandler = errorHandler;
+            this.parsers = parsers;
         }
 
         @Inject
-        public Xml(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler) {
+        public Xml(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler, PlayBodyParsers parsers) {
             super(httpConfiguration, errorHandler);
             this.errorHandler = errorHandler;
+            this.parsers = parsers;
         }
 
         @Override
         public Accumulator<ByteString, F.Either<Result, Document>> apply(Http.RequestHeader request) {
             return BodyParsers.validateContentType(errorHandler, request, "Expected XML",
                 ct -> ct.startsWith("text/xml") || ct.startsWith("application/xml") ||
-                    JavaParsers.parse().ApplicationXmlMatcher().pattern().matcher(ct).matches(),
+                    parsers.ApplicationXmlMatcher().pattern().matcher(ct).matches(),
                 super::apply
             );
         }
@@ -296,8 +302,8 @@ public interface BodyParser<A> {
      */
     class Raw extends DelegatingBodyParser<Http.RawBuffer, play.api.mvc.RawBuffer> {
         @Inject
-        public Raw() {
-            super(JavaParsers.parse().raw(), JavaParsers::toJavaRaw);
+        public Raw(PlayBodyParsers parsers) {
+            super(parsers.raw(), JavaParsers::toJavaRaw);
         }
     }
 
@@ -337,8 +343,8 @@ public interface BodyParser<A> {
      */
     class MultipartFormData extends DelegatingBodyParser<Http.MultipartFormData<File>, play.api.mvc.MultipartFormData<Files.TemporaryFile>> {
         @Inject
-        public MultipartFormData() {
-            super(JavaParsers.parse().multipartFormData(), JavaParsers::toJavaMultipartFormData);
+        public MultipartFormData(PlayBodyParsers parsers) {
+            super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);
         }
     }
 

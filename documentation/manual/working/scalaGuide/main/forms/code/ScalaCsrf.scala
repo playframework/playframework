@@ -4,11 +4,12 @@
 package scalaguide.forms.csrf
 
 import play.api.Application
+import javax.inject.Inject
 import play.api.test._
 import play.api.libs.Crypto
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Call
-
+import play.api.mvc.BodyParsers
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
@@ -125,16 +126,16 @@ class ScalaCsrf extends PlaySpecification {
       import play.api.mvc._
       import play.filters.csrf._
 
-      object PostAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+      class PostAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
         override def composeAction[A](action: Action[A]) = checkToken(action)
       }
 
-      object GetAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+      class GetAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -142,13 +143,16 @@ class ScalaCsrf extends PlaySpecification {
       }
       //#csrf-action-builder
 
+      val getAction = new GetAction(app.injector.instanceOf[BodyParsers.Default])
+      val postAction = new PostAction(app.injector.instanceOf[BodyParsers.Default])
+
       //#csrf-actions
-      def save = PostAction {
+      def save = postAction {
         // handle body
         Ok
       }
 
-      def form = GetAction { implicit req =>
+      def form = getAction { implicit req =>
         Ok(views.html.itemsForm)
       }
       //#csrf-actions

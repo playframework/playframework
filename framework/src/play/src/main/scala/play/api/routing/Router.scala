@@ -144,11 +144,13 @@ trait SimpleRouter extends Router { self =>
   }
 }
 
-object SimpleRouter {
-  private class Impl(val routes: Router.Routes) extends SimpleRouter
+class SimpleRouterImpl(routesProvider: => Router.Routes) extends SimpleRouter {
+  def routes = routesProvider
+}
 
+object SimpleRouter {
   /**
    * Create a new simple router from the given routes
    */
-  def apply(routes: Router.Routes): Router = new Impl(routes)
+  def apply(routes: Router.Routes): Router = new SimpleRouterImpl(routes)
 }

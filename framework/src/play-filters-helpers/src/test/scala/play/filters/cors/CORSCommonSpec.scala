@@ -5,7 +5,7 @@ package play.filters.cors
 
 import play.api.Application
 import play.api.mvc.Result
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.test.{FakeRequest, PlaySpecification}
 
 import scala.concurrent.Future
 

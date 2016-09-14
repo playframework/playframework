@@ -5,8 +5,9 @@ package play.it.http.parsing
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.Application
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{ Result, MultipartFormData, BodyParsers }
+import play.api.mvc.{ PlayBodyParsers, MultipartFormData, Result }
 import play.api.test._
 import play.core.parsers.Multipart.FileInfoMatcher
 import play.utils.PlayIO
@@ -38,7 +39,7 @@ class MultipartFormDataParserSpec extends PlaySpecification {
       |--aabbccddee--
       |""".stripMargin.lines.mkString("\r\n")
 
-  val parse = new BodyParsers() {}.parse
+  def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {

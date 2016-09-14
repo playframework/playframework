@@ -103,6 +103,31 @@ object HttpConfiguration {
     lazy val get = fromConfiguration(configuration)
   }
 
+  @Singleton
+  class ParserConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[ParserConfiguration] {
+    lazy val get = conf.parser
+  }
+
+  @Singleton
+  class CookiesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[CookiesConfiguration] {
+    lazy val get = conf.cookies
+  }
+
+  @Singleton
+  class SessionConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SessionConfiguration] {
+    lazy val get = conf.session
+  }
+
+  @Singleton
+  class FlashConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FlashConfiguration] {
+    lazy val get = conf.flash
+  }
+
+  @Singleton
+  class ActionCompositionConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[ActionCompositionConfiguration] {
+    lazy val get = conf.actionComposition
+  }
+
   def fromConfiguration(config: Configuration) = {
     val context = {
       val ctx = config.getDeprecated[String]("play.http.context", "application.context")

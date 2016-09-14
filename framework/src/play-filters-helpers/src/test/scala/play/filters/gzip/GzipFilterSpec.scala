@@ -12,9 +12,9 @@ import play.api.Application
 import play.api.http.{ HttpEntity, HttpFilters }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.routing.Router
+import play.api.routing.{ SimpleRouterImpl, Router }
 import play.api.test._
-import play.api.mvc.{ Action, Result }
+import play.api.mvc.{ DefaultActionBuilder, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
@@ -23,13 +23,20 @@ import scala.concurrent.Future
 import scala.util.Random
 import org.specs2.matcher.DataTables
 
-class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
-  def filters = Seq(gzipFilter)
+object GzipFilterSpec {
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result) extends SimpleRouterImpl({ case _ => action(result) })
+
+  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
+    def filters = Seq(gzipFilter)
+  }
+
 }
 
 class GzipFilterSpec extends PlaySpecification with DataTables {
 
   sequential
+
+  import GzipFilterSpec._
 
   "The GzipFilter" should {
 
@@ -148,9 +155,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
         "play.filters.gzip.bufferSize" -> 512
       ).overrides(
-          bind[Router].to(Router.from {
-            case _ => Action(result)
-          }),
+          bind[Result].to(result),
+          bind[Router].to[ResultRouter],
           bind[HttpFilters].to[Filters]
         ).build
     running(application)(block(application))

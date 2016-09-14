@@ -4,8 +4,9 @@
 package controllers.module
 
 import play.api.mvc._
+import javax.inject.Inject
 
-class ModuleController extends Controller {
+class ModuleController @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }

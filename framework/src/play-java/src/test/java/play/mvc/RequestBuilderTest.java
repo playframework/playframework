@@ -178,7 +178,7 @@ public class RequestBuilderTest {
                 .bodyMultipart(Collections.singletonList(dp), app.materializer())
                 .build();
 
-       Optional<Http.MultipartFormData<File>> parts = new BodyParser.MultipartFormData()
+        Optional<Http.MultipartFormData<File>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
                .apply(request)
                .run(Source.single(request.body().asBytes()), app.materializer())
                .toCompletableFuture()

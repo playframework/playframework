@@ -3,12 +3,12 @@
  */
 package play.filters.cors
 
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import akka.stream.Materializer
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, ParserConfiguration }
+import play.api.mvc._
+import play.api.{ Configuration, Logger }
 
-import scala.concurrent.Future
-
-import play.api.{ Logger, Configuration }
-import play.api.mvc.{ ActionBuilder, Request, Result }
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
@@ -16,7 +16,7 @@ import play.api.mvc.{ ActionBuilder, Request, Result }
  * @see [[play.filters.cors.CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
+trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with AbstractCORSPolicy {
 
   override protected val logger = Logger.apply(classOf[CORSActionBuilder])
 
@@ -58,10 +58,15 @@ object CORSActionBuilder {
    * @param  config  The configuration to load the config from
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(config: Configuration, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-    configPath: String = "play.filters.cors"): CORSActionBuilder = {
+  def apply(
+    config: Configuration,
+    errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+    configPath: String = "play.filters.cors",
+    parserConfig: ParserConfiguration = ParserConfiguration())(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
+      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat)
+      override protected val executionContext = ec
       override protected def corsConfig = {
         val prototype = config.get[Configuration]("play.filters.cors")
         val corsConfig = prototype ++ config.get[Configuration](configPath)
@@ -77,9 +82,14 @@ object CORSActionBuilder {
    * @param  config  The local configuration to use in place of the global configuration.
    * @see [[play.filters.cors.CORSConfig]]
    */
-  def apply(config: CORSConfig, errorHandler: HttpErrorHandler): CORSActionBuilder = {
+  def apply(
+    config: CORSConfig,
+    errorHandler: HttpErrorHandler,
+    parserConfig: ParserConfiguration)(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
+      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat)
+      override protected val executionContext = ec
       override protected val corsConfig = config
       override protected val errorHandler = eh
     }

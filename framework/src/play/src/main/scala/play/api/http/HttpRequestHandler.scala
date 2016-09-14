@@ -11,10 +11,9 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.{ Configuration, Environment }
+import play.core.Execution
 import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
-
-import scala.annotation.tailrec
 
 /**
  * Primary entry point for all HTTP requests on Play applications.
@@ -83,12 +82,12 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
  * is the default one, in order to provide support for Java actions.
  */
-class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
-    filters: EssentialFilter*) extends HttpRequestHandler {
+class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: EssentialFilter*) extends HttpRequestHandler {
 
   @Inject
-  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
+  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) = {
     this(router, errorHandler, configuration, filters.filters: _*)
+  }
 
   private val context = configuration.context.stripSuffix("/")
 
@@ -112,7 +111,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
     /**
      * An action for a 404 error.
      */
-    def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
+    val notFoundHandler = ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
       errorHandler.onClientError(req, NOT_FOUND)
     )
 
@@ -204,8 +203,8 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(router,
-  errorHandler, configuration, filters.filters: _*) {
+  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents)
+    extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
   // another handler.

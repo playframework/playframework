@@ -3,8 +3,18 @@
  */
 package play.api.mvc
 
+import javax.inject.Inject
+
+import play.api.Play
 import play.api.http.{ ContentTypes, HeaderNames, HttpProtocol, Status }
 import play.api.i18n.Lang
+import play.api.libs.concurrent.Execution
+import play.twirl.api.Html
+
+/**
+ * Useful mixins for controller classes (no global state)
+ */
+trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering
 
 /**
  * Defines utility methods to generate `Action` and `Results` types.
@@ -19,8 +29,10 @@ import play.api.i18n.Lang
  *
  * }
  * }}}
+ *
+ * This controller provides some deprecated global state. To inject this state you can AbstractController instead.
  */
-trait Controller extends Results with BodyParsers with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering {
+trait Controller extends BodyParsers with BaseController {
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.
@@ -30,8 +42,8 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * def index(name:String) = TODO
    * }}}
    */
-  val TODO = Action {
-    NotImplemented[play.twirl.api.Html](views.html.defaultpages.todo())
+  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
+    NotImplemented[Html](views.html.defaultpages.todo())
   }
 
   /**
@@ -77,3 +89,26 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
   }
 
 }
+
+/**
+ * An alternative to `Controller` that provides a "parse" field containing parsers and an "Action" method.
+ *
+ * This is intended to provide the idiomatic Play API for actions, allowing you to use "Action" for the default
+ * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
+ * base controller class.
+ */
+abstract class AbstractController(components: ControllerComponents) extends BaseController {
+  def Action = components.actionBuilder
+  def parse = components.parsers
+  lazy val TODO: Action[AnyContent] = Action {
+    NotImplemented[Html](views.html.defaultpages.todo())
+  }
+}
+
+trait ControllerComponents {
+  def actionBuilder: ActionBuilder[Request, AnyContent]
+  def parsers: PlayBodyParsers
+}
+
+case class DefaultControllerComponents @Inject() (actionBuilder: DefaultActionBuilder, parsers: PlayBodyParsers)
+  extends ControllerComponents

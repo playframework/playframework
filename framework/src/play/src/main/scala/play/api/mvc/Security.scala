@@ -3,9 +3,12 @@
  */
 package play.api.mvc
 
+import akka.stream.Materializer
 import play.api._
+import play.api.http.{ HttpErrorHandler, ParserConfiguration }
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Results._
+import scala.concurrent.ExecutionContext
 
 import scala.concurrent.Future
 
@@ -131,9 +134,12 @@ object Security {
    * @param userinfo The function that looks up the user info.
    * @param onUnauthorized The function to get the result for when no authenticated user can be found.
    */
-  class AuthenticatedBuilder[U](userinfo: RequestHeader => Option[U],
-    onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))
-      extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R] {
+  class AuthenticatedBuilder[U](
+      userinfo: RequestHeader => Option[U],
+      defaultParser: BodyParser[AnyContent],
+      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
+
+    lazy val parser = defaultParser
 
     def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) =
       authenticate(request, block)
@@ -189,13 +195,19 @@ object Security {
      * @param userinfo The function that looks up the user info.
      * @param onUnauthorized The function to get the result for when no authenticated user can be found.
      */
-    def apply[U](userinfo: RequestHeader => Option[U],
-      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
+    def apply[U](
+      userinfo: RequestHeader => Option[U],
+      defaultParser: BodyParser[AnyContent],
+      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))(implicit ec: ExecutionContext): AuthenticatedBuilder[U] = {
+      new AuthenticatedBuilder(userinfo, defaultParser, onUnauthorized)
+    }
 
     /**
      * Simple authenticated action builder that looks up the username from the session
      */
-    def apply(): AuthenticatedBuilder[String] = apply[String](req => req.session.get(username))
+    def apply(defaultParser: BodyParser[AnyContent])(implicit ec: ExecutionContext): AuthenticatedBuilder[String] = {
+      apply[String](req => req.session.get(username), defaultParser)
+    }
   }
 }
 

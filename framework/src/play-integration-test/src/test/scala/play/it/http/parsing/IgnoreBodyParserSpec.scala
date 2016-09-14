@@ -15,7 +15,7 @@ class IgnoreBodyParserSpec extends PlaySpecification {
 
     def parse[A](value: A, bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer) = {
       await(
-        BodyParsers.parse.ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+        BodyParsers.utils.ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(bytes))
       )
     }

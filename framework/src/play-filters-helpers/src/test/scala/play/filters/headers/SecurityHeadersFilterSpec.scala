@@ -9,9 +9,9 @@ import javax.inject.Inject
 import play.api.inject.guice.GuiceApplicationBuilder
 import com.typesafe.config.ConfigFactory
 import play.api.http.HttpFilters
-import play.api.routing.Router
+import play.api.routing.{ SimpleRouterImpl, Router }
 import play.api.test.{ WithApplication, FakeRequest, PlaySpecification }
-import play.api.mvc.{ Action, Result }
+import play.api.mvc.{ DefaultActionBuilder, Action, Result }
 import play.api.mvc.Results._
 import play.api.Configuration
 import play.api.inject.bind
@@ -21,9 +21,15 @@ class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends H
   def filters = Seq(securityHeadersFilter)
 }
 
+object SecurityHeadersFilterSpec {
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result)
+    extends SimpleRouterImpl({ case _ => action(result) })
+}
+
 class SecurityHeadersFilterSpec extends PlaySpecification {
 
   import SecurityHeadersFilter._
+  import SecurityHeadersFilterSpec._
 
   sequential
 
@@ -36,9 +42,8 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     val app = new GuiceApplicationBuilder()
       .configure(configure(config))
       .overrides(
-        bind[Router].to(Router.from {
-          case _ => Action(result)
-        }),
+        bind[Result].to(result),
+        bind[Router].to[ResultRouter],
         bind[HttpFilters].to[Filters]
       ).build
     running(app)(block(app))
