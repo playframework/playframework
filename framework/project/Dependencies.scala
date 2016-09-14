@@ -8,7 +8,7 @@ object Dependencies {
 
   val akkaVersion = "2.4.10"
 
-  val specsVersion = "3.8.4"
+  val specsVersion = "3.8.5"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
