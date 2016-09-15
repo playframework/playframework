@@ -3,17 +3,14 @@
  */
 package javaguide.tests;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
 import org.junit.*;
 
-import play.api.test.WsTestClient;
 import play.mvc.*;
 import play.test.*;
-import play.libs.F.*;
 import play.libs.ws.*;
 
 import static play.test.Helpers.*;
@@ -55,17 +52,18 @@ public class FunctionalTest extends WithApplication {
 
     private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("application");
 
-    //#test-server
+     //#test-server
     @Test
     public void testInServer() throws Exception {
-        TestServer server = testServer(3333);
+        int testServerPort = play.api.test.Helpers.testServerPort();
+        TestServer server = testServer(testServerPort);
         running(server, () -> {
             try {
-                WSClient ws = play.libs.ws.WS.newClient(3333);
-                CompletionStage<WSResponse> completionStage = ws.url("/").get();
-                WSResponse response = completionStage.toCompletableFuture().get();
-                ws.close();
-                assertEquals(OK, response.getStatus());
+                try (WSClient ws = WS.newClient(testServerPort)) {
+                    CompletionStage<WSResponse> completionStage = ws.url("/").get();
+                    WSResponse response = completionStage.toCompletableFuture().get();
+                    assertEquals(OK, response.getStatus());
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
