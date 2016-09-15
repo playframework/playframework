@@ -130,6 +130,10 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 ### 2.5.x
 
+#### REST API
+
+* [Making a REST API in Play][https://github.com/playframework/play-rest-api], a multi-part guide by the Lightbend Play Team.
+
 #### Dependency Injection
 
 * [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado.
