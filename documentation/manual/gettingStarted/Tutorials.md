@@ -130,10 +130,6 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 ### 2.5.x
 
-#### REST API
-
-* [Making a REST API in Play][https://github.com/playframework/play-rest-api], a multi-part guide by the Lightbend Play Team.
-
 #### Dependency Injection
 
 * [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado.
@@ -146,6 +142,10 @@ This is an incomplete list of several helpful blog posts, and because some of th
 #### Database
 
 * [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an activator project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+
+#### REST APIs
+
+* [Making a REST API in Play][https://github.com/playframework/play-rest-api], a multi-part guide by the Lightbend Play Team.
 
 ### 2.4.x
 
