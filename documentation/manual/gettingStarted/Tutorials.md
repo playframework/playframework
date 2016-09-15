@@ -145,7 +145,7 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 #### REST APIs
 
-* [Making a REST API in Play][https://github.com/playframework/play-rest-api], a multi-part guide by the Lightbend Play Team.
+* [Making a REST API in Play][https://github.com/playframework/play-rest-api], a multi-part guide using the Scala API, by the Lightbend Play Team.
 
 ### 2.4.x
 
