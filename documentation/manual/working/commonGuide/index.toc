@@ -1,5 +1,6 @@
 !build:The build system
 !configuration:Configuration
+!Uri:Uri's in Play
 !assets:Static assets
 !filters:Built-in HTTP filters
 !Modules:Extending Play with modules
