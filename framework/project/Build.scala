@@ -385,6 +385,12 @@ object PlayBuild extends Build {
       PlayGuiceProject % "test"
     )
 
+  lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "play-java-forms")
+    .settings(libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps)
+    .dependsOn(
+      PlayJavaProject % "compile;test->test"
+    )
+
   lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
     .settings(
@@ -449,6 +455,7 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
+    .dependsOn(PlayJavaFormsProject)
     .dependsOn(PlayAkkaHttpServerProject)
 
   // This project is just for microbenchmarking Play, not really a public artifact
@@ -491,6 +498,7 @@ object PlayBuild extends Build {
     PlayJdbcProject,
     PlayJdbcEvolutionsProject,
     PlayJavaProject,
+    PlayJavaFormsProject,
     PlayJavaJdbcProject,
     PlayJpaProject,
     PlayNettyUtilsProject,

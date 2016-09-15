@@ -65,6 +65,17 @@ object Dependencies {
   val javaDeps = Seq(
     scalaJava8Compat,
 
+    ("org.reflections" % "reflections" % "0.9.10")
+      .exclude("com.google.code.findbugs", "annotations"),
+
+    // Used by the Java routing DSL
+    "net.jodah" % "typetools" % "0.4.4",
+
+    logback % Test
+  ) ++ specsBuild.map(_ % Test)
+
+  val javaFormsDeps = Seq(
+
     "org.hibernate" % "hibernate-validator" % "5.2.4.Final",
     "javax.el"      % "javax.el-api"        % "3.0.0", // required by hibernate-validator
 
@@ -80,17 +91,8 @@ object Dependencies {
       .exclude("commons-logging", "commons-logging"),
 
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-core"),
+      .exclude("org.springframework", "spring-core")
 
-    ("org.reflections" % "reflections" % "0.9.10")
-      .exclude("com.google.code.findbugs", "annotations"),
-
-    // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.4",
-
-    guava,
-    findBugs,
-    logback % Test
   ) ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"

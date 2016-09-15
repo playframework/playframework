@@ -3,19 +3,72 @@
  */
 package play.libs;
 
-import java.util.Map;
+import java.util.*;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.*;
+import javax.xml.*;
 
-import org.springframework.util.xml.SimpleNamespaceContext;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import static java.util.Collections.*;
+import static java.util.Objects.requireNonNull;
 
 /**
  * XPath for parsing
  */
 public class XPath {
+
+    static class PlayNamespaceContext implements NamespaceContext {
+
+        private final Map<String, String> prefixMap = new HashMap<>();
+        private final Map<String, Set<String>> namespaceMap = new HashMap<>();
+
+        @Override
+        public String getNamespaceURI(String prefix) {
+            final String p = requireNonNull(prefix, "Null prefix");
+            return Optional.of(prefixMap.get(p)).orElse(XMLConstants.NULL_NS_URI);
+        }
+
+        private Set<String> getPrefixesSet(String namespaceUri) {
+            if (XMLConstants.XML_NS_URI.equals(namespaceUri)) {
+                return singleton(XMLConstants.XML_NS_PREFIX);
+            } else if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceUri)) {
+                return singleton(XMLConstants.XMLNS_ATTRIBUTE);
+            } else {
+                Set<String> prefixes = namespaceMap.get(namespaceUri);
+                return prefixes != null ? unmodifiableSet(prefixes) : emptySet();
+            }
+        }
+
+
+        @Override
+        public String getPrefix(String namespaceURI) {
+            final String uri = requireNonNull(namespaceURI, "Null namespaceURI");
+            return getPrefixesSet(uri).stream().findFirst().orElse(null);
+        }
+
+        @Override
+        public Iterator getPrefixes(String namespaceURI) {
+            final String uri = requireNonNull(namespaceURI, "Null namespaceURI");
+            return getPrefixesSet(uri).iterator();
+        }
+
+        void bindNamespaceUri(String prefix, String namespaceURI) {
+            final String p = requireNonNull(prefix, "Null prefix");
+            final String uri = requireNonNull(namespaceURI, "Null namespaceURI");
+            if (! XMLConstants.DEFAULT_NS_PREFIX.equals(p)) {
+                prefixMap.put(p, uri);
+                Set<String> prefixSet = namespaceMap.get(uri);
+                if (prefixSet == null) {
+                    prefixSet = new LinkedHashSet<>();
+                    this.namespaceMap.put(uri, prefixSet);
+                }
+                prefixSet.add(p);
+            }
+        }
+    }
 
     /**
      * Select all nodes that are selected by this XPath expression. If multiple nodes match,
@@ -32,7 +85,7 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
             
             if (namespaces != null) {
-                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                PlayNamespaceContext nsContext = new PlayNamespaceContext();
                 bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
@@ -60,7 +113,7 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
             
             if (namespaces != null) {
-                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                PlayNamespaceContext nsContext = new PlayNamespaceContext();
                 bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
@@ -75,7 +128,7 @@ public class XPath {
         return selectNode(path, node, null);
     }
 
-    private static void bindUnboundedNamespaces(SimpleNamespaceContext nsContext, Map<String, String> namespaces) {
+    private static void bindUnboundedNamespaces(PlayNamespaceContext nsContext, Map<String, String> namespaces) {
         namespaces.forEach((key, value) -> {
             if(nsContext.getPrefix(value) == null) {
                 nsContext.bindNamespaceUri(key, value);
@@ -94,7 +147,7 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
 
             if (namespaces != null) {
-                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                PlayNamespaceContext nsContext = new PlayNamespaceContext();
                 bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }

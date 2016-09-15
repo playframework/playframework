@@ -26,6 +26,15 @@ import WebKeys._
 
 object PlaySettings {
 
+  lazy val minimalJavaSettings = Seq[Setting[_]](
+
+    TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
+
+    RoutesKeys.routesImport ++= Seq(
+      "play.libs.F"
+    )
+  )
+
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
     TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,

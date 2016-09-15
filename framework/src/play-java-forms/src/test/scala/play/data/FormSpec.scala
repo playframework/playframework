@@ -15,7 +15,6 @@ import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
-import play.data.FormFactory
 import play.data.format.Formatters
 import play.twirl.api.Html
 import javax.validation.groups.Default
@@ -248,7 +247,7 @@ class FormSpec extends Specification {
     "work with the @repeat helper" in {
       val form = formFactory.form(classOf[JavaForm])
 
-      import play.core.j.PlayMagicForJava._
+      import play.core.j.PlayFormsMagicForJava._
 
       def render(form: Form[_], min: Int = 1) = views.html.helper.repeat.apply(form("foo"), min) { f =>
         val a = f("a")
