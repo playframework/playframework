@@ -8,6 +8,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * This interface is used to provide a non-blocking timeout on an operation
  * that returns a CompletionStage.
@@ -26,7 +28,9 @@ public interface Timeout {
      * @param unit The time Unit.
      * @return either the completed future, or a completion stage that failed with timeout.
      */
-    default <A> CompletionStage<A> timeout(CompletionStage<A> stage, long delay, TimeUnit unit) {
+    default <A> CompletionStage<A> timeout(final CompletionStage<A> stage, final long delay, final TimeUnit unit) {
+        requireNonNull(stage, "Null stage");
+        requireNonNull(unit, "Null unit");
         final CompletionStage<A> timeoutFuture = Futures.timeout(delay, unit);
         // use this stage's default asynchronous execution facility for non-blocking.
         return stage.applyToEitherAsync(timeoutFuture, Function.identity());
@@ -39,7 +43,9 @@ public interface Timeout {
      * @param delay The delay (expressed with the corresponding unit).
      * @return the completion stage, or a completion stage that failed with timeout.
      */
-    default <A> CompletionStage<A> timeout(CompletionStage<A> stage, Duration delay) {
+    default <A> CompletionStage<A> timeout(final CompletionStage<A> stage, final Duration delay) {
+        requireNonNull(stage, "Null stage");
+        requireNonNull(delay, "Null delay");
         return timeout(stage, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 

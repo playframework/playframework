@@ -12,6 +12,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Utilities for creating {@link java.util.concurrent.CompletionStage}.
  */
@@ -92,12 +94,14 @@ public class Futures {
      * @param unit The time Unit.
      * @return a CompletionStage that failed exceptionally
      */
-    public static <A> CompletionStage<A> timeout(long delay, TimeUnit unit) {
+    public static <A> CompletionStage<A> timeout(final long delay, final TimeUnit unit) {
+        requireNonNull(unit, "Null unit");
         final CompletableFuture<A> future = new CompletableFuture<>();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                final F.PromiseTimeoutException ex = new F.PromiseTimeoutException("Timeout in promise");
+                String msg = "Timeout in promise after " + delay + " " + unit.toString();
+                final F.PromiseTimeoutException ex = new F.PromiseTimeoutException(msg);
                 future.completeExceptionally(ex);
             }
         }, unit.toMillis(delay));
