@@ -61,7 +61,12 @@ object JsMacroImpl {
 
     import c.universe._
 
-    val TypeRef(_, _, tpeArgs) = atag.tpe
+    val tpeArgs = atag.tpe match {
+      case TypeRef(_, _, args) => args
+
+      case t => c.abort(c.enclosingPosition,
+        s"Type ${t.typeSymbol.fullName} is not a valid case class")
+    }
 
     // The call is the term name, either "read", "write" or "format",
     // that gets invoked on JsPath (e.g. `(__ \ "foo").read`)
@@ -93,16 +98,16 @@ object JsMacroImpl {
       val hasVarArgs = unapplySeq != NoSymbol
 
       // Returns the unapply symbol
-      private val effectiveUnapply: MethodSymbol =
+      private lazy val effectiveUnapply: MethodSymbol =
         Seq(unapply, unapplySeq).find(_ != NoSymbol) match {
           case None => c.abort(c.enclosingPosition, s"No unapply or unapplySeq function found for $companioned: $unapply / $unapplySeq")
           case Some(s) => s.asMethod
         }
 
-      val unapplyReturnTypes: Option[List[Type]] =
+      lazy val unapplyReturnTypes: Option[List[Type]] =
         effectiveUnapply.returnType match {
           case TypeRef(_, _, Nil) => {
-            c.abort(c.enclosingPosition, s"Unapply of $companionObject has no parameters. Are you using an empty case class?")
+            c.abort(c.enclosingPosition, s"Unapply of ${companioned.fullName} has no parameters. Are you using an empty case class?")
             None
           }
 
@@ -163,21 +168,35 @@ object JsMacroImpl {
         }
 
       // The apply methods for the object
-      private val applies = companionType.decl(TermName("apply")) match {
-        case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
+      private lazy val applies: List[MethodSymbol] =
+        companionType.decl(TermName("apply")) match {
+          case NoSymbol => c.abort(c.enclosingPosition,
+            s"No apply function found for ${companioned.fullName}")
 
-        case s => s.asTerm.alternatives.filter { apply =>
-          val ps = apply.asMethod.paramLists
+          case s => s.asTerm.alternatives.flatMap { apply =>
+            val meth = apply.asMethod
 
-          if (ps.size == 1) true else ps.drop(1).forall {
-            case p :: _ => p.isImplicit
-            case _ => false
+            meth.paramLists match {
+              case ps :: pss if (
+                ps.nonEmpty && pss.forall {
+                  case p :: _ => p.isImplicit
+                  case _ => false
+                }
+              ) => List(meth)
+
+              case _ => List.empty
+            }
           }
         }
-      }
 
-      /* Find an apply method that matches the unapply */
-      val maybeApply: Option[MethodSymbol] = applies.collectFirst {
+      /** 
+       * Returns whether the case class is valid: 
+       * has at least only "apply" with a non empty list of parameters. 
+       */
+      @inline def isValid: Boolean = applies.isEmpty
+
+      // Find an apply method that matches the unapply
+      private val maybeApply: Option[MethodSymbol] = applies.collectFirst {
         case (apply: MethodSymbol) if hasVarArgs && {
           // Option[List[c.universe.Type]]
           val someApplyTypes = apply.paramLists.headOption.
@@ -234,12 +253,21 @@ object JsMacroImpl {
       } else q"$unlift($companionObject.$effectiveUnapply[..$tpeArgs])"
     }
 
+    // ---
+
+    if (ApplyUnapply.isValid) {
+      c.abort(c.enclosingPosition,
+        s"Type ${companioned.fullName} is not valid: must be a case class with at least one non empty list of parameter")
+    }
+
     val (applyFunction, tparams, params) = ApplyUnapply.applyFunction match {
       case Some(info) => info
 
       case _ => c.abort(c.enclosingPosition,
         s"No apply function found matching unapply parameters")
     }
+
+    // ---
 
     // Utility for implicit resolution - can hardly be moved outside
     // (due to dependent types)
