@@ -26,17 +26,19 @@ object Docs {
   lazy val settings = Seq(
     apiDocsInclude := false,
     apiDocsIncludeManaged := false,
-    apiDocsScalaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".scala"),
-    apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
-    apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
+    apiDocsScalaSources := ((thisProjectRef, buildStructure) flatMap allSources(Compile, ".scala")).value,
+    apiDocsClasspath := ((thisProjectRef, buildStructure) flatMap allClasspaths).value,
+    apiDocsJavaSources := ((thisProjectRef, buildStructure) flatMap allSources(Compile, ".java")).value,
     apiDocsUseCache := true,
-    apiDocs <<= apiDocsTask,
+    apiDocs := apiDocsTask.value,
     ivyConfigurations += Webjars,
-    extractWebjars <<= extractWebjarContents,
-    allConfs in Global <<= (thisProjectRef, buildStructure) flatMap allConfsTask,
-    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version, allConfs) map { (base, apiBase, webjars, playVersion, confs) =>
+    extractWebjars := extractWebjarContents.value,
+    allConfs in Global := ((thisProjectRef, buildStructure) flatMap allConfsTask).value,
+    mappings in (Compile, packageBin) ++= {
+      val apiBase = apiDocs.value
+      val webjars = extractWebjars.value
       // Include documentation and API docs in main binary JAR
-      val docBase = base / "../../../documentation"
+      val docBase = baseDirectory.value / "../../../documentation"
       val raw = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
       val filtered = raw.filter(_.getName != ".DS_Store")
       val docMappings = filtered.get pair rebase(docBase, "play/docs/content/")
@@ -44,10 +46,10 @@ object Docs {
       val apiDocMappings = (apiBase ** "*").get pair rebase(apiBase, "play/docs/content/api")
 
       // The play version is added so that resource paths are versioned
-      val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + playVersion)
+      val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + version.value)
 
       // Gather all the conf files into the project
-      val referenceConfMappings = confs.map {
+      val referenceConfMappings = allConfs.value.map {
         case (projectName, conf) => conf -> s"play/docs/content/confs/$projectName/${conf.getName}"
       }
 
@@ -58,7 +60,7 @@ object Docs {
   def playdocSettings: Seq[Setting[_]] = Playdoc.projectSettings ++
     Seq(
       ivyConfigurations += Webjars,
-      extractWebjars <<= extractWebjarContents,
+      extractWebjars := extractWebjarContents.value,
       libraryDependencies ++= Dependencies.playdocWebjarDependencies,
       mappings in playdocPackage := {
         val base = (baseDirectory in ThisBuild).value

@@ -48,21 +48,21 @@ object PlayForkRun extends AutoPlugin {
     libraryDependencies += "com.typesafe.play" %% "fork-run" % play.core.PlayVersion.current % ForkRun.name,
     PlaySettings.manageClasspath(ForkRun),
 
-    playRun <<= PlayRun.playDefaultRunTask,
-    playForkOptions <<= forkOptionsTask,
-    playForkRun <<= forkRunTask,
+    playRun := PlayRun.playDefaultRunTask.value,
+    playForkOptions := forkOptionsTask.value,
+    playForkRun := forkRunTask.value,
 
-    run in Compile <<= selectRunTask,
-    BackgroundJobServiceKeys.backgroundRun in Compile <<= backgroundForkRunTask,
+    run in Compile := selectRunTask.value,
+    BackgroundJobServiceKeys.backgroundRun in Compile := backgroundForkRunTask.evaluated,
 
     playForkLogSbtEvents := true,
     playForkCompileTimeout := 5.minutes,
     playForkShutdownTimeout := 10.seconds,
 
-    playForkConfig <<= forkConfigTask,
-    playForkNotifyStart <<= serverStartedTask,
-    playForkStarted <<= publishUrlTask,
-    playForkReload <<= compileTask,
+    playForkConfig := forkConfigTask.value,
+    playForkNotifyStart := serverStartedTask.value,
+    playForkStarted := publishUrlTask.value,
+    playForkReload := compileTask.value,
     SerializersKeys.registeredSerializers ++= Serializers.serializers.map(x => RegisteredSerializer(x.serializer, x.unserializer, x.manifest))
   )
 

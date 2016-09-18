@@ -12,7 +12,7 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
 // Change our tests directory because the usual "test" directory clashes
 // with the scripted "test" file.
-scalaSource in Test <<= baseDirectory(_ / "tests")
+scalaSource in Test := (baseDirectory.value / "tests")
 
 libraryDependencies ++= Seq(
   guice,
