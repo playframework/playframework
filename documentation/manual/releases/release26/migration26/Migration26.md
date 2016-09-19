@@ -7,6 +7,13 @@ This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate 
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
 
+## Uri Decoding / Encoding
+
+Play now uses [scala-uri](https://github.com/NET-A-PORTER/scala-uri) to decode and encode URI's.
+This will maybe change your code if you rely on some more exotic URI encoding / decoding.
+
+We explain everything in Detail here: [[common|Uri]]
+
 ## Scala ActionBuilder and BodyParser changes:
 
 The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.

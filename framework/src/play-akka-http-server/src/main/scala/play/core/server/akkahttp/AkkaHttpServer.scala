@@ -65,6 +65,7 @@ class AkkaHttpServer(
       serverConfig.get[Duration]("http.idleTimeout")
     }
     val serverSettings = initialSettings.withTimeouts(initialSettings.timeouts.withIdleTimeout(idleTimeout))
+      .withRawRequestUriHeader(true)
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =

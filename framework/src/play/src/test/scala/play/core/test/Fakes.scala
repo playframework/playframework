@@ -6,6 +6,7 @@ package play.core.test
 import java.security.cert.X509Certificate
 
 import akka.util.ByteString
+import com.netaporter.uri.Uri
 import play.api.inject.{ Binding, Injector }
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
@@ -53,16 +54,17 @@ case class FakeRequest[A](
     )
   }
 
+  private lazy val parsedUri = Uri.parse(uri)
+
   /**
    * The request path.
    */
-  lazy val path = uri.split('?').take(1).mkString
+  lazy val path = parsedUri.path
 
   /**
    * The request query String
    */
-  lazy val queryString: Map[String, Seq[String]] =
-    play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
+  lazy val queryString: Map[String, Seq[String]] = parsedUri.query.paramMap
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.

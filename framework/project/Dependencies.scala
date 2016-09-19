@@ -113,6 +113,7 @@ object Dependencies {
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
     jacksons ++
     Seq(
+      "com.netaporter" %% "scala-uri" % "0.4.14",
       "commons-codec" % "commons-codec" % "1.10",
 
       guava,
