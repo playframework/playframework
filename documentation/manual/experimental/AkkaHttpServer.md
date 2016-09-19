@@ -14,9 +14,9 @@ In future versions of Play we may implement a production quality Akka HTTP backe
 
 ## Known issues
 
-* Slow. There is a lot more copying in the Akka HTTP backend because the Play and Akka HTTP APIs are not naturally compatible. A lot of extra copying is needed to translate the objects.
 * Server shutdown is a bit rough. HTTP server actors are just killed.
 * The implementation contains code duplicated from the Netty backend.
+* Currently some Exception could not be handled by the HttpErrorHandler (Header Parsing Errors, Request Timeout).
 
 ## Usage
 
@@ -56,14 +56,46 @@ The Akka HTTP server is configured with Typesafe Config, like the rest of Play. 
 ```
 play {
 
-  # The server provider class name
-  server.provider = "play.core.server.akkahttp.AkkaHttpServerProvider"
+  server {
+    # The server provider class name
+    provider = "play.core.server.akkahttp.AkkaHttpServerProvider"
 
-  akka {
-    # How long to wait when binding to the listening socket
-    http-bind-timeout = 5 seconds
+    akka {
+      # How long to wait when binding to the listening socket
+      bindTimeout = 5 seconds
+
+      # How long a request takes until it times out
+      # request-timeout = 240 seconds
+
+      # Enables/disables automatic handling of HEAD requests.
+      # If this setting is enabled the server dispatches HEAD requests as GET
+      # requests to the application and automatically strips off all message
+      # bodies from outgoing responses.
+      # Note that, even when this setting is off the server will never send
+      # out message bodies on responses to HEAD requests.
+      transparent-head-requests = on
+
+      # If this setting is empty the server only accepts requests that carry a
+      # non-empty `Host` header. Otherwise it responds with `400 Bad Request`.
+      # Set to a non-empty value to be used in lieu of a missing or empty `Host`
+      # header to make the server accept such requests.
+      # Note that the server will never accept HTTP/1.1 request without a `Host`
+      # header, i.e. this setting only affects HTTP/1.1 requests with an empty
+      # `Host` header as well as HTTP/1.0 requests.
+      # Examples: `www.spray.io` or `example.com:8080`
+      default-host-header = ""
+
+      # Enables/disables the addition of a `Remote-Address` header
+      # holding the clients (remote) IP address.
+      remote-address-header = off
+
+      # The default value of the `Server` header to produce if no
+      # explicit `Server`-header was included in a response.
+      # If this value is the empty string and no header was included in
+      # the request, no `Server` header will be rendered at all.
+      server-header = ""
+    }
   }
-
 }
 
 akka {
