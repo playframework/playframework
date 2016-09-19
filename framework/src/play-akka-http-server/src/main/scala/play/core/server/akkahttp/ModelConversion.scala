@@ -59,10 +59,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       // We could get NettyServer to send a similar tag, but for the moment
       // let's not, just in case it slows NettyServer down a bit.
       override val tags = Map("HTTP_SERVER" -> "akka-http")
-      // Note: Akka HTTP doesn't provide a direct way to get the raw URI
-      // This will only work properly if
-      override def uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
-        logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
+      override def uri = request.header[`Raw-Request-URI`].map(_.uri).getOrElse {
+        logger.warn("Can't get raw request URI.")
         request.uri.toString
       }
       override def path = request.uri.path.toString
