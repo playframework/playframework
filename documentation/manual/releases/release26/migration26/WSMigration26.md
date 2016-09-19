@@ -59,6 +59,7 @@ play.api.test.WsTestClient.withClient { ws =>
 
 The `ning` package has been replaced by the `ahc` package, and the Ning* classes replaced by AHC*.
 
+
 #### WithBody changed
 
 `WSRequest` had a `withBody[T](body: T)(implicit writable: play.api.http.Writable[T])` method has been replaced as it was difficult to track the behavior of `Writable`. There is now a custom `BodyWritable[T]` type class that fills the same function, and which has type class instances defined in Standalone WS:
@@ -67,11 +68,11 @@ The `ning` package has been replaced by the `ahc` package, and the Ning* classes
 override def withBody[T: BodyWritable](body: T)
 ```
 
-#### Deprecated wsCall and wsUrl
+### Refactored WSTestClient Methods
 
-The `wsCall` and `wsUrl` methods in `play.api.test.WsTestClient` have the goal of calling "wsClient.url(s"$scheme://localhost:" + self.port + path)" -- they resolve a WSClient, and call a relative URL on a given port.
+The `wsCall` and `wsUrl` methods in `play.api.test.WsTestClient` have the goal of calling `wsClient.url(s"$scheme://localhost:" + self.port + path)` -- they resolve a `WSClient`, and call a relative URL on a given port.
 
-These methods relied on `Play.current` when no implicit `Application` was found and were not very flexible.  They have been deprecated in favor of `wsCall` and `wsUrl` methods in context.
+These methods relied on `Play.current` when no implicit `Application` was found and were not very flexible.  They have been deprecated in favor of `wsCall` and `wsUrl` methods in the context of an application and a port.
 
 You can extend `WithServer` or `WithBrowser` with `ServerWSTestMethods` to provide the `wsCall` and `wsUrl` methods directly:
 
@@ -91,7 +92,7 @@ You can also extend `WithApplication` with `AppWSTestMethods` in the same way:
 }
 ```
 
-The `WsTestClient` trait will now automatically enrich `WSClient`, `Application`, `TestServer` types with `wsUrl` or `wsCall` methods, which can be very convenient:
+The `WsTestClient` trait will now automatically enrich `WSClient`, `Application`, or `TestServer` types with `wsUrl` or `wsCall` methods, which can be very convenient:
 
 ```scala
 class MySpec extends PlaySpecification with WsTestClient {
@@ -108,9 +109,9 @@ class MySpec extends PlaySpecification with WsTestClient {
 }
 ```
 
-In fact, anything that contains `def app: Application` will have `wsCall` and `wsUrl` methods.  If you have a `def port: play.api.test.Port` as well, then the result of that `port` method is used.
+In fact, anything that contains `def app: Application` will have `wsCall` and `wsUrl` methods.  If you have a `def port: play.api.test.Port` as well, then the result of that `port` method is used, otherwise `Helpers.testServerPort` is the default.
 
-If the type does not have a port available, i.e. an `Application` or a `WSClient`, then you can still call `wsUrl` but there is an implicit port parameter that must be resolved, either from WithServer, or by using `Helpers.testServerPort`:
+If the type does not have a port available, i.e. an `Application` or a `WSClient`, then you can still call `wsUrl` but there is an implicit port parameter that must be resolved, either from `WithServer`, or by using `Helpers.testServerPort`:
 
 ```scala
 class MySpec extends PlaySpecification with WsTestClient {

@@ -3,15 +3,9 @@
  */
 package play.api.test
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import play.api.Application
 import play.api.libs.ws._
-import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 import play.api.mvc.Call
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 import WSClientResolver._
 
@@ -118,13 +112,13 @@ trait WSTestMethodsImplicits {
   import scala.language.implicitConversions
   import scala.language.reflectiveCalls
 
-  implicit def fromHasAppAndPort(appAndPort: HasAppAndPort): WSTestMethodsWithPort = new WSTestMethodsWithPort {
-    override def wsClient: WSClient = currentClient(appAndPort.app)
-    override def wsClientPort: Port = appAndPort.port
+  implicit def fromHasAppAndPort(hasAppAndPort: HasAppAndPort): WSTestMethodsWithPort = new WSTestMethodsWithPort {
+    override def wsClient: WSClient = currentClient(hasAppAndPort.app)
+    override def wsClientPort: Port = hasAppAndPort.port
   }
 
-  implicit def fromHasApp(withApp: HasApp): WSTestMethods = new WSTestMethods {
-    override def wsClient: WSClient = currentClient(withApp.app)
+  implicit def fromHasApp(hasApp: HasApp): WSTestMethods = new WSTestMethods {
+    override def wsClient: WSClient = currentClient(hasApp.app)
   }
 
   implicit def fromClient(client: WSClient): WSTestMethods = new WSTestMethods {
@@ -138,7 +132,7 @@ trait WSTestMethodsImplicits {
 }
 
 /**
- * A standalone test client that is useful for running standalone integration tests.
+ * A standalone test client that is useful for running functional tests.
  */
 trait WsTestClient extends WSTestMethodsImplicits {
 
@@ -192,9 +186,10 @@ trait WsTestClient extends WSTestMethodsImplicits {
    * }
    * }}}
    *
-   * @param block The block of code to run
-   * @param port  The port
-   * @return The result of the block of code
+   * @param block  The block of code to run
+   * @param port   The port
+   * @param scheme The scheme
+   * @return       The result of the block of code
    */
   def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
     require(scheme != null)
