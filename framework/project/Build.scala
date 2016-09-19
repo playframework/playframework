@@ -56,9 +56,6 @@ object BuildSettings {
         .setPreference(DanglingCloseParenthesis, Preserve)
         .setPreference(PreserveSpaceBeforeArguments, true)        
         .setPreference(DoubleIndentClassDeclaration, true)
-        //.setPreference(DoubleIndentMethodDeclaration, true)
-        //.setPreference(FirstParameterOnNewline, Preserve)        
-        //.setPreference(FirstArgumentOnNewline, Preserve)
     ) ++ Seq(
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,

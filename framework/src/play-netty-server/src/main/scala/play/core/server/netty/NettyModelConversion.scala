@@ -167,9 +167,10 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
 
   /** Create a Netty response from the result */
   def convertResult(
-    result: Result, requestHeader: RequestHeader, httpVersion: HttpVersion, errorHandler: HttpErrorHandler)(
-    implicit
-    mat: Materializer): Future[HttpResponse] = {
+    result: Result,
+    requestHeader: RequestHeader,
+    httpVersion: HttpVersion,
+    errorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[HttpResponse] = {
 
     ServerResultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
 
