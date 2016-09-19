@@ -136,7 +136,7 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted <<= ScriptedPlugin.scripted.tag(Tags.Test),
+    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).value,
     scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
@@ -145,7 +145,7 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] = ScriptedPlugin.scriptedSettings ++ Seq(
-    ScriptedPlugin.scriptedLaunchOpts <+= version apply { v => s"-Dproject.version=$v" }
+    ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
   ) ++ playScriptedSettings
 
   /**
@@ -228,7 +228,7 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
 
-      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
+      sourceGenerators in Compile += Def.task(((version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion).value).taskValue,
 
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
@@ -337,7 +337,7 @@ object PlayBuild extends Build {
   lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
-      sourceGenerators in Compile <+= (version, scalaVersion in PlayProject, sbtVersion, sourceManaged in Compile) map PlayVersion,
+      sourceGenerators in Compile += Def.task(((version, scalaVersion in PlayProject, sbtVersion, sourceManaged in Compile) map PlayVersion).value).taskValue,
       // This only publishes the sbt plugin projects on each scripted run.
       // The runtests script does a full publish before running tests.
       // When developing the sbt plugins, run a publishLocal in the root project first.
