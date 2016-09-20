@@ -116,12 +116,16 @@ Anything included in your project's `dist` directory will be included in the dis
 
 ## Play PID Configuration
 
-Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].  In order to tell the startup script where to place the PID file put a file `application.ini` inside the `dist/conf` folder and add the following content:
+Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].
+
+Since Play uses a separate pidfile, we have to provide it with a proper path, which is `packageName.value` here.  The name of the pid file must be `play.pid`.  In order to tell the startup script where to place the PID file, put a file `application.ini` inside the `dist/conf` folder and add the following content:
 
 ```bash
--Dpidfile.path=/var/run/${{app_name}}/play.pid
+s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
+
+Please see the sbt-native-packager [page on Play](http://www.scala-sbt.org/sbt-native-packager/recipes/play.html?highlight=play) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
