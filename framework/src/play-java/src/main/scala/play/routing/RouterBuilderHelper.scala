@@ -68,7 +68,8 @@ private[routing] object RouterBuilderHelper {
                   // it to instantiate the default body parser, we have to instantiate it ourselves.
                   val app = Play.privateMaybeApplication.get // throw exception if no current app
                   val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer)
-                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(app.errorHandler),
+                  new play.mvc.BodyParser.Default(
+                    new JavaHttpErrorHandlerDelegate(app.errorHandler),
                     app.injector.instanceOf[HttpConfiguration], bp)
                 }
                 ActionBuilder.ignoringBody.async(parser) { request =>

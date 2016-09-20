@@ -251,7 +251,8 @@ class DiscoveryClientSpec extends Specification with Mockito {
   }
 
   // See 9.1 http://openid.net/specs/openid-authentication-2_0.html#anchor27
-  private def verifyValidOpenIDRequest(params: Map[String, Seq[String]],
+  private def verifyValidOpenIDRequest(
+    params: Map[String, Seq[String]],
     claimedId: String,
     returnTo: String,
     opLocalIdentifier: Option[String] = None,

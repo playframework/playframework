@@ -135,7 +135,8 @@ class AhcWSSpec extends PlaySpecification with Mockito {
     "support a custom signature calculator" in {
       var called = false
       val calc = new org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
-        override def calculateAndAddSignature(request: org.asynchttpclient.Request,
+        override def calculateAndAddSignature(
+          request: org.asynchttpclient.Request,
           requestBuilder: org.asynchttpclient.RequestBuilderBase[_]): Unit = {
           called = true
         }

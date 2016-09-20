@@ -57,7 +57,7 @@ object JsMacroImpl {
     // writes or both.
     def conditionalList[T](ifReads: T, ifWrites: T): List[T] =
       (if (reads) List(ifReads) else Nil) :::
-    (if (writes) List(ifWrites) else Nil)
+        (if (writes) List(ifWrites) else Nil)
 
     import c.universe._
 
@@ -126,16 +126,17 @@ object JsMacroImpl {
           case Some((TypeRef(NoPrefix, a, _),
             TypeRef(NoPrefix, b, _))) => { // for generic parameter
             if (a.fullName != b.fullName) {
-              c.warning(c.enclosingPosition,
+              c.warning(
+                c.enclosingPosition,
                 s"Type symbols are not compatible: $a != $b")
 
               false
-            }
-            else conforms(types.tail)
+            } else conforms(types.tail)
           }
 
           case Some((a, b)) if (a.typeArgs.size != b.typeArgs.size) => {
-            c.warning(c.enclosingPosition,
+            c.warning(
+              c.enclosingPosition,
               s"Type parameters are not matching: $a != $b")
 
             false
@@ -143,14 +144,16 @@ object JsMacroImpl {
 
           case Some((a, b)) if a.typeArgs.isEmpty =>
             if (a =:= b) conforms(types.tail) else {
-              c.warning(c.enclosingPosition,
+              c.warning(
+                c.enclosingPosition,
                 s"Types are not compatible: $a != $b")
 
               false
             }
 
           case Some((a, b)) if (a.baseClasses != b.baseClasses) => {
-            c.warning(c.enclosingPosition,
+            c.warning(
+              c.enclosingPosition,
               s"Generic types are not compatible: $a != $b")
 
             false
@@ -237,7 +240,8 @@ object JsMacroImpl {
     val (applyFunction, tparams, params) = ApplyUnapply.applyFunction match {
       case Some(info) => info
 
-      case _ => c.abort(c.enclosingPosition,
+      case _ => c.abort(
+        c.enclosingPosition,
         s"No apply function found matching unapply parameters")
     }
 
@@ -284,7 +288,7 @@ object JsMacroImpl {
       }
 
       /**
-       * Replaces any reference to the type itself by the Placeholder type. 
+       * Replaces any reference to the type itself by the Placeholder type.
        * @return the normalized type + whether any self reference has been found
        */
       private def normalized(tpe: Type): (Type, Boolean) =
@@ -373,11 +377,12 @@ object JsMacroImpl {
 
         // if any implicit is missing, abort
         val missingImplicits = effectiveImplicits.collect {
-          case Implicit(_, t, EmptyTree/* ~= not found */, _, _) => t
+          case Implicit(_, t, EmptyTree /* ~= not found */ , _, _) => t
         }
 
         if (missingImplicits.nonEmpty) {
-          c.abort(c.enclosingPosition,
+          c.abort(
+            c.enclosingPosition,
             s"No instance of ${natag.tpe.typeSymbol.fullName} is available for ${missingImplicits.map(prettyType(_)).mkString(", ")} in the implicit scope (Hint: if declared in the same file, make sure it's declared before)")
         }
 

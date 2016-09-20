@@ -64,7 +64,8 @@ object Reloader {
     }
   }
 
-  def filterArgs(args: Seq[String],
+  def filterArgs(
+    args: Seq[String],
     defaultHttpPort: Int,
     defaultHttpAddress: String,
     devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {

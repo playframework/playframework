@@ -64,13 +64,17 @@ class ExecutionSpec extends Specification {
       }
 
       trampoline.execute(
-        TestRunnable(0,
+        TestRunnable(
+          0,
           TestRunnable(1),
-          TestRunnable(2,
-            TestRunnable(4,
+          TestRunnable(
+            2,
+            TestRunnable(
+              4,
               TestRunnable(6),
               TestRunnable(7)),
-            TestRunnable(5,
+            TestRunnable(
+              5,
               TestRunnable(8))),
           TestRunnable(3))
       )

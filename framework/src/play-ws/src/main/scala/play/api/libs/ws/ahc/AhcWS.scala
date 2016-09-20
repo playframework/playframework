@@ -104,7 +104,8 @@ case object AhcWSRequest {
 /**
  * A Ahc WS Request.
  */
-case class AhcWSRequest(client: AhcWSClient,
+case class AhcWSRequest(
+    client: AhcWSClient,
     url: String,
     method: String,
     body: WSBody,

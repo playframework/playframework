@@ -10,7 +10,6 @@ import scala.reflect.ClassTag
 
 import play.inject.SourceProvider
 
-
 /**
  * A binding.
  *

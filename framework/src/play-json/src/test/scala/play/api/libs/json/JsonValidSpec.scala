@@ -434,18 +434,18 @@ class JsonValidSpec extends Specification {
         (__ \ "key1").json.pickBranch and
         (__ \ "key2").json.pickBranch(
           (
-            (__ \ "key22").json.update((__ \ "key222").json.pick) and
-            (__ \ "key233").json.copyFrom((__ \ "key23").json.pick)
-          ).reduce
+          (__ \ "key22").json.update((__ \ "key222").json.pick) and
+          (__ \ "key233").json.copyFrom((__ \ "key23").json.pick)
+        ).reduce
         ) and
-          (__ \ "key3").json.pickBranch[JsArray](pure(Json.arr("delta"))) and
-          (__ \ "key4").json.put(
-            Json.obj(
-              "key41" -> 345,
-              "key42" -> "alpha",
-              "key43" -> func
-            )
+        (__ \ "key3").json.pickBranch[JsArray](pure(Json.arr("delta"))) and
+        (__ \ "key4").json.put(
+          Json.obj(
+            "key41" -> 345,
+            "key42" -> "alpha",
+            "key43" -> func
           )
+        )
       ).reduce
 
       val res = Json.obj(
@@ -566,7 +566,7 @@ class JsonValidSpec extends Specification {
         (__ \ 'data).read(
           Reads.verifyingIf[JsObject] { case JsObject(fields) => !fields.isEmpty }(
             ((__ \ "title").read[String] and
-              (__ \ "created").read[java.util.Date]).tupled
+            (__ \ "created").read[java.util.Date]).tupled
           )
         )
       ).tupled

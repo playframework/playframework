@@ -22,7 +22,8 @@ import play.api.Configuration
  * @param data The data to load the key store file from.
  * @param password The password to use to load the key store file, if the file is password protected.
  */
-case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
+case class KeyStoreConfig(
+    storeType: String = KeyStore.getDefaultType,
     filePath: Option[String] = None,
     data: Option[String] = None,
     password: Option[String] = None) {
@@ -39,7 +40,8 @@ case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
  * @param filePath The path of the key store file.
  * @param data The data to load the key store file from.
  */
-case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
+case class TrustStoreConfig(
+    storeType: String = KeyStore.getDefaultType,
     filePath: Option[String],
     data: Option[String]) {
 

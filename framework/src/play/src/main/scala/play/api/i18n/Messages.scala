@@ -167,7 +167,8 @@ class DefaultLangs @Inject() (config: Configuration) extends Langs {
 
     langs.map { lang =>
       try { Lang(lang) } catch {
-        case NonFatal(e) => throw config.reportError("play.i18n.langs",
+        case NonFatal(e) => throw config.reportError(
+          "play.i18n.langs",
           "Invalid language code [" + lang + "]", Some(e))
       }
     }

@@ -30,7 +30,8 @@ import scala.concurrent.Future
  * @param next The composed action that is being protected.
  * @param errorHandler handling failed token error.
  */
-class CSRFAction(next: EssentialAction,
+class CSRFAction(
+    next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
     tokenSigner: CSRFTokenSigner,
     tokenProvider: TokenProvider,

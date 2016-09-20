@@ -254,7 +254,8 @@ case class DefaultEvolutionsDatasourceConfig(
 /**
  * Default evolutions configuration.
  */
-class DefaultEvolutionsConfig(defaultDatasourceConfig: EvolutionsDatasourceConfig,
+class DefaultEvolutionsConfig(
+    defaultDatasourceConfig: EvolutionsDatasourceConfig,
     datasources: Map[String, EvolutionsDatasourceConfig]) extends EvolutionsConfig {
   def forDatasource(db: String) = datasources.getOrElse(db, defaultDatasourceConfig)
 }

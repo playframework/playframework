@@ -20,9 +20,11 @@ object RoutesKeys {
   val routes = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
   val routesImport = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
   val routesGenerator = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
-  val generateReverseRouter = SettingKey[Boolean]("playGenerateReverseRouter",
+  val generateReverseRouter = SettingKey[Boolean](
+    "playGenerateReverseRouter",
     "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
-  val namespaceReverseRouter = SettingKey[Boolean]("playNamespaceReverseRouter",
+  val namespaceReverseRouter = SettingKey[Boolean](
+    "playNamespaceReverseRouter",
     "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
 
   /**
@@ -38,7 +40,8 @@ object RoutesKeys {
     implicit def fromProject(project: => Project): LazyProjectReference = new LazyProjectReference(project)
   }
 
-  val aggregateReverseRoutes = SettingKey[Seq[LazyProjectReference]]("playAggregateReverseRoutes",
+  val aggregateReverseRoutes = SettingKey[Seq[LazyProjectReference]](
+    "playAggregateReverseRoutes",
     "A list of projects that reverse routes should be aggregated from.")
 
   val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator

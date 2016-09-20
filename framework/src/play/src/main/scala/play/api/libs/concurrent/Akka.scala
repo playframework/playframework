@@ -4,17 +4,17 @@
 package play.api.libs.concurrent
 
 import java.util.concurrent.TimeoutException
-import javax.inject.{Inject, Provider, Singleton}
+import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.Config
 import play.api._
-import play.api.inject.{ApplicationLifecycle, Binding, Injector, bind}
+import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContextExecutor, Future}
+import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
 
 /**
@@ -177,29 +177,29 @@ object ActorSystemProvider {
 }
 
 /**
-  * Support for creating injected child actors.
-  */
+ * Support for creating injected child actors.
+ */
 trait InjectedActorSupport {
 
   /**
-    * Create an injected child actor.
-    *
-    * @param create A function to create the actor.
-    * @param name The name of the actor.
-    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
-    *              actor, this function can be used to provide additional configuration such as router and dispatcher
-    *              configuration.
-    * @param context The context to create the actor from.
-    * @return An ActorRef for the created actor.
-    */
+   * Create an injected child actor.
+   *
+   * @param create A function to create the actor.
+   * @param name The name of the actor.
+   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
+   *              actor, this function can be used to provide additional configuration such as router and dispatcher
+   *              configuration.
+   * @param context The context to create the actor from.
+   * @return An ActorRef for the created actor.
+   */
   def injectedChild(create: => Actor, name: String, props: Props => Props = identity)(implicit context: ActorContext): ActorRef = {
     context.actorOf(props(Props(create)), name)
   }
 }
 
 /**
-  * Provider for creating actor refs
-  */
+ * Provider for creating actor refs
+ */
 class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props) extends Provider[ActorRef] {
 
   @Inject private var actorSystem: ActorSystem = _

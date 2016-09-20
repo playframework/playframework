@@ -38,7 +38,8 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
         case _ => Accumulator.done(Results.NotFound)
       }
     }) { port =>
-      val responses = BasicHttpClient.pipelineRequests(port,
+      val responses = BasicHttpClient.pipelineRequests(
+        port,
         BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
         BasicRequest("GET", "/short", "HTTP/1.1", Map(), "")
       )
@@ -57,7 +58,8 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
         case _ => Accumulator.done(Results.NotFound)
       }
     }) { port =>
-      val responses = BasicHttpClient.pipelineRequests(port,
+      val responses = BasicHttpClient.pipelineRequests(
+        port,
         BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
         BasicRequest("GET", "/short", "HTTP/1.1", Map(), "")
       )

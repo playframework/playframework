@@ -17,7 +17,8 @@ trait SSLContextBuilder {
  * A simple SSL context builder.  If the keyManagers or trustManagers are empty, then null is used in the init method.
  * Likewise, if secureRandom is None then null is used.
  */
-class SimpleSSLContextBuilder(protocol: String,
+class SimpleSSLContextBuilder(
+    protocol: String,
     keyManagers: Seq[KeyManager],
     trustManagers: Seq[TrustManager],
     secureRandom: Option[SecureRandom]) extends SSLContextBuilder {
@@ -90,7 +91,8 @@ class DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm: String) extends T
 /**
  * Creates an SSL context builder from info objects.
  */
-class ConfigSSLContextBuilder(info: SSLConfig,
+class ConfigSSLContextBuilder(
+    info: SSLConfig,
     keyManagerFactory: KeyManagerFactoryWrapper,
     trustManagerFactory: TrustManagerFactoryWrapper) extends SSLContextBuilder {
 
@@ -116,7 +118,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     Seq(buildCompositeTrustManager(info.trustManagerConfig, info.checkRevocation.getOrElse(false), revocationLists, algorithmChecker))
   } else Nil
 
-  def buildSSLContext(protocol: String,
+  def buildSSLContext(
+    protocol: String,
     keyManagers: Seq[KeyManager],
     trustManagers: Seq[TrustManager],
     secureRandom: Option[SecureRandom]) = {
@@ -132,7 +135,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new CompositeX509KeyManager(keyManagers)
   }
 
-  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig,
+  def buildCompositeTrustManager(
+    trustManagerInfo: TrustManagerConfig,
     revocationEnabled: Boolean,
     revocationLists: Option[Seq[CRL]], algorithmChecker: AlgorithmChecker) = {
 
@@ -270,7 +274,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     }
   }
 
-  def buildTrustManagerParameters(trustStore: KeyStore,
+  def buildTrustManagerParameters(
+    trustStore: KeyStore,
     revocationEnabled: Boolean,
     revocationLists: Option[Seq[CRL]],
     algorithmChecker: AlgorithmChecker): CertPathTrustManagerParameters = {
@@ -298,7 +303,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   /**
    * Builds trust managers, using a TrustManagerFactory internally.
    */
-  def buildTrustManager(tsc: TrustStoreConfig,
+  def buildTrustManager(
+    tsc: TrustStoreConfig,
     revocationEnabled: Boolean,
     revocationLists: Option[Seq[CRL]], algorithmChecker: AlgorithmChecker): X509TrustManager = {
 

@@ -34,8 +34,8 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
-    * The base builder used in the running method.
-    */
+   * The base builder used in the running method.
+   */
   lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
 
   def running[T]()(block: Application => T): T = {

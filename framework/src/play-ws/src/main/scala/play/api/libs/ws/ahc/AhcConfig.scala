@@ -34,7 +34,8 @@ import scala.concurrent.duration._
  * @param disableUrlEncoding Whether the raw URL should be used.
  * @param keepAlive keeps thread pool active, replaces allowPoolingConnection and allowSslConnectionPool
  */
-case class AhcWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
+case class AhcWSClientConfig(
+  wsClientConfig: WSClientConfig = WSClientConfig(),
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
   maxConnectionLifetime: Duration = Duration.Inf,
@@ -58,7 +59,8 @@ object AhcWSClientConfigFactory {
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
 @Singleton
-class AhcWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
+class AhcWSClientConfigParser @Inject() (
+    wsClientConfig: WSClientConfig,
     configuration: Configuration,
     environment: Environment) extends Provider[AhcWSClientConfig] {
 

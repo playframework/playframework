@@ -18,7 +18,8 @@ class AlgorithmCheckerSpec extends Specification {
   "AlgorithmChecker" should {
 
     def checker(sigs: Seq[String], keys: Seq[String]) = {
-      new AlgorithmChecker(sigs.map(s => parseAll(expression, s).get).toSet,
+      new AlgorithmChecker(
+        sigs.map(s => parseAll(expression, s).get).toSet,
         keys.map(s => parseAll(expression, s).get).toSet)
     }
 

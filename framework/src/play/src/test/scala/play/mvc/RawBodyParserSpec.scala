@@ -70,7 +70,8 @@ class RawBodyParserSpec extends Specification with AfterAll {
             new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty),
             ActorMaterializer()
           ).raw
-          val javaParser = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](scalaParser,
+          val javaParser = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](
+            scalaParser,
             java.util.function.Function.identity[RawBuffer]) {}
 
           stage.complete(javaParser)

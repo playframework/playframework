@@ -77,93 +77,103 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       status(request(app, "")) must_== BAD_REQUEST
     }
 
-    "only allow specific hosts specified in configuration" in withApplication(okWithHost,
+    "only allow specific hosts specified in configuration" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = ["example.com", "example.net"]
       """.stripMargin) { app =>
-        status(request(app, "example.com")) must_== OK
-        status(request(app, "EXAMPLE.net")) must_== OK
-        status(request(app, "example.org")) must_== BAD_REQUEST
-        status(request(app, "foo.example.com")) must_== BAD_REQUEST
-      }
+      status(request(app, "example.com")) must_== OK
+      status(request(app, "EXAMPLE.net")) must_== OK
+      status(request(app, "example.org")) must_== BAD_REQUEST
+      status(request(app, "foo.example.com")) must_== BAD_REQUEST
+    }
 
-    "allow defining host suffixes in configuration" in withApplication(okWithHost,
+    "allow defining host suffixes in configuration" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com"]
       """.stripMargin) { app =>
-        status(request(app, "foo.example.com")) must_== OK
-        status(request(app, "example.com")) must_== OK
-      }
+      status(request(app, "foo.example.com")) must_== OK
+      status(request(app, "example.com")) must_== OK
+    }
 
-    "support FQDN format for hosts" in withApplication(okWithHost,
+    "support FQDN format for hosts" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com", "example.net"]
       """.stripMargin) { app =>
-        status(request(app, "foo.example.com.")) must_== OK
-        status(request(app, "example.net.")) must_== OK
-      }
+      status(request(app, "foo.example.com.")) must_== OK
+      status(request(app, "example.net.")) must_== OK
+    }
 
-    "support allowing empty hosts" in withApplication(okWithHost,
+    "support allowing empty hosts" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com", ""]
       """.stripMargin) { app =>
-        status(request(app, "")) must_== OK
-        status(request(app, "example.net")) must_== BAD_REQUEST
-        status(route(app, FakeRequest()).get) must_== OK
-      }
+      status(request(app, "")) must_== OK
+      status(request(app, "example.net")) must_== BAD_REQUEST
+      status(route(app, FakeRequest()).get) must_== OK
+    }
 
-    "support host headers with ports" in withApplication(okWithHost,
+    "support host headers with ports" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = ["example.com"]
       """.stripMargin) { app =>
-        status(request(app, "example.com:80")) must_== OK
-        status(request(app, "google.com:80")) must_== BAD_REQUEST
-      }
+      status(request(app, "example.com:80")) must_== OK
+      status(request(app, "google.com:80")) must_== BAD_REQUEST
+    }
 
-    "restrict host headers based on port" in withApplication(okWithHost,
+    "restrict host headers based on port" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".example.com:8080"]
       """.stripMargin) { app =>
-        status(request(app, "example.com:80")) must_== BAD_REQUEST
-        status(request(app, "www.example.com:8080")) must_== OK
-        status(request(app, "example.com:8080")) must_== OK
-      }
+      status(request(app, "example.com:80")) must_== BAD_REQUEST
+      status(request(app, "www.example.com:8080")) must_== OK
+      status(request(app, "example.com:8080")) must_== OK
+    }
 
-    "support matching all hosts" in withApplication(okWithHost,
+    "support matching all hosts" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = ["."]
       """.stripMargin) { app =>
-        status(request(app, "example.net")) must_== OK
-        status(request(app, "amazon.com")) must_== OK
-        status(request(app, "")) must_== OK
-      }
+      status(request(app, "example.net")) must_== OK
+      status(request(app, "amazon.com")) must_== OK
+      status(request(app, "")) must_== OK
+    }
 
     // See http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
 
-    "not allow malformed ports" in withApplication(okWithHost,
+    "not allow malformed ports" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".mozilla.org"]
       """.stripMargin) { app =>
-        status(request(app, "addons.mozilla.org:@passwordreset.net")) must_== BAD_REQUEST
-        status(request(app, "addons.mozilla.org: www.securepasswordreset.com")) must_== BAD_REQUEST
-      }
+      status(request(app, "addons.mozilla.org:@passwordreset.net")) must_== BAD_REQUEST
+      status(request(app, "addons.mozilla.org: www.securepasswordreset.com")) must_== BAD_REQUEST
+    }
 
-    "validate hosts in absolute URIs" in withApplication(okWithHost,
+    "validate hosts in absolute URIs" in withApplication(
+      okWithHost,
       """
         |play.filters.hosts.allowed = [".mozilla.org"]
       """.stripMargin) { app =>
-        status(request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
-        status(request(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")) must_== BAD_REQUEST
-      }
+      status(request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
+      status(request(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")) must_== BAD_REQUEST
+    }
 
-    "not allow bypassing with X-Forwarded-Host header" in withServer(okWithHost,
+    "not allow bypassing with X-Forwarded-Host header" in withServer(
+      okWithHost,
       """
         |play.filters.hosts.allowed = ["localhost"]
       """.stripMargin) { ws =>
-        val wsRequest = ws.url(s"http://localhost:$TestServerPort").withHeaders(X_FORWARDED_HOST -> "evil.com").get()
-        val wsResponse = Await.result(wsRequest, 1.second)
-        wsResponse.status must_== OK
-        wsResponse.body must_== s"localhost:$TestServerPort"
-      }
+      val wsRequest = ws.url(s"http://localhost:$TestServerPort").withHeaders(X_FORWARDED_HOST -> "evil.com").get()
+      val wsResponse = Await.result(wsRequest, 1.second)
+      wsResponse.status must_== OK
+      wsResponse.body must_== s"localhost:$TestServerPort"
+    }
   }
 }

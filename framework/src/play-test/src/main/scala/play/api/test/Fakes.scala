@@ -49,7 +49,7 @@ case class FakeRequest[A](
     secure: Boolean = false,
     clientCertificateChain: Option[Seq[X509Certificate]] = None,
     attrMap: TypedMap = TypedMap.empty
-  ) extends Request[A] with WithAttrMap[FakeRequest[A]] {
+) extends Request[A] with WithAttrMap[FakeRequest[A]] {
 
   def copyFakeRequest[B](
     id: Long = this.id,
@@ -91,7 +91,8 @@ case class FakeRequest[A](
    */
   def withFlash(data: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+      Cookies.mergeCookieHeader(
+        headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
         Seq(Flash.encodeAsCookie(new Flash(flash.data ++ data)))
       )
     )
@@ -111,7 +112,8 @@ case class FakeRequest[A](
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.mergeCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+      Cookies.mergeCookieHeader(
+        headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
         Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
       )
     )

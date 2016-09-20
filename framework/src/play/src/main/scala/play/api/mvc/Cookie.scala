@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import java.net.{URLDecoder, URLEncoder}
+import java.net.{ URLDecoder, URLEncoder }
 import java.util.Locale
 
 import play.api._
@@ -294,10 +294,10 @@ trait CookieBaker[T <: AnyRef] {
 
     def urldecode(data: String) = {
       data
-          .split("&")
-          .map(_.split("=", 2))
-          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
-          .toMap
+        .split("&")
+        .map(_.split("=", 2))
+        .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
+        .toMap
     }
 
     // Do not change this unless you understand the security issues behind timing attacks.

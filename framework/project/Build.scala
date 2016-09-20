@@ -11,7 +11,10 @@ import com.typesafe.tools.mima.plugin.MimaKeys.{
 }
 import com.typesafe.tools.mima.core._
 
+import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+
 import pl.project13.scala.sbt.JmhPlugin
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
@@ -47,6 +50,13 @@ object BuildSettings {
    * These settings are used by all projects
    */
   def playCommonSettings: Seq[Setting[_]] = scalariformSettings ++ Seq(
+      ScalariformKeys.preferences := ScalariformKeys.preferences.value
+        .setPreference(SpacesAroundMultiImports, true)
+        .setPreference(SpaceInsideParentheses, false)
+        .setPreference(DanglingCloseParenthesis, Preserve)
+        .setPreference(PreserveSpaceBeforeArguments, true)        
+        .setPreference(DoubleIndentClassDeclaration, true)
+    ) ++ Seq(
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(

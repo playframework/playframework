@@ -115,7 +115,8 @@ object Multipart {
 
   }
 
-  private def streamed(boundary: String,
+  private def streamed(
+    boundary: String,
     nioCharset: Charset, chunkSize: Int): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
 
     new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
