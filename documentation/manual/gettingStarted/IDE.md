@@ -11,13 +11,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
 
-First modify the `project/plugins.sbt` by adding:
+First modify the file `project/plugins.sbt` by adding:
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
-Then you must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in build.sbt:
+Then you must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in the file `build.sbt` (or `project/Build.scala`).
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
@@ -33,9 +33,10 @@ EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes
 ```
 
-If your breakpoints getting ignored in 'eclipse' add:
+If your breakpoints is getting ignored in Eclipse, it's recommanded to check the fork setting.
 
 ```scala
+// Default and required for breakpoint
 fork in run := false
 ```
 
