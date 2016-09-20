@@ -56,6 +56,29 @@ trait CORSCommonSpec extends PlaySpecification {
       }
     }
 
+    val serveForbidden = Map(
+      "play.filters.cors.allowedOrigins" -> Seq("http://example.org"),
+      "play.filters.cors.serveForbiddenOrigins" -> "true")
+
+    "pass through requests with serve forbidden origins on and an origin header that is" in {
+      "invalid" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "file://"
+        )).get
+
+        status(result) must_== OK
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "forbidden" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "http://www.example.com"
+        )).get
+
+        status(result) must_== OK
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+    }
+
     "not consider sub domains to be the same origin" in withApplication() { app =>
       val result = route(app, fakeRequest().withHeaders(
         ORIGIN -> "http://www.example.com",
