@@ -11,7 +11,7 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
 
-First modift the `project/plugins.sbt` by adding:
+First modify the `project/plugins.sbt` by adding:
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
