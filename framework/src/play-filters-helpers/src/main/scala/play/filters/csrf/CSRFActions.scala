@@ -456,8 +456,8 @@ object CSRFAction {
       CSRF.getToken(request).fold(
         config.cookieName.flatMap { cookie =>
           request.cookies.get(cookie).map { token =>
-            result.discardingCookies(DiscardingCookie(cookie, domain = Session.domain, path = Session.path,
-              secure = config.secureCookie))
+            result.discardingCookies(
+              DiscardingCookie(cookie, domain = Session.domain, path = Session.path, secure = config.secureCookie))
           }
         }.getOrElse {
           result.withSession(result.session(request) - config.tokenName)

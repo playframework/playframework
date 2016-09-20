@@ -4,26 +4,24 @@
 package play.api.test
 
 import akka.actor.Cancellable
-import akka.stream.{ ClosedShape, Graph, Materializer }
 import akka.stream.scaladsl.Source
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.mvc.Http.RequestBody
-
-import scala.language.reflectiveCalls
-import play.api._
-import play.api.mvc._
-import play.api.http._
-import play.api.libs.json.{ JsValue, Json }
-import play.twirl.api.Content
+import akka.stream.{ ClosedShape, Graph, Materializer }
+import akka.util.{ ByteString, Timeout }
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.concurrent.Future
-import akka.util.{ ByteString, Timeout }
+import play.api._
+import play.api.http._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
+import play.api.mvc._
+import play.mvc.Http.RequestBody
+import play.twirl.api.Content
+
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
+import scala.language.reflectiveCalls
 
 /**
  * Helper functions to run tests.
@@ -372,34 +370,40 @@ trait ResultExtractors {
   def status(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Int = status(of.run())
 
   /**
-   * Extracts the Cookies of this Result value.
+   * Gets the Cookies associated with this Result value. Note that this only extracts the "new" cookies added to
+   * this result (e.g. through withCookies), not including the Session or Flash. The final set of cookies may be
+   * different because the Play server automatically adds those cookies and merges the headers.
    */
-  def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = Cookies.fromSetCookieHeader(header(SET_COOKIE, of))
+  def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = {
+    Await.result(of.map(result => Cookies(result.newCookies))(play.core.Execution.trampoline), timeout.duration)
+  }
 
   /**
-   * Extracts the Cookies of this Result value.
+   * Extracts the Cookies set by this Result value.
    */
   def cookies(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Cookies = cookies(of.run())
 
   /**
-   * Extracts the Flash values of this Result value.
+   * Extracts the Flash values set by this Result value.
    */
-  def flash(of: Future[Result])(implicit timeout: Timeout): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
+  def flash(of: Future[Result])(implicit timeout: Timeout): Flash = {
+    Await.result(of.map(_.newFlash.getOrElse(Flash.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+  }
 
   /**
-   * Extracts the Flash values of this Result value.
+   * Extracts the Flash values set by this Result value.
    */
   def flash(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Flash = flash(of.run())
 
   /**
-   * Extracts the Session of this Result value.
-   * Extracts the Session from this Result value.
+   * Extracts the Session values set by this Result value.
    */
-  def session(of: Future[Result])(implicit timeout: Timeout): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
+  def session(of: Future[Result])(implicit timeout: Timeout): Session = {
+    Await.result(of.map(_.newSession.getOrElse(Session.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+  }
 
   /**
-   * Extracts the Session of this Result value.
-   * Extracts the Session from this Result value.
+   * Extracts the Session set by this Result value.
    */
   def session(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Session = session(of.run())
 

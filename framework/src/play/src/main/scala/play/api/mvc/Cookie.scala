@@ -9,6 +9,8 @@ import java.util.Locale
 import play.api._
 import play.api.http._
 import play.api.libs.crypto.CookieSigner
+import play.mvc.Http
+import play.mvc.Http.{ Cookie => JCookie }
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -24,7 +26,12 @@ import scala.util.control.NonFatal
  * @param secure whether this cookie is secured, sent only for HTTPS requests
  * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
  */
-case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
+case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/",
+    domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true) {
+  lazy val asJava = {
+    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull, secure, httpOnly)
+  }
+}
 
 /**
  * A cookie to be discarded.  This contains only the data necessary for discarding a cookie.
@@ -75,6 +82,12 @@ object Cookies {
   import play.core.netty.utils.DefaultCookie
 
   private val logger = Logger(this.getClass)
+
+  def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
+    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+    override def get(name: String) = cookiesByName.get(name)
+    override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+  }
 
   def fromSetCookieHeader(header: Option[String]): Cookies = header match {
     case Some(headerValue) => fromMap(
@@ -372,5 +385,4 @@ trait CookieBaker[T <: AnyRef] {
    * @return a new `Map` storing the key-value pairs for the given cookie
    */
   protected def serialize(cookie: T): Map[String, String]
-
 }

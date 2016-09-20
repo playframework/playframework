@@ -201,29 +201,13 @@ object ServerResultUtils {
   private val CLOSE = "close"
 
   /**
-   * Update the result's Set-Cookie header so that it removes any Flash cookies we received
-   * in the incoming request.
+   * Bake the cookies and prepare the new Set-Cookie header.
    */
-  def cleanFlashCookie(requestHeader: RequestHeader, result: Result): Result = {
-    val optResultFlashCookies: Option[_] = result.header.headers.get(SET_COOKIE).flatMap { setCookieValue: String =>
-      Cookies.decodeSetCookieHeader(setCookieValue).find(_.name == Flash.COOKIE_NAME)
-    }
+  def prepareCookies(requestHeader: RequestHeader, result: Result, httpConfiguration: HttpConfiguration): Result = {
+    val sessionBaker = new DefaultSessionCookieBaker(httpConfiguration.session)
+    val flashBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.session)
 
-    if (optResultFlashCookies.isDefined) {
-      // We're already setting a flash cookie in the result, just pass that
-      // through unchanged
-      result
-    } else {
-      val requestFlash: Flash = requestHeader.flash
-      if (requestFlash.isEmpty) {
-        // Neither incoming nor outgoing flash cookies; nothing to do
-        result
-      } else {
-        // We got incoming flash cookies, but there are no outgoing flash cookies,
-        // so we need to clear the cookies for the next request
-        result.discardingCookies(Flash.discard)
-      }
-    }
+    result.bakeCookies(sessionBaker, flashBaker, !requestHeader.flash.isEmpty)
   }
 
   /**
