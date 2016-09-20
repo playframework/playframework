@@ -64,7 +64,8 @@ object JsMacroImpl {
     val tpeArgs = atag.tpe match {
       case TypeRef(_, _, args) => args
 
-      case t => c.abort(c.enclosingPosition,
+      case t => c.abort(
+        c.enclosingPosition,
         s"Type ${t.typeSymbol.fullName} is not a valid case class")
     }
 
@@ -173,7 +174,8 @@ object JsMacroImpl {
       // The apply methods for the object
       private lazy val applies: List[MethodSymbol] =
         companionType.decl(TermName("apply")) match {
-          case NoSymbol => c.abort(c.enclosingPosition,
+          case NoSymbol => c.abort(
+            c.enclosingPosition,
             s"No apply function found for ${companioned.fullName}")
 
           case s => s.asTerm.alternatives.flatMap { apply =>
@@ -192,9 +194,9 @@ object JsMacroImpl {
           }
         }
 
-      /** 
-       * Returns whether the case class is valid: 
-       * has at least only "apply" with a non empty list of parameters. 
+      /**
+       * Returns whether the case class is valid:
+       * has at least only "apply" with a non empty list of parameters.
        */
       @inline def isValid: Boolean = applies.isEmpty
 
@@ -259,7 +261,8 @@ object JsMacroImpl {
     // ---
 
     if (ApplyUnapply.isValid) {
-      c.abort(c.enclosingPosition,
+      c.abort(
+        c.enclosingPosition,
         s"Type ${companioned.fullName} is not valid: must be a case class with at least one non empty list of parameter")
     }
 
