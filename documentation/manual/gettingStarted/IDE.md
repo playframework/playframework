@@ -33,7 +33,7 @@ EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes
 ```
 
-If your breakpoints is getting ignored in Eclipse, it's recommanded to check the fork setting.
+If your breakpoints are getting ignored in Eclipse, it's recommanded to check the fork setting.
 
 ```scala
 // Default and required for breakpoint
