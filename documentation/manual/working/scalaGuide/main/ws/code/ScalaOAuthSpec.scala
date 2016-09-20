@@ -17,7 +17,7 @@ import play.api.data.Forms._
 import play.api.libs.oauth._
 import play.api.libs.ws._
 
-class Application @Inject()(wsClient:WSClient) extends Controller {
+class HomeController @Inject()(wsClient:WSClient) extends Controller {
 
 }
 //#dependency

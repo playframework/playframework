@@ -57,7 +57,7 @@ You can call any `Action` code by providing a [`FakeRequest`](api/scala/play/api
 
 @[scalafunctionaltest-functionalexamplecontrollerspec](code/specs2/FunctionalExampleControllerSpec.scala)
 
-Technically, you don't need [`WithApplication`](api/scala/play/api/test/WithApplication.html) here, although it wouldn't hurt anything to have it.
+Technically, you don't need [`WithApplication`](api/scala/play/api/test/WithApplication.html) here, because you can instantiate the controller directly -- however, direct controller instantiation is more of a unit test of the controller than a functional test.
 
 ## Testing the router
 

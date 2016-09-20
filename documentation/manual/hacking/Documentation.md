@@ -62,7 +62,7 @@ package foo.bar.controllers
 
 import play.api.mvc._
 
-object Application extends Controller {
+class HomeController extends Controller {
   ...
 }
 //#controller
