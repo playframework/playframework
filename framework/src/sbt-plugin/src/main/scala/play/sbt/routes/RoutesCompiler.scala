@@ -65,7 +65,7 @@ object RoutesCompiler extends AutoPlugin {
   def routesSettings = Seq(
     sources in routes := Nil,
 
-    routesCompilerTasks := Def.taskDyn {
+    routesCompilerTasks <<= Def.taskDyn {
 
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value.map { agg =>
@@ -85,16 +85,16 @@ object RoutesCompiler extends AutoPlugin {
 
         thisProjectTasks ++ reverseRouterTasks
       }
-    }.value,
+    },
 
-    watchSources in Defaults.ConfigGlobal ++= (sources in routes).value,
+    watchSources in Defaults.ConfigGlobal <++= sources in routes,
 
     target in routes := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
 
-    routes := compileRoutesFiles.value,
+    routes <<= compileRoutesFiles,
 
-    sourceGenerators += Def.task(routes.value).taskValue,
-    managedSourceDirectories += (target in routes).value
+    sourceGenerators <+= routes,
+    managedSourceDirectories <+= target in routes
   )
 
   def defaultSettings = Seq(
@@ -104,7 +104,7 @@ object RoutesCompiler extends AutoPlugin {
     // Generate reverse router defaults to true if this project is not aggregated by any of the projects it depends on
     // aggregateReverseRoutes projects.  Otherwise, it will be false, since another project will be generating the
     // reverse router for it.
-    generateReverseRouter := Def.settingDyn {
+    generateReverseRouter <<= Def.settingDyn {
       val projectRef = thisProjectRef.value
       val dependencies = buildDependencies.value.classpathTransitiveRefs(projectRef)
 
@@ -119,7 +119,7 @@ object RoutesCompiler extends AutoPlugin {
         // Return false if this project is aggregated by one of our dependencies
         !aggregated.flatten.contains(localProject)
       }
-    }.value,
+    },
 
     namespaceReverseRouter := false,
     routesGenerator := InjectedRoutesGenerator, // changed from StaticRoutesGenerator in 2.5.0

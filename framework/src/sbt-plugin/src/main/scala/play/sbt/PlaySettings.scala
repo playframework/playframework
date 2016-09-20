@@ -40,8 +40,8 @@ object PlaySettings {
   )
 
   /** Ask SBT to manage the classpath for the given configuration. */
-  def manageClasspath(config: Configuration) = managedClasspath in config := {
-    Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
+  def manageClasspath(config: Configuration) = managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
+    Classpaths.managedJars(config, ct, report)
   }
 
   lazy val defaultSettings = Seq[Setting[_]](
@@ -52,12 +52,13 @@ object PlaySettings {
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
-    libraryDependencies += {
-      if (playPlugin.value) {
-        "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
-      } else {
-        "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
-      }
+    libraryDependencies <+= (playPlugin) {
+      isPlugin =>
+        if (isPlugin) {
+          "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
+        } else {
+          "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
+        }
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
@@ -78,8 +79,8 @@ object PlaySettings {
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
 
     // Adds app directory's source files to continuous hot reloading
-    watchSources ++= {
-      ((sourceDirectory in Compile).value ** "*" --- (sourceDirectory in Assets).value ** "*").get
+    watchSources <++= (sourceDirectory in Compile, sourceDirectory in Assets) map { (sources, assets) =>
+      (sources ** "*" --- assets ** "*").get
     },
 
     commands ++= {
@@ -89,7 +90,7 @@ object PlaySettings {
     },
 
     // THE `in Compile` IS IMPORTANT!
-    Keys.run in Compile := PlayRun.playDefaultRunTask.value,
+    Keys.run in Compile <<= PlayRun.playDefaultRunTask,
     mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
 
     PlayInternalKeys.playStop := {
@@ -103,23 +104,23 @@ object PlaySettings {
     shellPrompt := PlayCommands.playPrompt,
 
     // all dependencies from outside the project (all dependency jars)
-    playDependencyClasspath := (externalDependencyClasspath in Runtime).value,
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
 
     // all user classes, in this project and any other subprojects that it depends on
-    playReloaderClasspath := Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime).value,
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
 
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
 
-    playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
+    playCommonClassloader <<= PlayCommands.playCommonClassloaderTask,
 
     playDependencyClassLoader := PlayRun.createURLClassLoader,
 
     playReloaderClassLoader := PlayRun.createDelegatedResourcesClassLoader,
 
-    playCompileEverything := PlayCommands.playCompileEverythingTask.value,
+    playCompileEverything <<= PlayCommands.playCompileEverythingTask,
 
-    playReload := PlayCommands.playReloadTask.value,
+    playReload <<= PlayCommands.playReloadTask,
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
@@ -130,7 +131,7 @@ object PlaySettings {
       (dirs * "routes").get ++ (dirs * "*.routes").get
     },
 
-    playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
+    playMonitoredFiles <<= PlayCommands.playMonitoredFilesTask,
 
     fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
 
@@ -194,7 +195,7 @@ object PlaySettings {
       } else scriptClasspath.value
     },
     // taskDyn ensures we only build the sans externalised jar if we need to
-    scriptClasspathOrdering := Def.taskDyn {
+    scriptClasspathOrdering <<= Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       if (externalizeResources.value) {
         Def.task {
@@ -213,7 +214,7 @@ object PlaySettings {
       } else {
         Def.task(oldValue)
       }
-    }.value,
+    },
 
     mappings in Universal ++= {
       val docDirectory = (doc in Compile).value
@@ -236,8 +237,8 @@ object PlaySettings {
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
 
-    generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
-    updateSecret := ApplicationSecretGenerator.updateSecretTask.value
+    generateSecret <<= ApplicationSecretGenerator.generateSecretTask,
+    updateSecret <<= ApplicationSecretGenerator.updateSecretTask
 
   ) ++ inConfig(Compile)(externalizedSettings)
 

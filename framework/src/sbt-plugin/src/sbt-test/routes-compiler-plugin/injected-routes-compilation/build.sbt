@@ -28,8 +28,8 @@ generateJsRouterBadHost := {
   Seq(target.value / "web" / "jsrouter" / "jsRoutesBadHost.js")
 }
 
-resourceGenerators in TestAssets += Def.task(generateJsRouter).taskValue
-resourceGenerators in TestAssets += Def.task(generateJsRouterBadHost).taskValue
+resourceGenerators in TestAssets <+= generateJsRouter
+resourceGenerators in TestAssets <+= generateJsRouterBadHost
 
 managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
 
