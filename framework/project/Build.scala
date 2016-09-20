@@ -310,6 +310,7 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= netty,
       binaryIssueFilters := Seq(
+        ProblemFilters.exclude[MissingClassProblem]("play.core.server.netty.QueryStringDecoder"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertResult")
       ))
     .dependsOn(PlayServerProject)
