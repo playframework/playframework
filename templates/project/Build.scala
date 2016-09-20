@@ -300,7 +300,7 @@ object Templates {
 
     },
 
-    publishTemplates := (doPublishTemplates, S3.delete, streams).apply { (dpt, s3delete, s) =>
+    publishTemplates <<= (doPublishTemplates, S3.delete, streams).apply { (dpt, s3delete, s) =>
       for {
         streams <- s
         result <- dpt
@@ -312,7 +312,7 @@ object Templates {
         case true => ()
         case false => throw new TemplatePublishFailed
       }
-    }.value,
+    },
 
     commands += templatesCommand
   )

@@ -80,16 +80,16 @@ object PlayDocsPlugin extends AutoPlugin {
   def docsRunSettings = Seq(
     playDocsValidationConfig := ValidationConfig(),
     manualPath := baseDirectory.value,
-    run := docsRunSetting.value,
-    generateMarkdownRefReport := PlayDocsValidation.generateMarkdownRefReportTask.value,
-    validateDocs := PlayDocsValidation.validateDocsTask.value,
-    validateExternalLinks := PlayDocsValidation.validateExternalLinksTask.value,
+    run <<= docsRunSetting,
+    generateMarkdownRefReport <<= PlayDocsValidation.generateMarkdownRefReportTask,
+    validateDocs <<= PlayDocsValidation.validateDocsTask,
+    validateExternalLinks <<= PlayDocsValidation.validateExternalLinksTask,
     docsVersion := PlayVersion.current,
     docsName := "play-docs",
-    docsJarFile := docsJarFileSetting.value,
+    docsJarFile <<= docsJarFileSetting,
     PlayDocsKeys.resources := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
       docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
-    docsJarScalaBinaryVersion := scalaBinaryVersion.value,
+    docsJarScalaBinaryVersion <<= scalaBinaryVersion,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% docsName.value % PlayVersion.current,
       "com.typesafe.play" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
@@ -97,11 +97,11 @@ object PlayDocsPlugin extends AutoPlugin {
   )
 
   def docsReportSettings = Seq(
-    generateMarkdownCodeSamplesReport := PlayDocsValidation.generateMarkdownCodeSamplesTask.value,
-    generateUpstreamCodeSamplesReport := PlayDocsValidation.generateUpstreamCodeSamplesTask.value,
+    generateMarkdownCodeSamplesReport <<= PlayDocsValidation.generateMarkdownCodeSamplesTask,
+    generateUpstreamCodeSamplesReport <<= PlayDocsValidation.generateUpstreamCodeSamplesTask,
     translationCodeSamplesReportFile := target.value / "report.html",
-    translationCodeSamplesReport := PlayDocsValidation.translationCodeSamplesReportTask.value,
-    cachedTranslationCodeSamplesReport := PlayDocsValidation.cachedTranslationCodeSamplesReportTask.value
+    translationCodeSamplesReport <<= PlayDocsValidation.translationCodeSamplesReportTask,
+    cachedTranslationCodeSamplesReport <<= PlayDocsValidation.cachedTranslationCodeSamplesReportTask
   )
 
   def docsTestSettings = Seq(
@@ -122,13 +122,13 @@ object PlayDocsPlugin extends AutoPlugin {
     ),
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test += Def.task {
-      compileTemplates(javaManualSourceDirectories.value, javaTwirlSourceManaged.value, TemplateImports.defaultJavaTemplateImports.asScala, streams.value.log)
-    }.taskValue,
+    sourceGenerators in Test <+= (javaManualSourceDirectories, javaTwirlSourceManaged, streams) map { (from, to, s) =>
+      compileTemplates(from, to, TemplateImports.defaultJavaTemplateImports.asScala, s.log)
+    },
 
-    sourceGenerators in Test += Def.task {
-      compileTemplates(scalaManualSourceDirectories.value, scalaTwirlSourceManaged.value, TemplateImports.defaultScalaTemplateImports.asScala, streams.value.log)
-    }.taskValue,
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaTwirlSourceManaged, streams) map { (from, to, s) =>
+      compileTemplates(from, to, TemplateImports.defaultScalaTemplateImports.asScala, s.log)
+    },
 
     routesCompilerTasks in Test := {
       val javaRoutes = (javaManualSourceDirectories.value * "*.routes").get

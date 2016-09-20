@@ -21,7 +21,7 @@ generateJsRouter := {
   Seq(target.value / "web" / "jsrouter" / "jsRoutes.js")
 }
 
-resourceGenerators in TestAssets += Def.task(generateJsRouter.value).taskValue
+resourceGenerators in TestAssets <+= generateJsRouter
 
 managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
 
