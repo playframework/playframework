@@ -14,7 +14,7 @@ import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
-import io.netty.handler.codec.http.{ QueryStringDecoder => _, _ }
+import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
