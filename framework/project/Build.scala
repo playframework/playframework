@@ -29,6 +29,7 @@ import interplay.PlayBuildBase.autoImport._
 
 import scala.util.control.NonFatal
 
+
 object BuildSettings {
 
   // Argument for setting size of permgen space or meta space for all forked processes
@@ -49,29 +50,114 @@ object BuildSettings {
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = scalariformSettings ++ Seq(
+  def playCommonSettings: Seq[Setting[_]] = {
+    import scala.util.matching.Regex
+    import scala.util.matching.Regex.Match
+
+    val javaApiUrl = "http://docs.oracle.com/javase/8/docs/api/index.html"
+    val javaxInjectUrl = "https://javax-inject.github.io/javax-inject/api/index.html"
+    var externalJavadocLinks = Set(
+      javaApiUrl,
+      javaxInjectUrl
+    )
+
+    scalariformSettings ++ Seq(
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(SpacesAroundMultiImports, true)
         .setPreference(SpaceInsideParentheses, false)
         .setPreference(DanglingCloseParenthesis, Preserve)
-        .setPreference(PreserveSpaceBeforeArguments, true)        
+        .setPreference(PreserveSpaceBeforeArguments, true)
         .setPreference(DoubleIndentClassDeclaration, true)
     ) ++ Seq(
-    homepage := Some(url("https://playframework.com")),
-    ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    resolvers ++= Seq(
-      Resolver.typesafeRepo("releases"),
-      Resolver.typesafeIvyRepo("releases")
-    ),
-    fork in Test := true,
-    parallelExecution in Test := false,
-    testListeners in (Test,test) := Nil,
-    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-    testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
-    bintrayPackage := "play-sbt-plugin",
-    autoAPIMappings := true,
-    apiMappings += scalaInstance.value.libraryJar -> url( raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html""")
-  )
+      homepage := Some(url("https://playframework.com")),
+      ivyLoggingLevel := UpdateLogging.DownloadOnly,
+      resolvers ++= Seq(
+        Resolver.typesafeRepo("releases"),
+        Resolver.typesafeIvyRepo("releases")
+      ),
+      fork in Test := true,
+      parallelExecution in Test := false,
+      testListeners in (Test,test) := Nil,
+      javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
+      bintrayPackage := "play-sbt-plugin",
+      autoAPIMappings := true,
+      apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
+      apiMappings += {
+        // Maps JDK 1.8 jar into apidoc.
+        val rtJar: String = System.getProperty("sun.boot.class.path").split(java.io.File.pathSeparator).collectFirst {
+          case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
+        }.get // fail hard if not found
+        file(rtJar) -> url(javaApiUrl)
+      },
+      apiMappings ++= {
+        // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
+        // See the following:
+        //
+        // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
+        // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
+        // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+
+        val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+
+        val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+        (for {
+          jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+          fullyFile = jar.data
+          urlOption = fullyFile.getCanonicalPath match {
+            case ScalaLibraryRegex(v) =>
+              Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
+            case IvyRegex(organization, name, jarBaseFile) if jarBaseFile.startsWith(s"$name-") =>
+              val version = jarBaseFile.substring(name.length + 1, jarBaseFile.length)
+              organization match {
+                case "com.typesafe.akka" =>
+                  Some(url(raw"http://doc.akka.io/api/akka/$version/"))
+
+                case "javax.inject" =>
+                  Some(url(javaxInjectUrl))
+
+                case _ =>
+                  val link = raw"""https://oss.sonatype.org/service/local/repositories/public/archive/${organization.replace('.', '/')}/$name/$version/$jarBaseFile-javadoc.jar/!/index.html"""
+                  externalJavadocLinks += link
+                  Some(url(link))
+              }
+
+            case other =>
+              None
+
+          }
+          url <- urlOption
+        } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+      },      
+      doc in Compile <<= (doc in Compile) map { target: File =>
+          // Maps to Javadoc references in Scaladoc, and fixes the link so that it uses query parameters in
+          // Javadoc style to link directly to the referenced class.        
+          // http://stackoverflow.com/questions/16934488/how-to-link-classes-from-jdk-into-scaladoc-generated-doc/
+
+          def javadocLinkRegex(javadocURL: String): Regex = ("""\"(\Q""" + javadocURL + """\E)#([^"]*)\"""").r
+
+          def hasJavadocLink(f: File): Boolean = externalJavadocLinks exists {
+            javadocURL: String =>
+              (javadocLinkRegex(javadocURL) findFirstIn IO.read(f)).nonEmpty
+          }
+
+          val fixJavaLinks: Match => String = m =>
+            m.group(1) + "?" + m.group(2).replace(".", "/") + ".html"
+
+          (target ** "*.html").get.filter(hasJavadocLink).foreach { f =>
+            val newContent: String = externalJavadocLinks.foldLeft(IO.read(f)) {
+              case (oldContent: String, javadocURL: String) =>
+                //logger.debug(s"Fixing $f with $javadocURL")
+                javadocLinkRegex(javadocURL).replaceAllIn(oldContent, fixJavaLinks)
+            }
+            IO.write(f, newContent)
+          }
+          target
+      }
+    )
+  }
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
