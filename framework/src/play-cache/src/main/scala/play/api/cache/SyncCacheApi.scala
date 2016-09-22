@@ -100,7 +100,7 @@ class DefaultSyncCacheApi @Inject() (cacheApi: AsyncCacheApi) extends SyncCacheA
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    Await.result(getOrElseUpdate(key, expiration)(Future.successful(orElse)), awaitTimeout)
+    Await.result(cacheApi.getOrElseUpdate(key, expiration)(Future.successful(orElse)), awaitTimeout)
   }
 
   @deprecated("Use getOrElseUpdate", "2.6.0")
