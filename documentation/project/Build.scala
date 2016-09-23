@@ -31,7 +31,8 @@ object ApplicationBuild extends Build {
     )),
 
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
-    PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get,
+    PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "experimental" ** "code").get,
     PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
 
     unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
@@ -59,7 +60,8 @@ object ApplicationBuild extends Build {
       playProject("Play-JDBC-Evolutions") % "test",
       playProject("Play-JDBC") % "test",
       playProject("Play-Logback") % "test",
-      playProject("Play-Java-JDBC") % "test"
+      playProject("Play-Java-JDBC") % "test",
+      playProject("Play-Akka-Http-Server-Experimental") % "test"
   )
 
   lazy val playDocs = playProject("Play-Docs")
