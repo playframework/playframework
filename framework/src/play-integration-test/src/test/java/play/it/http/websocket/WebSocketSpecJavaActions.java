@@ -4,7 +4,6 @@
 package play.it.http.websocket;
 
 import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import play.libs.F;

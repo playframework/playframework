@@ -117,6 +117,7 @@ public class RequestBuilderTest {
         Play.stop(app);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testUsername() {
         final Request req1 =

@@ -13,7 +13,6 @@ import play.libs.streams.Accumulator;
 import play.core.j.JavaParsers;
 
 import akka.util.ByteString;
-import akka.stream.Materializer;
 
 /**
  * Utilities for creating body parsers.

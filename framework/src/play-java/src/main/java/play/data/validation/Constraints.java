@@ -5,7 +5,6 @@ package play.data.validation;
 
 import play.data.Form.Display;
 
-import play.libs.F.*;
 import static play.libs.F.*;
 
 import static java.lang.annotation.ElementType.*;
@@ -13,7 +12,6 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
 import javax.validation.*;
 import javax.validation.metadata.*;
