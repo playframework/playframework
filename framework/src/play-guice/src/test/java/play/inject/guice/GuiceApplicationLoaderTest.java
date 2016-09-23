@@ -52,7 +52,7 @@ public class GuiceApplicationLoaderTest {
         };
         Application app = loader.load(fakeContext());
 
-        assertThat(app.configuration().getInt("a"), is(1));
+        assertThat(app.config().getInt("a"), is(1));
     }
 
     public static interface A {}

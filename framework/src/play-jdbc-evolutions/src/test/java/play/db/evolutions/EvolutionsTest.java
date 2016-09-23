@@ -10,7 +10,6 @@ import play.db.Databases;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.Callable;
 
 import static org.junit.Assert.*;
 

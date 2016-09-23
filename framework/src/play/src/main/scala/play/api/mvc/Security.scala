@@ -3,14 +3,13 @@
  */
 package play.api.mvc
 
-import akka.stream.Materializer
 import play.api._
-import play.api.http.{ HttpErrorHandler, ParserConfiguration }
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Results._
-import scala.concurrent.ExecutionContext
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.language.reflectiveCalls
 
 /**
  * Helpers to create secure actions.

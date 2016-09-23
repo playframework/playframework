@@ -52,8 +52,8 @@ public class GuiceApplicationBuilderTest {
             .injector()
             .instanceOf(Application.class);
 
-        assertThat(app.configuration().getInt("a"), is(1));
-        assertThat(app.configuration().getInt("b"), is(2));
+        assertThat(app.config().getInt("a"), is(1));
+        assertThat(app.config().getInt("b"), is(2));
         assertThat(app.injector().instanceOf(A.class), instanceOf(A2.class));
     }
 
@@ -85,13 +85,13 @@ public class GuiceApplicationBuilderTest {
             .withConfigLoader(env -> extra.withFallback(ConfigFactory.load(env.classLoader())))
             .build();
 
-        assertThat(app.configuration().getInt("a"), is(1));
+        assertThat(app.config().getInt("a"), is(1));
     }
 
     @Test
     public void setModuleLoader() {
         Injector injector = new GuiceApplicationBuilder()
-            .load((env, conf) -> ImmutableList.of(
+            .withModuleLoader((env, conf) -> ImmutableList.of(
                 Guiceable.modules(new play.api.inject.BuiltinModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();

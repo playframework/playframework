@@ -54,7 +54,7 @@ public class ActionCompositionOrderTest {
     static class WithUsernameAction extends Action<WithUsername> {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx.withRequest(ctx.request().withUsername(configuration.value())));
+            return delegate.call(ctx.withRequest(ctx.request().withAttr(Security.USERNAME, configuration.value())));
         }
     }
 }

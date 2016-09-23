@@ -10,7 +10,6 @@ import static play.mvc.Http.MimeTypes.*;
 import static play.mvc.Http.Status.*;
 
 import akka.stream.IOResult;
-import akka.stream.impl.QueueSource;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;

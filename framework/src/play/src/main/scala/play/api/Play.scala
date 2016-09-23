@@ -68,7 +68,7 @@ object Play {
 
   private[play] def privateMaybeApplication: Option[Application] = {
     Option(_currentApp) match {
-      case Some(app) if !app.configuration.getBoolean("play.globalApplication").getOrElse(true) =>
+      case Some(app) if !app.configuration.getOptional[Boolean]("play.globalApplication").getOrElse(true) =>
         (new RuntimeException).printStackTrace()
         sys.error("The global application is disabled. Set play.globalApplication to allow global state here")
       case opt => opt

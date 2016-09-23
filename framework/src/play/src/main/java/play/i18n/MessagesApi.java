@@ -14,7 +14,6 @@ import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The messages API.

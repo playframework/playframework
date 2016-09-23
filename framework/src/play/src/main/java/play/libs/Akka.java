@@ -5,9 +5,7 @@ package play.libs;
 
 import akka.actor.Actor;
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import akka.actor.Props;
-import play.api.Play;
 import play.api.libs.concurrent.ActorRefProvider;
 import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;

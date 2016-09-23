@@ -6,7 +6,6 @@ package play.db;
 import javax.sql.DataSource;
 import com.typesafe.config.Config;
 
-import play.Configuration;
 import play.Environment;
 
 /**

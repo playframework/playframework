@@ -326,7 +326,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofPath(path: java.nio.file.Path, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromFile(path.toFile)
+    val source = FileIO.fromPath(path)
     ofSource(path.toFile.length(), source, rangeHeader, Option(fileName), contentType)
   }
 
@@ -350,7 +350,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromFile(file)
+    val source = FileIO.fromPath(file.toPath)
     ofSource(file.length(), source, rangeHeader, Option(fileName), contentType)
   }
 

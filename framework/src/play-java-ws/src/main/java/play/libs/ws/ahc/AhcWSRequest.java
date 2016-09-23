@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.asynchttpclient.*;
-import org.asynchttpclient.oauth.OAuthSignatureCalculator;
 import org.asynchttpclient.request.body.generator.ByteArrayBodyGenerator;
 import org.asynchttpclient.request.body.generator.FileBodyGenerator;
 import org.asynchttpclient.request.body.generator.InputStreamBodyGenerator;

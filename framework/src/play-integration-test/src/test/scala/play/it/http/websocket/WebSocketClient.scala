@@ -31,6 +31,7 @@ import play.it.http.websocket.WebSocketClient.ExtendedMessage
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Future, Promise }
+import scala.language.implicitConversions
 
 /**
  * A basic WebSocketClient.  Basically wraps Netty's WebSocket support into something that's much easier to use and much

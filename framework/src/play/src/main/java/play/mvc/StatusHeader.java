@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import play.http.HttpEntity;
 import play.libs.Json;
 import play.utils.UriEncoding;
