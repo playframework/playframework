@@ -288,8 +288,6 @@ trait BodyParsers {
  */
 trait BodyParserUtils {
 
-  private val logger = Logger(this.getClass)
-
   /**
    * Don't parse the body content.
    */
@@ -382,7 +380,7 @@ object PlayBodyParsers {
  */
 trait PlayBodyParsers extends BodyParserUtils {
 
-  private val logger = Logger(this.getClass)
+  private val logger = Logger(classOf[PlayBodyParsers])
 
   private[play] implicit def materializer: Materializer
   private[play] def config: ParserConfiguration

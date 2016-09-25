@@ -9,7 +9,7 @@ import javax.inject._
 
 import play.api.cache.ehcache.EhCacheApi
 import play.api.{ Application, http }
-import play.api.mvc.{ Action, Results }
+import play.api.mvc.{ Action, Request, Results }
 import play.api.test._
 
 import scala.concurrent.duration._
@@ -146,13 +146,13 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  val dummyAction = Action { request =>
+  val dummyAction = Action { request: Request[_] =>
     Results.Ok {
       Random.nextInt().toString
     }
   }
 
-  val notFoundAction = Action { request =>
+  val notFoundAction = Action { request: Request[_] =>
     Results.NotFound(Random.nextInt().toString)
   }
 

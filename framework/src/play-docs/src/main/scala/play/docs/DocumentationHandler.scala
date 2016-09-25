@@ -77,8 +77,8 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
       case wikiPage(page) => Some(
         playDoc.renderPage(page) match {
           case None => NotFound(views.html.play20.manual(page, None, None, locator))
-          case Some(RenderedPage(mainPage, None, _)) => Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
-          case Some(RenderedPage(mainPage, Some(sidebar), _)) => Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar), locator))
+          case Some(RenderedPage(mainPage, None, _, _)) => Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
+          case Some(RenderedPage(mainPage, Some(sidebar), _, _)) => Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar), locator))
         }
       )
       case _ => None

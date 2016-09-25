@@ -7,7 +7,6 @@ import play.Mode;
 import play.routing.Router;
 import play.core.j.JavaModeConverter;
 import play.core.server.JavaServerHelper;
-import scala.Int;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -42,7 +41,7 @@ public class Server {
      */
     public int httpPort() {
         if (server.httpPort().isDefined()) {
-            return Int.unbox(server.httpPort().get());
+            return (Integer)server.httpPort().get();
         } else {
             throw new IllegalStateException("Server has no HTTP port. Try starting it with \"new Server.Builder().http(<port num>)\"?");
         }
@@ -56,7 +55,7 @@ public class Server {
      */
     public int httpsPort() {
         if (server.httpsPort().isDefined()) {
-            return Int.unbox(server.httpsPort().get());
+            return (Integer)server.httpsPort().get();
         } else {
             throw new IllegalStateException("Server has no HTTPS port. Try starting it with \"new Server.Builder.https(<port num>)\"?");
         }
