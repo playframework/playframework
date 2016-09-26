@@ -397,7 +397,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
   def content = script
 
   private val javascript = """
-        window.location = window.location.href.replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
+        window.location = window.location.href.split(/[?#]/)[0].replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
     """.format(db).trim
 
   def htmlDescription = {
