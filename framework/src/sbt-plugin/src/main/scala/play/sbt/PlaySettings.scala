@@ -45,6 +45,7 @@ object PlaySettings {
   }
 
   lazy val defaultSettings = Seq[Setting[_]](
+    TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
 
     playPlugin := false,
 
