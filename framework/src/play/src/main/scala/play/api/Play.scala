@@ -22,12 +22,6 @@ object Mode extends Enumeration {
 
 /**
  * High-level API to access Play global features.
- *
- * Note that this API depends on a running application.
- * You can import the currently running application in a scope using:
- * {{{
- * import play.api.Play.current
- * }}}
  */
 object Play {
 
