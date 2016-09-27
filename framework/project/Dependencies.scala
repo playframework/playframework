@@ -111,6 +111,12 @@ object Dependencies {
   val jodatime = "joda-time" % "joda-time" % "2.9.4"
   val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
 
+  val guiceVersion = "4.0"
+  val guiceDeps = Seq(
+    "com.google.inject" % "guice" % guiceVersion,
+    "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
+  )
+
   def runtime(scalaVersion: String) =
     slf4j ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
@@ -284,14 +290,16 @@ object Dependencies {
     logback % Test
   )
 
+  val ehcacheVersion = "2.6.11"
   val playCacheDeps = Seq(
-      "net.sf.ehcache" % "ehcache-core" % "2.6.11",
+      "net.sf.ehcache" % "ehcache-core" % ehcacheVersion,
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
+  val asyncHttpClientVersion = "2.0.11"
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.11",
+    "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
     logback % Test
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
