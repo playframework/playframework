@@ -29,19 +29,17 @@ public class Standalone {
 
         WSClient client = new AhcWSClient(config, materializer);
         client.url("http://www.google.com").get().whenComplete((r, e) -> {
-            Optional.of(r).ifPresent(response -> {
+            Optional.ofNullable(r).ifPresent(response -> {
                 String statusText = response.getStatusText();
                 System.out.println("Got a response " + statusText);
             });
         }).thenRun(() -> {
             try {
-                system.terminate();
                 client.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                System.exit(-1);
             }
-        });
+        }).thenRun(system::terminate);
 
     }
 }
