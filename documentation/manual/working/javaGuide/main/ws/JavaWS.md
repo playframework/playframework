@@ -170,7 +170,12 @@ You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that 
 
 @[ws-action](code/javaguide/ws/JavaWS.java)
 
-## Using WSClient
+### Using WSClient with CompletionStage Timeout
+
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  
+The best way to do this is with Play's [[non-blocking Timeout feature|JavaAsync]], using [`play.libs.concurrent.Timeout`](api/java/play/libs/concurrent/Timeout.html).
+
+## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using [[dependency injection|JavaDependencyInjection]] as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
@@ -185,6 +190,12 @@ Here is an example of how to create a `WSClient` instance by yourself:
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
 @[ws-client](code/javaguide/ws/JavaWS.java)
+
+You can also use [`play.libs.ws.WS.newClient`](api/java/play/libs/ws/WS.html) to create an instance of `WSClient` in a functional test.  See [[JavaTestingWebServiceClients]] for more details. 
+
+Or, you can run the `WSClient` completely standalone without involving a running Play application at all:
+
+@[ws-standalone](code/javaguide/ws/Standalone.java)
 
 Once you are done with your custom client work, you **must** close the client:
 

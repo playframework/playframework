@@ -115,7 +115,7 @@ The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[Byte
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.api.libs.ws.WSRequestFilter`](api/scala/play/api/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.api.libs.ws.WSRequestFilter`](api/scala/play/api/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
 A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
 
@@ -204,7 +204,11 @@ When making a request from a controller, you can map the response to a `Future[R
 
 @[async-result](code/ScalaWSSpec.scala)
 
-## Using WSClient
+### Using WSClient with Future Timeout
+
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The best way to do this is with Play's [[non-blocking Timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html).
+
+## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
@@ -212,7 +216,13 @@ However, if you choose, you can instantiate a `WSClient` directly from code and 
 
 @[ws-custom-client](code/ScalaWSSpec.scala)
 
-Once you are done with your custom client work, you **must** close the client:
+You can also use [`play.api.test.WsTestClient.withTestClient`](api/scala/play/api/test/WsTestClient.html) to create an instance of `WSClient` in a functional test.  See [[ScalaTestingWebServiceClients]] for more details.
+
+Or, you can run the `WSClient` completely standalone without involving a running Play application at all:
+
+@[ws-standalone](code/ScalaWSStandalone.scala)
+
+Again, once you are done with your custom client work, you **must** close the client:
 
 @[close-client](code/ScalaWSSpec.scala)
 
