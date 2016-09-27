@@ -103,9 +103,10 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
+  val guiceVersion = "4.0"
   val guiceDeps = Seq(
-    "com.google.inject" % "guice" % "4.0",
-    "com.google.inject.extensions" % "guice-assistedinject" % "4.0"
+    "com.google.inject" % "guice" % guiceVersion,
+    "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
   )
 
   def runtime(scalaVersion: String) =
@@ -267,14 +268,16 @@ object Dependencies {
     logback % Test
   ) ++ guiceDeps
 
+  val ehcacheVersion = "2.6.11"
   val playCacheDeps = Seq(
-      "net.sf.ehcache" % "ehcache-core" % "2.6.11",
+      "net.sf.ehcache" % "ehcache-core" % ehcacheVersion,
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
+  val asyncHttpClientVersion = "2.0.11"
   val playWsDeps = Seq(
     guava,
-    "org.asynchttpclient" % "async-http-client" % "2.0.11",
+    "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
     logback % Test
   ) ++
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
