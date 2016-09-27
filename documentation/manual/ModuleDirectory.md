@@ -186,6 +186,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
 to Twirl
 
+### Handlebars templates (Java and Scala)
+
+* **Website:** <https://github.com/andriykuba/play-handlebars>
+* **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
+* **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
 
 
 ## Utilities
