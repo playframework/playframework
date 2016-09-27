@@ -357,39 +357,6 @@ object PlayBuild extends Build {
       }
     ).dependsOn(SbtRoutesCompilerProject, SbtRunSupportProject)
 
-  lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
-    .settings(
-      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value)
-    ).dependsOn(RunSupportProject)
-
-  // extra fork-run-protocol project that is only compiled against sbt scala version
-  lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol", "fork-run-protocol")
-    .settings(
-      target := target.value / "sbt-fork-run-protocol",
-      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value)
-    ).dependsOn(SbtRunSupportProject)
-
-  lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
-    .settings(
-      libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value),
-      // Needed to get the jnotify dependency
-      resolvers += Classpaths.sbtPluginReleases
-    )
-    .dependsOn(ForkRunProtocolProject)
-
-  lazy val SbtForkRunPluginProject = PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
-    .settings(
-      libraryDependencies ++= sbtForkRunPluginDependencies(sbtVersion.value, scalaVersion.value),
-      // This only publishes the sbt plugin projects on each scripted run.
-      // The runtests script does a full publish before running tests.
-      // When developing the sbt plugins, run a publishLocal in the root project first.
-      scriptedDependencies := {
-        val () = publishLocal.value
-        val () = (publishLocal in SbtPluginProject).value
-        val () = (publishLocal in SbtRoutesCompilerProject).value
-      })
-    .dependsOn(SbtForkRunProtocolProject, SbtPluginProject)
-
   lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
     .settings(
       libraryDependencies += logback,
@@ -482,10 +449,6 @@ object PlayBuild extends Build {
     SbtRunSupportProject,
     RunSupportProject,
     SbtPluginProject,
-    ForkRunProtocolProject,
-    SbtForkRunProtocolProject,
-    ForkRunProject,
-    SbtForkRunPluginProject,
     PlaySpecs2Project,
     PlayTestProject,
     PlayExceptionsProject,
