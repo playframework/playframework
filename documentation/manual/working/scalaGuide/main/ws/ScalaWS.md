@@ -208,19 +208,7 @@ When making a request from a controller, you can map the response to a `Future[R
 
 ### Using WSClient with Future Timeout
 
-If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The canonical way to do this is with Akka's [after pattern](http://doc.akka.io/docs/akka/current/scala/futures.html#after):
-
-``` scala
- def withTimeout[A](timeoutDuration: scala.concurrent.FiniteDuration)(result: => Future[A]): Future[A] = {
-    val timeoutResult = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
-      val msg = s"Timeout after $timeoutDuration"
-      Future.failed(new TimeoutException(msg))
-    }(actorSystem.dispatchers.defaultGlobalDispatcher)
-    Future.firstCompletedOf(Seq(result, timeoutResult))
-  }
-  
-  withTimeout(1 second) { ... }
-```
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The best way to do this is with Play's [[non-blocking Timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html).
 
 ## Directly creating WSClient
 
@@ -237,6 +225,12 @@ You need an instance of an `akka.stream.Materializer` to create a `play.api.libs
 Creating a client directly means that you can also change configuration at the AsyncHttpClient and Netty configuration layers as well:
 
 @[ws-custom-client](code/ScalaWSSpec.scala)
+
+You can also use [`play.api.test.WsTestClient.withTestClient`](api/scala/play/api/test/WsTestClient.html) to create an instance of `WSClient` in a functional test.  See [[ScalaTestingWebServiceClients]] for more details. 
+
+Or, you can run the `WSClient` completely standalone without involving a running Play application at all:
+
+@[ws-standalone](code/ScalaWSStandalone.scala)
 
 Again, once you are done with your custom client work, you **must** close the client:
 
