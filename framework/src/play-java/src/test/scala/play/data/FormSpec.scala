@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
 import play.libs.F
 import play.twirl.api.Html
-import play.test.WithApplication;
+import play.api.test.WithApplication;
 
 object FormSpec extends Specification {
 
@@ -43,14 +43,14 @@ object FormSpec extends Specification {
       val req = dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm.get must throwAn[IllegalStateException]
     }
     "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication() {
       val req = dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
+      val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm.value().get().getId() must beEqualTo(0)
       myForm.value().get().getName() must_== null
     }
