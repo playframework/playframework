@@ -9,6 +9,7 @@ import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
 import play.libs.F
 import play.twirl.api.Html
+import play.test.WithApplication;
 
 object FormSpec extends Specification {
 
