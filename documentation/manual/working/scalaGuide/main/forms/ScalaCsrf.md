@@ -57,6 +57,39 @@ The `Filters` class can either be in the root package, or if it has another name
 play.http.filters = "filters.MyFilters"
 ```
 
+### Using an implicit request
+
+All CSRF functionality assumes that a `RequestHeader` or a `Request` is available in implicit scope, and will not compile without one available. 
+
+#### Defining an implicit Request in Actions
+
+For all the CSRF actions, the request must be exposed implicitly with `implicit request =>` as follows:
+
+``` scala
+def someMethod = SomeCSRFAction { implicit request =>
+  ... // methods that depend on an implicit request
+}
+```
+
+#### Passing an implicit Request between methods
+
+If you have broken up your code into methods that CSRF functionality is used in, then you can pass through the implicit request from the action:
+
+```scala
+def someMethod(...)(implicit request: Request[_]) = {
+  val token: Option[CSRF.Token] = CSRF.getToken
+  ... // do more things
+}
+```
+
+#### Defining an implicit Requests in Templates
+
+Your HTML template should have an implicit `Request` parameter to your template, if it doesn't have one already:
+
+```html
+@(...)(implicit request: Request[_])
+```
+
 ### Getting the current token
 
 The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
