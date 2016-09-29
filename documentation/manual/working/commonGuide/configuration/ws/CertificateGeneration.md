@@ -127,7 +127,7 @@ Client authentication can be obscure and poorly documented, but it relies on the
 3. The KeyManager will return the `client` certificate to the server.
 4. The server will do an additional ClientKeyExchange in the handshake.
 
-The steps to create a client CA and a signed client certificate are broadly similiar to the server certificate generation, but for convenience are presented in a single script:
+The steps to create a client CA and a signed client certificate are broadly similar to the server certificate generation, but for convenience are presented in a single script:
 
 @[context](code/genclient.sh)
 
