@@ -40,7 +40,7 @@ class ApplicationSecretGeneratorSpec extends Specification {
       newConfig.getString("play.crypto.secret").should_===("newSecret")
     }
 
-    "deletes existing nested application.secret while overriting secret" in {
+    "deletes existing nested application.secret while overwriting secret" in {
       val configContent =
         """
           |# test configuration
@@ -62,7 +62,7 @@ class ApplicationSecretGeneratorSpec extends Specification {
       newConfig.hasPath("application.secret") must beFalse
     }
 
-    "deletes existing fixed application.secret while overriting secret" in {
+    "deletes existing fixed application.secret while overwriting secret" in {
       val configContent =
         """
           |# test configuration
