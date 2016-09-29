@@ -4,7 +4,8 @@
 package play.it.http
 
 import java.util.Locale.ENGLISH
-import java.util.concurrent.{ LinkedBlockingQueue }
+import java.util.concurrent.LinkedBlockingQueue
+
 import akka.stream.scaladsl.Source
 import akka.util.{ ByteString, Timeout }
 import play.api._
@@ -19,9 +20,13 @@ import play.api.libs.ws._
 import play.api.libs.EventSource
 import play.core.server.common.ServerResultException
 import play.it._
+
 import scala.util.Try
 import scala.concurrent.Future
-import play.api.http.{ HttpEntity, HttpChunk, Status }
+import play.api.http.{ HttpChunk, HttpEntity, Status }
+import play.core.utils.CaseInsensitiveOrdered
+
+import scala.collection.immutable.TreeMap
 
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -443,7 +448,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         ).head
         response.status must_== 500
-        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
+        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be empty
       }
 
     "return a 500 response if an error occurs during the onError" in withServer(
@@ -460,7 +465,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         ).head
         response.status must_== 500
-        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
+        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be empty
       }
   }
 
