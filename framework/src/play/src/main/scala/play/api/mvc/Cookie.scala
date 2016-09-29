@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
  * @param path the cookie path, defaulting to the root path `/`
  * @param domain the cookie domain
  * @param secure whether this cookie is secured, sent only for HTTPS requests
- * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScipt code
+ * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
  */
 case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
 
