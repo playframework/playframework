@@ -231,7 +231,7 @@ public class HttpTest {
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
             assertThat(myForm.field("amount").value()).isEqualTo("1,234,567.89");
 
-            // Clean up (Actually not really necassary because formatters are not global anyway ;-)
+            // Clean up (Actually not really necessary because formatters are not global anyway ;-)
             formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
             formatters.conversion.removeConvertible(String.class, BigDecimal.class); // removes parse conversion
         });
