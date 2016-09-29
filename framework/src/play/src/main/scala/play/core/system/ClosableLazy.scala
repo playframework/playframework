@@ -15,7 +15,7 @@ package play.core
  * After being closed, the value cannot be initialized again. ClosableLazy is designed
  * to make it easier to clean up resources when shutting down Play. If resources were able
  * to be reinitialized after closing, then it would be easy to accidentally allocate resources
- * when shutting down. To prevert reinitialization, galling the `get()` method after `close()`
+ * when shutting down. To prevent reinitialization, galling the `get()` method after `close()`
  * will result in an `IllegalStateException`.
  *
  * The performance of this class should be similar to Scala's lazy values. Once initialized,
