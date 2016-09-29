@@ -312,7 +312,7 @@ public class Constraints {
     // --- MaxLength
 
     /**
-     * Defines a maxmimum length for a string field.
+     * Defines a maximum length for a string field.
      */
     @Target({FIELD})
     @Retention(RUNTIME)

@@ -417,8 +417,8 @@ object Forms {
    * {{{
    * Form("montant" -> bigDecimal(10, 2))
    * }}}
-   * @param precision The maximun total number of digits (including decimals)
-   * @param scale The maximun number of decimals
+   * @param precision The maximum total number of digits (including decimals)
+   * @param scale The maximum number of decimals
    */
   def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
 
