@@ -57,7 +57,7 @@ Define a custom execution context:
 
 You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.4.9/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
 
-Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpExection.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
+Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
 
 @[async-explicit-ec](code/javaguide/async/controllers/Application.java)
 
