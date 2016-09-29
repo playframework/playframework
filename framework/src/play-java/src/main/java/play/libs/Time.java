@@ -178,7 +178,7 @@ public class Time {
      * <P>
      * The '?' character is allowed for the day-of-month and day-of-week fields. It
      * is used to specify 'no specific value'. This is useful when you need to
-     * specify something in one of the two fileds, but not the other.
+     * specify something in one of the two fields, but not the other.
      * <P>
      * The '-' character is used to specify ranges For example &quot;10-12&quot; in
      * the hour field means &quot;the hours 10, 11 and 12&quot;.
