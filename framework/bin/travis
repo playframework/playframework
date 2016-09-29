@@ -20,6 +20,6 @@ declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation testTempl
 for TASK in "${TASKS[@]}" 
 do  
   # We have multi-threaded tests and see concurrent modification when starting logback,
-  # so always run tests sequentually.
+  # so always run tests sequentially.
   framework/bin/$TASK "set concurrentRestrictions in Global += Tags.limitAll(1)" 
 done
