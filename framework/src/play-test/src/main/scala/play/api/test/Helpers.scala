@@ -200,7 +200,7 @@ trait EssentialActionCaller {
   /**
    * Execute an [[play.api.mvc.EssentialAction]].
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
   def call[T](action: EssentialAction, req: Request[T])(implicit w: Writeable[T], mat: Materializer): Future[Result] =
     call(action, req, req.body)
@@ -208,7 +208,7 @@ trait EssentialActionCaller {
   /**
    * Execute an [[play.api.mvc.EssentialAction]].
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
   def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T], mat: Materializer): Future[Result] = {
     import play.api.http.HeaderNames._
@@ -233,7 +233,7 @@ trait RouteInvokers extends EssentialActionCaller {
   /**
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
     val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
@@ -248,7 +248,7 @@ trait RouteInvokers extends EssentialActionCaller {
   /**
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    *
    * @deprecated Use the version that takes an application, since 2.5.0
    */
@@ -258,14 +258,14 @@ trait RouteInvokers extends EssentialActionCaller {
   /**
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
   def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(app, req, req.body)
 
   /**
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
-   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    *
    * @deprecated Use the version that takes an application, since 2.5.0
    */
