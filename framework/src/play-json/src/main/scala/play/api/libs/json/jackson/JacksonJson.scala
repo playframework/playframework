@@ -188,7 +188,7 @@ private[jackson] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]
 
   }
 
-  // This is used when the root object is null, ie when deserialising "null"
+  // This is used when the root object is null, ie when deserializing "null"
   override def getNullValue = JsNull
 }
 
