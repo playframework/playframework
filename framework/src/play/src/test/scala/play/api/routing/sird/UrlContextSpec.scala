@@ -26,7 +26,7 @@ class UrlContextSpec extends Specification {
       }
     }
 
-    "match a parameterised path" in {
+    "match a parameterized path" in {
       "match" in {
         "/foo/testing/bar" must beLike {
           case p"/foo/$id/bar" => id must_== "testing"
