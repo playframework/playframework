@@ -31,11 +31,31 @@ package play.api.controllers {
 package controllers {
 
   import java.time._
+  import javax.inject.Provider
 
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
+  import play.api.http.HeaderNames
+  import play.api.inject.Module
 
   object Execution extends TrampolineContextProvider
+
+  class AssetsModule extends Module {
+    override def bindings(environment: Environment, configuration: Configuration) = Seq(
+      bind[Assets].toSelf,
+      bind[AssetsMetadata].toSelf,
+      bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
+    )
+  }
+
+  trait AssetsComponents {
+    def configuration: Configuration
+    def environment: Environment
+    def httpErrorHandler: HttpErrorHandler
+    lazy val assetsConfiguration: AssetsConfiguration = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
+    lazy val assetsMetadata: AssetsMetadata = new AssetsMetadata(environment, assetsConfiguration)
+    lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
+  }
 
   import Execution.trampoline
 
@@ -80,69 +100,129 @@ package controllers {
     }
   }
 
+  case class AssetsConfiguration(
+    defaultCharSet: String = "utf-8",
+    enableCaching: Boolean = true,
+    enableCacheControl: Boolean = false,
+    configuredCacheControl: Map[String, Option[String]] = Map.empty,
+    defaultCacheControl: String = "public, max-age=3600",
+    aggressiveCacheControl: String = "public, max-age=31536000",
+    digestAlgorithm: String = "md5",
+    checkForMinified: Boolean = true
+  )
+
+  object AssetsConfiguration {
+    def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Prod): AssetsConfiguration = {
+      AssetsConfiguration(
+        defaultCharSet = c.getDeprecated[String]("play.assets.default.charset", "default.charset"),
+        enableCaching = mode != Mode.Dev,
+        enableCacheControl = mode == Mode.Prod,
+        configuredCacheControl = c.getOptional[Map[String, Option[String]]]("play.assets.cache").getOrElse(Map.empty),
+        defaultCacheControl = c.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache"),
+        aggressiveCacheControl = c.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache"),
+        digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
+        checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
+          .getOrElse(mode != Mode.Dev)
+      )
+    }
+  }
+
+  case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Configuration) extends Provider[AssetsConfiguration] {
+    def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
+  }
+
+  object LazyAssetsMetadata extends AssetsMetadata(
+    Play.maybeApplication.map(app =>
+      AssetsConfiguration.fromConfiguration(app.configuration, app.mode)
+    ).getOrElse(AssetsConfiguration()),
+    { name =>
+      Play.maybeApplication.flatMap(app => new Environment(new File("."), app.classloader, app.mode).resource(name))
+    })
+
   /*
- * Retains meta information regarding an asset that can be readily cached.
- */
-  private object AssetInfo {
+   * Retains meta information regarding an asset that can be readily cached.
+   */
+  @Singleton
+  class AssetsMetadata(config: AssetsConfiguration, resource: String => Option[URL]) {
 
-    def config[T](lookup: Configuration => T): Option[T] = Play.maybeApplication.map(app => lookup(app.configuration))
+    @Inject
+    def this(env: Environment, config: AssetsConfiguration) = this(config, env.resource _)
 
-    def isDev = Play.maybeApplication.fold(false)(_.mode == Mode.Dev)
+    import HeaderNames._
+    import config._
 
-    def isProd = Play.maybeApplication.fold(false)(_.mode == Mode.Prod)
+    // Get the final path (minified and digested)
+    def finalPath(base: String, path: String): String = blocking {
+      val minPath = minifiedPath(path)
+      digest(minPath).fold(minPath) { dgst =>
+        val lastSep = minPath.lastIndexOf("/")
+        minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+      }.drop(base.length + 1)
+    }
 
-    def resource(name: String): Option[URL] = for {
-      app <- Play.maybeApplication
-      resource <- app.resource(name)
-    } yield resource
+    // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
+    // part of asset information. The reason for this is that the assetInfo cache returns a Future[AssetInfo] in order to
+    // avoid any thundering herds issue. The unbind method of the assetPathBindable doesn't support the return of a
+    // Future - unbinds are expected to be blocking. Thus we separate out the caching of a digest from the caching of
+    // full asset information. At least the determination of the digest should be relatively quick (certainly not as
+    // involved as determining the full asset info).
 
-    lazy val defaultCharSet = config(_.getDeprecated[String]("play.assets.default.charset", "default.charset")).getOrElse("utf-8")
+    private lazy val digestCache = TrieMap[String, Option[String]]()
 
-    lazy val defaultCacheControl = config(_.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache")).getOrElse("public, max-age=3600")
+    private[controllers] def digest(path: String): Option[String] = {
+      digestCache.getOrElse(path, {
+        val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
+        val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
+        if (enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
+        maybeDigest
+      })
+    }
 
-    lazy val aggressiveCacheControl = config(_.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+    // Sames goes for the minified paths cache.
+    private lazy val minifiedPathsCache = TrieMap[String, String]()
 
-    lazy val digestAlgorithm = config(_.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm")).getOrElse("md5")
-
-    import ResponseHeader.basicDateFormatPattern
-
-    val standardDateParserWithoutTZ: DateTimeFormatter =
-      DateTimeFormatter.ofPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(ZoneOffset.UTC)
-    val alternativeDateFormatWithTZOffset: DateTimeFormatter =
-      DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z").withLocale(java.util.Locale.ENGLISH)
-
-    /**
-     * A regex to find two types of date format. This regex silently ignores any
-     * trailing info such as extra header attributes ("; length=123") or
-     * timezone names ("(Pacific Standard Time").
-     * - "Sat, 18 Oct 2014 20:41:26" and "Sat, 29 Oct 1994 19:43:31 GMT" use the first
-     * matcher. (The " GMT" is discarded to give them the same format.)
-     * - "Wed Jan 07 2015 22:54:20 GMT-0800" uses the second matcher.
-     */
-    private val dateRecognizer = Pattern.compile(
-      """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
-        """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
-
-    def parseModifiedDate(date: String): Option[Date] = {
-      val matcher = dateRecognizer.matcher(date)
-      if (matcher.matches()) {
-        val standardDate = matcher.group(3)
-        try {
-          if (standardDate != null) {
-            Some(Date.from(ZonedDateTime.parse(standardDate, standardDateParserWithoutTZ).toInstant))
-          } else {
-            val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
-            Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
-          }
-        } catch {
-          case e: IllegalArgumentException =>
-            Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
-            None
+    private def minifiedPath(path: String): String = {
+      minifiedPathsCache.getOrElse(path, {
+        def minifiedPathFor(delim: Char): Option[String] = {
+          val ext = path.reverse.takeWhile(_ != '.').reverse
+          val noextPath = path.dropRight(ext.length + 1)
+          val minPath = noextPath + delim + "min." + ext
+          resource(minPath).map(_ => minPath)
         }
-      } else {
-        Logger.debug(s"An invalid date was received: unrecognized format: $date")
-        None
+        val maybeMinifiedPath = if (checkForMinified) {
+          minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
+        } else {
+          path
+        }
+        if (enableCaching) minifiedPathsCache.put(path, maybeMinifiedPath)
+        maybeMinifiedPath
+      })
+    }
+
+    private lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
+
+    private def assetInfoFromResource(name: String): Option[AssetInfo] = {
+      blocking {
+        for {
+          url <- resource(name)
+        } yield {
+          val gzipUrl: Option[URL] = resource(name + ".gz")
+          new AssetInfo(name, url, gzipUrl, digest(name), config)
+        }
       }
+    }
+
+    private def assetInfo(name: String): Future[Option[AssetInfo]] = {
+      if (enableCaching) {
+        assetInfoCache.putIfAbsent(name)(assetInfoFromResource)
+      } else {
+        Future.successful(assetInfoFromResource(name))
+      }
+    }
+
+    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
+      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
+      assetInfo(name).map(_.map(_ -> gzipRequested))
     }
   }
 
@@ -153,19 +233,21 @@ package controllers {
       val name: String,
       val url: URL,
       val gzipUrl: Option[URL],
-      val digest: Option[String]) {
+      val digest: Option[String],
+      config: AssetsConfiguration
+  ) {
 
-    import AssetInfo._
     import ResponseHeader._
+    import config._
 
     def addCharsetIfNeeded(mimeType: String): String =
       if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-    val configuredCacheControl = config(_.getOptional[String]("\"play.assets.cache." + name + "\"")).flatten
+    val configuredCacheControl = config.configuredCacheControl.get(name).flatten
 
     def cacheControl(aggressiveCaching: Boolean): String = {
       configuredCacheControl.getOrElse {
-        if (isProd) {
+        if (enableCacheControl) {
           if (aggressiveCaching) aggressiveCacheControl else defaultCacheControl
         } else {
           "no-cache"
@@ -200,7 +282,7 @@ package controllers {
 
     val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-    val parsedLastModified = lastModified flatMap parseModifiedDate
+    val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
     def url(gzipAvailable: Boolean): URL = {
       gzipUrl match {
@@ -243,75 +325,47 @@ package controllers {
    * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
    * }}}
    */
-  object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
+  object Assets extends AssetsBuilder(LazyHttpErrorHandler, LazyAssetsMetadata) {
 
-    import AssetInfo._
+    import ResponseHeader.basicDateFormatPattern
 
-    // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
-    // part of asset information. The reason for this is that the assetInfo cache returns a Future[AssetInfo] in order to
-    // avoid any thundering herds issue. The unbind method of the assetPathBindable doesn't support the return of a
-    // Future - unbinds are expected to be blocking. Thus we separate out the caching of a digest from the caching of
-    // full asset information. At least the determination of the digest should be relatively quick (certainly not as
-    // involved as determining the full asset info).
+    val standardDateParserWithoutTZ: DateTimeFormatter =
+      DateTimeFormatter.ofPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(ZoneOffset.UTC)
+    val alternativeDateFormatWithTZOffset: DateTimeFormatter =
+      DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z").withLocale(java.util.Locale.ENGLISH)
 
-    val digestCache = TrieMap[String, Option[String]]()
+    /**
+     * A regex to find two types of date format. This regex silently ignores any
+     * trailing info such as extra header attributes ("; length=123") or
+     * timezone names ("(Pacific Standard Time").
+     * - "Sat, 18 Oct 2014 20:41:26" and "Sat, 29 Oct 1994 19:43:31 GMT" use the first
+     * matcher. (The " GMT" is discarded to give them the same format.)
+     * - "Wed Jan 07 2015 22:54:20 GMT-0800" uses the second matcher.
+     */
+    private val dateRecognizer = Pattern.compile(
+      """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
+        """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
 
-    private[controllers] def digest(path: String): Option[String] = {
-      digestCache.getOrElse(path, {
-        val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
-        val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
-        if (!isDev && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
-        maybeDigest
-      })
-    }
-
-    // Sames goes for the minified paths cache.
-    val minifiedPathsCache = TrieMap[String, String]()
-
-    lazy val checkForMinified = config(_.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified").getOrElse(!isDev)).getOrElse(true)
-
-    private[controllers] def minifiedPath(path: String): String = {
-      minifiedPathsCache.getOrElse(path, {
-        def minifiedPathFor(delim: Char): Option[String] = {
-          val ext = path.reverse.takeWhile(_ != '.').reverse
-          val noextPath = path.dropRight(ext.length + 1)
-          val minPath = noextPath + delim + "min." + ext
-          resource(minPath).map(_ => minPath)
+    def parseModifiedDate(date: String): Option[Date] = {
+      val matcher = dateRecognizer.matcher(date)
+      if (matcher.matches()) {
+        val standardDate = matcher.group(3)
+        try {
+          if (standardDate != null) {
+            Some(Date.from(ZonedDateTime.parse(standardDate, standardDateParserWithoutTZ).toInstant))
+          } else {
+            val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
+            Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
+          }
+        } catch {
+          case e: IllegalArgumentException =>
+            Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+            None
         }
-        val maybeMinifiedPath = if (checkForMinified) {
-          minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
-        } else {
-          path
-        }
-        if (!isDev) minifiedPathsCache.put(path, maybeMinifiedPath)
-        maybeMinifiedPath
-      })
-    }
-
-    private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
-
-    private def assetInfoFromResource(name: String): Option[AssetInfo] = {
-      blocking {
-        for {
-          url <- resource(name)
-        } yield {
-          val gzipUrl: Option[URL] = resource(name + ".gz")
-          new AssetInfo(name, url, gzipUrl, digest(name))
-        }
-      }
-    }
-
-    private def assetInfo(name: String): Future[Option[AssetInfo]] = {
-      if (isDev) {
-        Future.successful(assetInfoFromResource(name))
       } else {
-        assetInfoCache.putIfAbsent(name)(assetInfoFromResource)
+        Logger.debug(s"An invalid date was received: unrecognized format: $date")
+        None
       }
-    }
-
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
-      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-      assetInfo(name).map(_.map(_ -> gzipRequested))
     }
 
     /**
@@ -340,24 +394,18 @@ package controllers {
         def unbind(key: String, value: Asset): String = {
           val base = pathFromParams(rrc)
           val path = base + "/" + value.name
-          blocking {
-            val minPath = minifiedPath(path)
-            digest(minPath).fold(minPath) { dgst =>
-              val lastSep = minPath.lastIndexOf("/")
-              minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
-            }.drop(base.length + 1)
-          }
+          LazyAssetsMetadata.finalPath(base, path)
         }
       }
     }
   }
 
   @Singleton
-  class Assets @Inject() (errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler)
+  class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
-  class AssetsBuilder(errorHandler: HttpErrorHandler) extends BaseController {
+  class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends BaseController {
 
-    import AssetInfo._
+    import meta._
     import Assets._
 
     private val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)

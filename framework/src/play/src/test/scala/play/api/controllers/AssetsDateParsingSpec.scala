@@ -4,17 +4,18 @@
 package controllers
 
 import java.time._
+import java.time.format.DateTimeFormatter
+import java.util.Date
 
 import org.specs2.mutable.Specification
-import java.util.Date
-import java.time.format.DateTimeFormatter
+import play.api.{ Configuration, Environment }
 
-class AssetsInfoSpec extends Specification {
+class AssetsDateParsingSpec extends Specification {
 
-  "AssetInfo.parseModifiedDate" should {
+  "Assets.parseModifiedDate" should {
 
     def parseAndReformat(s: String): Option[String] = {
-      val parsed: Option[Date] = AssetInfo.parseModifiedDate(s)
+      val parsed: Option[Date] = Assets.parseModifiedDate(s)
       parsed.map { date =>
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.000z")
           .format(ZonedDateTime.ofInstant(date.toInstant, ZoneOffset.UTC))
