@@ -141,7 +141,7 @@ public class Constraints {
     // --- Min
 
     /**
-     * Defines a minumum value for a numeric field.
+     * Defines a minimum value for a numeric field.
      */
     @Target({FIELD})
     @Retention(RUNTIME)
@@ -257,7 +257,7 @@ public class Constraints {
     // --- MinLength
 
     /**
-     * Defines a minumum length for a string field.
+     * Defines a minimum length for a string field.
      */
     @Target({FIELD})
     @Retention(RUNTIME)
