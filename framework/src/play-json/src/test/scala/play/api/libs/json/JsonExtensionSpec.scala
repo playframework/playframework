@@ -469,7 +469,7 @@ class JsonExtensionSpec extends Specification {
       success
     }
 
-    "test inception with overriden object" in {
+    "test inception with overridden object" in {
       implicit val programFormat = Json.reads[Program]
       success
     }
