@@ -246,7 +246,7 @@ object Forms {
    * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
-   * there are marked as optional explicitely. But a nonEmptyText defines text
+   * there are marked as optional explicitly. But a nonEmptyText defines text
    * field that must not be empty, even if present in the form.
    *
    * Example:
