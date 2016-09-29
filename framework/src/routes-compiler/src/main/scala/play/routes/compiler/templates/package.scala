@@ -309,7 +309,7 @@ package object templates {
    * means the one reverse router, depending on the parameters, will return different URLs.  But if they have the same
    * parameters, or no parameters, then after the first one, the subsequent ones will be dead code, never matching.
    *
-   * This optimisation not only saves on code generated, but since the body of the JavaScript router is a series of
+   * This optimization not only saves on code generated, but since the body of the JavaScript router is a series of
    * very long String concatenation, this is hard work on the typer, which can easily stack overflow.
    */
   def javascriptCollectNonDeadRoutes(routes: Seq[Route]) = {

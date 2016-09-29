@@ -147,7 +147,7 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 /**
  * Low priority reads.
  *
- * This exists as a compiler performance optimisation, so that the compiler doesn't have to rule them out when
+ * This exists as a compiler performance optimization, so that the compiler doesn't have to rule them out when
  * DefaultReads provides a simple match.
  *
  * See https://github.com/playframework/playframework/issues/4313 for more details.
