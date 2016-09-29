@@ -51,7 +51,7 @@ case class TrustStoreConfig(
 /**
  * The key manager config.
  *
- * @param algorithm The algoritm to use.
+ * @param algorithm The algorithm to use.
  * @param keyStoreConfigs The key stores to use.
  */
 case class KeyManagerConfig(
