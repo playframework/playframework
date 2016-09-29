@@ -133,7 +133,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @param key the error key
      * @param error the error message
-     * @param args the errot arguments
+     * @param args the error arguments
      */
     public void reject(String key, String error, List<Object> args) {
         super.reject(asDynamicKey(key), error, args);
