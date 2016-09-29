@@ -271,7 +271,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   }
 
   object ThrowExceptionFilter extends EssentialFilter {
-    val expectedText = "This filter calls next and throws an exception afterwords"
+    val expectedText = "This filter calls next and throws an exception afterwards"
 
     def apply(next: EssentialAction) = EssentialAction { request =>
       next(request).map { _ =>
