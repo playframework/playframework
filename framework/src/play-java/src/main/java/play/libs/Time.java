@@ -612,14 +612,14 @@ public class Time {
                 }
                 if (type != DAY_OF_WEEK && type != DAY_OF_MONTH) {
                     throw new ParseException(
-                            "'?' can only be specfied for Day-of-Month or Day-of-Week.",
+                            "'?' can only be specified for Day-of-Month or Day-of-Week.",
                             i);
                 }
                 if (type == DAY_OF_WEEK && !lastdayOfMonth) {
                     int val = daysOfMonth.last().intValue();
                     if (val == NO_SPEC_INT) {
                         throw new ParseException(
-                                "'?' can only be specfied for Day-of-Month -OR- Day-of-Week.",
+                                "'?' can only be specified for Day-of-Month -OR- Day-of-Week.",
                                 i);
                     }
                 }
