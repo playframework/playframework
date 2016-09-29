@@ -146,7 +146,7 @@ object Configuration {
   private[api] def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
     /*
       The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
-      This is necessary to keep the Exception serialisable, because ConfigOrigin is not serialisable.
+      This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
      */
     val originLine = Option(origin.lineNumber: java.lang.Integer).orNull
     val originUrl = Option(origin.url)

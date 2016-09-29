@@ -92,7 +92,7 @@ class ConfigurationSpec extends Specification {
       exampleConfig.getBoolean("foo.bar3") must throwA[PlayException]
     }
 
-    "throw serialisable exceptions" in {
+    "throw serializable exceptions" in {
       // from Typesafe Config
       def copyViaSerialize(o: java.io.Serializable): AnyRef = {
         val byteStream = new ByteArrayOutputStream()
