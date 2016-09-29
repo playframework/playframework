@@ -20,7 +20,7 @@ addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.8")
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.7")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.16")
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
