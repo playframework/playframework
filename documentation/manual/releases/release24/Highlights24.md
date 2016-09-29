@@ -15,7 +15,7 @@ A long term strategy for Play is to remove Play's dependence on global state.  P
 * More interesting deployment scenarios are possible, such as multiple Play instances in a single JVM, or embedding a lightweight Play application.
 * The application lifecycle becomes easier to follow and reason about.
 
-Removing Play's global state is however a big task that will require some disruptive changes to the way Play applications are written.  The approach we are taking to do this is to do as much as possible in Play 2.4 while maintaining backwards compatibility.  For a time, many of Play's APIs will support both methods that rely on require global state and methods that don't rely on global state, allowing you to migrate your application to not depend on global state incrementally, rather than all at once when you uprgade to Play 2.4.
+Removing Play's global state is however a big task that will require some disruptive changes to the way Play applications are written.  The approach we are taking to do this is to do as much as possible in Play 2.4 while maintaining backwards compatibility.  For a time, many of Play's APIs will support both methods that rely on require global state and methods that don't rely on global state, allowing you to migrate your application to not depend on global state incrementally, rather than all at once when you upgrade to Play 2.4.
 
 The first step to removing global state is to make it such that Play components have their dependencies provided to them, rather than looking them up statically.  This means providing out of the box support for dependency injection.
 
