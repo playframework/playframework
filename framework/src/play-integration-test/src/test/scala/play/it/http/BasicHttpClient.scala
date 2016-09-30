@@ -12,6 +12,9 @@ import javax.net.ssl.X509TrustManager
 import org.apache.commons.io.IOUtils
 import play.api.test.Helpers._
 import play.core.server.common.ServerResultUtils
+import play.core.utils.CaseInsensitiveOrdered
+
+import scala.collection.immutable.TreeMap
 
 object BasicHttpClient {
 
@@ -190,7 +193,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
           parsed :: readHeaders
         }
       }
-      val headers = readHeaders.toMap
+      val headers = TreeMap(readHeaders: _*)(CaseInsensitiveOrdered)
 
       def readCompletely(length: Int): String = {
         if (length == 0) {
