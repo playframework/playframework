@@ -83,7 +83,7 @@ class AccumulatorSpec extends Specification {
       await(sum.through(Flow[Int].map(_ * 2)).run(source)) must_== 12
     }
 
-    "be able to be composed in a left to right asociate way" in withMaterializer { implicit m =>
+    "be able to be composed in a left to right associate way" in withMaterializer { implicit m =>
       await(source ~>: Flow[Int].map(_ * 2) ~>: sum) must_== 12
     }
 

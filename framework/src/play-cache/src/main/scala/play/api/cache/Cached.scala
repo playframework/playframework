@@ -26,7 +26,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * Cache an action.
    *
    * @param key Compute a key from the request header
-   * @param caching Compute a cache duration from the respone header
+   * @param caching Compute a cache duration from the resource header
    */
   def apply(
     key: RequestHeader => String,

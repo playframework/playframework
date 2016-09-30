@@ -67,7 +67,7 @@ object Resources {
     /* ClassLoader within an OSGi container behave differently than the standard classloader.
      * One difference is how getResource returns when the resource's name end with a slash.
      * In a standard JVM, getResource doesn't care of ending slashes, and return the URL of
-     * any existing resources. In an OSGi container (tested with Apache Felix), ending slashe
+     * any existing resources. In an OSGi container (tested with Apache Felix), ending slashes
      * refers to a directory (return null otherwise). */
 
     val path = url.getPath

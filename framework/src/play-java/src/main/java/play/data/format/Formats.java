@@ -138,7 +138,7 @@ public class Formats {
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param annotation the annotation that trigerred this formatter
+         * @param annotation the annotation that triggered this formatter
          * @param text the field text
          * @param locale the current <code>Locale</code>
          * @return a new value
@@ -158,7 +158,7 @@ public class Formats {
         /**
          * Unbinds this field - converts a concrete value to plain string
          *
-         * @param annotation the annotation that trigerred this formatter
+         * @param annotation the annotation that triggered this formatter
          * @param value the value to unbind
          * @param locale the current <code>Locale</code>
          * @return printable version of the value
@@ -192,7 +192,7 @@ public class Formats {
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param annotation the annotation that trigerred this formatter
+         * @param annotation the annotation that triggered this formatter
          * @param text the field text
          * @param locale the current <code>Locale</code>
          * @return a new value
@@ -207,7 +207,7 @@ public class Formats {
         /**
          * Unbinds this field - converts a concrete value to plain string
          *
-         * @param annotation the annotation that trigerred this formatter
+         * @param annotation the annotation that triggered this formatter
          * @param value the value to unbind
          * @param locale the current <code>Locale</code>
          * @return printable version of the value

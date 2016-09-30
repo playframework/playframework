@@ -24,7 +24,7 @@ class AlgorithmsSpec extends Specification {
       val from = Instant.now
       val to = from.plus(5000000, ChronoUnit.MILLIS)
 
-      // Use RSA with a SHA1 certificate signing algoirthm.
+      // Use RSA with a SHA1 certificate signing algorithm.
       val keyGen = KeyPairGenerator.getInstance("RSA")
       keyGen.initialize(1024, new SecureRandom())
       val pair = keyGen.generateKeyPair()
@@ -39,7 +39,7 @@ class AlgorithmsSpec extends Specification {
       val from = Instant.now
       val to = from.plus(5000000, ChronoUnit.MILLIS)
 
-      // Use RSA with a DSA certificate signing algoirthm.
+      // Use RSA with a DSA certificate signing algorithm.
       val keyGen = KeyPairGenerator.getInstance("DSA")
       keyGen.initialize(1024, new SecureRandom())
       val pair = keyGen.generateKeyPair()

@@ -8,7 +8,7 @@ import java.sql.{ ResultSet, SQLException }
 import org.specs2.mutable.{ After, Specification }
 import play.api.db.{ Database, Databases }
 
-// TODO: fuctional test with InvalidDatabaseRevision exception
+// TODO: functional test with InvalidDatabaseRevision exception
 
 class EvolutionsSpec extends Specification {
 

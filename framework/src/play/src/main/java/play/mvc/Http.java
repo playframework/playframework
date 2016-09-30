@@ -887,7 +887,7 @@ public class Http {
         /**
          * Set a Multipart Form url encoded body to this request.
          *
-         * @param data the multipart-form paramters
+         * @param data the multipart-form parameters
          * @param mat a Akka Streams Materializer
          * @return the modified builder
          */

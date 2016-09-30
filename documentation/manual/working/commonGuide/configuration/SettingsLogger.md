@@ -84,7 +84,7 @@ $ start -Dlogger.file=/opt/prod/logger.xml
 
 ### Examples
 
-Here's an example of configuration that uses a rolling file appender, as well as a seperate appender for outputting an access log:
+Here's an example of configuration that uses a rolling file appender, as well as a separate appender for outputting an access log:
 
 ```xml
 <configuration>

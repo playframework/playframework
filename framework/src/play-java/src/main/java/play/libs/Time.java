@@ -178,7 +178,7 @@ public class Time {
      * <P>
      * The '?' character is allowed for the day-of-month and day-of-week fields. It
      * is used to specify 'no specific value'. This is useful when you need to
-     * specify something in one of the two fileds, but not the other.
+     * specify something in one of the two fields, but not the other.
      * <P>
      * The '-' character is used to specify ranges For example &quot;10-12&quot; in
      * the hour field means &quot;the hours 10, 11 and 12&quot;.
@@ -612,14 +612,14 @@ public class Time {
                 }
                 if (type != DAY_OF_WEEK && type != DAY_OF_MONTH) {
                     throw new ParseException(
-                            "'?' can only be specfied for Day-of-Month or Day-of-Week.",
+                            "'?' can only be specified for Day-of-Month or Day-of-Week.",
                             i);
                 }
                 if (type == DAY_OF_WEEK && !lastdayOfMonth) {
                     int val = daysOfMonth.last().intValue();
                     if (val == NO_SPEC_INT) {
                         throw new ParseException(
-                                "'?' can only be specfied for Day-of-Month -OR- Day-of-Week.",
+                                "'?' can only be specified for Day-of-Month -OR- Day-of-Week.",
                                 i);
                     }
                 }
@@ -1323,7 +1323,7 @@ public class Time {
                             continue;
                         }
 
-                        // find date of last occurance of this day in this month...
+                        // find date of last occurrence of this day in this month...
                         while ((day + daysToAdd + 7) <= lDay) {
                             daysToAdd += 7;
                         }

@@ -39,10 +39,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
       // Compress the bytes
       var output = new Array[Byte](100)
-      val compresser = new Deflater()
-      compresser.setInput(bodyString.getBytes("UTF-8"))
-      compresser.finish()
-      val compressedDataLength = compresser.deflate(output)
+      val compressor = new Deflater()
+      compressor.setInput(bodyString.getBytes("UTF-8"))
+      compressor.finish()
+      val compressedDataLength = compressor.deflate(output)
 
       val client = new BasicHttpClient(port, false)
       val response = client.sendRaw(output, Map("Content-Type" -> "text/plain", "Content-Length" -> compressedDataLength.toString, "Content-Encoding" -> "deflate"))

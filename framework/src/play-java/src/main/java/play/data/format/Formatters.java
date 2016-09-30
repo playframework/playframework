@@ -161,7 +161,7 @@ public class Formatters {
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param annotation the annotation that trigerred this formatter
+         * @param annotation the annotation that triggered this formatter
          * @param text the field text
          * @param locale the current <code>Locale</code>
          * @throws java.text.ParseException when the text could not be parsed
@@ -172,7 +172,7 @@ public class Formatters {
         /**
          * Unbind this field (ie. transform a concrete value to plain string)
          *
-         * @param annotation the annotation that trigerred this formatter.
+         * @param annotation the annotation that triggered this formatter.
          * @param value the value to unbind
          * @param locale the current <code>Locale</code>
          * @return printable version of the value

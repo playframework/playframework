@@ -469,7 +469,7 @@ class JsonExtensionSpec extends Specification {
       success
     }
 
-    "test inception with overriden object" in {
+    "test inception with overridden object" in {
       implicit val programFormat = Json.reads[Program]
       success
     }
@@ -639,7 +639,7 @@ class JsonExtensionSpec extends Specification {
       Json.toJson(UserProfile.obj1) must beEqualTo(UserProfile.json2)
     }
 
-    "create a stackked format[UserProfile] with SnakeCase" in {
+    "create a stacked format[UserProfile] with SnakeCase" in {
       import play.api.libs.json.Json
 
       implicit val jsonConfiguration = JsonConfiguration(SnakeCase)

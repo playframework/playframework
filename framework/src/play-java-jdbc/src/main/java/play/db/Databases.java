@@ -173,7 +173,7 @@ public final class Databases {
      * @param v1 H2 configuration value corresponding to `k1`
      * @param k2 a second H2 configuration key
      * @param v2 a configuration value corresponding to `k2`
-     * @param k3 a third H2 configuraiton key
+     * @param k3 a third H2 configuration key
      * @param v3 a configuration value corresponding to `k3`
      * @return a configured in-memory H2 database
      */

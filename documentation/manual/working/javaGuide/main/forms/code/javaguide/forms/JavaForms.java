@@ -76,7 +76,7 @@ public class JavaForms extends WithApplication {
     }
 
     @Test
-    public void constrants() {
+    public void constraints() {
         Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
         assertThat(userForm.bind(ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }

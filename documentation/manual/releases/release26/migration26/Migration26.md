@@ -130,7 +130,7 @@ libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 
 #### XercesImpl removal
 
-For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a refernece implementation we removed it.
+For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it.
 If your project relies on the external package you can simply add it to your `build.sbt`:
 
 ```

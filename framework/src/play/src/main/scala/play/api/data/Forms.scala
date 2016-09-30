@@ -246,7 +246,7 @@ object Forms {
    * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
-   * there are marked as optional explicitely. But a nonEmptyText defines text
+   * there are marked as optional explicitly. But a nonEmptyText defines text
    * field that must not be empty, even if present in the form.
    *
    * Example:
@@ -417,8 +417,8 @@ object Forms {
    * {{{
    * Form("montant" -> bigDecimal(10, 2))
    * }}}
-   * @param precision The maximun total number of digits (including decimals)
-   * @param scale The maximun number of decimals
+   * @param precision The maximum total number of digits (including decimals)
+   * @param scale The maximum number of decimals
    */
   def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
 

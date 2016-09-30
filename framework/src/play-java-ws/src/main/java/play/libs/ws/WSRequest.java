@@ -219,7 +219,7 @@ public interface WSRequest {
     /**
      * Adds a request filter.
      *
-     * @param filter a tranforming filter.
+     * @param filter a transforming filter.
      * @return the modified request.
      */
     WSRequest withRequestFilter(WSRequestFilter filter);

@@ -605,7 +605,7 @@ public class Form<T> {
      * Adds a global error to this form.
      *
      * @param error the error message
-     * @param args the errot arguments
+     * @param args the error arguments
      */
     public void reject(String error, List<Object> args) {
         reject(new ValidationError("", error, args));

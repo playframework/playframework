@@ -110,7 +110,7 @@ private[server] object ForwardedHeaderHandler {
   private val logger = Logger(getClass)
 
   /**
-   * The verison of headers that this Play application understands.
+   * The version of headers that this Play application understands.
    */
   sealed trait ForwardedHeaderVersion
   case object Rfc7239 extends ForwardedHeaderVersion

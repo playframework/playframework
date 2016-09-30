@@ -147,7 +147,7 @@ public class Environment {
      * The underlying Scala API Environment object that this Environment
      * wraps.
      *
-     * @return the environemnt
+     * @return the environment
      */
     public play.api.Environment underlying() {
         return env;

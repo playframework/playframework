@@ -51,7 +51,7 @@ case class TrustStoreConfig(
 /**
  * The key manager config.
  *
- * @param algorithm The algoritm to use.
+ * @param algorithm The algorithm to use.
  * @param keyStoreConfigs The key stores to use.
  */
 case class KeyManagerConfig(
@@ -171,7 +171,7 @@ case class SSLLooseConfig(
  * @param trustManagerConfig The trust manager configuration.
  * @param secureRandom The SecureRandom instance to use. Let the platform choose if None.
  * @param debug The debug config.
- * @param loose Loose configuratino parameters
+ * @param loose Loose configuration parameters
  */
 case class SSLConfig(
   default: Boolean = false,
