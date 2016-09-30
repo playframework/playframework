@@ -46,7 +46,7 @@ For convenience, you should add the Activator installation directory to your sys
 Add to your login profile.  Usually, this is `$HOME/.profile`:
 
 ```
-export PATH=/path/to/activator-x.x.x:$PATH
+export PATH=/path/to/activator-x.x.x/bin:$PATH
 ```
 
 Make sure that the `activator` script is executable. If it's not:

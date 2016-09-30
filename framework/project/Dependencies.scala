@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.4.8"
+  val akkaVersion = "2.4.10"
 
   val specsVersion = "3.6.6"
   val specsBuild = Seq(
@@ -42,7 +42,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.4.7",
+    "com.zaxxer" % "HikariCP" % "2.5.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database,
     acolyte % Test,
@@ -140,10 +140,10 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.39.Final"
+  val nettyVersion = "4.0.41.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.7",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64",
     logback % Test
   ) ++ specsBuild.map(_ % Test)

@@ -44,7 +44,7 @@ You can tell the routes file to use a different router under a specific prefix b
 ->      /api                        api.MyRouter
 ```
 
-This is especially useful when combined with [String Interpolating Routing DSL|ScalaSirdRouter] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
+This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
 
 ## The HTTP method
 
@@ -159,6 +159,18 @@ And if you map it in the `conf/routes` file:
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
 @[reverse-router](code/ScalaRouting.scala)
+
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+
+The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
+
+## The Default Controller
+
+Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
+
+@[defaultcontroller](code/scalaguide.http.routing.defaultcontroller.routes)
+
+In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
 
 ## Custom routing
 

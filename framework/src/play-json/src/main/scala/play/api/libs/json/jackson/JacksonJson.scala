@@ -62,8 +62,10 @@ private[jackson] object JsValueSerializer extends JsonSerializer[JsValue] {
         val stripped = v.bigDecimal.stripTrailingZeros
         val raw = if (shouldWritePlain) stripped.toPlainString else stripped.toString
 
-        if (raw contains ".") json.writeTree(new DecimalNode(new JBigDec(raw)))
-        else json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+        if (raw.indexOf('E') < 0 && raw.indexOf('.') < 0)
+          json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+        else
+          json.writeTree(new DecimalNode(new JBigDec(raw)))
       }
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
