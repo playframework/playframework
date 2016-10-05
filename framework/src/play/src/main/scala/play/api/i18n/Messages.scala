@@ -8,7 +8,7 @@ import java.util.Locale
 import javax.inject.{ Inject, Singleton }
 
 import play.api._
-import play.api.inject.Module
+import play.api.inject._
 import play.api.mvc.{ Cookie, DiscardingCookie, RequestHeader, Result, Session }
 import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
@@ -558,14 +558,10 @@ class DefaultMessagesApi @Inject() (environment: Environment, config: Configurat
 
 }
 
-class I18nModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[Langs].to[DefaultLangs],
-      bind[MessagesApi].to[DefaultMessagesApi]
-    )
-  }
-}
+class I18nModule extends SimpleModule(
+  bind[Langs].to[DefaultLangs],
+  bind[MessagesApi].to[DefaultMessagesApi]
+)
 
 /**
  * Injection helper for i18n components

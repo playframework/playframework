@@ -10,7 +10,7 @@ import akka.stream.Materializer
 import com.google.common.primitives.Primitives
 import net.sf.ehcache.{ CacheManager, Ehcache, Element, ObjectExistsException }
 import play.api.cache._
-import play.api.inject.{ ApplicationLifecycle, BindingKey, Injector, Module }
+import play.api.inject._
 import play.api.{ Configuration, Environment }
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => DefaultJavaAsyncCacheApi, DefaultSyncCacheApi => JavaDefaultSyncCacheApi, NamedCacheImpl }
 
@@ -43,49 +43,47 @@ trait EhCacheComponents {
 /**
  * EhCache implementation.
  */
-class EhCacheModule extends Module {
+class EhCacheModule extends SimpleModule((environment, configuration) => {
 
   import scala.collection.JavaConversions._
 
-  def bindings(environment: Environment, configuration: Configuration) = {
-    val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
-    val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").toSeq
-    val createBoundCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
+  val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
+  val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").toSeq
+  val createBoundCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
 
-    // Creates a named cache qualifier
-    def named(name: String): NamedCache = {
-      new NamedCacheImpl(name)
-    }
-
-    // bind a cache with the given name
-    def bindCache(name: String) = {
-      val namedCache = named(name)
-      val ehcacheKey = bind[Ehcache].qualifiedWith(namedCache)
-      val cacheApiKey = bind[AsyncCacheApi].qualifiedWith(namedCache)
-      Seq(
-        ehcacheKey.to(new NamedEhCacheProvider(name, createBoundCaches)),
-        cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
-        bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
-        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
-        bind[SyncCacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
-        bind[CacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
-        bind[JavaCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi],
-        bind[JavaSyncCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi]
-      )
-    }
-
-    Seq(
-      bind[CacheManager].toProvider[CacheManagerProvider],
-      // alias the default cache to the unqualified implementation
-      bind[AsyncCacheApi].to(bind[AsyncCacheApi].qualifiedWith(named(defaultCacheName))),
-      bind[JavaAsyncCacheApi].to[DefaultJavaAsyncCacheApi],
-      bind[SyncCacheApi].to[DefaultSyncCacheApi],
-      bind[CacheApi].to[DefaultSyncCacheApi],
-      bind[JavaCacheApi].to[JavaDefaultSyncCacheApi],
-      bind[JavaSyncCacheApi].to[JavaDefaultSyncCacheApi]
-    ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
+  // Creates a named cache qualifier
+  def named(name: String): NamedCache = {
+    new NamedCacheImpl(name)
   }
-}
+
+  // bind a cache with the given name
+  def bindCache(name: String) = {
+    val namedCache = named(name)
+    val ehcacheKey = bind[Ehcache].qualifiedWith(namedCache)
+    val cacheApiKey = bind[AsyncCacheApi].qualifiedWith(namedCache)
+    Seq(
+      ehcacheKey.to(new NamedEhCacheProvider(name, createBoundCaches)),
+      cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
+      bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
+      bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
+      bind[SyncCacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
+      bind[CacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
+      bind[JavaCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi],
+      bind[JavaSyncCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi]
+    )
+  }
+
+  Seq(
+    bind[CacheManager].toProvider[CacheManagerProvider],
+    // alias the default cache to the unqualified implementation
+    bind[AsyncCacheApi].to(bind[AsyncCacheApi].qualifiedWith(named(defaultCacheName))),
+    bind[JavaAsyncCacheApi].to[DefaultJavaAsyncCacheApi],
+    bind[SyncCacheApi].to[DefaultSyncCacheApi],
+    bind[CacheApi].to[DefaultSyncCacheApi],
+    bind[JavaCacheApi].to[JavaDefaultSyncCacheApi],
+    bind[JavaSyncCacheApi].to[JavaDefaultSyncCacheApi]
+  ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
+})
 
 @Singleton
 class CacheManagerProvider @Inject() (env: Environment, config: Configuration, lifecycle: ApplicationLifecycle) extends Provider[CacheManager] {

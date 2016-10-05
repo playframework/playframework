@@ -3,21 +3,18 @@
  */
 package play.api.libs.openid
 
+import java.net._
 import javax.inject.{ Inject, Singleton }
 
-import play.api.{ Application, Configuration, Environment }
-import play.api.inject.Module
+import play.api.http.HeaderNames
+import play.api.inject._
+import play.api.libs.ws._
+import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.Exception._
 import scala.util.matching.Regex
-import play.api.http.HeaderNames
-import play.api.libs.ws._
-import java.net._
-
-import play.api.mvc.{ Request, RequestHeader }
-
-import xml.Node
+import scala.xml.Node
 
 case class OpenIDServer(protocolVersion: String, url: String, delegate: Option[String])
 
@@ -282,14 +279,10 @@ private[openid] object Discovery {
 /**
  * The OpenID module
  */
-class OpenIDModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[OpenIdClient].to[WsOpenIdClient],
-      bind[Discovery].to[WsDiscovery]
-    )
-  }
-}
+class OpenIDModule extends SimpleModule(
+  bind[OpenIdClient].to[WsOpenIdClient],
+  bind[Discovery].to[WsDiscovery]
+)
 
 /**
  * OpenID components

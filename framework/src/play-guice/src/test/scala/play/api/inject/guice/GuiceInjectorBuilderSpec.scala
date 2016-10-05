@@ -4,10 +4,12 @@
 package play.api.inject
 package guice
 
-import com.google.inject.AbstractModule
 import java.io.File
 import java.net.URLClassLoader
+
+import com.google.inject.AbstractModule
 import org.specs2.mutable.Specification
+import play.api.inject._
 import play.api.{ Configuration, Environment, Mode }
 
 class GuiceInjectorBuilderSpec extends Specification {
@@ -135,17 +137,9 @@ class GuiceInjectorBuilderSpec extends Specification {
 
 object GuiceInjectorBuilderSpec {
 
-  class EnvironmentModule extends Module {
-    def bindings(env: Environment, conf: Configuration) = Seq(
-      bind[Environment] to env
-    )
-  }
+  class EnvironmentModule extends SimpleModule((env, _) => Seq(bind[Environment] to env))
 
-  class ConfigurationModule extends Module {
-    def bindings(env: Environment, conf: Configuration) = Seq(
-      bind[Configuration] to conf
-    )
-  }
+  class ConfigurationModule extends SimpleModule((_, conf) => Seq(bind[Configuration] to conf))
 
   class SetConfigurationModule(conf: Configuration) extends AbstractModule {
     def configure() = bind(classOf[Configuration]) toInstance conf

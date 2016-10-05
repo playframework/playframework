@@ -7,25 +7,18 @@ import javax.inject.{ Inject, Singleton }
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
-import play.api.libs.JNDI
-import play.api.inject.Module
+import com.zaxxer.hikari.{ HikariConfig, HikariDataSource }
 import play.api._
+import play.api.inject._
+import play.api.libs.JNDI
 
-import scala.concurrent.duration.{ FiniteDuration, Duration }
-import scala.util.{ Success, Try, Failure }
-
-import com.zaxxer.hikari.{ HikariDataSource, HikariConfig }
+import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.util.{ Failure, Success, Try }
 
 /**
  * HikariCP runtime inject module.
  */
-class HikariCPModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[ConnectionPool].to[HikariCPConnectionPool]
-    )
-  }
-}
+class HikariCPModule extends SimpleModule(bind[ConnectionPool].to[HikariCPConnectionPool])
 
 /**
  * HikariCP components (for compile-time injection).

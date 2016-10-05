@@ -5,11 +5,11 @@ package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
 
+import play.api.Configuration
 import play.api.http.{ HttpErrorHandler, Status }
-import play.api.inject.Module
+import play.api.inject._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.api.{ Configuration, Environment }
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
@@ -83,12 +83,10 @@ class AllowedHostsConfigProvider @Inject() (configuration: Configuration) extend
   lazy val get = AllowedHostsConfig.fromConfiguration(configuration)
 }
 
-class AllowedHostsModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[AllowedHostsConfig].toProvider[AllowedHostsConfigProvider],
-    bind[AllowedHostsFilter].toSelf
-  )
-}
+class AllowedHostsModule extends SimpleModule(
+  bind[AllowedHostsConfig].toProvider[AllowedHostsConfigProvider],
+  bind[AllowedHostsFilter].toSelf
+)
 
 trait AllowedHostsComponents {
   def configuration: Configuration

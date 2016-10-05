@@ -3,11 +3,11 @@
  */
 package play.filters.headers
 
-import javax.inject.{ Singleton, Inject, Provider }
+import javax.inject.{ Inject, Provider, Singleton }
 
-import play.api.inject.Module
+import play.api.Configuration
+import play.api.inject._
 import play.api.mvc._
-import play.api.{ Environment, Configuration }
 
 /**
  * This class sets a number of common security headers on the HTTP request.
@@ -79,8 +79,9 @@ case class SecurityHeadersConfig(
     this(frameOptions = Some("DENY"))
   }
 
-  import scala.compat.java8.OptionConverters._
   import java.{ util => ju }
+
+  import scala.compat.java8.OptionConverters._
 
   def withFrameOptions(frameOptions: ju.Optional[String]): SecurityHeadersConfig =
     copy(frameOptions = frameOptions.asScala)
@@ -163,12 +164,10 @@ class SecurityHeadersConfigProvider @Inject() (configuration: Configuration) ext
 /**
  * The security headers module.
  */
-class SecurityHeadersModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[SecurityHeadersConfig].toProvider[SecurityHeadersConfigProvider],
-    bind[SecurityHeadersFilter].toSelf
-  )
-}
+class SecurityHeadersModule extends SimpleModule(
+  bind[SecurityHeadersConfig].toProvider[SecurityHeadersConfigProvider],
+  bind[SecurityHeadersFilter].toSelf
+)
 
 /**
  * The security headers components.

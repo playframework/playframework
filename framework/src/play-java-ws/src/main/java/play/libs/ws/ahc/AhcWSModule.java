@@ -7,6 +7,7 @@ import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
 import play.api.inject.Module;
+import play.api.inject.SimpleModule;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
 import scala.collection.Seq;
