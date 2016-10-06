@@ -416,7 +416,14 @@ object PlayBuild extends Build {
     ).dependsOn(PlayTestProject)
 
   lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
-    .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
+    .settings(
+      libraryDependencies ++= javaDeps ++ javaTestDeps,
+      binaryIssueFilters := Seq(
+        // moved to play (on which play-java has a dependency)
+        ProblemFilters.exclude[MissingClassProblem]("play.libs.crypto.CSRFTokenSigner"),
+        ProblemFilters.exclude[MissingClassProblem]("play.libs.crypto.CookieSigner")
+      )
+    )
     .dependsOn(PlayProject % "compile;test->test")
     .dependsOn(PlayTestProject % "test")
     .dependsOn(PlaySpecs2Project % "test")
@@ -518,7 +525,7 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.tokenSigner"),
         ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.csrfTokenSigner")
       )
-    ).dependsOn(PlayProject, PlayJavaProject, PlaySpecs2Project % "test", PlayWsProject % "test")
+    ).dependsOn(PlayProject, PlayJavaProject % "test", PlaySpecs2Project % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
