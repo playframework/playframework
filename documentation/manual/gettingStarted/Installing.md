@@ -34,6 +34,8 @@ On Windows you’ll need to set it in the global environment variables. This mea
 
 > If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
 
+> If your proxy requires user/password for authentication, you need to add system properties when invoking activator instead: `activator -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
+
 ## Check that the activator command is available
 
 From a shell, launch the `activator -help` command. 
