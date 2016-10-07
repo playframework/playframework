@@ -76,6 +76,15 @@ abstract class Module {
 }
 
 /**
+ * A simple Play module, which can be configured by passing a function or a list of bindings.
+ */
+class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]) extends Module {
+  def this(bindings: Binding[_]*) = this((_, _) => bindings)
+
+  override final def bindings(environment: Environment, configuration: Configuration) = bindingsFunc(environment, configuration)
+}
+
+/**
  * Locates and loads modules from the Play environment.
  */
 object Modules {

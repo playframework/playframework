@@ -5,21 +5,22 @@ package play.filters.gzip
 
 import java.util.function.BiFunction
 import java.util.zip.GZIPOutputStream
-import javax.inject.{ Provider, Inject, Singleton }
+import javax.inject.{ Inject, Provider, Singleton }
 
-import akka.stream.{ OverflowStrategy, FlowShape, Materializer }
 import akka.stream.scaladsl._
+import akka.stream.{ FlowShape, Materializer, OverflowStrategy }
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
-import play.api.inject.Module
+import play.api.Configuration
+import play.api.http.{ HttpChunk, HttpEntity, Status }
+import play.api.inject._
 import play.api.libs.streams.GzipFlow
-import play.api.{ Environment, Configuration }
+import play.api.mvc.RequestHeader.acceptHeader
 import play.api.mvc._
 import play.core.j
-import scala.concurrent.Future
-import play.api.mvc.RequestHeader.acceptHeader
-import play.api.http.{ HttpChunk, HttpEntity, Status }
+
 import scala.compat.java8.FunctionConverters._
+import scala.concurrent.Future
 
 /**
  * A gzip filter.
@@ -219,12 +220,10 @@ class GzipFilterConfigProvider @Inject() (config: Configuration) extends Provide
 /**
  * The gzip filter module.
  */
-class GzipFilterModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[GzipFilterConfig].toProvider[GzipFilterConfigProvider],
-    bind[GzipFilter].toSelf
-  )
-}
+class GzipFilterModule extends SimpleModule(
+  bind[GzipFilterConfig].toProvider[GzipFilterConfigProvider],
+  bind[GzipFilter].toSelf
+)
 
 /**
  * The gzip filter components.

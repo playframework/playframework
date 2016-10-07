@@ -3,31 +3,31 @@
  */
 package play.api.libs.ws.ahc
 
-import akka.stream.Materializer
-import akka.util.ByteString
-import org.asynchttpclient.{ Response => AHCResponse, _ }
-import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
-import org.asynchttpclient.Realm
-import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
-import org.asynchttpclient.util.HttpUtils
-import java.io.IOException
-import java.io.UnsupportedEncodingException
+import java.io.{ IOException, UnsupportedEncodingException }
 import java.nio.charset.{ Charset, StandardCharsets }
 import javax.inject.{ Inject, Provider, Singleton }
+
+import akka.stream.Materializer
+import akka.stream.scaladsl.Sink
+import akka.util.ByteString
 import io.netty.handler.codec.http.HttpHeaders
+import org.asynchttpclient.Realm.AuthScheme
+import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import org.asynchttpclient.proxy.{ ProxyServer => AHCProxyServer }
+import org.asynchttpclient.util.HttpUtils
+import org.asynchttpclient.{ Realm, Response => AHCResponse, _ }
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, Module }
+import play.api.inject.{ bind, _ }
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.debug._
 import play.core.parsers.FormUrlEncodedParser
 import play.core.utils.CaseInsensitiveOrdered
+
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
-import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.Duration
-import akka.stream.scaladsl.Sink
-import org.asynchttpclient.Realm.AuthScheme
+import scala.concurrent.{ Future, Promise }
 
 /**
  * A WS client backed by an AsyncHttpClient.
@@ -370,16 +370,12 @@ case class AhcWSRequest(
 
 }
 
-class AhcWSModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[WSAPI].to[AhcWSAPI],
-      bind[AhcWSClientConfig].toProvider[AhcWSClientConfigParser].in[Singleton],
-      bind[WSClientConfig].toProvider[WSConfigParser].in[Singleton],
-      bind[WSClient].toProvider[WSClientProvider].in[Singleton]
-    )
-  }
-}
+class AhcWSModule extends SimpleModule(
+  bind[WSAPI].to[AhcWSAPI],
+  bind[AhcWSClientConfig].toProvider[AhcWSClientConfigParser].in[Singleton],
+  bind[WSClientConfig].toProvider[WSConfigParser].in[Singleton],
+  bind[WSClient].toProvider[WSClientProvider].in[Singleton]
+)
 
 class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
   def get() = wsApi.client

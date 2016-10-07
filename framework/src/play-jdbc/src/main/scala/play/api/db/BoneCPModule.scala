@@ -9,7 +9,7 @@ import javax.sql.DataSource
 
 import com.typesafe.config.Config
 import play.api._
-import play.api.inject.Module
+import play.api.inject._
 import play.api.libs.JNDI
 
 import com.jolbox.bonecp._
@@ -20,13 +20,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
  * BoneCP runtime inject module.
  */
-class BoneCPModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[ConnectionPool].to[BoneConnectionPool]
-    )
-  }
-}
+class BoneCPModule extends SimpleModule(bind[ConnectionPool].to[BoneConnectionPool])
 
 /**
  * BoneCP components (for compile-time injection).

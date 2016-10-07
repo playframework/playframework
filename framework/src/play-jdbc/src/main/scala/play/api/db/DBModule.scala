@@ -16,28 +16,26 @@ import play.db.NamedDatabaseImpl
 /**
  * DB runtime inject module.
  */
-final class DBModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    val dbKey = configuration.underlying.getString("play.db.config")
-    val default = configuration.underlying.getString("play.db.default")
-    val dbs = configuration.getOptional[Configuration](dbKey).getOrElse(Configuration.empty).subKeys
-    Seq(
-      bind[DBApi].toProvider[DBApiProvider]
-    ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
-  }
-
-  private def bindNamed(name: String): BindingKey[Database] = {
+final class DBModule extends SimpleModule((environment, configuration) => {
+  def bindNamed(name: String): BindingKey[Database] = {
     bind[Database].qualifiedWith(new NamedDatabaseImpl(name))
   }
 
-  private def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
+  def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
     bindNamed(db).to(new NamedDatabaseProvider(db))
   }
 
-  private def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
+  def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
     if (dbs.contains(default)) Seq(bind[Database].to(bindNamed(default))) else Nil
   }
-}
+
+  val dbKey = configuration.underlying.getString("play.db.config")
+  val default = configuration.underlying.getString("play.db.default")
+  val dbs = configuration.getOptional[Configuration](dbKey).getOrElse(Configuration.empty).subKeys
+  Seq(
+    bind[DBApi].toProvider[DBApiProvider]
+  ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
+})
 
 /**
  * DB components (for compile-time injection).
