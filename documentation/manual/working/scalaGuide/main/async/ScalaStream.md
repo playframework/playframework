@@ -17,46 +17,48 @@ Of course, because the content you are sending is well-known, Play is able to co
 
 > **Note**: for text-based content it is not as simple as it looks, since the `Content-Length` header must be computed according the character encoding used to translate characters to bytes.
 
-Actually, we previously saw that the response body is specified using a `play.api.libs.iteratee.Enumerator`:
+Actually, we previously saw that the response body is specified using a `play.api.http.HttpEntity`:
 
 ```scala
 def index = Action {
-  Result(
-    header = ResponseHeader(200),
-    body = Enumerator("Hello World")
+   Result(
+    header = ResponseHeader(200, Map.empty),
+    body = HttpEntity.Strict(ByteString("Hello world!"), Some("text/plain"))
   )
 }
 ```
 
-This means that to compute the `Content-Length` header properly, Play must consume the whole enumerator and load its content into memory. 
+This means that to compute the `Content-Length` header properly, Play must consume the whole content and load it into memory. 
 
 ## Sending large amounts of data
 
-If it’s not a problem to load the whole content into memory for simple Enumerators, what about large data sets? Let’s say we want to return a large file to the web client.
+If it’s not a problem to load the whole content into memory, what about large data sets? Let’s say we want to return a large file to the web client.
 
-Let’s first see how to create an `Enumerator[Array[Byte]]` enumerating the file content:
+Let’s first see how to create an `Source[ByteString, _]` for the file content:
 
 ```scala
 val file = new java.io.File("/tmp/fileToServe.pdf")
-val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)
+val path: java.nio.file.Path = file.toPath
+val source: Source[ByteString, _] = FileIO.fromPath(path)
 ```
 
-Now it looks simple right? Let’s just use this enumerator to specify the response body:
+Now it looks simple right? Let’s just use this streamed HttpEntity to specify the response body:
 
 ```scala
 def index = Action {
 
   val file = new java.io.File("/tmp/fileToServe.pdf")
-  val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)    
+  val path: java.nio.file.Path = file.toPath
+  val source: Source[ByteString, _] = FileIO.fromPath(path)
     
   Result(
-    header = ResponseHeader(200),
-    body = fileContent
+    header = ResponseHeader(200, Map.empty),
+    body = HttpEntity.Streamed(source, None, Some("application/pdf"))
   )
 }
 ```
 
-Actually we have a problem here. As we don’t specify the `Content-Length` header, Play will have to compute it itself, and the only way to do this is to consume the whole enumerator content and load it into memory, and then compute the response size.
+Actually we have a problem here. As we don’t specify the `Content-Length` in streamed entity, Play will have to compute it itself, and the only way to do this is to consume the whole source content and load it into memory, and then compute the response size.
 
 That’s a problem for large files that we don’t want to load completely into memory. So to avoid that, we just have to specify the `Content-Length` header ourselves.
 
@@ -64,16 +66,17 @@ That’s a problem for large files that we don’t want to load completely into 
 def index = Action {
 
   val file = new java.io.File("/tmp/fileToServe.pdf")
-  val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)    
+  val path: java.nio.file.Path = file.toPath
+  val source: Source[ByteString, _] = FileIO.fromPath(path)
     
   Result(
-    header = ResponseHeader(200, Map(CONTENT_LENGTH -> file.length.toString)),
-    body = fileContent
+    header = ResponseHeader(200, Map.empty),
+    body = HttpEntity.Streamed(source, Some(file.length), Some("application/pdf"))
   )
 }
 ```
 
-This way Play will consume the body enumerator in a lazy way, copying each chunk of data to the HTTP response as soon as it is available.
+This way Play will consume the body source in a lazy way, copying each chunk of data to the HTTP response as soon as it is available.
 
 ## Serving files
 
@@ -125,31 +128,31 @@ For this kind of response we have to use **Chunked transfer encoding**.
 
 The advantage is that we can serve the data **live**, meaning that we send chunks of data as soon as they are available. The drawback is that since the web browser doesn’t know the content size, it is not able to display a proper download progress bar.
 
-Let’s say that we have a service somewhere that provides a dynamic `InputStream` computing some data. First we have to create an `Enumerator` for this stream:
+Let’s say that we have a service somewhere that provides a dynamic `InputStream` computing some data. First we have to create an `Source` for this stream:
 
 ```scala
 val data = getDataStream
-val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
+val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(data)
 ```
 
 We can now stream these data using a `Ok.chunked`:
 
 ```scala
 def index = Action {
+  val CHUNK_SIZE = 100
   val data = getDataStream
-  val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
+  val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(data, CHUNK_SIZE)
   
   Ok.chunked(dataContent)
 }
 ```
 
-Of course, we can use any `Enumerator` to specify the chunked data:
+Of course, we can use any `Source` to specify the chunked data:
 
 ```scala
 def index = Action {
-  Ok.chunked(
-    Enumerator("kiki", "foo", "bar").andThen(Enumerator.eof)
-  )
+  val source = Source.apply(List("kiki", "foo", "bar"))
+  Ok.chunked(source)
 }
 ```
 
