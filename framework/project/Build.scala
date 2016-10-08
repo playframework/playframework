@@ -61,7 +61,56 @@ object BuildSettings {
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     bintrayPackage := "play-sbt-plugin",
     autoAPIMappings := true,
-    apiMappings += scalaInstance.value.libraryJar -> url( raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html""")
+    apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
+    apiMappings += {
+      // Maps JDK 1.8 jar into apidoc.
+      val rtJar: String = System.getProperty("sun.boot.class.path").split(java.io.File.pathSeparator).collectFirst {
+        case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
+      }.get // fail hard if not found
+      file(rtJar) -> url(Docs.javaApiUrl)
+    },
+    apiMappings ++= {
+      // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
+      // See the following:
+      //
+      // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
+      // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
+      // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+
+      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val JavaxInjectRegex = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+
+      val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+      (for {
+        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+        fullyFile = jar.data
+        urlOption = fullyFile.getCanonicalPath match {
+          case ScalaLibraryRegex(v) =>
+            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
+          case JavaxInjectRegex(v) =>
+            // the jar file doesn't match up with $apiName-
+            Some(url(Docs.javaxInjectUrl))
+
+          case re@IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
+            val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
+            apiOrganization match {
+              case "com.typesafe.akka" =>
+                Some(url(raw"http://doc.akka.io/api/akka/$apiVersion/"))
+
+              case default =>
+                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
+                Some(url(link))
+            }
+
+          case other =>
+            None
+
+        }
+        url <- urlOption
+      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+    }
   )
 
   /**
