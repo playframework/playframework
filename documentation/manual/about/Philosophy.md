@@ -51,7 +51,7 @@ Existing Java build systems, however, were not flexible enough to support this n
 
 Meanwhile, developers using Play for more enterprise-scale projects, which require build process customization and integration with their existing company build systems, were a bit lost. The Python scripts we provided with Play 1.x are in no way a fully-featured build system and are not easily customizable. That’s why we’ve decided to go for a more powerful build system for Play 2.
 
-Since we need a modern build tool, flexible enough to support Play original conventions and able to build Java and Scala projects, we have chosen to integrate [sbt](http://www.scala-sbt.org/) in Play 2. This, however, should not scare existing Play users who are happy with the simplicity of the original Play build. We are using [Activator](https://www.lightbend.com/get-started) to provide simple commands like `activator new`, `run`, `start` on top of an extensible model and if you need to change the way your application is built and deployed, the fact that a Play project is a standard sbt project gives you all the power you need to customize and adapt it.
+Since we need a modern build tool, flexible enough to support Play original conventions and able to build Java and Scala projects, we have chosen to integrate [sbt](http://www.scala-sbt.org/) in Play 2. SBT is the de facto build tool for Scala and is increasingly accepted in the Java community as well.
 
 This also means better integration with Maven projects out of the box, the ability to package and publish your project as a simple set of JAR files to any repository, and especially live compiling and reloading at development time of any depended project, even for standard Java or Scala library projects.
 

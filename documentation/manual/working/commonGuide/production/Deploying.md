@@ -11,7 +11,7 @@ Before you run your application in production mode, you need to generate an appl
 
 ## Using the dist task
 
-The dist task builds a binary version of your application that you can deploy to a server without any dependency on sbt or activator, the only thing the server needs is a Java installation.
+The dist task builds a binary version of your application that you can deploy to a server without any dependency on SBT or Activator, the only thing the server needs is a Java installation.
 
 In the Play console, simply type `dist`:
 
@@ -47,7 +47,7 @@ For a full description of usage invoke the start script with a `-h` option.
 > Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:packageZipTarball` task instead of the `dist` task:
 >
 > ```bash
-> activator universal:packageZipTarball
+> sbt universal:packageZipTarball
 > ```
 
 By default, the `dist` task will include the API documentation in the generated package. If this is not necessary, add these lines in `build.sbt`:
@@ -153,10 +153,10 @@ Then in the Play console, use the `publish` task:
 
 ## Running a production server in place
 
-In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an sbt or activator installation on the server, and can be done using the `stage` task.
+In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an SBT installation on the server, and can be done using the `stage` task.
 
 ```bash
-$ activator clean stage
+$ sbt clean stage
 ```
 
 [[images/stage.png]]
@@ -201,7 +201,7 @@ Now add the following configuration to your `build.sbt`:
 
 @[assembly](code/assembly.sbt)
 
-Now you can build the artifact by running `activator assembly`, and run your application by running:
+Now you can build the artifact by running `sbt assembly`, and run your application by running:
 
 ```
 $ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar -Dplay.crypto.secret=abcdefghijk

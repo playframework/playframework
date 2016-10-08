@@ -3,6 +3,8 @@
 
 This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
 
+Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by SBT. In this guide we describe how to install Play with SBT. We also describe how to use Activator, an SBT wrapper that provides a graphical interface.
+
 ## Prerequisites
 
 Play requires Java 1.8.  To check that you have the latest JDK, please run:
@@ -13,9 +15,19 @@ java -version
 
 If you don't have the JDK, you have to install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
-## Installing Play
+## Installing Play with SBT
 
-Play is a series of libraries available in [Maven Repository](http://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project.
+We provide a number of sample projects that have an `./sbt` launcher in the local directory. These can be found on our [download page](https://playframework.com/download#examples). This launcher will automatically download dependencies without you having to install SBT ahead of time.
+
+Refer to the [SBT download page](https://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
+
+### Running Play with SBT
+
+SBT provides all the necessary commands to run your application. You can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]] for more details.
+
+## Installing Play with Activator
+
+Activator is a wrapper for SBT that provides a nice graphical user interface and access to a library of third-party templates. Some new users prefer this interface to just using SBT. Note that since Activator is a wrapper for SBT, any commands referencing the `sbt` command can also be used with the `activator` command.
 
 For getting started, we'll install Play through [Lightbend Activator](https://www.lightbend.com/activator/docs).
 
@@ -65,7 +77,7 @@ setx PATH=%PATH%;"C:\path\to\activator-x.x.x\bin"
 
 Note that [setx](https://technet.microsoft.com/en-us/library/cc755104.aspx) is only available on Windows 8 or later -- before that, and you will have to use the [System Properties dialog](https://java.com/en/download/help/path.xml).
 
-## Create a Project
+### Create a Project
 
 Activator comes with a couple of different "seeds" that can be used to start off a Play project: `play-java` and `play-scala`.  You can create a project based off a template either from Activator's Web Interface, or directly from the command line.
 
@@ -79,13 +91,13 @@ Follow the arrows to create a new project:
 
 You can read the [Activator documentation](https://www.lightbend.com/activator/docs) for more information on how to use the Web Interface.
 
-## Accessing the Built-in Tutorial
+### Accessing the Built-in Tutorial
 
 Activator's Web Interface contains a built in tutorial section that will walk you through your new application:
 
 [[images/webTutorial.png]]
 
-## Running Play
+### Running Play
 
 Play has an easy to use "development mode" that will let you make changes to code and see your results immediate on the page.
 
