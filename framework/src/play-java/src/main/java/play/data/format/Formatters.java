@@ -25,12 +25,8 @@ import play.i18n.MessagesApi;
 @Singleton
 public class Formatters {
 
-    private final MessagesApi messagesApi;
-
     @Inject
     public Formatters(MessagesApi messagesApi) {
-        this.messagesApi = messagesApi;
-
         // By default, we always register some common and useful Formatters
         register(Date.class, new Formats.DateFormatter(messagesApi));
         register(Date.class, new Formats.AnnotationDateFormatter(messagesApi));
@@ -59,9 +55,9 @@ public class Formatters {
      * @param <T> the type to parse out of the text
      * @return the parsed value
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "unused"})
     public <T> T parse(Field field, String text, Class<T> clazz) {
-        return (T)conversion.convert(text, new TypeDescriptor(field), TypeDescriptor.valueOf(clazz));
+        return (T)conversion.convert(text, new TypeDescriptor(field));
     }
 
     /**
