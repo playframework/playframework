@@ -33,24 +33,11 @@ case class HttpConfiguration(
  * @param strict Whether strict cookie parsing should be used. If true, will cause the entire cookie header to be
  *               discarded if a single cookie is found to be invalid.
  */
-case class CookiesConfiguration(
-    strict: Boolean = true) {
-  def serverEncoder: ServerCookieEncoder = strict match {
-    case true => ServerCookieEncoder.STRICT
-    case false => ServerCookieEncoder.LAX
-  }
-  def clientEncoder: ClientCookieEncoder = strict match {
-    case true => ClientCookieEncoder.STRICT
-    case false => ClientCookieEncoder.LAX
-  }
-  def serverDecoder: ServerCookieDecoder = strict match {
-    case true => ServerCookieDecoder.STRICT
-    case false => ServerCookieDecoder.LAX
-  }
-  def clientDecoder: ClientCookieDecoder = strict match {
-    case true => ClientCookieDecoder.STRICT
-    case false => ClientCookieDecoder.LAX
-  }
+case class CookiesConfiguration(strict: Boolean = true) {
+  def serverEncoder: ServerCookieEncoder = if (strict) ServerCookieEncoder.STRICT else ServerCookieEncoder.LAX
+  def clientEncoder: ClientCookieEncoder = if (strict) ClientCookieEncoder.STRICT else ClientCookieEncoder.LAX
+  def serverDecoder: ServerCookieDecoder = if (strict) ServerCookieDecoder.STRICT else ServerCookieDecoder.LAX
+  def clientDecoder: ClientCookieDecoder = if (strict) ClientCookieDecoder.STRICT else ClientCookieDecoder.LAX
 }
 
 /**
