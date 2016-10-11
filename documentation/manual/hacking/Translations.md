@@ -9,7 +9,7 @@ In addition to this, Play also provides facilities for validating the integrity 
 
 ## Prerequisites
 
-You need to have `activator` or `sbt` installed.  It will also be very useful to have a clone of the Play repository, with the branch that you're translating checked out, so that you have something to copy to start with.
+You need to have `sbt` (or `activator`) installed.  It will also be very useful to have a clone of the Play repository, with the branch that you're translating checked out, so that you have something to copy to start with.
 
 If you're translating an unreleased version of the Play documentation, then you'll need to build that version of Play and publish it locally on your machine first.  This can be done by running:
 
@@ -58,7 +58,7 @@ Now you're ready to start translating!
 
 ## Translating documentation
 
-First off, start the documentation server.  The documentation server will serve your documentation up for you so you can see what it looks like as you're going.  To do this you'll need `sbt` or `activator` installed, either one is fine, in the examples here we'll be using `sbt`:
+First off, start the documentation server.  The documentation server will serve your documentation up for you so you can see what it looks like as you're going.
 
 ```bash
 $ sbt run

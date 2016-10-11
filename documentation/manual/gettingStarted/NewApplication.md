@@ -1,7 +1,30 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Creating a new application
 
-## Create a new application with the activator command
+## Create a new application
+
+## Create a new application using an existing example project
+
+We provide a number of [sample projects](https://playframework.com/download#examples) that provide good starting points for a new application. These applications already have an SBT launcher included so you don't need to manually install SBT on your system.
+
+To use an example project, download and extract the project you're interested in. Edit the `build.sbt` to customize it for your project:
+
+```scala
+name := "play-scala" // <- Your project's name. Used for generated binaries.
+
+version := "1.0-SNAPSHOT" // <- project version
+```
+
+Then you can run SBT
+```bash
+$ ./sbt
+```
+
+This will load your project and fetch dependencies. You can use the `run` command to run your application.
+
+Next, you can learn about [using the console](https://www.playframework.com/documentation/2.5.x/PlayConsole) provided by SBT.
+
+## Create a new application with Activator
 
 The `activator` command can be used to create a new Play application.  Activator allows you to select a template that your new application should be based off.  For vanilla Play projects, the names of these templates are `play-scala` for Scala based Play applications, and `play-java` for Java based Play applications.
 
@@ -32,19 +55,9 @@ $ cd my-first-app
 $ activator
 ```
 
-## Create a new application with the Activator UI
+## Create a new application using SBT
 
-New Play applications can also be created with the Activator UI.  To use the Activator UI, run:
-
-```bash
-$ activator ui
-```
-
-You can read the documentation for using the Activator UI [here](https://lightbend.com/activator/docs).
-
-## Create a new application without Activator
-
-It is also possible to create a new Play application without installing Activator, using sbt directly.
+It is also possible to create a new Play application using sbt directly.
 
 > First install [sbt](http://www.scala-sbt.org/) if needed.
 

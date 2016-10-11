@@ -20,7 +20,7 @@ Finally, the core Play templates are available as git repositories on Github und
 In general, whenever you see a template, you can download the template by using the Github project name.  For example, if you have an example Play project on Github called "some-awesome-play-template", you can download and use the template by typing
 
 ```
-activator new my-local-project-directory some-awesome-play-template 
+activator new my-local-project-directory some-awesome-play-template
 ```
 
 If you do not have activator installed or would prefer to use git, you can always clone the project the old fashioned way:
@@ -35,12 +35,16 @@ Creating new projects is covered in more detail in [[Creating a new application|
 
 This section covers the core tutorials and examples from Play.  These are maintained by the core Play team, and so will be based on the latest Play release.
 
-### Creating a Seed Template
+### Downloading an example template from the web
+
+Many of these templates are provided without a dependency on Activator from our [download page](https://www.playframework.com/download#examples)
+
+### Creating a Seed Template from Activator
 
 If you are starting off a new Play project and don't want any extras, you can use the seed templates by typing the following at the command prompt:
 
 ``` shell
-activator new my-scala-project play-scala 
+activator new my-scala-project play-scala
 ```
 
 or
@@ -106,7 +110,7 @@ This is an example template showing how to encrypt and sign data securely with [
 
 ### Compile Time Dependency Injection
 
-[[Compile time dependency injection|ScalaCompileTimeDependencyInjection]] can be done in Play in a number of different DI frameworks.  
+[[Compile time dependency injection|ScalaCompileTimeDependencyInjection]] can be done in Play in a number of different DI frameworks.
 
 There are two examples shown here, but there are other compile time DI frameworks such as Scaldi, which has [Play integration](http://scaldi.org/learn/#play-integration) built in, and [Dagger 2](https://google.github.io/dagger/), which is written in Java.
 
