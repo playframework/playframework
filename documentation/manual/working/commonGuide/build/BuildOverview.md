@@ -13,7 +13,7 @@ The documentation here describes Play's usage of sbt at a very high level.  As y
 
 ## Play application directory structure
 
-Most people get started with Play using the `activator new` command which produces a directory structure like this:
+Most people get started with Play using on of our [example templates](https://playframework.com/download#examples), or with the `activator new` command, which generally produce a directory structure like this:
 
 - `/`: The root folder of your application
 - `/README`: A text file describing your application that will get deployed with it.
@@ -28,11 +28,11 @@ For now, we are going to concern ourselves with the `/build.sbt` file and the `/
 
 ## The `/build.sbt` file.
 
-When you use the `activator new foo` command, the build description file, `/build.sbt`, will be generated like this:
+An SBT build file for Play generally looks something like this:
 
 @[default](code/build.sbt)
 
-The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command.
+The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`. In Activator this is derived from the argument that you gave to the `activator new` command.
 
 The `version` line provides  the version of your application which is used as part of the name for the artifacts your build will produce.
 
@@ -42,7 +42,7 @@ You should use the `PlayJava` or `PlayScala` plugin to configure sbt for Java or
 
 ### Using scala for building
 
-Activator is also able to construct the build requirements from scala files inside your project's `project` folder. The recommended practice is to use `build.sbt` but there are times when using scala directly is required. If you find yourself, perhaps because you're migrating an older project, then here are a few useful imports:
+SBT is also able to construct the build requirements from scala files inside your project's `project` folder. The recommended practice is to use `build.sbt` but there are times when using scala directly is required. If you find yourself, perhaps because you're migrating an older project, then here are a few useful imports:
 
 ```scala
 import sbt._

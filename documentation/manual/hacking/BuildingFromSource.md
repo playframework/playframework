@@ -5,7 +5,7 @@ If you want to use some unreleased changes for Play, or you want to contribute t
 
 ## Prerequisites
 
-To build Play, you need to have [sbt](http://www.scala-sbt.org/) installed.  Activator (which is just a wrapper around sbt) is also fine.
+To build Play, you need to have [sbt](http://www.scala-sbt.org/) installed.
 
 ## Grab the source
 
@@ -64,7 +64,7 @@ You can run basic tests from the sbt console using the `test` task:
 
 Like with publishing, you can prefix the command with `+` to run the tests against all supported Scala versions.
 
-The Play PR validation runs a few more tests than just the basic tests, including scripted tests, testing the documentation code samples, and testing the Play activator templates.  The scripts that are run by the PR validation can be found in the `framework/bin` directory, you can run each of these to run the same tests that the PR validation runs.
+The Play PR validation runs a few more tests than just the basic tests, including scripted tests, testing the documentation code samples, and testing the Play templates.  The scripts that are run by the PR validation can be found in the `framework/bin` directory, you can run each of these to run the same tests that the PR validation runs.
 
 ## Use in projects
 
@@ -81,7 +81,7 @@ Once you have done this, you can start the console and interact with your projec
 
 ```bash
 $ cd <projectdir>
-$ activator
+$ sbt
 ```
 
 ## Using Code in Eclipse

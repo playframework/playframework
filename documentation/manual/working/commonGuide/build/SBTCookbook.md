@@ -3,7 +3,7 @@
 
 ## Hooking into Play's dev mode
 
-When Play runs in dev mode, that is, when using `activator run`, it's often useful to hook into this to start up additional processes that are required for development.  This can be done by defining a `PlayRunHook`, which is a trait with the following methods:
+When Play runs in dev mode, that is, when using `sbt run`, it's often useful to hook into this to start up additional processes that are required for development.  This can be done by defining a `PlayRunHook`, which is a trait with the following methods:
 
  * `beforeStarted(): Unit` - called before the play application is started, but after all "before run" tasks have been completed.
  * `afterStarted(addr: InetSocketAddress): Unit` - called after the play application has been started.
@@ -17,13 +17,13 @@ Now you can register this hook in `build.sbt`:
 
 @[grunt-build-sbt](code/runhook.sbt)
 
-This will execute the `grunt dist` command in `baseDirectory` before the application is started whenever you run `activator run`.
+This will execute the `grunt dist` command in `baseDirectory` before the application is started whenever you run `sbt run`.
 
 Now we want to modify our run hook to execute the `grunt watch` command to observe changes and rebuild the Web application when they happen, so we'll modify the `Grunt.scala` file we created before:
 
 @[grunt-watch](code/runhook.sbt)
 
-Now when the application is started using `activator run`, `grunt watch` will be executed to rerun the grunt build whenever files change.
+Now when the application is started using `sbt run`, `grunt watch` will be executed to rerun the grunt build whenever files change.
 
 ## Add compiler options
 
