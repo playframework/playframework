@@ -34,10 +34,10 @@ case class HttpConfiguration(
  *               discarded if a single cookie is found to be invalid.
  */
 case class CookiesConfiguration(strict: Boolean = true) {
-  def serverEncoder: ServerCookieEncoder = if (strict) ServerCookieEncoder.STRICT else ServerCookieEncoder.LAX
-  def clientEncoder: ClientCookieEncoder = if (strict) ClientCookieEncoder.STRICT else ClientCookieEncoder.LAX
-  def serverDecoder: ServerCookieDecoder = if (strict) ServerCookieDecoder.STRICT else ServerCookieDecoder.LAX
-  def clientDecoder: ClientCookieDecoder = if (strict) ClientCookieDecoder.STRICT else ClientCookieDecoder.LAX
+  val serverEncoder: ServerCookieEncoder = new ServerCookieEncoder(strict)
+  val serverDecoder: ServerCookieDecoder = new ServerCookieDecoder(strict)
+  val clientEncoder: ClientCookieEncoder = new ClientCookieEncoder(strict)
+  val clientDecoder: ClientCookieDecoder = new ClientCookieDecoder(strict)
 }
 
 /**
