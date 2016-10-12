@@ -14,7 +14,7 @@ import play.api.routing.Router
 import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
 import play.mvc.Http
-import play.utils.{ Reflect, PlayIO }
+import play.utils.{ PlayIO, Reflect }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
@@ -56,21 +56,35 @@ object HttpErrorHandler {
   }
 }
 
+case class HttpErrorConfig(showDevErrors: Boolean, playEditor: Option[String])
+
 /**
  * The default HTTP error handler.
  *
  * This class is intended to be extended, allowing users to reuse some of the functionality provided here.
  *
- * @param environment The environment
  * @param router An optional router.
  *               If provided, in dev mode, will be used to display more debug information when a handler can't be found.
  *               This is a lazy parameter, to avoid circular dependency issues, since the router may well depend on
  *               this.
  */
 @Singleton
-class DefaultHttpErrorHandler(environment: Environment, configuration: Configuration,
+class DefaultHttpErrorHandler(
+    config: HttpErrorConfig,
+    sourceMapper: Option[SourceMapper],
+    router: => Option[Router]) extends HttpErrorHandler {
+
+  /**
+   * @param environment The environment
+   * @param router An optional router.
+   *               If provided, in dev mode, will be used to display more debug information when a handler can't be found.
+   *               This is a lazy parameter, to avoid circular dependency issues, since the router may well depend on
+   *               this.
+   */
+  def this(environment: Environment, configuration: Configuration,
     sourceMapper: Option[SourceMapper] = None,
-    router: => Option[Router] = None) extends HttpErrorHandler {
+    router: => Option[Router] = None) =
+    this(HttpErrorConfig(environment.mode != Mode.Prod, configuration.getOptional[String]("play.editor")), sourceMapper, router)
 
   @Inject
   def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper,
@@ -78,7 +92,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     this(environment, configuration, sourceMapper.sourceMapper, Some(router.get))
 
   // Hyperlink string to wrap around Play error messages.
-  private var playEditor: Option[String] = configuration.getOptional[String]("play.editor")
+  private var playEditor: Option[String] = config.playEditor
 
   /**
    * Sets the play editor to the given string after initialization.  Used for
@@ -131,10 +145,10 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * @param message A message.
    */
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(NotFound(environment.mode match {
-      case Mode.Prod => views.html.defaultpages.notFound(request.method, request.uri)
-      case _ => views.html.defaultpages.devNotFound(request.method, request.uri, router)
-    }))
+    Future.successful(NotFound(
+      if (config.showDevErrors) views.html.defaultpages.devNotFound(request.method, request.uri, router)
+      else views.html.defaultpages.notFound(request.method, request.uri)
+    ))
   }
 
   /**
@@ -163,14 +177,13 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     try {
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
         sourceMapper,
-        environment.mode == Mode.Prod, exception)
+        !config.showDevErrors, exception)
 
       logServerError(request, usefulException)
 
-      environment.mode match {
-        case Mode.Prod => onProdServerError(request, usefulException)
-        case _ => onDevServerError(request, usefulException)
-      }
+      if (config.showDevErrors) onDevServerError(request, usefulException)
+      else onProdServerError(request, usefulException)
+
     } catch {
       case NonFatal(e) =>
         Logger.error("Error while handling error", e)
@@ -252,8 +265,21 @@ object HttpErrorHandlerExceptions {
 /**
  * A default HTTP error handler that can be used when there's no application available
  */
-object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simple(), Configuration.load(Environment.simple()), None, None) {
+object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(
+  HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
 
+  private lazy val setEditor: Unit = {
+    val conf = Configuration.load(Environment.simple())
+    conf.getOptional[String]("play.editor") foreach setPlayEditor
+  }
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
+    setEditor
+    super.onClientError(request, statusCode, message)
+  }
+  override def onServerError(request: RequestHeader, exception: Throwable) = {
+    setEditor
+    super.onServerError(request, exception)
+  }
 }
 
 /**
