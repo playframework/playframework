@@ -18,7 +18,10 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   self =>
 
   private lazy val components = new DefaultJavaHandlerComponents(
-    play.api.Play.current.injector, new DefaultActionCreator, HttpConfiguration()
+    play.api.Play.current.injector,
+    new DefaultActionCreator,
+    HttpConfiguration(),
+    this.executionContext
   )
 
   private lazy val action = new JavaAction(components) {
@@ -39,6 +42,8 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
 
   private val controller = this.getClass
   private val method = MockJavaActionJavaMocker.findActionMethod(this)
+
+  def executionContext = play.api.libs.concurrent.Execution.defaultContext
 
   def invocation = {
     method.invoke(this) match {

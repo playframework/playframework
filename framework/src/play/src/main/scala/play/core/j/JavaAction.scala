@@ -58,6 +58,8 @@ abstract class JavaAction(val components: JavaHandlerComponents) extends Action[
   def invocation: CompletionStage[JResult]
   val annotations: JavaActionAnnotations
 
+  val executionContext: ExecutionContext = components.executionContext
+
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
 
     val javaContext: JContext = createJavaContext(req)
@@ -131,6 +133,7 @@ trait JavaHandlerComponents {
   def getAction[A <: JAction[_]](actionClass: Class[A]): A
   def actionCreator: play.http.ActionCreator
   def httpConfiguration: HttpConfiguration
+  def executionContext: ExecutionContext
 }
 
 /**
@@ -139,7 +142,8 @@ trait JavaHandlerComponents {
 class DefaultJavaHandlerComponents @Inject() (
     injector: Injector,
     val actionCreator: play.http.ActionCreator,
-    val httpConfiguration: HttpConfiguration
+    val httpConfiguration: HttpConfiguration,
+    val executionContext: ExecutionContext
 ) extends JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
   def getAction[A <: JAction[_]](actionClass: Class[A]): A = injector.instanceOf(actionClass)

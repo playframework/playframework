@@ -101,7 +101,7 @@ trait Action[A] extends EssentialAction {
    *
    * @return The execution context to run the action in
    */
-  protected def executionContext: ExecutionContext = play.core.Execution.internalContext
+  def executionContext: ExecutionContext
 
   /**
    * Returns itself, for better support in the routes file.
@@ -412,6 +412,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
    * @return an action
    */
   final def async[A](bodyParser: BodyParser[A])(block: R[A] => Future[Result]): Action[A] = composeAction(new Action[A] {
+    def executionContext = self.executionContext
     def parser = composeParser(bodyParser)
     def apply(request: Request[A]) = try {
       invokeBlock(request, block)
