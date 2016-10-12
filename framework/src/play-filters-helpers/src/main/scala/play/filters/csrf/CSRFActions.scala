@@ -476,6 +476,7 @@ case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner
 
   private class CSRFCheckAction[A](tokenProvider: TokenProvider, errorHandler: ErrorHandler, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
+    def executionContext = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
       val request = CSRFAction.tagRequestFromHeader(untaggedRequest, config, tokenSigner)
 
@@ -531,6 +532,7 @@ case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner) 
 
   private class CSRFAddTokenAction[A](config: CSRFConfig, tokenProvider: TokenProvider, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
+    def executionContext = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
       val request = CSRFAction.tagRequestFromHeader(untaggedRequest, config, crypto)
 

@@ -80,6 +80,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
         }
 
         lazy val parser = action.parser
+        lazy val executionContext = action.executionContext
       }
       //#actions-class-wrapping
 
