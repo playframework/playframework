@@ -3,33 +3,44 @@
  */
 package javaguide.testhelpers {
 
-import java.util.concurrent.{CompletionStage, CompletableFuture}
+import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import play.api.mvc.{Action, Request}
-import play.core.j.{DefaultJavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
+import play.core.j._
 import play.http.DefaultActionCreator
 import play.mvc.{Controller, Http, Result}
 import play.api.http.HttpConfiguration
 import play.api.test.Helpers
+import play.i18n.{Langs => JLangs, MessagesApi => JMessagesApi}
 import java.lang.reflect.Method
+
 import akka.stream.Materializer
 
 abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   self =>
 
-  private lazy val components = new DefaultJavaHandlerComponents(
-    play.api.Play.current.injector,
-    new DefaultActionCreator,
-    HttpConfiguration(),
-    this.executionContext
+  private lazy val app = play.api.Play.current
+
+  private lazy val contextComponents = new DefaultJavaContextComponents(
+    app.injector.instanceOf(classOf[JMessagesApi]),
+    app.injector.instanceOf(classOf[JLangs]),
+    HttpConfiguration()
   )
 
-  private lazy val action = new JavaAction(components) {
-    val annotations = new JavaActionAnnotations(controller, method, components.httpConfiguration.actionComposition)
+  private lazy val handlerComponents = new DefaultJavaHandlerComponents(
+    app.injector,
+    new DefaultActionCreator,
+    HttpConfiguration(),
+    this.executionContext,
+    contextComponents
+  )
+
+  private lazy val action = new JavaAction(handlerComponents, contextComponents) {
+    val annotations = new JavaActionAnnotations(controller, method, handlerComponents.httpConfiguration.actionComposition)
 
     def parser = {
       play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
-        components.getBodyParser(annotations.parser)
+        handlerComponents.getBodyParser(annotations.parser)
       )
     }
 
@@ -70,8 +81,8 @@ object MockJavaActionHelper {
     Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body)).asJava
   }
 
-  def setContext(request: play.mvc.Http.RequestBuilder): Unit = {
-    Http.Context.current.set(JavaHelpers.createJavaContext(request.build()._underlyingRequest))
+  def setContext(request: play.mvc.Http.RequestBuilder, contextComponents: JavaContextComponents): Unit = {
+    Http.Context.current.set(JavaHelpers.createJavaContext(request.build()._underlyingRequest, contextComponents))
   }
 
   def removeContext: Unit = Http.Context.current.remove()

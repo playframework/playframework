@@ -3,9 +3,11 @@
  */
 package play.api
 
+import play.api.i18n.{ I18nComponents, I18nModule }
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.core.j.{ DefaultJavaContextComponents, JavaHelpers }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -118,11 +120,14 @@ object ApplicationLoader {
 /**
  * Helper that provides all the built in components dependencies from the application loader context
  */
-abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents with I18nComponents {
   lazy val environment = context.environment
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
+
+  lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, httpConfiguration)
+  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + javaContextComponents
 }
 

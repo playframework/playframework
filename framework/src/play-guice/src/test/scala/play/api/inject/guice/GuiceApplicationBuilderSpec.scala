@@ -41,11 +41,9 @@ class GuiceApplicationBuilderSpec extends Specification {
     "disable modules" in {
       val injector = new GuiceApplicationBuilder()
         .bindings(new GuiceApplicationBuilderSpec.AModule)
-        .disable[play.api.i18n.I18nModule]
         .disable(classOf[GuiceApplicationBuilderSpec.AModule])
         .injector()
 
-      injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must throwA[com.google.inject.ConfigurationException]
     }
 
@@ -60,7 +58,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set module loader" in {
       val injector = new GuiceApplicationBuilder()
-        .load((env, conf) => Seq(new BuiltinModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]))
+        .load((env, conf) => Seq(new BuiltinModule, new I18nModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]))
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
@@ -68,7 +66,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set loaded modules directly" in {
       val injector = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1])
+        .load(new BuiltinModule, new I18nModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1])
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
@@ -76,7 +74,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "eagerly load singletons" in {
       new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
+        .load(new BuiltinModule, new I18nModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
         .eagerlyLoaded()
         .injector() must throwA[CreationException]
     }
@@ -91,7 +89,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set lazy load singletons" in {
       val builder = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
+        .load(new BuiltinModule, new I18nModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
 
       builder.injector() must throwAn[CreationException].not
       builder.injector().instanceOf[GuiceApplicationBuilderSpec.C] must throwAn[ProvisionException]

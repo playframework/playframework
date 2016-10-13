@@ -12,7 +12,7 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.api.{ Configuration, Environment }
 import play.core.Execution
-import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
+import play.core.j.{ JavaContextComponents, JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
 
 /**
@@ -50,9 +50,10 @@ object HttpRequestHandler {
       environment,
       configuration, "play.http.requestHandler", "RequestHandler")
 
-    val javaComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
+    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+    val javaHandlerComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
 
-    fromConfiguration ++ javaComponentsBindings
+    fromConfiguration ++ javaContextComponentsBindings ++ javaHandlerComponentsBindings
   }
 }
 
@@ -198,14 +199,17 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * A Java compatible HTTP request handler.
  *
  * If a router routes to Java actions, it will return instances of [[play.core.j.JavaHandler]].  This takes an instance
- * of [[play.core.j.JavaHandlerComponents]] to supply the necessary infrastructure to invoke a Java action, and returns
+ * of [[play.core.j.JavaHandlerComponents]] to supply the necessary infrastructure to invoke a Java action, an instance of [[play.core.j.JavaContextComponents]] to supply the infrastructure for an Http.Context, and returns
  * a new [[play.api.mvc.Handler]] that the core of Play knows how to handle.
  *
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents)
+  configuration: HttpConfiguration,
+  filters: HttpFilters,
+  handlerComponents: JavaHandlerComponents,
+  contextComponents: JavaContextComponents)
     extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
@@ -217,7 +221,7 @@ class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: 
 
       // Next, if the underlying handler is a JavaHandler, get its real handler
       val mappedHandler: Handler = preprocessedHandler match {
-        case javaHandler: JavaHandler => javaHandler.withComponents(components)
+        case javaHandler: JavaHandler => javaHandler.withComponents(handlerComponents)
         case other => other
       }
 

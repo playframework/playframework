@@ -3,13 +3,12 @@
  */
 package play.filters.csrf
 
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 import javax.inject.{ Inject, Provider }
 
 import akka.stream.Materializer
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc._
+import play.core.j.JavaContextComponents
 import play.filters.csrf.CSRF._
 
 /**
@@ -36,8 +35,8 @@ class CSRFFilter(
   }
 
   // Java constructor for manually constructing the filter
-  def this(config: CSRFConfig, tokenSigner: play.libs.crypto.CSRFTokenSigner, tokenProvider: TokenProvider, errorHandler: CSRFErrorHandler)(mat: Materializer) = {
-    this(config, tokenSigner.asScala, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler))(mat)
+  def this(config: CSRFConfig, tokenSigner: play.libs.crypto.CSRFTokenSigner, tokenProvider: TokenProvider, errorHandler: CSRFErrorHandler, contextComponents: JavaContextComponents)(mat: Materializer) = {
+    this(config, tokenSigner.asScala, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler, contextComponents))(mat)
   }
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenSigner, tokenProvider, errorHandler)

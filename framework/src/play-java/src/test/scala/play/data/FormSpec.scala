@@ -8,6 +8,7 @@ import java.util.Optional
 
 import org.specs2.mutable.Specification
 import play.mvc.Http.{ Context, Request, RequestBuilder }
+
 import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
 import play.api.{ Configuration, Environment }
@@ -20,30 +21,39 @@ import play.twirl.api.Html
 import javax.validation.groups.Default
 import javax.validation.Validation
 
+import play.api.http.HttpConfiguration
+import play.core.j.{ DefaultJavaContextComponents, JavaContextComponents, JavaHelpers }
+
 class FormSpec extends Specification {
 
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+  val environment = Environment.simple()
+  val config = Configuration.load(environment)
+  val langs = new DefaultLangs(config)
+  val messagesApi = new DefaultMessagesApi(environment, config, langs)
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
+  val httpConfiguration = HttpConfiguration.fromConfiguration(config)
+  val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, httpConfiguration)
   val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), Validation.buildDefaultValidatorFactory().getValidator())
 
   "a java form" should {
     "be valid" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "done" -> Array("true"), "dueDate" -> Array("15/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "have an error due to badly formatted date" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
@@ -57,23 +67,27 @@ class FormSpec extends Specification {
       myForm.value().get().getName() must beEqualTo("peter")
     }
     "throws an exception when trying to access value of invalid form via get()" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm.get must throwAn[IllegalStateException]
     }
     "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm.value().get().getId() must beEqualTo(0)
       myForm.value().get().getName() must_== null
     }
     "have an error due to badly formatted date after using setTransientLang" in new WithApplication(GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en", "en-US", "fr")).build()) {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
+
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       Context.current.get().setTransientLang("fr");
 
@@ -86,8 +100,10 @@ class FormSpec extends Specification {
       myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
     "have an error due to badly formatted date after using changeLang" in new WithApplication(GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq("en", "en-US", "fr")).build()) {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
+
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       Context.current.get().changeLang("fr");
 
@@ -100,16 +116,20 @@ class FormSpec extends Specification {
       myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
     "have an error due to missing required value" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
+
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
       myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.required")
     }
     "have an error due to bad value in Id field" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
+
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
@@ -117,14 +137,16 @@ class FormSpec extends Specification {
     }
     "be valid with default date binder" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "have an error due to badly formatted date for default date binder" in new WithApplication() {
+      val contextComponents = app.injector.instanceOf[JavaContextComponents]
+
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
       val myForm = formFactory.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)

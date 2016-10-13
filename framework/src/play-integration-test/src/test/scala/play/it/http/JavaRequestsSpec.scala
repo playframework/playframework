@@ -49,7 +49,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
       val cookie1 = Cookie("name1", "value1")
 
       val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody(null))
-      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader)
+      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader, JavaHelpers.createContextComponents())
       val javaRequest = javaContext.request()
 
       val iterator: Iterator[Http.Cookie] = javaRequest.cookies().iterator()
@@ -62,7 +62,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
 
     "create a request without a body" in {
       val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(null))
-      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader)
+      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader, JavaHelpers.createContextComponents())
       val javaRequest = javaContext.request()
 
       requestHeader.hasBody must beFalse
@@ -71,7 +71,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
 
     "create a request with a body" in {
       val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody("foo"))
-      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader)
+      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader, JavaHelpers.createContextComponents())
       val javaRequest = javaContext.request()
 
       requestHeader.hasBody must beTrue

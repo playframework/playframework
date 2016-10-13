@@ -12,6 +12,7 @@ import play.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
+import play.core.j.JavaContextComponents;
 import play.http.HttpEntity;
 import play.mvc.*;
 import play.api.test.Helpers$;
@@ -62,8 +63,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
             final play.api.inject.Injector injector = play.api.Play.current().injector();
+            final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
             return invokeHandler(
-                    ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
+                    ((JavaHandler) handler).withComponents(handlerComponents),
                     requestBuilder, timeout
             );
         } else {
@@ -95,9 +97,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Calls a Callable which invokes a Controller or some other method with a Context
      */
-    public static <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
+    public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
         try {
-            Context.current.set(new Context(requestBuilder));
+            Context.current.set(new Context(requestBuilder, contextComponents));
             return callable.call();
         } catch (Exception e) {
             throw new RuntimeException(e);

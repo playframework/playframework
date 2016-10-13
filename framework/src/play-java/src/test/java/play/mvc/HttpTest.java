@@ -21,6 +21,7 @@ import org.junit.Test;
 import play.Application;
 import play.Environment;
 import play.Play;
+import play.core.j.JavaContextComponents;
 import play.data.Birthday;
 import play.data.Form;
 import play.data.FormFactory;
@@ -76,7 +77,9 @@ public class HttpTest {
     @Test
     public void testChangeLang() {
         withApplication((app) -> {
-            Context ctx = new Context(new RequestBuilder());
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx)).isNull();
@@ -93,7 +96,9 @@ public class HttpTest {
     @Test
     public void testChangeLangFailure() {
         withApplication((app) -> {
-            Context ctx = new Context(new RequestBuilder());
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx)).isNull();
@@ -108,7 +113,9 @@ public class HttpTest {
     @Test
     public void testClearLang() {
         withApplication((app) -> {
-            Context ctx = new Context(new RequestBuilder());
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Set 'fr' as our initial language
             assertThat(ctx.changeLang("fr")).isTrue();
             assertThat(ctx.lang().code()).isEqualTo("fr");
@@ -124,7 +131,9 @@ public class HttpTest {
     @Test
     public void testSetTransientLang() {
         withApplication((app) -> {
-            Context ctx = new Context(new RequestBuilder());
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx)).isNull();
@@ -141,7 +150,9 @@ public class HttpTest {
     @Test(expected=IllegalArgumentException.class)
     public void testSetTransientLangFailure() {
         withApplication((app) -> {
-            Context ctx = new Context(new RequestBuilder());
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx)).isNull();
@@ -153,9 +164,11 @@ public class HttpTest {
     @Test
     public void testClearTransientLang() {
         withApplication((app) -> {
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
             Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
             RequestBuilder rb = new RequestBuilder().cookie(frCookie);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("fr");
             assertThat(responseLangCookie(ctx)).isNull();
@@ -175,6 +188,8 @@ public class HttpTest {
     @Test
     public void testLangDataBinder() {
         withApplication((app) -> {
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
             Formatters formatters = app.injector().instanceOf(Formatters.class);
 
@@ -185,7 +200,7 @@ public class HttpTest {
             Map<String, String> data = new HashMap<>();
             data.put("amount", "1234567,89");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse french input with french formatter
             ctx.changeLang("fr");
@@ -210,7 +225,7 @@ public class HttpTest {
             data = new HashMap<>();
             data.put("amount", "1234567.89");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse english input with french formatter
             ctx.changeLang("fr");
@@ -241,11 +256,13 @@ public class HttpTest {
     public void testLangErrorsAsJson() {
         withApplication((app) -> {
             MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
             Formatters formatters = app.injector().instanceOf(Formatters.class);
             Validator validator = app.injector().instanceOf(Validator.class);
 
             RequestBuilder rb = new RequestBuilder();
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
 
             List<Object> args = new ArrayList<>();
@@ -264,12 +281,13 @@ public class HttpTest {
     public void testLangAnnotationDateDataBinder() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
             // Prepare Request and Context
             Map<String, String> data = new HashMap<>();
             data.put("date", "3/10/1986");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse date input with pattern from the default messages file
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
@@ -284,7 +302,7 @@ public class HttpTest {
             data = new HashMap<>();
             data.put("date", "16.2.2001");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse french date input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -300,7 +318,7 @@ public class HttpTest {
             data = new HashMap<>();
             data.put("date", "8-31-1950");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse english date input with pattern from the en-US messages file
             ctx.changeLang("en-US");
@@ -318,12 +336,13 @@ public class HttpTest {
     public void testLangDateDataBinder() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
             // Prepare Request and Context
             Map<String, String> data = new HashMap<>();
             data.put("alternativeDate", "1982-5-7");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse date input with pattern from Play's default messages file
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
@@ -338,7 +357,7 @@ public class HttpTest {
             data = new HashMap<>();
             data.put("alternativeDate", "10_4_2005");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse french date input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -354,7 +373,7 @@ public class HttpTest {
             data = new HashMap<>();
             data.put("alternativeDate", "3/12/1962");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse english date input with pattern from the en-US messages file
             ctx.changeLang("en-US");
@@ -372,6 +391,7 @@ public class HttpTest {
     public void testInvalidMessages() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
             // Prepare Request and Context
             Map<String, String> data = new HashMap<>();
@@ -379,7 +399,7 @@ public class HttpTest {
             data.put("name", "peter");
             data.put("dueDate", "2009/11e/11");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse date input with pattern from the default messages file
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
@@ -398,7 +418,7 @@ public class HttpTest {
             data.put("dueDate", "2009/11e/11");
             Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
             rb = new RequestBuilder().cookie(frCookie).uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse date input with pattern from the french messages file
             myForm = formFactory.form(Task.class).bindFromRequest();
@@ -417,6 +437,7 @@ public class HttpTest {
     public void testConstraintWithInjectedMessagesApi() {
         withApplication((app) -> {
             FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
             // Prepare Request and Context
             Map<String, String> data = new HashMap<>();
@@ -425,7 +446,7 @@ public class HttpTest {
             data.put("dueDate", "11/11/2009");
             data.put("zip", "1234");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb);
+            Context ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse input with pattern from the default messages file
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
@@ -440,7 +461,7 @@ public class HttpTest {
             data.put("dueDate", "11/11/2009");
             data.put("zip", "567");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -456,7 +477,7 @@ public class HttpTest {
             data.put("dueDate", "11/11/2009");
             data.put("zip", "1234");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb);
+            ctx = new Context(rb, contextComponents);
             Context.current.set(ctx);
             // Parse WRONG input with pattern from the french messages file
             ctx.changeLang("fr");

@@ -6,18 +6,19 @@ package play.core.j
 import java.util.Optional
 import java.util.concurrent.CompletionStage
 
+import play.api.{ Configuration, Environment }
+import play.api.http.HttpConfiguration
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
 import play.api.libs.typedmap.{ TypedEntry, TypedKey }
-import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc.{ Result => JResult }
-import play.mvc.Http.{ Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
-import play.mvc.Http.RequestBody
-import play.mvc.Security
+import play.core.Execution.Implicits.trampoline
+import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
+import play.mvc.{ Security, Result => JResult }
 
+import scala.collection.JavaConversions
+import scala.collection.JavaConverters._
 import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.Future
-import collection.JavaConverters._
-import collection.JavaConversions
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
@@ -75,31 +76,79 @@ trait JavaHelpers {
 
   /**
    * Creates a java context from a scala RequestHeader
-   * @param req
+   * @param req the scala request
+   * @param components the context components (use JavaHelpers.createContextComponents)
    */
-  def createJavaContext(req: RequestHeader): JContext = {
+  def createJavaContext(req: RequestHeader, components: JavaContextComponents): JContext = {
+    require(components != null, "Null JavaContextComponents")
     new JContext(
       req.id,
       req,
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava
+      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      components
     )
   }
 
   /**
    * Creates a java context from a scala Request[RequestBody]
-   * @param req
+   * @param req the scala request
+   * @param components the context components (use JavaHelpers.createContextComponents)
    */
-  def createJavaContext(req: Request[RequestBody]): JContext = {
+  def createJavaContext(req: Request[RequestBody], components: JavaContextComponents): JContext = {
+    require(components != null, "Null JavaContextComponents")
     new JContext(
       req.id,
       req,
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava)
+      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      components
+    )
+  }
+
+  /**
+   * Creates java context components from environment, using
+   * Configuration.reference and Environment.simple as defaults.
+   *
+   * @return an instance of JavaContextComponents.
+   */
+  def createContextComponents(): JavaContextComponents = {
+    val reference: Configuration = play.api.Configuration.reference
+    val environment = play.api.Environment.simple()
+    createContextComponents(reference, environment)
+  }
+
+  /**
+   * Creates context components from environment.
+   * @param configuration play config.
+   * @param env play environment.
+   * @return an instance of JavaContextComponents with default messagesApi and langs.
+   */
+  def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
+    val langs = new DefaultLangs(configuration)
+    val messagesApi = new DefaultMessagesApi(env, configuration, langs)
+    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+    createContextComponents(messagesApi, langs, httpConfiguration)
+  }
+
+  /**
+   * Creates JavaContextComponents directly from components..
+   * @param messagesApi the messagesApi instance
+   * @param langs the langs instance
+   * @param httpConfiguration the http configuration
+   * @return an instance of JavaContextComponents with given input components.
+   */
+  def createContextComponents(
+    messagesApi: MessagesApi,
+    langs: Langs,
+    httpConfiguration: HttpConfiguration): JavaContextComponents = {
+    val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
+    val jLangs = new play.i18n.Langs(langs)
+    new DefaultJavaContextComponents(jMessagesApi, jLangs, httpConfiguration)
   }
 
   /**
@@ -112,11 +161,12 @@ trait JavaHelpers {
    * result in an Option. E.g. see the default behavior of GlobalSettings.onError.
    *
    * @param request The request
+   * @param components the context components
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContextOpt(request: RequestHeader, f: JRequest => CompletionStage[JResult]): Option[Future[Result]] = {
-    val javaContext = createJavaContext(request)
+  def invokeWithContextOpt(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Option[Future[Result]] = {
+    val javaContext = createJavaContext(request, components)
     try {
       JContext.current.set(javaContext)
       Option(f(javaContext.request())).map(cs => FutureConverters.toScala(cs).map(createResult(javaContext, _))(trampoline))
@@ -133,11 +183,12 @@ trait JavaHelpers {
    * This is intended for use by callback methods in Java adapters.
    *
    * @param request The request
+   * @param components the context components
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => CompletionStage[JResult]): Future[Result] = {
-    withContext(request) { javaContext =>
+  def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
+    withContext(request, components) { javaContext =>
       FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
     }
   }
@@ -145,8 +196,8 @@ trait JavaHelpers {
   /**
    * Invoke the given block with Java context created from the request header
    */
-  def withContext[A](request: RequestHeader)(block: JContext => A) = {
-    val javaContext = createJavaContext(request)
+  def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
+    val javaContext = createJavaContext(request, components)
     try {
       JContext.current.set(javaContext)
       block(javaContext)

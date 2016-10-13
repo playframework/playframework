@@ -11,7 +11,8 @@ import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.core.j
-import play.core.j.{ JavaHelpers, JavaActionAnnotations, JavaHandler, JavaHandlerComponents }
+import play.core.j._
+import play.i18n.{ Langs, MessagesApi }
 import play.mvc.Http.{ Context, RequestBody }
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }
@@ -98,13 +99,15 @@ object HandlerInvokerFactory {
       }
 
       override def call(call: => A): Handler = new JavaHandler {
-        def withComponents(components: JavaHandlerComponents): Handler = new play.core.j.JavaAction(components) {
-          override val annotations = cachedAnnotations(components.httpConfiguration.actionComposition)
-          override val parser = {
-            val javaParser = components.getBodyParser(annotations.parser)
-            javaBodyParserToScala(javaParser)
+        def withComponents(handlerComponents: JavaHandlerComponents): Handler = {
+          new play.core.j.JavaAction(handlerComponents, handlerComponents.contextComponents) {
+            override val annotations = cachedAnnotations(handlerComponents.httpConfiguration.actionComposition)
+            override val parser = {
+              val javaParser = handlerComponents.getBodyParser(annotations.parser)
+              javaBodyParserToScala(javaParser)
+            }
+            override def invocation: CompletionStage[JResult] = resultCall(call)
           }
-          override def invocation: CompletionStage[JResult] = resultCall(call)
         }
       }
     }
@@ -151,38 +154,40 @@ object HandlerInvokerFactory {
     import play.http.websocket.{ Message => JMessage }
 
     def createInvoker(fakeCall: => JWebSocket, handlerDef: HandlerDef) = new HandlerInvoker[JWebSocket] {
-      def call(call: => JWebSocket) = WebSocket.acceptOrResult[Message, Message] { request =>
+      def call(call: => JWebSocket) = new JavaHandler {
+        def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
+          WebSocket.acceptOrResult[Message, Message] { request =>
+            val javaContext = JavaHelpers.createJavaContext(request, handlerComponents.contextComponents)
 
-        val javaContext = JavaHelpers.createJavaContext(request)
+            val callWithContext = {
+              try {
+                Context.current.set(javaContext)
+                FutureConverters.toScala(call(new j.RequestHeaderImpl(request)))
+              } finally {
+                Context.current.remove()
+              }
+            }
 
-        val callWithContext = {
-          try {
-            Context.current.set(javaContext)
-            FutureConverters.toScala(call(new j.RequestHeaderImpl(request)))
-          } finally {
-            Context.current.remove()
+            callWithContext.map { resultOrFlow =>
+              if (resultOrFlow.left.isPresent) {
+                Left(resultOrFlow.left.get.asScala())
+              } else {
+                Right(Flow[Message].map {
+                  case TextMessage(text) => new JMessage.Text(text)
+                  case BinaryMessage(data) => new JMessage.Binary(data)
+                  case PingMessage(data) => new JMessage.Ping(data)
+                  case PongMessage(data) => new JMessage.Pong(data)
+                  case CloseMessage(code, reason) => new JMessage.Close(OptionConverters.toJava(code).asInstanceOf[Optional[Integer]], reason)
+                }.via(resultOrFlow.right.get.asScala).map {
+                  case text: JMessage.Text => TextMessage(text.data)
+                  case binary: JMessage.Binary => BinaryMessage(binary.data)
+                  case ping: JMessage.Ping => PingMessage(ping.data)
+                  case pong: JMessage.Pong => PongMessage(pong.data)
+                  case close: JMessage.Close => CloseMessage(OptionConverters.toScala(close.code).asInstanceOf[Option[Int]], close.reason)
+                })
+              }
+            }
           }
-        }
-
-        callWithContext.map { resultOrFlow =>
-          if (resultOrFlow.left.isPresent) {
-            Left(resultOrFlow.left.get.asScala())
-          } else {
-            Right(Flow[Message].map {
-              case TextMessage(text) => new JMessage.Text(text)
-              case BinaryMessage(data) => new JMessage.Binary(data)
-              case PingMessage(data) => new JMessage.Ping(data)
-              case PongMessage(data) => new JMessage.Pong(data)
-              case CloseMessage(code, reason) => new JMessage.Close(OptionConverters.toJava(code).asInstanceOf[Optional[Integer]], reason)
-            }.via(resultOrFlow.right.get.asScala).map {
-              case text: JMessage.Text => TextMessage(text.data)
-              case binary: JMessage.Binary => BinaryMessage(binary.data)
-              case ping: JMessage.Ping => PingMessage(ping.data)
-              case pong: JMessage.Pong => PongMessage(pong.data)
-              case close: JMessage.Close => CloseMessage(OptionConverters.toScala(close.code).asInstanceOf[Option[Int]], close.reason)
-            })
-          }
-
         }
       }
     }

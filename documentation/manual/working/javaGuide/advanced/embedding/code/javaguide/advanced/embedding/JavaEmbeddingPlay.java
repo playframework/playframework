@@ -10,19 +10,16 @@ import org.junit.Test;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
-import play.libs.ws.ahc.AhcWSClient;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 //#imports
-import play.api.Play;
 import play.Mode;
 import play.routing.RoutingDsl;
 import play.server.Server;
 import static play.mvc.Controller.*;
-import akka.stream.Materializer;
 //#imports
 
 import static org.hamcrest.CoreMatchers.*;
