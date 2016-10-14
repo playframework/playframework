@@ -17,7 +17,7 @@ import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateEvent
 import play.api.{ Application, Logger }
-import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpErrorHandler, Status }
+import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, RequestHeader, Results, WebSocket }
 import play.core.server.NettyServer
@@ -272,7 +272,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
       }
       // Clean and validate the action's result
       validatedResult <- {
-        val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, actionResult)
+        val config = httpConfiguration(app)
+        val cleanedResult = ServerResultUtils.prepareCookies(requestHeader, actionResult, config)
         ServerResultUtils.validateResult(requestHeader, cleanedResult, errorHandler(app))
       }
       // Convert the result to a Netty HttpResponse
@@ -287,6 +288,9 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
    */
   private def errorHandler(app: Option[Application]): HttpErrorHandler =
     app.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+
+  private def httpConfiguration(app: Option[Application]): HttpConfiguration =
+    app.fold[HttpConfiguration](HttpConfiguration())(_.httpConfiguration)
 
   /**
    * Sends a simple response with no body, then closes the connection.

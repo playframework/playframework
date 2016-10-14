@@ -54,8 +54,9 @@ package scalaguide.http.scalaresults {
 
       "Setting and discarding cookies" in {
         //#set-cookies
-        val result = Ok("Hello world").withCookies(
-          Cookie("theme", "blue"))
+        val result = Ok("Hello world")
+          .withCookies(Cookie("theme", "blue"))
+          .bakeCookies()
         //#set-cookies
         testHeader(result, SET_COOKIE, "theme=blue")
         //#discarding-cookies
@@ -67,7 +68,7 @@ package scalaguide.http.scalaresults {
         //#setting-discarding-cookies
         testHeader(result3, SET_COOKIE, "skin=;")
         testHeader(result3, SET_COOKIE, "theme=blue;")
-        
+
       }
 
       "Changing the charset for text based HTTP responses" in {
@@ -86,7 +87,8 @@ package scalaguide.http.scalaresults {
     }
 
     def testHeader(results: Result, key: String, value: String) = {
-      results.header.headers.get(key).get must contain(value)
+      results.bakeCookies() // bake cookies with default configuration
+        .header.headers.get(key).get must contain(value)
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
@@ -114,7 +116,7 @@ package scalaguide.http.scalaresults {
 
     }
     //#full-application-set-myCustomCharset
- 
+
 
   object CodeShow {
     //#Source-Code-HTML

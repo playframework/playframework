@@ -70,7 +70,10 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[CryptoConfig].toProvider[CryptoConfigParser],
     bind[CookieSigner].toProvider[CookieSignerProvider],
     bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-    bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator]
+    bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
+
+    bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
+    bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
 
   ) ++ dynamicBindings(
       HttpErrorHandler.bindingsFromConfiguration,

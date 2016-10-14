@@ -3,7 +3,12 @@
  */
 package play.api.mvc
 
+import javax.inject.{ Inject, Provider }
+
 import play.api.http.{ FlashConfiguration, HttpConfiguration, SessionConfiguration }
+import play.mvc.Http
+
+import scala.collection.JavaConverters._
 
 /**
  * HTTP Flash scope.
@@ -56,27 +61,41 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    */
   def apply(key: String) = data(key)
 
+  lazy val asJava: Http.Flash = new Http.Flash(data.asJava)
 }
 
 /**
  * Helper utilities to manage the Flash cookie.
  */
-object Flash extends CookieBaker[Flash] {
-  private def config: FlashConfiguration = HttpConfiguration.current.flash
-  private def sessionConfig: SessionConfiguration = HttpConfiguration.current.session
+trait FlashCookieBaker extends CookieBaker[Flash] {
+
+  def config: FlashConfiguration
+  def sessionConfig: SessionConfiguration
 
   def COOKIE_NAME = config.cookieName
+
+  lazy val emptyCookie = new Flash
 
   override def path = HttpConfiguration.current.context
   override def secure = config.secure
   override def httpOnly = config.httpOnly
   override def domain = sessionConfig.domain
-  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
-  val emptyCookie = new Flash
+  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
   def deserialize(data: Map[String, String]) = new Flash(data)
 
   def serialize(flash: Flash) = flash.data
 
+}
+
+class DefaultFlashCookieBaker @Inject() (val config: FlashConfiguration, val sessionConfig: SessionConfiguration)
+    extends FlashCookieBaker {
+  def this() = this(FlashConfiguration(), SessionConfiguration())
+}
+
+object Flash extends FlashCookieBaker {
+  def config = HttpConfiguration.current.flash
+  def sessionConfig = HttpConfiguration.current.session
+  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
 }

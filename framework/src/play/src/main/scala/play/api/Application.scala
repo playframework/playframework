@@ -61,6 +61,8 @@ trait Application {
 
   def configuration: Configuration
 
+  private[play] lazy val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+
   /**
    * The default ActorSystem used by the application.
    */

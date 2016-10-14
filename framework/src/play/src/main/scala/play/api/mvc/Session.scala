@@ -3,7 +3,12 @@
  */
 package play.api.mvc
 
+import javax.inject.{ Inject, Provider }
+
 import play.api.http.{ HttpConfiguration, SessionConfiguration }
+import play.mvc.Http
+
+import scala.collection.JavaConverters._
 
 /**
  * HTTP Session.
@@ -56,17 +61,20 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    */
   def apply(key: String) = data(key)
 
+  lazy val asJava: Http.Session = new Http.Session(data.asJava)
 }
 
 /**
  * Helper utilities to manage the Session cookie.
  */
-object Session extends CookieBaker[Session] {
-  private def config: SessionConfiguration = HttpConfiguration.current.session
+trait SessionCookieBaker extends CookieBaker[Session] {
+
+  def config: SessionConfiguration
 
   def COOKIE_NAME = config.cookieName
 
-  val emptyCookie = new Session
+  lazy val emptyCookie = new Session
+
   override val isSigned = true
   override def secure = config.secure
   override def maxAge = config.maxAge.map(_.toSeconds.toInt)
@@ -78,4 +86,13 @@ object Session extends CookieBaker[Session] {
   def deserialize(data: Map[String, String]) = new Session(data)
 
   def serialize(session: Session) = session.data
+}
+
+class DefaultSessionCookieBaker @Inject() (val config: SessionConfiguration) extends SessionCookieBaker {
+  def this() = this(SessionConfiguration())
+}
+
+object Session extends SessionCookieBaker {
+  def config = HttpConfiguration.current.session
+  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
 }

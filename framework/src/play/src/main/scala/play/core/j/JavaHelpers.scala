@@ -9,7 +9,6 @@ import java.util.concurrent.CompletionStage
 import play.api.libs.typedmap.{ TypedEntry, TypedKey }
 import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc
 import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.Http.RequestBody
@@ -40,22 +39,11 @@ trait JavaHelpers {
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
       def get(name: String): JCookie = {
-        cookies.get(name).map(makeJavaCookie).orNull
-      }
-
-      private def makeJavaCookie(cookie: Cookie): JCookie = {
-        new JCookie(
-          cookie.name,
-          cookie.value,
-          cookie.maxAge.map(i => new Integer(i)).orNull,
-          cookie.path,
-          cookie.domain.orNull,
-          cookie.secure,
-          cookie.httpOnly)
+        cookies.get(name).map(_.asJava).orNull
       }
 
       def iterator: java.util.Iterator[JCookie] = {
-        cookies.toIterator.map(makeJavaCookie).asJava
+        cookies.toIterator.map(_.asJava).asJava
       }
     }
   }
@@ -66,7 +54,8 @@ trait JavaHelpers {
    * @param javaResult
    */
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
-    val wResult = javaResult.asScala.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+    val scalaResult = javaResult.asScala
+    val wResult = scalaResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {

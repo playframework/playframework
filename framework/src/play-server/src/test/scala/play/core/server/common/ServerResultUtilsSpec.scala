@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http.Status._
-import play.api.http.{ DefaultHttpErrorHandler, HttpEntity }
+import play.api.http.{ HttpConfiguration, DefaultHttpErrorHandler, HttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -36,17 +36,18 @@ class ServerResultUtilsSpec extends Specification {
     )
   }
 
-  "ServerResultUtils.cleanFlashCookie" should {
-    def flashCookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
+  "ServerResultUtils.prepareCookies" should {
+    def cookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
       val rh = cookieRequestHeader(cookie)
-      ServerResultUtils.cleanFlashCookie(rh, result).header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
+      val newResult = ServerResultUtils.prepareCookies(rh, result, HttpConfiguration())
+      newResult.header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
     }
 
     "do nothing when flash not present" in {
-      flashCookieResult(None, Ok) must beNone
+      cookieResult(None, Ok) must beNone
     }
     "send flash if new" in {
-      flashCookieResult(None, Ok.flashing("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(None, Ok.flashing("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -54,7 +55,7 @@ class ServerResultUtilsSpec extends Specification {
       }
     }
     "clear flash when received" in {
-      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -62,7 +63,7 @@ class ServerResultUtilsSpec extends Specification {
       }
     }
     "leave other cookies untouched when clearing" in {
-      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.withCookies(Cookie("cookie", "value"))) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.withCookies(Cookie("cookie", "value"))) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 2
         cookies.find(_.name == "PLAY_FLASH") must beSome.like {
           case cookie => cookie.value must_== ""
@@ -73,7 +74,7 @@ class ServerResultUtilsSpec extends Specification {
       }
     }
     "clear old flash value when different value sent" in {
-      flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.flashing("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.flashing("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -82,7 +83,7 @@ class ServerResultUtilsSpec extends Specification {
     }
   }
 
-  "ServerResultUtils#validateResult" should {
+  "ServerResultUtils.validateResult" should {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
 

@@ -3,19 +3,26 @@
  */
 package play.mvc;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import play.api.mvc.ResponseHeader;
+import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
+import play.libs.Scala;
 import scala.collection.JavaConversions;
 import scala.compat.java8.OptionConverters;
 
-import static play.mvc.Http.HeaderNames.*;
-
-import static play.mvc.Http.*;
+import static play.mvc.Http.Cookie;
+import static play.mvc.Http.Cookies;
+import static play.mvc.Http.Flash;
+import static play.mvc.Http.HeaderNames.LOCATION;
+import static play.mvc.Http.Session;
 
 /**
  * Any action result.
@@ -24,6 +31,23 @@ public class Result {
 
     private final ResponseHeader header;
     private final HttpEntity body;
+    private final Flash flash;
+    private final Session session;
+    private final List<Cookie> cookies;
+
+    /**
+     * Create a result from a Scala ResponseHeader and a body.
+     *
+     * @param header the response header
+     * @param body the response body.
+     */
+    public Result(ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
+        this.header = header;
+        this.body = body;
+        this.session = session;
+        this.flash = flash;
+        this.cookies = cookies;
+    }
 
     /**
      * Create a result from a Scala ResponseHeader and a body.
@@ -32,8 +56,7 @@ public class Result {
      * @param body the response body.
      */
     public Result(ResponseHeader header, HttpEntity body) {
-        this.header = header;
-        this.body = body;
+        this(header, body, null, null, Collections.emptyList());
     }
 
     /**
@@ -193,7 +216,7 @@ public class Result {
      * @return the flash (if it was set)
      */
     public Flash flash() {
-        return JavaResultExtractor.getFlash(header);
+        return flash;
     }
 
     /**
@@ -202,7 +225,7 @@ public class Result {
      * @return the session (if it was set)
      */
     public Session session() {
-        return JavaResultExtractor.getSession(header);
+        return session;
     }
 
     /**
@@ -212,7 +235,7 @@ public class Result {
      * @return the cookie (if it was set)
      */
     public Cookie cookie(String name) {
-        return JavaResultExtractor.getCookies(header).get(name);
+        return cookies().get(name);
     }
 
     /**
@@ -221,7 +244,17 @@ public class Result {
      * @return the cookies (if they were set)
      */
     public Cookies cookies() {
-        return JavaResultExtractor.getCookies(header);
+        return new Cookies() {
+            @Override
+            public Cookie get(String name) {
+                return cookies.stream().filter(c -> c.name().equals(name)).findFirst().get();
+            }
+
+            @Override
+            public Iterator<Cookie> iterator() {
+                return cookies.iterator();
+            }
+        };
     }
 
     /**
@@ -230,7 +263,7 @@ public class Result {
      * @return the transformed copy.
      */
     public Result withCookies(Cookie... cookies) {
-        return new Result(JavaResultExtractor.withCookies(header, cookies), body);
+        return new Result(header, body, session, flash, Arrays.asList(cookies));
     }
 
     /**
@@ -241,7 +274,7 @@ public class Result {
      * @return the transformed copy
      */
     public Result withHeader(String name, String value) {
-        return new Result(JavaResultExtractor.withHeader(header, name, value), body);
+        return new Result(JavaResultExtractor.withHeader(header, name, value), body, session, flash, cookies);
     }
 
     /**
@@ -255,7 +288,7 @@ public class Result {
      * @return the transformed copy
      */
     public Result withHeaders(String... nameValues) {
-        return new Result(JavaResultExtractor.withHeader(header, nameValues), body);
+        return new Result(JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies);
     }
 
     /**
@@ -274,6 +307,12 @@ public class Result {
      * @return the Scala result.
      */
     public play.api.mvc.Result asScala() {
-        return new play.api.mvc.Result(header, body.asScala());
+        return new play.api.mvc.Result(
+            header,
+            body.asScala(),
+            session == null ? Scala.None() : Scala.Option(play.api.mvc.Session.fromJavaSession(session)),
+            flash == null ? Scala.None() : Scala.Option(play.api.mvc.Flash.fromJavaFlash(flash)),
+            JavaHelpers$.MODULE$.cookiesToScalaCookies(cookies)
+        );
     }
 }

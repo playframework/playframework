@@ -5,8 +5,8 @@ package play.api.mvc
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path }
-import java.time.{ ZoneOffset, ZonedDateTime }
 import java.time.format.DateTimeFormatter
+import java.time.{ ZoneOffset, ZonedDateTime }
 
 import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
 import akka.util.ByteString
@@ -16,6 +16,7 @@ import play.api.i18n.{ Lang, MessagesApi }
 import play.core.utils.CaseInsensitiveOrdered
 import play.utils.UriEncoding
 
+import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
@@ -68,7 +69,8 @@ object ResponseHeader {
  * @param header the response header, which contains status code and HTTP headers
  * @param body the response body
  */
-case class Result(header: ResponseHeader, body: HttpEntity) {
+case class Result(header: ResponseHeader, body: HttpEntity,
+    newSession: Option[Session] = None, newFlash: Option[Flash] = None, newCookies: Seq[Cookie] = Seq.empty) {
 
   /**
    * Adds headers to this result.
@@ -109,9 +111,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    if (cookies.isEmpty) this else {
-      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies))
-    }
+    if (cookies.isEmpty) this else copy(newCookies = newCookies ++ cookies)
   }
 
   /**
@@ -126,7 +126,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies.map(_.toCookie)))
+    withCookies(newCookies ++ cookies.map(_.toCookie): _*)
   }
 
   /**
@@ -140,9 +140,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @param session the session to set with this result
    * @return the new result
    */
-  def withSession(session: Session): Result = {
-    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
-  }
+  def withSession(session: Session): Result = copy(newSession = Some(session))
 
   /**
    * Sets a new session for this result, discarding the existing session.
@@ -184,7 +182,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
     if (shouldWarnIfNotRedirect(flash)) {
       logRedirectWarning("flashing")
     }
-    withCookies(Flash.encodeAsCookie(flash))
+    copy(newFlash = Some(flash))
   }
 
   /**
@@ -217,11 +215,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @param request Current request
    * @return The session carried by this result. Reads the request’s session if this result does not modify the session.
    */
-  def session(implicit request: RequestHeader): Session =
-    Cookies.fromCookieHeader(header.headers.get(SET_COOKIE)).get(Session.COOKIE_NAME) match {
-      case Some(cookie) => Session.decodeFromCookie(Some(cookie))
-      case None => request.session
-    }
+  def session(implicit request: RequestHeader): Session = newSession getOrElse request.session
 
   /**
    * Example:
@@ -270,7 +264,37 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
   /**
    * Convert this result to a Java result.
    */
-  def asJava: play.mvc.Result = new play.mvc.Result(header, body.asJava)
+  def asJava: play.mvc.Result = new play.mvc.Result(header, body.asJava,
+    newSession.map(_.asJava).orNull, newFlash.map(_.asJava).orNull, newCookies.map(_.asJava).asJava)
+
+  /**
+   * Encode the cookies into the Set-Cookie header. The session is always baked first, followed by the flash cookie,
+   * followed by all the other cookies in order.
+   */
+  def bakeCookies(
+    sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
+    flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
+    requestHasFlash: Boolean = false): Result = {
+
+    val allCookies = {
+      val setCookieCookies = Cookies.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
+      val session = newSession.map { data =>
+        if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
+      }
+      val flash = newFlash.map { data =>
+        if (data.isEmpty) flashBaker.discard.toCookie else flashBaker.encodeAsCookie(data)
+      }.orElse {
+        if (requestHasFlash) Some(flashBaker.discard.toCookie) else None
+      }
+      setCookieCookies ++ session ++ flash ++ newCookies
+    }
+
+    if (allCookies.isEmpty) {
+      this
+    } else {
+      withHeaders(SET_COOKIE -> Cookies.encodeSetCookieHeader(allCookies))
+    }
+  }
 }
 
 /**
