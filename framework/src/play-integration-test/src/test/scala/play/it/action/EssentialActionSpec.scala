@@ -5,7 +5,7 @@ package play.it.action
 
 import play.api.Environment
 import play.api.mvc.Results._
-import play.api.mvc.{ Action, EssentialAction }
+import play.api.mvc.{ DefaultActionBuilder, EssentialAction }
 import play.api.test.{ FakeRequest, PlaySpecification }
 
 import scala.concurrent.Promise
@@ -17,16 +17,20 @@ class EssentialActionSpec extends PlaySpecification {
     "use the classloader of the running application" in {
 
       val actionClassLoader = Promise[ClassLoader]()
-      val action: EssentialAction = Action {
-        actionClassLoader.success(Thread.currentThread.getContextClassLoader)
-        Ok("")
-      }
 
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
 
       running(_.in(Environment.simple().copy(classLoader = applicationClassLoader))) { app =>
         import app.materializer
+
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+
+        val action: EssentialAction = Action {
+          actionClassLoader.success(Thread.currentThread.getContextClassLoader)
+          Ok("")
+        }
+
         // run the test with the classloader of the current thread
         Thread.currentThread.getContextClassLoader must not be applicationClassLoader
         call(action, FakeRequest())

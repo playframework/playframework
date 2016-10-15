@@ -20,13 +20,15 @@ import play.api.routing.sird._
 import play.api.test._
 import play.core.server.Server
 
-import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 import scala.language.implicitConversions
 
 class AhcWSSpec extends PlaySpecification with Mockito {
 
   sequential
+
+  private val Action = ActionBuilder.ignoringBody
 
   "Ahc WS" should {
 
@@ -169,7 +171,6 @@ class AhcWSSpec extends PlaySpecification with Mockito {
     }
 
     "Not remove a user defined content length header" in WsTestClient.withClient { client =>
-      import scala.collection.JavaConverters._
       val consumerKey = ConsumerKey("key", "secret")
       val requestToken = RequestToken("token", "secret")
       val calc = OAuthCalculator(consumerKey, requestToken)

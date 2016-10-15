@@ -6,20 +6,20 @@ package play.filters.csrf
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
+import play.api.ApplicationLoader.Context
 import play.api.http.HttpFilters
+import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
+import play.api.libs.json.Json
+import play.api.libs.ws._
+import play.api.mvc._
+import play.api.test._
+import play.api.{ Configuration, Environment, Mode }
+import play.core.DefaultWebCommands
 import play.mvc.Http
 
 import scala.concurrent.Future
-import play.api.libs.ws._
-import play.api.mvc._
-import play.api.libs.json.Json
-import play.api.test._
 import scala.util.Random
-import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
-import play.api.{ Mode, Configuration, Environment }
-import play.api.ApplicationLoader.Context
-import play.core.DefaultWebCommands
-import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Specs for the global CSRF filter
@@ -69,16 +69,16 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
     // other
     "feed the body once a check has been done and passes" in {
-      withServer(Seq(
+      withActionServer(Seq(
         "play.http.filters" -> classOf[CsrfFilters].getName
-      )) {
+      ))(Action => {
         case _ => Action(
           _.body.asFormUrlEncoded
             .flatMap(_.get("foo"))
             .flatMap(_.headOption)
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound))
-      } { ws =>
+      }){ ws =>
         val token = crypto.generateSignedToken
         await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
@@ -91,19 +91,22 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
         "play.filters.csrf.body.bufferSize" -> "200",
         "play.http.filters" -> classOf[CsrfFilters].getName
       )
-      .routes {
-        case _ => Action { req =>
-          (for {
-            body <- req.body.asFormUrlEncoded
-            foos <- body.get("foo")
-            foo <- foos.headOption
-            buffereds <- body.get("buffered")
-            buffered <- buffereds.headOption
-          } yield {
-            Results.Ok(foo + " " + buffered)
-          }).getOrElse(Results.NotFound)
+      .appRoutes(app => {
+        case _ => {
+          val Action = app.injector.instanceOf[DefaultActionBuilder]
+          Action { req =>
+            (for {
+              body <- req.body.asFormUrlEncoded
+              foos <- body.get("foo")
+              foo <- foos.headOption
+              buffereds <- body.get("buffered")
+              buffered <- buffereds.headOption
+            } yield {
+              Results.Ok(foo + " " + buffered)
+            }).getOrElse(Results.NotFound)
+          }
         }
-      }
+      })
       .build()
 
     "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
@@ -183,25 +186,25 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(
       configuration ++ Seq("play.http.filters" -> classOf[CsrfFilters].getName)
-    ) {
+    ) (Action => {
         case _ => Action { implicit req =>
           CSRF.getToken(req).map { token =>
             Results.Ok(token.value)
           } getOrElse Results.NotFound
         }
-      } { ws =>
+      }) { ws =>
         handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
   }
 
   def buildCsrfAddResponseHeaders(responseHeaders: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(
       Seq("play.http.filters" -> classOf[CsrfFilters].getName)
-    ) {
+    )(Action => {
         case _ => Action(Results.Ok.withHeaders(responseHeaders: _*))
-      } { ws =>
+      }){ ws =>
         handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
   }

@@ -3,14 +3,17 @@
  */
 package play.filters.cors
 
+import java.time.{ Clock, Instant, ZoneId }
 import javax.inject.Inject
 
 import play.api.Application
 import play.api.http.{ ContentTypes, HttpFilters }
 import play.api.inject.bind
-import play.api.mvc.{ Action, Results }
+import play.api.libs.crypto.{ CryptoConfig, DefaultCSRFTokenSigner, HMACSHA1CookieSigner }
+import play.api.mvc.{ DefaultActionBuilder, Results }
 import play.api.routing.Router
 import play.api.routing.sird._
+import play.filters.cors.CORSWithCSRFSpec.CORSWithCSRFRouter
 import play.filters.csrf._
 
 object CORSWithCSRFSpec {
@@ -23,27 +26,31 @@ object CORSWithCSRFSpec {
     def filters = Seq(csrfFilter)
   }
 
+  class CORSWithCSRFRouter @Inject() (action: DefaultActionBuilder) extends Router {
+    val signer = {
+      val cryptoConfig = CryptoConfig("0123456789abcdef", None)
+      val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
+      val signer = new HMACSHA1CookieSigner(cryptoConfig)
+      new DefaultCSRFTokenSigner(signer, clock)
+    }
+
+    override def routes = {
+      case p"/error" => action { req => throw sys.error("error") }
+      case _ =>
+        val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), signer)
+        csrfCheck(action(Results.Ok), CSRF.DefaultErrorHandler)
+    }
+    override def withPrefix(prefix: String) = this
+    override def documentation = Seq.empty
+  }
+
 }
 
 class CORSWithCSRFSpec extends CORSCommonSpec {
-  import play.api.libs.crypto._
-  import java.time.{ Clock, Instant, ZoneId }
-
-  def tokenSigner = {
-    val cryptoConfig = CryptoConfig("0123456789abcdef", None)
-    val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
-    val signer = new HMACSHA1CookieSigner(cryptoConfig)
-    new DefaultCSRFTokenSigner(signer, clock)
-  }
 
   def withApp[T](filters: Class[_ <: HttpFilters] = classOf[CORSWithCSRFSpec.Filters], conf: Map[String, _ <: Any] = Map())(block: Application => T): T = {
     running(_.configure(conf).overrides(
-      bind[Router].to(Router.from {
-        case p"/error" => Action { req => throw sys.error("error") }
-        case _ =>
-          val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), tokenSigner)
-          csrfCheck(Action(Results.Ok), CSRF.DefaultErrorHandler)
-      }),
+      bind[Router].to[CORSWithCSRFRouter],
       bind[HttpFilters].to(filters)
     ))(block)
   }

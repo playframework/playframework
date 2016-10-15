@@ -49,6 +49,7 @@ object GeneratedRouterSpec extends Specification {
   "A GeneratedRouter" should {
 
     "route requests to Scala controllers" in {
+      val Action = ActionBuilder.ignoringBody
       val handler = Action(Results.Ok("Hello world"))
       val handlerDef = HandlerDef(
         handler.getClass.getClassLoader,

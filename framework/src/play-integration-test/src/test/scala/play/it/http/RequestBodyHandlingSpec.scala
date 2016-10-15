@@ -12,8 +12,8 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.test._
 import play.it._
+
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
 import scala.util.Random
 
 class NettyRequestBodyHandlingSpec extends RequestBodyHandlingSpec with NettyIntegrationSpecification
@@ -25,14 +25,18 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
   "Play request body handling" should {
 
-    def withServer[T](action: EssentialAction)(block: Port => T) = {
+    def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => action }.build())) {
+      running(TestServer(port, GuiceApplicationBuilder().appRoutes { app =>
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        val parse = app.injector.instanceOf[PlayBodyParsers]
+        ({ case _ => action(Action, parse) })
+      }.build())) {
         block(port)
       }
     }
 
-    "handle gzip bodies" in withServer(Action { rh =>
+    "handle gzip bodies" in withServer((Action, _) => Action { rh =>
       Results.Ok(rh.body.asText.getOrElse(""))
     }) { port =>
       val bodyString = "Hello World"
@@ -50,7 +54,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       response.body.left.get must_== bodyString
     }
 
-    "handle large bodies" in withServer(EssentialAction { rh =>
+    "handle large bodies" in withServer((_, _) => EssentialAction { rh =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
@@ -64,7 +68,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(1).status must_== 200
     }
 
-    "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
+    "gracefully handle early body parser termination" in withServer((_, _) => EssentialAction { rh =>
       Accumulator(Sink.ignore).through(Flow[ByteString].take(10)).map(_ => Results.Ok)
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)

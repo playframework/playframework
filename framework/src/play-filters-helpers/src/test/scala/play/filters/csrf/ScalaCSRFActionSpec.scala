@@ -14,19 +14,19 @@ import scala.concurrent.Future
 class ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(configuration)(Action => {
       case _ => if (sendUnauthorizedResult) {
         csrfCheck(Action(req => Results.Ok), new CustomErrorHandler())
       } else {
         csrfCheck(Action(req => Results.Ok))
       }
-    } { ws =>
+    }){ ws =>
       handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(configuration)(Action => {
       case _ => csrfAddToken(Action {
         implicit req =>
           CSRF.getToken.map {
@@ -34,7 +34,7 @@ class ScalaCSRFActionSpec extends CSRFCommonSpecs {
               Results.Ok(token.value)
           } getOrElse Results.NotFound
       })
-    } { ws =>
+    }){ ws =>
 
       handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }

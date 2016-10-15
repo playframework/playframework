@@ -9,7 +9,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
 import play.api.mvc.Results._
-import play.api.mvc.{ Action, Controller, EssentialAction }
+import play.api.mvc.{ ActionBuilder, Controller, EssentialAction }
 import play.api.test.Helpers._
 import play.twirl.api.Content
 
@@ -19,6 +19,7 @@ import scala.language.reflectiveCalls
 class HelpersSpec extends Specification {
 
   val ctrl = new Controller {
+    private val Action = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
       Ok("abc").as("text/plain")
     }

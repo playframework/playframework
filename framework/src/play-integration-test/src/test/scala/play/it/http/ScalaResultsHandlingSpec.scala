@@ -50,7 +50,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       val port = testServerPort
       val app = GuiceApplicationBuilder()
         .overrides(bind[HttpErrorHandler].to(errorHandler))
-        .routes { case _ => Action(result) }
+        .routes { case _ => ActionBuilder.ignoringBody(result) }
         .build()
       running(TestServer(port, app)) {
         block(port)

@@ -36,14 +36,14 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
 
   "HEAD requests" should {
 
-    val chunkedResponse: Routes = {
+    def chunkedResponse(implicit Action: DefaultActionBuilder): Routes = {
       case GET(p"/chunked") =>
         Action { request =>
           Results.Ok.chunked(Source(List("a", "b", "c")))
         }
     }
 
-    val routes =
+    def routes(implicit Action: DefaultActionBuilder) =
       get // GET /get
         .orElse(patch) // PATCH /patch
         .orElse(post) // POST /post
@@ -54,7 +54,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
 
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
-      Server.withRouter()(routes) { implicit port =>
+      Server.withRouterFromComponents()(components => routes(components.defaultActionBuilder)) { implicit port =>
         WsTestClient.withClient(block)
       }
     }
@@ -125,7 +125,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     def addCustomTagAndAttr(r: RequestHeader): RequestHeader = {
       r.copy(tags = Map("CustomTag" -> "x")).withAttr(CustomAttr, "y")
     }
-    val tagAndAttrAction = Action { rh: RequestHeader =>
+    val tagAndAttrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
       val tagComment = rh.tags.get("CustomTag")
       val attrComment = rh.getAttr(CustomAttr)
       val headers = Array.empty[(String, String)] ++
