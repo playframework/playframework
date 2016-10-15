@@ -17,8 +17,9 @@ import play.api.inject.DefaultApplicationLifecycle
  * During dev mode, an ApplicationLoader will be instantiated once, and called once, each time the application is
  * reloaded. In prod mode, the ApplicationLoader will be instantiated and called once when the application is started.
  *
- * Out of the box Play provides a Guice module that defines a Java and Scala default implementation based on Guice.
- * These can be used simply by depending on the play-guice or play-java-guice modules.
+ * Out of the box Play provides a Guice module that defines a Java and Scala default implementation based on Guice,
+ * as well as various helpers like GuiceApplicationBuilder.  This can be used simply by adding the "PlayImport.guice"
+ * dependency in build.sbt.
  *
  * A custom application loader can be configured using the `play.application.loader` configuration property.
  * Implementations must define a no-arg constructor.
@@ -39,8 +40,8 @@ object ApplicationLoader {
   // Method to call if we cannot find a configured ApplicationLoader
   private def loaderNotFound(): Nothing = {
     sys.error("No application loader is configured. Please configure an application loader either using the " +
-      "play.application.loader configuration property, or by depending on a module that configures one, " +
-      "for example by adding the play-guice dependency.")
+      "play.application.loader configuration property, or by depending on a module that configures one. " +
+      "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt.")
   }
 
   private[play] final class NoApplicationLoader extends ApplicationLoader {
