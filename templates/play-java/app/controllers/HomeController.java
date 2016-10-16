@@ -1,13 +1,14 @@
 package controllers;
 
 import play.mvc.*;
-
+import javax.inject.Singleton;
 import views.html.*;
 
 /**
  * This controller contains an action to handle HTTP requests
  * to the application's home page.
  */
+@Singleton
 public class HomeController extends Controller {
 
     /**
