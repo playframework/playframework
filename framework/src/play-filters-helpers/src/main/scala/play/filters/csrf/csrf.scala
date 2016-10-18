@@ -14,8 +14,8 @@ import play.api.inject.{ Binding, Module }
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.core.j.JavaHelpers
-import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, Token, _ }
+import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, _ }
 import play.mvc.Http
 import play.utils.Reflect
 
@@ -54,11 +54,13 @@ case class CSRFConfig(
   // Java builder methods
   def this() = this(cookieName = None)
 
+  import java.{ util => ju }
+
+  import play.core.j.{ RequestHeaderImpl => JRequestHeaderImpl }
+  import play.mvc.Http.{ RequestHeader => JRequestHeader }
+
   import scala.compat.java8.FunctionConverters._
   import scala.compat.java8.OptionConverters._
-  import java.{ util => ju }
-  import play.mvc.Http.{ RequestHeader => JRequestHeader }
-  import play.core.j.{ RequestHeaderImpl => JRequestHeaderImpl }
 
   def withTokenName(tokenName: String) = copy(tokenName = tokenName)
   def withHeaderName(headerName: String) = copy(headerName = headerName)
@@ -239,9 +241,9 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler) extends ErrorHandler {
+  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, req => underlying.handle(req, msg))
+      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {

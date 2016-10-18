@@ -5,12 +5,11 @@ package play.filters.csrf
 
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
-import play.api.Application
 import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.ws._
-import play.api.mvc.{ DefaultActionBuilder, ControllerComponents, Handler, Session }
+import play.api.mvc.{ DefaultActionBuilder, Handler, Session }
 import play.api.test.{ PlaySpecification, TestServer }
 
 import scala.concurrent.Future

@@ -6,7 +6,7 @@ package play.api.http
 import javax.inject._
 
 import play.api._
-import play.api.inject.Binding
+import play.api.inject.{ Binding, BindingKey }
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.http.Status._
@@ -51,8 +51,12 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
       "play.http.errorHandler", "ErrorHandler")
+
+    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+
+    fromConfiguration ++ javaContextComponentsBindings
   }
 }
 

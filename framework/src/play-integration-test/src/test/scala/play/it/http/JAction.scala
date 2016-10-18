@@ -3,11 +3,11 @@
  */
 package play.it.http
 
-import java.util.concurrent.{ CompletionStage, CompletableFuture }
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
+import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.{ Http, Result }
 
@@ -27,10 +27,10 @@ import play.mvc.{ Http, Result }
  */
 object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
-    val components = app.injector.instanceOf[JavaHandlerComponents]
-    new JavaAction(components) {
-      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), components.httpConfiguration.actionComposition)
-      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.getBodyParser(annotations.parser))
+    val handlerComponents = app.injector.instanceOf[JavaHandlerComponents]
+    new JavaAction(handlerComponents) {
+      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), handlerComponents.httpConfiguration.actionComposition)
+      val parser = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
       def invocation = c.invocation
     }
   }

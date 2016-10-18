@@ -3,6 +3,7 @@
  */
 package play.http;
 
+import play.core.j.JavaContextComponents;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 

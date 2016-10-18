@@ -4,17 +4,16 @@
 package play.core.server
 
 import com.typesafe.config.ConfigFactory
-import play.api.http.{ Port, DefaultHttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, Port }
 import play.api.routing.Router
 
 import scala.language.postfixOps
-
 import play.api._
 import play.api.mvc._
-import play.core.{ DefaultWebCommands, ApplicationProvider }
+import play.core.{ ApplicationProvider, DefaultWebCommands }
 import play.api.inject.DefaultApplicationLifecycle
 
-import scala.util.{ Success, Failure }
+import scala.util.{ Failure, Success }
 import scala.concurrent.Future
 
 trait WebSocketable {
@@ -137,11 +136,12 @@ object Server {
    * @return The result of the block of code.
    */
   def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
-    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
+    val context = ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
-    )) {
+    )
+    val application = new BuiltInComponentsFromContext(context) {
       def router = Router.from(routes)
     }.application
     withApplication(application, config)(block)
@@ -176,11 +176,12 @@ object Server {
 private[play] object JavaServerHelper {
   def forRouter(router: Router, mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
     val r = router
-    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
+    val context = ApplicationLoader.Context(
       Environment.simple(mode = mode),
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
-    )) {
+    )
+    val application = new BuiltInComponentsFromContext(context) {
       def router = r
     }.application
     Play.start(application)

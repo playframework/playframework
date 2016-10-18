@@ -9,6 +9,7 @@ import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
 import play.api.libs.typedmap.TypedKey;
 import play.api.libs.typedmap.TypedKeyFactory;
+import play.core.j.JavaContextComponents;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
@@ -102,7 +103,10 @@ public class RequestBuilderTest {
 
     @Test
     public void testFlash() {
-        Context ctx = new Context(new RequestBuilder().flash("a","1").flash("b","1").flash("b","2"));
+        Application app = new GuiceApplicationBuilder().build();
+        Play.start(app);
+        JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+        Context ctx = new Context(new RequestBuilder().flash("a","1").flash("b","1").flash("b","2"), contextComponents);
         assertEquals("1", ctx.flash().get("a"));
         assertEquals("2", ctx.flash().get("b"));
     }
@@ -111,7 +115,8 @@ public class RequestBuilderTest {
     public void testSession() {
         Application app = new GuiceApplicationBuilder().build();
         Play.start(app);
-        Context ctx = new Context(new RequestBuilder().session("a","1").session("b","1").session("b","2"));
+        JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+        Context ctx = new Context(new RequestBuilder().session("a","1").session("b","1").session("b","2"), contextComponents);
         assertEquals("1", ctx.session().get("a"));
         assertEquals("2", ctx.session().get("b"));
         Play.stop(app);

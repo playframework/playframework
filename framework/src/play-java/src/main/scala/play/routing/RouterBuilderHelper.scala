@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
 import play.api.Play
 import play.api.http.{ HttpConfiguration, JavaHttpErrorHandlerDelegate, ParserConfiguration }
 import play.api.mvc.{ ActionBuilder, PlayBodyParsers, Results }
-import play.core.j.JavaHelpers
+import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.Context
 import play.mvc.Result
@@ -61,19 +61,20 @@ private[routing] object RouterBuilderHelper {
             val action = maybeParams match {
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(params) =>
+                // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
+                // it to instantiate the default body parser, we have to instantiate it ourselves.
+                val app = Play.privateMaybeApplication.get // throw exception if no current app
 
                 // Convert to a Scala action
                 val parser = HandlerInvokerFactory.javaBodyParserToScala {
-                  // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
-                  // it to instantiate the default body parser, we have to instantiate it ourselves.
-                  val app = Play.privateMaybeApplication.get // throw exception if no current app
                   val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer)
                   new play.mvc.BodyParser.Default(
                     new JavaHttpErrorHandlerDelegate(app.errorHandler),
                     app.injector.instanceOf[HttpConfiguration], bp)
                 }
                 ActionBuilder.ignoringBody.async(parser) { request =>
-                  val ctx = JavaHelpers.createJavaContext(request)
+                  val contextComponents = app.injector.instanceOf[JavaContextComponents]
+                  val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {

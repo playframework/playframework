@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture
 import play.api.Play
 import play.api.libs.ws._
 import play.api.mvc.Session
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaHandlerComponents }
+import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.{ Context, RequestHeader }
 import play.mvc.{ Controller, Result, Results }
@@ -22,13 +22,14 @@ import scala.reflect.ClassTag
 class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaHandlerComponents = Play.privateMaybeApplication.get.injector.instanceOf[JavaHandlerComponents]
+  def javaContextComponents = Play.privateMaybeApplication.get.injector.instanceOf[JavaContextComponents]
   def myAction = Play.privateMaybeApplication.get.injector.instanceOf[JavaCSRFActionSpec.MyAction]
 
   def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
     def invocation = CompletableFuture.completedFuture(inv)
-    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), components.httpConfiguration.actionComposition)
+    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
   }
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {

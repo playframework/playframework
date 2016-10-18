@@ -4,23 +4,30 @@
 package javaguide.http;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.*;
-import play.libs.Json;
-import play.test.WithApplication;
 import javaguide.testhelpers.MockJavaAction;
-
-import play.mvc.*;
-import play.mvc.Http.*;
+import org.junit.Test;
+import play.core.j.JavaContextComponents;
+import play.i18n.Langs;
+import play.i18n.MessagesApi;
+import play.libs.Json;
+import play.mvc.Http.Cookie;
+import play.mvc.Result;
+import play.test.WithApplication;
 
 import java.util.Map;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static play.mvc.Controller.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
+import static play.test.Helpers.fakeRequest;
 
 public class JavaResponse extends WithApplication {
+
+    JavaContextComponents contextComponents() {
+        return app.injector().instanceOf(JavaContextComponents.class);
+    }
 
     @Test
     public void textContentType() {
@@ -69,7 +76,7 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void setCookie() {
-        setContext(fakeRequest());
+        setContext(fakeRequest(), contextComponents());
         //#set-cookie
         response().setCookie("theme", "blue");
         //#set-cookie
@@ -81,7 +88,7 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void detailedSetCookie() {
-        setContext(fakeRequest());
+        setContext(fakeRequest(), contextComponents());
         //#detailed-set-cookie
         response().setCookie(
                 "theme",        // name
@@ -106,7 +113,7 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void discardCookie() {
-        setContext(fakeRequest());
+        setContext(fakeRequest(), contextComponents());
         //#discard-cookie
         response().discardCookie("theme");
         //#discard-cookie

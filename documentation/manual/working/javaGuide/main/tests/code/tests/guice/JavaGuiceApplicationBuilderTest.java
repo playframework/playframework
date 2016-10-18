@@ -53,7 +53,7 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment
         Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
             .loadConfig(Configuration.reference()) // ###skip
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
             .build();
@@ -69,7 +69,7 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment-values
         Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
             .loadConfig(Configuration.reference()) // ###skip
             .in(new File("path/to/app"))
             .in(Mode.TEST)
@@ -145,6 +145,7 @@ public class JavaGuiceApplicationBuilderTest {
             .load(
                 Guiceable.modules(
                     new play.api.inject.BuiltinModule(),
+                    new play.api.i18n.I18nModule(),
                     new play.inject.BuiltInModule()
                 ),
                 Guiceable.bindings(

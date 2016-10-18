@@ -16,9 +16,12 @@ import play.api.libs.typedmap.TypedEntry;
 import play.api.libs.typedmap.TypedKey;
 import play.api.libs.typedmap.TypedMap;
 import play.api.mvc.Headers;
+import play.api.mvc.SessionCookieBaker;
+import play.core.j.JavaContextComponents;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
+import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.Json;
@@ -75,24 +78,27 @@ public class Http {
         private final Response response;
         private final Session session;
         private final Flash flash;
+        private final JavaContextComponents components;
 
         private Lang lang = null;
 
         /**
          * Creates a new HTTP context.
          *
-         * @param requestBuilder the HTTP request builder
+         * @param requestBuilder the HTTP request builder.
+         * @param components the context components.
          */
-        public Context(RequestBuilder requestBuilder) {
-            this(requestBuilder.build());
+        public Context(RequestBuilder requestBuilder, JavaContextComponents components) {
+            this(requestBuilder.build(), components);
         }
 
         /**
          * Creates a new HTTP context.
          *
          * @param request the HTTP request
+         * @param components the context components.
          */
-        public Context(Request request) {
+        public Context(Request request, JavaContextComponents components) {
             this.request = request;
             this.header = request._underlyingHeader();
             this.id = header.id();
@@ -101,6 +107,7 @@ public class Http {
             this.flash = new Flash(JavaConversions.mapAsJavaMap(header.flash().data()));
             this.args = new HashMap<String,Object>();
             this.args.putAll(JavaConversions.mapAsJavaMap(header.tags()));
+            this.components = components;
         }
 
         /**
@@ -112,8 +119,9 @@ public class Http {
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
          * @param args any arbitrary data to associate with this request context.
+         * @param components the context components.
          */
-        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args, JavaContextComponents components) {
             this.id = id;
             this.header = header;
             this.request = request;
@@ -121,6 +129,7 @@ public class Http {
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
             this.args = new HashMap<String,Object>(args);
+            this.components = components;
         }
 
         /**
@@ -224,11 +233,17 @@ public class Http {
          * @return true if the requested lang was supported by the application, otherwise false
          */
         public boolean changeLang(Lang lang) {
-            if (Lang.availables(currentApp()).contains(lang)) {
+            if (langs().availables().contains(lang)) {
                 this.lang = lang;
-                scala.Option<String> domain = play.api.mvc.Session.domain();
-                response.setCookie(messagesApi().langCookieName(), lang.code(), null, play.api.mvc.Session.path(),
-                    domain.isDefined() ? domain.get() : null, messagesApi().langCookieSecure(), messagesApi().langCookieHttpOnly());
+                scala.Option<String> domain = sessionDomain();
+                Cookie langCookie = new Cookie(messagesApi().langCookieName(),
+                        lang.code(),
+                        null,
+                        sessionPath(),
+                        domain.isDefined() ? domain.get() : null,
+                        messagesApi().langCookieSecure(),
+                        messagesApi().langCookieHttpOnly());
+                response.setCookie(langCookie);
                 return true;
             } else {
                 return false;
@@ -240,9 +255,25 @@ public class Http {
          */
         public void clearLang() {
             this.lang = null;
-            scala.Option<String> domain = play.api.mvc.Session.domain();
-            response.discardCookie(messagesApi().langCookieName(), play.api.mvc.Session.path(),
+            scala.Option<String> domain = sessionDomain();
+            response.discardCookie(messagesApi().langCookieName(), sessionPath(),
                 domain.isDefined() ? domain.get() : null, messagesApi().langCookieSecure());
+        }
+
+        private Langs langs() {
+            return components.langs();
+        }
+
+        private MessagesApi messagesApi() {
+            return components.messagesApi();
+        }
+
+        private scala.Option<String> sessionDomain() {
+            return components.httpConfiguration().session().domain();
+        }
+
+        private String sessionPath() {
+            return components.httpConfiguration().context();
         }
 
         /**
@@ -270,10 +301,11 @@ public class Http {
          * is not supported by the application.
          */
         public void setTransientLang(Lang lang) {
-            if (Lang.availables(currentApp()).contains(lang)) {
+            final Langs langs = components.langs();
+            if (langs.availables().contains(lang)) {
                 this.lang = lang;
             } else {
-                throw new IllegalArgumentException("Language not supported in this application: " + lang + " not in Lang.availables()");
+                throw new IllegalArgumentException("Language not supported in this application: " + lang + " not in " + langs.availables());
             }
         }
 
@@ -378,21 +410,7 @@ public class Http {
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, header, request, session, flash, args);
-        }
-
-        private play.i18n.MessagesApi messagesApi() {
-            // This is a real problem -- to avoid global state, you have to put messagesApi in the
-            // HTTP.Context thread local, or in the request itself.
-            //
-            // It would arguably be cleaner to apply messagesApi.lang(request) rather than the reverse
-            // but this is core API here.
-            play.api.i18n.MessagesApi scalaMessagesApi = currentApp().injector().instanceOf(play.api.i18n.MessagesApi.class);
-            return new MessagesApi(scalaMessagesApi);
-        }
-
-        private play.api.Application currentApp() {
-            return play.api.Play.current();
+            return new Context(id, header, request, session, flash, args, components);
         }
     }
 
@@ -407,7 +425,7 @@ public class Http {
          * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
+            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
             this.args = wrapped.args;
             this.wrapped = wrapped;
         }
