@@ -212,6 +212,16 @@ When you use this with a view helper, the value of the element will be filled wi
 
 Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs.
 
+```html
+@valueLabels = @{List("A" -> "Ardvark", "B" -> "Banana")}
+@helper.select(filledForm("alphabet"), options(valueLabels)) 
+@* The above will render a select element with options that
+   have values and display values like 
+   <option value="A">Ardvark</option> 
+   <option value="B">Banana</option>
+*@
+```
+
 ### Nested values
 
 A form mapping can define nested values by using [`Forms.mapping`](api/scala/play/api/data/Forms$.html) inside an existing mapping:
