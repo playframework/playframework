@@ -61,10 +61,10 @@ Add to your login profile.  Usually, this is `$HOME/.profile`:
 export PATH=/path/to/activator-x.x.x/bin:$PATH
 ```
 
-Make sure that the `activator` script is executable. If it's not:
+Make sure that the `bin/activator` script is executable. If it's not:
 
 ```
-chmod u+x /path/to/activator-x.x.x/activator
+chmod u+x /path/to/activator-x.x.x/bin/activator
 ```
 
 #### Windows
