@@ -6,8 +6,8 @@ package play.routing
 import java.util.concurrent.CompletionStage
 
 import play.api.Play
-import play.api.http.{ ParserConfiguration, HttpConfiguration, JavaHttpErrorHandlerDelegate }
-import play.api.mvc.{ Action, ActionBuilder, PlayBodyParsers, Results }
+import play.api.http.{ HttpConfiguration, JavaHttpErrorHandlerDelegate, ParserConfiguration }
+import play.api.mvc.{ ActionBuilder, PlayBodyParsers, Results }
 import play.core.j.JavaHelpers
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.Context
@@ -59,7 +59,7 @@ private[routing] object RouterBuilderHelper {
             }
 
             val action = maybeParams match {
-              case Left(error) => Action(Results.BadRequest(error))
+              case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(params) =>
 
                 // Convert to a Scala action

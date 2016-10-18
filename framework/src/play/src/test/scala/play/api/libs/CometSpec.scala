@@ -4,24 +4,24 @@
 package play.api.libs
 
 import akka.actor.ActorSystem
-import akka.stream.{ ActorMaterializer, Materializer }
 import akka.stream.scaladsl._
+import akka.stream.{ ActorMaterializer, Materializer }
 import akka.util.{ ByteString, Timeout }
 import org.specs2.mutable._
 import play.api.PlayCoreTestApplication
 import play.api.http.ContentTypes
 import play.api.libs.json.{ JsString, JsValue }
-import play.api.mvc.{ Action, Controller, Result }
+import play.api.mvc._
 import play.core.test.FakeRequest
 
 import scala.concurrent.{ Await, Future }
 
 class CometSpec extends Specification {
 
-  class MockController(val materializer: Materializer) extends Controller {
+  class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent]) extends Controller {
 
     //#comet-string
-    def cometString = Action {
+    def cometString = action {
       implicit val m = materializer
       def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
       Ok.chunked(stringSource via Comet.string("parent.cometMessage")).as(ContentTypes.HTML)
@@ -29,7 +29,7 @@ class CometSpec extends Specification {
     //#comet-string
 
     //#comet-json
-    def cometJson = Action {
+    def cometJson = action {
       implicit val m = materializer
       def stringSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
       Ok.chunked(stringSource via Comet.json("parent.cometMessage")).as(ContentTypes.HTML)
@@ -48,7 +48,7 @@ class CometSpec extends Specification {
       val app = newTestApplication()
       try {
         implicit val m = app.materializer
-        val controller = new MockController(m)
+        val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometString.apply(FakeRequest())
         contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage('kiki');</script><script type=\"text/javascript\">parent.cometMessage('foo');</script><script type=\"text/javascript\">parent.cometMessage('bar');</script>")
       } finally {
@@ -60,7 +60,7 @@ class CometSpec extends Specification {
       val app = newTestApplication()
       try {
         implicit val m = app.materializer
-        val controller = new MockController(m)
+        val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometJson.apply(FakeRequest())
         contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage(\"jsonString\");</script>")
       } finally {

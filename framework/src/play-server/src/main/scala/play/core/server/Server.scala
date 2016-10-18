@@ -147,6 +147,30 @@ object Server {
     withApplication(application, config)(block)
   }
 
+  /**
+   * Run a block of code with a server for the given routes, obtained from the application components
+   *
+   * The passed in block takes the port that the application is running on. By default, this will be a random ephemeral
+   * port. This can be changed by passing in an explicit port with the config parameter.
+   *
+   * @param routes A function that obtains the routes from the server from the application components.
+   * @param config The configuration for the server. Defaults to test config with the http port bound to a random
+   *               ephemeral port.
+   * @param block The block of code to run.
+   * @param provider The server provider.
+   * @return The result of the block of code.
+   */
+  def withRouterFromComponents[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
+    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
+      Environment.simple(path = config.rootDir, mode = config.mode),
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      new DefaultApplicationLifecycle
+    )) { self: BuiltInComponents =>
+      def router = Router.from(routes(self))
+    }.application
+    withApplication(application, config)(block)
+  }
+
 }
 
 private[play] object JavaServerHelper {

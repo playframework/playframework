@@ -3,23 +3,24 @@
  */
 package play.it.mvc
 
-import akka.stream.Materializer
 import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
+
+import akka.stream.Materializer
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
-import play.api.routing.Router
-import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
 import play.api.mvc._
+import play.api.routing.Router
 import play.api.test._
+import play.api.{ ApplicationLoader, BuiltInComponents, BuiltInComponentsFromContext, Environment }
 import play.core.server.Server
 import play.it._
-import scala.concurrent.duration.Duration
-import scala.concurrent._
 
 import scala.concurrent.ExecutionContext.{ global => ec }
+import scala.concurrent._
+import scala.concurrent.duration.Duration
 
 class NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
 class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
@@ -38,7 +39,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
       environment = Environment.simple(),
       initialSettings = settings
     )) {
-      lazy val router = testRouter
+      lazy val router = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
         new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
@@ -233,8 +234,8 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   }
 
   object JavaErrorHandlingFilter extends play.mvc.EssentialFilter {
-    import play.mvc._
     import play.libs.streams.Accumulator
+    import play.mvc._
 
     private def getResult(t: Throwable): Result = {
       // Get the cause of the CompletionException
@@ -284,14 +285,17 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   val expectedErrorText = "Error"
 
   import play.api.routing.sird._
-  val testRouter = Router.from {
-    case GET(p"/") => Action { request => Results.Ok(expectedOkText) }
-    case GET(p"/ok") => Action { request => Results.Ok(expectedOkText) }
-    case POST(p"/ok") => Action { request => Results.Ok(request.body.asText.getOrElse("")) }
-    case GET(p"/error") => Action { request => throw new RuntimeException(expectedErrorText) }
-    case POST(p"/error") => Action { request => throw new RuntimeException(request.body.asText.getOrElse("")) }
-    case GET(p"/error-async") => Action.async { request => Future { throw new RuntimeException(expectedErrorText) }(ec) }
-    case POST(p"/error-async") => Action.async { request => Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(ec) }
+  def testRouter(components: BuiltInComponents) = {
+    val Action = components.defaultActionBuilder
+    Router.from {
+      case GET(p"/") => Action { request => Results.Ok(expectedOkText) }
+      case GET(p"/ok") => Action { request => Results.Ok(expectedOkText) }
+      case POST(p"/ok") => Action { request => Results.Ok(request.body.asText.getOrElse("")) }
+      case GET(p"/error") => Action { request => throw new RuntimeException(expectedErrorText) }
+      case POST(p"/error") => Action { request => throw new RuntimeException(request.body.asText.getOrElse("")) }
+      case GET(p"/error-async") => Action.async { request => Future { throw new RuntimeException(expectedErrorText) }(ec) }
+      case POST(p"/error-async") => Action.async { request => Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(ec) }
+    }
   }
 
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(block: WSClient => T): T

@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject._
 
 import play.api.cache.ehcache.EhCacheApi
-import play.api.{ Application, http }
-import play.api.mvc.{ Action, Request, Results }
+import play.api.mvc._
 import play.api.test._
+import play.api.{ Application, http }
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -22,6 +22,9 @@ class CachedSpec extends PlaySpecification {
   def cached(implicit app: Application) = {
     new Cached(app.injector.instanceOf[AsyncCacheApi])(app.materializer)
   }
+
+  // Tests here don't use the body
+  val Action = ActionBuilder.ignoringBody
 
   "the cached action" should {
     "cache values using injected CachedApi" in new WithApplication() {
@@ -304,14 +307,16 @@ class SomeComponent @Inject() (@NamedCache("custom") cache: AsyncCacheApi) {
   def set(key: String, value: String) = cache.sync.set(key, value)
 }
 
-class CachedController @Inject() (cached: Cached) {
+class CachedController @Inject() (cached: Cached, c: ControllerComponents) extends AbstractController(c) {
   val invoked = new AtomicInteger()
   val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
 }
 
 class NamedCachedController @Inject() (
     @NamedCache("custom") val cache: AsyncCacheApi,
-    @NamedCache("custom") val cached: Cached) {
+    @NamedCache("custom") val cached: Cached,
+    components: ControllerComponents
+) extends AbstractController(components) {
   val invoked = new AtomicInteger()
   val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
   def isCached(key: String): Boolean = cache.sync.get[String](key).isDefined

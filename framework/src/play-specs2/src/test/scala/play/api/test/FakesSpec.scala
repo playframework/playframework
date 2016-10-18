@@ -8,12 +8,9 @@ import java.util.concurrent.TimeUnit
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc._
-
-import play.api.test.Helpers._
-import play.api.mvc.Results._
 import play.api.libs.json.Json
-import org.specs2.specification.Scope
+import play.api.mvc.Results._
+import play.api.mvc._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -21,6 +18,8 @@ import scala.concurrent.duration.Duration
 class FakesSpec extends PlaySpecification {
 
   sequential
+
+  private val Action = ActionBuilder.ignoringBody
 
   "FakeApplication" should {
 

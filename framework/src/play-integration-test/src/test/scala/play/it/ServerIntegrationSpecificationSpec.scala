@@ -4,8 +4,8 @@
 package play.it
 
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.mvc._
 import play.api.test._
 
 class NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
@@ -31,7 +31,7 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
   "ServerIntegrationSpecification" should {
 
     val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
-      case ("GET", "/httpServerTag") => Action { implicit request =>
+      case ("GET", "/httpServerTag") => ActionBuilder.ignoringBody { implicit request =>
         val httpServer = request.tags.get("HTTP_SERVER")
         Ok(httpServer.toString)
       }

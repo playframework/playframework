@@ -6,16 +6,16 @@
 package play.filters.headers
 
 import javax.inject.Inject
-import play.api.inject.guice.GuiceApplicationBuilder
+
 import com.typesafe.config.ConfigFactory
+import play.api.{ Application, Configuration }
 import play.api.http.HttpFilters
-import play.api.routing.{ SimpleRouterImpl, Router }
-import play.api.test.{ WithApplication, FakeRequest, PlaySpecification }
-import play.api.mvc.{ DefaultActionBuilder, Action, Result }
-import play.api.mvc.Results._
-import play.api.Configuration
 import play.api.inject.bind
-import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.Results._
+import play.api.mvc.{ DefaultActionBuilder, Result }
+import play.api.routing.{ Router, SimpleRouterImpl }
+import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
 
 class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
   def filters = Seq(securityHeadersFilter)
@@ -51,10 +51,12 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
   "security headers" should {
 
-    "work with default singleton apply method with all default options" in new WithApplication() { app =>
+    "work with default singleton apply method with all default options" in new WithApplication() {
       val filter = SecurityHeadersFilter()
       // Play.current is set at this point...
       val rh = FakeRequest()
+
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       val action = Action(Ok("success"))
       val result = filter(action)(rh).run()
 
@@ -65,9 +67,10 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
-    "work with singleton apply method using configuration" in new WithApplication() { app =>
+    "work with singleton apply method using configuration" in new WithApplication() {
       val filter = SecurityHeadersFilter(Configuration.reference)
       val rh = FakeRequest()
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       val action = Action(Ok("success"))
       val result = filter(action)(rh).run()
 

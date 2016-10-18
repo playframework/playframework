@@ -7,15 +7,14 @@ package play.it.tools
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import org.apache.commons.io.FileUtils
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.{ JsObject, _ }
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.routing.SimpleRouter
+import play.api.mvc.Results._
+import play.api.mvc._
 import play.api.routing.Router.Routes
+import play.api.routing.SimpleRouter
 import play.api.routing.sird._
 import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
-import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.libs.json.{ JsObject, _ }
 import play.filters.gzip.GzipFilter
 
 /**
@@ -60,56 +59,56 @@ object HttpBinApplication {
           })
   }
 
-  val getIp: Routes = {
+  def getIp(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/ip") =>
       Action { request =>
         Ok(Json.obj("origin" -> request.remoteAddress))
       }
   }
 
-  val getUserAgent: Routes = {
+  def getUserAgent(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/user-agent") =>
       Action { request =>
         Ok(Json.obj("user-agent" -> request.headers.get("User-Agent")))
       }
   }
 
-  val getHeaders: Routes = {
+  def getHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/headers") =>
       Action { request =>
         Ok(Json.obj("headers" -> request.headers.toSimpleMap))
       }
   }
 
-  val get: Routes = {
+  def get(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/get") =>
       Action { request =>
         Ok(requestHeaderWriter.writes(request))
       }
   }
 
-  val patch: Routes = {
+  def patch(implicit Action: DefaultActionBuilder): Routes = {
     case PATCH(p"/patch") =>
       Action { request =>
         Ok(requestWriter.writes(request))
       }
   }
 
-  val post: Routes = {
+  def post(implicit Action: DefaultActionBuilder): Routes = {
     case POST(p"/post") =>
       Action { request =>
         Ok(requestWriter.writes(request))
       }
   }
 
-  val put: Routes = {
+  def put(implicit Action: DefaultActionBuilder): Routes = {
     case PUT(p"/put") =>
       Action { request =>
         Ok(requestWriter.writes(request))
       }
   }
 
-  val delete: Routes = {
+  def delete(implicit Action: DefaultActionBuilder): Routes = {
     case DELETE(p"/delete") =>
       Action { request =>
         Ok(requestHeaderWriter.writes(request))
@@ -118,7 +117,7 @@ object HttpBinApplication {
 
   private def gzipFilter(mat: Materializer) = new GzipFilter()(mat)
 
-  def gzip(implicit mat: Materializer) = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
+  def gzip(implicit mat: Materializer, Action: DefaultActionBuilder) = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
     val route: Routes = {
       case r @ p"/gzip" if r.method == method =>
         gzipFilter(mat)(Action { request =>
@@ -128,7 +127,7 @@ object HttpBinApplication {
     route
   }.reduceLeft((a, b) => a.orElse(b))
 
-  val status: Routes = {
+  def status(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/status/$status<[0-9]+>") =>
       Action {
         val code = status.toInt
@@ -136,14 +135,14 @@ object HttpBinApplication {
       }
   }
 
-  val responseHeaders: Routes = {
+  def responseHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/response-header") =>
       Action { request =>
         Ok("").withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq: _*)
       }
   }
 
-  val redirect: Routes = {
+  def redirect(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/redirect/0") =>
       Action {
         Redirect("/get")
@@ -154,7 +153,7 @@ object HttpBinApplication {
       }
   }
 
-  val redirectTo: Routes = {
+  def redirectTo(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/redirect-to") =>
       Action { request =>
         request.queryString.get("url").map { u =>
@@ -165,14 +164,14 @@ object HttpBinApplication {
       }
   }
 
-  val cookies: Routes = {
+  def cookies(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/cookies") =>
       Action { request =>
         Ok(Json.obj("cookies" -> JsObject(request.cookies.toSeq.map(x => x.name -> JsString(x.value)))))
       }
   }
 
-  val cookiesSet: Routes = {
+  def cookiesSet(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/cookies/set") =>
       Action { request =>
         Redirect("/cookies").withCookies(request.queryString.mapValues(_.head).toSeq.map {
@@ -181,14 +180,14 @@ object HttpBinApplication {
       }
   }
 
-  val cookiesDelete: Routes = {
+  def cookiesDelete(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/cookies/delete") =>
       Action { request =>
         Redirect("/cookies").discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_)): _*)
       }
   }
 
-  val basicAuth: Routes = {
+  def basicAuth(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/basic-auth/$username/$password") =>
       Action { request =>
         request.headers.get("Authorization").flatMap { authorization =>
@@ -204,7 +203,7 @@ object HttpBinApplication {
       }
   }
 
-  val stream: Routes = {
+  def stream(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/stream/$param<[0-9]+>") =>
       Action { request =>
         val body = requestHeaderWriter.writes(request).as[JsObject]
@@ -217,13 +216,11 @@ object HttpBinApplication {
       }
   }
 
-  val delay: Routes = {
+  def delay(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/delay/$duration<[0-9+]") =>
       Action.async { request =>
-        import scala.concurrent.Await
-        import scala.concurrent.Promise
-        import scala.concurrent.Future
         import scala.concurrent.ExecutionContext.Implicits.global
+        import scala.concurrent.{ Await, Future, Promise }
         import scala.concurrent.duration._
         import scala.util.Try
         val p = Promise[Result]()
@@ -240,7 +237,7 @@ object HttpBinApplication {
       }
   }
 
-  val html: Routes = {
+  def html(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/html") =>
       Action {
         Ok("""
@@ -303,7 +300,7 @@ object HttpBinApplication {
       }
   }
 
-  val robots: Routes = {
+  def robots(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/robots.txt") =>
       Action {
         Ok("User-agent: *\nDisallow: /deny")
@@ -327,6 +324,7 @@ object HttpBinApplication {
 
   def app = {
     new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
+      implicit lazy val Action = defaultActionBuilder
       def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)

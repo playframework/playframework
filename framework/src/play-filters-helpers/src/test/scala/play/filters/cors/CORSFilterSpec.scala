@@ -8,7 +8,7 @@ import javax.inject.Inject
 import play.api.Application
 import play.api.http.HttpFilters
 import play.api.inject.bind
-import play.api.mvc.{ Action, DefaultActionBuilder, Results }
+import play.api.mvc.{ DefaultActionBuilder, Results }
 import play.api.routing.sird._
 import play.api.routing.{ Router, SimpleRouterImpl }
 import play.filters.cors.CORSFilterSpec._
@@ -21,7 +21,7 @@ object CORSFilterSpec {
 
   class CorsApplicationRouter @Inject() (action: DefaultActionBuilder) extends SimpleRouterImpl({
     case p"/error" => action { req => throw sys.error("error") }
-    case _ => Action(Results.Ok)
+    case _ => action(Results.Ok)
   })
 
 }

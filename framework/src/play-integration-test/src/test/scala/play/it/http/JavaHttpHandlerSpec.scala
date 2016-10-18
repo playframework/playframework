@@ -4,7 +4,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.ws.WSResponse
-import play.api.mvc.{ Action, Handler, Results }
+import play.api.mvc.{ ActionBuilder, Handler, Results }
 import play.api.test.{ PlaySpecification, WsTestClient }
 import play.core.j.{ JavaHandler, JavaHandlerComponents }
 import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
@@ -28,7 +28,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
   val TestAttr = TypedKey[String]("testAttr")
   val javaHandler: JavaHandler = new JavaHandler {
     override def withComponents(components: JavaHandlerComponents): Handler = {
-      Action { req => Results.Ok(req.getAttr(TestAttr).toString) }
+      ActionBuilder.ignoringBody { req => Results.Ok(req.getAttr(TestAttr).toString) }
     }
   }
 

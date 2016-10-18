@@ -52,11 +52,14 @@ class OAuthSpec extends PlaySpecification {
   def receiveRequest(makeRequest: (play.libs.ws.WSClient, String) => CompletionStage[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
     val promise = Promise[(RequestHeader, ByteString)]()
-    val app = GuiceApplicationBuilder().routes {
-      case _ => Action(BodyParsers.parse.raw) { request =>
-        promise.success((request, request.body.asBytes().getOrElse(ByteString.empty)))
-        Results.Ok
-      }
+    val app = GuiceApplicationBuilder().appRoutes { app =>
+      val c = app.injector.instanceOf[ControllerComponents]
+      ({
+        case _ => c.actionBuilder(c.parsers.raw) { request =>
+          promise.success((request, request.body.asBytes().getOrElse(ByteString.empty)))
+          Results.Ok
+        }
+      })
     }.build()
     running(TestServer(testServerPort, app)) {
       val client = app.injector.instanceOf(classOf[play.libs.ws.WSClient])

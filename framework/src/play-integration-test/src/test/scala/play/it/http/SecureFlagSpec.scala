@@ -3,16 +3,17 @@
  */
 package play.it.http
 
+import java.io.{ File, InputStream }
+import java.net.URL
+import java.security.cert.X509Certificate
+import javax.net.ssl.{ HttpsURLConnection, SSLContext, X509TrustManager }
+
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
-import play.api.test.TestServer
 import play.it._
-import java.io.{ File, InputStream }
-import javax.net.ssl.{ SSLContext, HttpsURLConnection, X509TrustManager }
-import java.security.cert.X509Certificate
+
 import scala.io.Source
-import java.net.URL
 
 class NettySecureFlagSpec extends SecureFlagSpec with NettyIntegrationSpecification
 class AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpecification
@@ -25,7 +26,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
   sequential
 
   /** An action whose result is just "true" or "false" depending on the value of result.secure */
-  val secureFlagAction = Action { request: Request[_] =>
+  val secureFlagAction = ActionBuilder.ignoringBody { request: Request[_] =>
     Results.Ok(request.secure.toString)
   }
 

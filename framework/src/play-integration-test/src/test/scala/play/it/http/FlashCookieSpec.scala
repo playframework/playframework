@@ -5,7 +5,7 @@ package play.it.http
 
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
-import play.api.mvc.{ Cookie, Flash, Action }
+import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.libs.ws.{ WSClient, WSCookie, WSResponse }
 import play.core.server.Server
@@ -18,22 +18,25 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
   sequential
 
-  def appWithRedirect = GuiceApplicationBuilder().routes {
-    case ("GET", "/flash") =>
-      Action {
-        Redirect("/landing").flashing(
-          "success" -> "found"
-        )
-      }
-    case ("GET", "/set-cookie") =>
-      Action {
-        Ok.withCookies(Cookie("some-cookie", "some-value"))
-      }
-    case ("GET", "/landing") =>
-      Action {
-        Ok("ok")
-      }
-  }.build()
+  def appWithRedirect = GuiceApplicationBuilder().appRoutes(app => {
+    val Action = app.injector.instanceOf[DefaultActionBuilder]
+    ({
+      case ("GET", "/flash") =>
+        Action {
+          Redirect("/landing").flashing(
+            "success" -> "found"
+          )
+        }
+      case ("GET", "/set-cookie") =>
+        Action {
+          Ok.withCookies(Cookie("some-cookie", "some-value"))
+        }
+      case ("GET", "/landing") =>
+        Action {
+          Ok("ok")
+        }
+    })
+  }).build()
 
   def withClientAndServer[T](block: WSClient => T) = {
     val app = appWithRedirect

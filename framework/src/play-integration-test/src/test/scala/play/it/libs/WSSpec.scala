@@ -66,18 +66,20 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         }
       }
 
-      Server.withRouter() {
-        case _ => Action(echo) { req =>
+      Server.withRouterFromComponents()(components => {
+        case _ => components.defaultActionBuilder(echo) { req =>
           Ok.chunked(req.body)
         }
-      } { implicit port =>
+      }) { implicit port =>
         withClient(block)
       }
     }
 
     def withResult[T](result: Result)(block: play.libs.ws.WSClient => T) = {
-      Server.withRouter() {
-        case _ => Action(result)
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder(result)
+        }
       } { implicit port =>
         withClient(block)
       }
@@ -93,11 +95,13 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     def withHeaderCheck[T](block: play.libs.ws.WSClient => T) = {
-      Server.withRouter() {
-        case _ => Action { req =>
-          val contentLength = req.headers.get(CONTENT_LENGTH)
-          val transferEncoding = req.headers.get(TRANSFER_ENCODING)
-          Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder { req =>
+            val contentLength = req.headers.get(CONTENT_LENGTH)
+            val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+            Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+          }
         }
       } { implicit port =>
         withClient(block)
@@ -105,10 +109,12 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     def withXmlServer[T](block: play.libs.ws.WSClient => T) = {
-      Server.withRouter() {
-        case _ => Action { req =>
-          val elem = <name>{ isoString }</name>.toString()
-          Ok(elem).as("application/xml;charset=Windows-1252")
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder { req =>
+            val elem = <name>{ isoString }</name>.toString()
+            Ok(elem).as("application/xml;charset=Windows-1252")
+          }
         }
       } { implicit port =>
         withClient(block)
@@ -274,9 +280,11 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         }
       }
 
-      Server.withRouter() {
-        case _ => Action(echo) { req =>
-          Ok.chunked(req.body)
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder(echo) { req =>
+            Ok.chunked(req.body)
+          }
         }
       } { implicit port =>
         WsTestClient.withClient(block)
@@ -284,21 +292,25 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     def withResult[T](result: Result)(block: play.api.libs.ws.WSClient => T) = {
-      Server.withRouter() {
-        case _ => Action(result)
+      Server.withRouterFromComponents() { c =>
+        {
+          case _ => c.defaultActionBuilder(result)
+        }
       } { implicit port =>
         WsTestClient.withClient(block)
       }
     }
 
     def withHeaderCheck[T](block: play.api.libs.ws.WSClient => T) = {
-      Server.withRouter() {
-        case _ => Action { req =>
+      Server.withRouterFromComponents() { c =>
+        {
+          case _ => c.defaultActionBuilder { req =>
 
-          val contentLength = req.headers.get(CONTENT_LENGTH)
-          val transferEncoding = req.headers.get(TRANSFER_ENCODING)
-          Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+            val contentLength = req.headers.get(CONTENT_LENGTH)
+            val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+            Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
 
+          }
         }
       } { implicit port =>
         WsTestClient.withClient(block)
