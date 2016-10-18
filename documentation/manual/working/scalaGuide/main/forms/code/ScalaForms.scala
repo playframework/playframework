@@ -127,6 +127,12 @@ class ScalaFormsSpec extends Specification with Controller {
       emailValue must beEqualTo("bob@example.com")
     }
 
+    "fill selects with options and set their defaults" in {
+      val boundForm = controllers.Application.filledAddressSelectForm
+      val html = views.html.select(boundForm)
+      html.body must contain("option value=\"London\" selected")
+    }
+
   }
 }
 
@@ -263,6 +269,23 @@ class Application extends Controller {
     //#userForm-filled
 
     user.name
+  }
+
+  //#addressSelectForm-constraint
+  val addressSelectForm: Form[AddressData] = Form(
+    mapping(
+      "street" -> text,
+      "city" -> text
+    )(AddressData.apply)(AddressData.unapply)
+  )
+  //#addressSelectForm-constraint
+
+  val filledAddressSelectForm = {
+    //#addressSelectForm-filled
+    val selectedFormValues = AddressData(street = "Main St", city = "London")
+    val filledForm = addressSelectForm.fill(selectedFormValues)
+    //#addressSelectForm-filled
+    filledForm
   }
 
   //#userForm-verify
