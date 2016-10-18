@@ -53,9 +53,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 /*
  * An action that's handling Java requests
  */
-abstract class JavaAction(
-  val handlerComponents: JavaHandlerComponents,
-  val contextComponents: JavaContextComponents)
+abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
@@ -65,7 +63,7 @@ abstract class JavaAction(
   val executionContext: ExecutionContext = handlerComponents.executionContext
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
-
+    val contextComponents = handlerComponents.contextComponents
     val javaContext: JContext = createJavaContext(req, contextComponents)
 
     val rootAction = new JAction[Any] {

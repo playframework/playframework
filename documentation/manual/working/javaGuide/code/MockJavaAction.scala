@@ -35,7 +35,7 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
     contextComponents
   )
 
-  private lazy val action = new JavaAction(handlerComponents, contextComponents) {
+  private lazy val action = new JavaAction(handlerComponents) {
     val annotations = new JavaActionAnnotations(controller, method, handlerComponents.httpConfiguration.actionComposition)
 
     def parser = {

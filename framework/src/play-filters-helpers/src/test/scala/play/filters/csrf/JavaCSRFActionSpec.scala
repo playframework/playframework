@@ -25,7 +25,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def javaContextComponents = Play.privateMaybeApplication.get.injector.instanceOf[JavaContextComponents]
   def myAction = Play.privateMaybeApplication.get.injector.instanceOf[JavaCSRFActionSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents, javaContextComponents) {
+  def javaAction[T: ClassTag](method: String, inv: => Result) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
     def invocation = CompletableFuture.completedFuture(inv)

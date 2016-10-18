@@ -100,7 +100,7 @@ object HandlerInvokerFactory {
 
       override def call(call: => A): Handler = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): Handler = {
-          new play.core.j.JavaAction(handlerComponents, handlerComponents.contextComponents) {
+          new play.core.j.JavaAction(handlerComponents) {
             override val annotations = cachedAnnotations(handlerComponents.httpConfiguration.actionComposition)
             override val parser = {
               val javaParser = handlerComponents.getBodyParser(annotations.parser)

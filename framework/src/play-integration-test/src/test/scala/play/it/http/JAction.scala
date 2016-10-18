@@ -28,8 +28,7 @@ import play.mvc.{ Http, Result }
 object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
     val handlerComponents = app.injector.instanceOf[JavaHandlerComponents]
-    val contextComponents = app.injector.instanceOf[JavaContextComponents]
-    new JavaAction(handlerComponents, contextComponents) {
+    new JavaAction(handlerComponents) {
       val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), handlerComponents.httpConfiguration.actionComposition)
       val parser = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
       def invocation = c.invocation
