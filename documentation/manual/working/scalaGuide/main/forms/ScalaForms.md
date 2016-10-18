@@ -210,17 +210,24 @@ When you use this with a view helper, the value of the element will be filled wi
 @helper.inputText(filledForm("name")) @* will render value="Bob" *@
 ```
 
-Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs.
+Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs:
 
-```html
-@valueLabels = @{List("A" -> "Ardvark", "B" -> "Banana")}
-@helper.select(filledForm("alphabet"), options(valueLabels)) 
-@* The above will render a select element with options that
-   have values and display values like 
-   <option value="A">Ardvark</option> 
-   <option value="B">Banana</option>
-*@
-```
+A single valued form mapping can set the selected options in a select
+dropdown:
+
+@[addressSelectForm-constraint](code/ScalaForms.scala)
+
+@[addressSelectForm-filled](code/ScalaForms.scala)
+
+And when this is used in a template that sets the options to a list of pairs
+
+@[select-form-define](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+@[addressSelectForm-options-usage](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+The filled value will be selected in the dropdown based on the first value of the pair.
+In this case, the U.K. Office will be displayed in the select and the option's value 
+will be London.
 
 ### Nested values
 
