@@ -199,17 +199,14 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * A Java compatible HTTP request handler.
  *
  * If a router routes to Java actions, it will return instances of [[play.core.j.JavaHandler]].  This takes an instance
- * of [[play.core.j.JavaHandlerComponents]] to supply the necessary infrastructure to invoke a Java action, an instance of [[play.core.j.JavaContextComponents]] to supply the infrastructure for an Http.Context, and returns
+ * of [[play.core.j.JavaHandlerComponents]] to supply the necessary infrastructure to invoke a Java action, and returns
  * a new [[play.api.mvc.Handler]] that the core of Play knows how to handle.
  *
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration,
-  filters: HttpFilters,
-  handlerComponents: JavaHandlerComponents,
-  contextComponents: JavaContextComponents)
+  configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
     extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
