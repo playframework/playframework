@@ -25,24 +25,9 @@ public class WithApplication {
     /**
      * Override this method to setup the application to use.
      *
-     * By default this will call the old {@link #provideFakeApplication() provideFakeApplication} method.
-     *
      * @return The application to use
      */
     protected Application provideApplication() {
-        return provideFakeApplication();
-    }
-
-    /**
-     *
-     * Override this method to setup the fake application to use.
-     *
-     * @deprecated use the new {@link #provideApplication() provideApplication} method instead.
-     *
-     * @return The fake application to use
-     */
-    @Deprecated
-    protected Application provideFakeApplication() {
         return Helpers.fakeApplication();
     }
 

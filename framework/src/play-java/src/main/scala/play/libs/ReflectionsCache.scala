@@ -7,7 +7,7 @@ package play.libs
  * Provides a cache for reflections, so that classloader scanning over the same classloader for the same package
  * multiple times doesn't need to be done.
  *
- * This is most useful in tests, when each test starts a new FakeApplication, and so things like Ebean scan the
+ * This is most useful in tests, when each test starts a new Application, and so things like Ebean scan the
  * classloader for @Entity annotated classes in a given package.  Profiling shows that without this cache, over 90%
  * of a tests time might be spent in classpath scanning.
  */

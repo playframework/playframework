@@ -16,7 +16,7 @@ class WSSpec extends PlaySpecification {
 
   "WS.url().post(InputStream)" should {
 
-    val uploadApp = FakeApplication(withRoutes = {
+    val uploadApp = GuiceApplicationBuilder().routes {
       case ("POST", "/") =>
         Action { request =>
           request.body.asRaw.fold[Result](BadRequest) { raw =>
@@ -24,7 +24,7 @@ class WSSpec extends PlaySpecification {
             Ok(s"size=$size")
           }
         }
-    })
+    }.build()
 
     "uploads the stream" in new WithServer(app = uploadApp, port = 3333) {
       val wsClient = app.injector.instanceOf(classOf[WSClient])

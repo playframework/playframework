@@ -83,7 +83,7 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 @[test-controller-test](code/javaguide/tests/ApplicationTest.java)
 
-You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use [`FakeRequest`](api/java/play/test/FakeRequest.html) which is a mock for request data:
+You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use `FakeRequest` which is a mock for request data:
 
 @[test-controller-routes](code/javaguide/tests/ApplicationTest.java)
 

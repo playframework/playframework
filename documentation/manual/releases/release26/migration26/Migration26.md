@@ -338,3 +338,17 @@ class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionCon
 ```
 
 Please see [[ThreadPools]] page for more information on custom execution contexts.
+
+## Changes to play.api.test Helpers
+
+The following deprecated test helpers have been removed in 2.6.x:
+
+* `play.api.test.FakeApplication` has been replaced by [`play.api.inject.guice.GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html).
+* The `play.api.test.Helpers.route(request)` has been replaced with the `play.api.test.Helpers.routes(app, request)` method.
+* The `play.api.test.Helpers.route(request, body)` has been replaced with the [`play.api.test.Helpers.routes(app, request, body)`](api/scala/play/api/test/Helpers$.html) method.
+
+### Java API
+
+* `play.test.FakeRequest` has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html)
+* `play.test.FakeApplication` has been replaced with `play.inject.guice.GuiceApplicationBuilder`.  You can create a new `Application` from [`play.test.Helpers.fakeApplication`](api/java/play/inject/guice/GuiceApplicationBuilder.html).
+* In `play.test.WithApplication`, the deprecated `provideFakeApplication` method has been removed -- the `provideApplication` method should be used.

@@ -8,6 +8,7 @@ import akka.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
+import play.inject.guice.GuiceApplicationBuilder;
 import play.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
@@ -130,12 +131,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Builds a new fake application.
+     * Builds a new fake application, using GuiceApplicationBuilder.
      *
      * @return an application from the current path with no additional configuration.
      */
     public static Application fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<>());
+        return new GuiceApplicationBuilder().build();
     }
 
     /**
@@ -166,13 +167,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new fake application.
+     * Build a new fake application.  Uses GuiceApplicationBuilder
      *
      * @param additionalConfiguration map containing config info for the app.
      * @return an application from the current path with additional configuration.
      */
     public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
+        //noinspection unchecked
+        Map<String, Object> conf = (Map<String, Object>) additionalConfiguration;
+        return new GuiceApplicationBuilder().configure(conf).build();
     }
 
     /**
