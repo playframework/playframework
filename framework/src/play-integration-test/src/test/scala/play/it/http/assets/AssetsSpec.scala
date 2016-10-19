@@ -7,10 +7,9 @@ import controllers.Assets
 import play.api.Play
 import play.api.libs.ws.WSClient
 import play.api.test._
-import org.apache.commons.io.IOUtils
-import java.io.ByteArrayInputStream
+
 import play.api.Mode
-import play.core.server.{ ServerConfig, Server }
+import play.core.server.{ Server, ServerConfig }
 import play.it._
 
 class NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
@@ -76,6 +75,32 @@ trait AssetsSpec extends PlaySpecification
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
+    "serve an asset with dash in the name" in withServer { client =>
+      val result = await(client.url("/svg-spritsheets.svg").get())
+
+      result.status must_== OK
+      result.body must_== "asset with dash in its name. no minified version or digested one. should be served as is."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("image/svg+xml"))
+      result.header(ETAG) must beSome(matching(etagPattern))
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }
+
+    "serve a gzipped version of a asset with digest if available and requested" in withServer { client =>
+      val result = await(client.url("/versioned/601eb86271b0180c67d931a63cdd0ac5-somefile.js")
+        .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch")
+        .get())
+      result.bodyAsBytes.utf8String must_== "This is a test gzipped asset.\n"
+      // unfortunately, we cannot check for CONTENT_ENCODING, because the play WSClient available in test is stripping this header.
+      // the header should be here, if we're able to set org.asynchttpclient.DefaultAsyncHttpClientConfig.Builder.keepEncodingHeader
+      // but I don't know how to reconfigure the client in this test.
+      // I manually confirmed in chrome that this gets sent.
+      // result.header(CONTENT_ENCODING) must beSome("gzip")
+      success
+    }
+
     "serve a non gzipped asset when gzip is available but not requested" in withServer { client =>
       val result = await(client.url("/foo.txt").get())
 
@@ -91,11 +116,54 @@ trait AssetsSpec extends PlaySpecification
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       //result.header(CONTENT_ENCODING) must beSome("gzip")
-      val ahcResult: org.asynchttpclient.Response = result.underlying.asInstanceOf[org.asynchttpclient.Response]
-      val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
-      IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
-      // release deflate resources
-      is.close()
+      result.bodyAsBytes.utf8String must_== "This is a test gzipped asset.\n"
+      success
+    }
+
+    "serve a brotli compressed asset" in withServer { client =>
+      val result = await(client.url("/encoding.js")
+        .withHeaders(ACCEPT_ENCODING -> "br")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      result.header(CONTENT_ENCODING) must beSome("br")
+      result.bodyAsBytes.length must_=== 66
+      success
+    }
+
+    "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer { client =>
+      val result = await(client.url("/encoding.js")
+        .withHeaders(ACCEPT_ENCODING -> "gzip")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      // this check is disabled, because the underlying http client does strip the content-encoding header.
+      // to prevent this, we would have to pass a DefaultAsyncHttpClientConfig which sets
+      // org.asynchttpclient.DefaultAsyncHttpClientConfig.keepEncodingHeader to true
+      //      result.header(CONTENT_ENCODING) must beSome("gzip")
+      // 107 is the length of the uncompressed message in encoding.js.gz .. as the http client transparently unzips
+      result.bodyAsBytes.length must_=== 107
+      success
+    }
+
+    "serve a plain asset when brotli is available but not requested" in withServer { client =>
+      val result = await(client.url("/encoding.js")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      result.header(CONTENT_ENCODING) must beNone
+      result.bodyAsBytes.length must_=== 105
+      success
+    }
+
+    "serve a brotli compressed asset when brotli and gzip are requested" in withServer { client =>
+      val result = await(client.url("/encoding.js")
+        .withHeaders(ACCEPT_ENCODING -> "gzip,br")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      result.header(CONTENT_ENCODING) must beSome("br")
+      result.bodyAsBytes.length must_=== 66
       success
     }
 
@@ -189,13 +257,53 @@ trait AssetsSpec extends PlaySpecification
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
     }
 
+    "extract the digest from the filename if no digest file is available" in withServer { client =>
+      val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+      result.status must_== OK
+      result.body must_== "This is a test asset with the digest 12345678901234567890123456789012."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must_== Some("\"12345678901234567890123456789012\"")
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== aggressiveCacheControl
+    }
+
     "serve a versioned asset" in withServer { client =>
       val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body must_== "This is a test asset with the digest 12345678901234567890123456789012."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
       result.header(ETAG) must_== Some("\"12345678901234567890123456789012\"")
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== aggressiveCacheControl
+    }
+
+    "return 404 for versioned assets that doesn't exist" in withServer { client =>
+      val result = await(client.url("/versioned/sub/dontexist-foo.txt").get())
+
+      result.status must_== NOT_FOUND
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+    }
+
+    "return 404 for versioned assets that doesn't exist but matches digest filename pattern" in withServer { client =>
+      val result = await(client.url("/versioned/sub/288DE6CD4CE8425296AB07C194C845E6-foo.txt").get())
+
+      result.status must_== NOT_FOUND
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+    }
+
+    "serve the correct version of a versioned asset" in withServer { client =>
+      var result = await(client.url("/versioned/sub/fe80fe0ee8f27d99e7028d65d1464d20-foo.txt").get())
+
+      result.status must_== OK
+      result.body must_== "This is a test asset with hash fe80fe0ee8f27d99e7028d65d1464d20."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must_== Some("\"fe80fe0ee8f27d99e7028d65d1464d20\"")
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone

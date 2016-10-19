@@ -38,6 +38,8 @@ package controllers {
   import play.api.http.HeaderNames
   import play.api.inject.Module
 
+  import scala.util.matching.Regex
+
   object Execution extends TrampolineContextProvider
 
   class AssetsModule extends Module {
@@ -108,6 +110,7 @@ package controllers {
     defaultCacheControl: String = "public, max-age=3600",
     aggressiveCacheControl: String = "public, max-age=31536000",
     digestAlgorithm: String = "md5",
+    digestFilenamePatternMatcher: Regex = "(?<digest>[a-fA-F0-9]{32})-(?<filename>.*)\\.(?<ext>.*)".r,
     checkForMinified: Boolean = true
   )
 
@@ -121,6 +124,7 @@ package controllers {
         defaultCacheControl = c.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache"),
         aggressiveCacheControl = c.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache"),
         digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
+        digestFilenamePatternMatcher = c.getOptional[String]("play.assets.digest.pattern.matcher").map(s => s.r).get,
         checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
           .getOrElse(mode != Mode.Dev)
       )
@@ -143,7 +147,7 @@ package controllers {
    * Retains meta information regarding an asset that can be readily cached.
    */
   @Singleton
-  class AssetsMetadata(config: AssetsConfiguration, resource: String => Option[URL]) {
+  class AssetsMetadata(config: AssetsConfiguration, val resource: String => Option[URL]) {
 
     @Inject
     def this(env: Environment, config: AssetsConfiguration) = this(config, env.resource _)
@@ -173,9 +177,23 @@ package controllers {
       digestCache.getOrElse(path, {
         val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
         val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
+          // if there is no digest file, see if we can infer the digest from the filename
+          .orElse(inferDigestFromFilename(path).map(_.digest))
         if (enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
         maybeDigest
       })
+    }
+
+    case class DigestFilename(digest: String, filename: String, extension: String)
+
+    // allows to infer the digest of a given filename
+    def inferDigestFromFilename(path: String): Option[DigestFilename] = {
+      val filename: String = new File(path).getName
+      val matcher = digestFilenamePatternMatcher.pattern.matcher(filename)
+      if (matcher.matches())
+        Option(DigestFilename(matcher.group("digest"), matcher.group("filename"), matcher.group("ext")))
+      else
+        None
     }
 
     // Sames goes for the minified paths cache.
@@ -206,8 +224,12 @@ package controllers {
         for {
           url <- resource(name)
         } yield {
+          val digestOption: Option[String] = inferDigestFromFilename(name).map(_.digest).orElse(digest(name))
           val gzipUrl: Option[URL] = resource(name + ".gz")
-          new AssetInfo(name, url, gzipUrl, digest(name), config)
+          val brotliUrl: Option[URL] = resource(name + ".br")
+          val lzma2Url: Option[URL] = resource(name + ".xz")
+          val bzip2Url: Option[URL] = resource(name + ".bz2")
+          new AssetInfo(name, url, digestOption, gzipUrl, brotliUrl, lzma2Url, bzip2Url, config)
         }
       }
     }
@@ -220,9 +242,16 @@ package controllers {
       }
     }
 
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
-      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-      assetInfo(name).map(_.map(_ -> gzipRequested))
+    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Assets.AcceptedEncodings)]] = {
+      val acceptedEncodings = request.headers.get(ACCEPT_ENCODING)
+        .map(_.split(','))
+        .map(l => Assets.AcceptedEncodings(
+          gzip = l.exists(_.trim == "gzip"),
+          brotli = l.exists(_.trim == "br"),
+          lzma2 = l.exists(_.trim == "xz"),
+          bzip2 = l.exists(_.trim == "bz2")
+        )).getOrElse(Assets.AcceptedEncodings())
+      assetInfo(name).map(_.map(_ -> acceptedEncodings))
     }
   }
 
@@ -232,8 +261,11 @@ package controllers {
   private class AssetInfo(
       val name: String,
       val url: URL,
-      val gzipUrl: Option[URL],
       val digest: Option[String],
+      val gzipUrl: Option[URL],
+      val brotliUrl: Option[URL] = None,
+      val lzma2Url: Option[URL] = None,
+      val bzip2Url: Option[URL] = None,
       config: AssetsConfiguration
   ) {
 
@@ -284,10 +316,25 @@ package controllers {
 
     val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
-    def url(gzipAvailable: Boolean): URL = {
-      gzipUrl match {
-        case Some(x) => if (gzipAvailable) x else url
-        case None => url
+    def url(acceptedEncodings: Assets.AcceptedEncodings): URL = {
+      // keep this method in sync with controllers.AssetsBuilder.asEncodedResult !
+
+      // brotli > gzip > bzip2 > lzma2 (xz)
+      // .. ordered by filesize, decompression speed .. brotli saves a lot of space, gzip is slightly faster in
+      // decompression.. on mobile, the savings in filesize probably outweight the
+      // little longer decompression speed of brotli.
+      // see https://www.gstatic.com/b/brotlidocs/brotli-2015-09-22.pdf
+      // https://www.opencpu.org/posts/brotli-benchmarks/
+      if (brotliUrl.isDefined && acceptedEncodings.brotli) {
+        brotliUrl.get
+      } else if (gzipUrl.isDefined && acceptedEncodings.gzip) {
+        gzipUrl.get
+      } else if (bzip2Url.isDefined && acceptedEncodings.bzip2) {
+        bzip2Url.get
+      } else if (lzma2Url.isDefined && acceptedEncodings.lzma2) {
+        lzma2Url.get
+      } else {
+        url
       }
     }
   }
@@ -328,6 +375,13 @@ package controllers {
   object Assets extends AssetsBuilder(LazyHttpErrorHandler, LazyAssetsMetadata) {
 
     import ResponseHeader.basicDateFormatPattern
+
+    case class AcceptedEncodings(
+      gzip: Boolean = false,
+      brotli: Boolean = false,
+      lzma2: Boolean = false,
+      bzip2: Boolean = false
+    )
 
     val standardDateParserWithoutTZ: DateTimeFormatter =
       DateTimeFormatter.ofPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(ZoneOffset.UTC)
@@ -405,8 +459,8 @@ package controllers {
 
   class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends BaseController {
 
-    import meta._
     import Assets._
+    import meta._
 
     private val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
@@ -441,10 +495,24 @@ package controllers {
       r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
     }
 
-    private def asGzipResult(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
-      if (gzipRequested && gzipAvailable) {
+    // sets the appropriate vary and content-encoding headers.
+    private def asEncodedResult(response: Result, acceptedEncodings: Assets.AcceptedEncodings, assetInfo: AssetInfo): Result = {
+      val isAnyEncodingAvailable = assetInfo.brotliUrl.isDefined || assetInfo.lzma2Url.isDefined || assetInfo.gzipUrl.isDefined || assetInfo.bzip2Url.isDefined
+
+      // this order needs to stay in sync with controllers.AssetInfo.url
+      // see description there for details.
+      // brotli > gzip > bzip2 > lzma2 (xz)
+      if (acceptedEncodings.brotli && assetInfo.brotliUrl.isDefined) {
+        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "br")
+      } else if (acceptedEncodings.gzip && assetInfo.gzipUrl.isDefined) {
         response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-      } else if (gzipAvailable) {
+      } else if (acceptedEncodings.bzip2 && assetInfo.bzip2Url.isDefined) {
+        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "bzip2")
+      } else if (acceptedEncodings.lzma2 && assetInfo.lzma2Url.isDefined) {
+        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "xz")
+      } else if (isAnyEncodingAvailable) {
+        // if _any_ encoding is available (gzip, brotli), we'll need to set the vary: accept-encoding header so that
+        // a intermediate proxy knows about this (and doesn't cache/serve the gzipped version as plain).
         response.withHeaders(VARY -> ACCEPT_ENCODING)
       } else {
         response
@@ -455,20 +523,11 @@ package controllers {
      * Generates an `Action` that serves a versioned static resource.
      */
     def versioned(path: String, file: Asset): Action[AnyContent] = Action.async { implicit request =>
-      val f = new File(file.name)
-      // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
-      // otherwise we can't.
-      val requestedDigest = f.getName.takeWhile(_ != '-')
-      if (!requestedDigest.isEmpty) {
-        val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
-        val bareFullPath = path + "/" + bareFile
-        blocking(digest(bareFullPath)) match {
-          case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
-          case _ => assetAt(path, file.name, aggressiveCaching = false)
-        }
-      } else {
-        assetAt(path, file.name, aggressiveCaching = false)
-      }
+      // We want to detect if it's a fingerprinted asset, because if it's fingerprinted,
+      // we can aggressively cache it, otherwise we can't.
+      val filename = new File(file.name).getName
+      val digest: Option[String] = inferDigestFromFilename(filename).map(_.digest)
+      assetAt(path, file.name, aggressiveCaching = digest.isDefined)
     }
 
     /**
@@ -484,15 +543,15 @@ package controllers {
 
     private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
+      val assetInfoFuture: Future[Option[(AssetInfo, AcceptedEncodings)]] = assetName.map { name =>
         assetInfoForRequest(request, name)
       } getOrElse Future.successful(None)
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
       val pendingResult: Future[Result] = assetInfoFuture.flatMap {
-        case Some((assetInfo, gzipRequested)) =>
-          val connection = assetInfo.url(gzipRequested).openConnection()
+        case Some((assetInfo, acceptedEncodings)) =>
+          val connection = assetInfo.url(acceptedEncodings).openConnection()
           // Make sure it's not a directory
           if (Resources.isUrlConnectionADirectory(connection)) {
             Resources.closeUrlConnection(connection)
@@ -508,7 +567,7 @@ package controllers {
               cacheableResult(
                 assetInfo,
                 aggressiveCaching,
-                asGzipResult(result, gzipRequested, assetInfo.gzipUrl.isDefined)
+                asEncodedResult(result, acceptedEncodings, assetInfo)
               )
             })
           }
