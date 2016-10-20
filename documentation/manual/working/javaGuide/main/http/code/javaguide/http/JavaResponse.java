@@ -78,7 +78,10 @@ public class JavaResponse extends WithApplication {
     public void setCookie() {
         setContext(fakeRequest(), contextComponents());
         //#set-cookie
-        response().setCookie("theme", "blue");
+        response().setCookie(new Cookie(
+            "theme", "blue",
+            null, null, null, false, false
+        ));
         //#set-cookie
         Cookie cookie = response().cookies().iterator().next();
         assertThat(cookie.name(), equalTo("theme"));
@@ -90,7 +93,7 @@ public class JavaResponse extends WithApplication {
     public void detailedSetCookie() {
         setContext(fakeRequest(), contextComponents());
         //#detailed-set-cookie
-        response().setCookie(
+        response().setCookie(new Cookie(
                 "theme",        // name
                 "blue",         // value
                 3600,           // maximum age
@@ -98,7 +101,7 @@ public class JavaResponse extends WithApplication {
                 ".example.com", // domain
                 false,          // secure
                 true            // http only
-        );
+        ));
         //#detailed-set-cookie
         Cookie cookie = response().cookies().iterator().next();
         assertThat(cookie.name(), equalTo("theme"));
