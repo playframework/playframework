@@ -9,7 +9,6 @@ import org.specs2.mutable.Specification
 import scala.collection.JavaConverters._
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.data.FormFactory
 import play.data.format.Formatters
 import javax.validation.Validation
 

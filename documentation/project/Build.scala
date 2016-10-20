@@ -52,6 +52,7 @@ object ApplicationBuild extends Build {
       playProject("Play") % "test",
       playProject("Play-Specs2") % "test",
       playProject("Play-Java") % "test",
+      playProject("Play-Java-Forms") % "test",
       playProject("Play-Java-JPA") % "test",
       playProject("Play-Guice") % "test",
       playProject("Play-Cache") % "test",

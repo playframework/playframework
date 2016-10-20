@@ -8,6 +8,8 @@ import play.core.test._
 
 class CookiesSpec extends Specification {
 
+  sequential
+
   "object Cookies#fromCookieHeader" should {
 
     "create new Cookies instance with cookies" in withApplication {

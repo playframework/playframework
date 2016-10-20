@@ -29,10 +29,30 @@ object Play extends AutoPlugin {
 }
 
 /**
- * The main plugin for Play Java projects. To use this the plugin must be made available to your project
+ * The main plugin for minimal Play Java projects that do not include Forms.
+ *
+ * To use this the plugin must be made available to your project
  * via sbt's enablePlugins mechanism e.g.:
+ *
  * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayMinimalJava)
+ * }}}
+ */
+object PlayMinimalJava extends AutoPlugin {
+  override def requires = Play
+  override def projectSettings =
+    PlaySettings.minimalJavaSettings ++
+      Seq(libraryDependencies += PlayImport.javaCore)
+}
+
+/**
+ * The main plugin for Play Java projects.
+ *
+ * To use this the plugin must be made available to your project
+ * via sbt's enablePlugins mechanism e.g.:
+ *
+ * {{{
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayFormsJava)
  * }}}
  */
 object PlayJava extends AutoPlugin {

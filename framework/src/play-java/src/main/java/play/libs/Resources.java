@@ -17,14 +17,17 @@ public class Resources {
     ) {
         try {
             CompletionStage<U> completionStage = body.apply(resource);
-            completionStage.whenCompleteAsync((u, throwable) -> tryCloseResource(resource));
+            // Do not use whenCompleteAsync, because it happens in an async thread --
+            // if this gets an exception, it will return the exception and also run the
+            // thread, which can result in the test completing before the close() happens.
+            completionStage.whenComplete((u, throwable) -> tryCloseResource(resource));
             return completionStage;
         } catch (RuntimeException e) {
             tryCloseResource(resource);
             throw e;
         } catch (Exception e) {
             tryCloseResource(resource);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error trying with resource", e);
         }
     }
 
@@ -34,7 +37,7 @@ public class Resources {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error closing resource", e);
         }
     }
 }
