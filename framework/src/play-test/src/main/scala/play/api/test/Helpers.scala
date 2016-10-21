@@ -22,6 +22,7 @@ import play.twirl.api.Content
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
 
 /**
  * Helper functions to run tests.
@@ -440,6 +441,24 @@ object Helpers extends PlayRunners
   with EssentialActionCaller
   with RouteInvokers
   with FutureAwaits
+
+/**
+ * A trait declared on a class that contains an `def app: Application`, and can provide
+ * instances of a class.  Useful in integration tests.
+ */
+trait Injecting {
+  self: HasApp =>
+
+  /**
+   * Given an application, provides an instance from the application.
+   *
+   * @tparam T the type to return, using `app.injector.instanceOf`
+   * @return an instance of type T.
+   */
+  def inject[T: ClassTag]: T = {
+    self.app.injector.instanceOf
+  }
+}
 
 /**
  * In 99% of cases, when running tests against the result body, you don't actually need a materializer since it's a
