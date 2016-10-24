@@ -80,7 +80,7 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/my-first-project.html#default-mappings)
+* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html#default-mappings)
 
 A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
 
