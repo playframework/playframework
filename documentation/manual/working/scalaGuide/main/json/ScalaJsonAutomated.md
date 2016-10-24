@@ -48,3 +48,13 @@ A strategy other than the default one can be used as following:
 To implement your own Naming Strategy you just need to implement the `JsonNaming` trait:
 
 @[auto-custom-naming-format](code/ScalaJsonAutomatedSpec.scala)
+
+### Bringing it all together
+
+A simple example of performing automated conversion of a case class to JSON is as follows:
+
+@[auto-case-class-to-JSON](code/ScalaJsonAutomatedSpec.scala)
+
+An example of automatically parsing JSON to a case class is:
+
+@[auto-JSON-to-case-class](code/ScalaJsonAutomatedSpec.scala)

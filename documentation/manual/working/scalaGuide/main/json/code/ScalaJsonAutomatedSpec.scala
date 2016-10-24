@@ -150,5 +150,39 @@ class ScalaJsonAutomatedSpec extends Specification {
         Json.toJson(sampleData2) must_=== sampleJson3
       }
     }
+
+    "automatically serialize a case class to JSON" in {
+      //#auto-case-class-to-JSON
+      import play.api.libs.json._
+
+      implicit val residentWrites = Json.writes[Resident]
+
+      val resident = Resident(name: "Fiver", age: 4, role: None)
+
+      Json.toJson(resident)
+      //#auto-case-class-to-JSON
+
+      Json.toJson(resident) must_=== sampleJson
+    }
+
+    "automatically convert JSON to a case class" in {
+      //#auto-JSON-to-case-class
+      import play.api.libs.json._
+
+      implicit val residentReads = Json.reads[Resident]
+
+      // In a request, JSON is likely to come from
+      // `request.body.asJson` or just `request.body`
+      // if using the `Action(parse.json)` body parser
+      val jsonString = """{
+        "name" : "Fiver",
+        "age" : 4
+      }"""
+
+      Json.fromJson[Resident](jsonString)
+      //#auto-JSON-to-case-class
+
+      Json.fromJson[Resident](jsonString) must_=== sampleData
+    }
   }
 }
