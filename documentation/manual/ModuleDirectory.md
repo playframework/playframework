@@ -19,6 +19,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/zalando/play-swagger>
 * **Short description:** Generate Play code from a Swagger spec
 
+### mohiva/swagger-codegen-play-scala
+* **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
+* **Short description:** Swagger client generator which is based on the PlayWS library
 
 ## Assets
 
@@ -38,9 +41,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Silhouette (Scala)
 
-* **Website:** <http://silhouette.mohiva.com/>
-* **Documentation:** <http://silhouette.mohiva.com/docs/>
-* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
+* **Website:** <http://www.silhouette.rocks/>
+* **Documentation:** <http://www.silhouette.rocks/docs/>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ### Deadbolt 2 Plugin
 
