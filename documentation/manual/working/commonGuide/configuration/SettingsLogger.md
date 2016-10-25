@@ -102,6 +102,20 @@ Here's an example of configuration that uses a rolling file appender, as well as
         </encoder>
     </appender>
 
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>SECURITY</marker>
+            </evaluator>
+            <OnMismatch>DENY</OnMismatch>
+            <OnMatch>ACCEPT</OnMatch>
+        </filter>
+        <file>${application.home:-.}/logs/security.log</file>
+        <encoder>
+            <pattern>%date [%level] [%marker] from %logger in %thread - %message%n%xException</pattern>
+        </encoder>
+    </appender>
+
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${user.dir}/web/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -124,6 +138,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
+        <appender-ref ref="SECURITY_FILE"/>
     </root>
 
 </configuration>
@@ -135,8 +150,10 @@ This demonstrates a few useful features:
 - It uses `RollingFileAppender` which can help manage growing log files.
 - It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
-- The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
+- The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
+- Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](http://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.
+
 
 ## Including Properties
 

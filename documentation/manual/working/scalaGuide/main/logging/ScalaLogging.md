@@ -8,7 +8,7 @@ Using logging in your application can be useful for monitoring, debugging, error
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
 #### Logger
-Your application can define [`Logger`](api/scala/play/api/Logger.html) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  
+Your application can define [`Logger`](api/scala/play/api/Logger.html) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  The Logger API is based on SLF4J, and so `Logger` is based on the `org.slf4j.Logger` interface.
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
 
@@ -40,14 +40,15 @@ First import the `Logger` class and companion object:
 
 @[logging-import](code/ScalaLoggingSpec.scala)
 
-#### The default Logger
+### The default Logger
+
 The `Logger` object is your default logger and uses the name "application." You can use it to write log request statements:
 
 @[logging-default-logger](code/ScalaLoggingSpec.scala)
 
 Using Play's default logging configuration, these statements will produce console output similar to this:
 
-```
+```text
 [debug] application - Attempting risky calculation.
 [error] application - Exception with riskyCalculation
 java.lang.ArithmeticException: / by zero
@@ -60,7 +61,8 @@ java.lang.ArithmeticException: / by zero
 
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
-#### Creating your own loggers
+### Creating your own loggers
+
 Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.apply` factory method with a name argument:
@@ -71,7 +73,53 @@ A common strategy for logging application events is to use a distinct logger per
 
 @[logging-create-logger-class](code/ScalaLoggingSpec.scala)
 
-#### Logging patterns
+### Using Markers and Marker Contexts
+
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+
+The Logger API provides access to markers through the `play.api.MarkerContext` trait.
+
+You can create a MarkerContext with the Logger by using the `MarkerContext.apply` method:
+
+@[logging-marker-context](code/ScalaLoggingSpec.scala)
+
+You can also provide a typed MarkerContext by extending from `DefaultMarkerContext`:
+
+@[logging-default-marker-context](code/ScalaLoggingSpec.scala)
+
+Once a MarkerContext has been created, it can be used with a logging statement, either explicitly:
+
+@[logging-log-info-with-explicit-markercontext](code/ScalaLoggingSpec.scala)
+
+Or implicitly:
+
+@[logging-log-info-with-implicit-markercontext](code/ScalaLoggingSpec.scala)
+
+For convenience, there is an implicit conversion available from a `Marker` to a `MarkerContext`:
+
+@[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
+
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+
+```
+implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
+  import net.logstash.logback.marker.LogstashMarker
+  import net.logstash.logback.marker.Markers._
+
+  val requestMarkers: LogstashMarker = append("host", request.host)
+    .and(append("path", request.path))
+
+  MarkerContext(requestMarkers)
+}
+
+def index = Action { request =>  
+  logger.debug("index: ")(request)
+  Ok("testing")
+}
+```
+
+### Logging patterns
+
 Effective use of loggers can help you achieve many goals with the same tool:
 
 @[logging-pattern-mix](code/ScalaLoggingSpec.scala)
