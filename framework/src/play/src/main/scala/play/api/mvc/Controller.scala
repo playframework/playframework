@@ -104,7 +104,7 @@ trait Controller extends BodyParsers with BaseController {
 abstract class AbstractController(components: ControllerComponents) extends BaseController {
   def Action = components.actionBuilder
   def parse = components.parsers
-  implicit val messagesApi = components.messagesApi
+  implicit def messagesApi: MessagesApi = components.messagesApi
   lazy val TODO: Action[AnyContent] = Action {
     NotImplemented[Html](views.html.defaultpages.todo())
   }

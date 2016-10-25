@@ -1,4 +1,4 @@
-# Messages API Migration
+# I18N API Migration
 
 There are a number of changes to the I18N API to make working with messages and languages easier to use, particularly with forms and templates.
 
@@ -82,7 +82,7 @@ All the template helpers now take [`MessagesProvider`](api/scala/play/api/i18n/M
 @(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messagesProvider: play.api.i18n.MessagesProvider)
 ```
  
-The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is to loosen the binding so that a [`Messages`](api/scala/play/api/i18n/Messages.html) instance can be produced from other locations without involving [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) type enrichment:
+The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is that otherwise, if you used implicit `Messages`, you would have to introduce implicit conversions from other types like `Request` in places where those implicits could be confusing:
 
 ```scala
 class MessagesRequest[A](request: Request[A], val messages: Messages)
@@ -156,7 +156,7 @@ This is also useful for passing around a single implicit request, especially whe
 }
 ```
 
-Please see [[Passing Messages to Form Helpers|ScalaForms]] for more details.
+Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] for more details.
 
 ### Deprecated Methods
 
@@ -166,4 +166,4 @@ The `play.api.mvc.Controller.request2lang` method has been deprecated, because i
 
 The `play.api.i18n.I18nSupport.request2Messages` implicit conversion method has been moved to `I18NSupportLowPriorityImplicits.request2Messages`, and deprecated in favor of `request.messages` type enrichment, which is clearer overall.
 
-The `I18NSupportLowPriorityImplicits.lang2Messages` implicit conversion has been moved out to `LangImplicits.lang2Messages`, because of confusion when both implicit Request and a Lang were in scope. Please extend the [`play.api.i18n.LangImplicits`](api/scala/play/api/i18n/LangImplicits.html) trait specifically if you want to use i18n with an implicit Lang.
+The `I18NSupportLowPriorityImplicits.lang2Messages` implicit conversion has been moved out to `LangImplicits.lang2Messages`, because of confusion when both implicit Request and a Lang were in scope. Please extend the [`play.api.i18n.LangImplicits`](api/scala/play/api/i18n/LangImplicits.html) trait specifically if you want to create a `Messages` from an implicit `Lang`.
