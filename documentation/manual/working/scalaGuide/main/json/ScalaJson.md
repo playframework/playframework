@@ -30,10 +30,11 @@ JSON is a lightweight data-interchange format and looks like this:
 
 The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Some of the features of this package are:
 
- - [[Automatic conversion|ScalaJsonAutomated]] to and from case classes with minimal boilerplate
- - [[Custom validation|ScalaJsonCombinators#Validation-with-Reads]] while parsing
- - [[Automatic parsing|ScalaBodyParsers#The-default-body-parser]] of JSON in request bodies, with automatic errors if content isn't parseable or incorrect Content-type headers are supplied
- - Highly customizable
+ - [[Automatic conversion|ScalaJsonAutomated]] to and from case classes with minimal boilerplate. If you want to get up and running quickly with minimal code, this is probably the place to start.
+ - [[Custom validation|ScalaJsonCombinators#Validation-with-Reads]] while parsing.
+ - [[Automatic parsing|ScalaBodyParsers#The-default-body-parser]] of JSON in request bodies, with auto-generated errors if content isn't parseable or incorrect Content-type headers are supplied.
+ - Can be used outside of a Play application as a stand-alone library. Just add `libraryDependencies += "com.tyesafe.play" %% "play-json" % playVersion` to your `build.sbt` file.
+ - Highly customizable.
 
 The package provides the following types:
 

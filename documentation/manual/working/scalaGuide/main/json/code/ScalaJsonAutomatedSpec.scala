@@ -171,19 +171,18 @@ class ScalaJsonAutomatedSpec extends Specification {
 
       implicit val residentReads = Json.reads[Resident]
 
-      // In a request, a JsValue is likely to come from
-      // `request.body.asJson` or just `request.body`
-      // if using the `Action(parse.json)` body parser
+      // In a request, a JsValue is likely to come from `request.body.asJson`
+      // or just `request.body` if using the `Action(parse.json)` body parser
       val jsonString: JsValue = Json.parse(
         """{
           "name" : "Fiver",
           "age" : 4
         }""")
 
-      Json.fromJson[Resident](jsonString)
+      val residentFromJson: JsResult[Resident] = Json.fromJson[Resident](jsonString)
       //#auto-JSON-to-case-class
 
-      Json.fromJson[Resident](jsonString).get must_=== sampleData
+      residentFromJson.get must_=== sampleData
     }
   }
 }
