@@ -24,7 +24,7 @@ So, a complete example of performing automated conversion of a case class to JSO
 
 @[auto-case-class-to-JSON](code/ScalaJsonAutomatedSpec.scala)
 
-And complete example of automatically parsing JSON to a case class is:
+And a complete example of automatically parsing JSON to a case class is:
 
 @[auto-JSON-to-case-class](code/ScalaJsonAutomatedSpec.scala)
 
