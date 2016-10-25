@@ -11,4 +11,12 @@ package object test {
    * Provided as an implicit by WithServer and WithBrowser.
    */
   type Port = Int
+
+  /**
+   * A structural type indicating there is an application.
+   */
+  type HasApp = {
+    def app: Application
+  }
+
 }

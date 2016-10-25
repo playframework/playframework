@@ -31,6 +31,17 @@ public class WithApplication {
         return Helpers.fakeApplication();
     }
 
+    /**
+     * Provides an instance from the application.
+     *
+     * @param clazz the type's class.
+     * @param <T> the type to return, using `app.injector.instanceOf`
+     * @return an instance of type T.
+     */
+    <T> T inject(Class<T> clazz) {
+        return app.injector().instanceOf(clazz);
+    }
+
     @Before
     public void startPlay() {
         app = provideApplication();
