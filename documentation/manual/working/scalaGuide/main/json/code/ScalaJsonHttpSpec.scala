@@ -150,6 +150,50 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       contentType(result) === Some("application/json")
       contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
     }
+
+    "allow concise handling JSON with BodyParser" in {
+
+      import play.api.libs.json._
+      import play.api.libs.functional.syntax._
+
+      implicit val locationReads: Reads[Location] = (
+        (JsPath \ "lat").read[Double] and
+        (JsPath \ "long").read[Double]
+      )(Location.apply _)
+
+      implicit val placeReads: Reads[Place] = (
+        (JsPath \ "name").read[String] and
+        (JsPath \ "location").read[Location]
+      )(Place.apply _)
+
+      //#handle-json-bodyparser-concise
+      // Here we could also pass `placeReads` instead of `Place` if we didn't
+      // want to rely on an implicit `Reads[Place]`.
+      def savePlaceConcise = Action(BodyParsers.parse.json[Place]) { request =>
+        // Notice we lose validation and custom error messages because we only
+        // execute this action body if the request could be parsed successfully.
+        val place = request.body
+        Place.save(place)
+        Ok(Json.obj("status" ->"OK", "message" -> ("Place '"+place.name+"' saved.") ))
+      }
+      //#handle-json-bodyparser-concise
+
+      val body: JsValue = Json.parse("""
+      {
+        "name" : "Nuthanger Farm",
+        "location" : {
+          "lat" : 51.244031,
+          "long" : -1.263224
+        }
+      }
+      """)
+      val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(Json.fromJson[Place](body).get)
+      val result: Future[Result] = savePlaceConcise().apply(request)
+      val bodyText: String = contentAsString(result)
+      status(result) === OK
+      contentType(result) === Some("application/json")
+      contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
+    }
   }
 
 }

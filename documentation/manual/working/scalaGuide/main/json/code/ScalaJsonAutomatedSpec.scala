@@ -159,10 +159,10 @@ class ScalaJsonAutomatedSpec extends Specification {
 
       val resident = Resident(name="Fiver", age=4, role=None)
 
-      Json.toJson(resident)
+      val residentJson: JsValue = Json.toJson(resident)
       //#auto-case-class-to-JSON
 
-      Json.toJson(resident) must_=== sampleJson
+      residentJson must_=== sampleJson
     }
 
     "automatically convert JSON to a case class" in {
@@ -180,6 +180,11 @@ class ScalaJsonAutomatedSpec extends Specification {
         }""")
 
       val residentFromJson: JsResult[Resident] = Json.fromJson[Resident](jsonString)
+
+      residentFromJson match {
+        case JsSuccess(r: Resident, path: JsPath) => println("Name: " + r.name)
+        case e: JsError => println("Errors: " + JsError.toJson(e).toString())
+      }
       //#auto-JSON-to-case-class
 
       residentFromJson.get must_=== sampleData

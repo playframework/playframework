@@ -62,10 +62,14 @@ Next we'll define the `Action`.
 This `Action` is more complicated than our list case. Some things to note:
 
 - This `Action` expects a request with a `Content-Type` header of `text/json` or `application/json` and a body containing a JSON representation of the entity to create.
-- It uses a JSON specific `BodyParser` which will parse the request and provide `request.body` as a `JsValue`. 
+- It uses a JSON specific `BodyParser` which will [[parse the request|ScalaBodyParsers]] and provide `request.body` as a `JsValue`. 
 - We used the `validate` method for conversion which will rely on our implicit `Reads[Place]`.
 - To process the validation result, we used a `fold` with error and success flows. This pattern may be familiar as it is also used for [[form submission|ScalaForms]].
 - The `Action` also sends JSON responses.
+
+If we don't need to validate the received JSON or want to generate custom error messages we can offload even more of the work onto Play. Body parsers can accept either the name of a case class or an explicit `Reads` object. If the request body can be successfully parsed `request.body` will be the resulting case class. Taking that approach, the above could become:
+
+@[handle-json-bodyparser-concise](code/ScalaJsonHttpSpec.scala)
 
 Finally we'll add a route binding in `conf/routes`:
 
