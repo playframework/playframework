@@ -152,26 +152,34 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     }
 
     "allow concise handling JSON with BodyParser" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
 
+      //#handle-json-bodyparser-concise
       import play.api.libs.json._
+      import play.api.libs.json.Reads._
       import play.api.libs.functional.syntax._
 
       implicit val locationReads: Reads[Location] = (
-        (JsPath \ "lat").read[Double] and
-        (JsPath \ "long").read[Double]
-      )(Location.apply _)
+        (JsPath \ "lat").read[Double](min(-90.0) keepAnd max(90.0)) and
+          (JsPath \ "long").read[Double](min(-180.0) keepAnd max(180.0))
+        )(Location.apply _)
 
       implicit val placeReads: Reads[Place] = (
-        (JsPath \ "name").read[String] and
-        (JsPath \ "location").read[Location]
-      )(Place.apply _)
+        (JsPath \ "name").read[String](minLength[String](2)) and
+          (JsPath \ "location").read[Location]
+        )(Place.apply _)
 
-      //#handle-json-bodyparser-concise
-      // Here we could also pass `placeReads` instead of `Place` if we didn't
-      // want to rely on an implicit `Reads[Place]`.
-      def savePlaceConcise = Action(BodyParsers.parse.json[Place]) { request =>
-        // Notice we lose validation and custom error messages because we only
-        // execute this action body if the request could be parsed successfully.
+      // This helper parses and validates JSON using the implicit `placeReads`
+      // above, returning errors if the parsed json fails validation.
+      def validateJson[A : Reads] = BodyParsers.parse.json.validate(
+        _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
+      )
+
+      // if we don't care about validation we could replace `validateJson[Place]`
+      // with `BodyParsers.parse.json[Place]` to get an unvalidated case class
+      // in `request.body` instead.
+      def savePlaceConcise = Action(validateJson[Place]) { request =>
+        // `request.body` contains a fully validated `Place` instance.
         val place = request.body
         Place.save(place)
         Ok(Json.obj("status" ->"OK", "message" -> ("Place '"+place.name+"' saved.") ))

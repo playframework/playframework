@@ -30,7 +30,7 @@ And a complete example of automatically parsing JSON to a case class is:
 
 Note: To be able to access JSON from `request.body.asJson`, the request must have a `Content-Type` header of `application/json`. You can relax this constraint by using the [[tolerantJson body parser|ScalaBodyParsers#Choosing-an-explicit-body-parser]].
 
-The above example can be made even more concise by using body parsers typed with a case class. See the [[savePlaceConcise example|ScalaJsonHttp#Creating-a-new-entity-instance-in-JSON]] in the JSON with HTTP documentation. 
+The above example can be made even more concise by using body parsers with a typed validation function. See the [[savePlaceConcise example|ScalaJsonHttp#Creating-a-new-entity-instance-in-JSON]] in the JSON with HTTP documentation. 
 
 ### Requirements
 

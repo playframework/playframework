@@ -67,7 +67,7 @@ This `Action` is more complicated than our list case. Some things to note:
 - To process the validation result, we used a `fold` with error and success flows. This pattern may be familiar as it is also used for [[form submission|ScalaForms]].
 - The `Action` also sends JSON responses.
 
-If we don't need to validate the received JSON or want to generate custom error messages we can offload even more of the work onto Play. Body parsers can accept either the name of a case class or an explicit `Reads` object. If the request body can be successfully parsed `request.body` will be the resulting case class. Taking that approach, the above could become:
+Body parsers can be typed with a case class, an explicit `Reads` object or take a function. So we can offload even more of the work onto Play to make it automatically parse JSON to a case class and [[validate|ScalaJsonCombinators#Validation-with-Reads]] it before even calling our `Action`:
 
 @[handle-json-bodyparser-concise](code/ScalaJsonHttpSpec.scala)
 
