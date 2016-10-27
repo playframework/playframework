@@ -257,10 +257,10 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     import play.core.Execution.Implicits.trampoline
 
     for {
+      bodyParser <- Future(action(requestHeader))(mat.executionContext)
       // Execute the action and get a result
       actionResult <- {
         val body = modelConversion.convertRequestBody(request)
-        val bodyParser = action(requestHeader)
         (body match {
           case None => bodyParser.run()
           case Some(source) => bodyParser.run(source)

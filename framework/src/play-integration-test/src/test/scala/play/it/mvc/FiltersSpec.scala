@@ -194,6 +194,18 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       response.body must_== ThrowExceptionFilter.expectedText
     }
 
+    object ThreadNameFilter extends EssentialFilter {
+      def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
+        Accumulator.done(Results.Ok(Thread.currentThread().getName))
+      }
+    }
+
+    "Filters should use the Akka ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      val threadName = result.body
+      threadName must startWith("application-akka.actor.default-dispatcher-")
+    }
+
     val filterAddedHeaderKey = "CUSTOM_HEADER"
     val filterAddedHeaderVal = "custom header val"
 
