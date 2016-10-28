@@ -2,52 +2,47 @@
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import com.typesafe.play.sbt.enhancer.PlayEnhancer
-import sbt._
-import sbt.Keys._
-import play.sbt.Play.autoImport._
-import play.core.PlayVersion
-import scala.util.Properties.isJavaAtLeast
-import com.typesafe.play.docs.sbtplugin._
 import com.typesafe.play.docs.sbtplugin.Imports._
+import com.typesafe.play.docs.sbtplugin._
+import com.typesafe.play.sbt.enhancer.PlayEnhancer
+import play.core.PlayVersion
+import sbt._
 
-object ApplicationBuild extends Build {
+lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
+    .settings(
+      resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
+      version := PlayVersion.current,
+      libraryDependencies ++= Seq(
+        "com.h2database" % "h2" % "1.4.191" % Test,
+        "org.mockito" % "mockito-core" % "1.9.5" % "test"
+      ),
 
-  lazy val main = Project("Play-Documentation", file("."))
-    .enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer).settings(
-    resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
-    version := PlayVersion.current,
-    libraryDependencies ++= Seq(
-      "com.h2database" % "h2" % "1.4.191" % Test,
-      "org.mockito" % "mockito-core" % "1.9.5" % "test"
-    ),
+      PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
+      PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
+        "ScalaAnorm",
+        "PlaySlickMigrationGuide",
+        "ScalaTestingWithScalaTest",
+        "ScalaFunctionalTestingWithScalaTest"
+      )),
 
-    PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
-    PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
-      "ScalaAnorm",
-      "PlaySlickMigrationGuide",
-      "ScalaTestingWithScalaTest",
-      "ScalaFunctionalTestingWithScalaTest"
-    )),
+      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
+      PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
+          (baseDirectory.value / "manual" / "experimental" ** "code").get,
+      PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
 
-    PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
-    PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
-        (baseDirectory.value / "manual" / "experimental" ** "code").get,
-    PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
+      unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+      unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
 
-    unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
-    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+      // Don't include sbt files in the resources
+      excludeFilter in(Test, unmanagedResources) := (excludeFilter in(Test, unmanagedResources)).value || "*.sbt",
 
-    // Don't include sbt files in the resources
-    excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
+      crossScalaVersions := Seq("2.11.8"),
+      scalaVersion := PlayVersion.scalaVersion,
 
-    crossScalaVersions := Seq("2.11.8"),
-    scalaVersion := PlayVersion.scalaVersion,
-
-    fork in Test := true,
-    javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
-  )
-   .dependsOn(
+      fork in Test := true,
+      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
+    )
+    .dependsOn(
       playDocs,
       playProject("Play") % "test",
       playProject("Play-Specs2") % "test",
@@ -63,9 +58,8 @@ object ApplicationBuild extends Build {
       playProject("Play-Logback") % "test",
       playProject("Play-Java-JDBC") % "test",
       playProject("Play-Akka-Http-Server-Experimental") % "test"
-  )
+    )
 
-  lazy val playDocs = playProject("Play-Docs")
+lazy val playDocs = playProject("Play-Docs")
 
-  def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", name)
-}
+def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", name)
