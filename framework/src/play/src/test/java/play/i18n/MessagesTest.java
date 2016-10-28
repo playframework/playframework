@@ -22,6 +22,6 @@ public class MessagesTest {
         String actual = messages.at("hello.world");
         String expected = "hello world!";
         assertThat(actual).isEqualTo(expected);
-        verify(messagesApi);
+        verify(messagesApi).get(any(Lang.class), anyString());
     }
 }
