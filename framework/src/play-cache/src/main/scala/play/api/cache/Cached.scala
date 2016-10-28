@@ -125,11 +125,16 @@ final class CachedBuilder(
     val resultKey = key(request)
     val etagKey = s"$resultKey-etag"
 
+    def parseEtag(etag: String) = {
+      val Etag = """(?:W/)?("[^"]*")""".r
+      Etag.findAllMatchIn(etag).map(m => m.group(1)).toList
+    }
+
     // Check if the client has a version as new as ours
     Accumulator.flatten(Future.successful(request.headers.get(IF_NONE_MATCH)).flatMap {
       case Some(requestEtag) =>
         cache.get[String](etagKey).map {
-          case Some(etag) if requestEtag == "*" || etag == requestEtag => Some(Accumulator.done(NotModified))
+          case Some(etag) if requestEtag == "*" || parseEtag(requestEtag).contains(etag) => Some(Accumulator.done(NotModified))
           case _ => None
         }
       case None => Future.successful(None)
