@@ -20,10 +20,7 @@ import play.api.mvc.SessionCookieBaker;
 import play.core.j.JavaContextComponents;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
-import play.i18n.Lang;
-import play.i18n.Langs;
-import play.i18n.Messages;
-import play.i18n.MessagesApi;
+import play.i18n.*;
 import play.libs.Json;
 import play.libs.XML;
 import scala.Tuple2;
@@ -375,8 +372,6 @@ public class Http {
             }
 
             /**
-             * Returns the messages for the current lang
-             *
              * @return the messages for the current lang
              */
             public static Messages messages() {

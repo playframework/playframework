@@ -10,11 +10,12 @@ import play.api.Application
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText, number }
 import play.api.http.{ MimeTypes, Writeable }
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.mvc.{ BodyParser, BodyParsers, Result, Results }
 import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class FormBodyParserSpec extends PlaySpecification {
@@ -45,7 +46,8 @@ class FormBodyParserSpec extends PlaySpecification {
     }
 
     "allow users to override the error reporting behaviour" in new WithApplication() {
-      import play.api.i18n.Messages.Implicits.applicationMessages
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      implicit val messages = messagesApi.preferred(Seq.empty)
       parse(Json.obj("age" -> "Alice"), BodyParsers.parse.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))) must beLeft.which { result =>
         result.header.status must equalTo(BAD_REQUEST)
         val json = contentAsJson(Future.successful(result))

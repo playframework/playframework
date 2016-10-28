@@ -13,6 +13,7 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.i18n.html.hellotemplate;
 import javaguide.i18n.html.helloscalatemplate;
 import play.Application;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
 import static play.test.Helpers.*;
@@ -22,6 +23,11 @@ import com.google.common.collect.ImmutableMap;
 
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.i18n.MessagesApi;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
 
 
 public class JavaI18N extends WithApplication {
@@ -36,11 +42,15 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSpecifyLangHello() {
+        MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
         //#current-lang-render
-        String message = Messages.get("home.title");
+        // Dependency inject with @Inject() public MyClass(MessagesApi messagesApi) { ... }
+        Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
+        Messages messages = messagesApi.preferred(candidates);
+        String message = messages.at("home.title");
         //#current-lang-render
         //#specify-lang-render
-        String title = Messages.get(Lang.forCode("fr"), "hello");
+        String title = messagesApi.get(Lang.forCode("fr"), "hello");
         //#specify-lang-render
 
         assertTrue(title.equals("bonjour"));
@@ -78,6 +88,13 @@ public class JavaI18N extends WithApplication {
         assertThat(contentAsString(result), containsString("bonjour"));
     }
 
+    @Test
+    public void checkContextMessages() {
+        ContextMessagesController c = app.injector().instanceOf(ContextMessagesController.class);
+        Result result = MockJavaActionHelper.call(c, fakeRequest("GET", "/"), mat);
+        assertThat(contentAsString(result), containsString("hello"));
+    }
+
     public static class ChangeLangController extends MockJavaAction {
         //#change-lang-render
         public Result index() {
@@ -85,6 +102,24 @@ public class JavaI18N extends WithApplication {
             return ok(hellotemplate.render()); // "bonjour"
         }
         //#change-lang-render
+    }
+
+    public static class ContextMessagesController extends MockJavaAction {
+
+        private final MessagesApi messagesApi;
+
+        @javax.inject.Inject
+        public ContextMessagesController(MessagesApi messagesApi) {
+            this.messagesApi = messagesApi;
+        }
+
+        //#show-context-messages
+        public Result index() {
+            Messages messages = Http.Context.current().messages();
+            String hello = messages.at("hello");
+            return ok(hellotemplate.render());
+        }
+        //#show-context-messages
     }
 
     @Test
@@ -108,10 +143,13 @@ public class JavaI18N extends WithApplication {
     }
 
     private Boolean singleApostrophe() {
-//#single-apostrophe
-        String errorMessage = Messages.get("info.error");
+        MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+        Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
+        Messages messages = messagesApi.preferred(candidates);
+        //#single-apostrophe
+        String errorMessage = messages.at("info.error");
         Boolean areEqual = errorMessage.equals("You aren't logged in!");
-//#single-apostrophe
+        //#single-apostrophe
 
         return areEqual;
     }
@@ -122,10 +160,13 @@ public class JavaI18N extends WithApplication {
     }
 
     private Boolean escapedParameters() {
-//#parameter-escaping
-        String errorMessage = Messages.get("example.formatting");
+        MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+        Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
+        Messages messages = messagesApi.preferred(candidates);
+        //#parameter-escaping
+        String errorMessage = messages.at("example.formatting");
         Boolean areEqual = errorMessage.equals("When using MessageFormat, '{0}' is replaced with the first parameter.");
-//#parameter-escaping
+        //#parameter-escaping
 
         return areEqual;
     }

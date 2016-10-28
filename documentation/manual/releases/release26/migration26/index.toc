@@ -1,1 +1,2 @@
 Migration26:Migration Guide
+MessagesMigration26:Messages Migration

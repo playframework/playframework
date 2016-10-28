@@ -3,7 +3,6 @@
  */
 package play.data
 
-import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
@@ -11,6 +10,7 @@ import play.data.format.Formatters
 import views.html.helper.inputText
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import views.html.helper.FieldConstructor.defaultField
+
 import scala.collection.JavaConversions._
 import javax.validation.Validation
 

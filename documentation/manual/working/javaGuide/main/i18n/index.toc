@@ -1,1 +1,1 @@
-JavaI18N:Internationalization
+JavaI18N:Internationalization with Messages

@@ -3,17 +3,19 @@
  */
 package scalaguide.forms.scalaforms {
 
-import play.api.{Environment, Configuration}
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages}
+import javax.inject.Inject
+
+import play.api.{Configuration, Environment}
+import play.api.i18n._
 
 import scalaguide.forms.scalaforms.controllers.routes
-
 import play.api.mvc._
-import play.api.test._
-
+import play.api.test.{WithApplication, _}
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+
+import scala.concurrent.{ExecutionContext, Future}
 
 // #form-imports
 import play.api.data._
@@ -32,8 +34,7 @@ class ScalaFormsSpec extends Specification with Controller {
 
   "A scala forms" should {
 
-    "generate from map" in {
-
+    "generate from map" in new WithApplication {
       val userForm = controllers.Application.userForm
 
       //#userForm-generate-map
@@ -44,7 +45,7 @@ class ScalaFormsSpec extends Specification with Controller {
       userData.name === "bob"
     }
 
-    "generate from request" in {
+    "generate from request" in new WithApplication {
 
       import play.api.libs.json.Json
       val userForm = controllers.Application.userForm
@@ -58,7 +59,7 @@ class ScalaFormsSpec extends Specification with Controller {
       userData.name === "bob"
     }
 
-    "get user info from form" in {
+    "get user info from form" in new WithApplication  {
 
       controllers.Application.userFormName === "bob"
 
@@ -81,7 +82,7 @@ class ScalaFormsSpec extends Specification with Controller {
       controllers.Application.userFormTupleName === "bob"
     }
 
-    "handling form with errors" in {
+    "handling form with errors" in new WithApplication {
       val userFormConstraints2 = controllers.Application.userFormConstraints2
 
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
@@ -92,7 +93,7 @@ class ScalaFormsSpec extends Specification with Controller {
       //#userForm-constraints-2-with-errors
     }
 
-    "handling binding failure" in {
+    "handling binding failure" in new WithApplication {
       val userForm = controllers.Application.userFormConstraints
 
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
@@ -101,7 +102,7 @@ class ScalaFormsSpec extends Specification with Controller {
       boundForm.hasErrors must beTrue
     }
 
-    "display global errors user template" in {
+    "display global errors user template" in new WithApplication {
       val userForm = controllers.Application.userFormConstraintsAdHoc
       
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
@@ -113,7 +114,7 @@ class ScalaFormsSpec extends Specification with Controller {
       html.body must contain("Failed form constraints!")
     }
 
-    "map single values" in {
+    "map single values" in new WithApplication {
 
       //#form-single-value
       val singleForm = Form(
@@ -127,7 +128,7 @@ class ScalaFormsSpec extends Specification with Controller {
       emailValue must beEqualTo("bob@example.com")
     }
 
-    "fill selects with options and set their defaults" in {
+    "fill selects with options and set their defaults" in new WithApplication {
       val boundForm = controllers.Application.filledAddressSelectForm
       val html = views.html.select(boundForm)
       html.body must contain("option value=\"London\" selected")
@@ -167,6 +168,13 @@ case class UserListData(name: String, emails: List[String])
 case class UserOptionalData(name: String, email: Option[String])
 // #userData-optional
 
+//#messages-request
+class MessagesRequest[A](request: Request[A], val messages: Messages)
+  extends WrappedRequest(request) with play.api.i18n.MessagesProvider {
+  def lang: Lang = messages.lang
+}
+//#messages-request
+
 }
 
 package views.html.contact {
@@ -190,12 +198,16 @@ case class ContactInformation(label: String,
 
 package controllers {
 
+import play.api.i18n.{I18nSupport, Lang}
+
 import views.html._
 import views.html.contact._
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
-class Application extends Controller {
+class Application extends Controller with I18nSupport {
+
+  val messagesApi: MessagesApi = {
+    play.api.i18n.Messages.Implicits.applicationMessagesApi(play.api.Play.current)
+  }
 
   //#userForm-define
   val userForm = Form(
@@ -211,7 +223,7 @@ class Application extends Controller {
   }
 
   // #form-render
-  def index = Action {
+  def index = Action { implicit request =>
     Ok(views.html.user(userForm))
   }
   // #form-render
@@ -246,7 +258,10 @@ class Application extends Controller {
   // #form-bodyparser
 
   // #form-bodyparser-errors
-  val userPostWithErrors = Action(parse.form(userForm, onErrors = (formWithErrors: Form[UserData]) => BadRequest(views.html.user(formWithErrors)))) { implicit request =>
+  val userPostWithErrors = Action(parse.form(userForm, onErrors = (formWithErrors: Form[UserData]) => {
+    implicit val messages = messagesApi.preferred(Seq(Lang.defaultLang))
+    BadRequest(views.html.user(formWithErrors))
+  })) { implicit request =>
     val userData = request.body
     val newUser = models.User(userData.name, userData.age)
     val id = models.User.create(newUser)
@@ -473,7 +488,7 @@ class Application extends Controller {
   // #contact-form
 
   // #contact-edit
-  def editContact = Action {
+  def editContact = Action { implicit request =>
     val existingContact = Contact(
       "Fake", "Contact", Some("Fake company"), informations = List(
         ContactInformation(
@@ -512,6 +527,72 @@ class Application extends Controller {
 }
 
 object Application extends Application
+
+
+//#messages-controller
+class MessagesController @Inject()(cc: ControllerComponents)
+  extends AbstractController(cc) with play.api.i18n.I18nSupport {
+
+  import play.api.data.Form
+  import play.api.data.Forms._
+
+  val userForm = Form(
+    mapping(
+      "name" -> text,
+      "age" -> number
+    )(views.html.UserData.apply)(views.html.UserData.unapply)
+  )
+
+  def index = Action { implicit request =>
+    Ok(views.html.user(userForm))
+  }
+}
+//#messages-controller
+
+//#messages-action-transformer
+// Exposes a "MessagesAction" to the user while hiding the underpinnings
+abstract class AbstractMessagesController(cc: ControllerComponents)
+  extends AbstractController(cc) {
+
+  private val messagesRequestTransformer = {
+    new ActionTransformer[Request, MessagesRequest] {
+      def transform[A](request: Request[A]) = Future.successful {
+        val messages = cc.messagesApi.preferred(request)
+        new MessagesRequest(request, messages)
+      }
+      override protected def executionContext = cc.executionContext
+    }
+  }
+
+  def MessagesAction: ActionBuilder[MessagesRequest, AnyContent] = {
+    cc.actionBuilder.andThen(messagesRequestTransformer)
+  }
+}
+//#messages-action-transformer
+
+//#messages-request-controller
+// Example form that uses a MessagesRequest, which is also a MessagesProvider
+class MessagesRequestController @Inject()(components: ControllerComponents)
+  extends AbstractMessagesController(components) {
+
+  import play.api.data.Form
+  import play.api.data.Forms._
+
+  val userForm = Form(
+    mapping(
+      "name" -> text,
+      "age" -> number
+    )(views.html.UserData.apply)(views.html.UserData.unapply)
+  )
+
+  def index = MessagesAction { implicit request: MessagesRequest[_] =>
+    Ok(views.html.messages(userForm))
+  }
+
+  def post() = TODO
+}
+//#messages-request-controller
+
 }
 
 }

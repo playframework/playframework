@@ -32,6 +32,10 @@ This trait makes `Action` and `parse` refer to injected instances rather than th
 
 See [[JPAMigration26]].
 
+## I18n Migration Notes
+
+See [[MessagesMigration26]].
+
 ## Removed Crypto API
 
 The Crypto API has removed the deprecated class `play.api.libs.Crypto` and `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.

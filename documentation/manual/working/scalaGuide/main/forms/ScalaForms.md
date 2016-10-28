@@ -147,6 +147,8 @@ There are several input helpers, but the most helpful are:
 * [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](http://www.w3.org/TR/html-markup/input.checkbox.html#input.checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
 
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/framework/src/play/src/main/scala/views/helper) package on Github.
+
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
 @[form-user-parameters](code/scalaguide/forms/scalaforms/views/user.scala.html)
@@ -158,6 +160,35 @@ The generic `input` helper mentioned above will let you code the desired HTML re
 > **Note:** All extra parameters will be added to the generated Html, unless they start with the **\_** character. Arguments starting with **\_** are reserved for [[field constructor arguments|ScalaCustomFieldConstructors]].
 
 For complex form elements, you can also create your own custom view helpers (using scala classes in the `views` package) and [[custom field constructors|ScalaCustomFieldConstructors]].
+
+### Passing Messages to Form Helpers
+
+The form helpers above -- [`input`](api/scala/views/html/helper/input$.html), [`checkbox`](api/scala/views/html/helper/checkbox$.html), and so on -- all take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter.  The form handlers need to take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) because they need to provide error messages mapped to the language defined in the request.
+
+There are two ways to pass in the [`Messages`](api/scala/play/api/i18n/Messages.html) object required.
+  
+The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), which makes use of an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
+
+@[messages-controller](code/ScalaForms.scala)
+
+The second way is to use the [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) trait.  This is useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.  By using a `WrappedRequest` that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates.
+
+The implementation of a `MessagesRequest` is straightforward:
+
+@[messages-request](code/ScalaForms.scala)
+
+The `MessagesRequest` is used inside an action by using an `ActionTransformer` (see [[the action composition section|ScalaActionsComposition]]) that transforms a `Request` into a `MessagesRequest`:
+
+@[messages-action-transformer](code/ScalaForms.scala)
+
+An example of a form that uses the `AbstractMessagesController`:
+
+@[messages-request-controller](code/ScalaForms.scala)
+
+Finally, the implicit request does double duty as both a [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) and a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) in the template:
+
+@[form-define](code/scalaguide/forms/scalaforms/views/messages.scala.html)
+
 
 ### Displaying errors in a view template
 
