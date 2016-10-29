@@ -139,13 +139,27 @@ class CachedSpec extends PlaySpecification {
       invoked.get() must_== 1
     }
 
+    "use etags weak comparison" in new WithApplication() {
+      val invoked = new AtomicInteger()
+      val action = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val result1 = action(FakeRequest()).run()
+      status(result1) must_== 200
+      invoked.get() must_== 1
+      val etag = header(ETAG, result1).map("W/" + _)
+      etag must beSome(matching("""([wW]/)?"([^"]|\\")*"""")) //"""
+      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run()
+      status(result2) must_== NOT_MODIFIED
+      invoked.get() must_== 1
+    }
+
     "work with etag cache misses" in new WithApplication() {
       val action = cached(app)(_.uri)(Action(Results.Ok))
       val resultA = action(FakeRequest("GET", "/a")).run()
       status(resultA) must_== 200
-      status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "foo")).run) must_== 200
+      status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "\"foo\"")).run) must_== 200
       status(action(FakeRequest("GET", "/b").withHeaders(IF_NONE_MATCH -> header(ETAG, resultA).get)).run) must_== 200
       status(action(FakeRequest("GET", "/c").withHeaders(IF_NONE_MATCH -> "*")).run) must_== 200
+      status(action(FakeRequest("GET", "/d").withHeaders(IF_NONE_MATCH -> "illegal")).run) must_== 200
     }
   }
 
