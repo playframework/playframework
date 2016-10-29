@@ -46,7 +46,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
   def apply() = this
 
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     def apply(rh: play.mvc.Http.RequestHeader) = self(rh._underlyingHeader).map(_.asJava).asJava
     override def apply(rh: RequestHeader) = self(rh)
   }
