@@ -10,13 +10,13 @@ import java.security.cert.CertPathValidatorException
 import javax.inject.{ Inject, Provider, Singleton }
 import javax.net.ssl._
 
+import com.typesafe.sslconfig.ssl.{ AlgorithmChecker, AlgorithmConstraintsParser, Ciphers, ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, KeyManagerFactoryWrapper, Protocols, SSLConfigSettings, TrustManagerFactoryWrapper }
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import org.asynchttpclient.netty.ssl.JsseSslEngineFactory
 import org.asynchttpclient.{ AsyncHttpClientConfig, DefaultAsyncHttpClientConfig }
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.WSClientConfig
-import play.api.libs.ws.ssl._
 import play.api.{ ConfigLoader, Configuration, Environment }
 
 import scala.concurrent.duration._
@@ -120,6 +120,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
   val builder: DefaultAsyncHttpClientConfig.Builder = new DefaultAsyncHttpClientConfig.Builder()
 
   private[ahc] val logger = LoggerFactory.getLogger(this.getClass)
+  private[ahc] val loggerFacotry = new AhcLoggerFactory
 
   /**
    * Configure the underlying builder with values specified by the `config`, and add any custom settings.
@@ -198,7 +199,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
     builder.setShutdownTimeout(0)
   }
 
-  def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
+  def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfigSettings): Array[String] = {
     val definedProtocols = sslConfig.enabledProtocols match {
       case Some(configuredProtocols) =>
         // If we are given a specific list of protocols, then return it in exactly that order,
@@ -221,7 +222,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
     definedProtocols
   }
 
-  def configureCipherSuites(existingCiphers: Array[String], sslConfig: SSLConfig): Array[String] = {
+  def configureCipherSuites(existingCiphers: Array[String], sslConfig: SSLConfigSettings): Array[String] = {
     val definedCiphers = sslConfig.enabledCipherSuites match {
       case Some(configuredCiphers) =>
         // If we are given a specific list of ciphers, return it in that order.
@@ -245,7 +246,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
   /**
    * Configures the SSL.  Can use the system SSLContext.getDefault() if "ws.ssl.default" is set.
    */
-  def configureSSL(sslConfig: SSLConfig) {
+  def configureSSL(sslConfig: SSLConfigSettings) {
 
     // context!
     val sslContext = if (sslConfig.default) {
@@ -256,7 +257,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
       // break out the static methods as much as we can...
       val keyManagerFactory = buildKeyManagerFactory(sslConfig)
       val trustManagerFactory = buildTrustManagerFactory(sslConfig)
-      new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory).build()
+      new ConfigSSLContextBuilder(loggerFacotry, sslConfig, keyManagerFactory, trustManagerFactory).build()
     }
 
     // protocols!
@@ -283,15 +284,15 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
     }
   }
 
-  def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {
+  def buildKeyManagerFactory(ssl: SSLConfigSettings): KeyManagerFactoryWrapper = {
     new DefaultKeyManagerFactoryWrapper(ssl.keyManagerConfig.algorithm)
   }
 
-  def buildTrustManagerFactory(ssl: SSLConfig): TrustManagerFactoryWrapper = {
+  def buildTrustManagerFactory(ssl: SSLConfigSettings): TrustManagerFactoryWrapper = {
     new DefaultTrustManagerFactoryWrapper(ssl.trustManagerConfig.algorithm)
   }
 
-  def validateDefaultTrustManager(sslConfig: SSLConfig) {
+  def validateDefaultTrustManager(sslConfig: SSLConfigSettings) {
     // If we are using a default SSL context, we can't filter out certificates with weak algorithms
     // We ALSO don't have access to the trust manager from the SSLContext without doing horrible things
     // with reflection.
@@ -309,7 +310,7 @@ class AhcConfigBuilder(ahcConfig: AhcWSClientConfig = AhcWSClientConfig()) {
     val trustManager: X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
 
     val constraints = sslConfig.disabledKeyAlgorithms.map(a => AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.expression, a).get).toSet
-    val algorithmChecker = new AlgorithmChecker(keyConstraints = constraints, signatureConstraints = Set())
+    val algorithmChecker = new AlgorithmChecker(loggerFacotry, Set(), constraints)
     for (cert <- trustManager.getAcceptedIssuers) {
       try {
         algorithmChecker.checkKeyAlgorithms(cert)

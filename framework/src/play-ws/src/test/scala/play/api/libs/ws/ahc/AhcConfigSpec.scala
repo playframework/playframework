@@ -5,27 +5,24 @@
  */
 package play.api.libs.ws.ahc
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable._
 import org.specs2.mock._
 import play.api.Environment
-
 import play.api.libs.ws.WSClientConfig
-import play.api.libs.ws.ssl._
 
-import javax.net.ssl.{ SSLSession, SSLContext }
+import com.typesafe.sslconfig.ssl.{ Ciphers, Protocols, SSLConfigFactory, SSLConfigSettings }
 import org.asynchttpclient.proxy.ProxyServerSelector
 import org.asynchttpclient.util.ProxyUtils
 import org.slf4j.LoggerFactory
-
 import play.api.test.WithApplication
 
 import scala.concurrent.duration._
 
 class AhcConfigSpec extends Specification with Mockito {
 
-  val defaultWsConfig = new WSClientConfig()
-  val defaultConfig = new AhcWSClientConfig(defaultWsConfig)
+  val defaultWsConfig = WSClientConfig()
+  val defaultConfig = AhcWSClientConfig(defaultWsConfig)
 
   "AhcConfigSpec" should {
 
@@ -36,8 +33,25 @@ class AhcConfigSpec extends Specification with Mockito {
       parser.parse()
     }
 
+    def parseSSLConfig(input: String): Config = {
+      ConfigFactory.parseString(input).withFallback(ConfigFactory.defaultReference()).getConfig("play.ws.ssl")
+    }
+
     "case class defaults must match reference.conf defaults" in new WithApplication {
-      AhcWSClientConfig() must_== parseThis("")
+      val s1 = parseThis("")
+      val s2 = AhcWSClientConfig()
+
+      // since we use typesafe ssl-config we can't match the objects directly since they aren't case classes,
+      // and also AhcWSClientConfig has a duration which will be parsed into nanocseconds while the case class uses minutes
+      s1.wsClientConfig.toString must_== s2.wsClientConfig.toString
+      s1.maxConnectionsPerHost must_== s2.maxConnectionsPerHost
+      s1.maxConnectionsTotal must_== s2.maxConnectionsTotal
+      s1.maxConnectionLifetime must_== s2.maxConnectionLifetime
+      s1.idleConnectionInPoolTimeout must_== s2.idleConnectionInPoolTimeout
+      s1.maxNumberOfRedirects must_== s2.maxNumberOfRedirects
+      s1.maxRequestRetry must_== s2.maxRequestRetry
+      s1.disableUrlEncoding must_== s2.disableUrlEncoding
+      s1.keepAlive must_== s2.keepAlive
     }
 
     "parse ws ahc section" in new WithApplication {
@@ -216,17 +230,14 @@ class AhcConfigSpec extends Specification with Mockito {
           // Stick a spy into the SSL config so we can verify that things get called on it that would
           // only be called if it was using the config trust manager...
 
-          val sslConfig = spy(SSLConfig(default = false))
+          val sslConfig = SSLConfigSettings()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
 
-          org.mockito.Mockito.doReturn("TLS").when(sslConfig).protocol
+          sslConfig.protocol must_== "TLSv1.2"
 
           val asyncClientConfig = builder.build()
-
-          // Check that the spy got called...
-          org.mockito.Mockito.verify(sslConfig)
 
           // ...and return a result so specs2 is happy.
           asyncClientConfig.getSslEngineFactory must not(beNull)
@@ -252,13 +263,18 @@ class AhcConfigSpec extends Specification with Mockito {
           import ch.qos.logback.classic._
 
           // Pass in a configuration which is guaranteed to fail, by banning RSA, DSA and EC certificates
-          val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, disabledKeyAlgorithms = Seq("RSA", "DSA", "EC")))
+          val underlyingConfig = parseSSLConfig("""
+            |play.ws.ssl.default=true
+            |play.ws.ssl.disabledKeyAlgorithms=["RSA", "DSA", "EC"]
+          """.stripMargin)
+          val wsConfig = defaultWsConfig.copy(ssl = SSLConfigFactory.parse(underlyingConfig))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
           // this only works with test:test, has a different type in test:testQuick and test:testOnly!
+          // LoggerFactory.getLogger()
           val logger = builder.logger.asInstanceOf[ch.qos.logback.classic.Logger]
           val appender = new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
-          val lc = LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
+          val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
           appender.setContext(lc)
           appender.start()
           logger.addAppender(appender)
@@ -271,7 +287,7 @@ class AhcConfigSpec extends Specification with Mockito {
         }
 
         "should validate certificates" in {
-          val sslConfig = SSLConfig()
+          val sslConfig = SSLConfigSettings()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -281,7 +297,8 @@ class AhcConfigSpec extends Specification with Mockito {
         }
 
         "should disable the hostname verifier if loose.acceptAnyCertificate is enabled" in {
-          val sslConfig = SSLConfig(loose = SSLLooseConfig(acceptAnyCertificate = true))
+          val underlyingConfig = parseSSLConfig("play.ws.ssl.loose.acceptAnyCertificate=true")
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -294,7 +311,7 @@ class AhcConfigSpec extends Specification with Mockito {
       "with protocols" should {
 
         "provide recommended protocols if not specified" in {
-          val sslConfig = SSLConfig()
+          val sslConfig = SSLConfigSettings()
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -306,7 +323,8 @@ class AhcConfigSpec extends Specification with Mockito {
         }
 
         "provide explicit protocols if specified" in {
-          val sslConfig = SSLConfig(enabledProtocols = Some(Seq("derp", "baz", "quux")))
+          val underlyingConfig = parseSSLConfig("""play.ws.ssl.enabledProtocols=["derp", "baz", "quux"]""")
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -321,8 +339,8 @@ class AhcConfigSpec extends Specification with Mockito {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
-          val enabledProtocols = Array(deprecatedProtocol, "goodOne", "goodTwo")
-          val sslConfig = SSLConfig(enabledProtocols = Some(enabledProtocols))
+          val underlyingConfig = parseSSLConfig(s"""play.ws.ssl.enabledProtocols=["$deprecatedProtocol", "goodOne", "goodTwo"]""")
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
 
@@ -338,8 +356,11 @@ class AhcConfigSpec extends Specification with Mockito {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
-          val enabledProtocols = Array(deprecatedProtocol, "goodOne", "goodTwo")
-          val sslConfig = SSLConfig(enabledProtocols = Some(enabledProtocols), loose = SSLLooseConfig(allowWeakProtocols = true))
+          val underlyingConfig = parseSSLConfig(s"""
+             |play.ws.ssl.enabledProtocols=["$deprecatedProtocol", "goodOne", "goodTwo"]
+             |play.ws.ssl.loose.allowWeakProtocols=true
+             """.stripMargin)
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
 
@@ -358,8 +379,8 @@ class AhcConfigSpec extends Specification with Mockito {
       "with ciphers" should {
 
         "provide explicit ciphers if specified" in {
-          val enabledCiphers = Seq("goodone", "goodtwo")
-          val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers))
+          val underlyingConfig = parseSSLConfig("""play.ws.ssl.enabledCipherSuites=["goodone", "goodtwo"]""")
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -371,9 +392,9 @@ class AhcConfigSpec extends Specification with Mockito {
         }
 
         "throw exception on deprecated ciphers from the explicit cipher list" in {
+          val underlyingConfig = parseSSLConfig(s"""play.ws.ssl.enabledCipherSuites=[${Ciphers.deprecatedCiphers.head}, "goodone", "goodtwo"]""")
           val enabledCiphers = Seq(Ciphers.deprecatedCiphers.head, "goodone", "goodtwo")
-
-          val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers))
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
@@ -384,9 +405,12 @@ class AhcConfigSpec extends Specification with Mockito {
 
         "not throw exception on deprecated ciphers if allowWeakCiphers is enabled" in {
           // User specifies list with deprecated ciphers...
-          val enabledCiphers = Seq("badone", "goodone", "goodtwo")
+          val underlyingConfig = parseSSLConfig("""
+            |play.ws.ssl.enabledCipherSuites=[badone, "goodone", "goodtwo"]
+            |play.ws.ssl.loose.allowWeakCiphers=true
+            """.stripMargin)
 
-          val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers), loose = SSLLooseConfig(allowWeakCiphers = true))
+          val sslConfig = SSLConfigFactory.parse(underlyingConfig)
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new AhcConfigBuilder(config)
