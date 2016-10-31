@@ -5,9 +5,12 @@
  */
 package play.api.libs.ws
 
-import javax.inject.{ Singleton, Inject, Provider }
+import javax.inject.{ Inject, Provider, Singleton }
 
-import play.api.libs.ws.ssl.{ SSLConfigParser, SSLConfig }
+import com.typesafe.sslconfig.ssl.{ SSLConfigParser, SSLConfigSettings }
+import com.typesafe.sslconfig.util.EnrichedConfig
+
+// import play.api.libs.ws.ssl.{ SSLConfigParser, SSLConfig }
 import play.api.{ Environment, Configuration }
 
 import scala.concurrent.duration._
@@ -23,7 +26,7 @@ case class WSClientConfig(
   useProxyProperties: Boolean = true,
   userAgent: Option[String] = None,
   compressionEnabled: Boolean = false,
-  ssl: SSLConfig = SSLConfig())
+  ssl: SSLConfigSettings = SSLConfigSettings())
 
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
@@ -48,7 +51,7 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
 
     val compressionEnabled = config.get[Boolean]("compressionEnabled")
 
-    val sslConfig = new SSLConfigParser(config.get[Configuration]("ssl"), environment.classLoader).parse()
+    val sslConfig = new SSLConfigParser(EnrichedConfig(config.get[Configuration]("ssl").underlying), environment.classLoader).parse()
 
     WSClientConfig(
       connectionTimeout = connectionTimeout,

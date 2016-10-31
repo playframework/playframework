@@ -10,6 +10,8 @@ import javax.inject.{ Inject, Provider, Singleton }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
+import com.typesafe.sslconfig.ssl.SystemConfiguration
+import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
 import io.netty.handler.codec.http.HttpHeaders
 import org.asynchttpclient.Realm.AuthScheme
 import org.asynchttpclient.cookie.{ Cookie => AHCCookie }
@@ -19,8 +21,6 @@ import org.asynchttpclient.{ Realm, Response => AHCResponse, _ }
 import play.api._
 import play.api.inject.{ bind, _ }
 import play.api.libs.ws._
-import play.api.libs.ws.ssl._
-import play.api.libs.ws.ssl.debug._
 import play.core.parsers.FormUrlEncodedParser
 import play.core.utils.CaseInsensitiveOrdered
 
@@ -50,6 +50,9 @@ case class AhcWSClient(config: AsyncHttpClientConfig)(implicit materializer: Mat
 }
 
 object AhcWSClient {
+
+  private[ahc] val loggerFactory = new AhcLoggerFactory
+
   /**
    * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of
    * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
@@ -69,7 +72,7 @@ object AhcWSClient {
    */
   def apply(config: AhcWSClientConfig = AhcWSClientConfig())(implicit materializer: Materializer): AhcWSClient = {
     val client = new AhcWSClient(new AhcConfigBuilder(config).build())
-    new SystemConfiguration().configure(config.wsClientConfig)
+    new SystemConfiguration(loggerFactory).configure(config.wsClientConfig.ssl)
     client
   }
 }
@@ -393,7 +396,7 @@ class AhcWSAPI @Inject() (environment: Environment, clientConfig: AhcWSClientCon
           logger.warn("AhcWSAPI: ws.ssl.debug settings enabled in production mode!")
         case _ => // do nothing
       }
-      new DebugConfiguration().configure(clientConfig.wsClientConfig.ssl.debug)
+      new DebugConfiguration(AhcWSClient.loggerFactory).configure(clientConfig.wsClientConfig.ssl.debug)
     }
 
     val client = AhcWSClient(clientConfig)

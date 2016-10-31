@@ -50,7 +50,7 @@ import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
-import play.api.libs.ws.ssl.SSLConfigFactory;
+import com.typesafe.sslconfig.ssl.SSLConfigFactory;
 import scala.concurrent.duration.Duration;
 
 import akka.stream.Materializer;

@@ -11,7 +11,7 @@ A [trust manager](https://docs.oracle.com/javase/8/docs/technotes/guides/securit
 
 If you do not configure it at all, WS uses the default trust manager, which points to the `cacerts` key store in `${java.home}/lib/security/cacerts`.  If you configure a trust manager explicitly, it will override the default settings and the `cacerts` store will not be included.
 
-If you wish to use the default trust store and add another store containing certificates, you can define multiple stores in your trust manager.  The [CompositeX509TrustManager](api/scala/play/api/libs/ws/ssl/CompositeX509TrustManager.html) will try each in order until it finds a match:
+If you wish to use the default trust store and add another store containing certificates, you can define multiple stores in your trust manager.  The `com.typesafe.sslconfig.ssl.CompositeX509TrustManager` will try each in order until it finds a match:
 
 ```
 play.ws.ssl {
@@ -31,7 +31,7 @@ play.ws.ssl {
 
 A [key manager](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#KeyManager) is used to present keys for a remote host.  Key managers are typically only used for client authentication (also known as mutual TLS).
 
-The [CompositeX509KeyManager](api/scala/play/api/libs/ws/ssl/CompositeX509KeyManager.html) may contain multiple stores in the same manner as the trust manager.
+The `com.typesafe.sslconfig.ssl.CompositeX509KeyManager` may contain multiple stores in the same manner as the trust manager.
 
 ```
 play.ws.ssl {
