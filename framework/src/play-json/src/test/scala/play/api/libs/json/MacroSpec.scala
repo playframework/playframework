@@ -34,7 +34,8 @@ class MacroSpec extends org.specs2.mutable.Specification {
 
   "Reads" should {
     "be generated for simple case class" in {
-      Json.reads[Simple].reads(Json.obj("bar" -> "lorem")).get must_== Simple("lorem")
+      Json.reads[Simple].reads(Json.obj("bar" -> "lorem")).
+        get must_== Simple("lorem")
     }
 
     "as Format for a simple generic case class" in {
@@ -42,6 +43,25 @@ class MacroSpec extends org.specs2.mutable.Specification {
 
       fmt.reads(Json.obj("ipsum" -> 0.123D, "age" -> 1)).get must_== Lorem(
         0.123D, 1)
+    }
+
+    "refuse value other than JsObject when properties are optional" in {
+      val r = Json.reads[Optional]
+      val f = Json.format[Optional]
+
+      r.reads(Json.obj()).get must_== Optional(None) and {
+        r.reads(JsString("foo")).asEither must beLeft.like {
+          case (_, Seq(err)) :: Nil =>
+            err.message must_== "error.expected.jsobject"
+        }
+      } and {
+        f.reads(Json.obj()).get must_== Optional(None)
+      } and {
+        f.reads(JsString("foo")).asEither must beLeft.like {
+          case (_, Seq(err)) :: Nil =>
+            err.message must_== "error.expected.jsobject"
+        }
+      }
     }
   }
 
@@ -255,6 +275,7 @@ class MacroSpec extends org.specs2.mutable.Specification {
 
   case class Simple(bar: String)
   case class Lorem[T](ipsum: T, age: Int)
+  case class Optional(prop: Option[String])
 
   case class Foo(id: Long, value: Option[Either[String, Foo]])
   case class Interval[T](base: T, other: Option[T])
