@@ -66,3 +66,13 @@ Play [[actions|JavaActions]] are asynchronous by default. For instance, in the c
 @[simple-action](../http/code/javaguide/http/JavaActions.java)
 
 > **Note:** Whether the action code returns a `Result` or a `CompletionStage<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `CompletionStage` is a technique for writing non-blocking code.
+
+
+## Handling time-outs
+
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.libs.concurrent.Timeout.timeout`](api/java/play/libs/concurrent/Timeout.html) method to wrap a CompletionStage in a non-blocking timeout.
+
+@[timeout](code/javaguide/async/JavaAsync.java)
+
+> **Note:** Timeout is not the same as cancellation -- even in case of timeout, the given future will still complete, even though that completed value is not returned.
+

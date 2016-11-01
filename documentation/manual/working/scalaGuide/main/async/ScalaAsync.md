@@ -51,6 +51,8 @@ Play [[actions|ScalaActions]] are asynchronous by default. For instance, in the 
 
 ## Handling time-outs
 
-It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can easily compose a promise with a promise timeout to handle these cases:
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html) to wrap a Future in a non-blocking timeout.
 
 @[timeout](code/ScalaAsync.scala)
+
+> **Note:** Timeout is not the same as cancellation -- even in case of timeout, the given future will still complete, even though that completed value is not returned.
