@@ -1,0 +1,7 @@
+# Build the distribution and ensure that the files we expect are indeed there
+> stage
+$ exists target/universal/stage/README
+$ exists target/universal/stage/SomeFile.txt
+$ exists target/universal/stage/SomeFolder/SomeOtherFile.txt
+$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT-sans-externalized.jar
+-$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT.jar
