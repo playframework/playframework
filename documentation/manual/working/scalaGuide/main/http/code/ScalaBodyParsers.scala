@@ -114,8 +114,7 @@ import org.specs2.execute.AsResult
           def forward(request: WSRequest): BodyParser[WSResponse] = BodyParser { req =>
             Accumulator.source[ByteString].mapFuture { source =>
               request
-                // TODO: stream body when support is implemented
-                // .withBody(source)
+                .withBody(StreamedBody(source))
                 .execute()
                 .map(Right.apply)
             }
