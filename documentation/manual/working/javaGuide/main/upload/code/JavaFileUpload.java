@@ -94,7 +94,7 @@ public class JavaFileUpload extends WithApplication {
                 return Accumulator.fromSink(
                         sink.mapMaterializedValue(completionStage ->
                                 completionStage.thenApplyAsync(results ->
-                                        new Http.MultipartFormData.FilePart(partname,
+                                        new Http.MultipartFormData.FilePart<>(partname,
                                                 filename,
                                                 contentType,
                                                 file))
