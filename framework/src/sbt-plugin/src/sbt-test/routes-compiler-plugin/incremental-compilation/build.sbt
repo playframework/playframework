@@ -3,7 +3,7 @@
 //
 lazy val root = (project in file(".")).enablePlugins(RoutesCompiler)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.0")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "a.routes", baseDirectory.value / "b.routes")
 

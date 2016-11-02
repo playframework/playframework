@@ -7,7 +7,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.4.12"
-  val akkaHttpVersion = "2.4.11"
+  val akkaHttpVersion = "10.0.0-RC2"
 
   val specsVersion = "3.8.6"
   val specsBuild = Seq(
@@ -55,7 +55,7 @@ object Dependencies {
     "org.hibernate" % "hibernate-entitymanager" % "5.1.0.Final" % "test"
   )
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0-RC7"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
     case _ => Nil
@@ -145,8 +145,7 @@ object Dependencies {
   val nettyUtilsDependencies = slf4j
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
-    "com.typesafe.akka" %% "akka-http-experimental" % akkaHttpVersion
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
@@ -203,8 +202,9 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
+  val playDocVersion = "1.7.0"
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.6.0"
+    "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
@@ -257,7 +257,7 @@ object Dependencies {
     mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.3.0"
+    "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
 }

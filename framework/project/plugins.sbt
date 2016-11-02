@@ -5,7 +5,7 @@ buildInfoSettings
 sourceGenerators in Compile += Def.task(buildInfo.value).taskValue
 
 val sbtNativePackagerVersion = "1.1.1"
-val sbtTwirlVersion = sys.props.getOrElse("twirl.version", "1.2.0")
+val sbtTwirlVersion = sys.props.getOrElse("twirl.version", "1.3.0")
 
 buildInfoKeys := Seq[BuildInfoKey](
   "sbtNativePackagerVersion" -> sbtNativePackagerVersion,
@@ -16,7 +16,7 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.1.2"))
+addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.3.0"))
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.8")
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
