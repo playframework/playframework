@@ -119,7 +119,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Allow to package Play! 2.x applications into standard WAR packages.
 
 
-## Frameworks
+## Page Rendering
 
 ### Play Pagelets
 * **Website:** <https://github.com/splink/pagelets>
