@@ -78,7 +78,7 @@ Now, the actor that depends on this can extend [`InjectedActorSupport`](api/scal
 
 @[injectedparent](code/ScalaAkka.scala)
 
-It uses the `injectedChild` to create and get a reference to the child actor, passing in the key.
+It uses the `injectedChild` to create and get a reference to the child actor, passing in the key. The second parameter (`key` in this example) will be used as the child actor's name.
 
 Finally, we need to bind our actors.  In our module, we use the `bindActorFactory` method to bind the parent actor, and also bind the child factory to the child implementation:
 
