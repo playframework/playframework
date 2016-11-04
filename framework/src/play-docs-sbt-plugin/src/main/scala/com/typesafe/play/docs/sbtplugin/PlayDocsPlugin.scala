@@ -80,7 +80,7 @@ object PlayDocsPlugin extends AutoPlugin {
   def docsRunSettings = Seq(
     playDocsValidationConfig := ValidationConfig(),
     manualPath := baseDirectory.value,
-    run := docsRunSetting.value,
+    run := docsRunSetting.evaluated,
     generateMarkdownRefReport := PlayDocsValidation.generateMarkdownRefReportTask.value,
     validateDocs := PlayDocsValidation.validateDocsTask.value,
     validateExternalLinks := PlayDocsValidation.validateExternalLinksTask.value,

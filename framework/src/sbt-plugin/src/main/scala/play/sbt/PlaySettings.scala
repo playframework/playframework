@@ -99,7 +99,7 @@ object PlaySettings {
     },
 
     // THE `in Compile` IS IMPORTANT!
-    Keys.run in Compile := PlayRun.playDefaultRunTask.value,
+    Keys.run in Compile := PlayRun.playDefaultRunTask.evaluated,
     mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
 
     PlayInternalKeys.playStop := {

@@ -189,7 +189,7 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted <<= ScriptedPlugin.scripted.tag(Tags.Test),
+    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
     scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
@@ -198,7 +198,7 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] = ScriptedPlugin.scriptedSettings ++ Seq(
-    ScriptedPlugin.scriptedLaunchOpts <+= version apply { v => s"-Dproject.version=$v" }
+    ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
   ) ++ playScriptedSettings
 
   /**

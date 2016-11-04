@@ -42,7 +42,7 @@ object ApplicationBuild extends Build {
   }
 
   val checkLogContainsTask = InputKey[Boolean]("checkLogContains") :=
-    InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains)).value
+    InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains)).evaluated
 
   val compileIgnoreErrorsTask = TaskKey[Unit]("compileIgnoreErrors") := state.map { state =>
     Project.runTask(compile in Compile, state)

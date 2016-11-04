@@ -63,7 +63,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
 
-      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
+      sourceGenerators in Compile += Def.task(PlayVersion(version.value, scalaVersion.value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
 
       sourceDirectories in(Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
@@ -178,7 +178,8 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
 lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
-      sourceGenerators in Compile <+= (version, scalaVersion in PlayProject, sbtVersion, sourceManaged in Compile) map PlayVersion,
+      sourceGenerators in Compile += Def.task(PlayVersion(version.value, (scalaVersion in PlayProject).value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
+
       // This only publishes the sbt plugin projects on each scripted run.
       // The runtests script does a full publish before running tests.
       // When developing the sbt plugins, run a publishLocal in the root project first.
