@@ -41,12 +41,12 @@ object ApplicationBuild extends Build {
     true
   }
 
-  val checkLogContainsTask = InputKey[Boolean]("checkLogContains") <<=
-    InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains))
+  val checkLogContainsTask = InputKey[Boolean]("checkLogContains") :=
+    InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains)).evaluated
 
-  val compileIgnoreErrorsTask = TaskKey[Unit]("compileIgnoreErrors") <<= state.map { state =>
+  val compileIgnoreErrorsTask = TaskKey[Unit]("compileIgnoreErrors") := state.map { state =>
     Project.runTask(compile in Compile, state)
-  }
+  }.value
 
   val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,

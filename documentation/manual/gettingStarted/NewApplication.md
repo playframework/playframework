@@ -83,7 +83,7 @@ resolvers += "Typesafe Snapshots" at "https://oss.sonatype.org/content/repositor
 To ensure the proper sbt version is used, make sure you have the following in `project/build.properties`:
 
 ```
-sbt.version=0.13.11
+sbt.version=0.13.13
 ```
 
 In `build.sbt` for Java projects:

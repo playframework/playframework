@@ -59,7 +59,7 @@ $ delete public/new
 # JDK7 watcher
 # - - - - - -
 
-> set PlayKeys.fileWatchService <<= DevModeBuild.jdk7WatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jdk7WatchService.value
 
 # Start dev mode
 > run
@@ -100,7 +100,7 @@ $ delete public/new
 # JNotify watch service
 # - - - - - - - - - - -
 
-> set PlayKeys.fileWatchService <<= DevModeBuild.jnotifyWatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jnotifyWatchService.value
 
 # Start dev mode
 > run
