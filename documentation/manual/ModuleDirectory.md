@@ -112,6 +112,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Allow to package Play! 2.x applications into standard WAR packages.
 
 
+## Page Rendering
+
+### Play Pagelets
+* **Website:** <https://github.com/splink/pagelets>
+* **Short Description:** A Module for the Play Framework to build resilient and modular Play applications in an elegant and concise manner.
+* **Seed project:** <https://github.com/splink/pagelets-seed>
+
 
 ## Localization
 
