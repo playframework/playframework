@@ -3,8 +3,7 @@
  */
 package play.core.server.common
 
-import java.net.InetAddress
-
+import com.google.common.net.InetAddresses
 import org.specs2.matcher.DataTables
 import org.specs2.mutable.Specification
 
@@ -22,7 +21,7 @@ class SubnetSpec extends Specification with DataTables {
         "2001:dbfe::/31" !! "2001:dbff::" ! true |
         "2001:db8:cafe::17" !! "2001:db8:cafe::17" ! true |>
         {
-          (a, b, c) => Subnet(a).isInRange(InetAddress.getByName(b)) mustEqual c
+          (a, b, c) => Subnet(a).isInRange(InetAddresses.forString(b)) mustEqual c
         }
     }
   }

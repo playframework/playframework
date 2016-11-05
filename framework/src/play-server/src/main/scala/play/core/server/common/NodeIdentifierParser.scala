@@ -3,12 +3,14 @@
  */
 package play.core.server.common
 
-import java.net.{ Inet6Address, InetAddress, Inet4Address }
+import java.net.{ Inet4Address, Inet6Address, InetAddress }
+
+import com.google.common.net.InetAddresses
+import play.core.server.common.ForwardedHeaderHandler.{ ForwardedHeaderVersion, Rfc7239, Xforwarded }
+import play.core.server.common.NodeIdentifierParser._
+
 import scala.util.Try
 import scala.util.parsing.combinator.RegexParsers
-
-import ForwardedHeaderHandler.{ ForwardedHeaderVersion, Rfc7239, Xforwarded }
-import NodeIdentifierParser._
 
 /**
  * The NodeIdentifierParser object can parse node identifiers described in RFC 7239.
@@ -49,7 +51,7 @@ private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) exte
 
   private lazy val ipv4Address = regex("[\\d\\.]{7,15}".r) ^? inetAddress
 
-  private lazy val ipv6Address = regex("[\\da-fA-F:]+".r) ^? inetAddress
+  private lazy val ipv6Address = regex("[\\da-fA-F:\\.]+".r) ^? inetAddress
 
   private lazy val obfnode = regex("_[\\p{Alnum}\\._-]+".r)
 
@@ -65,8 +67,8 @@ private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) exte
   private def obfport = regex("_[\\p{Alnum}\\._-]+".r)
 
   private def inetAddress = new PartialFunction[String, InetAddress] {
-    def isDefinedAt(s: String) = Try { InetAddress.getByName(s) }.isSuccess
-    def apply(s: String) = Try { InetAddress.getByName(s) }.get
+    def isDefinedAt(s: String) = Try { InetAddresses.forString(s) }.isSuccess
+    def apply(s: String) = Try { InetAddresses.forString(s) }.get
   }
 }
 

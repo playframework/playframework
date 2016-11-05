@@ -4,10 +4,11 @@
 package play.core.server.common
 
 import java.net.InetAddress
+
+import com.google.common.net.InetAddresses
 import org.specs2.mutable.Specification
-import org.specs2.specification.Scope
 import play.api.mvc.Headers
-import play.api.{ PlayException, Configuration }
+import play.api.{ Configuration, PlayException }
 import play.core.server.common.ForwardedHeaderHandler._
 
 class ForwardedHeaderHandlerSpec extends Specification {
@@ -26,9 +27,10 @@ class ForwardedHeaderHandlerSpec extends Specification {
           |Forwarded: for=192.0.2.43, for=198.51.100.17, for=127.0.0.1
           |Forwarded: for=192.0.2.61;proto=https
           |Forwarded: for=unknown
-        """.stripMargin
+          |Forwarded: For="[::ffff:192.168.0.9]";proto=https
+          """.stripMargin
       ))
-      results.length must_== 8
+      results.length must_== 9
       results(0)._1 must_== ForwardedEntry(Some("_gazonk"), None)
       results(0)._2 must beLeft
       results(0)._3 must beNone
@@ -53,16 +55,19 @@ class ForwardedHeaderHandlerSpec extends Specification {
       results(7)._1 must_== ForwardedEntry(Some("unknown"), None)
       results(7)._2 must beLeft
       results(7)._3 must beNone
+      results(8)._1 must_== ForwardedEntry(Some("[::ffff:192.168.0.9]"), Some("https"))
+      results(8)._2 must beRight(ConnectionInfo(addr("::ffff:192.168.0.9"), true))
+      results(8)._3 must beSome(false)
     }
 
     "parse x-forwarded entries" in {
       val results = processHeaders(version("x-forwarded") ++ trustedProxies("2001:db8:cafe::17"), headers(
         """
-          |X-Forwarded-For: 192.168.1.1, ::1, [2001:db8:cafe::17], 127.0.0.1
-          |X-Forwarded-Proto: https, http, https, http
+          |X-Forwarded-For: 192.168.1.1, ::1, [2001:db8:cafe::17], 127.0.0.1, ::ffff:123.123.123.123
+          |X-Forwarded-Proto: https, http, https, http, https
         """.stripMargin
       ))
-      results.length must_== 4
+      results.length must_== 5
       results(0)._1 must_== ForwardedEntry(Some("192.168.1.1"), Some("https"))
       results(0)._2 must beRight(ConnectionInfo(addr("192.168.1.1"), true))
       results(0)._3 must beSome(false)
@@ -75,6 +80,9 @@ class ForwardedHeaderHandlerSpec extends Specification {
       results(3)._1 must_== ForwardedEntry(Some("127.0.0.1"), Some("http"))
       results(3)._2 must beRight(ConnectionInfo(addr("127.0.0.1"), false))
       results(3)._3 must beSome(false)
+      results(4)._1 must_== ForwardedEntry(Some("::ffff:123.123.123.123"), Some("https"))
+      results(4)._2 must beRight(ConnectionInfo(addr("::ffff:123.123.123.123"), true))
+      results(4)._3 must beSome(false)
     }
 
     "default to trusting IPv4 and IPv6 localhost with rfc7239 when there is config with default settings" in {
@@ -156,6 +164,14 @@ class ForwardedHeaderHandlerSpec extends Specification {
         """
           |Forwarded: For="[2001:db8:cafe::17]:4711"
         """.stripMargin)) mustEqual ConnectionInfo(addr("2001:db8:cafe::17"), false)
+    }
+
+    "handle quoted IPv4-mapped IPv6 addresses with rfc7239" in {
+      handler(version("rfc7239") ++ trustedProxies("fe80::1", "::ffff:123.123.123.123")).remoteConnection(addr("fe80::1"), false, headers(
+        """
+          |Forwarded: For="[::ffff:99.99.99.99]:4711"
+          |Forwarded: For="[::ffff:123.123.123.123]"
+        """.stripMargin)) mustEqual ConnectionInfo(addr("::ffff:99.99.99.99"), false)
     }
 
     "ignore obfuscated addresses with rfc7239" in {
@@ -400,7 +416,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
     }
   }
 
-  def addr(ip: String): InetAddress = InetAddress.getByName(ip)
+  def addr(ip: String): InetAddress = InetAddresses.forString(ip)
 
   val localhost: InetAddress = addr("127.0.0.1")
 
