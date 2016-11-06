@@ -7,6 +7,7 @@ import java.io._
 import javax.inject.Inject
 
 import play.api._
+import play.api.http.FileMimeTypes
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -28,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * }}}
  *
  */
-class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext) extends Controller {
+class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes) extends Controller {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 

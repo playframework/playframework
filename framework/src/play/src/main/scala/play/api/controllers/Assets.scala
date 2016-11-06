@@ -35,7 +35,7 @@ package controllers {
 
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
-  import play.api.http.HeaderNames
+  import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HeaderNames, HttpConfiguration }
   import play.api.inject.Module
 
   object Execution extends TrampolineContextProvider
@@ -52,8 +52,9 @@ package controllers {
     def configuration: Configuration
     def environment: Environment
     def httpErrorHandler: HttpErrorHandler
+    def fileMimeTypes: FileMimeTypes
     lazy val assetsConfiguration: AssetsConfiguration = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
-    lazy val assetsMetadata: AssetsMetadata = new AssetsMetadata(environment, assetsConfiguration)
+    lazy val assetsMetadata: AssetsMetadata = new AssetsMetadata(environment, assetsConfiguration, fileMimeTypes)
     lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
   }
 
@@ -108,8 +109,8 @@ package controllers {
     defaultCacheControl: String = "public, max-age=3600",
     aggressiveCacheControl: String = "public, max-age=31536000",
     digestAlgorithm: String = "md5",
-    checkForMinified: Boolean = true
-  )
+    checkForMinified: Boolean = true,
+    textContentTypes: Set[String] = Set("application/json", "application/javascript"))
 
   object AssetsConfiguration {
     def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Prod): AssetsConfiguration = {
@@ -122,7 +123,8 @@ package controllers {
         aggressiveCacheControl = c.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache"),
         digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
         checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
-          .getOrElse(mode != Mode.Dev)
+          .getOrElse(mode != Mode.Dev),
+        textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet
       )
     }
   }
@@ -137,16 +139,24 @@ package controllers {
     ).getOrElse(AssetsConfiguration()),
     { name =>
       Play.maybeApplication.flatMap(app => new Environment(new File("."), app.classloader, app.mode).resource(name))
-    })
+    },
+    Play.maybeApplication.map(app =>
+      app.injector.instanceOf[FileMimeTypes]
+    ).getOrElse {
+      import play.api.http.HttpConfiguration.HttpConfigurationProvider
+      val httpConfig = new HttpConfigurationProvider(Configuration.reference).get
+      new DefaultFileMimeTypesProvider(httpConfig.fileMimeTypes).get
+    }
+  )
 
   /*
    * Retains meta information regarding an asset that can be readily cached.
    */
   @Singleton
-  class AssetsMetadata(config: AssetsConfiguration, resource: String => Option[URL]) {
+  class AssetsMetadata(config: AssetsConfiguration, resource: String => Option[URL], fileMimeTypes: FileMimeTypes) {
 
     @Inject
-    def this(env: Environment, config: AssetsConfiguration) = this(config, env.resource _)
+    def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) = this(config, env.resource _, fileMimeTypes)
 
     import HeaderNames._
     import config._
@@ -207,7 +217,7 @@ package controllers {
           url <- resource(name)
         } yield {
           val gzipUrl: Option[URL] = resource(name + ".gz")
-          new AssetInfo(name, url, gzipUrl, digest(name), config)
+          new AssetInfo(name, url, gzipUrl, digest(name), config, fileMimeTypes)
         }
       }
     }
@@ -234,14 +244,30 @@ package controllers {
       val url: URL,
       val gzipUrl: Option[URL],
       val digest: Option[String],
-      config: AssetsConfiguration
+      config: AssetsConfiguration,
+      fileMimeTypes: FileMimeTypes
   ) {
 
     import ResponseHeader._
     import config._
 
+    /**
+     * tells you if mimeType is text or not.
+     * Useful to determine whether the charset suffix should be attached to Content-Type or not
+     *
+     * @param mimeType mimeType to check
+     * @return true if mimeType is text
+     */
+    private def isText(mimeType: String): Boolean = {
+      mimeType.trim match {
+        case text if text.startsWith("text/") => true
+        case text if config.textContentTypes.contains(text) => true
+        case _ => false
+      }
+    }
+
     def addCharsetIfNeeded(mimeType: String): String =
-      if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
+      if (isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
     val configuredCacheControl = config.configuredCacheControl.get(name).flatten
 
@@ -280,7 +306,7 @@ package controllers {
         lastModified map (m => Codecs.sha1(m + " -> " + url.toExternalForm))
       } map ("\"" + _ + "\"")
 
-    val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
+    val mimeType: String = fileMimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
     val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 

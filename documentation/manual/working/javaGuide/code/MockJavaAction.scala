@@ -12,6 +12,7 @@ import play.mvc.{Controller, Http, Result}
 import play.api.http.HttpConfiguration
 import play.api.test.Helpers
 import play.i18n.{Langs => JLangs, MessagesApi => JMessagesApi}
+import play.mvc.{FileMimeTypes => JFileMimeTypes}
 import java.lang.reflect.Method
 
 import akka.stream.Materializer
@@ -24,6 +25,7 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
   private lazy val contextComponents = new DefaultJavaContextComponents(
     app.injector.instanceOf(classOf[JMessagesApi]),
     app.injector.instanceOf(classOf[JLangs]),
+    app.injector.instanceOf(classOf[JFileMimeTypes]),
     HttpConfiguration()
   )
 

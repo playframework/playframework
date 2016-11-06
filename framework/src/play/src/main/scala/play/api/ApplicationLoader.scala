@@ -127,8 +127,8 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val configuration = context.initialConfiguration
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
 
-  lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, httpConfiguration)
+  lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
   override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
-    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents
+    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
 

@@ -29,7 +29,8 @@ class HttpConfigurationSpec extends Specification {
         "play.http.session.domain" -> "playframework.com",
         "play.http.flash.cookieName" -> "PLAY_FLASH",
         "play.http.flash.secure" -> "true",
-        "play.http.flash.httpOnly" -> "true"
+        "play.http.flash.httpOnly" -> "true",
+        "play.http.fileMimeTypes" -> "foo=text/foo"
       )
     }
 
@@ -42,6 +43,12 @@ class HttpConfigurationSpec extends Specification {
 
     "throw an error when context does not starts with /" in {
       val config = properties + ("play.http.context" -> "something")
+      val wrongConfiguration = Configuration(ConfigFactory.parseMap(config))
+      new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration).get must throwA[PlayException]
+    }
+
+    "throw an error when context includes a mimetype config setting" in {
+      val config = properties + ("mimetype" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration).get must throwA[PlayException]
     }
@@ -117,6 +124,14 @@ class HttpConfigurationSpec extends Specification {
       "execute request handler action first" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
         httpConfiguration.actionComposition.executeActionCreatorActionFirst must beTrue
+      }
+    }
+
+    "configure mime types" in {
+
+      "for server encoder" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
+        httpConfiguration.fileMimeTypes.mimeTypes must beEqualTo(Map("foo" -> "text/foo"))
       }
     }
   }

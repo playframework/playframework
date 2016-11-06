@@ -5,16 +5,12 @@ package play.mvc;
 
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import play.api.libs.MimeTypes;
 import play.core.j.JavaRangeResult;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
-
-import scala.Option;
-import scala.compat.java8.OptionConverters;
 
 /**
  * Java API for Range results.
@@ -29,8 +25,7 @@ public class RangeResults {
     }
 
     private static Optional<String> mimeTypeFor(String fileName) {
-        Option<String> option = MimeTypes.forFileName(fileName);
-        return OptionConverters.toJava(option);
+        return Http.Context.current().fileMimeTypes().forFileName(fileName);
     }
 
     /**

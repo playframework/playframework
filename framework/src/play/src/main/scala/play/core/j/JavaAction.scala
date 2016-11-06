@@ -13,7 +13,7 @@ import scala.compat.java8.FutureConverters
 import scala.language.existentials
 import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc.{ Action => JAction, BodyParser => JBodyParser, Result => JResult }
+import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.mvc.Http.{ Context => JContext }
 
@@ -133,6 +133,7 @@ trait JavaHandler extends Handler {
 trait JavaContextComponents {
   def messagesApi: JMessagesApi
   def langs: JLangs
+  def fileMimeTypes: FileMimeTypes
   def httpConfiguration: HttpConfiguration
 }
 
@@ -142,6 +143,7 @@ trait JavaContextComponents {
 class DefaultJavaContextComponents @Inject() (
   val messagesApi: JMessagesApi,
   val langs: JLangs,
+  val fileMimeTypes: FileMimeTypes,
   val httpConfiguration: HttpConfiguration
 ) extends JavaContextComponents
 

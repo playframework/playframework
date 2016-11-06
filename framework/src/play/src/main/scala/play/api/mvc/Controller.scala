@@ -5,7 +5,7 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ ContentTypes, HeaderNames, HttpProtocol, Status }
+import play.api.http._
 import play.api.i18n._
 import play.twirl.api.Html
 
@@ -159,6 +159,11 @@ abstract class AbstractController(components: ControllerComponents) extends Base
    * The default Langs provided by Play. Can be used to determine the application's supported languages.
    */
   implicit def supportedLangs: Langs = components.langs
+
+  /**
+   * The default FileMimeTypes provided by Play. Used to map between file name extensions and mime types.
+   */
+  implicit def fileMimeTypes: FileMimeTypes = components.fileMimeTypes
 }
 
 trait ControllerComponents {
@@ -166,6 +171,7 @@ trait ControllerComponents {
   def parsers: PlayBodyParsers
   def messagesApi: MessagesApi
   def langs: Langs
+  def fileMimeTypes: FileMimeTypes
   def executionContext: scala.concurrent.ExecutionContext
 }
 
@@ -174,5 +180,6 @@ case class DefaultControllerComponents @Inject() (
   parsers: PlayBodyParsers,
   messagesApi: MessagesApi,
   langs: Langs,
+  fileMimeTypes: FileMimeTypes,
   executionContext: scala.concurrent.ExecutionContext)
     extends ControllerComponents

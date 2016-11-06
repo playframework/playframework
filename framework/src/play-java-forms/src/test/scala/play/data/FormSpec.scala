@@ -9,7 +9,7 @@ import javax.validation.Validation
 import javax.validation.groups.Default
 
 import org.specs2.mutable.Specification
-import play.api.http.HttpConfiguration
+import play.api.http.{ DefaultFileMimeTypesProvider, HttpConfiguration }
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
@@ -27,11 +27,13 @@ class FormSpec extends Specification {
   val environment = Environment.simple()
   val config = Configuration.load(environment)
   val httpConfiguration = HttpConfiguration.fromConfiguration(config)
+
   val langs = new DefaultLangsProvider(config).get
   val messagesApi = new DefaultMessagesApiProvider(environment, config, langs, httpConfiguration).get
-
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, httpConfiguration)
+
+  val defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
+  val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, defaultFileMimeTypes, httpConfiguration)
   val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), Validation.buildDefaultValidatorFactory().getValidator())
 
   "a java form" should {

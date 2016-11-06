@@ -334,6 +334,10 @@ public class Http {
          */
         public Map<String, Object> args;
 
+        public FileMimeTypes fileMimeTypes() {
+            return components.fileMimeTypes();
+        }
+
         /**
          * Import in templates to get implicit HTTP context.
          */
