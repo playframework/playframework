@@ -49,7 +49,10 @@ private[cors] trait AbstractCORSPolicy {
          * If the value of the Origin header is not a case-sensitive match for any of the values in list of origins, do
          * not set any additional headers and terminate this set of steps.
          */
-        handleInvalidCORSRequest(request)
+        if (corsConfig.serveForbiddenOrigins)
+          next(request)
+        else
+          handleInvalidCORSRequest(request)
       case (Some(originHeader), _) if isSameOrigin(originHeader, request) =>
         // Same-origin request
         next(request)
