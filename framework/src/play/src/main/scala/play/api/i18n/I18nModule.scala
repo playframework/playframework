@@ -10,7 +10,9 @@ class I18nModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
       bind[Langs].to[DefaultLangs],
-      bind[MessagesApi].to[DefaultMessagesApi]
+      bind[MessagesApi].to[DefaultMessagesApi],
+      bind[play.i18n.MessagesApi].toSelf,
+      bind[play.i18n.Langs].toSelf
     )
   }
 }
