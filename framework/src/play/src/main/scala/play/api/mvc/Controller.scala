@@ -5,11 +5,11 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.Play
 import play.api.http.{ ContentTypes, HeaderNames, HttpProtocol, Status }
 import play.api.i18n._
-import play.api.libs.concurrent.Execution
 import play.twirl.api.Html
+
+import scala.concurrent.ExecutionContext
 
 /**
  * Useful mixins for controller classes (no global state)
@@ -95,19 +95,70 @@ trait Controller extends BodyParsers with BaseController {
 }
 
 /**
- * An alternative to `Controller` that provides a "parse" field containing parsers and an "Action" method.
+ * An base controller class that provides a "parse" method containing parsers and an "Action" method, as well as other
+ * commonly used components.
  *
  * This is intended to provide the idiomatic Play API for actions, allowing you to use "Action" for the default
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
- * base controller class.
+ * base controller class, or write your own version with similar code.
  */
 abstract class AbstractController(components: ControllerComponents) extends BaseController {
-  def Action = components.actionBuilder
-  def parse = components.parsers
-  implicit def messagesApi: MessagesApi = components.messagesApi
+
+  /**
+   * The default ActionBuilder. Used to construct an action, for example:
+   *
+   * {{{
+   *   def foo(query: String) = Action {
+   *     Ok
+   *   }
+   * }}}
+   *
+   * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
+   */
+  def Action: ActionBuilder[Request, AnyContent] = components.actionBuilder
+
+  /**
+   * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
+   * parser, for example:
+   *
+   * {{{
+   *   def foo(query: String) = Action(parse.tolerantJson) { request =>
+   *     Ok(request.body)
+   *   }
+   * }}}
+   */
+  def parse: PlayBodyParsers = components.parsers
+
+  /**
+   * Used to mark an action that is still not implemented, e.g.:
+   *
+   * {{{
+   *   def action(query: String) = TODO
+   * }}}
+   */
   lazy val TODO: Action[AnyContent] = Action {
     NotImplemented[Html](views.html.defaultpages.todo())
   }
+
+  /**
+   * The default execution context provided by Play. You should use this for non-blocking code only. You can do so by
+   * passing it explicitly, or by defining an implicit in your controller like so:
+   *
+   * {{{
+   *   implicit lazy val executionContext = defaultExecutionContext
+   * }}}
+   */
+  def defaultExecutionContext: ExecutionContext = components.executionContext
+
+  /**
+   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by i18nComponents.
+   */
+  implicit def messagesApi: MessagesApi = components.messagesApi
+
+  /**
+   * The default Langs provided by Play. Can be used to determine the application's supported languages.
+   */
+  implicit def supportedLangs: Langs = components.langs
 }
 
 trait ControllerComponents {
