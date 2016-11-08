@@ -3,6 +3,32 @@
  */
 package play.mvc;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -16,7 +42,6 @@ import play.api.libs.typedmap.TypedEntry;
 import play.api.libs.typedmap.TypedKey;
 import play.api.libs.typedmap.TypedMap;
 import play.api.mvc.Headers;
-import play.api.mvc.SessionCookieBaker;
 import play.core.j.JavaContextComponents;
 import play.core.j.JavaParsers;
 import play.core.system.RequestIdProvider;
@@ -27,18 +52,6 @@ import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 import scala.compat.java8.OptionConverters;
-
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static play.libs.Scala.asScala;
 
@@ -1839,65 +1852,10 @@ public class Http {
         }
 
         /**
-         * Set a new transient cookie with path "/".<br>
-         * For example:
-         * <pre>
-         * response().setCookie("theme", "blue");
-         * </pre>
-         *
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
-         */
-        @Deprecated
-        public void setCookie(String name, String value) {
-            setCookie(name, value, null);
-        }
-
-        /**
-         * Set a new cookie with path "/".
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
-         */
-        @Deprecated
-        public void setCookie(String name, String value, Integer maxAge) {
-            setCookie(name, value, maxAge, "/");
-        }
-
-        /**
          * Set a new cookie.
          * @param name Cookie name, must not be null
          * @param value Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @param path Cookie path
-         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
-         */
-        @Deprecated
-        public void setCookie(String name, String value, Integer maxAge, String path) {
-            setCookie(name, value, maxAge, path, null);
-        }
-
-        /**
-         * Set a new cookie.
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @param path Cookie path
-         * @param domain Cookie domain
-         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
-         */
-        @Deprecated
-        public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
-            setCookie(name, value, maxAge, path, domain, false, false);
-        }
-
-        /**
-         * Set a new cookie.
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
@@ -2198,11 +2156,26 @@ public class Http {
         }
 
         /**
-         * @param maxAge The maxAge of the cookie
+         * @param maxAge The maxAge of the cookie in seconds
+         * @return the cookie builder with the new maxAge
+         *
+         * @deprecated As of 2.6.0, use withMaxAge(Duration) instead.
+         * */
+        @Deprecated
+        public CookieBuilder withMaxAge(Integer maxAge) {
+            return withMaxAge(Duration.of(maxAge, ChronoUnit.SECONDS));
+        }
+
+        /**
+         * Set the maximum age of the cookie.
+         *
+         * For example, to set a maxAge of 40 days: <code>builder.withMaxAge(Duration.of(40, ChronoUnit.DAYS))</code>
+         *
+         * @param maxAge a duration representing the maximum age of the cookie. Will be truncated to the nearest second.
          * @return the cookie builder with the new maxAge
          * */
-        public CookieBuilder withMaxAge(Integer maxAge) {
-            this.maxAge = maxAge;
+        public CookieBuilder withMaxAge(Duration maxAge) {
+            this.maxAge = (int)maxAge.getSeconds();
             return this;
         }
 
