@@ -24,6 +24,7 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
  *  - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
  *  - disable/enable support for credentials (by default credentials support is enabled)
  *  - set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)
+ *  - enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)
  *
  * @param  corsConfig  configuration of the CORS policy
  * @param  pathPrefixes  whitelist of path prefixes to restrict the filter
