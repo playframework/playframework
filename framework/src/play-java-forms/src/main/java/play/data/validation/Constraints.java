@@ -69,7 +69,11 @@ public class Constraints {
      * The order of the returned constraints corresponds to the order of the {@code orderedAnnotations parameter}. 
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
-        return Stream.of(orderedAnnotations).filter(constraints.stream().map(c -> c.getAnnotation()).collect(Collectors.toList())::contains) // only use annotations for which we actually have a constraint
+        final List<Annotation> constraintAnnot = constraints.stream().
+            map(c -> c.getAnnotation()).
+            collect(Collectors.<Annotation>toList());
+
+        return Stream.of(orderedAnnotations).filter(constraintAnnot::contains) // only use annotations for which we actually have a constraint
             .filter(a -> a.annotationType().isAnnotationPresent(Display.class)).map(a -> 
                 displayableConstraint(constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get())
         ).collect(Collectors.toList());
