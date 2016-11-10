@@ -51,13 +51,17 @@ object Reflect {
       case Some(Left(direct)) =>
         Seq(
           bind[ScalaTrait].to(direct),
-          bind[JavaInterface].to[JavaDelegate]
+          bind[JavaInterface].to[JavaDelegate],
+          bind[JavaDelegate].toSelf,
+          BindingKey(direct).toSelf
         )
       // Implements the java interface
       case Some(Right(java)) =>
         Seq(
           bind[ScalaTrait].to[JavaAdapter],
-          bind[JavaInterface].to(java)
+          bind[JavaAdapter].toSelf,
+          bind[JavaInterface].to(java),
+          BindingKey(java).toSelf
         )
 
       case None => Nil

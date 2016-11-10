@@ -6,7 +6,6 @@ package play.it.i18n
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.api.mvc.Controller
 import play.api.i18n._
-import play.api.Mode
 
 object MessagesSpec extends PlaySpecification with Controller {
 
@@ -16,13 +15,19 @@ object MessagesSpec extends PlaySpecification with Controller {
   import play.api.i18n.Messages.Implicits.applicationMessages
 
   "Messages" should {
-    "provide default messages" in new WithApplication() {
-      val msg = Messages("constraint.email")
+    "provide default messages" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val javaMessagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+
+      val msg = messagesApi("constraint.email")
+      val javaMsg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
 
       msg must ===("Email")
+      msg must ===(javaMsg)
     }
-    "permit default override" in new WithApplication() {
-      val msg = Messages("constraint.required")
+    "permit default override" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val msg = messagesApi("constraint.required")
 
       msg must ===("Required!")
     }

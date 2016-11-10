@@ -568,25 +568,3 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
 }
-
-class I18nModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[Langs].to[DefaultLangs],
-      bind[MessagesApi].to[DefaultMessagesApi]
-    )
-  }
-}
-
-/**
- * Injection helper for i18n components
- */
-trait I18nComponents {
-
-  def environment: Environment
-  def configuration: Configuration
-
-  lazy val messagesApi: MessagesApi = new DefaultMessagesApi(environment, configuration, langs)
-  lazy val langs: Langs = new DefaultLangs(configuration)
-
-}
