@@ -1,7 +1,7 @@
 language: scala
-scala: 
-  - 2.11.8
-sudo: false
+# Trusty VM has 1.8u101
+# https://github.com/travis-ci/travis-ci/issues/3259#issuecomment-243534696
+sudo: required
 jdk:
   - oraclejdk8
 script:
