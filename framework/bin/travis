@@ -15,7 +15,7 @@
 # we can run the tasks serially.
 set -ev
 
-declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation rehearseMicrobenchmarks)
+declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation)
 
 for TASK in "${TASKS[@]}" 
 do  
