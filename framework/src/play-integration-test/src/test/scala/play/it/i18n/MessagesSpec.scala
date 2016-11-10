@@ -14,13 +14,17 @@ class MessagesSpec extends PlaySpecification with Controller {
   implicit val lang = Lang("en-US")
 
   "Messages" should {
-    "provide default messages" in new WithApplication() {
+    "provide default messages" in new WithApplication(_.requireExplicitBindings()) {
       val messagesApi = app.injector.instanceOf[MessagesApi]
+      val javaMessagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+
       val msg = messagesApi("constraint.email")
+      val javaMsg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
 
       msg must ===("Email")
+      msg must ===(javaMsg)
     }
-    "permit default override" in new WithApplication() {
+    "permit default override" in new WithApplication(_.requireExplicitBindings()) {
       val messagesApi = app.injector.instanceOf[MessagesApi]
       val msg = messagesApi("constraint.required")
 
