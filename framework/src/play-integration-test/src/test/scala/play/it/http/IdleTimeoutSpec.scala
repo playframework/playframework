@@ -78,7 +78,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
     "support sub-second timeouts" in withServer(300)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
-      doRequests(port, trickle = 400L) must throwA[SocketException]("Broken pipe|Connection reset")
+      doRequests(port, trickle = 400L) must throwA[SocketException]
     }
 
     "support a separate timeout for https" in withServer(1000, httpsPort = Some(httpsPort), httpsTimeout = Some(400))(EssentialAction { req =>
@@ -89,13 +89,13 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses(0).status must_== 200
       responses(1).status must_== 200
 
-      doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]("Broken pipe|Connection reset")
+      doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]
     }
 
     "support multi-second timeouts" in withServer(1500)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
-      doRequests(port, trickle = 1600L) must throwA[SocketException]("Broken pipe|Connection reset")
+      doRequests(port, trickle = 1600L) must throwA[SocketException]
     }
 
     "not timeout for slow requests with a sub-second timeout" in withServer(700)(EssentialAction { req =>
