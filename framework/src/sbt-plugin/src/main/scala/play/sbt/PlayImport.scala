@@ -119,5 +119,7 @@ object PlayImport {
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
     val fileWatchService = SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
+
+    val includeDocumentation = SettingKey[Boolean]("includeDocumentation", "Determines if a documentation should be generated on stage/dist tasks.")
   }
 }
