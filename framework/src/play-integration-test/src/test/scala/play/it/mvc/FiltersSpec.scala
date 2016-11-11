@@ -162,7 +162,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       }
     }
 
-    "Filters are not applied when the request is outside the application.context" in withServer(
+    "Filters are not applied when the request is outside play.http.context" in withServer(
       Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
         val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
         response.status must_== 200

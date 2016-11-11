@@ -100,10 +100,10 @@ class ScalaResultsSpec extends PlaySpecification {
     _.configure(Map(config: _*) + ("play.crypto.secret" -> "foo"))
   )(block)
 
-  def withFooPath[T](block: Application => T) = withApplication("application.context" -> "/foo")(block)
+  def withFooPath[T](block: Application => T) = withApplication("play.http.context" -> "/foo")(block)
 
-  def withFooDomain[T](block: Application => T) = withApplication("session.domain" -> ".foo.com")(block)
+  def withFooDomain[T](block: Application => T) = withApplication("play.http.session.domain" -> ".foo.com")(block)
 
-  def withSecureSession[T](block: Application => T) = withApplication("session.secure" -> true)(block)
+  def withSecureSession[T](block: Application => T) = withApplication("play.http.session.secure" -> true)(block)
 
 }
