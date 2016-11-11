@@ -4,7 +4,7 @@
 @if(form.hasGlobalErrors) {
     <p class="error">
         @for(error <- form.globalErrors) {
-            <p>@Messages(error.messages, error.arguments.toArray: _*)</p>
+            <p>@error.format(messages())</p>
         }
     </p>
 }
@@ -12,6 +12,6 @@
 
 @* #field-errors *@
 @for(error <- form("email").errors) {
-    <p>@Messages(error.messages, error.arguments.toArray: _*)</p>
+    <p>@error.format(messages())</p>
 }
 @* #field-errors *@

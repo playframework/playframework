@@ -209,6 +209,8 @@ Errors attached to a field will render automatically using the form helpers, so 
 
 @[form-user-generated](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
+Errors that are not attached to a field can be converted to a string with `error.format`, which takes an implicit [play.api.i18n.Messages](api/scala/play/api/i18n/Messages.html) instance.
+
 Global errors that are not bound to a key do not have a helper and must be defined explicitly in the page:
 
 @[global-errors](code/scalaguide/forms/scalaforms/views/user.scala.html)
