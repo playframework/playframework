@@ -461,10 +461,37 @@ object JsMacroImpl {
     val applyOrMap = TermName(if (multiParam) "apply" else mapLikeMethod)
 
     val syntaxImport = if (!multiParam && !writes) q"" else q"import $syntax._"
-    val canBuildCall = q"$canBuild.$applyOrMap(..${conditionalList(applyFunction, ApplyUnapply.unapplyFunction)})"
+    @inline def buildCall = q"$canBuild.$applyOrMap(..${conditionalList(applyFunction, ApplyUnapply.unapplyFunction)})"
+
+    val canBuildCall = methodName match {
+      case "read" => {
+        q"""{ 
+          val underlying = $buildCall
+
+          $json.Reads[${atag.tpe}] {
+            case obj @ $json.JsObject(_) => underlying.reads(obj)
+            case _ => $json.JsError("error.expected.jsobject")
+          }
+        }"""
+      }
+
+      case "format" => {
+        q"""{ 
+          val underlying = $buildCall
+          val rfn: $json.JsValue => $json.JsResult[${atag.tpe}] = {
+            case obj @ $json.JsObject(_) => underlying.reads(obj)
+            case _ => $json.JsError("error.expected.jsobject")
+          }
+
+          $json.OFormat[${atag.tpe}](rfn, underlying.writes _)
+        }"""
+      }
+
+      case _ => buildCall
+    }
 
     val finalTree =
-      if (!resolvedImplicits.exists(_.selfRef)) {
+      if (!resolvedImplicits.exists(_.selfRef)) { // there is no self reference
         q"""
         $syntaxImport
 
