@@ -1,0 +1,5 @@
+# Build the distribution and ensure that there is no documentation
+> stage
+$ absent target/universal/stage/share
+
+-> compile:doc
