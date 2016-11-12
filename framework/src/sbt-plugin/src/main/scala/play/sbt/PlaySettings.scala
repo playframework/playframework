@@ -60,7 +60,7 @@ object PlaySettings {
 
     externalizeResources := true,
 
-    includeDocumentation := true,
+    includeDocumentationInBinary := true,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -229,7 +229,7 @@ object PlaySettings {
 
     mappings in Universal ++= Def.taskDyn {
       // the documentation will only be included if includeDocumentation is true (see: http://www.scala-sbt.org/1.0/docs/Tasks.html#Dynamic+Computations+with)
-      if (includeDocumentation.value) {
+      if (includeDocumentationInBinary.value) {
         Def.task{
           val docDirectory = (doc in Compile).value
           val docDirectoryLen = docDirectory.getCanonicalPath.length

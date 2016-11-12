@@ -2,5 +2,4 @@
 > stage
 $ absent target/universal/stage/share
 
-# Build the documentation which should fail
 -> compile:doc

@@ -15,6 +15,6 @@ libraryDependencies += guice
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
-play.sbt.PlayImport.PlayKeys.includeDocumentation := false
+play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false
 
 packageDoc in Compile := { new File(".") }
