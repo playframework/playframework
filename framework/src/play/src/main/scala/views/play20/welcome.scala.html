@@ -1,7 +1,5 @@
 @(message: String, style: String = "Scala")
 
-@play.api.Play.maybeApplication.filterNot(_.mode != play.api.Mode.Dev).map { _ =>
-    
 <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
 
 <section id="top">
@@ -21,7 +19,7 @@
 </section>
 
 <div id="news">
-    <iframe src="http://www.playframework.com/widget?uid=@play.api.Play.maybeApplication.flatMap(_.configuration.getString("application.secret")).map(_.take(5)).map(play.api.libs.Codecs.sha1(_))&version=@play.core.PlayVersion.current&tag=@style.toUpperCase" scrolling="no" style="overflow: hidden; display: block; margin: 0 auto; width: 960px; height: 60px"></iframe>
+    <iframe src="http://www.playframework.com/widget?version=@play.core.PlayVersion.current&tag=@style.toUpperCase" scrolling="no" style="overflow: hidden; display: block; margin: 0 auto; width: 960px; height: 60px"></iframe>
 </div>
 
 
@@ -305,9 +303,3 @@ db.default.password="secret"</code></pre>
 
 
 </div>
-    
-}.getOrElse {
-    
-<h1>@message</h1>
-    
-}
