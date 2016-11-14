@@ -7,7 +7,7 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 ## The application secret
 
-Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dapplication.secret=abcdefghijk`.  You must generate your own secret to use here.
+Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.crypto.secret=abcdefghijk`.  You must generate your own secret to use here.
 
 ## Using the dist task
 
