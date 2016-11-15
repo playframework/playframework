@@ -162,12 +162,6 @@ class MultipartFormDataParserSpec extends PlaySpecification {
       result.get must equalTo("partName")
     }
 
-    "parse unquoted content disposition with part matcher" in {
-      val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName"""))
-      result must not(beEmpty)
-      result.get must equalTo("partName")
-    }
-
     "ignore extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName"""))
       result must not(beEmpty)
