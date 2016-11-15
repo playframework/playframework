@@ -5,14 +5,16 @@ package play.filters.csrf
 
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
+import play.api.Application
 import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.crypto.CSRFTokenSigner
+import play.api.libs.crypto._
 import play.api.libs.ws._
-import play.api.mvc.{ DefaultActionBuilder, Handler, Session }
+import play.api.mvc.{ Handler, Session }
 import play.api.test.{ PlaySpecification, TestServer }
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 /**
  * Specs for functionality that each CSRF filter/action shares in common
@@ -21,10 +23,11 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   val TokenName = "csrfToken"
   val HeaderName = "Csrf-Token"
+  val CRYPTO_SECRET = "foobar"
 
-  def csrfAddToken = play.api.Play.privateMaybeApplication.get.injector.instanceOf[CSRFAddToken]
-  def csrfCheck = play.api.Play.privateMaybeApplication.get.injector.instanceOf[CSRFCheck]
-  def crypto = play.api.Play.privateMaybeApplication.get.injector.instanceOf[CSRFTokenSigner]
+  def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
+
+  val crypto = new DefaultCSRFTokenSigner(new HMACSHA1CookieSigner(CryptoConfig(CRYPTO_SECRET)), java.time.Clock.systemUTC())
 
   val Boundary = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
@@ -278,22 +281,20 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
-    val app = GuiceApplicationBuilder()
+    implicit val app = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
       .routes(router)
       .build()
-    val ws = app.injector.instanceOf[WSClient]
+    val ws = inject[WSClient]
     running(TestServer(testServerPort, app))(block(ws))
   }
 
-  def withActionServer[T](config: Seq[(String, String)])(router: DefaultActionBuilder => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
-    val app = GuiceApplicationBuilder()
+  def withActionServer[T](config: Seq[(String, String)])(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
+    implicit val app = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
-      .appRoutes(app => {
-        router(app.injector.instanceOf[DefaultActionBuilder])
-      })
+      .appRoutes(app => router(app))
       .build()
-    val ws = app.injector.instanceOf[WSClient]
+    val ws = inject[WSClient]
     running(TestServer(testServerPort, app))(block(ws))
   }
 }
