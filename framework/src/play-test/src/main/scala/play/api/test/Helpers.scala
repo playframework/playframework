@@ -431,6 +431,84 @@ trait ResultExtractors {
 
 }
 
+/**
+ * A trait declared with a test that has an implicit application in scope and can provide
+ * instances of a class.  Useful in integration tests.
+ */
+trait Injectable {
+
+  /**
+   * Given an implicit application, provides an instance from the application.
+   *
+   * {{{
+   * implicit val app: Application = ...
+   * val messagesApi = inject[MessagesApi]
+   * }}}
+   *
+   * @param app the implicit application instance
+   * @tparam T the type to return, using `app.injector.instanceOf`
+   * @return an instance of type T.
+   */
+  def inject[T: ClassTag](implicit app: Application): T = app.injector.instanceOf[T]
+
+  /**
+   * Given an implicit application, provides a block for the instance.
+   *
+   * {{{
+   * implicit val app: Application = ...
+   * injecting { messagesApi: MessagesApi =>
+   *   ...
+   * }
+   * }}}
+   *
+   * @param app the implicit application instance
+   * @tparam T the type to return, using `app.injector.instanceOf`
+   * @return an instance of type T.
+   */
+  def injecting[T: ClassTag, R](block: T => R)(implicit app: Application): R = block(inject[T])
+
+}
+
+/**
+ * A trait declared on a class that contains an `def app: Application`, and can provide
+ * instances of a class.  Useful in integration tests.
+ */
+trait Injecting {
+  self: HasApp =>
+
+  /**
+   * Given a type with an Application, provides an instance from the application.
+   *
+   * {{{
+   * "some test" in new WithApplication() {
+   *   val messagesApi = inject[MessagesApi]
+   * }
+   * }}}
+   *
+   * @tparam T the type to return, using `app.injector.instanceOf`
+   * @return an instance of type T.
+   */
+  def inject[T: ClassTag]: T = {
+    self.app.injector.instanceOf
+  }
+
+  /**
+   * Given a type with an Application, provides a block for the instance.
+   *
+   * {{{
+   * "some test" in new WithApplication() {
+   *   injecting { implicit messagesApi: MessagesApi =>
+   *     ...
+   *   }
+   * }
+   * }}}
+   *
+   * @tparam T the type to return, using `app.injector.instanceOf`
+   * @return an instance of type T.
+   */
+  def injecting[T: ClassTag, R](block: T => R): R = block(inject[T])
+}
+
 object Helpers extends PlayRunners
   with HeaderNames
   with Status
@@ -442,24 +520,7 @@ object Helpers extends PlayRunners
   with EssentialActionCaller
   with RouteInvokers
   with FutureAwaits
-
-/**
- * A trait declared on a class that contains an `def app: Application`, and can provide
- * instances of a class.  Useful in integration tests.
- */
-trait Injecting {
-  self: HasApp =>
-
-  /**
-   * Given an application, provides an instance from the application.
-   *
-   * @tparam T the type to return, using `app.injector.instanceOf`
-   * @return an instance of type T.
-   */
-  def inject[T: ClassTag]: T = {
-    self.app.injector.instanceOf
-  }
-}
+  with Injectable
 
 /**
  * In 99% of cases, when running tests against the result body, you don't actually need a materializer since it's a
