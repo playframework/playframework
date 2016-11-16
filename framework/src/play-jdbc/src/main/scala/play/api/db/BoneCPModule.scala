@@ -5,13 +5,12 @@ package play.api.db
 
 import java.sql.{ Connection, Statement }
 import javax.inject.{ Inject, Singleton }
+import javax.naming.InitialContext
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
 import play.api._
 import play.api.inject._
-import play.api.libs.JNDI
-
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
@@ -122,7 +121,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
 
     // Bind in JNDI
     dbConfig.jndiName foreach { jndiName =>
-      JNDI.initialContext.rebind(jndiName, wrappedDataSource)
+      new InitialContext().rebind(jndiName, wrappedDataSource)
       logger.info(s"""datasource [$name] bound to JNDI as $jndiName""")
     }
 
