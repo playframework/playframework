@@ -3,7 +3,8 @@
  */
 package play.filters.csrf
 
-import play.api.libs.ws.{ WSRequest, WSResponse }
+import play.api.Application
+import play.api.libs.ws.{ WSClient, WSRequest, WSResponse }
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -13,30 +14,43 @@ import scala.concurrent.Future
  */
 class ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
+  def csrfAddToken(app: Application) = app.injector.instanceOf[CSRFAddToken]
+  def csrfCheck(app: Application) = app.injector.instanceOf[CSRFCheck]
+
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(configuration)(Action => {
-      case _ => if (sendUnauthorizedResult) {
-        csrfCheck(Action(req => Results.Ok), new CustomErrorHandler())
-      } else {
-        csrfCheck(Action(req => Results.Ok))
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withActionServer(configuration)(implicit app => {
+        case _ => if (sendUnauthorizedResult) {
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfCheck(app)
+          csrfAction(myAction(req => Results.Ok), new CustomErrorHandler())
+        } else {
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfCheck(app)
+          csrfAction(myAction(req => Results.Ok))
+        }
+      }){ ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
-    }){ ws =>
-      handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
     }
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withActionServer(configuration)(Action => {
-      case _ => csrfAddToken(Action {
-        implicit req =>
-          CSRF.getToken.map {
-            token =>
-              Results.Ok(token.value)
-          } getOrElse Results.NotFound
-      })
-    }){ ws =>
-
-      handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withActionServer(configuration)(implicit app => {
+        case _ =>
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfAddToken(app)
+          csrfAction(myAction {
+            implicit req =>
+              CSRF.getToken.map {
+                token =>
+                  Results.Ok(token.value)
+              } getOrElse Results.NotFound
+          })
+      }){ ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
+      }
     }
   }
 
