@@ -6,9 +6,9 @@ package play.it.http.parsing
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{ Result, MultipartFormData, BodyParsers }
+import play.api.mvc.{ BodyParsers, MultipartFormData, Result }
 import play.api.test._
-import play.core.parsers.Multipart.FileInfoMatcher
+import play.core.parsers.Multipart.{ FileInfoMatcher, PartInfoMatcher }
 import play.utils.PlayIO
 
 object MultipartFormDataParserSpec extends PlaySpecification {
@@ -23,6 +23,14 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       |Content-Disposition: form-data; name="text2:colon"
       |
       |the second text field
+      |--aabbccddee
+      |Content-Disposition: form-data; name=noQuotesText1
+      |
+      |text field with unquoted name
+      |--aabbccddee
+      |Content-Disposition: form-data; name=noQuotesText1:colon
+      |
+      |text field with unquoted name and colon
       |--aabbccddee
       |Content-Disposition: form-data; name="file1"; filename="file1.txt"
       |Content-Type: text/plain
@@ -45,6 +53,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       case parts =>
         parts.dataParts.get("text1") must_== Some(Seq("the first text field"))
         parts.dataParts.get("text2:colon") must_== Some(Seq("the second text field"))
+        parts.dataParts.get("noQuotesText1") must_== Some(Seq("text field with unquoted name"))
+        parts.dataParts.get("noQuotesText1:colon") must_== Some(Seq("text field with unquoted name and colon"))
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
@@ -139,10 +149,22 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")))
     }
 
-    "parse unquoted content disposition" in {
+    "parse unquoted content disposition with file matcher" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
       result must not(beEmpty)
       result.get must equalTo(("document", "hello.txt", None))
+    }
+
+    "parse unquoted content disposition with part matcher" in {
+      val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName"""))
+      result must not(beEmpty)
+      result.get must equalTo("partName")
+    }
+
+    "ignore extended name in content disposition" in {
+      val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName"""))
+      result must not(beEmpty)
+      result.get must equalTo("partName")
     }
 
     "ignore extended filename in content disposition" in {
