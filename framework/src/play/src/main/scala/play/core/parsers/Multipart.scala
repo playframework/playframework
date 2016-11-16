@@ -197,7 +197,7 @@ object Multipart {
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
 
-      val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
+      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
 
       for {
         values <- headers.get("content-disposition").map(
