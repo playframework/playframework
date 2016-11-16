@@ -3,9 +3,11 @@
  */
 package javaguide.http
 
-import java.util.concurrent.CompletableFuture
+import java.util.function.Function
+import java.util.concurrent.{CompletionStage, CompletableFuture}
 
 import play.api.Application
+import play.mvc.{Http, Result}
 import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.mvc.{EssentialAction, RequestHeader}
@@ -62,7 +64,10 @@ class JavaRouting extends Specification {
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
         header("Location", call(new MockJavaAction {
-          override def invocation = CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
+          override def invocation = new Function[Http.Context, CompletionStage[Result]] {
+            def apply(c: play.mvc.Http.Context) = CompletableFuture.completedFuture(
+              new javaguide.http.routing.controllers.Application().index())
+          }
         }, FakeRequest())) must beSome("/hello/Bob")
       }
     }

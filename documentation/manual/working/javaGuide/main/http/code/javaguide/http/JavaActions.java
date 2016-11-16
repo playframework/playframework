@@ -6,10 +6,12 @@ package javaguide.http;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import org.junit.Test;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http;
 
 import javaguide.testhelpers.MockJavaAction;
 import play.test.WithApplication;
@@ -49,8 +51,8 @@ public class JavaActions extends WithApplication {
             }
             //#params-action
 
-            public CompletionStage<Result> invocation() {
-                return CompletableFuture.completedFuture(index("world"));
+            public Function<Http.Context, CompletionStage<Result>> invocation() {
+                return ctx -> CompletableFuture.completedFuture(index("world"));
             }
         }, fakeRequest(), mat);
         assertThat(result.status(), equalTo(200));
@@ -65,6 +67,34 @@ public class JavaActions extends WithApplication {
                 return ok("Hello world!");
             }
             //#simple-result
+        }, fakeRequest(), mat).status(), equalTo(200));
+    }
+
+    @Test
+    public void resultWithContext() {
+        assertThat(call(new MockJavaAction() {
+            //#result-context
+            public Function<Http.Context, Result> index() {
+                return ctx -> {
+                    ctx.response().setHeader("X-Foo", "bar");
+                    return ok("Hello world!");
+                };
+            }
+            //#result-context
+        }, fakeRequest(), mat).status(), equalTo(200));
+    }
+
+    @Test
+    public void resultWithContextAsync() {
+        assertThat(call(new MockJavaAction() {
+            //#result-context-async
+            public Function<Http.Context, CompletionStage<Result>> index() {
+                return ctx -> {
+                    ctx.response().setHeader("X-Foo", "bar");
+                    return CompletableFuture.completedFuture(ok("Hello world!"));
+                };
+            }
+            //#result-context-async
         }, fakeRequest(), mat).status(), equalTo(200));
     }
 

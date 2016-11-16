@@ -11,6 +11,8 @@ import play.mvc.Http.*;
 import java.lang.annotation.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
+
 import javax.inject.Inject;
 
 /**
@@ -45,7 +47,7 @@ public class Security {
             this.injector = injector;
         }
 
-        public CompletionStage<Result> call(final Context ctx) {
+        public CompletionStage<Result> call(final Context ctx, Function<Context, CompletionStage<Result>> delegate) {
             Authenticator authenticator = injector.instanceOf(configuration.value());
             String username = authenticator.getUsername(ctx);
             if(username == null) {
@@ -54,7 +56,7 @@ public class Security {
             } else {
                 Request usernameReq = ctx.request().withAttr(USERNAME, username);
                 Context usernameCtx = ctx.withRequest(usernameReq);
-                return delegate.call(usernameCtx);
+                return delegate.apply(usernameCtx);
             }
         }
 

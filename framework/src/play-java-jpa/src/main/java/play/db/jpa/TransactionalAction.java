@@ -3,11 +3,14 @@
  */
 package play.db.jpa;
 
-import play.mvc.*;
-import play.mvc.Http.*;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import javax.inject.Inject;
-import java.util.concurrent.CompletionStage;
+
+import play.mvc.Action;
+import play.mvc.Http.Context;
+import play.mvc.Result;
 
 /**
  * Wraps an action in am JPA transaction.
@@ -21,11 +24,11 @@ public class TransactionalAction extends Action<Transactional> {
         this.jpaApi = jpaApi;
     }
 
-    public CompletionStage<Result> call(final Context ctx) {
+    public CompletionStage<Result> call(Context ctx, Function<Context, CompletionStage<Result>> delegate) {
         return jpaApi.withTransaction(
             configuration.value(),
             configuration.readOnly(),
-            () -> delegate.call(ctx)
+            () -> delegate.apply(ctx)
         );
     }
 

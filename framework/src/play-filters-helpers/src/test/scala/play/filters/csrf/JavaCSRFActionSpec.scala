@@ -3,7 +3,8 @@
  */
 package play.filters.csrf
 
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.function.{ Function => JFunction }
 
 import play.api.{ Application }
 import play.api.libs.ws._
@@ -11,7 +12,7 @@ import play.api.mvc.Session
 import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.{ Context, RequestHeader }
-import play.mvc.{ Controller, Result, Results }
+import play.mvc._
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -28,7 +29,9 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation = CompletableFuture.completedFuture(inv)
+    val invocation = new JFunction[Http.Context, CompletionStage[Result]] {
+      def apply(ctx: play.mvc.Http.Context) = CompletableFuture.completedFuture(inv)
+    }
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
   }
 

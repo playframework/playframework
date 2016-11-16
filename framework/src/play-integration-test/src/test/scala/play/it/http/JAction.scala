@@ -4,10 +4,11 @@
 package play.it.http
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.function.{ Function => JFunction }
 
 import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
+import play.core.j.{ JavaAction, JavaActionAnnotations, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.{ Http, Result }
 
@@ -26,11 +27,13 @@ import play.mvc.{ Http, Result }
  */
 object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
-    val handlerComponents = app.injector.instanceOf[JavaHandlerComponents]
-    new JavaAction(handlerComponents) {
-      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), handlerComponents.httpConfiguration.actionComposition)
-      val parser = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
-      def invocation = c.invocation
+    val components = app.injector.instanceOf[JavaHandlerComponents]
+    new JavaAction(components) {
+      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), components.httpConfiguration.actionComposition)
+      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.getBodyParser(annotations.parser))
+      override val invocation = new JFunction[Http.Context, CompletionStage[Result]] {
+        def apply(ctx: play.mvc.Http.Context) = c.invocation
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ import play.mvc.Http;
 import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.With;
+import java.util.function.Function;
 import java.util.concurrent.CompletionStage;
 
 public class Application extends Controller {
@@ -39,11 +40,11 @@ class AccessLoggingAction extends Action.Simple {
 
   private ALogger accessLogger = Logger.of("access");
 
-  public CompletionStage<Result> call(Http.Context ctx) {
+  public CompletionStage<Result> call(Http.Context ctx, Function<Http.Context, CompletionStage<Result>> delegate) {
     final Request request = ctx.request();
     accessLogger.info("method={} uri={} remote-address={}", request.method(), request.uri(), request.remoteAddress());
 
-    return delegate.call(ctx);
+    return delegate.apply(ctx);
   }
 }
 //#logging-pattern-mix

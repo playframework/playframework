@@ -4,20 +4,20 @@
 package play.core.j
 
 import java.util.concurrent.CompletionStage
+import java.util.function.{ Function => JFunction }
 import javax.inject.Inject
 
 import play.api.http.{ ActionCompositionConfiguration, HttpConfiguration }
 import play.api.inject.Injector
-
-import scala.compat.java8.FutureConverters
-import scala.language.existentials
-import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc.{ Action => JAction, BodyParser => JBodyParser, Result => JResult }
+import play.core.Execution.Implicits.trampoline
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.mvc.Http.{ Context => JContext }
+import play.mvc.{ Action => JAction, BodyParser => JBodyParser, Http, Result => JResult }
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.language.existentials
 
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
@@ -57,7 +57,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
-  def invocation: CompletionStage[JResult]
+  def invocation: JFunction[Http.Context, CompletionStage[JResult]]
   val annotations: JavaActionAnnotations
 
   val executionContext: ExecutionContext = handlerComponents.executionContext
@@ -67,12 +67,12 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val javaContext: JContext = createJavaContext(req, contextComponents)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): CompletionStage[JResult] = {
+      def call(ctx: JContext, delegate: JFunction[Http.Context, CompletionStage[JResult]]): CompletionStage[JResult] = {
         // The context may have changed, set it again
         val oldContext = JContext.current.get()
         try {
           JContext.current.set(ctx)
-          invocation
+          invocation(ctx)
         } finally {
           JContext.current.set(oldContext)
         }
