@@ -40,6 +40,9 @@ public class Result {
      *
      * @param header the response header
      * @param body the response body.
+     * @param session    the session set on the response.
+     * @param flash      the flash object on the response.
+     * @param cookies    the cookies set on the response.
      */
     public Result(ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
         this.header = header;

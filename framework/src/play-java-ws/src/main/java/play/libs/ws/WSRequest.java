@@ -229,8 +229,9 @@ public interface WSRequest {
     //-------------------------------------------------------------------------
 
     /**
-     * Set the HTTP method this request should use, where the no args execute() method is invoked.
+     * Sets the HTTP method this request should use, where the no args execute() method is invoked.
      *
+     * @param method    the HTTP method.
      * @return the modified WSRequest.
      */
     WSRequest setMethod(String method);
@@ -238,13 +239,14 @@ public interface WSRequest {
     /**
      * Set the body this request should use.
      *
+     * @param body    the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(String body);
 
     /**
      * Set the body this request should use.
-     *
+     * @param body    the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(JsonNode body);
@@ -262,17 +264,22 @@ public interface WSRequest {
     /**
      * Set the body this request should use.
      *
+     * @param body    the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(File body);
 
     /**
      * Set the body this request should use.
+     * @param body    the body of the request.
+     * @return the modified WSRequest.
      */
     WSRequest setBody(Source<ByteString,?> body);
 
     /**
      * Set the multipart body this request should use.
+     * @param body    the body of the request.
+     * @return the modified WSRequest.
      */
     WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
@@ -317,6 +324,7 @@ public interface WSRequest {
      *
      * @param username the basic auth username
      * @param password the basic auth password
+     * @return the modified WSRequest.
      */
     WSRequest setAuth(String username, String password);
 
@@ -326,6 +334,7 @@ public interface WSRequest {
      * @param username the username
      * @param password the password
      * @param scheme   authentication scheme
+     * @return the modified WSRequest.
      */
     WSRequest setAuth(String username, String password, WSAuthScheme scheme);
 

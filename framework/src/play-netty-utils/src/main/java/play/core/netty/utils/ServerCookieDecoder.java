@@ -57,6 +57,7 @@ public final class ServerCookieDecoder extends CookieDecoder {
     /**
      * Decodes the specified Set-Cookie HTTP header value into a {@link Cookie}.
      *
+     * @param header    the Set-Cookie header.
      * @return the decoded {@link Cookie}
      */
     public Set<Cookie> decode(String header) {

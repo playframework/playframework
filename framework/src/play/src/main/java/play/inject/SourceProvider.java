@@ -47,6 +47,7 @@ public final class SourceProvider {
    * Returns a new instance that also skips {@code moreClassesToSkip}.
    *
    * @param moreClassesToSkip a list of classes to skip in from source provider.
+   * @return the source provider skipping {@code moreClassesToSkip}.
    */
   public SourceProvider plusSkippedClasses(Class... moreClassesToSkip) {
     Set<String> toSkip = new HashSet<String>(classNamesToSkip);

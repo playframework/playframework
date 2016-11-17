@@ -12,17 +12,17 @@ import javax.sql.DataSource;
 public interface Database {
 
     /**
-     * The configuration name for this database.
+     * @return the configuration name for this database.
      */
     public String getName();
 
     /**
-     * The underlying JDBC data source for this database.
+     * @return the underlying JDBC data source for this database.
      */
     public DataSource getDataSource();
 
     /**
-     * The JDBC connection URL this database, i.e. `jdbc:...` Normally retrieved
+     * @return the JDBC connection URL this database, i.e. `jdbc:...` Normally retrieved
      * via a connection.
      */
     public String getUrl();
@@ -59,6 +59,7 @@ public interface Database {
      * Execute a block of code, providing a JDBC connection. The connection and
      * all created statements are automatically released.
      *
+     * @param <A> the return value's type
      * @param block code to execute
      * @return the result of the code block
      */
@@ -77,6 +78,7 @@ public interface Database {
      * Execute a block of code, providing a JDBC connection. The connection and
      * all created statements are automatically released.
      *
+     * @param <A> the return value's type
      * @param autocommit determines whether to autocommit the connection
      * @param block      code to execute
      * @return the result of the code block
@@ -97,6 +99,7 @@ public interface Database {
      * connection and all created statements are automatically released. The
      * transaction is automatically committed, unless an exception occurs.
      *
+     * @param <A> the return value's type
      * @param block code to execute
      * @return the result of the code block
      */
@@ -109,6 +112,7 @@ public interface Database {
 
     /**
      * Converts the given database to a Scala database
+     * @return the database for scala API.
      */
     public default play.api.db.Database toScala() {
         return new play.api.db.Database() {

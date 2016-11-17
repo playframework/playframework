@@ -21,6 +21,7 @@ public class Classpath {
      * <p>
      * Note that it is better to specify a very specific package to avoid expensive searches.
      *
+     * @param app         the Play application
      * @param packageName the root package to scan
      * @return a set of types names satisfying the condition
      */
@@ -36,6 +37,7 @@ public class Classpath {
      * <p>
      * Note that it is better to specify a very specific package to avoid expensive searches.
      *
+     * @param app         the play application.
      * @param packageName the root package to scan
      * @param annotation annotation class
      * @return a set of types names statifying the condition
@@ -60,6 +62,7 @@ public class Classpath {
      * <p>
      * Note that it is better to specify a very specific package to avoid expensive searches.
      *
+     * @param env         the Play environment.
      * @param packageName the root package to scan
      * @return a set of types names satisfying the condition
      */
@@ -75,6 +78,7 @@ public class Classpath {
      * <p>
      * Note that it is better to specify a very specific package to avoid expensive searches.
      *
+     * @param env         the Play environment.
      * @param packageName the root package to scan
      * @param annotation annotation class
      * @return a set of types names statifying the condition

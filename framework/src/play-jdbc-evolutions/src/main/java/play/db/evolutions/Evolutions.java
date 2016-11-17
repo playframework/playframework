@@ -14,9 +14,10 @@ import java.util.*;
 public class Evolutions {
 
     /**
-     * Create an evolutions reader that reads evolution files from this classes own classloader.
+     * Create an evolutions reader that reads evolution files from this class's own classloader.
      *
      * Only useful in simple classloading environments, such as when the classloader structure is flat.
+     * @return the evolutions reader.
      */
     public static play.api.db.evolutions.EvolutionsReader fromClassLoader() {
         return fromClassLoader(Evolutions.class.getClassLoader());
@@ -26,6 +27,8 @@ public class Evolutions {
      * Create an evolutions reader that reads evolution files from a classloader.
      *
      * @param classLoader The classloader to read from.
+     *
+     * @return the evolutions reader.
      */
     public static play.api.db.evolutions.EvolutionsReader fromClassLoader(ClassLoader classLoader) {
         return fromClassLoader(classLoader, "");
@@ -37,6 +40,8 @@ public class Evolutions {
      * @param classLoader The classloader to read from.
      * @param prefix A prefix that gets added to the resource file names, for example, this could be used to namespace
      *               evolutions in different environments to work with different databases.
+     *
+     * @return  the evolutions reader.
      */
     public static play.api.db.evolutions.EvolutionsReader fromClassLoader(ClassLoader classLoader, String prefix) {
         return new play.api.db.evolutions.ClassLoaderEvolutionsReader(classLoader, prefix);
@@ -46,6 +51,7 @@ public class Evolutions {
      * Create an evolutions reader based on a simple map of database names to evolutions.
      *
      * @param evolutions The map of database names to evolutions.
+     * @return  the evolutions reader.
      */
     public static play.api.db.evolutions.EvolutionsReader fromMap(Map<String, List<Evolution>> evolutions) {
         return new SimpleEvolutionsReader(evolutions);
@@ -55,6 +61,7 @@ public class Evolutions {
      * Create an evolutions reader for the default database from a list of evolutions.
      *
      * @param evolutions The list of evolutions.
+     * @return the evolutions reader.
      */
     public static play.api.db.evolutions.EvolutionsReader forDefault(Evolution... evolutions) {
         Map<String, List<Evolution>> map = new HashMap<String, List<Evolution>>();

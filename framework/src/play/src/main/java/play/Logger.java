@@ -521,6 +521,7 @@ public class Logger {
         /**
          * Logs a message with the INFO level.
          *
+         * @param marker the marker data specific to this log statement
          * @param message message to log
          */
         public void info(Marker marker, String message) {

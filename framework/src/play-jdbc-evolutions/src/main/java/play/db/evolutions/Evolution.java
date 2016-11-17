@@ -26,6 +26,7 @@ public final class Evolution {
 
     /**
      * Get the revision of the evolution.
+     * @return The revision of the evolution to create.
      */
     public int getRevision() {
         return revision;
@@ -33,6 +34,7 @@ public final class Evolution {
 
     /**
      * Get the SQL script for bringing the evolution up.
+     * @return the sql script.
      */
     public String getSqlUp() {
         return sqlUp;
@@ -40,6 +42,7 @@ public final class Evolution {
 
     /**
      * Get the SQL script for tearing the evolution down.
+     * @return the sql script.
      */
     public String getSqlDown() {
         return sqlDown;

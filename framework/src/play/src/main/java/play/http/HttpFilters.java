@@ -12,12 +12,12 @@ import play.mvc.EssentialFilter;
 public interface HttpFilters {
 
     /**
-     * Return the filters that should filter every request
+     * @return the filters that should filter every request
      */
     EssentialFilter[] filters();
 
     /**
-     * Get a Scala HttpFilters object
+     * @return a Scala HttpFilters object
      */
     default play.api.http.HttpFilters asScala() {
         return new JavaHttpFiltersAdapter(this);

@@ -74,9 +74,12 @@ public class Form<T> {
     }
 
     /**
-     * Creates a new <code>Form</code>.
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
      *
      * @param clazz wrapped class
+     * @param messagesApi    messagesApi component.
+     * @param formatters     formatters component.
+     * @param validator      validator component.
      */
     public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(null, clazz, messagesApi, formatters, validator);
@@ -103,14 +106,17 @@ public class Form<T> {
     }
 
     /**
-     * Creates a new <code>Form</code>.
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
      *
+     * @param rootName    the root name.
      * @param clazz wrapped class
      * @param data the current form data (used to display the form)
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
@@ -177,6 +183,7 @@ public class Form<T> {
     /**
      * Binds request data to this form - that is, handles form submission.
      *
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(String... allowedFields) {
@@ -186,6 +193,8 @@ public class Form<T> {
     /**
      * Binds request data to this form - that is, handles form submission.
      *
+     * @param request          the request to bind data from.
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
@@ -195,6 +204,8 @@ public class Form<T> {
     /**
      * Binds request data to this form - that is, handles form submission.
      *
+     * @param requestData      the map of data to bind from
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
@@ -207,6 +218,7 @@ public class Form<T> {
      * Binds Json data to this form - that is, handles form submission.
      *
      * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
@@ -247,7 +259,10 @@ public class Form<T> {
     /**
      * When dealing with @ValidateWith annotations, and message parameter is not used in
      * the annotation, extract the message from validator's getErrorMessageKey() method
-    **/
+     *
+     * @param violation the constraint violation.
+     * @return the message associated with the constraint violation.
+     */
     protected String getMessageForConstraintViolation(ConstraintViolation<Object> violation) {
         String errorMessage = violation.getMessage();
         Annotation annotation = violation.getConstraintDescriptor().getAnnotation();
@@ -270,6 +285,7 @@ public class Form<T> {
      * Binds data to this form - that is, handles form submission.
      *
      * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     @SuppressWarnings("unchecked")
@@ -410,7 +426,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieves the actual form data.
+     * @return the actual form data.
      */
     public Map<String,String> data() {
         return data;
@@ -421,7 +437,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieves the actual form value - even when the form contains validation errors.
+     * @return the actual form value - even when the form contains validation errors.
      */
     public Optional<T> value() {
         return value;
@@ -452,14 +468,14 @@ public class Form<T> {
     }
 
     /**
-     * Returns <code>true</code> if there are any errors related to this form.
+     * @return <code>true</code> if there are any errors related to this form.
      */
     public boolean hasErrors() {
         return !errors.isEmpty();
     }
 
     /**
-     * Returns <code>true</code> if there any global errors related to this form.
+     * @return <code>true</code> if there any global errors related to this form.
      */
     public boolean hasGlobalErrors() {
         return errors.containsKey("") && !errors.get("").isEmpty();
@@ -501,7 +517,8 @@ public class Form<T> {
     }
 
     /**
-     * Retrieve an error by key.
+     * @param key    the field name associated with the error.
+     * @return an error by key, or null.
      */
     public ValidationError error(String key) {
         List<ValidationError> err = errors.get(key);
@@ -512,7 +529,7 @@ public class Form<T> {
     }
 
     /**
-     * Returns the form errors serialized as Json.
+     * @return the form errors serialized as Json.
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
         return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
@@ -520,6 +537,8 @@ public class Form<T> {
 
     /**
      * Returns the form errors serialized as Json using the given Lang.
+     * @param lang    the language to use.
+     * @return the JSON node containing the errors.
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
@@ -556,10 +575,12 @@ public class Form<T> {
     }
 
     /**
-     * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors this method will throw an exception.
+     * Gets the concrete value only if the submission was a success.
+     * If the form is invalid because of validation errors this method will throw an exception.
      * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
      *
      * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
+     * @return the concrete value.
      */
     public T get() {
         if (!errors.isEmpty()) {
@@ -612,7 +633,7 @@ public class Form<T> {
     }
 
     /**
-     * Add a global error to this form.
+     * Adds a global error to this form.
      *
      * @param error the error message.
      */
@@ -621,14 +642,14 @@ public class Form<T> {
     }
 
     /**
-     * Discard errors of this form
+     * Discards errors of this form
      */
     public void discardErrors() {
         errors.clear();
     }
 
     /**
-     * Retrieve a field.
+     * Retrieves a field.
      *
      * @param key field name
      * @return the field (even if the field does not exist you get a field)
@@ -638,7 +659,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieve a field.
+     * Retrieves a field.
      *
      * @param key field name
      * @return the field (even if the field does not exist you get a field)
@@ -750,8 +771,9 @@ public class Form<T> {
     }
 
     /**
-     * Set the locale of the current request (if there is one) into Spring's LocaleContextHolder.
+     * Sets the locale of the current request (if there is one) into Spring's LocaleContextHolder.
      *
+     * @param <T> the return type.
      * @param code The code to execute while the locale is set
      * @return the result of the code block
      */
@@ -783,11 +805,12 @@ public class Form<T> {
         /**
          * Creates a form field.
          *
+         * @param form        the form.
          * @param name the field name
          * @param constraints the constraints associated with the field
          * @param format the format expected for this field
          * @param errors the errors associated with this field
-         * @param value the field value ,if any
+         * @param value the field value, if any
          */
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.form = form;
@@ -851,7 +874,7 @@ public class Form<T> {
         }
 
         /**
-         * Return the indexes available for this field (for repeated fields ad List)
+         * @return the indexes available for this field (for repeated fields and List)
          */
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
@@ -896,6 +919,8 @@ public class Form<T> {
 
         /**
          * Get a sub-field, with a key relative to the current field.
+         * @param key    the key
+         * @return the subfield corresponding to the key.
          */
         public Field sub(String key) {
             String subKey;

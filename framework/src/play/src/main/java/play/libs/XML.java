@@ -29,7 +29,10 @@ import java.io.UnsupportedEncodingException;
 public class XML {
 
     /**
-     * Parse an XML string as DOM.
+     * Parses an XML string as DOM.
+     *
+     * @param xml the input XML string
+     * @return the parsed XML DOM root.
      */
     public static Document fromString(String xml) {
         try {
@@ -43,7 +46,10 @@ public class XML {
     }
 
     /**
-     * Parse an InputStream as DOM.
+     * Parses an InputStream as DOM.
+     * @param in          the inputstream to parse.
+     * @param encoding the encoding of the input stream, if not null.
+     * @return the parsed XML DOM.
      */
     public static Document fromInputStream(InputStream in, String encoding) {
         InputSource is = new InputSource(in);
@@ -55,7 +61,7 @@ public class XML {
     }
 
     /**
-     * Parse the input source as DOM.
+     * Parses the input source as DOM.
      *
      * @param source The source to parse.
      * @return The Document.
@@ -83,7 +89,7 @@ public class XML {
     }
 
     /**
-     * Convert the document to bytes.
+     * Converts the document to bytes.
      *
      * @param document The document to convert.
      * @return The ByteString representation of the document.

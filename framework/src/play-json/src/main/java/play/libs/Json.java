@@ -32,7 +32,7 @@ public class Json {
     }
 
     /**
-     * Get the ObjectMapper used to serialize and deserialize objects to and from JSON values.
+     * Gets the ObjectMapper used to serialize and deserialize objects to and from JSON values.
      *
      * This can be set to a custom implementation using Json.setObjectMapper.
      *
@@ -62,9 +62,10 @@ public class Json {
     }
 
     /**
-     * Convert an object to JsonNode.
+     * Converts an object to JsonNode.
      *
      * @param data Value to convert in Json.
+     * @return the JSON node.
      */
     public static JsonNode toJson(final Object data) {
         try {
@@ -75,10 +76,12 @@ public class Json {
     }
 
     /**
-     * Convert a JsonNode to a Java value
+     * Converts a JsonNode to a Java value
      *
+     * @param <A> the type of the return value.
      * @param json Json value to convert.
      * @param clazz Expected Java value type.
+     * @return the return value.
      */
     public static <A> A fromJson(JsonNode json, Class<A> clazz) {
         try {
@@ -90,6 +93,7 @@ public class Json {
 
     /**
      * Creates a new empty ObjectNode.
+     * @return new empty ObjectNode.
      */
     public static ObjectNode newObject() {
         return mapper().createObjectNode();
@@ -97,34 +101,43 @@ public class Json {
 
     /**
      * Creates a new empty ArrayNode.
+     * @return a new empty ArrayNode.
      */
     public static ArrayNode newArray() {
         return mapper().createArrayNode();
     }
 
     /**
-     * Convert a JsonNode to its string representation.
+     * Converts a JsonNode to its string representation.
+     * @param json    the JSON node to convert.
+     * @return the string representation.
      */
     public static String stringify(JsonNode json) {
         return generateJson(json, false, false);
     }
 
     /**
-     * Convert a JsonNode to its string representation, escaping non-ascii characters.
+     * Converts a JsonNode to its string representation, escaping non-ascii characters.
+     * @param json    the JSON node to convert.
+     * @return the string representation with escaped non-ascii characters.
      */
     public static String asciiStringify(JsonNode json) {
         return generateJson(json, false, true);
     }
 
     /**
-     * Convert a JsonNode to its string representation.
+     * Converts a JsonNode to its string representation.
+     * @param json    the JSON node to convert.
+     * @return the string representation, pretty printed.
      */
     public static String prettyPrint(JsonNode json) {
         return generateJson(json, true, false);
     }
 
     /**
-     * Parse a String representing a json, and return it as a JsonNode.
+     * Parses a String representing a json, and return it as a JsonNode.
+     * @param src    the JSON string.
+     * @return the JSON node.
      */
     public static JsonNode parse(String src) {
         try {
@@ -135,7 +148,9 @@ public class Json {
     }
 
     /**
-     * Parse a InputStream representing a json, and return it as a JsonNode.
+     * Parses a InputStream representing a json, and return it as a JsonNode.
+     * @param src    the JSON input stream.
+     * @return the JSON node.
      */
     public static JsonNode parse(java.io.InputStream src) {
         try {
@@ -146,7 +161,9 @@ public class Json {
     }
 
     /**
-     * Parse a byte array representing a json, and return it as a JsonNode.
+     * Parses a byte array representing a json, and return it as a JsonNode.
+     * @param src    the JSON input bytes.
+     * @return the JSON node.
      */
     public static JsonNode parse(byte[] src) {
         try {
@@ -161,6 +178,7 @@ public class Json {
      *
      * This is intended to be used when Play starts up.  By default, Play will inject its own object mapper here,
      * but this mapper can be overridden either by a custom module.
+     * @param mapper    the object mapper.
      */
     public static void setObjectMapper(ObjectMapper mapper) {
         objectMapper = mapper;
