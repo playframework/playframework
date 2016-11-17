@@ -5,58 +5,41 @@ Play's documentation shows the available features and how to use them, but the d
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-## Activator Templates Overview
-
-Many tutorials come in the form of templates, which can be downloaded as projects onto your computer.
-
-A full list of templates can be discovered in the [Activator Web Interface](https://www.lightbend.com/activator/docs) or by typing "activator list-templates" at the command line.
-
-Templates are also published on the Lightbend website.  A full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
-
-Finally, the core Play templates are available as git repositories on Github under [https://github.com/playframework/](https://github.com/playframework/) and can be cloned directly from there.
-
-### Creating a Project From A Template
-
-In general, whenever you see a template, you can download the template by using the Github project name.  For example, if you have an example Play project on Github called "some-awesome-play-template", you can download and use the template by typing
-
-```
-activator new my-local-project-directory some-awesome-play-template
-```
-
-If you do not have activator installed or would prefer to use git, you can always clone the project the old fashioned way:
-
-```
-git clone https://github.com/playframework/some-awesome-play-template my-local-project-directory
-```
-
-Creating new projects is covered in more detail in [[Creating a new application|NewApplication]].
-
 ## Play Maintained Seeds and Example Templates
 
 This section covers the core tutorials and examples from Play.  These are maintained by the core Play team, and so will be based on the latest Play release.
 
-### Downloading an example template from the web
+**All of the following projects can be downloaded as example projects from the [download page](https://playframework.com/download).**
 
-Many of these templates are provided without a dependency on Activator from our [download page](https://www.playframework.com/download#examples)
+### Play Seeds
 
-### Creating a Seed Template from Activator
+There are two Play Seeds that are designed expressly for getting started with new Play applications.  They contain a hello world controller and view template, filters, and nothing else.
 
-If you are starting off a new Play project and don't want any extras, you can use the seed templates by typing the following at the command prompt:
+If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
+ using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately.
 
-``` shell
-activator new my-scala-project play-scala
+Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
+
+#### Java
+
+```
+sbt new playframework/play-java-seed.g8
 ```
 
-or
+#### Scala
 
-``` shell
-activator new my-java-project play-java
+```
+sbt new playframework/play-scala-seed.g8
 ```
 
-If you want to look at the template code without creating a new project, you can see the templates below:
+### Play Starter Projects
 
-* [play-scala](https://github.com/playframework/playframework/tree/master/templates/play-scala)
-* [play-java](https://github.com/playframework/playframework/tree/master/templates/play-java)
+For people using Play for the first time, there is a starter project which introduces Play with some sample controllers and components.
+
+* [play-java](https://github.com/playframework/play-java)
+* [play-scala](https://github.com/playframework/play-scala)
+
+or you can download it as an example project from the [download page](https://playframework.com/download).
 
 ### Database / ORM Access
 
