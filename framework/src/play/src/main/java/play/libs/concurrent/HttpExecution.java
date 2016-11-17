@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
 
 /**
  * ExecutionContexts that preserve the current thread's context ClassLoader and
- * Http.Context.
+ * Http.Context by passing it through {@link play.libs.concurrent.HttpExecutionContext}.
  */
 public class HttpExecution {
 
@@ -21,7 +21,8 @@ public class HttpExecution {
      * current thread's context ClassLoader and Http.Context are captured when
      * this method is called and preserved for all executed tasks.
      *
-     * @return the execution context.
+     * @param delegate the delegate execution context.
+     * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
      */
     public static ExecutionContextExecutor fromThread(ExecutionContext delegate) {
         return HttpExecutionContext.fromThread(delegate);
@@ -32,7 +33,8 @@ public class HttpExecution {
      * current thread's context ClassLoader and Http.Context are captured when
      * this method is called and preserved for all executed tasks.
      *
-     * @return the execution context.
+     * @param delegate the delegate execution context.
+     * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
      */
     public static ExecutionContextExecutor fromThread(Executor delegate) {
         return HttpExecutionContext.fromThread(delegate);

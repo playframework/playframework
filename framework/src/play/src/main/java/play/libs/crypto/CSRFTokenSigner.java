@@ -12,11 +12,14 @@ public interface CSRFTokenSigner {
 
     /**
      * Generates a cryptographically secure token.
+     * @return a newly generated token.
      */
     String generateToken();
 
     /**
      * Generates a signed token by calling generateToken / signToken.
+     *
+     * @return a newly generated token that has been signed.
      */
     String generateSignedToken();
 
@@ -41,6 +44,9 @@ public interface CSRFTokenSigner {
 
     /**
      * Compare two signed tokens.
+     * @param tokenA the first token
+     * @param tokenB another token
+     * @return true if the tokens match and are signed, false otherwise.
      */
     boolean compareSignedTokens(String tokenA, String tokenB);
 
@@ -50,13 +56,18 @@ public interface CSRFTokenSigner {
      * Given a length that both Strings are equal to, this method will always run in constant time.  This prevents
      * timing attacks.
      *
+     * @param a a string.
+     * @param b another string.
      * @deprecated since 2.6.0.  Use java.security.MessageDigest.isEqual over this method.
+     * @return true if the strings match, false otherwise.
      */
     @Deprecated
     boolean constantTimeEquals(String a, String b);
 
     /**
-     * Utility method needed for CSRFCheck.
+     * Utility method needed for CSRFCheck.  Should not need to be used or extended by user level code.
+     *
+     * @return the Scala API CSRFTokenSigner component.
      */
     play.api.libs.crypto.CSRFTokenSigner asScala();
 }
