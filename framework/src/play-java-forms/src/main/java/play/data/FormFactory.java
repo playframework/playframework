@@ -29,35 +29,47 @@ public class FormFactory {
     }
     
     /**
-     * Instantiates a dynamic form.
+     * @return a dynamic form.
      */
     public DynamicForm form() {
         return new DynamicForm(messagesApi, formatters, validator);
     }
     
     /**
-     * Instantiates a new form that wraps the specified class.
+     * @param clazz    the class to map to a form.
+     * @param <T>   the type of value in the form.
+     * @return a new form that wraps the specified class.
      */
     public <T> Form<T> form(Class<T> clazz) {
         return new Form<>(clazz, messagesApi, formatters, validator);
     }
     
     /**
-     * Instantiates a new form that wraps the specified class.
+     * @param <T>   the type of value in the form.
+     * @param name the form's name.
+     * @param clazz the class to map to a form.
+     * @return a new form that wraps the specified class.
      */
     public <T> Form<T> form(String name, Class<T> clazz) {
         return new Form<>(name, clazz, messagesApi, formatters, validator);
     }
     
     /**
-     * Instantiates a new form that wraps the specified class.
+     * @param <T>   the type of value in the form.
+     * @param name the form's name
+     * @param clazz the class to map to a form.
+     * @param groups the classes of groups.
+     * @return a new form that wraps the specified class.
      */
     public <T> Form<T> form(String name, Class<T> clazz, Class<?>... groups) {
         return new Form<>(name, clazz, groups, messagesApi, formatters, validator);
     }
 
     /**
-     * Instantiates a new form that wraps the specified class.
+     * @param <T>   the type of value in the form.
+     * @param clazz the class to map to a form.
+     * @param groups the classes of groups.
+     * @return a new form that wraps the specified class.
      */
     public <T> Form<T> form(Class<T> clazz, Class<?>... groups) {
         return new Form<>(null, clazz, groups, messagesApi, formatters, validator);

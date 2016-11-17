@@ -33,6 +33,8 @@ public class DefaultCookie implements Cookie {
 
     /**
      * Creates a new cookie with the specified name and value.
+     * @param name     The cookie's name
+     * @param value    The cookie's value.
      */
     public DefaultCookie(String name, String value) {
         if (name == null) {

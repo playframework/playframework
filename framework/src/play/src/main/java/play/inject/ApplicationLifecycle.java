@@ -23,6 +23,7 @@ public interface ApplicationLifecycle {
      *
      * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
      * immediately and return a successful future.
+     * @param hook    the stop hook.
      */
     void addStopHook(Callable<? extends CompletionStage<?>> hook);
 }

@@ -17,67 +17,69 @@ import java.util.Map;
 public interface WSResponse {
 
     /**
-     * Gets all the headers from the response.
+     * @return all the headers from the response.
      */
     Map<String, List<String>> getAllHeaders();
 
     /**
-     * Gets a single header from the response.
+     * @param key    the header's name
+     * @return a single header value from the response.
      */
     String getHeader(String key);
 
     /**
-     * Gets the underlying implementation response object, if any.
+     * @return the underlying implementation response object, if any.
      */
     Object getUnderlying();
 
     /**
-     * Returns the HTTP status code from the response.
+     * @return the HTTP status code from the response.
      */
     int getStatus();
 
     /**
-     * Returns the text associated with the status code.
+     * @return the text associated with the status code.
      */
     String getStatusText();
 
     /**
-     * Gets all the cookies from the response.
+     * @return all the cookies from the response.
      */
     List<WSCookie> getCookies();
 
     /**
-     * Gets a single cookie from the response, if any.
+     * @param name    the cookie name
+     * @return a single cookie from the response, if any.
      */
     WSCookie getCookie(String name);
 
     /**
-     * Gets the body as a string.
+     * @return the body as a string.
      */
     String getBody();
 
     /**
-     * Gets the body as XML.
+     * @return the body as XML.
      */
     Document asXml();
 
     /**
-     * Gets the body as JSON node.
+     * @return the body as JSON node.
      */
     JsonNode asJson();
 
     /**
-     * Gets the body as a stream.
+     * @return the body as a stream.
      */
     InputStream getBodyAsStream();
 
     /**
-     * Gets the body as an array of bytes.
+     * @return the body as an array of bytes.
      */
     byte[] asByteArray();
 
     /**
-     * Gets the URI of the response.
+     * @return the URI of the response.
      */
     URI getUri();
 }

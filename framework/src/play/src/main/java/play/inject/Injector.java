@@ -20,6 +20,7 @@ public interface Injector {
     /**
      * Get an instance of the given class from the injector.
      *
+     * @param <T> the type of the instance
      * @param clazz The class to get the instance of
      * @return The instance
      */
@@ -28,6 +29,7 @@ public interface Injector {
     /**
      * Get an instance of the given class from the injector.
      *
+     * @param <T> the type of the instance
      * @param key The key of the binding
      * @return The instance
      */

@@ -20,6 +20,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     
     /**
      * Creates a new empty dynamic form.
+     *
+     * @param messagesApi    the messagesApi component.
+     * @param formatters     the formatters component.
+     * @param validator      the validator component.
      */
     public DynamicForm(MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(DynamicForm.Dynamic.class, messagesApi, formatters, validator);
@@ -32,6 +36,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param data the current form data (used to display the form)
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value if the form submission was successful
+     * @param messagesApi    the messagesApi component.
+     * @param formatters     the formatters component.
+     * @param validator      the validator component.
      */
     public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
@@ -44,6 +51,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     
     /**
      * Gets the concrete value if the submission was a success.
+     * @param key the string key.
+     * @return the value, or null if there is no match.
      */
     public String get(String key) {
         try {
@@ -59,7 +68,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     /**
-     * Fille with existing data.
+     * Fills the form with existing data.
+     * @param value    the map of values to fill in the form.
+     * @return the modified form.
      */
     public DynamicForm fill(Map value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
@@ -185,7 +196,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
         /**
-         * Retrieves the data.
+         * @return the data.
          */
         public Map getData() {
             return data;
@@ -193,6 +204,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
         /**
          * Sets the new data.
+         * @param data    the map of data.
          */
         public void setData(Map data) {
             this.data = data;

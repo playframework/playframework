@@ -211,6 +211,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      *
      * @param request   The request that triggered the error.
      * @param exception The exception.
+     * @return a CompletionStage containing the Result.
      */
     protected CompletionStage<Result> onDevServerError(RequestHeader request, UsefulException exception) {
         return CompletableFuture.completedFuture(Results.internalServerError(views.html.defaultpages.devError.render(playEditor, exception)));

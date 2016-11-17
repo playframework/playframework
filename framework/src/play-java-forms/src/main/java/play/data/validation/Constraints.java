@@ -31,15 +31,13 @@ public class Constraints {
     public static abstract class Validator<T> {
 
         /**
-         * Returns {@code true} if this value is valid.
-         *
+         * @param object    the value to test.
          * @return {@code true} if this value is valid.
          */
         public abstract boolean isValid(T object);
 
         /**
-         * Returns {@code true} if this value is valid for the given constraint.
-         *
+         * @param object            the object to check
          * @param constraintContext The JSR-303 validation context.
          * @return {@code true} if this value is valid for the given constraint.
          */
@@ -57,6 +55,7 @@ public class Constraints {
      *
      * This method calls {@code displayableConstraint} under the hood.
      *
+     * @param constraints    the set of constraint descriptors.
      * @return a list of pairs of tuples assembled from displayableConstraint.
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
@@ -66,7 +65,10 @@ public class Constraints {
     /**
      * Converts a set of constraints to human-readable values in guaranteed order.
      * Only constraints that have an annotation that intersect with the {@code orderedAnnotations} parameter will be considered.
-     * The order of the returned constraints corresponds to the order of the {@code orderedAnnotations parameter}. 
+     * The order of the returned constraints corresponds to the order of the {@code orderedAnnotations parameter}.
+     * @param constraints           the set of constraint descriptors.
+     * @param orderedAnnotations    the array of annotations
+     * @return a list of tuples showing readable constraints.
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
         final List<Annotation> constraintAnnot = constraints.stream().
@@ -82,6 +84,7 @@ public class Constraints {
     /**
      * Converts a constraint to a human-readable value.
      *
+     * @param constraint    the constraint descriptor.
      * @return A tuple containing the constraint's display name and the constraint attributes.
      */
     public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
@@ -137,6 +140,7 @@ public class Constraints {
 
     /**
      * Constructs a 'required' validator.
+     * @return the RequiredValidator
      */
     public static Validator<Object> required() {
         return new RequiredValidator();
@@ -308,6 +312,8 @@ public class Constraints {
 
     /**
      * Constructs a 'minLength' validator.
+     * @param value    the minimum length value.
+     * @return the MinLengthValidator
      */
     public static Validator<String> minLength(long value) {
         return new MinLengthValidator(value);
@@ -363,6 +369,8 @@ public class Constraints {
 
     /**
      * Constructs a 'maxLength' validator.
+     * @param value    the max length
+     * @return the MaxLengthValidator
      */
     public static Validator<String> maxLength(long value) {
         return new MaxLengthValidator(value);
@@ -413,6 +421,7 @@ public class Constraints {
 
     /**
      * Constructs a 'email' validator.
+     * @return the EmailValidator
      */
     public static Validator<String> email() {
         return new EmailValidator();
@@ -468,6 +477,8 @@ public class Constraints {
 
     /**
      * Constructs a 'pattern' validator.
+     * @param regex    the regular expression to match.
+     * @return the PatternValidator.
      */
     public static Validator<String> pattern(String regex) {
         return new PatternValidator(regex);

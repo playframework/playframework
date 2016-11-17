@@ -17,6 +17,7 @@ public class WithBrowser extends WithServer {
     /**
      * Override this if you want to use a different browser
      *
+     * @param port    the port to run the browser against.
      * @return a new test browser
      */
     protected TestBrowser provideBrowser(int port) {

@@ -56,6 +56,8 @@ public class F {
          * Constructs a left side of the disjoint union, as opposed to the Right side.
          *
          * @param value The value of the left side
+         * @param <L> the left type
+         * @param <R> the right type
          * @return A left sided disjoint union
          */
         public static <L, R> Either<L, R> Left(L value) {
@@ -66,6 +68,8 @@ public class F {
          * Constructs a right side of the disjoint union, as opposed to the Left side.
          *
          * @param value The value of the right side
+         * @param <L> the left type
+         * @param <R> the right type
          * @return A right sided disjoint union
          */
         public static <L, R> Either<L, R> Right(R value) {
@@ -124,6 +128,8 @@ public class F {
      *
      * @param a The a value
      * @param b The b value
+     * @param <A> a's type
+     * @param <B> b's type
      * @return The tuple
      */
     public static <A, B> Tuple<A, B> Tuple(A a, B b) {
@@ -182,6 +188,9 @@ public class F {
      * @param a The a value
      * @param b The b value
      * @param c The c value
+     * @param <A> a's type
+     * @param <B> b's type
+     * @param <C> c's type
      * @return The tuple
      */
     public static <A, B, C> Tuple3<A, B, C> Tuple3(A a, B b, C c) {
@@ -244,6 +253,10 @@ public class F {
      * @param b The b value
      * @param c The c value
      * @param d The d value
+     * @param <A> a's type
+     * @param <B> b's type
+     * @param <C> c's type
+     * @param <D> d's type
      * @return The tuple
      */
     public static <A, B, C, D> Tuple4<A, B, C, D> Tuple4(A a, B b, C c, D d) {
@@ -312,6 +325,11 @@ public class F {
      * @param c The c value
      * @param d The d value
      * @param e The e value
+     * @param <A> a's type
+     * @param <B> b's type
+     * @param <C> c's type
+     * @param <D> d's type
+     * @param <E> e's type
      * @return The tuple
      */
     public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
@@ -320,6 +338,8 @@ public class F {
 
     /**
      * Converts the execution context to an executor, preparing it first.
+     * @param ec    the execution context.
+     * @return      the Java Executor.
      */
     private static Executor toExecutor(ExecutionContext ec) {
         ExecutionContext prepared = ec.prepare();

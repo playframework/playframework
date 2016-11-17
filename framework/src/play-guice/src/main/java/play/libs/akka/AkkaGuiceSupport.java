@@ -42,6 +42,7 @@ public interface AkkaGuiceSupport {
      * bind the returned ActorRef for the actor will be bound, qualified with the passed in name, so that it can be
      * injected into other components.
      *
+     * @param <T> the actor type.
      * @param actorClass The class that implements the actor.
      * @param name The name of the actor.
      * @param props A function to provide props for the actor. The props passed in will just describe how to create the
@@ -62,6 +63,7 @@ public interface AkkaGuiceSupport {
      * bind the returned ActorRef for the actor will be bound, qualified with the passed in name, so that it can be
      * injected into other components.
      *
+     * @param <T> the actor type.
      * @param actorClass The class that implements the actor.
      * @param name The name of the actor.
      */
@@ -130,6 +132,7 @@ public interface AkkaGuiceSupport {
      * }
      * </pre>
      *
+     * @param <T> the actor type.
      * @param actorClass The class that implements the actor.
      * @param factoryClass The factory interface for creating the actor.
      */

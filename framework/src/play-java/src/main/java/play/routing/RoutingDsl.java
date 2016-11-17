@@ -304,6 +304,7 @@ public class RoutingDsl {
         /**
          * Route with one parameter.
          *
+         * @param <A1> the first type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -314,6 +315,8 @@ public class RoutingDsl {
         /**
          * Route with two parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -324,6 +327,9 @@ public class RoutingDsl {
         /**
          * Route with three parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
+         * @param <A3> the third type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -344,6 +350,7 @@ public class RoutingDsl {
         /**
          * Route with one parameter.
          *
+         * @param <A1> the first type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -354,6 +361,8 @@ public class RoutingDsl {
         /**
          * Route with two parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -364,6 +373,9 @@ public class RoutingDsl {
         /**
          * Route with three parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
+         * @param <A3> the third type parameter
          * @param action The action to execute.
          * @return This router builder.
          */

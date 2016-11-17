@@ -24,35 +24,38 @@ public abstract class HttpEntity {
     private HttpEntity() {}
 
     /**
-     * The content type, if defined
+     * @return The content type, if defined
      */
     public abstract Optional<String> contentType();
 
     /**
-     * Whether the entity is known to be empty or not.
+     * @return  Whether the entity is known to be empty or not.
      */
     public abstract boolean isKnownEmpty();
 
     /**
-     * The content length, if known
+     * @return The content length, if known
      */
     public abstract Optional<Long> contentLength();
 
     /**
-     * The stream of data.
+     * @return The stream of data.
      */
     public abstract Source<ByteString, ?> dataStream();
 
     /**
-     * Return the entity as the given content type.
+     * @param contentType    the content type to use, i.e. "text/html".
+     * @return Return the entity as the given content type.
      */
     public abstract HttpEntity as(String contentType);
 
     /**
-     * Consume the data.
+     * Consumes the data.
      *
      * This method should be used carefully, since if the source represents an ephemeral stream, then the entity may
      * not be usable after this method is invoked.
+     * @param mat    the application's materializer.
+     * @return a CompletionStage holding the data
      */
     public CompletionStage<ByteString> consumeData(Materializer mat) {
         return dataStream().runFold(ByteString.empty(), ByteString::concat, mat);
@@ -70,6 +73,8 @@ public abstract class HttpEntity {
      *
      * @param content The content.
      * @param charset The charset.
+     *
+     * @return the HTTP entity.
      */
     public static final HttpEntity fromContent(Content content, String charset) {
         String body;
@@ -87,6 +92,7 @@ public abstract class HttpEntity {
      *
      * @param content The content.
      * @param charset The charset.
+     * @return the HTTP entity.
      */
     public static final HttpEntity fromString(String content, String charset) {
         return new Strict(ByteString.fromString(content, charset), Optional.of("text/plain; charset=" + charset));

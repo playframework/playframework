@@ -96,7 +96,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
 
     /**
-     * Calls a Callable which invokes a Controller or some other method with a Context
+     * Calls a Callable which invokes a Controller or some other method with a Context.
+     *
+     * @param requestBuilder    the request builder to invoke in this context.
+     * @param contextComponents the context components to run.
+     * @param callable the callable block to run.
+     * @param <V> the return type.
+     * @return the value from {@code callable}.
      */
     public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
         try {
@@ -110,21 +116,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new GET / fake request.
+     * Builds a new "GET /" fake request.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest() {
         return fakeRequest("GET", "/");
     }
 
     /**
-     * Build a new fake request.
+     * Builds a new fake request.
+     * @param method    the request method.
+     * @param uri the relative URL.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest(String method, String uri) {
         return new RequestBuilder().method(method).uri(uri);
     }
 
     /**
-     * Build a new fake request corresponding to a given route call
+     * Builds a new fake request corresponding to a given route call.
+     * @param call    the route call.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
@@ -151,6 +163,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
      *
+     * @param name    the database name.
      * @return a map of String containing database config info.
      */
     public static Map<String, String> inMemoryDatabase(String name) {
@@ -160,6 +173,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
      *
+     * @param name       the database name.
+     * @param options the database options.
      * @return a map of String containing database config info.
      */
     public static Map<String, String> inMemoryDatabase(String name, Map<String, String> options) {
@@ -167,7 +182,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new fake application.  Uses GuiceApplicationBuilder
+     * Build a new fake application.  Uses GuiceApplicationBuilder.
      *
      * @param additionalConfiguration map containing config info for the app.
      * @return an application from the current path with additional configuration.
@@ -386,6 +401,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Executes a block of code in a running application.
      *
      * @param application the application context.
+     * @param block       the block to run after the Play app is started.
      */
     public static void running(Application application, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
@@ -421,6 +437,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      *
+     * @param port    the port to run the server on.
      * @return the test server.
      */
     public static TestServer testServer(int port) {
@@ -430,6 +447,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      *
+     *
+     * @param port    the port to run the server on.
+     * @param app     the Play application.
      * @return the test server.
      */
     public static TestServer testServer(int port, Application app) {
@@ -438,6 +458,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Starts a Test server.
+     * @param server    the test server to start.
      */
     public static void start(TestServer server) {
         server.start();
@@ -445,6 +466,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Stops a Test server.
+     * @param server    the test server to stop.a
      */
     public static void stop(TestServer server) {
         server.stop();
@@ -452,6 +474,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running server.
+     * @param server    the server to start.
+     * @param block  the block of code to run after the server starts.
      */
     public static void running(TestServer server, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
@@ -514,6 +538,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param port    the local port.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(int port) {
@@ -523,6 +548,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param webDriver    the class of webdriver.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
@@ -532,6 +558,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param webDriver    the class of webdriver.
+     * @param port  the local port to test against.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
@@ -547,6 +575,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param of      the web driver to run the browser with.
+     * @param port    the port to run against http://localhost
      * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of, int port) {
@@ -556,6 +586,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param of      the web driver to run the browser with.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {

@@ -508,6 +508,7 @@ public interface BodyParser<A> {
 
         /**
          * Returns a FilePartHandler expressed as a Java function.
+         * @return a file part handler function.
          */
         public abstract Function<Multipart.FileInfo, play.libs.streams.Accumulator<ByteString, Http.MultipartFormData.FilePart<A>>> createFilePartHandler();
 

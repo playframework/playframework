@@ -43,6 +43,7 @@ public interface InjectedActorSupport {
 
     /**
      * Context method expected to be implemented by UntypedActor.
+     * @return the ActorContext.
      */
     ActorContext context();
 }

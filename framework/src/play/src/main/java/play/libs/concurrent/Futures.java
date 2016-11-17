@@ -27,6 +27,7 @@ public class Futures {
      * The sequencing operations are performed in the default ExecutionContext.
      *
      * @param promises The CompletionStages to combine
+     * @param <A> the type of the completion's result.
      * @return A single CompletionStage whose methods act on the list of redeemed CompletionStages
      */
     public static <A> CompletionStage<List<A>> sequence(Iterable<? extends CompletionStage<A>> promises) {
@@ -44,8 +45,8 @@ public class Futures {
      * Combine the given CompletionStages into a single CompletionStage for the list of results.
      *
      * The sequencing operations are performed in the default ExecutionContext.
-     *
      * @param promises The CompletionStages to combine
+     * @param <A> the type of the completion's result.
      * @return A single CompletionStage whose methods act on the list of redeemed CompletionStage
      */
     public static <A> CompletionStage<List<A>> sequence(CompletionStage<A>... promises) {
@@ -62,6 +63,7 @@ public class Futures {
      * @param value The result value to use to complete the CompletionStage.
      * @param delay The delay (expressed with the corresponding unit).
      * @param unit The time unit, i.e. java.util.concurrent.TimeUnit.MILLISECONDS
+     * @param <A> the type of the completion's result.
      * @return the CompletionStage wrapping the result value
      */
     public static <A> CompletionStage<A> timeout(A value, long delay, TimeUnit unit) {
@@ -89,9 +91,9 @@ public class Futures {
      * it unsuitable for composition.  Cast with {@code Futures.<Void>timeout} if
      * necessary.
      *
-     * @param <A> the given type (used when composing Futures)
      * @param delay The delay (expressed with the corresponding unit).
      * @param unit The time Unit.
+     * @param <A> the type of the completion's result.
      * @return a CompletionStage that failed exceptionally
      */
     public static <A> CompletionStage<A> timeout(final long delay, final TimeUnit unit) {
@@ -116,7 +118,7 @@ public class Futures {
      * @param delay The time to wait.
      * @param unit The units to use for the delay.
      * @param executor The executor to run the supplier in.
-     *
+     * @param <A> the type of the completion's result.
      * @return the delayed CompletionStage wrapping supplier.
      */
     public static <A> CompletionStage<A> delayed(Supplier<A> supplier, long delay, TimeUnit unit, Executor executor) {

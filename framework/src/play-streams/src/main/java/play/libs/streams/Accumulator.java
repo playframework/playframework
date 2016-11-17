@@ -136,6 +136,7 @@ public abstract class Accumulator<E, A> {
      * If it isn't, this could lead to resource leaks and deadlocks upstream.
      *
      * @return An accumulator that forwards the stream to the produced source.
+     * @param <E> the "in" type of the parameter.
      */
     public static <E> Accumulator<E, Source<E, ?>> source() {
         // If Akka streams ever provides Sink.source(), we should use that instead.
@@ -148,6 +149,8 @@ public abstract class Accumulator<E, A> {
     /**
      * Create a done accumulator with the given value.
      *
+     * @param <E> the "in" type of the parameter.
+     * @param <A> the materialized result of the accumulator.
      * @param a The done value for the accumulator.
      * @return The accumulator.
      */
@@ -158,6 +161,8 @@ public abstract class Accumulator<E, A> {
     /**
      * Create a done accumulator with the given future.
      *
+     * @param <E> the "in" type of the parameter.
+     * @param <A> the materialized result of the accumulator.
      * @param a A future of the done value.
      * @return The accumulator.
      */
@@ -168,6 +173,8 @@ public abstract class Accumulator<E, A> {
     /**
      * Flatten a completion stage of an accumulator to an accumulator.
      *
+     * @param <E> the "in" type of the parameter.
+     * @param <A> the materialized result of the accumulator.
      * @param stage the CompletionStage (asynchronous) accumulator
      * @param materializer the stream materializer
      * @return The accumulator using the given completion stage
