@@ -12,6 +12,11 @@ import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
  */
 private[play] object Execution {
 
+  /**
+   * @deprecated Use the application execution context.
+   * @return the actorsystem's execution context
+   */
+  @deprecated("Use an injected execution context", "2.6.0")
   def internalContext: ExecutionContextExecutor = {
     Play.privateMaybeApplication match {
       case None => common
