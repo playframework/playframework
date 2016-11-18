@@ -160,15 +160,37 @@ Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-for
 
 ### DefaultMessagesApi component 
 
-The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes,  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
+The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) used to take [`Configuration`](api/scala/play/api/Configuration.html) and [`Environment`](api/scala/play/api/Environment.html) directly, which made it awkward to deal with in forms.  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
   
 ```scala
-implicit val messagesApi = new DefaultMessagesApi(Map("en" -> Map("hello.world" -> "hello world!")))
+import play.api.data.Forms._
+import play.api.data._
+import play.api.i18n._
+
+val messagesApi = new DefaultMessagesApi(
+  Map("en" ->
+    Map("error.min" -> "minimum!")
+  )
+)
+implicit val request = {
+  play.api.test.FakeRequest("POST", "/")
+    .withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")
+}
+implicit val messages = messagesApi.preferred(request)
+
+def errorFunc(badForm: Form[UserData]) = {
+  BadRequest(badForm.errorsAsJson)
+}
+
+def successFunc(userData: UserData) = {
+  Redirect("/").flashing("success" -> "success form!")
+}
+
+val result = Future.successful(form.bindFromRequest().fold(errorFunc, successFunc))
+Json.parse(contentAsString(result)) must beEqualTo(Json.obj("age" -> Json.arr("minimum!")))
 ```
 
-DefaultMessagesApi used to take `Configuration` and `Environment` directly, which made it awkward to deal with in forms.
-
-For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected `MessagesApi`:
+For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
 
 ```scala
 

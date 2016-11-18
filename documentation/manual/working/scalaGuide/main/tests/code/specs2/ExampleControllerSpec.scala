@@ -4,8 +4,6 @@
 package scalaguide.tests.specs2
 
 // #scalatest-examplecontrollerspec
-import javax.inject.Inject
-
 import play.api.mvc._
 import play.api.test._
 
@@ -24,13 +22,13 @@ class ExampleControllerSpec extends PlaySpecification with Results {
 }
 // #scalatest-examplecontrollerspec
 
-// #scalatest-exampleform
+// #scalatest-exampleformspec
 class ExampleFormSpec extends PlaySpecification with Results {
 
-  import play.api.data._
   import play.api.data.Forms._
-
-  case class UserData(name: String, age: Int)
+  import play.api.data._
+  import play.api.i18n._
+  import play.api.libs.json._
 
   val form = Form(
     mapping(
@@ -39,25 +37,35 @@ class ExampleFormSpec extends PlaySpecification with Results {
     )(UserData.apply)(UserData.unapply)
   )
 
+  case class UserData(name: String, age: Int)
+
   "Form" should {
     "be valid" in {
-      import play.api.i18n.DefaultMessagesApi
-      implicit val messagesApi = new DefaultMessagesApi(Map("en" -> Map("constraint.min" -> "minimum!")))
+      val messagesApi = new DefaultMessagesApi(
+        Map("en" ->
+          Map("error.min" -> "minimum!")
+        )
+      )
+      implicit val request = {
+        FakeRequest("POST", "/")
+          .withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")
+      }
+      implicit val messages = messagesApi.preferred(request)
 
       def errorFunc(badForm: Form[UserData]) = {
         BadRequest(badForm.errorsAsJson)
       }
+
       def successFunc(userData: UserData) = {
         Redirect("/").flashing("success" -> "success form!")
       }
 
-      implicit val request = FakeRequest("POST", "/").withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")
-      val result: Result = form.bindFromRequest().fold(errorFunc, successFunc)
-      result.header.status must be 307
+      val result = Future.successful(form.bindFromRequest().fold(errorFunc, successFunc))
+      Json.parse(contentAsString(result)) must beEqualTo(Json.obj("age" -> Json.arr("minimum!")))
     }
   }
 }
-// #scalatest-exampleform
+// #scalatest-exampleformspec
 
 // #scalatest-examplecontroller
 class ExampleController extends Controller {

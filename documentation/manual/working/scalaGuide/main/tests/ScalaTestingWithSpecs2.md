@@ -139,17 +139,15 @@ You can test it like:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
-Using [`play.api.test.FakeRequest`]()
+## Unit Testing Forms
 
-To unit test form processing and render validation errors, you will want a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html).
+Forms are also just regular classes, and can unit tested using Play's Test Helpers. Using [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html), you can call `form.bindFromRequest` and test for errors against any custom constraints.
 
-The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes,  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
+To unit test form processing and render validation errors, you will want a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance in implicit scope.  The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
   
-```scala
-import play.api.i18n.DefaultMessagesApi
-implicit val messagesApi = new DefaultMessagesApi(Map("en" -> Map("hello.world" -> "hello world!")))
-```
+You can test it like:
 
+@[scalatest-exampleformspec](code/specs2/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 
