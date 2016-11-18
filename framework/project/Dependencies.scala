@@ -6,7 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.4.10"
+  val akkaVersion = "2.4.12"
+  val akkaHttpVersion = "2.4.11"
 
   val specsVersion = "3.6.6"
   val specsBuild = Seq(
@@ -25,7 +26,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.6")
+  ).map(_ % "2.7.8")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
@@ -108,7 +109,7 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.9.4"
+  val jodatime = "joda-time" % "joda-time" % "2.9.6"
   val jodaConvert = "org.joda" % "joda-convert" % "1.8.1"
 
   val guiceVersion = "4.0"
@@ -157,7 +158,7 @@ object Dependencies {
   val nettyUtilsDependencies = slf4j
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core" % akkaVersion
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
