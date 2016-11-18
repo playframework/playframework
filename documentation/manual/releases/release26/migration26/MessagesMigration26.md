@@ -158,6 +158,53 @@ This is also useful for passing around a single implicit request, especially whe
 
 Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] for more details.
 
+### DefaultMessagesApi component 
+
+The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes,  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
+  
+```scala
+implicit val messagesApi = new DefaultMessagesApi(Map("en" -> Map("hello.world" -> "hello world!")))
+```
+
+DefaultMessagesApi used to take `Configuration` and `Environment` directly, which made it awkward to deal with in forms.
+
+For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected `MessagesApi`:
+
+```scala
+
+import play.api.test.{ PlaySpecification, WithApplication }
+import play.api.mvc.Controller
+import play.api.i18n._
+
+class MessagesSpec extends PlaySpecification with Controller {
+
+  sequential
+
+  implicit val lang = Lang("en-US")
+
+  "Messages" should {
+    "provide default messages" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val javaMessagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+
+      val msg = messagesApi("constraint.email")
+      val javaMsg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
+
+      msg must ===("Email")
+      msg must ===(javaMsg)
+    }
+    "permit default override" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val msg = messagesApi("constraint.required")
+
+      msg must ===("Required!")
+    }
+  }
+}
+```
+
+If you need to customize the configuration, it's better to add configuration values into the GuiceApplicationBuilder rather than use the DefaultMessagesApiProvider directly.
+
 ### Deprecated Methods
 
 `play.api.i18n.Messages.Implicits.applicationMessagesApi` and `play.api.i18n.Messages.Implicits.applicationMessages` have been deprecated, because they rely on an implicit `Application` instance.
