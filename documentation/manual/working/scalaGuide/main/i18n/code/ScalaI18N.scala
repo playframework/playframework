@@ -5,6 +5,7 @@ package scalaguide.i18n.scalai18n {
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api._
+import play.api.http.HttpConfiguration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
@@ -69,8 +70,9 @@ class ScalaI18nSpec extends PlaySpecification with Controller {
 
   "A Scala translation" should {
 
-    val langs = new DefaultLangs(conf)
-    val messagesApi = new DefaultMessagesApi(Environment.simple(), conf, langs)
+    val langs = new DefaultLangsProvider(conf).get
+    val httpConfiguration = HttpConfiguration.fromConfiguration(conf)
+    val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
 
     implicit val lang = Lang("en")
 

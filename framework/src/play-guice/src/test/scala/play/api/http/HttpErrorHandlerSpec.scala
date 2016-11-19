@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture
 
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
-import play.api.i18n.DefaultMessagesApi
+import play.api.i18n.{ DefaultMessagesApi, DefaultMessagesApiProvider }
 import play.api.inject.BindingKey
 import play.api.mvc.{ RequestHeader, Results }
 import play.api.routing._
@@ -73,11 +73,11 @@ class HttpErrorHandlerSpec extends Specification {
       .withFallback(ConfigFactory.defaultReference())
     val configuration = Configuration(config)
     val env = Environment.simple(mode = mode)
-    val langs = new play.api.i18n.DefaultLangs(configuration)
-    val messagesApi = new DefaultMessagesApi(env, configuration, langs)
+    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+    val langs = new play.api.i18n.DefaultLangsProvider(configuration).get
+    val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
     val jLangs = new play.i18n.Langs(langs)
     val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
     Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, configuration)
       ++ Seq(
         BindingKey(classOf[Router]).to(Router.empty),

@@ -11,6 +11,7 @@ import play.api.i18n._
 import scalaguide.forms.scalaforms.controllers.routes
 import play.api.mvc._
 import play.api.test.{WithApplication, _}
+import play.api.test._
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -29,8 +30,8 @@ import play.api.data.validation.Constraints._
 @RunWith(classOf[JUnitRunner])
 class ScalaFormsSpec extends Specification with Controller {
 
-  val conf = Configuration.reference
-  implicit val messages: Messages = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
+  val messagesApi = new DefaultMessagesApi()
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "A scala forms" should {
 

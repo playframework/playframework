@@ -139,6 +139,16 @@ You can test it like:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
+## Unit Testing Forms
+
+Forms are also just regular classes, and can unit tested using Play's Test Helpers. Using [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html), you can call `form.bindFromRequest` and test for errors against any custom constraints.
+
+To unit test form processing and render validation errors, you will want a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance in implicit scope.  The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
+  
+You can test it like:
+
+@[scalatest-exampleformspec](code/specs2/ExampleControllerSpec.scala)
+
 ## Unit Testing EssentialAction
 
 Testing [`Action`](api/scala/play/api/mvc/Action.html) or [`Filter`](api/scala/play/api/mvc/Filter.html) can require to test an [`EssentialAction`](api/scala/play/api/mvc/EssentialAction.html) ([[more information about what an EssentialAction is|ScalaEssentialAction]])

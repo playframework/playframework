@@ -4,9 +4,10 @@
 package play.api.i18n
 
 import java.net.URL
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api._
+import play.api.http.HttpConfiguration
 import play.api.mvc._
 import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
@@ -35,6 +36,7 @@ object Messages {
    * exposed to the underlying module system.
    */
   object Implicits {
+
     import scala.language.implicitConversions
 
     /**
@@ -57,7 +59,7 @@ object Messages {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
@@ -80,6 +82,7 @@ object Messages {
 
   /**
    * Check if a message key is defined.
+   *
    * @param key the message key
    * @return a boolean
    */
@@ -117,31 +120,17 @@ object Messages {
    */
   private[i18n] class MessagesParser(messageSource: MessageSource, messageSourceName: String) extends RegexParsers {
 
-    case class Comment(msg: String)
-
-    override def skipWhitespace = false
     override val whiteSpace = """^[ \t]+""".r
-
-    def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
-      p(i) match {
-        case Failure(_, in) => Failure(msg, in)
-        case o => o
-      }
-    }
-
     val end = """^\s*""".r
-    val newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
+    val newLine = namedError((("\r" ?) ~> "\n"), "End of line expected")
     val ignoreWhiteSpace = opt(whiteSpace)
     val blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
-
     val comment = """^#.*""".r ^^ { case s => Comment(s) }
-
     val messageKey = namedError("""^[a-zA-Z0-9_.-]+""".r, "Message key expected")
-
     val messagePattern = namedError(
       rep(
         ("""\""" ^^ (_ => "")) ~> ( // Ignore the leading \
-          ("\r"?) ~> "\n" ^^ (_ => "") | // Ignore escaped end of lines \
+          ("\r" ?) ~> "\n" ^^ (_ => "") | // Ignore escaped end of lines \
           "n" ^^ (_ => "\n") | // Translate literal \n to real newline
           """\""" | // Handle escaped \\
           "^.".r ^^ ("""\""" + _)
@@ -150,16 +139,22 @@ object Messages {
       ) ^^ { case chars => chars.mkString },
       "Message pattern expected"
     )
-
     val message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
       case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageSource, messageSourceName)
     }
-
     val sentence = (comment | positioned(message)) <~ newLine
-
     val parser = phrase(((sentence | blankLine).*) <~ end) ^^ {
       case messages => messages.collect {
         case m @ Messages.Message(_, _, _, _) => m
+      }
+    }
+
+    override def skipWhitespace = false
+
+    def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
+      p(i) match {
+        case Failure(_, in) => Failure(msg, in)
+        case o => o
       }
     }
 
@@ -169,14 +164,20 @@ object Messages {
         case NoSuccess(message, in) => Left(
           new PlayException.ExceptionSource("Configuration error", message) {
             def line = in.pos.line
+
             def position = in.pos.column - 1
+
             def input = messageSource.read
+
             def sourceName = messageSourceName
           }
         )
       }
     }
+
+    case class Comment(msg: String)
   }
+
 }
 
 /**
@@ -186,7 +187,7 @@ object Messages {
  * particularly useful in templates so that both can be captured by one
  * parameter.
  *
- * @param lang The lang (context)
+ * @param lang        The lang (context)
  * @param messagesApi The messages API
  */
 case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
@@ -196,7 +197,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
@@ -222,7 +223,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message, if this key was defined
    */
@@ -232,6 +233,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
 
   /**
    * Check if a message key is defined.
+   *
    * @param key the message key
    * @return a boolean
    */
@@ -251,12 +253,14 @@ trait Messages extends MessagesProvider {
 
   /**
    * Every Messages is also a MessagesProvider.
+   *
    * @return the messages itself.
    */
   def messages: Messages = this
 
   /**
    * Returns the language associated with the messages.
+   *
    * @return the selected language.
    */
   def lang: Lang
@@ -266,7 +270,7 @@ trait Messages extends MessagesProvider {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
@@ -288,7 +292,7 @@ trait Messages extends MessagesProvider {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message, if this key was defined
    */
@@ -296,6 +300,7 @@ trait Messages extends MessagesProvider {
 
   /**
    * Check if a message key is defined.
+   *
    * @param key the message key
    * @return a boolean
    */
@@ -342,7 +347,7 @@ trait MessagesApi {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
@@ -364,7 +369,7 @@ trait MessagesApi {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param key  the message key
    * @param args the message arguments
    * @return the formatted message, if this key was defined
    */
@@ -372,6 +377,7 @@ trait MessagesApi {
 
   /**
    * Check if a message key is defined.
+   *
    * @param key the message key
    * @return a boolean
    */
@@ -395,28 +401,28 @@ trait MessagesApi {
  * The Messages API.
  */
 @Singleton
-class DefaultMessagesApi @Inject() (environment: Environment, config: Configuration, langs: Langs)
-    extends MessagesApi {
+class DefaultMessagesApi @Inject() (
+    val messages: Map[String, Map[String, String]] = Map.empty,
+    langs: Langs = new DefaultLangs(),
+    val langCookieName: String = "PLAY_LANG",
+    val langCookieSecure: Boolean = false,
+    val langCookieHttpOnly: Boolean = false,
+    val httpConfiguration: HttpConfiguration = HttpConfiguration()) extends MessagesApi {
 
   import java.text._
 
-  protected val messagesPrefix =
-    config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
-
-  val messages: Map[String, Map[String, String]] = loadAllMessages
-
   override def preferred(candidates: Seq[Lang]): Messages = {
     MessagesImpl(langs.preferred(candidates), this)
+  }
+
+  override def preferred(request: Http.RequestHeader): Messages = {
+    preferred(request._underlyingHeader())
   }
 
   override def preferred(request: RequestHeader): Messages = {
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
     val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
-  }
-
-  override def preferred(request: Http.RequestHeader): Messages = {
-    preferred(request._underlyingHeader())
   }
 
   override def apply(key: String, args: Any*)(implicit lang: Lang): String = {
@@ -449,22 +455,51 @@ class DefaultMessagesApi @Inject() (environment: Environment, config: Configurat
     })
   }
 
-  private def joinPaths(first: Option[String], second: String): String = {
-    first match {
-      case Some(parent) => new java.io.File(parent, second).getPath
-      case None => second
-    }
+  override def setLang(result: Result, lang: Lang): Result = {
+    result.withCookies(Cookie(langCookieName, lang.code,
+      path = httpConfiguration.context,
+      domain = httpConfiguration.session.domain,
+      secure = langCookieSecure,
+      httpOnly = langCookieHttpOnly))
   }
 
-  protected def loadMessages(file: String): Map[String, String] = {
-    import scala.collection.JavaConverters._
-
-    environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
-      .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
-      .map { messageFile =>
-        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
-      }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+  override def clearLang(result: Result): Result = {
+    result.discardingCookies(DiscardingCookie(
+      langCookieName,
+      path = httpConfiguration.context,
+      domain = httpConfiguration.session.domain,
+      secure = langCookieSecure))
   }
+
+}
+
+@Singleton
+class DefaultMessagesApiProvider @Inject() (
+  environment: Environment,
+  config: Configuration,
+  langs: Langs,
+  httpConfiguration: HttpConfiguration)
+    extends Provider[MessagesApi] {
+
+  override lazy val get: MessagesApi = {
+    new DefaultMessagesApi(
+      loadAllMessages,
+      langs,
+      langCookieName = langCookieName,
+      langCookieSecure = langCookieSecure,
+      langCookieHttpOnly = langCookieHttpOnly,
+      httpConfiguration = httpConfiguration
+    )
+  }
+
+  def langCookieName =
+    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
+
+  def langCookieSecure =
+    config.get[Boolean]("play.i18n.langCookieSecure")
+
+  def langCookieHttpOnly =
+    config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     langs.availables.map(_.code).map { lang =>
@@ -474,23 +509,23 @@ class DefaultMessagesApi @Inject() (environment: Environment, config: Configurat
       .+("default.play" -> loadMessages("messages.default"))
   }
 
-  override def setLang(result: Result, lang: Lang): Result = {
-    result.withCookies(Cookie(langCookieName, lang.code, path = Session.path, domain = Session.domain,
-      secure = langCookieSecure, httpOnly = langCookieHttpOnly))
+  protected def loadMessages(file: String): Map[String, String] = {
+    import scala.collection.JavaConverters._
+
+    environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
+      .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
+      .map { messageFile =>
+        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
+      }.foldLeft(Map.empty[String, String]) {
+        _ ++ _
+      }
   }
 
-  override def clearLang(result: Result): Result = {
-    result.discardingCookies(DiscardingCookie(langCookieName, path = Session.path, domain = Session.domain,
-      secure = langCookieSecure))
+  protected def messagesPrefix = config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
+
+  protected def joinPaths(first: Option[String], second: String) = first match {
+    case Some(parent) => new java.io.File(parent, second).getPath
+    case None => second
   }
-
-  lazy val langCookieName: String =
-    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
-
-  lazy val langCookieSecure: Boolean =
-    config.get[Boolean]("play.i18n.langCookieSecure")
-
-  lazy val langCookieHttpOnly: Boolean =
-    config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
 }
