@@ -19,7 +19,7 @@ import scala.concurrent.duration.FiniteDuration
  * timeout after a certain period of time:
  *
  * {{{
- * class MyService(val actorSystem: ActorSystem) extends Timeout {
+ * class MyService @Inject()(actorSystem: ActorSystem) extends Timeout {
  *
  *   def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
  *     timeout(actorSystem, timeoutDuration)(rawCalculation())

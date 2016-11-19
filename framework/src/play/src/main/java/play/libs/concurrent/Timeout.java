@@ -13,6 +13,16 @@ import static java.util.Objects.requireNonNull;
 /**
  * This interface is used to provide a non-blocking timeout on an operation
  * that returns a CompletionStage.
+ * 
+ * To use a non-blocking timeout, have a class implement the Timeout trait:
+ * 
+ * <pre>{@code
+ * class MyClass implements play.libs.concurrent.Timeout {
+ *     CompletionStage<Double> callWithTimeout() {
+ *         return timeout(longRunningOperation(), Duration.ofSeconds(1));
+ *     }
+ * } 
+ * }</pre>
  */
 public interface Timeout {
 
