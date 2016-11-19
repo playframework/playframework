@@ -11,8 +11,9 @@ import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
 import play.api.http.HttpConfiguration._
-import play.api.http.{ DefaultFileMimeTypesProvider, _ }
-import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
+import play.api.http._
+import play.api.libs.Files.TemporaryFileReaperConfiguration.TemporaryFileReaperConfigurationProvider
+import play.api.libs.Files._
 import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
@@ -46,8 +47,11 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[SessionConfiguration].toProvider[SessionConfigurationProvider],
     bind[ActionCompositionConfiguration].toProvider[ActionCompositionConfigurationProvider],
     bind[FileMimeTypesConfiguration].toProvider[FileMimeTypesConfigurationProvider],
+    bind[TemporaryFileReaperConfiguration].toProvider[TemporaryFileReaperConfigurationProvider],
 
     bind[RequestFactory].to[DefaultRequestFactory],
+    bind[TemporaryFileReaper].to[DefaultTemporaryFileReaper],
+    bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
     bind[PlayBodyParsers].to[PlayBodyParsersImpl],
     bind[BodyParsers.Default].toSelf,
     bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
@@ -73,7 +77,6 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[CryptoConfig].toProvider[CryptoConfigParser],
     bind[CookieSigner].toProvider[CookieSignerProvider],
     bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-    bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
 
     bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[SessionCookieBaker].to[DefaultSessionCookieBaker],

@@ -52,7 +52,7 @@ object HttpBinApplication {
             case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
               Json.obj(
                 "form" -> m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
-                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref.file)).getOrElse(""))
+                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref)).getOrElse(""))
               )
             case b =>
               Json.obj("data" -> JsString(b.toString))

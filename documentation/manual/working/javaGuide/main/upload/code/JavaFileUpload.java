@@ -37,6 +37,7 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static play.mvc.Results.ok;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
@@ -121,6 +122,7 @@ public class JavaFileUpload extends WithApplication {
 
     @Test
     public void testCustomMultipart() throws IOException {
+        play.libs.Files.TemporaryFileCreator tfc = play.libs.Files.singletonTemporaryFileCreator();
         Source source = FileIO.fromPath(Files.createTempFile("temp", "txt"));
         Http.MultipartFormData.FilePart dp = new Http.MultipartFormData.FilePart<Source>("name", "filename", "text/plain", source);
         assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction() {
@@ -133,7 +135,7 @@ public class JavaFileUpload extends WithApplication {
                         Files.deleteIfExists(file.toPath());
                         return ok("Got: file size = " + size + "");
                     }
-                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), mat), mat)),
+                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), tfc, mat), mat)),
                 equalTo("Got: file size = 0"));
     }
 }

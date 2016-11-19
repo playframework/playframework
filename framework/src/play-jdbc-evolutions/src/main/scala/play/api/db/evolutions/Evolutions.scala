@@ -136,7 +136,7 @@ object Evolutions {
   }
 
   private def writeFileIfChanged(path: File, content: String): Unit = {
-    if (content != PlayIO.readFileAsString(path)) {
+    if (content != PlayIO.readFileAsString(path.toPath)) {
       writeFile(path, content)
     }
   }

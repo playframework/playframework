@@ -8,10 +8,11 @@ import org.junit.runner.RunWith
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.concurrent.ExecutionContext
 
+import scala.concurrent.ExecutionContext
 import org.slf4j._
 import play.api._
+import play.api.libs.Files.SingletonTemporaryFileCreator
 
 @RunWith(classOf[JUnitRunner])
 class ScalaLoggingSpec extends Specification with Mockito {
@@ -129,7 +130,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
       val controller = new Application(new AccessLoggingAction(
-        new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer())))
+        new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)))
 
       controller.accessLoggingAction.accessLogger.underlyingLogger.getName must equalTo("access")
       controller.logger.underlyingLogger.getName must contain("Application")

@@ -9,7 +9,7 @@ import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api.Play
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.MultipartFormData._
@@ -18,7 +18,6 @@ import play.api.http.Status._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
-
 import play.core.Execution.Implicits.trampoline
 
 /**
@@ -117,10 +116,10 @@ object Multipart {
 
   type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
-  def handleFilePartAsTemporaryFile: FilePartHandler[TemporaryFile] = {
+  def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
-      val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-      Accumulator(FileIO.toPath(tempFile.file.toPath)).map { _ =>
+      val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
+      Accumulator(FileIO.toPath(tempFile.path)).map { _ =>
         FilePart(partName, filename, contentType, tempFile)
       }
   }

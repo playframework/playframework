@@ -6,13 +6,13 @@ package play.api
 import java.io._
 import javax.inject.Inject
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, Props }
 import akka.stream.{ ActorMaterializer, Materializer }
 import javax.inject.Singleton
 
 import play.api.http._
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
-import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
+import play.api.libs.Files._
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
 import play.api.mvc._
@@ -242,7 +242,7 @@ trait BuiltInComponents {
 
   lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
 
-  lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer)
+  lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer, tempFileCreator)
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
@@ -266,7 +266,8 @@ trait BuiltInComponents {
 
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 
-  lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
+  lazy val tempFileReaper: TemporaryFileReaper = new DefaultTemporaryFileReaper(actorSystem, TemporaryFileReaperConfiguration.fromConfiguration(configuration))
+  lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper)
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 }

@@ -9,6 +9,7 @@ import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
 import play.libs.typedmap.TypedKey;
+import play.libs.Files.*;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
@@ -183,9 +184,10 @@ public class RequestBuilderTest {
     public void multipartForm() throws ExecutionException, InterruptedException {
         Application app = new GuiceApplicationBuilder().build();
         Play.start(app);
+        TemporaryFileCreator temporaryFileCreator = app.injector().instanceOf(TemporaryFileCreator.class);
         Http.MultipartFormData.DataPart dp = new Http.MultipartFormData.DataPart("hello", "world");
         final Request request = new RequestBuilder().uri("http://playframework.com/")
-                .bodyMultipart(Collections.singletonList(dp), app.materializer())
+                .bodyMultipart(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
                 .build();
 
         Optional<Http.MultipartFormData<File>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)

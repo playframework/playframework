@@ -260,7 +260,7 @@ object HttpErrorHandlerExceptions {
         other) {
         def line = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
         def position = null
-        def input = source.map(_._1).map(PlayIO.readFileAsString).orNull
+        def input = source.map(_._1).map(f => PlayIO.readFileAsString(f.toPath)).orNull
         def sourceName = source.map(_._1.getAbsolutePath).orNull
       }
   }

@@ -5,6 +5,7 @@ package play.filters.cors
 
 import akka.stream.Materializer
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, ParserConfiguration }
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFileCreator }
 import play.api.mvc._
 import play.api.{ Configuration, Logger }
 
@@ -62,10 +63,11 @@ object CORSActionBuilder {
     config: Configuration,
     errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
     configPath: String = "play.filters.cors",
-    parserConfig: ParserConfiguration = ParserConfiguration())(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
+    parserConfig: ParserConfiguration = ParserConfiguration(),
+    tempFileCreator: TemporaryFileCreator = SingletonTemporaryFileCreator)(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat)
+      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat, tempFileCreator)
       override protected val executionContext = ec
       override protected def corsConfig = {
         val prototype = config.get[Configuration]("play.filters.cors")
@@ -85,10 +87,11 @@ object CORSActionBuilder {
   def apply(
     config: CORSConfig,
     errorHandler: HttpErrorHandler,
-    parserConfig: ParserConfiguration)(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
+    parserConfig: ParserConfiguration,
+    tempFileCreator: TemporaryFileCreator)(implicit mat: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat)
+      override lazy val parser = new BodyParsers.Default(parserConfig, eh, mat, tempFileCreator)
       override protected val executionContext = ec
       override protected val corsConfig = config
       override protected val errorHandler = eh

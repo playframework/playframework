@@ -7,14 +7,13 @@ import akka.util.ByteString
 import akka.stream.scaladsl.Source
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-
 import java.io.IOException
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.api.{ Configuration, Environment }
-
 import play.api.http.{ DefaultHttpErrorHandler, ParserConfiguration }
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.core.test.FakeRequest
 
 import scala.concurrent.Future
@@ -33,7 +32,8 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
   val config = ParserConfiguration()
   val errorHandler = new DefaultHttpErrorHandler(Environment.simple(), Configuration.empty)
-  val parse = PlayBodyParsers(config, errorHandler, materializer)
+  val tempFileCreator = SingletonTemporaryFileCreator
+  val parse = PlayBodyParsers(config, errorHandler, materializer, tempFileCreator)
 
   def parse(body: ByteString, memoryThreshold: Int = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
     val request = FakeRequest(method = "GET", "/x")
