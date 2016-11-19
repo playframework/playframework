@@ -46,8 +46,12 @@ public class HttpExecution {
      * Http.Context are captured when this method is called and preserved
      * for all executed tasks.
      *
+     * @deprecated Since 2.6.0, use {@link play.libs.concurrent.HttpExecutionContext#current()}
+     *             from an action, or use {@link play.libs.concurrent.HttpExecution#fromThread(ExecutionContext)}
+     *             with a dependency injected ExecutionContext or ActorSystem directly.
      * @return the execution context.
      */
+    @Deprecated
     public static ExecutionContextExecutor defaultContext() {
         return HttpExecutionContext.fromThread(Execution.internalContext());
     }
