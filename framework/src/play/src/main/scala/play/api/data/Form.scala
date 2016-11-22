@@ -565,7 +565,7 @@ trait Mapping[T] {
   protected def collectErrors(t: T): Seq[FormError] = {
     constraints.map(_(t)).collect {
       case Invalid(errors) => errors.toSeq
-    }.flatten.map(ve => FormError(key, ve.messages, ve.args))
+    }.flatten.map(ve => FormError(ve.fieldName.getOrElse(key), ve.messages, ve.args))
   }
 
 }
