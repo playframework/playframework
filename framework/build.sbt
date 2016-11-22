@@ -104,7 +104,7 @@ lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Serve
     .settings(libraryDependencies ++= akkaHttp)
     // Include scripted tests here as well as in the SBT Plugin, because we
     // don't want the SBT Plugin to have a dependency on an experimental module.
-    .settings(playFullScriptedSettings: _*)
+    //.settings(ScriptedPlugin.scriptedSettings ++ playScriptedSettings)
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlaySpecs2Project % "test", PlayWsProject % "test")
 
