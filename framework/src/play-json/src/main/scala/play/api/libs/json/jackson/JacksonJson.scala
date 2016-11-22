@@ -84,6 +84,7 @@ private[jackson] object JsValueSerializer extends JsonSerializer[JsValue] {
         }
         json.writeEndObject()
       }
+      case JsLiteral(content) => json.writeRawValue(content)
       case JsNull => json.writeNull()
     }
   }
