@@ -213,34 +213,32 @@ private[jackson] class PlaySerializers extends Serializers.Base {
   }
 }
 
-private[json] object JacksonJson {
+object JacksonJson {
 
-  private val mapper = (new ObjectMapper).registerModule(PlayJsonModule)
+  private def jsonFactory(implicit mapper: ObjectMapper) = new JsonFactory(mapper)
 
-  private val jsonFactory = new JsonFactory(mapper)
-
-  private def stringJsonGenerator(out: java.io.StringWriter) =
+  private def stringJsonGenerator(out: java.io.StringWriter)(implicit mapper: ObjectMapper) =
     jsonFactory.createGenerator(out)
 
-  private def jsonParser(c: String): JsonParser =
+  private def jsonParser(c: String)(implicit mapper: ObjectMapper): JsonParser =
     jsonFactory.createParser(c)
 
-  private def jsonParser(data: Array[Byte]): JsonParser =
+  private def jsonParser(data: Array[Byte])(implicit mapper: ObjectMapper): JsonParser =
     jsonFactory.createParser(data)
 
-  private def jsonParser(stream: InputStream): JsonParser =
+  private def jsonParser(stream: InputStream)(implicit mapper: ObjectMapper): JsonParser =
     jsonFactory.createParser(stream)
 
-  def parseJsValue(data: Array[Byte]): JsValue =
+  def parseJsValue(data: Array[Byte])(implicit mapper: ObjectMapper): JsValue =
     mapper.readValue(jsonParser(data), classOf[JsValue])
 
-  def parseJsValue(input: String): JsValue =
+  def parseJsValue(input: String)(implicit mapper: ObjectMapper): JsValue =
     mapper.readValue(jsonParser(input), classOf[JsValue])
 
-  def parseJsValue(stream: InputStream): JsValue =
+  def parseJsValue(stream: InputStream)(implicit mapper: ObjectMapper): JsValue =
     mapper.readValue(jsonParser(stream), classOf[JsValue])
 
-  def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false): String = {
+  def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false)(implicit mapper: ObjectMapper): String = {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
 
@@ -253,7 +251,7 @@ private[json] object JacksonJson {
     sw.getBuffer.toString
   }
 
-  def prettyPrint(jsValue: JsValue): String = {
+  def prettyPrint(jsValue: JsValue)(implicit mapper: ObjectMapper): String = {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw).setPrettyPrinter(
       new DefaultPrettyPrinter()
@@ -264,10 +262,10 @@ private[json] object JacksonJson {
     sw.getBuffer.toString
   }
 
-  def jsValueToJsonNode(jsValue: JsValue): JsonNode =
+  def jsValueToJsonNode(jsValue: JsValue)(implicit mapper: ObjectMapper): JsonNode =
     mapper.valueToTree(jsValue)
 
-  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue =
+  def jsonNodeToJsValue(jsonNode: JsonNode)(implicit mapper: ObjectMapper): JsValue =
     mapper.treeToValue(jsonNode, classOf[JsValue])
 
 }

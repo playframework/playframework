@@ -6,11 +6,17 @@ package play.api.libs.json
 import java.io.InputStream
 
 import play.api.libs.json.jackson.JacksonJson
+import play.api.libs.json.jackson.PlayJsonModule
+import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * Helper functions to handle JsValues.
  */
 object Json {
+  /**
+   * the default implicit Jackson ObjectMapper
+   */
+  implicit val mapper = (new ObjectMapper).registerModule(PlayJsonModule)
 
   /**
    * Parse a String representing a json, and return it as a JsValue.
