@@ -122,7 +122,8 @@ trait Action[A] extends EssentialAction {
  * @tparam A the body content type
  */
 trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Result, A]]) {
-  self =>
+  // "with Any" because we need to prevent 2.12 SAM inference here
+  self: BodyParser[A] with Any =>
 
   /**
    * Uses the provided function to transform the BodyParser's computed result
@@ -367,7 +368,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async {
-   *   WS.url("http://www.playframework.com").get().map { r =>
+   *   ws.url("http://www.playframework.com").get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
@@ -385,7 +386,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async { request =>
-   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *   ws.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
@@ -402,7 +403,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async { request =>
-   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *   ws.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
