@@ -266,7 +266,6 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
         }
       //#item-action-use
 
-      import scala.concurrent.ExecutionContext.Implicits.global
       testAction(tagItem("foo", "bar"), expectedResponse = FORBIDDEN)
     }
 

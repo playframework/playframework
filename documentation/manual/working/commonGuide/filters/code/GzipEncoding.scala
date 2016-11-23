@@ -5,7 +5,6 @@ package detailedtopics.configuration.gzipencoding
 
 import akka.stream.ActorMaterializer
 import play.api.test._
-import detailedtopics.configuration.gzipencoding.CustomFilters
 
 class GzipEncoding extends PlaySpecification {
 

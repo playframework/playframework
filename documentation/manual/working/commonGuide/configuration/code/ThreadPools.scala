@@ -16,7 +16,6 @@ import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 import org.specs2.execute.AsResult
 
 class ThreadPoolsSpec extends PlaySpecification {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Play's thread pools" should {
 

@@ -4,10 +4,11 @@
 package assets.controllers
 
 import java.io.File
+import javax.inject.Inject
 
 import play.api.mvc._
 
-class RangeRequestController extends Controller {
+class RangeRequestController @Inject()(c: ControllerComponents) extends AbstractController(c) {
 
   // #range-request
   def video(videoId: Long) = Action { implicit request =>
