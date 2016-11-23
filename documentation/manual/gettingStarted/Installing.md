@@ -19,7 +19,7 @@ If you don't have the JDK, you have to install it from [Oracle's JDK Site](http:
 
 We provide a number of sample projects that have an `./sbt` launcher in the local directory. These can be found on our [download page](https://playframework.com/download#examples). This launcher will automatically download dependencies without you having to install SBT ahead of time.
 
-Refer to the [SBT download page](https://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
+Refer to the [SBT download page](http://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
 
 ### Running Play with SBT
 
