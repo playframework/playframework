@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # JSON basics
 
-Modern web applications often need to parse and generate data in the JSON (JavaScript Object Notation) format. Play supports this via its [JSON library](api/scala/play/api/libs/json/package.html).
+Modern web applications often need to parse and generate data in the JSON (JavaScript Object Notation) format. Play supports this via its [JSON library](api/scala/play/api/libs/json/).
 
 JSON is a lightweight data-interchange format and looks like this:
 
@@ -28,7 +28,7 @@ JSON is a lightweight data-interchange format and looks like this:
 
 ## The Play JSON library
 
-The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Some of the features of this package are:
+The [`play.api.libs.json`](api/scala/play/api/libs/json/) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Some of the features of this package are:
 
  - [[Automatic conversion|ScalaJsonAutomated]] to and from case classes with minimal boilerplate. If you want to get up and running quickly with minimal code, this is probably the place to start.
  - [[Custom validation|ScalaJsonCombinators#Validation-with-Reads]] while parsing.
