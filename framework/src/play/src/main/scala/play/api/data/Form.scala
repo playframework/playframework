@@ -237,7 +237,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
 
   private def translateMsgArg(msgArg: Any)(implicit messages: play.api.i18n.Messages) = msgArg match {
     case key: String => messages(key)
-    case keys: Seq[String] => keys.map(key => messages(key))
+    case keys: Seq[String @unchecked] => keys.map(key => messages(key))
     case _ => msgArg
   }
 
