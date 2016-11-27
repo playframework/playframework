@@ -47,17 +47,17 @@ Play is unopinionated about database access, and integrates with many object rel
 
 #### Slick
 
-[Slick](http://slick.typesafe.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
+[Slick](http://slick.lightbend.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
 
 * [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
-* [play-scala-intro](https://github.com/playframework/playframework/tree/master/templates/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
+* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
 * [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
 
 #### JPA
 
 This is a example template showing Play with Java Persistence API (JPA), using Hibernate Entity Manager.  It is included in the Play project itself.
 
-* [play-java-intro](https://github.com/playframework/playframework/tree/master/templates/play-java-intro)
+* [play-java-intro](https://github.com/playframework/play-java-intro)
 
 #### Anorm
 
@@ -158,8 +158,8 @@ Semisafe has an excellent series on Play in general:
 
 Justin Rodenbostel of SPR Consulting also has two blog posts on building REST APIs in Play:
 
-* [Building a Simple REST API with Scala & Play (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
-* [Building a simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
+* [Building a Simple REST API with Scala & Play! (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
+* [Building a Simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
 
 #### Slick
 
@@ -167,7 +167,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### RethinkDB
 
-* [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions)
+* [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions).
 
 #### Forms
 
@@ -175,11 +175,11 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### EmberJS
 
-* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation))
+* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
 
 #### AngularJS, RequireJS and sbt-web
 
-Marius Soutier has an excellent series on setting up a Javascript interface using AngularJS with Play and sbt-web.  It was originally written for Play 2.1.x, but has been updated for Play 2.4.x
+Marius Soutier has an excellent series on setting up a Javascript interface using AngularJS with Play and sbt-web.  It was originally written for Play 2.1.x, but has been updated for Play 2.4.x.
 
 * [RequireJS Optimization with Play 2.1 and WebJars](http://mariussoutier.com/blog/2013/08/25/requirejs-optimization-play-webjars/)
 * [Intro to sbt-web](http://mariussoutier.com/blog/2014/10/20/intro-sbt-web/)
@@ -189,7 +189,7 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 #### React JS
 
 * [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
-* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master)
+* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master).
 
 ### 2.3.x
 
