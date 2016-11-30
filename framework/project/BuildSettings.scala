@@ -56,6 +56,14 @@ object BuildSettings {
         Resolver.typesafeRepo("releases"),
         Resolver.typesafeIvyRepo("releases")
       ),
+      scalacOptions in(Compile, doc) := {
+        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+        if (scalaVersion.value == "2.12.0") {
+          Seq("-no-java-comments")
+        } else {
+          Seq()
+        }
+      },
       fork in Test := true,
       parallelExecution in Test := false,
       testListeners in (Test,test) := Nil,
@@ -193,7 +201,7 @@ object BuildSettings {
     scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
-      "-Dscala.version=" + sys.props.get("scripted.scala.version").getOrElse(sys.props.get("scala.version").getOrElse("2.11.8"))
+      "-Dscala.version=" + sys.props.get("scripted.scala.version").getOrElse(sys.props.get("scala.version").getOrElse("2.12.0"))
     )
   )
 

@@ -55,7 +55,7 @@ object ApplicationBuild extends Build {
         bufferLogger +: currentFunction(key)
       }
     },
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.0"),
     checkLogContainsTask,
     compileIgnoreErrorsTask
   )

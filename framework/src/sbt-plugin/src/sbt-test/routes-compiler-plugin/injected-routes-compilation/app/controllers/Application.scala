@@ -4,7 +4,7 @@
 package controllers
 
 import play.api.mvc._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import javax.inject.Inject
 
 class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
@@ -36,7 +36,7 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(`b[]`mkString(",") + " " + `b%%`)
   }
   def takeJavaList(x: java.util.List[Integer]) = Action {
-    Ok(x.mkString(","))
+    Ok(x.asScala.mkString(","))
   }
   def urlcoding(dynamic: String, static: String, query: String) = Action {
     Ok(s"dynamic=$dynamic static=$static query=$query")

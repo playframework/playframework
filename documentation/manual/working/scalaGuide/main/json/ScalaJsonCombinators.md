@@ -15,7 +15,7 @@ The examples on this page will use this `JsValue` structure and corresponding mo
 
 @[jspath-define](code/ScalaJsonCombinatorsSpec.scala)
 
-The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package defines an alias for `JsPath`: `__` (double underscore). You can use this if you prefer:
+The [`play.api.libs.json`](api/scala/play/api/libs/json/) package defines an alias for `JsPath`: `__` (double underscore). You can use this if you prefer:
 
 @[jspath-define-alias](code/ScalaJsonCombinatorsSpec.scala)
 

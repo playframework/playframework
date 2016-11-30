@@ -9,7 +9,6 @@ import org.specs2.runner.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test._
 import java.io.File
 
@@ -43,7 +42,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       import play.api.mvc.Results._
       import actors.HelloActor.SayHello
 
-
+      import scala.concurrent.ExecutionContext.Implicits.global
       //#ask
       import scala.concurrent.duration._
       import akka.pattern.ask
@@ -79,6 +78,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       import akka.pattern.ask
       implicit val timeout: Timeout = 5.seconds
 
+      import scala.concurrent.ExecutionContext.Implicits.global
       val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
       val futureConfig = for {
         child <- (actor ? actors.ParentActor.GetChild("my.config")).mapTo[ActorRef]
@@ -95,6 +95,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       //#schedule-actor
       import scala.concurrent.duration._
 
+      import scala.concurrent.ExecutionContext.Implicits.global
       val cancellable = system.scheduler.schedule(
         0.microseconds, 300.microseconds, testActor, "tick")
       //#schedule-actor
@@ -104,6 +105,7 @@ class ScalaAkkaSpec extends PlaySpecification {
     "actor scheduler" in withActorSystem { system =>
       val file = new File("/tmp/nofile")
       file.mkdirs()
+      import scala.concurrent.ExecutionContext.Implicits.global
       //#schedule-callback
       system.scheduler.scheduleOnce(10.milliseconds) {
         file.delete()

@@ -104,7 +104,7 @@ lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Serve
     .settings(libraryDependencies ++= akkaHttp)
     // Include scripted tests here as well as in the SBT Plugin, because we
     // don't want the SBT Plugin to have a dependency on an experimental module.
-    .settings(playFullScriptedSettings: _*)
+    //.settings(ScriptedPlugin.scriptedSettings ++ playScriptedSettings)
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlaySpecs2Project % "test", PlayWsProject % "test")
 
@@ -150,6 +150,13 @@ lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
+    .settings(
+      // work around the stackoverflow bug in 2.12.0
+      resolvers += "nightlies" at
+        "https://scala-ci.typesafe.com/artifactory/scala-release-temp/",
+      scalaVersion := "2.12.1-371bc2c-nightly",
+      scalaBinaryVersion := "2.12"
+    )
     .dependsOn(
       PlayProject % "compile;test->test",
       PlayTestProject % "test",
