@@ -15,7 +15,7 @@ To start using Akka, you need to write an actor.  Below is a simple actor that s
 
 @[actor](code/javaguide/akka/HelloActor.java)
 
-Notice here that the `HelloActor` defines a static method called `props`, this returns a `Props` object that describes how to create the actor.  This is a good Akka convention, to separate the instantiation logic from the code that creates the actor.
+Notice here that the `HelloActor` defines a static field called `props`, this returns a `Props` object that describes how to create the actor.  This is a good Akka convention, to separate the instantiation logic from the code that creates the actor.
 
 Another best practice shown here is that the messages that `HelloActor` sends and receives are defined as static inner classes of another class called `HelloActorProtocol`:
 
