@@ -5,7 +5,7 @@ package play.mvc;
 
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import play.api.libs.MimeTypes;
+import play.api.libs.MimeTypes$;
 import play.core.j.JavaRangeResult;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public class RangeResults {
     }
 
     private static Optional<String> mimeTypeFor(String fileName) {
-        Option<String> option = MimeTypes.forFileName(fileName);
+        Option<String> option = MimeTypes$.MODULE$.defaultMimeTypes().forFileName(fileName);
         return OptionConverters.toJava(option);
     }
 

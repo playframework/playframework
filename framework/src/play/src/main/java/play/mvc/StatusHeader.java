@@ -24,6 +24,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import play.api.libs.MimeTypes;
+import play.api.libs.MimeTypes$;
 import play.http.HttpEntity;
 import play.libs.Json;
 import play.utils.UriEncoding;
@@ -275,10 +277,11 @@ public class StatusHeader extends Result {
                 (resourceName.isPresent() ? "; filename=\"" + resourceName.get() + "\"; filename*=utf-8''" + UriEncoding.encodePathSegment(resourceName.get(), UTF_8) : "")
         );
 
+        final MimeTypes mimeTypes = MimeTypes$.MODULE$.defaultMimeTypes();
         return new Result(status(), headers, new HttpEntity.Streamed(
                 data,
                 contentLength,
-                resourceName.map(name -> OptionConverters.toJava(play.api.libs.MimeTypes.forFileName(name))
+                resourceName.map(name -> OptionConverters.toJava(mimeTypes.forFileName(name))
                         .orElse(Http.MimeTypes.BINARY)
                 )
         ));

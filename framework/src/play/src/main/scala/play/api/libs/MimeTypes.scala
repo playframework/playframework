@@ -6,55 +6,25 @@ package play.api.libs
 import java.util.Locale
 import play.api.Configuration
 
-/**
- * MIME type utilities.
- */
-object MimeTypes {
+trait MimeTypes {
+  def forFileName(name: String): Option[String]
+  def forExtension(ext: String): Option[String]
+  def isText(mimeType: String): Boolean
+}
 
-  /**
-   * Retrieves the usual MIME type for a given extension.
-   *
-   * @param ext the file extension, e.g. `txt`
-   * @return the MIME type, if defined
-   */
-  def forExtension(ext: String): Option[String] = types.get(ext.toLowerCase(Locale.ENGLISH))
+object MimeTypes extends MimeTypes {
 
-  /**
-   * Retrieves the usual MIME type for a given file name
-   *
-   * @param name the file name, e.g. `hello.txt`
-   * @return the MIME type, if defined
-   */
-  def forFileName(name: String): Option[String] = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
+  lazy val defaultMimeTypes: MimeTypes = fromConfiguration(Configuration.reference)
 
-  def types: Map[String, String] = defaultTypes ++ applicationTypes
-
-  /**
-   * Mimetypes defined in the current application, as declared in application.conf
-   */
-  def applicationTypes: Map[String, String] = play.api.Play.privateMaybeApplication.flatMap { application =>
-    application.configuration.getOptional[Configuration]("mimetype").map { config =>
-      config.subKeys.map { key =>
-        key -> config.get[String](key)
-      }.toMap
-    }
-  }.getOrElse(Map.empty)
-
-  /**
-   * tells you if mimeType is text or not.
-   * Useful to determine whether the charset suffix should be attached to Content-Type or not
-   * @param mimeType mimeType to check
-   * @return true if mimeType is text
-   */
-  def isText(mimeType: String): Boolean = {
-    mimeType.trim match {
-      case text if text.startsWith("text/") => true
-      case text if additionalText.contains(text) => true
-      case _ => false
-    }
+  def fromConfiguration(configuration: Configuration): MimeTypes = {
+    new DefaultMimeTypes(MimeTypesConfiguration(
+      defaultTypes,
+      additionalText,
+      applicationTypes(configuration))
+    )
   }
 
-  lazy val defaultTypes =
+  val defaultTypes =
     """
         3dm=x-world/x-3dmf
         3dmf=x-world/x-3dmf
@@ -613,10 +583,69 @@ object MimeTypes {
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
 
-  lazy val additionalText =
+  val additionalText =
     """
         application/json
         application/javascript
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#')
+
+  /**
+   * Mimetypes defined in the current application, as declared in application.conf
+   */
+  def applicationTypes(configuration: Configuration): Map[String, String] =
+    configuration.getOptional[Configuration]("mimetype").map { config =>
+      config.subKeys.map { key =>
+        key -> config.get[String](key)
+      }.toMap
+    }.getOrElse(Map.empty)
+
+  override def forFileName(name: String): Option[String] = defaultMimeTypes.forFileName(name)
+
+  override def forExtension(ext: String): Option[String] = defaultMimeTypes.forExtension(ext)
+
+  override def isText(mimeType: String): Boolean = defaultMimeTypes.isText(mimeType)
+}
+
+case class MimeTypesConfiguration(
+  defaultTypes: Map[String, String],
+  additionalText: Seq[String],
+  applicationTypes: Map[String, String])
+
+/**
+ * MIME type utilities.
+ */
+class DefaultMimeTypes(config: MimeTypesConfiguration) extends MimeTypes {
+  /**
+   * Retrieves the usual MIME type for a given file name
+   *
+   * @param name the file name, e.g. `hello.txt`
+   * @return the MIME type, if defined
+   */
+  override def forFileName(name: String): Option[String] = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
+
+  /**
+   * Retrieves the usual MIME type for a given extension.
+   *
+   * @param ext the file extension, e.g. `txt`
+   * @return the MIME type, if defined
+   */
+  override def forExtension(ext: String): Option[String] = types.get(ext.toLowerCase(Locale.ENGLISH))
+
+  def types: Map[String, String] = config.defaultTypes ++ config.applicationTypes
+
+  /**
+   * tells you if mimeType is text or not.
+   * Useful to determine whether the charset suffix should be attached to Content-Type or not
+   *
+   * @param mimeType mimeType to check
+   * @return true if mimeType is text
+   */
+  override def isText(mimeType: String): Boolean = {
+    mimeType.trim match {
+      case text if text.startsWith("text/") => true
+      case text if config.additionalText.contains(text) => true
+      case _ => false
+    }
+  }
 
 }
