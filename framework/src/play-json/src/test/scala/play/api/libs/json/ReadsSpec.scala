@@ -15,7 +15,6 @@ import java.time.{
   ZoneOffset
 }
 import java.time.format.DateTimeFormatter
-import play.api.data.validation.ValidationError
 
 case class Ipsum(id: Long, value: Either[String, Ipsum])
 
@@ -47,7 +46,7 @@ class ReadsSpec extends org.specs2.mutable.Specification {
 
     "not be read from invalid string" in {
       reads(JsString("invalid")) aka "read date" must beLike {
-        case JsError((_, ValidationError(
+        case JsError((_, JsonValidationError(
           "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
       }
     }
@@ -78,14 +77,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read from invalid corrected string" >> {
       "with default implicit" in {
         correctedReads.reads(JsString("2011-12-03T10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "with custom formatter" in {
         CustomReads2.reads(JsString("03/12/2011, 10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
@@ -125,14 +124,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read" >> {
       "from an invalid string" in {
         reads(JsString("invalid")) aka "read date" must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "from a number" in {
         reads(JsNumber(123L)) aka "read date" must beLike {
-          case JsError((_, ValidationError("error.expected.date" :: Nil) :: Nil) :: Nil) => ok
+          case JsError((_, JsonValidationError("error.expected.date" :: Nil) :: Nil) :: Nil) => ok
         }
       }
     }
@@ -152,14 +151,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read from invalid corrected string" >> {
       "with default implicit" in {
         correctedReads.reads(JsString("2011-12-03T10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "with custom formatter" in {
         CustomReads2.reads(JsString("03/12/2011, 10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
@@ -204,7 +203,7 @@ class ReadsSpec extends org.specs2.mutable.Specification {
 
     "not be read from invalid string" in {
       reads(JsString("invalid")) aka "read date" must beLike {
-        case JsError((_, ValidationError(
+        case JsError((_, JsonValidationError(
           "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
       }
     }
@@ -230,14 +229,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read from invalid corrected string" >> {
       "with default implicit" in {
         correctedReads.reads(JsString("2011-12-03T10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "with custom formatter" in {
         CustomReads2.reads(JsString("03/12/2011, 10:15:30+08:00")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
@@ -282,7 +281,7 @@ class ReadsSpec extends org.specs2.mutable.Specification {
 
     "not be read from invalid string" in {
       reads(JsString("invalid")) aka "read date" must beLike {
-        case JsError((_, ValidationError(
+        case JsError((_, JsonValidationError(
           "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
       }
     }
@@ -300,14 +299,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read from invalid corrected string" >> {
       "with default implicit" in {
         correctedReads.reads(JsString("2011-12-03")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "with custom formatter" in {
         CustomReads2.reads(JsString("03/12/2011")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
@@ -349,7 +348,7 @@ class ReadsSpec extends org.specs2.mutable.Specification {
 
     "not be read from invalid string" in {
       reads(JsString("invalid")) aka "read date" must beLike {
-        case JsError((_, ValidationError(
+        case JsError((_, JsonValidationError(
           "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
       }
     }
@@ -400,14 +399,14 @@ class ReadsSpec extends org.specs2.mutable.Specification {
     "not be read from invalid corrected string" >> {
       "with default implicit" in {
         correctedReads.reads(JsString("2011-12-03T10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
 
       "with custom formatter" in {
         CustomReads2.reads(JsString("03/12/2011, 10:15:30")) must beLike {
-          case JsError((_, ValidationError(
+          case JsError((_, JsonValidationError(
             "error.expected.date.isoformat" :: Nil, _) :: Nil) :: Nil) => ok
         }
       }
@@ -443,7 +442,7 @@ class ReadsSpec extends org.specs2.mutable.Specification {
         val readsAFail = aPath.read[Int]
         val flatMappedReads = readsA.flatMap(_ => readsAFail)
         aJson.validate(flatMappedReads).aka("read a")
-          .must_==(JsError(List((aPath, List(ValidationError("error.expected.jsnumber"))))))
+          .must_==(JsError(List((aPath, List(JsonValidationError("error.expected.jsnumber"))))))
       }
     }
   }

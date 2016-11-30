@@ -3,6 +3,8 @@
  */
 package play.api.data.validation
 
+import play.api.libs.json.JsonValidationError
+
 /**
  * A form constraint.
  *
@@ -238,4 +240,29 @@ object ParameterValidator {
         (a, b) => a ++ b
       }
     }
+}
+
+/**
+ * A validation error.
+ *
+ * @param messages the error message, if more then one message is passed it will use the last one
+ * @param args the error message arguments
+ */
+case class ValidationError(messages: Seq[String], args: Any*) {
+
+  lazy val message = messages.last
+
+}
+
+object ValidationError {
+
+  /**
+   * Conversion from a JsonValidationError to a Play ValidationError.
+   */
+  def fromJsonValidationError(jve: JsonValidationError): ValidationError = {
+    ValidationError(jve.message, jve.args)
+  }
+
+  def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)
+
 }

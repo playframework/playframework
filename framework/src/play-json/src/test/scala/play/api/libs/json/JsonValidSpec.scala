@@ -6,7 +6,6 @@ package play.api.libs.json
 import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
-import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 
 class JsonValidSpec extends Specification {
@@ -28,12 +27,12 @@ class JsonValidSpec extends Specification {
     }
 
     "invalidate wrong simple type conversion" in {
-      JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
-      JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring")))))
-      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
-      JsNumber(300).validate[Byte] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.byte")))))
-      JsNumber(Long.MaxValue).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
-      JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
+      JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.jsnumber")))))
+      JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.jsstring")))))
+      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.int")))))
+      JsNumber(300).validate[Byte] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.byte")))))
+      JsNumber(Long.MaxValue).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.int")))))
+      JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.jsnumber")))))
     }
 
     "validate simple numbered type conversion" in {
@@ -59,16 +58,16 @@ class JsonValidSpec extends Specification {
     "invalidate JsObject to Map with wrong type conversion" in {
       Json.obj("key1" -> "value1", "key2" -> "value2", "key3" -> "value3").validate[Map[String, Int]] must equalTo(
         JsError(Seq(
-          JsPath \ "key1" -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath \ "key2" -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath \ "key3" -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath \ "key1" -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath \ "key2" -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath \ "key3" -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
 
       Json.obj("key1" -> "value1", "key2" -> 5, "key3" -> true).validate[Map[String, Int]] must equalTo(
         JsError(Seq(
-          JsPath \ "key1" -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath \ "key3" -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath \ "key1" -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath \ "key3" -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
     }
@@ -82,23 +81,23 @@ class JsonValidSpec extends Specification {
     "invalidate JsArray to List with wrong type conversion" in {
       Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("error.expected.int")),
-          JsPath(1) -> Seq(ValidationError("error.expected.int")),
-          JsPath(2) -> Seq(ValidationError("error.expected.int"))
+          JsPath(0) -> Seq(JsonValidationError("error.expected.int")),
+          JsPath(1) -> Seq(JsonValidationError("error.expected.int")),
+          JsPath(2) -> Seq(JsonValidationError("error.expected.int"))
         ))
       )
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(1) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath(0) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(1) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
 
       Json.arr("alpha", 5, true).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath(0) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
     }
@@ -110,16 +109,16 @@ class JsonValidSpec extends Specification {
     "invalidate JsArray of stream to List with wrong type conversion" in {
       JsArray(Stream(JsNumber(1), JsString("beta"), JsString("delta"), JsNumber(4), JsString("five"))).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(1) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(4) -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath(1) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(4) -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
 
       JsArray(Stream(JsString("alpha"), JsNumber(5), JsBoolean(true))).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath(0) -> Seq(JsonValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(JsonValidationError("error.expected.jsnumber"))
         ))
       )
     }
@@ -395,11 +394,11 @@ class JsonValidSpec extends Specification {
     "Apply min/max correctly on ordered types" in {
       val format = Reads.min(1) andKeep Reads.max(3)
 
-      JsNumber(0).validate(format) must equalTo(JsError(__, ValidationError("error.min", 1)))
+      JsNumber(0).validate(format) must equalTo(JsError(__, JsonValidationError("error.min", 1)))
       JsNumber(1).validate(format) must equalTo(JsSuccess(1, __))
       JsNumber(2).validate(format) must equalTo(JsSuccess(2, __))
       JsNumber(3).validate(format) must equalTo(JsSuccess(3, __))
-      JsNumber(4).validate(format) must equalTo(JsError(__, ValidationError("error.max", 3)))
+      JsNumber(4).validate(format) must equalTo(JsError(__, JsonValidationError("error.max", 3)))
     }
   }
 
@@ -528,8 +527,8 @@ class JsonValidSpec extends Specification {
         )
       ).validate[User] must beEqualTo(
           JsError(Seq(
-            __ \ 'coords \ 'phone -> Seq(ValidationError("error.path.missing")),
-            __ \ 'coords \ 'email -> Seq(ValidationError("error.path.missing"))
+            __ \ 'coords \ 'phone -> Seq(JsonValidationError("error.path.missing")),
+            __ \ 'coords \ 'email -> Seq(JsonValidationError("error.path.missing"))
           ))
         )
     }
@@ -542,8 +541,8 @@ class JsonValidSpec extends Specification {
         (__ \ 'phone).readNullable(Reads.minLength[String](8))
       )(User)
 
-      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("error.email")))
-      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("error.minLength", 8)))
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", JsonValidationError("error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", JsonValidationError("error.minLength", 8)))
     }
 
     "mix reads constraints" in {
@@ -556,8 +555,8 @@ class JsonValidSpec extends Specification {
       )(User)
 
       Json.obj("id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
-      Json.obj("id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
-      Json.obj("id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("error.email")) ++ JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
+      Json.obj("id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), JsonValidationError("error.max", 55)) ++ JsError((__ \ 'age), JsonValidationError("error.min", 65)))
+      Json.obj("id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), JsonValidationError("error.email")) ++ JsError((__ \ 'age), JsonValidationError("error.max", 55)) ++ JsError((__ \ 'age), JsonValidationError("error.min", 65)))
     }
 
     "verifyingIf reads" in {
@@ -741,12 +740,12 @@ class JsonValidSpec extends Specification {
     "serialize JsError to json" in {
       val jserr = JsError(Seq(
         (__ \ 'field1 \ 'field11) -> Seq(
-          ValidationError(Seq("msg1.msg11", "msg1.msg12"), "arg11", 123L, 123.456F),
-          ValidationError("msg2.msg21.msg22", 456, 123.456, true, 123)
+          JsonValidationError(Seq("msg1.msg11", "msg1.msg12"), "arg11", 123L, 123.456F),
+          JsonValidationError("msg2.msg21.msg22", 456, 123.456, true, 123)
         ),
         (__ \ 'field2 \ 'field21) -> Seq(
-          ValidationError("msg1.msg21", "arg1", Json.obj("test" -> "test2")),
-          ValidationError("msg2", "arg1", "arg2")
+          JsonValidationError("msg1.msg21", "arg1", Json.obj("test" -> "test2")),
+          JsonValidationError("msg2", "arg1", "arg2")
         )
       ))
 
@@ -850,8 +849,8 @@ class JsonValidSpec extends Specification {
         (__ \ 'phone).formatNullable(Format(minLength[String](8), Writes.of[String]))
       )(User, unlift(User.unapply))
 
-      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("error.email")))
-      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("error.minLength", 8)))
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", JsonValidationError("error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", JsonValidationError("error.minLength", 8)))
       Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", Some("12345678"))))
       Json.obj("email" -> "john.doe@blibli.com").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", None)))
 
@@ -878,7 +877,7 @@ class JsonValidSpec extends Specification {
       }
 
       "JsError" in {
-        val res2: JsResult[String] = JsError(Seq(JsPath(List(KeyPathNode("bar"))) -> Seq(ValidationError("baz.bah"))))
+        val res2: JsResult[String] = JsError(Seq(JsPath(List(KeyPathNode("bar"))) -> Seq(JsonValidationError("baz.bah"))))
         res2.map(identity) must equalTo(res2)
       }
     }

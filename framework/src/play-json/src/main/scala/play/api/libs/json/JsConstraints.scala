@@ -3,8 +3,6 @@
  */
 package play.api.libs.json
 
-import play.api.data.validation.ValidationError
-
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
 
@@ -72,7 +70,7 @@ trait PathReads {
           .map(jsv => JsPath.createObj(path -> jsv))
           .map(opath => o.deepMerge(opath))
       case _ =>
-        JsError(JsPath(), ValidationError("error.expected.jsobject"))
+        JsError(JsPath(), JsonValidationError("error.expected.jsobject"))
     })
 
   def jsPrune(path: JsPath) = Reads[JsObject](js => path.prune(js))
@@ -106,26 +104,26 @@ trait ConstraintReads {
    * `.read(Reads.min(0) andKeep Reads.max(100))`.
    */
   def min[O](m: O)(implicit reads: Reads[O], ord: Ordering[O]) =
-    filterNot[O](ValidationError("error.min", m))(ord.lt(_, m))(reads)
+    filterNot[O](JsonValidationError("error.min", m))(ord.lt(_, m))(reads)
 
   /**
    * Defines a maximum value for a Reads. Combine with `min` using `andKeep`, e.g.
    * `.read(Reads.min(0.1) andKeep Reads.max(1.0))`.
    */
   def max[O](m: O)(implicit reads: Reads[O], ord: Ordering[O]) =
-    filterNot[O](ValidationError("error.max", m))(ord.gt(_, m))(reads)
+    filterNot[O](JsonValidationError("error.max", m))(ord.gt(_, m))(reads)
 
-  def filterNot[A](error: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
+  def filterNot[A](error: JsonValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
     Reads[A](js => reads.reads(js).filterNot(JsError(error))(p))
 
-  def filter[A](otherwise: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
+  def filter[A](otherwise: JsonValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
     Reads[A](js => reads.reads(js).filter(JsError(otherwise))(p))
 
   def minLength[M](m: Int)(implicit reads: Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError("error.minLength", m))(_.size < m)
+    filterNot[M](JsonValidationError("error.minLength", m))(_.size < m)
 
   def maxLength[M](m: Int)(implicit reads: Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError("error.maxLength", m))(_.size > m)
+    filterNot[M](JsonValidationError("error.maxLength", m))(_.size > m)
 
   /**
    * Defines a regular expression constraint for `String` values, i.e. the string must match the regular expression pattern
@@ -139,7 +137,7 @@ trait ConstraintReads {
     pattern("""^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r, "error.email")
 
   def verifying[A](cond: A => Boolean)(implicit rds: Reads[A]) =
-    filter[A](ValidationError("error.invalid"))(cond)(rds)
+    filter[A](JsonValidationError("error.invalid"))(cond)(rds)
 
   def verifyingIf[A](cond: A => Boolean)(subreads: Reads[_])(implicit rds: Reads[A]) =
     Reads[A] { js =>

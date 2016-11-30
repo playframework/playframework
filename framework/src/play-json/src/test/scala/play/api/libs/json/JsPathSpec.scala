@@ -10,8 +10,6 @@ import play.api.libs.json.Json._
 import scala.util.control.Exception._
 import java.text.ParseException
 
-import play.api.data.validation.ValidationError
-
 class JsPathSpec extends Specification {
 
   "JsPath" should {
@@ -229,7 +227,7 @@ class JsPathSpec extends Specification {
       (__ \ 'level2).prune(obj) must beEqualTo(JsSuccess(res, __ \ 'level2))
       (__ \ 'level1 \ 'key1).prune(obj).get must beEqualTo(res2)
       (__ \ 'level1 \ 'key2 \ 'key21).prune(obj).get must beEqualTo(res3)
-      (__ \\ 'key21).prune(obj) must beEqualTo(JsError(__ \\ "key21", ValidationError("error.expected.keypathnode")))
+      (__ \\ 'key21).prune(obj) must beEqualTo(JsError(__ \\ "key21", JsonValidationError("error.expected.keypathnode")))
     }
 
     "get JsPath till last node" in {
@@ -251,11 +249,11 @@ class JsPathSpec extends Specification {
       )))
 
       (__ \ 'level1 \ 'key2 \ 'key23).applyTillLast(res) must beEqualTo(
-        Right(JsError(__ \ 'level1 \ 'key2 \ 'key23, ValidationError("error.path.missing")))
+        Right(JsError(__ \ 'level1 \ 'key2 \ 'key23, JsonValidationError("error.path.missing")))
       )
 
       (__ \ 'level2 \ 'key3).applyTillLast(res) must beEqualTo(
-        Left(JsError(__ \ 'level2 \ 'key3, ValidationError("error.path.missing")))
+        Left(JsError(__ \ 'level2 \ 'key3, JsonValidationError("error.path.missing")))
       )
     }
 
