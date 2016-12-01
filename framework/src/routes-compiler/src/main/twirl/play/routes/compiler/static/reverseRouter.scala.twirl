@@ -1,6 +1,7 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: String, routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
+// format: OFF
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
