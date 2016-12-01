@@ -7,7 +7,7 @@ import sbt.ScriptedPlugin._
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifacts
+import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
@@ -128,7 +128,7 @@ object BuildSettings {
    * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
    */
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
-    previousArtifacts := {
+    mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
       val previousVersions = {
         val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r

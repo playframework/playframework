@@ -5,7 +5,7 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{ previousArtifacts, reportBinaryIssues }
+import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
 import interplay.PlayBuildBase.autoImport._
 import sbt.ScriptedPlugin._
 import sbt._
@@ -230,7 +230,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .settings(
       libraryDependencies += h2database % Test,
       parallelExecution in Test := false,
-      previousArtifacts := Set.empty
+      mimaPreviousArtifacts := Set.empty
     )
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
@@ -243,7 +243,7 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     .enablePlugins(JmhPlugin)
     .settings(
       parallelExecution in Test := false,
-      previousArtifacts := Set.empty
+      mimaPreviousArtifacts := Set.empty
     )
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
@@ -312,7 +312,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
-      reportBinaryIssues := (),
+      mimaReportBinaryIssues := (),
       commands += Commands.quickPublish
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)
