@@ -1,1 +1,1 @@
-This is a test asset.
+This is a test asset with the digest 12345678901234567890123456789012.
