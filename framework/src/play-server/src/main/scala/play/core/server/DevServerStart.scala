@@ -114,7 +114,7 @@ object DevServerStart {
               //
               // Because we are on DEV mode here, it doesn't really matter
               // but it's more coherent with the way it works in PROD mode.
-              implicit val ec = play.core.Execution.internalContext
+              implicit val ec = scala.concurrent.ExecutionContext.global
               Await.result(scala.concurrent.Future {
 
                 val reloaded = buildLink.reload match {

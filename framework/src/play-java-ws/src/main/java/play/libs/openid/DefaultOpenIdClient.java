@@ -3,11 +3,11 @@
  */
 package play.libs.openid;
 
-import play.core.Execution;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.collection.JavaConversions;
 import scala.compat.java8.FutureConverters;
+import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
@@ -18,10 +18,12 @@ import java.util.concurrent.CompletionStage;
 public class DefaultOpenIdClient implements OpenIdClient {
 
     private final play.api.libs.openid.OpenIdClient client;
+    private final ExecutionContext executionContext;
 
     @Inject
-    public DefaultOpenIdClient(play.api.libs.openid.OpenIdClient client) {
+    public DefaultOpenIdClient(play.api.libs.openid.OpenIdClient client, ExecutionContext executionContext) {
         this.client = client;
+        this.executionContext = executionContext;
     }
 
     @Override
@@ -60,7 +62,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
                     public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
-                }, Execution.internalContext());
+                }, executionContext);
         return FutureConverters.toJava(scalaPromise);
     }
 

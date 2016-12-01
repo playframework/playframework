@@ -111,7 +111,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L).asInstanceOf[Int]
         val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
 
-        val executed = Future(ws(requestHeader))(play.core.Execution.internalContext)
+        val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
 
         import play.core.Execution.Implicits.trampoline
         executed.flatMap(identity).flatMap {
