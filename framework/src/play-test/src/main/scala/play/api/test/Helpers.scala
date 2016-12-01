@@ -4,7 +4,7 @@
 package play.api.test
 
 import akka.actor.Cancellable
-import akka.stream.{ ClosedShape, Graph, Materializer }
+import akka.stream._
 import akka.stream.scaladsl.Source
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.mvc.Http.RequestBody
@@ -25,7 +25,7 @@ import org.openqa.selenium.htmlunit._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.Future
 import akka.util.{ ByteString, Timeout }
 
@@ -397,12 +397,19 @@ object Helpers extends PlayRunners
  * a default one that simply throws an exception if used.
  */
 private[play] object NoMaterializer extends Materializer {
-  def withNamePrefix(name: String) = throw new UnsupportedOperationException("NoMaterializer cannot be named")
-  implicit def executionContext = throw new UnsupportedOperationException("NoMaterializer does not have an execution context")
-  def materialize[Mat](runnable: Graph[ClosedShape, Mat]) =
-    throw new UnsupportedOperationException("No materializer was provided, probably when attempting to extract a response body, but that body is a streamed body and so requires a materializer to extract it.")
-  override def scheduleOnce(delay: FiniteDuration, task: Runnable): Cancellable =
-    throw new UnsupportedOperationException("NoMaterializer can't schedule tasks")
-  override def schedulePeriodically(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
-    throw new UnsupportedOperationException("NoMaterializer can't schedule tasks")
+  override def withNamePrefix(name: String): Materializer =
+    throw new UnsupportedOperationException("NoMaterializer cannot be named")
+  override def materialize[Mat](runnable: Graph[ClosedShape, Mat]): Mat =
+    throw new UnsupportedOperationException("NoMaterializer cannot materialize")
+  override def materialize[Mat](runnable: Graph[ClosedShape, Mat], initialAttributes: Attributes): Mat =
+    throw new UnsupportedOperationException("NoMaterializer cannot materialize")
+
+  override def executionContext: ExecutionContextExecutor =
+    throw new UnsupportedOperationException("NoMaterializer does not provide an ExecutionContext")
+
+  def scheduleOnce(delay: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule a single event")
+
+  def schedulePeriodically(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule a repeated event")
 }

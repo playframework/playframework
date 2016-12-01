@@ -406,7 +406,12 @@ object PlayBuild extends Build {
   lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
     .settings(
       libraryDependencies ++= testDependencies,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters := Seq(
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.NoMaterializer.withNamePrefix"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.NoMaterializer.executionContext"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.NoMaterializer.materialize")
+      )
     ).dependsOn(PlayNettyServerProject)
 
   lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
