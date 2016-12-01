@@ -368,3 +368,60 @@ The requireJs template helper has an extra parameter `isProd` added to it that i
 @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url, isProd = true)
 ```
 
+## Changes to File Extension to MIME Type Mapping
+
+The mapping of file extensions to MIME types has been moved to `reference.conf` so it is covered entirely through configuration, under `play.http.fileMimeTypes` setting.  Previously the list was hardcoded under `play.api.libs.MimeTypes`.
+
+Note that `play.http.fileMimeTypes` configuration setting is defined using triple quotes as a single string -- this is because several file extensions have syntax that breaks HOCON, such as `c++`.
+
+To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/master/HOCON.md#string-value-concatenation): 
+
+```
+play.http.fileMimeTypes = ${play.http.fileMimeTypes} """
+  foo=text/bar
+"""
+```
+
+There is a syntax that allows configurations defined as `mimetype.foo=text/bar` for additional MIME types.  This is deprecated, and you are encouraged to use the above configuration.
+
+### Java API
+
+There is a `Http.Context.current().fileMimeTypes()` method that is provided under the hood to `Results.sendFile` and other methods that look up content types from file extensions.  No migration is necessary. 
+
+### Scala API
+
+The `play.api.libs.MimeTypes` class has been changed to `play.api.http.FileMimeTypes` interface, and the implementation has changed to `play.api.http.DefaultMimeTypes`.  
+
+All the results that send files or resources now take `FileMimeTypes` implicitly, i.e.
+
+```scala
+implicit val fileMimeTypes: FileMimeTypes = ...
+Ok(file) // <-- takes implicit FileMimeTypes 
+```
+
+An implicit instance of `FileMimeTypes` is provided by `AbstractController` through the `ControllerComponents` class, to provide a convenient binding:
+
+```scala
+class SendFileController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+
+  def index() = Action { implicit request =>
+     val file = readFile()
+     Ok(file)  // <-- takes implicit FileMimeTypes
+  }
+}
+```
+
+You can also get a fully configured `FileMimeTypes` instance directly in a unit test:
+
+```scala
+val httpConfiguration = new HttpConfigurationProvider(Configuration.load(Environment.simple)).get
+val fileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
+```
+
+Or get a custom one:
+
+```scala
+val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(Map("foo" -> "text/bar"))).get
+```
+
+

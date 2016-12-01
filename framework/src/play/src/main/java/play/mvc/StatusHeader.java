@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.http.HttpEntity;
 import play.libs.Json;
 import play.utils.UriEncoding;
-import scala.compat.java8.OptionConverters;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -38,6 +37,10 @@ public class StatusHeader extends Result {
 
     private static final int DEFAULT_CHUNK_SIZE = 1024 * 8;
     private static final boolean DEFAULT_INLINE_MODE = true;
+
+    private static final FileMimeTypes fileMimeTypes() {
+        return Http.Context.current().fileMimeTypes();
+    }
 
     public StatusHeader(int status) {
         super(status);
@@ -278,7 +281,7 @@ public class StatusHeader extends Result {
         return new Result(status(), headers, new HttpEntity.Streamed(
                 data,
                 contentLength,
-                resourceName.map(name -> OptionConverters.toJava(play.api.libs.MimeTypes.forFileName(name))
+                resourceName.map(name -> fileMimeTypes().forFileName(name)
                         .orElse(Http.MimeTypes.BINARY)
                 )
         ));

@@ -6,11 +6,10 @@ package play.docs
 import java.io.Closeable
 
 import akka.stream.scaladsl.StreamConverters
-import play.api.libs.MimeTypes
+import play.api.http._
 import play.api.mvc._
-import play.api.http.{ ContentTypes, HttpEntity }
-import play.core.{ PlayVersion, BuildDocHandler }
-import play.doc.{ FileRepository, PlayDoc, RenderedPage, PageIndex }
+import play.core.{ BuildDocHandler, PlayVersion }
+import play.doc.{ FileRepository, PageIndex, PlayDoc, RenderedPage }
 
 /**
  * Used by the DocumentationApplication class to handle requests for Play documentation.
@@ -22,6 +21,21 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
   def this(repo: FileRepository, toClose: Closeable) = this(repo, repo, toClose)
   def this(repo: FileRepository, apiRepo: FileRepository) = this(repo, apiRepo, new Closeable() { def close() = () })
   def this(repo: FileRepository) = this(repo, repo)
+
+  private val fileMimeTypes: FileMimeTypes = {
+    new FileMimeTypes {
+      override def forFileName(name: String): Option[String] = name match {
+        case "html" => Some("text/html")
+        case "css" => Some("text/css")
+        case "png" => Some("image/png")
+        case "js" => Some("application/javascript")
+        case "ico" => Some("application/javascript")
+        case "jpg" => Some("image/jpeg")
+        case "ico" => Some("ico=image/x-icon")
+        case _ => None
+      }
+    }
+  }
 
   /**
    * This is a def because we want to reindex the docs each time.
@@ -51,7 +65,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
         Results.Ok.sendEntity(HttpEntity.Streamed(
           StreamConverters.fromInputStream(() => handle.is).mapMaterializedValue(_ => handle.close),
           Some(handle.size),
-          MimeTypes.forFileName(handle.name).orElse(Some(ContentTypes.BINARY))
+          fileMimeTypes.forFileName(handle.name).orElse(Some(ContentTypes.BINARY))
         ))
       }
     }

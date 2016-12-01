@@ -7,7 +7,8 @@ import java.util.concurrent.CompletableFuture
 
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
-import play.api.i18n.{ DefaultMessagesApi, DefaultMessagesApiProvider }
+import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
+import play.api.i18n._
 import play.api.inject.BindingKey
 import play.api.mvc.{ RequestHeader, Results }
 import play.api.routing._
@@ -67,7 +68,7 @@ class HttpErrorHandlerSpec extends Specification {
 
   }
 
-  def handler(handlerClass: String, mode: Mode.Mode) = {
+  def handler(handlerClass: String, mode: Mode.Mode): HttpErrorHandler = {
     import scala.collection.JavaConverters._
     val config = ConfigFactory.parseMap(Map("play.http.errorHandler" -> handlerClass).asJava)
       .withFallback(ConfigFactory.defaultReference())
@@ -87,7 +88,9 @@ class HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[MessagesApi]).to(jMessagesApi),
         BindingKey(classOf[Langs]).to(jLangs),
         BindingKey(classOf[Environment]).to(env),
-        BindingKey(classOf[HttpConfiguration]).to(httpConfiguration)
+        BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
+        BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
+        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]
       )).instanceOf[HttpErrorHandler]
   }
 

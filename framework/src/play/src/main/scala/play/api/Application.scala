@@ -9,6 +9,7 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
 import javax.inject.Singleton
+
 import play.api.http._
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
@@ -239,7 +240,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
 
   lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer)
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
@@ -265,4 +266,6 @@ trait BuiltInComponents {
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
+
+  lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 }

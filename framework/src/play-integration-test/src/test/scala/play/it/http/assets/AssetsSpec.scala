@@ -3,14 +3,15 @@
  */
 package play.it.http.assets
 
-import controllers.Assets
-import play.api.Play
+import controllers.{ Assets, AssetsComponents }
+import play.api._
 import play.api.libs.ws.WSClient
 import play.api.test._
 import org.apache.commons.io.IOUtils
 import java.io.ByteArrayInputStream
-import play.api.Mode
-import play.core.server.{ ServerConfig, Server }
+
+import play.api.routing.Router
+import play.core.server.{ Server, ServerConfig }
 import play.it._
 
 class NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
@@ -27,12 +28,13 @@ trait AssetsSpec extends PlaySpecification
     def aggressiveCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.aggressiveCache")
 
     def withServer[T](block: WSClient => T): T = {
-      Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {
-        case req => Assets.versioned("/testassets", req.path)
-      } { implicit port =>
-        implicit val materializer = Play.current.materializer
-        withClient(block)
-      }
+      Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
+        new BuiltInComponentsFromContext(context) with AssetsComponents {
+          override def router: Router = Router.from {
+            case req => assets.versioned("/testassets", req.path)
+          }
+        }.application
+      } { withClient(block)(_) }
     }
 
     val etagPattern = """([wW]/)?"([^"]|\\")*""""
@@ -49,6 +51,19 @@ trait AssetsSpec extends PlaySpecification
       result.header(CONTENT_ENCODING) must beNone
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
+
+    "serve an asset as JSON with UTF-8 charset" in withServer { client =>
+      val result = await(client.url("/test.json").get())
+
+      result.status must_== OK
+      result.body.trim must_== "{}"
+      result.header(CONTENT_TYPE) must beSome.which(_ == "application/json; charset=utf-8")
+      result.header(ETAG) must beSome(matching(etagPattern))
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }.skipUntilAkkaHttpFixed
 
     "serve an asset in a subdirectory" in withServer { client =>
       val result = await(client.url("/subdir/baz.txt").get())
@@ -140,7 +155,8 @@ trait AssetsSpec extends PlaySpecification
       result.status must_== NOT_MODIFIED
       result.body must beEmpty
 
-      // I don't know why we implement this behaviour, I can't see it in the HTTP spec, but there were tests for it
+      // Per https://tools.ietf.org/html/rfc7231#section-7.1.1.2
+      // An origin server MUST send a Date header field if not 1xx or 5xx.
       result.header(DATE) must beSome
       result.header(ETAG) must beNone
       result.header(CACHE_CONTROL) must beNone
@@ -207,13 +223,16 @@ trait AssetsSpec extends PlaySpecification
         await(client.url("/subdir").get()).status must_== NOT_FOUND
       }
       "if the directory is a jar entry" in {
-        Server.withRouter() {
-          case req => Assets.versioned("/scala", req.path)
-        } { implicit port =>
-          implicit val materializer = Play.current.materializer
+        Server.withApplicationFromContext() { context =>
+          new BuiltInComponentsFromContext(context) with AssetsComponents {
+            override def router: Router = Router.from {
+              case req => assets.versioned("/scala", req.path)
+            }
+          }.application
+        } {
           withClient { client =>
             await(client.url("/collection").get()).status must_== NOT_FOUND
-          }
+          }(_)
         }
       }
     }

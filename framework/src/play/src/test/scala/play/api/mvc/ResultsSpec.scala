@@ -14,7 +14,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
-import play.api.http.{ FlashConfiguration, HttpConfiguration, SessionConfiguration }
+import play.api.http._
 import play.api.http.Status._
 import play.api.i18n._
 import play.api.{ Application, Configuration, Environment, Play }
@@ -27,6 +27,8 @@ class ResultsSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   import play.api.mvc.Results._
+
+  implicit val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration()).get
 
   val fileCounter = new AtomicInteger(1)
   def freshFileName: String = s"test${fileCounter.getAndIncrement}.tmp"

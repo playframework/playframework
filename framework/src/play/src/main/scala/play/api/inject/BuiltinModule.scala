@@ -11,7 +11,7 @@ import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
 import play.api.http.HttpConfiguration._
-import play.api.http._
+import play.api.http.{ DefaultFileMimeTypesProvider, _ }
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
 import play.api.libs.crypto._
@@ -44,6 +44,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[FlashConfiguration].toProvider[FlashConfigurationProvider],
     bind[SessionConfiguration].toProvider[SessionConfigurationProvider],
     bind[ActionCompositionConfiguration].toProvider[ActionCompositionConfigurationProvider],
+    bind[FileMimeTypesConfiguration].toProvider[FileMimeTypesConfigurationProvider],
 
     bind[PlayBodyParsers].to[PlayBodyParsersImpl],
     bind[BodyParsers.Default].toSelf,
@@ -73,8 +74,9 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
 
     bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
-    bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
+    bind[FlashCookieBaker].to[DefaultFlashCookieBaker],
 
+    bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
   ) ++ dynamicBindings(
       HttpErrorHandler.bindingsFromConfiguration,
       HttpFilters.bindingsFromConfiguration,

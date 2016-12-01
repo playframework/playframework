@@ -6,11 +6,11 @@ package play.core.j
 import java.util.Optional
 import java.util.concurrent.CompletionStage
 
-import play.api.{ Configuration, Environment }
-import play.api.http.HttpConfiguration
-import play.api.i18n._
+import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration }
+import play.api.i18n.{ Langs, MessagesApi, _ }
 import play.api.libs.typedmap.{ TypedEntry, TypedKey }
 import play.api.mvc._
+import play.api.{ Configuration, Environment }
 import play.core.Execution.Implicits.trampoline
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.{ Security, Result => JResult }
@@ -129,26 +129,30 @@ trait JavaHelpers {
    * @return an instance of JavaContextComponents with default messagesApi and langs.
    */
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
-    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
     val langs = new DefaultLangsProvider(configuration).get
+    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
     val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
-    createContextComponents(messagesApi, langs, httpConfiguration)
+    val fileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
+    createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
   }
 
   /**
    * Creates JavaContextComponents directly from components..
    * @param messagesApi the messagesApi instance
    * @param langs the langs instance
+   * @param fileMimeTypes the file mime types
    * @param httpConfiguration the http configuration
    * @return an instance of JavaContextComponents with given input components.
    */
   def createContextComponents(
     messagesApi: MessagesApi,
     langs: Langs,
+    fileMimeTypes: FileMimeTypes,
     httpConfiguration: HttpConfiguration): JavaContextComponents = {
     val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
     val jLangs = new play.i18n.Langs(langs)
-    new DefaultJavaContextComponents(jMessagesApi, jLangs, httpConfiguration)
+    val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
+    new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
   }
 
   /**
