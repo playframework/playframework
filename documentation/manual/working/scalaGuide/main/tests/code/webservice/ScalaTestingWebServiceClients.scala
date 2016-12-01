@@ -103,7 +103,7 @@ class ScalaTestingWebServiceClients extends Specification with NoTimeConversions
       import play.api.test._
       import play.core.server.Server
 
-      Server.fromApplication() { context =>
+      Server.withApplicationFromContext() { context =>
         new BuiltInComponentsFromContext(context) {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
@@ -128,7 +128,7 @@ class ScalaTestingWebServiceClients extends Specification with NoTimeConversions
       import play.api.test._
 
       def withGitHubClient[T](block: GitHubClient => T): T = {
-        Server.fromApplication() { context =>
+        Server.withApplicationFromContext() { context =>
           new BuiltInComponentsFromContext(context) {
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
