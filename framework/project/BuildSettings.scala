@@ -58,10 +58,9 @@ object BuildSettings {
       ),
       scalacOptions in(Compile, doc) := {
         // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
-        if (scalaVersion.value == "2.12.0") {
-          Seq("-no-java-comments")
-        } else {
-          Seq()
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, 12)) => Seq("-no-java-comments")
+          case _ => Seq()
         }
       },
       fork in Test := true,
