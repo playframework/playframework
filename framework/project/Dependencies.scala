@@ -247,7 +247,7 @@ object Dependencies {
     ) ++ specsBuild.map(_ % Test)
 
   val asyncHttpClientVersion = "2.0.24"
-  val playWsDeps = Seq(
+  val playAhcWsDeps = Seq(
     guava,
     "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
     logback % Test
@@ -255,6 +255,11 @@ object Dependencies {
     Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
+
+  val playOpenIdDeps = Seq(
+    // import org.jboss.netty.handler.codec.http.QueryStringDecoder in package.scala
+    "io.netty" % "netty" % "3.10.6.Final" % Test
+  )
 
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion

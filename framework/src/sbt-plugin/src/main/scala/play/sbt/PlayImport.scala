@@ -49,9 +49,12 @@ object PlayImport {
 
   val guice = component("play-guice")
 
-  val ws = component("play-ws")
+  val ws = component("play-ahc-ws")
 
-  val javaWs = component("play-java-ws")
+  // alias javaWs to ws
+  val javaWs = ws
+
+  val openId = component("play-openid")
 
   val specs2 = component("play-specs2")
 

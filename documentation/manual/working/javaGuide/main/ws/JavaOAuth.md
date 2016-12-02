@@ -7,7 +7,7 @@ There are two very different versions of OAuth: [OAuth 1.0](https://tools.ietf.o
 
 ## Usage
 
-To use OAuth, first add `javaWs`  to your `build.sbt` file:
+To use OAuth, first add `ws` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
 
