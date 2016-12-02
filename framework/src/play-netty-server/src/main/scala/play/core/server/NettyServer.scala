@@ -147,7 +147,7 @@ class NettyServer(
   /**
    * Create a new PlayRequestHandler.
    */
-  protected[this] def newRequestHandler(): ChannelHandler = new PlayRequestHandler(this)
+  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this)
 
   /**
    * Create a sink for the incoming connection channels.
