@@ -10,19 +10,21 @@ unlimited strength java cryptography extension.  You can download the policy fil
 
 ## Table of Contents
 
-- [[Quick Start to WS SSL|WSQuickStart]]
-- [[Generating X.509 Certificates|CertificateGeneration]]
-- [[Configuring Trust Stores and Key Stores|KeyStores]]
-- [[Configuring Protocols|Protocols]]
-- [[Configuring Cipher Suites|CipherSuites]]
-- [[Configuring Certificate Validation|CertificateValidation]]
-- [[Configuring Certificate Revocation|CertificateRevocation]]
-- [[Configuring Hostname Verification|HostnameVerification]]
-- [[Example Configurations|ExampleSSLConfig]]
-- [[Using the Default SSLContext|DefaultContext]]
-- [[Debugging SSL Connections|DebuggingSSL]]
-- [[Loose Options|LooseSSL]]
-- [[Testing SSL|TestingSSL]]
+The Play WS configuration is based on [Typesafe SSLConfig](https://typesafehub.github.io/ssl-config).  For convenience, a table of contents to SSLConfig is provided:
+
+- [Quick Start to WS SSL](https://typesafehub.github.io/ssl-config/WSQuickStart.html)
+- [Generating X.509 Certificates](https://typesafehub.github.io/ssl-config/CertificateGeneration.html)
+- [Configuring Trust Stores and Key Stores](https://typesafehub.github.io/ssl-config/KeyStores.html)
+- [Configuring Protocols](https://typesafehub.github.io/ssl-config/Protocols.html)
+- [Configuring Cipher Suites](https://typesafehub.github.io/ssl-config/CipherSuites.html)
+- [Configuring Certificate Validation](https://typesafehub.github.io/ssl-config/CertificateValidation.html)
+- [Configuring Certificate Revocation](https://typesafehub.github.io/ssl-config/CertificateRevocation.html)
+- [Configuring Hostname Verification](https://typesafehub.github.io/ssl-config/HostnameVerification.html)
+- [Example Configurations](https://typesafehub.github.io/ssl-config/ExampleSSLConfig.html)
+- [Using the Default SSLContext](https://typesafehub.github.io/ssl-config/DefaultContext.html)
+- [Debugging SSL Connections](https://typesafehub.github.io/ssl-config/DebuggingSSL.html)
+- [Loose Options](https://typesafehub.github.io/ssl-config/LooseSSL.html)
+- [Testing SSL](https://typesafehub.github.io/ssl-config/TestingSSL.html)
 
 ## Further Reading
 
