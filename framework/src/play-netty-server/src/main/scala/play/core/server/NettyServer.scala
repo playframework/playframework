@@ -145,6 +145,11 @@ class NettyServer(
   }
 
   /**
+   * Create a new PlayRequestHandler.
+   */
+  protected[this] def newRequestHandler(): ChannelHandler = new PlayRequestHandler(this)
+
+  /**
    * Create a sink for the incoming connection channels.
    */
   private def channelSink(port: Int, secure: Boolean): Sink[Channel, Future[Done]] = {
@@ -191,7 +196,7 @@ class NettyServer(
           pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
       }
 
-      val requestHandler = new PlayRequestHandler(this)
+      val requestHandler = newRequestHandler()
 
       // Use the streams handler to close off the connection.
       pipeline.addLast("http-handler", new HttpStreamsServerHandler(Seq[ChannelHandler](requestHandler).asJava))
