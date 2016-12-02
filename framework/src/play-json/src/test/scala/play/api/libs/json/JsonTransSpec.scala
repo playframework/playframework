@@ -8,7 +8,6 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 import scala.util.control.Exception._
 import java.text.ParseException
-import play.api.data.validation.ValidationError
 import Reads.constraints._
 import play.api.libs.json.util._
 import play.api.libs.json.Reads._
@@ -163,13 +162,13 @@ class JsonTransSpec extends Specification {
       "when the field to modify doesn't exist" in {
         js.transform(
           (__ \ 'field42).json.update(__.read[JsString])
-        ).asEither.left.get.head must_== ((__ \ 'field42, Seq(ValidationError("error.path.missing"))))
+        ).asEither.left.get.head must_== ((__ \ 'field42, Seq(JsonValidationError("error.path.missing"))))
       }
 
       "when the reader is the wrong type" in {
         js.transform(
           (__ \ 'field2).json.update(__.read[JsString])
-        ).asEither.left.get.head must_== ((__ \ 'field2, Seq(ValidationError("error.expected.jsstring"))))
+        ).asEither.left.get.head must_== ((__ \ 'field2, Seq(JsonValidationError("error.expected.jsstring"))))
       }
     }
   }

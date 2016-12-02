@@ -3,8 +3,6 @@
  */
 package play.api.libs.json
 
-import play.api.data.validation.ValidationError
-
 /**
  * A value representing the value at a particular JSON path, either an actual JSON node or undefined.
  */
@@ -101,7 +99,7 @@ sealed trait JsLookupResult extends Any with JsReadable {
     case JsDefined(v) => Some(v)
     case _ => None
   }
-  def toEither: Either[ValidationError, JsValue] = this match {
+  def toEither: Either[JsonValidationError, JsValue] = this match {
     case JsDefined(v) => Right(v)
     case undef: JsUndefined => Left(undef.validationError)
   }
@@ -136,7 +134,7 @@ case class JsDefined(value: JsValue) extends AnyVal with JsLookupResult
  */
 final class JsUndefined(err: => String) extends JsLookupResult {
   def error = err
-  def validationError = ValidationError(error)
+  def validationError = JsonValidationError(error)
   override def toString = "JsUndefined(" + err + ")"
 }
 

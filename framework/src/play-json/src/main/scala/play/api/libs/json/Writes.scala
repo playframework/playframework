@@ -411,7 +411,7 @@ trait DefaultWrites extends LowPriorityWrites {
   }
 
   /**
-   * Serializer for Any, used for the args of ValidationErrors.
+   * Serializer for Any, used for the args of errors.
    */
   private[json] object anyWrites extends Writes[Any] {
     def writes(a: Any): JsValue = a match {
