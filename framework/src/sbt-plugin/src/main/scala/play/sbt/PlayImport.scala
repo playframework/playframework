@@ -49,9 +49,13 @@ object PlayImport {
 
   val guice = component("play-guice")
 
-  val ws = component("play-ws")
+  val ws = component("play-ahc-ws")
 
-  val javaWs = component("play-java-ws")
+  val openId = component("play-openid")
+
+  val javaWs = movedExternal(
+    """The "javaWs" module has been merged with "ws."  Please use the "ws" dependency.
+      |See https://playframework.com/documentation/latest/Migration26 for details.""".stripMargin)
 
   val specs2 = component("play-specs2")
 

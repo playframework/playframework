@@ -106,7 +106,7 @@ lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Serve
     // don't want the SBT Plugin to have a dependency on an experimental module.
     //.settings(ScriptedPlugin.scriptedSettings ++ playScriptedSettings)
     .dependsOn(PlayServerProject, StreamsProject)
-    .dependsOn(PlaySpecs2Project % "test", PlayWsProject % "test")
+    .dependsOn(PlaySpecs2Project % "test", PlayAhcWsProject % "test")
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "play-jdbc-api")
     .dependsOn(PlayProject)
@@ -205,25 +205,30 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
     ).dependsOn(PlayProject)
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
-    .settings(
-      libraryDependencies ++= playWsDeps,
-      parallelExecution in Test := false,
-      // quieten deprecation warnings in tests
-      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-    ).dependsOn(PlayProject)
-    .dependsOn(PlaySpecs2Project % "test")
+  .dependsOn(PlayProject)
 
-lazy val PlayWsJavaProject = PlayCrossBuiltProject("Play-Java-WS", "play-java-ws")
-    .settings(
-      libraryDependencies ++= playWsDeps,
-      parallelExecution in Test := false
-    ).dependsOn(PlayProject)
-    .dependsOn(PlayWsProject % "test->test;compile->compile", PlayJavaProject)
+lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
+  .settings(
+    libraryDependencies ++= playAhcWsDeps,
+    parallelExecution in Test := false,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+  ).dependsOn(PlayWsProject, PlayJavaProject)
+  .dependsOn(PlaySpecs2Project % "test")
+
+lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
+  .settings(
+    libraryDependencies ++= playOpenIdDeps,
+    parallelExecution in Test := false,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+  ).dependsOn(PlayAhcWsProject)
+  .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
       parallelExecution in Test := false
-    ).dependsOn(PlayProject, PlayJavaProject % "test", PlaySpecs2Project % "test", PlayWsProject % "test")
+    ).dependsOn(PlayProject, PlayJavaProject % "test", PlaySpecs2Project % "test", PlayAhcWsProject % "test")
 
 // This project is just for testing Play, not really a public artifact
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
@@ -232,7 +237,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
+    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject % "test->test", PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayJavaFormsProject)
@@ -245,7 +250,7 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
+    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayAkkaHttpServerProject)
@@ -286,7 +291,8 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayServerProject,
   PlayLogback,
   PlayWsProject,
-  PlayWsJavaProject,
+  PlayAhcWsProject,
+  PlayOpenIdProject,
   SbtRunSupportProject,
   RunSupportProject,
   SbtPluginProject,

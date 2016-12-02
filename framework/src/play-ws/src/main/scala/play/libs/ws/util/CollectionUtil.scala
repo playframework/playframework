@@ -4,6 +4,7 @@
 package play.libs.ws.util
 
 import java.{ util => ju }
+
 import scala.collection.convert.WrapAsJava._
 
 /**
