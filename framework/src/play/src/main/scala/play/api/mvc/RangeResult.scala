@@ -6,15 +6,21 @@ package play.api.mvc
 import java.nio.charset.StandardCharsets
 
 import akka.NotUsed
-import akka.stream.scaladsl.{ FileIO, Flow, Source, StreamConverters }
+import akka.stream.Attributes
+import akka.stream.FlowShape
+import akka.stream.Inlet
+import akka.stream.Outlet
+import akka.stream.scaladsl.FileIO
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
 import akka.util.ByteString
+import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
+import play.api.http.HttpEntity
 import play.api.http.Status._
-import play.api.http.{ ContentTypes, HttpEntity }
 import play.utils.UriEncoding
-
-import scala.math.Ordered.orderingToOrdered
 
 // Long should be good enough to represent even very large files
 // considering that Long.MAX_VALUE is 9223372036854775807 which
@@ -415,36 +421,39 @@ object RangeResult {
 
   // See https://github.com/akka/akka/blob/v2.4.2/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L83-L115
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
-    val transformer = new StatefulStage[ByteString, ByteString] {
+    val transformer = new GraphStage[FlowShape[ByteString, ByteString]] {
+      val in: Inlet[ByteString] = Inlet("Slicer.in")
+      val out: Outlet[ByteString] = Outlet("Slicer.out")
 
-      def skipping = new State {
-        var toSkip = start
+      override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
+      override def createLogic(inheritedAttributes: Attributes) =
 
-        override def onPush(element: ByteString, ctx: Context[ByteString]): SyncDirective =
-          if (element.length < toSkip) {
-            // keep skipping
+        new GraphStageLogic(shape) with InHandler with OutHandler {
+
+          var toSkip: Long = start
+          var remaining: Long = length.getOrElse(Int.MaxValue)
+
+          override def onPush(): Unit = {
+            val element = grab(in)
+            if (toSkip >= element.length)
+              pull(in)
+            else {
+              val data = element.drop(toSkip.toInt).take(math.min(remaining, Int.MaxValue).toInt)
+              remaining -= data.size
+              push(out, data)
+              if (remaining <= 0) completeStage()
+            }
             toSkip -= element.length
-            ctx.pull()
-          } else {
-            become(taking(length))
-            // toSkip <= element.length <= Int.MaxValue
-            current.onPush(element.drop(toSkip.toInt), ctx)
           }
-      }
 
-      def taking(initiallyRemaining: Option[Long]) = new State {
-        var remaining: Long = initiallyRemaining.getOrElse(Int.MaxValue)
+          override def onPull() = {
+            pull(in)
+          }
 
-        override def onPush(element: ByteString, ctx: Context[ByteString]): SyncDirective = {
-          val data = element.take(math.min(remaining, Int.MaxValue).toInt)
-          remaining -= data.size
-          if (remaining <= 0) ctx.pushAndFinish(data)
-          else ctx.push(data)
+          setHandlers(in, out, this)
         }
-      }
-
-      override def initial: State = if (start > 0) skipping else taking(length)
     }
-    Flow[ByteString].transform(() ⇒ transformer).named("sliceBytes")
+
+    Flow[ByteString].via(transformer).named("sliceBytes")
   }
 }
