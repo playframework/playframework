@@ -51,11 +51,10 @@ object PlayImport {
 
   val ws = component("play-ahc-ws")
 
-  val openId = component("play-openid")
+  // alias javaWs to ws
+  val javaWs = ws
 
-  val javaWs = movedExternal(
-    """The "javaWs" module has been merged with "ws."  Please use the "ws" dependency.
-      |See https://playframework.com/documentation/latest/Migration26 for details.""".stripMargin)
+  val openId = component("play-openid")
 
   val specs2 = component("play-specs2")
 
