@@ -575,7 +575,7 @@ package play.api.mvc {
       .flatMap(_.configuration.getMilliseconds("session.maxAge")
         .map(Duration(_, MILLISECONDS).toSeconds.toInt))
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
-    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+    override def path = Play.maybeApplication.flatMap(_.configuration.getString("session.path")).getOrElse(Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/"))
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
 
     def deserialize(data: Map[String, String]) = new Session(data)
