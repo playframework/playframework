@@ -440,6 +440,7 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
     .dependsOn(PlayProject % "compile;test->test")
     .dependsOn(PlayTestProject % "test")
+    .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
