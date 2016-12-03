@@ -382,7 +382,7 @@ public class Form<T> {
                 }
                 errors.get(key).add(validationError);
             }
-            return new Form(rootName, backedType, data, errors, None(), groups);
+            return new Form(rootName, backedType, data, errors,  Some((T)result.getTarget()), groups);
         } else {
             Object globalError = null;
             if(result.getTarget() != null) {
@@ -410,7 +410,7 @@ public class Form<T> {
                 } else if(globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, None(), groups);
+                return new Form(rootName, backedType, data, errors, Some((T)result.getTarget()), groups);
             }
             return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }
@@ -428,7 +428,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieves the actual form value.
+     * Retrieves the actual form value - even when the form contains validation errors.
      */
     public Option<T> value() {
         return value;
@@ -536,7 +536,8 @@ public class Form<T> {
     }
 
     /**
-     * Gets the concrete value if the submission was a success.
+     * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors this method will throw an exception.
+     * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
      */
     public T get() {
         return value.get();
