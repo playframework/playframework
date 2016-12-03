@@ -382,7 +382,7 @@ public class Form<T> {
                 }
                 errors.get(key).add(validationError);
             }
-            return new Form(rootName, backedType, data, errors, None(), groups);
+            return new Form(rootName, backedType, data, errors,  Some((T)result.getTarget()), groups);
         } else {
             Object globalError = null;
             if(result.getTarget() != null) {
