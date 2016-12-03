@@ -419,7 +419,7 @@ object RangeResult {
     }
   }
 
-  // See https://github.com/akka/akka/blob/v2.4.2/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L83-L115
+  // See https://github.com/akka/akka-http/blob/master/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L76
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
     val transformer = new GraphStage[FlowShape[ByteString, ByteString]] {
       val in: Inlet[ByteString] = Inlet("Slicer.in")
