@@ -413,7 +413,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, None(), groups);
+            return new Form(rootName, backedType, data, errors, Some((T)result.getTarget()), groups);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
