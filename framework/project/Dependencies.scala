@@ -256,11 +256,6 @@ object Dependencies {
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
 
-  val playOpenIdDeps = Seq(
-    // import org.jboss.netty.handler.codec.http.QueryStringDecoder in package.scala
-    "io.netty" % "netty" % "3.10.6.Final" % Test
-  )
-
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )

@@ -216,7 +216,6 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .settings(
-    libraryDependencies ++= playOpenIdDeps,
     parallelExecution in Test := false,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
