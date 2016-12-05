@@ -30,6 +30,9 @@ public class JPAController extends Controller {
     //#jpa-controller-transactional-action
     @Transactional
     public Result index() {
+        EntityManager em = play.db.jpa.JPA.em(ctx());
+        // do something with the entity manager, per instance
+        // save, update or query model objects.
         return ok("A Transactional action");
     }
     //#jpa-controller-transactional-action
@@ -37,34 +40,33 @@ public class JPAController extends Controller {
     //#jpa-controller-transactional-readonly
     @Transactional(readOnly = true)
     public Result list() {
-        return ok("A Transactional action");
+        EntityManager em = play.db.jpa.JPA.em(ctx());
+        // query model objects with the entity manager
+        return ok("A Transactional read-only action");
     }
     //#jpa-controller-transactional-readonly
 
-    //#jpa-access-entity-manager
-    public void upadateSomething() {
-        EntityManager em = jpaApi.em();
-        // do something with the entity manager, per instance
-        // save, update or query model objects.
-    }
-    //#jpa-access-entity-manager
-
-    public void runningWithTransaction() {
-        //#jpa-withTransaction-function
+    //#jpa-withTransaction-function
+    // No @Transactional annotation
+    public Result querySomething() {
         // lambda is an instance of Function<EntityManager, Long>
-        jpaApi.withTransaction(entityManager -> {
+        final Long maxAge = jpaApi.withTransaction(entityManager -> {
             Query query = entityManager.createNativeQuery("select max(age) from people");
             return (Long) query.getSingleResult();
         });
-        //#jpa-withTransaction-function
+        return ok("Max age: " + maxAge);
+    }
+    //#jpa-withTransaction-function
 
-        //#jpa-withTransaction-runnable
-        // lambda is an instance of Runnable
-        jpaApi.withTransaction(() -> {
-            EntityManager em = jpaApi.em();
-            Query query = em.createNativeQuery("update people set active = 1 where age > 18");
+    //#jpa-withTransaction-consumer
+    // No @Transactional annotation
+    public Result updateSomething() {
+        // lambda is an instance of Consumer<EntityManager>
+        jpaApi.withTransaction(entityManager -> {
+            Query query = entityManager.createNativeQuery("update people set active = 1 where age > 18");
             query.executeUpdate();
         });
-        //#jpa-withTransaction-runnable
+        return ok("Sucessfully updated");
     }
+    //#jpa-withTransaction-consumer
 }

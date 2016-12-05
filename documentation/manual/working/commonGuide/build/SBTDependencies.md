@@ -34,7 +34,7 @@ Multiple dependencies can be added either by multiple declarations like the abov
 ```scala
 libraryDependencies ++= Seq(
   "org.apache.derby" % "derby" % "10.11.1.1",
-  "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final"
+  "org.hibernate" % "hibernate-core" % "5.2.5.Final"
 )
 ```
 

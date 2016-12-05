@@ -3,14 +3,14 @@
  */
 package play.db.jpa;
 
+import play.mvc.Http;
+
 import javax.persistence.EntityManager;
 
 /**
  * JPA Helpers.
  */
 public class JPA {
-
-    static JPAEntityManagerContext entityManagerContext = new JPAEntityManagerContext();
 
     /**
      * Create a default JPAApi with the given persistence unit configuration.
@@ -21,7 +21,7 @@ public class JPA {
      * @return the configured JPAApi
      */
     public static JPAApi createFor(String name, String unitName) {
-        return new DefaultJPAApi(DefaultJPAConfig.of(name, unitName), entityManagerContext).start();
+        return new DefaultJPAApi(DefaultJPAConfig.of(name, unitName)).start();
     }
 
     /**
@@ -32,27 +32,30 @@ public class JPA {
      * @return the configured JPAApi
      */
     public static JPAApi createFor(String unitName) {
-        return new DefaultJPAApi(DefaultJPAConfig.of("default", unitName), entityManagerContext).start();
+        return new DefaultJPAApi(DefaultJPAConfig.of("default", unitName)).start();
     }
 
     /**
-     * Get the default EntityManager for this thread.
+     * Get the default EntityManager from the current Http.Context.
      *
-     * @throws RuntimeException if no EntityManager is bound to the current Http.Context or the current Thread.
+     * @throws RuntimeException if no EntityManager is bound to the current Http.Context.
+     * @return the EntityManager
+     * 
+     * @deprecated Use {@link #em(play.mvc.Http.Context)} instead
+     */
+    @Deprecated
+    public static EntityManager em() {
+        return JPAEntityManagerContext.em();
+    }
+
+    /**
+     * Get the default EntityManager from the given Http.Context.
+     *
+     * @throws RuntimeException if no EntityManager is bound to the given Http.Context.
      * @return the EntityManager
      */
-    public static EntityManager em() {
-        return entityManagerContext.em();
-    }
-
-    /**
-     * Bind an EntityManager to the current HTTP context.
-     * If no HTTP context is available the EntityManager gets bound to the current thread instead.
-     *
-     * @param em the EntityManager to bind to this HTTP context.
-     */
-    public static void bindForSync(EntityManager em) {
-        entityManagerContext.pushOrPopEm(em, true);
+    public static EntityManager em(Http.Context ctx) {
+        return JPAEntityManagerContext.em(ctx);
     }
 
 }
