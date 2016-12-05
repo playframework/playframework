@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 name := "system-property"
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.0")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.1")
 
 // because the "test" directory clashes with the scripted test file
 scalaSource in Test := (baseDirectory.value / "tests")

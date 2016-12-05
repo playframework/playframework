@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.0")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.1")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 

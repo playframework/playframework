@@ -148,13 +148,6 @@ lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
-    .settings(
-      // work around the stackoverflow bug in 2.12.0
-      resolvers += "nightlies" at
-        "https://scala-ci.typesafe.com/artifactory/scala-release-temp/",
-      scalaVersion := "2.12.1-371bc2c-nightly",
-      scalaBinaryVersion := "2.12"
-    )
     .dependsOn(
       PlayProject % "compile;test->test",
       PlayTestProject % "test",
