@@ -53,6 +53,7 @@ object BuildSettings {
       homepage := Some(url("https://playframework.com")),
       ivyLoggingLevel := UpdateLogging.DownloadOnly,
       resolvers ++= Seq(
+        Resolver.sonatypeRepo("releases"),
         Resolver.typesafeRepo("releases"),
         Resolver.typesafeIvyRepo("releases")
       ),

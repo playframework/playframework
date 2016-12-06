@@ -47,7 +47,9 @@ object PlayImport {
 
   val cache = component("play-cache")
 
-  val json = component("play-json")
+  def json = movedExternal(
+    """play-json module has been moved to a separate project.
+      |See https://playframework.com/documentation/2.6.x/Migration26 for details.""".stripMargin)
 
   val guice = component("play-guice")
 
