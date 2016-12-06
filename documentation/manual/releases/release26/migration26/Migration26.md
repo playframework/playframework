@@ -179,71 +179,83 @@ libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 
 The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Please dependency inject an `ActorSystem` instance for access to the actor system.
 
-### Request tags deprecated, replaced with attributes
+### Request attributes
 
-In Play each `Request` and `RequestHeader` object carries a map of strings called *tags*. This map can be used to attach extra information to a request. In Play 2.6 request tags have been deprecated. A new alternative to tags, called *attributes*, should be used instead.
+All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, wherease tags only supported storing strings.
 
-Unlike tags, which can only be strings, attributes have types. Attributes are identified by a `TypedKey<T>` object that holds the attribute's type. This means the type system can catch errors in your code. It also means you can attach normal objects to a request, not just strings.
+#### Request tags deprecation
 
-In Play 2.6, tags are still provided and still work. However, tags will be removed in a future version of Play so you should update your existing code to use attributes instead.
+Tags have been deprecated so you should start migrating from using tags to using attributes. Migration should be fairly straightforward.
 
-Existing Java code:
+The easiest migration path is to migrate from a tag to an attribute with a `String` type.
+
+Java before:
+```java
+// Getting a tag from a Request or RequestHeader
+String userName = req.tags().get("userName");
+// Setting a tag on a Request or RequestHeader
+req.tags().put("userName", newName);
+// Setting a tag with a RequestBuilder
+Request builtReq = requestBuilder.tag("userName", newName).build();
+```
+
+Java after:
+```java
+class Attrs {
+  public static final TypedKey<String> USER_NAME = TypedKey.<String>create("userName");
+}
+// Getting an attribute from a Request or RequestHeader
+String userName = req.attrs().get(Attrs.USER_NAME);
+String userName = req.attrs().getOptional(Attrs.USER_NAME);
+// Setting an attribute on a Request or RequestHeader
+Request newReq = req.withTags(req.tags().put(Attrs.USER_NAME, newName));
+// Setting an attribute with a RequestBuilder
+Request builtReq = requestBuilder.attr(Attrs.USER_NAME, newName).build();
+```
+
+Scala before:
+```scala
+// Getting a tag from a Request or RequestHeader
+val userName: String = req.tags("userName")
+val optUserName: Option[String] = req.tags.get("userName")
+// Setting a tag on a Request or RequestHeader
+val newReq = req.copy(tags = req.tags.updated("userName", newName))
+```
+
+Scala after:
+```
+object Attrs {
+  val UserName: TypedKey[String] = TypedKey[String]("userName")
+}
+// Getting an attribute from a Request or RequestHeader
+val userName: String = req.attrs(Attrs.UserName)
+val optUserName: [String] = req.attrs.get(Attrs.UserName)
+// Setting an attribute on a Request or RequestHeader
+val newReq = req.withAttrs(req.attrs.updated(Attrs.UserName, newName))
+```
+
+However, if appropriate, we recommend you convert your `String` tags into attributes with non-`String` values. Converting your tags into non-`String` objects has several benefits. First, you will make your code more type-safe. This will increase your code's reliability and make it easier to understand. Second, the objects you store in attributes can contain multiple properties, allowing you to aggregate multiple tags into a single value. Third, converting tags into attributes means you don't need to encode and decode values from `String`s, which may increase performance.
 
 ```java
-// Tags have string keys
-final String USER_ID = "userId";
-...
-// Store the User object's id in the tags map
-User user = getUser(...);
-req.tags.put(USER_ID, Long.toString(user.getId()));
-...
-// Get the user's id out of the tags map then look up the original User object
-User user = getUserById(Long.parseLong(req.tags.get(USER_ID)));
+class Attrs {
+  public static final TypedKey<User> USER = TypedKey.<User>create("user");
+}
 ```
 
-Updated Java code:
-
-```java
-// Use a key with type User
-import play.api.libs.typedmap.TypedKey
-final TypedKey<User> USER = TypedKeyFactory.create("user");
-...
-// Create new copy of the request with the USER attribute added
-User user = getUser(...);
-Request reqWithUser = req.withAttr(USER, user);
-...
-// Get the USER attribute from the request
-User user = req.attr(USER);
+Scala after:
+```
+object Attrs {
+  val UserName: TypedKey[User] = TypedKey[User]("user")
+}
 ```
 
-Existing Scala code:
+#### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
-```scala
-// Tags have string keys
-val UserId: String = "userId"
-...
-// Store the User object's id in the tags map
-val user: User = getUser(...)
-val reqWithUserId = req.copy(tags = req.tags + (UserId -> user.id.toString))
-...
-// Get the user's id out of the tags map then look up the original User object
-User user = getUserById(Long.parseLong(reqWithUserId.tags(UserId)))
-```
+Internally request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
-Updated Scala code:
+Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the `Cookie` HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
-```scala
-// Use a key with type User
-import play.api.libs.typedmap.TypedKey
-val User: TypedKey[User] = TypedKey("user")
-...
-// Create new copy of the request with the User attribute added
-val user: User = getUser(...)
-val reqWithUser = req.withAttr(User, user)
-...
-// Get the User attribute from the request
-val user: User = req.attr(User)
-```
+If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
 #### Request Security username property is now an attribute
 
@@ -277,17 +289,19 @@ Request reqWithUsername = new RequestBuilder().putAttr(USERNAME, "admin").build(
 
 #### Router tags are now attributes
 
-If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.HandlerDefAttr` attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
+If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.Attrs.HandlerDef` (Scala) or `Router.Attrs.HANDLER_DEF` (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
 
-The attribute contains a `HandlerDef` object that contains all the information that is currently in the tags. The relationship between a `HandlerDef` object and its tags is as follows:
+This new attribute contains a `HandlerDef` object with all the information that is currently in the tags. The current tags all correspond to a field in the `HandlerDef` object:
 
-```scala
-RoutePattern -> handlerDef.path
-RouteVerb -> handlerDef.verb
-RouteController -> handlerDef.controller
-RouteActionMethod -> handlerDef.method
-RouteComments -> handlerDef.comments
-```
+Java tag name | Scala tag name | `HandlerDef` method
+-- | --
+`ROUTE_PATTERN` | `RoutePattern` | `path`
+`ROUTE_VERB` | `RouteVerb` | `verb`
+`ROUTE_CONTROLLER` | `RouteController` | `controller`
+`ROUTE_ACTION_METHOD` | `RouteActionMethod` | `method`
+`ROUTE_COMMENTS` | `RouteComments` | `comments`
+
+Note: As part of this change the `HandlerDef` object has been moved from the `play.core.routing` internal package into the `play.api.routing` public API package.
 
 ### Execution
 

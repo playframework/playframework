@@ -152,6 +152,11 @@ object HttpConfiguration {
    */
   private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
 
+  /**
+   * For calling from Java.
+   */
+  def createWithDefaults() = apply()
+
   @Singleton
   class HttpConfigurationProvider @Inject() (configuration: Configuration) extends Provider[HttpConfiguration] {
     lazy val get = fromConfiguration(configuration)

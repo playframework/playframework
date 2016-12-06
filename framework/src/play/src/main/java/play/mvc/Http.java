@@ -3,32 +3,6 @@
  */
 package play.mvc;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -37,21 +11,39 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import play.api.http.HttpConfiguration;
 import play.api.libs.json.JsValue;
-import play.api.libs.typedmap.TypedEntry;
-import play.api.libs.typedmap.TypedKey;
-import play.api.libs.typedmap.TypedMap;
 import play.api.mvc.Headers;
+import play.api.mvc.Headers$;
+import play.api.mvc.request.*;
 import play.core.j.JavaContextComponents;
+import play.core.j.JavaHelpers$;
 import play.core.j.JavaParsers;
-import play.core.system.RequestIdProvider;
-import play.i18n.*;
+import play.i18n.Lang;
+import play.i18n.Langs;
+import play.i18n.Messages;
+import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.libs.XML;
-import scala.Tuple2;
+import play.libs.typedmap.TypedKey;
+import play.libs.typedmap.TypedMap;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
+import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static play.libs.Scala.asScala;
 
@@ -534,56 +526,17 @@ public class Http {
         boolean secure();
 
         /**
-         * Get an attribute by its key or throw an exception if it's not
-         * present.
-         *
-         * Use this method if the attribute is expected to be present. If the
-         * attribute is optional then use {@link #getAttr(TypedKey)} instead.
-         *
-         * @param key The attribute key.
-         * @param <T> The type of attribute.
-         * @return The attribute value, if it exists.
-         * @throws NoSuchElementException If the attribute doesn't exist.
+         * A map of typed attributes associated with the request.
          */
-        <T> T attr(TypedKey<T> key);
+        TypedMap attrs();
 
         /**
-         * Get an optional attribute by its key.
+         * Create a new version of this object with the given attributes attached to it.
          *
-         * Use this method if the attribute is optional. If the attribute is
-         * always present then use {@link #attr(TypedKey)} instead.
-         *
-         * @param key The attribute key.
-         * @param <T> The type of attribute.
-         * @return An optional attribute value, present if it exists, absent otherwise.
+         * @param newAttrs The new attributes to add.
+         * @return The new version of this object with the attributes attached.
          */
-        <T> Optional<T> getAttr(TypedKey<T> key);
-
-        /**
-         * Check if this object contains an attribute.
-         *
-         * @param key The attribute key to check for.
-         * @return True if the object contains the attribute, false otherwise.
-         */
-        boolean containsAttr(TypedKey<?> key);
-
-        /**
-         * Create a new version of this object with an attribute added to it.
-         *
-         * @param key The attribute key.
-         * @param value The new attribute value.
-         * @param <T> The type of attribute.
-         * @return The new version of this object with the attribute added.
-         */
-        <T> RequestHeader withAttr(TypedKey<T> key, T value);
-
-        /**
-         * Create a new version of this object with several attributes added to it.
-         *
-         * @param entries The new attributes to add.
-         * @return The new version of this object with the attributes added.
-         */
-        RequestHeader withAttrs(TypedEntry<?> ...entries);
+        RequestHeader withAttrs(TypedMap newAttrs);
 
         /**
          * Attach a body to this header.
@@ -733,15 +686,15 @@ public class Http {
 
         Request withBody(RequestBody body);
 
-        <T> Request withAttr(TypedKey<T> key, T value);
-        Request withAttrs(TypedEntry<?> ...entries);
+        // Override return type
+        Request withAttrs(TypedMap newAttrs);
 
         /**
          * The user name for this request, if defined.
          * This is usually set by annotating your Action with <code>@Authenticated</code>.
          *
          * @return the username
-         * @deprecated As of release 2.6, use <code>attr(Security.USERNAME)</code> or <code>getAttr(Security.USERNAME)</code>.
+         * @deprecated As of release 2.6, use <code>attrs.get(Security.USERNAME)</code> or <code>attrs.getOptional(Security.USERNAME)</code>.
          */
         @Deprecated String username();
 
@@ -750,7 +703,7 @@ public class Http {
          *
          * @param username the new user name
          * @return a copy of the request containing the specified user name
-         * @deprecated As of release 2.6, use <code>withAttr(Security.USERNAME, username)</code>.
+         * @deprecated As of release 2.6, use <code>req.withAttrs(req.attrs().put(Security.USERNAME, username))</code>.
          */
         @Deprecated Request withUsername(String username);
 
@@ -789,47 +742,60 @@ public class Http {
      */
     public static class RequestBuilder {
 
-        protected RequestBody body;
-        protected String username;
+        protected play.api.mvc.Request<RequestBody> req;
 
         /**
-         * Returns a simple request builder, based on get and local address.
+         * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from
+         * 127.0.0.1 over an insecure connection. The request is created using the default
+         * factory.
          */
         public RequestBuilder() {
-          method("GET");
-          uri("/");
-          host("localhost");
-          version("HTTP/1.1");
-          remoteAddress("127.0.0.1");
-          body(new RequestBody(null));
+            this(new DefaultRequestFactory(HttpConfiguration.createWithDefaults()));
+        }
+
+        /**
+         * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from
+         * 127.0.0.1 over an insecure connection. The request is created using the given
+         * factory.
+         */
+        public RequestBuilder(RequestFactory requestFactory) {
+            req = requestFactory.createRequest(
+                    RemoteConnection$.MODULE$.apply("127.0.0.1", false, OptionConverters.toScala(Optional.empty())),
+                    "GET",
+                    RequestTarget$.MODULE$.apply("/", "/", Map$.MODULE$.empty()),
+                    "HTTP/1.1",
+                    Headers$.MODULE$.create(),
+                    TypedMap.empty().underlying(),
+                    new RequestBody(null)
+            );
         }
 
         /**
          * @return the request body, if a previously the body has been set
          */
         public RequestBody body() {
-            return body;
+            return req.body();
         }
 
         /**
-         * Get the username. This method calls <code>getAttr(Security.USERNAME)</code>.
+         * Get the username. This method calls <code>attrs().getOptional(Security.USERNAME)</code>.
          * @return the username or null
-         * @deprecated Use <code>attr(Security.USERNAME)</code> or <code>getAttr(Security.USERNAME)</code> instead.
+         * @deprecated Use <code>attrs().get(Security.USERNAME)</code> or <code>attrs().getOptional(Security.USERNAME)</code> instead.
          */
         @Deprecated
         public String username() {
-            return getAttr(Security.USERNAME).orElse(null);
+            return attrs().getOptional(Security.USERNAME).orElse(null);
         }
 
         /**
-         * Set the username. This method calls <code>putAttr(Security.USERNAME, username)</code>.
+         * Set the username. This method calls <code>attr(Security.USERNAME, username)</code>.
          * @param username the username for the request
          * @return the modified builder
-         * @deprecated Use <code>putAttr(Security.USERNAME, username)</code> instead.
+         * @deprecated Use <code>attr(Security.USERNAME, username)</code> instead.
          */
         @Deprecated
         public RequestBuilder username(String username) {
-            putAttr(Security.USERNAME, username);
+            attr(Security.USERNAME, username);
             return this;
         }
 
@@ -855,15 +821,17 @@ public class Http {
         protected RequestBuilder body(RequestBody body) {
             if (body == null || body.as(Object.class) == null) {
                 // assume null signifies no body; RequestBody is a wrapper for the actual body content
-                this.headers.remove(HeaderNames.CONTENT_LENGTH);
-                this.headers.remove(HeaderNames.TRANSFER_ENCODING);
+                Map<String, String[]> h = headers();
+                h.remove(HeaderNames.CONTENT_LENGTH);
+                h.remove(HeaderNames.TRANSFER_ENCODING);
+                headers(h);
             } else {
-                int length = body.asBytes().length();
                 if (header(HeaderNames.TRANSFER_ENCODING) == null) {
-                    this.headers.put(HeaderNames.CONTENT_LENGTH, new String[] {Integer.toString(length)});
+                    int length = body.asBytes().length();
+                    header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
                 }
             }
-            this.body = body;
+            req = req.withBody(body);
             return this;
         }
 
@@ -999,45 +967,17 @@ public class Http {
          * @return a build of the given parameters
          */
         public RequestImpl build() {
-            play.api.mvc.Request<RequestBody> underlyingRequest = new play.api.mvc.RequestImpl(
-                id,
-                asScala(tags()),
-                uri.toString(),
-                uri.getRawPath(),
-                method,
-                version,
-                mapListToScala(splitQuery()),
-                buildHeaders(),
-                remoteAddress,
-                secure,
-                OptionConverters.toScala(clientCertificateChain.map(lst -> scala.collection.JavaConversions.asScalaBuffer(lst).toSeq())),
-                TypedMap.empty(),
-                body()
-            );
-            // Cast below is needed because Java doesn't pick up type properly
-            underlyingRequest = (play.api.mvc.Request<RequestBody>) underlyingRequest.withAttrs(attrs.entries());
-            return new RequestImpl(underlyingRequest);
+            return new RequestImpl(req);
         }
 
         // -------------------
         // REQUEST HEADER CODE
 
-        protected Long id = RequestIdProvider.requestIDs().incrementAndGet();
-        protected Map<String, String> tags = new HashMap<>();
-        protected TypedMap attrs = TypedMap.empty();
-        protected String method;
-        protected boolean secure;
-        protected URI uri;
-        protected String version;
-        protected Map<String, String[]> headers = new HashMap<>();
-        protected String remoteAddress;
-        protected Optional<List<X509Certificate>> clientCertificateChain = Optional.empty();
-
         /**
          * @return the id of the request
          */
         public Long id() {
-            return id;
+            return req.id();
         }
 
         /**
@@ -1045,31 +985,8 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder id(Long id) {
-            this.id = id;
+            attr(new TypedKey(RequestAttrKey.Id()), id);
             return this;
-        }
-
-        /**
-         * Get the attribute for the given key.
-         *
-         * @param key The key of the attribute.
-         * @param <T> The type of the attribute.
-         * @return The attribute value, if present.
-         * @throws NoSuchElementException If the attribute is missing.
-         */
-        <T> T attr(TypedKey<T> key) {
-            return attrs.apply(key);
-        }
-
-        /**
-         * Get the attribute for the given key.
-         *
-         * @param key The key of the attribute.
-         * @param <T> The type of the attribute.
-         * @return An optional attribute value.
-         */
-        <T> Optional<T> getAttr(TypedKey<T> key) {
-            return OptionConverters.toJava(attrs.get(key));
         }
 
         /**
@@ -1079,35 +996,43 @@ public class Http {
          * @param value The value of the attribute to add.
          * @param <T> The type of the attribute to add.
          */
-        <T> void putAttr(TypedKey<T> key, T value) {
-            attrs = attrs.updated(key, value);
+        <T> void attr(TypedKey<T> key, T value) {
+            req = req.withAttrs(req.attrs().updated(key.underlying(), value));
         }
 
         /**
-         * Add several attributes to the request.
+         * Update the request attributes. This replaces all existing attributes.
          *
-         * @param entries The attribute entries to add.
+         * @param newAttrs The attribute entries to add.
          */
-        void putAttrs(TypedEntry<?> ...entries) {
-            attrs = attrs.withEntries(entries);
+        RequestBuilder attrs(TypedMap newAttrs) {
+            req = req.withAttrs(newAttrs.underlying());
+            return this;
+        }
+
+        /**
+         * Get the request attributes.
+         */
+        TypedMap attrs() {
+            return new TypedMap(req.attrs());
         }
 
         /**
          * @return the tags for the request
-         * @deprecated Use <code>attr</code> or <code>getAttr</code> instead.
+         * @deprecated Use typed attributes, i.e. <code>attrs()</code>, instead.
          */
         public Map<String, String> tags() {
-            return tags;
+            return JavaConversions.mapAsJavaMap(req.tags());
         }
 
         /**
          * @param tags overwrites the tags for this request
          * @return the builder instance
-         * @deprecated Use <code>putAttrs</code> instead.
+         * @deprecated Use <code>attrs(...)</code> instead.
          */
         @Deprecated
         public RequestBuilder tags(Map<String, String> tags) {
-            this.tags = tags;
+            attr(new TypedKey(RequestAttrKey.Tags()), JavaHelpers$.MODULE$.javaMapToImmutableScalaMap(tags));
             return this;
         }
 
@@ -1116,11 +1041,13 @@ public class Http {
          * @param key the key for the tag
          * @param value the value for the tag
          * @return the builder
-         * @deprecated Use <code>putAttr</code> instead.
+         * @deprecated Use <code>attr(key, value)</code> instead.
          */
         @Deprecated
         public RequestBuilder tag(String key, String value) {
+            Map<String, String> tags = tags();
             tags.put(key, value);
+            tags(tags);
             return this;
         }
 
@@ -1128,7 +1055,7 @@ public class Http {
          * @return the builder instance.
          */
         public String method() {
-            return method;
+            return req.method();
         }
 
         /**
@@ -1136,7 +1063,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder method(String method) {
-            this.method = method;
+            req = req.withMethod(method);
             return this;
         }
 
@@ -1144,20 +1071,11 @@ public class Http {
          * @return gives the uri of the request
          */
         public String uri() {
-            return uri.toString();
+            return req.uri();
         }
 
         public RequestBuilder uri(URI uri) {
-            if (uri.getScheme() != null) {
-                if (!uri.getScheme().equals("http") && !uri.getScheme().equals("https")) {
-                    throw new IllegalArgumentException("URI scheme must be http or https");
-                }
-                this.secure = uri.getScheme().equals("https");
-            }
-            this.uri = uri;
-            if (uri.getHost() != null) {
-              host(uri.getHost());
-            }
+            req = JavaHelpers$.MODULE$.updateRequestWithUri(req, uri);
             return this;
         }
 
@@ -1180,15 +1098,19 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder secure(boolean secure) {
-           this.secure = secure;
-           return this;
+            req = req.withConnection(RemoteConnection$.MODULE$.apply(
+                    req.connection().remoteAddress(),
+                    secure,
+                    req.connection().clientCertificateChain()
+            ));
+            return this;
         }
 
         /**
          * @return the status if the request is secure
          */
         public boolean secure() {
-           return secure;
+           return req.connection().secure();
         }
 
         /**
@@ -1211,7 +1133,7 @@ public class Http {
          * @return the raw path of the uri
          */
         public String path() {
-            return uri.getRawPath();
+            return req.target().path();
         }
 
         /**
@@ -1220,11 +1142,17 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder path(String path) {
+            // Update URI with new path element
+            URI existingUri = req.target().uri();
+            URI newUri;
             try {
-                uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
+                newUri = new URI(
+                        existingUri.getScheme(), existingUri.getUserInfo(), existingUri.getHost(),
+                        existingUri.getPort(), path, existingUri.getQuery(), existingUri.getFragment());
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException(e);
+                throw new IllegalArgumentException("New path couldn't be parsed", e);
             }
+            uri(newUri);
             return this;
         }
 
@@ -1232,7 +1160,7 @@ public class Http {
          * @return the version
          */
         public String version() {
-            return version;
+            return req.version();
         }
 
         /**
@@ -1240,7 +1168,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder version(String version) {
-            this.version = version;
+            req = req.withVersion(version);
             return this;
         }
 
@@ -1249,8 +1177,8 @@ public class Http {
          * @return the value associated with the key, if multiple, the first, if none returns null
          */
         public String header(String key) {
-            String[] values = headers.get(key);
-            return values == null || values.length == 0 ? null : values[0];
+            String[] values = headers(key);
+            return (values == null || values.length == 0) ? null : values[0];
         }
 
         /**
@@ -1258,14 +1186,14 @@ public class Http {
          * @return all values (could be 0) associated with the key
          */
         public String[] headers(String key) {
-            return headers.get(key);
+            return headers().get(key);
         }
 
         /**
          * @return the headers
          */
         public Map<String, String[]> headers() {
-            return headers;
+            return JavaHelpers$.MODULE$.scalaMapOfSeqsToJavaMapOfArrays(req.headers().toMap());
         }
 
         /**
@@ -1273,7 +1201,9 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder headers(Map<String, String[]> headers) {
-            this.headers = headers;
+            req = req.withHeaders(new Headers(
+                    JavaHelpers$.MODULE$.javaMapOfArraysToScalaSeqOfPairs(headers)
+            ));
             return this;
         }
 
@@ -1283,7 +1213,9 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder header(String key, String[] values) {
-            headers.put(key, values);
+            Map<String, String[]> h = headers();
+            h.put(key, values);
+            headers(h);
             return this;
         }
 
@@ -1293,34 +1225,15 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder header(String key, String value) {
-            headers.put(key, new String[] { value });
+            header(key, new String[] { value });
             return this;
-        }
-
-        /**
-         * @return the cookies in Scala instances
-         */
-        private play.api.mvc.Cookies scalaCookies() {
-          String cookieHeader = header(HeaderNames.COOKIE);
-          scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
-          return play.api.mvc.Cookies$.MODULE$.fromCookieHeader(cookieHeaderOpt);
         }
 
         /**
          * @return the cookies in Java instances
          */
         public Cookies cookies() {
-          return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(scalaCookies());
-        }
-
-        /**
-         * Sets the cookies in the header.
-         * @param cookies the cookies in a Scala sequence
-         */
-        private void cookies(Seq<play.api.mvc.Cookie> cookies) {
-          String cookieHeader = header(HeaderNames.COOKIE);
-          String value = play.api.mvc.Cookies$.MODULE$.mergeCookieHeader(cookieHeader != null ? cookieHeader : "", cookies);
-          header(HeaderNames.COOKIE, value);
+          return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(req.cookies());
         }
 
         /**
@@ -1329,18 +1242,19 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder cookie(Cookie cookie) {
-          cookies(play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
-          return this;
+            play.api.mvc.Cookies newCookies = JavaHelpers$.MODULE$.mergeNewCookie(
+                    req.cookies(),
+                    JavaHelpers$.MODULE$.cookieToScalaCookie(cookie)
+            );
+            attr(new TypedKey(RequestAttrKey.Cookies()), new AssignedCell(newCookies));
+            return this;
         }
 
         /**
          * @return the cookies in a Java map
          */
         public Map<String,String> flash() {
-          play.api.mvc.Cookies scalaCookies = scalaCookies();
-          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Flash$.MODULE$.decodeCookieToMap(cookie);
-          return JavaConversions.mapAsJavaMap(data);
+          return JavaConversions.mapAsJavaMap(req.flash().data());
         }
 
         /**
@@ -1350,10 +1264,11 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(String key, String value) {
-          Map<String,String> data = new HashMap<>(flash());
-          data.put(key, value);
-          flash(data);
-          return this;
+            scala.collection.immutable.Map<String,String> data = req.flash().data();
+            scala.collection.immutable.Map<String,String> newData = data.updated(key, value);
+            play.api.mvc.Flash newFlash = new play.api.mvc.Flash(newData);
+            attr(new TypedKey(RequestAttrKey.Flash()), new AssignedCell(newFlash));
+            return this;
         }
 
         /**
@@ -1362,19 +1277,16 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(Map<String,String> data) {
-          play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
-          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
-          return this;
+            play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
+            attr(new TypedKey(RequestAttrKey.Flash()), new AssignedCell(flash));
+            return this;
         }
 
         /**
          * @return the sessions in the request
          */
         public Map<String,String> session() {
-          play.api.mvc.Cookies scalaCookies = scalaCookies();
-          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Session$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
-          return JavaConversions.mapAsJavaMap(data);
+            return JavaConversions.mapAsJavaMap(req.session().data());
         }
 
         /**
@@ -1384,10 +1296,11 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(String key, String value) {
-          Map<String,String> data = new HashMap<>(session());
-          data.put(key, value);
-          session(data);
-          return this;
+            scala.collection.immutable.Map<String,String> data = req.session().data();
+            scala.collection.immutable.Map<String,String> newData = data.updated(key, value);
+            play.api.mvc.Session newSession = new play.api.mvc.Session(newData);
+            attr(new TypedKey(RequestAttrKey.Session()), new AssignedCell(newSession));
+            return this;
         }
 
         /**
@@ -1396,16 +1309,16 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(Map<String,String> data) {
-          play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
-          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
-          return this;
+            play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
+              attr(new TypedKey(RequestAttrKey.Session()), new AssignedCell(session));
+            return this;
         }
 
         /**
          * @return the remote address
          */
         public String remoteAddress() {
-            return remoteAddress;
+            return req.connection().remoteAddressString();
         }
 
         /**
@@ -1413,7 +1326,11 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder remoteAddress(String remoteAddress) {
-            this.remoteAddress = remoteAddress;
+            req = req.withConnection(RemoteConnection$.MODULE$.apply(
+                    remoteAddress,
+                    req.connection().secure(),
+                    req.connection().clientCertificateChain()
+            ));
             return this;
         }
 
@@ -1421,7 +1338,9 @@ public class Http {
          * @return the client X509Certificates if they have been set
          */
         public Optional<List<X509Certificate>> clientCertificateChain() {
-            return clientCertificateChain;
+            return OptionConverters.toJava(
+                    req.connection().clientCertificateChain()).map(
+                            list -> new ArrayList<X509Certificate>(JavaConversions.asJavaCollection(list)));
         }
 
         /**
@@ -1430,31 +1349,12 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder clientCertificateChain(List<X509Certificate> clientCertificateChain) {
-            this.clientCertificateChain = Optional.ofNullable(clientCertificateChain);
+            req = req.withConnection(RemoteConnection$.MODULE$.apply(
+                    req.connection().remoteAddress(),
+                    req.connection().secure(),
+                    OptionConverters.toScala(Optional.ofNullable(JavaConversions.asScalaBuffer(clientCertificateChain).toList()))
+            ));
             return this;
-        }
-
-        protected Map<String, List<String>> splitQuery() {
-            try {
-                Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
-                String query = uri.getRawQuery();
-                if (query == null) {
-                    return new HashMap<>();
-                }
-                String[] pairs = query.split("&");
-                for (String pair : pairs) {
-                    int idx = pair.indexOf("=");
-                    String key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), "UTF-8") : pair;
-                    if (!query_pairs.containsKey(key)) {
-                        query_pairs.put(key, new LinkedList<>());
-                    }
-                    String value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : null;
-                    query_pairs.get(key).add(value);
-                }
-                return query_pairs;
-            } catch(UnsupportedEncodingException e) {
-                throw new IllegalStateException("This can never happen", e);
-            }
         }
 
         protected static scala.collection.immutable.Map<String,Seq<String>> mapListToScala(Map<String,List<String>> data) {
@@ -1464,17 +1364,6 @@ public class Http {
             }
             return asScala(seqs);
         }
-
-        protected Headers buildHeaders() {
-            List<Tuple2<String, String>> list = new ArrayList<>();
-            for (Map.Entry<String,String[]> entry : headers().entrySet()) {
-                for (String value : entry.getValue()) {
-                    list.add(new Tuple2<>(entry.getKey(), value));
-                }
-            }
-            return new Headers(JavaConversions.asScalaBuffer(list));
-        }
-
     }
 
     /**

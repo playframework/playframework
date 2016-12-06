@@ -218,7 +218,7 @@ trait EssentialActionCaller {
     val contentLength = rh.headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
     val newHeaders = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
 
-    action(rh.copy(headers = newHeaders)).run(Source.single(bytes))
+    action(rh.withHeaders(newHeaders)).run(Source.single(bytes))
   }
 }
 

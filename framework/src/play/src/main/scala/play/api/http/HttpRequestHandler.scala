@@ -11,8 +11,7 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.{ Configuration, Environment }
-import play.core.Execution
-import play.core.j.{ JavaContextComponents, JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
+import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
 
 /**
@@ -110,14 +109,6 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   }
 
   override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
-
-    /**
-     * An action for a 404 error.
-     */
-    val notFoundHandler = ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
-      errorHandler.onClientError(req, NOT_FOUND)
-    )
-
     /**
      * Call the router to get the handler, but with a couple of types of fallback.
      * First, if a HEAD request isn't explicitly routed try routing it as a GET
@@ -131,8 +122,13 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
         // add an explicit mapping in Routes. Since we couldn't route the HEAD request,
         // try to get a Handler for the equivalent GET request instead. Note: the handler
         // returned will still be passed a HEAD request when it is actually evaluated.
-        case None if request.method == HttpVerbs.HEAD => routeWithFallback(request.copy(method = HttpVerbs.GET))
-        case None => notFoundHandler
+        case None if request.method == HttpVerbs.HEAD =>
+          routeWithFallback(request.withMethod(HttpVerbs.GET))
+        case None =>
+          // An Action for a 404 error
+          ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
+            errorHandler.onClientError(req, NOT_FOUND)
+          )
       }
     }
 

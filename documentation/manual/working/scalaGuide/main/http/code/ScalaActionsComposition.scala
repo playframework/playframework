@@ -146,13 +146,15 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
     "allow modifying the request object" in {
       //#modify-request
       import play.api.mvc._
+      import play.api.mvc.request.RemoteConnection
 
       def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
-        val newRequest = request.headers.get("X-Forwarded-For").map { xff =>
-          new WrappedRequest[A](request) {
-            override def remoteAddress = xff
-          }
-        } getOrElse request
+        val newRequest = request.headers.get("X-Forwarded-For") match {
+          case None => request
+          case Some(xff) =>
+            val xffConnection = RemoteConnection(xff, request.connection.secure, None)
+            request.withConnection(xffConnection)
+        }
         action(newRequest)
       }
       //#modify-request

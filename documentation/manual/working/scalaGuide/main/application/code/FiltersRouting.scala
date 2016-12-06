@@ -8,7 +8,7 @@ import javax.inject.Inject
 import akka.stream.Materializer
 import play.api.mvc.{Result, RequestHeader, Filter}
 import play.api.Logger
-import play.api.routing.Router.Tags
+import play.api.routing.{HandlerDef, Router}
 import scala.concurrent.{Future, ExecutionContext}
 
 class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
@@ -18,8 +18,8 @@ class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionCont
     val startTime = System.currentTimeMillis
 
     nextFilter(requestHeader).map { result =>
-      val action = requestHeader.tags(Tags.RouteController) +
-        "." + requestHeader.tags(Tags.RouteActionMethod)
+      val handlerDef: HandlerDef = requestHeader.attrs(Router.Attrs.HandlerDef)
+      val action = handlerDef.controller + "." + handlerDef.method
       val endTime = System.currentTimeMillis
       val requestTime = endTime - startTime
 

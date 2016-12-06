@@ -15,8 +15,8 @@ import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{ Handler, Results, WebSocket }
+import play.api.routing.HandlerDef
 import play.api.test._
-import play.core.routing.HandlerDef
 import play.it._
 import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 

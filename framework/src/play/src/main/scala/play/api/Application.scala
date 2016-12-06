@@ -16,6 +16,7 @@ import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
 import play.api.mvc._
+import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
@@ -75,11 +76,9 @@ trait Application {
   implicit def materializer: Materializer
 
   /**
-   * Cached value of `routes`. For performance, don't synchronize
-   * the value. We always use the same logic to calculate its value
-   * so it will end up consistent across threads anyway.
+   * The factory used to create requests for this application.
    */
-  private var cachedRoutes: Router = null
+  def requestFactory: RequestFactory
 
   /**
    * The HTTP request handler
@@ -214,6 +213,7 @@ class DefaultApplication @Inject() (
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
+    override val requestFactory: RequestFactory,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
@@ -247,13 +247,14 @@ trait BuiltInComponents {
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+  lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
   lazy val httpFilters: Seq[EssentialFilter] = Nil
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
+    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)

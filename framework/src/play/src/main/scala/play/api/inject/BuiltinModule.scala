@@ -16,6 +16,7 @@ import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
+import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.libs.concurrent.HttpExecutionContext
@@ -46,6 +47,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[ActionCompositionConfiguration].toProvider[ActionCompositionConfigurationProvider],
     bind[FileMimeTypesConfiguration].toProvider[FileMimeTypesConfigurationProvider],
 
+    bind[RequestFactory].to[DefaultRequestFactory],
     bind[PlayBodyParsers].to[PlayBodyParsersImpl],
     bind[BodyParsers.Default].toSelf,
     bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
@@ -73,6 +75,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
     bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
 
+    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
     bind[FlashCookieBaker].to[DefaultFlashCookieBaker],
 

@@ -272,6 +272,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * followed by all the other cookies in order.
    */
   def bakeCookies(
+    cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
     sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
     flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
     requestHasFlash: Boolean = false): Result = {

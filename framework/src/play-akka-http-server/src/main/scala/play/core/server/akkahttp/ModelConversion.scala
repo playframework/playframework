@@ -3,7 +3,7 @@
  */
 package play.core.server.akkahttp
 
-import java.net.InetSocketAddress
+import java.net.{ InetAddress, InetSocketAddress, URI }
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -15,7 +15,8 @@ import play.api.http.HeaderNames._
 import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+import play.api.mvc.request.{ RemoteConnection, RequestAttrKey, RequestTarget }
+import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -23,7 +24,9 @@ import scala.concurrent.Future
 /**
  * Conversions between Akka's and Play's HTTP model objects.
  */
-private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
+private[akkahttp] class ModelConversion(
+    resultUtils: ServerResultUtils,
+    forwardedHeaderHandler: ForwardedHeaderHandler) {
 
   private val logger = Logger(getClass)
 
@@ -50,33 +53,40 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
-    // Avoid clash between method arg and RequestHeader field
-    val remoteAddressArg = remoteAddress
 
-    new RequestHeader with WithAttrMap[RequestHeader] {
-      override val id = requestId
+    val headers = convertRequestHeaders(request)
+    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
+
+    new RequestHeaderImpl(
+      forwardedHeaderHandler.forwardedConnection(
+        new RemoteConnection {
+          override def remoteAddress: InetAddress = remoteAddressArg.getAddress
+          override def secure: Boolean = secureProtocol
+          // TODO - Akka does not yet expose the SSLEngine used for the request
+          override lazy val clientCertificateChain = None
+        },
+        headers),
+      request.method.name,
+      new RequestTarget {
+        override lazy val uri: URI = new URI(uriString)
+        override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
+          case None =>
+            logger.warn("Can't get raw request URI.")
+            request.uri.toString
+          case Some(rawUri) =>
+            rawUri.uri
+        }
+        override lazy val path: String = request.uri.path.toString
+        override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
+      },
+      request.protocol.value,
+      headers,
       // Send a tag so our tests can tell which kind of server we're using.
       // We could get NettyServer to send a similar tag, but for the moment
-      // let's not, just in case it slows NettyServer down a bit.
-      override val tags = Map("HTTP_SERVER" -> "akka-http")
-      override def uri = request.header[`Raw-Request-URI`].map(_.uri).getOrElse {
-        logger.warn("Can't get raw request URI.")
-        request.uri.toString
-      }
-      override def path = request.uri.path.toString
-      override def method = request.method.name
-      override def version = request.protocol.value
-      override def queryString = request.uri.query().toMultiMap
-      override val headers = convertRequestHeaders(request)
-      private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(remoteAddressArg.getAddress, secureProtocol, headers)
-      }
-      override def remoteAddress = remoteConnection.address.getHostAddress
-      override def secure = remoteConnection.secure
-      override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
-      override protected def attrMap = TypedMap.empty
-      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
-    }
+      // let's not, just in case it slows NettyServer down a bit. If Akka
+      // HTTP becomes our default backend we should probably remove this.
+      TypedMap(RequestAttrKey.Tags -> Map("HTTP_SERVER" -> "akka-http"))
+    )
   }
 
   /**
@@ -129,12 +139,12 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
 
     import play.core.Execution.Implicits.trampoline
 
-    ServerResultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
+    resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
       // Convert result
-      ServerResultUtils.validateResult(requestHeaders, unvalidated, errorHandler).map { validated: Result =>
+      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).map { validated: Result =>
         val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
         val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
-        val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, validated)
+        val connectionHeader = resultUtils.determineConnectionHeader(requestHeaders, validated)
         val closeHeader = connectionHeader.header.map(Connection(_))
         val response = HttpResponse(
           status = validated.header.status,
@@ -222,7 +232,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   private def convertResponseHeaders(
     playHeaders: Map[String, String]): AkkaHttpHeaders = {
-    val rawHeaders: Iterable[(String, String)] = ServerResultUtils.splitSetCookieHeaders(playHeaders)
+    val rawHeaders: Iterable[(String, String)] = resultUtils.splitSetCookieHeaders(playHeaders)
     val convertedHeaders: Seq[HttpHeader] = convertHeaders(rawHeaders)
     val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, None)
     convertedHeaders.foldLeft(emptyHeaders) {
