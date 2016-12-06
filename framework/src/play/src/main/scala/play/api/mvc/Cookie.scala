@@ -5,13 +5,14 @@ package play.api.mvc
 
 import java.net.{ URLDecoder, URLEncoder }
 import java.util.Locale
+import javax.inject.Inject
 
 import play.api._
 import play.api.http._
 import play.api.libs.crypto.CookieSigner
-import play.mvc.Http
 import play.mvc.Http.{ Cookie => JCookie }
 
+import scala.collection.immutable.ListMap
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -64,8 +65,27 @@ trait Cookies extends Traversable[Cookie] {
 /**
  * Helper utilities to encode Cookies.
  */
-object Cookies {
-  private def config: CookiesConfiguration = HttpConfiguration.current.cookies
+object Cookies extends CookieHeaderEncoding {
+
+  // Use global state for cookie header configuration
+  override protected def config: CookiesConfiguration = HttpConfiguration.current.cookies
+
+  def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
+    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+
+    override def get(name: String) = cookiesByName.get(name)
+
+    override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+  }
+
+}
+
+/**
+ * Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
+ */
+trait CookieHeaderEncoding {
+
+  protected def config: CookiesConfiguration
 
   /**
    * Play doesn't support multiple values per header, so has to compress cookies into one header. The problem is,
@@ -82,12 +102,6 @@ object Cookies {
   import play.core.netty.utils.DefaultCookie
 
   private val logger = Logger(this.getClass)
-
-  def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
-    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
-    override def get(name: String) = cookiesByName.get(name)
-    override def foreach[U](f: Cookie => U) = cookies.foreach(f)
-  }
 
   def fromSetCookieHeader(header: Option[String]): Cookies = header match {
     case Some(headerValue) => fromMap(
@@ -209,16 +223,9 @@ object Cookies {
    * @return a valid Set-Cookie header value
    */
   def mergeSetCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String = {
-    val tupledCookies = (decodeSetCookieHeader(cookieHeader) ++ cookies).map { c =>
-      // See rfc6265#section-4.1.2
-      // Secure and http-only attributes are not considered when testing if
-      // two cookies are overlapping.
-      (c.name, c.path, c.domain.map(_.toLowerCase(Locale.ENGLISH))) -> c
-    }
-    // Put cookies in a map
-    // Note: Seq.toMap do not preserve order
-    val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
-    encodeSetCookieHeader(uniqCookies.values.toSeq)
+    val rawCookies = decodeSetCookieHeader(cookieHeader) ++ cookies
+    val mergedCookies: Seq[Cookie] = CookieHeaderMerging.mergeSetCookieHeaderCookies(rawCookies)
+    encodeSetCookieHeader(mergedCookies)
   }
 
   /**
@@ -229,11 +236,49 @@ object Cookies {
    * @return a valid Cookie header value
    */
   def mergeCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String = {
-    val tupledCookies = (decodeCookieHeader(cookieHeader) ++ cookies).map(cookie => cookie.name -> cookie)
-    // Put cookies in a map
-    // Note: Seq.toMap do not preserve order
-    val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
-    encodeCookieHeader(uniqCookies.values.toSeq)
+    val rawCookies = decodeCookieHeader(cookieHeader) ++ cookies
+    val mergedCookies: Seq[Cookie] = CookieHeaderMerging.mergeCookieHeaderCookies(rawCookies)
+    encodeCookieHeader(mergedCookies)
+  }
+}
+
+/**
+ * The default implementation of `CookieHeaders`.
+ */
+class DefaultCookieHeaderEncoding @Inject() (
+  override protected val config: CookiesConfiguration = CookiesConfiguration()) extends CookieHeaderEncoding
+
+/**
+ * Utilities for merging individual cookie values in HTTP cookie headers.
+ */
+object CookieHeaderMerging {
+
+  /**
+   * Merge the elements in a sequence so that there is only one occurrence of
+   * elements when mapped by a discriminator function.
+   */
+  private def mergeOn[A, B](input: Traversable[A], f: A => B): Seq[A] = {
+    val withMergeValue: Seq[(B, A)] = input.toSeq.map(el => (f(el), el))
+    ListMap(withMergeValue: _*).values.toSeq
+  }
+
+  /**
+   * Merges the cookies contained in a `Set-Cookie` header so that there's
+   * only one cookie for each name/path/domain triple.
+   */
+  def mergeSetCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+    // See rfc6265#section-4.1.2
+    // Secure and http-only attributes are not considered when testing if
+    // two cookies are overlapping.
+    mergeOn(unmerged, (c: Cookie) => (c.name, c.path, c.domain.map(_.toLowerCase(Locale.ENGLISH))))
+  }
+
+  /**
+   * Merges the cookies contained in a `Cookie` header so that there's
+   * only one cookie for each name.
+   */
+  def mergeCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+    mergeOn(unmerged, (c: Cookie) => c.name)
   }
 }
 

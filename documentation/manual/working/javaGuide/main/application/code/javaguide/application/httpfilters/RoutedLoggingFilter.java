@@ -10,8 +10,9 @@ import java.util.Map;
 import javax.inject.Inject;
 import akka.stream.Materializer;
 import play.Logger;
+import play.api.routing.HandlerDef;
 import play.mvc.*;
-import play.routing.Router.Tags;
+import play.routing.Router;
 
 public class RoutedLoggingFilter extends Filter {
 
@@ -26,9 +27,8 @@ public class RoutedLoggingFilter extends Filter {
             Http.RequestHeader requestHeader) {
         long startTime = System.currentTimeMillis();
         return nextFilter.apply(requestHeader).thenApply(result -> {
-            Map<String, String> tags = requestHeader.tags();
-            String actionMethod = tags.get(Tags.ROUTE_CONTROLLER) +
-                "." + tags.get(Tags.ROUTE_ACTION_METHOD);
+            HandlerDef handlerDef = requestHeader.attrs().get(Router.Attrs.HANDLER_DEF);
+            String actionMethod = handlerDef.controller() + "." + handlerDef.method();
             long endTime = System.currentTimeMillis();
             long requestTime = endTime - startTime;
 

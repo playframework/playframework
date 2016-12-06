@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import javax.inject.{ Inject, Provider }
+import javax.inject.Inject
 
 import play.api.http.{ FlashConfiguration, HttpConfiguration, SessionConfiguration }
 import play.mvc.Http

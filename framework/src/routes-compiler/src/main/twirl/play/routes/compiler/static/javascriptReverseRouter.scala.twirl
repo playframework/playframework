@@ -5,9 +5,9 @@
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
 
-import play.api.routing.JavaScriptReverseRoute
+import play.api.routing.@ob HandlerDef, JavaScriptReverseRoute @cb
 import play.api.mvc.@ob QueryStringBindable, PathBindable, Call, JavascriptLiteral @cb
-import play.core.routing.@ob HandlerDef, ReverseRouteContext, queryString, dynamicString @cb
+import play.core.routing.@ob ReverseRouteContext, queryString, dynamicString @cb
 
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}

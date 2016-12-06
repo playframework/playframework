@@ -3,32 +3,35 @@
  */
 package play.core.server.netty
 
-import java.net.{ InetSocketAddress, URI }
+import java.net.{ InetAddress, InetSocketAddress, URI }
 import java.security.cert.X509Certificate
 import java.time.Instant
-import javax.net.ssl.SSLEngine
-import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.{ SSLEngine, SSLPeerUnverifiedException }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import com.typesafe.netty.http.{ DefaultStreamedHttpResponse, StreamedHttpRequest }
 import io.netty.buffer.{ ByteBuf, Unpooled }
+import io.netty.channel.Channel
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import play.api.Logger
-import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http.{ HttpChunk, HttpEntity, HttpErrorHandler }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
+import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 
-private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
+private[server] class NettyModelConversion(
+    resultUtils: ServerResultUtils,
+    forwardedHeaderHandler: ForwardedHeaderHandler) {
 
   private val logger = Logger(classOf[NettyModelConversion])
 
@@ -40,105 +43,114 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     if (withoutQueryString.isEmpty) "/" else withoutQueryString
   }
 
-  private def parseUri(rawUri: String): (String, Map[String, Seq[String]]) = {
-    // wrapping into URI to handle absoluteURI and Failures
-    val javaUri = new URI(rawUri)
-    val path = Option(javaUri.getRawPath).getOrElse {
-      // if the URI has no path, this will trigger a 400 error
-      throw new IllegalStateException(s"Cannot parse path from URI: ${pathError(rawUri)}")
-    }
-    val decoder = new QueryStringDecoder(javaUri)
-    val parameters: Map[String, Seq[String]] = {
-      val decodedParameters = decoder.parameters()
-      if (decodedParameters.isEmpty) Map.empty
-      else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
-    }
-    (path, parameters)
-  }
-
   /**
    * Convert a Netty request to a Play RequestHeader.
    *
    * Will return a failure if there's a protocol error or some other error in the header.
    */
   def convertRequest(
-    requestId: Long,
-    remoteAddress: InetSocketAddress,
-    sslHandler: Option[SslHandler],
+    channel: Channel,
     request: HttpRequest): Try[RequestHeader] = {
 
     if (request.getDecoderResult.isFailure) {
       Failure(request.getDecoderResult.cause())
     } else {
-      tryToCreateRequest(request, requestId, remoteAddress, sslHandler)
+      tryToCreateRequest(channel, request)
     }
   }
 
   /** Try to create the request. May fail if the path is invalid */
-  private def tryToCreateRequest(request: HttpRequest, requestId: Long, remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]): Try[RequestHeader] = {
+  private def tryToCreateRequest(channel: Channel, request: HttpRequest): Try[RequestHeader] = {
     Try {
-      val (path, parameters) = parseUri(request.getUri)
-      createRequestHeader(request, requestId, path, parameters, remoteAddress, sslHandler)
+      val target: RequestTarget = createRequestTarget(request)
+      createRequestHeader(channel, request, target)
     }
   }
 
-  /** Create the request header */
-  private def createRequestHeader(request: HttpRequest, requestId: Long, parsedPath: String,
-    parameters: Map[String, Seq[String]], _remoteAddress: InetSocketAddress,
-    sslHandler: Option[SslHandler]): RequestHeader = {
-
-    new RequestHeader with WithAttrMap[RequestHeader] {
-      override val id = requestId
-      override val tags = Map.empty[String, String]
-      override def uri = request.getUri
-      override def path = parsedPath
-      override def method = request.getMethod.name()
-      override def version = request.getProtocolVersion.text()
-      override def queryString = parameters
-      override val headers = new NettyHeadersWrapper(request.headers)
-      private lazy val remoteConnection: ConnectionInfo = {
-        forwardedHeaderHandler.remoteConnection(_remoteAddress.getAddress, sslHandler.isDefined, headers)
-      }
-      override def remoteAddress = remoteConnection.address.getHostAddress
-      override def secure = remoteConnection.secure
-      override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
-      override protected def attrMap = TypedMap.empty
-      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
-    }
-  }
-
-  /** Create an unparsed request header. Used when even Netty couldn't parse the request. */
-  def createUnparsedRequestHeader(requestId: Long, request: HttpRequest, _remoteAddress: InetSocketAddress, sslHandler: Option[SslHandler]) = {
-
-    new RequestHeader with WithAttrMap[RequestHeader] {
-      override def id = requestId
-      override def tags = Map.empty[String, String]
-      override def uri = request.getUri
-      override lazy val path = pathError(request.getUri)
-      override def method = request.getMethod.name()
-      override def version = request.getProtocolVersion.text()
-      override lazy val queryString: Map[String, Seq[String]] = {
-        // Very rough parse of query string that doesn't decode
-        if (request.getUri.contains("?")) {
-          request.getUri.split("\\?", 2)(1).split('&').map { keyPair =>
-            keyPair.split("=", 2) match {
-              case Array(key) => key -> ""
-              case Array(key, value) => key -> value
-            }
-          }.groupBy(_._1).map {
-            case (name, values) => name -> values.map(_._2).toSeq
+  /** Capture a request's connection info from its channel and headers. */
+  private def createRemoteConnection(channel: Channel, headers: Headers): RemoteConnection = {
+    val rawConnection = new RemoteConnection {
+      override lazy val remoteAddress: InetAddress = channel.remoteAddress().asInstanceOf[InetSocketAddress].getAddress
+      private val sslHandler = Option(channel.pipeline().get(classOf[SslHandler]))
+      override def secure: Boolean = sslHandler.isDefined
+      override lazy val clientCertificateChain: Option[Seq[X509Certificate]] = {
+        try {
+          sslHandler.map { handler =>
+            handler.engine.getSession.getPeerCertificates.toSeq.collect { case x509: X509Certificate => x509 }
           }
-        } else {
-          Map.empty
+        } catch {
+          case e: SSLPeerUnverifiedException => None
         }
       }
-      override val headers = new NettyHeadersWrapper(request.headers)
-      override def remoteAddress = _remoteAddress.getAddress.toString
-      override def secure = sslHandler.isDefined
-      override lazy val clientCertificateChain = clientCertificatesFromSslEngine(sslHandler.map(_.engine()))
-      override protected def attrMap = TypedMap.empty
-      override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(this, newAttrMap)
     }
+    forwardedHeaderHandler.forwardedConnection(rawConnection, headers)
+  }
+
+  /** Create request target information from a Netty request. */
+  private def createRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
+    override val uri: URI = new URI(uriString)
+    override def uriString: String = request.getUri
+    override val path = uri.getRawPath
+    if (path == null) {
+      // if the URI has no path, this will trigger a 400 error
+      throw new IllegalStateException(s"Cannot parse path from URI: $uriString")
+    }
+    override lazy val queryMap: Map[String, Seq[String]] = {
+      val decoder = new QueryStringDecoder(uri)
+      val decodedParameters = decoder.parameters()
+      if (decodedParameters.isEmpty) Map.empty
+      else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
+    }
+  }
+
+  /**
+   * Create request target information from a Netty request where
+   * there was a parsing failure.
+   */
+  def createUnparsedRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
+    override lazy val uri: URI = new URI(uriString)
+    override def uriString = request.getUri
+    override lazy val path = {
+      // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
+      // path, and don't decode.
+      // RICH: This looks like a source of potential security bugs to me!
+      val withoutHost = uriString.dropWhile(_ != '/')
+      val withoutQueryString = withoutHost.split('?').head
+      if (withoutQueryString.isEmpty) "/" else withoutQueryString
+    }
+    override lazy val queryMap: Map[String, Seq[String]] = {
+      // Very rough parse of query string that doesn't decode
+      if (request.getUri.contains("?")) {
+        request.getUri.split("\\?", 2)(1).split('&').map { keyPair =>
+          keyPair.split("=", 2) match {
+            case Array(key) => key -> ""
+            case Array(key, value) => key -> value
+          }
+        }.groupBy(_._1).map {
+          case (name, values) => name -> values.map(_._2).toSeq
+        }
+      } else {
+        Map.empty
+      }
+    }
+  }
+
+  /**
+   * Create the request header. This header is not created with the application's
+   * RequestFactory, simply because we don't yet have an application at this phase
+   * of request processing. We'll pass it through the application's RequestFactory
+   * later.
+   */
+  def createRequestHeader(channel: Channel, request: HttpRequest, target: RequestTarget): RequestHeader = {
+    val headers = new NettyHeadersWrapper(request.headers)
+    new RequestHeaderImpl(
+      createRemoteConnection(channel, headers),
+      request.getMethod.name(),
+      target,
+      request.getProtocolVersion.text(),
+      headers,
+      TypedMap.empty
+    )
   }
 
   /** Create the source for the request body */
@@ -172,20 +184,20 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     httpVersion: HttpVersion,
     errorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[HttpResponse] = {
 
-    ServerResultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
+    resultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
 
       val responseStatus = result.header.reasonPhrase match {
         case Some(phrase) => new HttpResponseStatus(result.header.status, phrase)
         case None => HttpResponseStatus.valueOf(result.header.status)
       }
 
-      val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeader, result)
+      val connectionHeader = resultUtils.determineConnectionHeader(requestHeader, result)
       val skipEntity = requestHeader.method == HttpMethod.HEAD.name()
 
       val response: HttpResponse = result.body match {
 
         case any if skipEntity =>
-          ServerResultUtils.cancelEntity(any)
+          resultUtils.cancelEntity(any)
           new DefaultFullHttpResponse(httpVersion, responseStatus, Unpooled.EMPTY_BUFFER)
 
         case HttpEntity.Strict(data, _) =>
@@ -199,14 +211,14 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
       }
 
       // Set response headers
-      val headers = ServerResultUtils.splitSetCookieHeaders(result.header.headers)
+      val headers = resultUtils.splitSetCookieHeaders(result.header.headers)
 
       headers foreach {
         case (name, value) => response.headers().add(name, value)
       }
 
       // Content type and length
-      if (ServerResultUtils.mayHaveEntity(result.header.status)) {
+      if (resultUtils.mayHaveEntity(result.header.status)) {
         result.body.contentLength.foreach { contentLength =>
           if (HttpHeaders.isContentLengthSet(response)) {
             val manualContentLength = response.headers.get(CONTENT_LENGTH)

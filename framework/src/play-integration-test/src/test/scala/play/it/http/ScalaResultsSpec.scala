@@ -11,11 +11,12 @@ import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
 
+  def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding = app.injector.instanceOf[CookieHeaderEncoding]
   def sessionBaker(implicit app: Application): CookieBaker[Session] = app.injector.instanceOf[SessionCookieBaker]
   def flashBaker(implicit app: Application): CookieBaker[Flash] = app.injector.instanceOf[FlashCookieBaker]
 
   def bake(result: Result)(implicit app: Application): Result = {
-    result.bakeCookies(sessionBaker, flashBaker)
+    result.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker)
   }
 
   def cookies(result: Result)(implicit app: Application): Seq[Cookie] = {

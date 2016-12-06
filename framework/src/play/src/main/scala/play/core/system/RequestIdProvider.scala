@@ -6,5 +6,6 @@ package play.core.system
 import java.util.concurrent.atomic.AtomicLong
 
 private[play] object RequestIdProvider {
-  val requestIDs: AtomicLong = new AtomicLong(0)
+  private val requestIDs: AtomicLong = new AtomicLong(0)
+  def freshId(): Long = requestIDs.incrementAndGet()
 }

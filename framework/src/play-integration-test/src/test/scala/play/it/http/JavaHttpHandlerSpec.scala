@@ -28,7 +28,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
   val TestAttr = TypedKey[String]("testAttr")
   val javaHandler: JavaHandler = new JavaHandler {
     override def withComponents(components: JavaHandlerComponents): Handler = {
-      ActionBuilder.ignoringBody { req => Results.Ok(req.getAttr(TestAttr).toString) }
+      ActionBuilder.ignoringBody { req => Results.Ok(req.attrs.get(TestAttr).toString) }
     }
   }
 
@@ -37,7 +37,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
       response.body must beEqualTo("None")
     }
     "route a modified request to a JavaHandler's Action" in handlerResponse(
-      Handler.Stage.modifyRequest(_.withAttr(TestAttr, "Hello!"), javaHandler)
+      Handler.Stage.modifyRequest(req => req.withAttrs(req.attrs.updated(TestAttr, "Hello!")), javaHandler)
     ) { response =>
         response.body must beEqualTo("Some(Hello!)")
       }

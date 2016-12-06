@@ -95,7 +95,7 @@ class ScalaCsrf extends PlaySpecification {
       }
       //#csrf-check
 
-      await(save(FakeRequest("POST", "/").withCookies(Cookie("foo", "bar"))
+      await(save(FakeRequest("POST", "/").withHeaders("Cookie" -> "foo=bar")
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")))
         .header.status must_== FORBIDDEN
     }
@@ -157,7 +157,7 @@ class ScalaCsrf extends PlaySpecification {
       }
       //#csrf-actions
 
-      await(save(FakeRequest("POST", "/").withCookies(Cookie("foo", "bar"))
+      await(save(FakeRequest("POST", "/").withHeaders("Cookie" -> "foo=bar")
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")))
         .header.status must_== FORBIDDEN
       val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))

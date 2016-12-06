@@ -13,7 +13,7 @@ class Cookies_01_ReadCookieFromHeader {
 
   @Setup(Level.Iteration)
   def setup(): Unit = {
-    requestHeader = MvcHelpers.requestHeader(List(
+    requestHeader = MvcHelpers.requestHeaderFromHeaders(List(
       "Accept-Encoding" -> "gzip, deflate, sdch, br",
       "Host" -> "www.playframework.com",
       "Accept-Language" -> "en-US,en;q=0.8",

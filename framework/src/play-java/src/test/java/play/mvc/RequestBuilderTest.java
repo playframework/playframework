@@ -7,9 +7,8 @@ import akka.stream.javadsl.Source;
 import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
-import play.api.libs.typedmap.TypedKey;
-import play.api.libs.typedmap.TypedKeyFactory;
 import play.core.j.JavaContextComponents;
+import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
@@ -50,55 +49,59 @@ public class RequestBuilderTest {
 
     @Test
     public void testAttrs() {
-        final TypedKey<Long> NUMBER = TypedKeyFactory.create("number");
-        final TypedKey<String> COLOR = TypedKeyFactory.create("color");
+        final TypedKey<Long> NUMBER = TypedKey.create("number");
+        final TypedKey<String> COLOR = TypedKey.create("color");
 
         RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
-        assertFalse(builder.getAttr(NUMBER).isPresent());
-        assertFalse(builder.getAttr(COLOR).isPresent());
+        assertFalse(builder.attrs().containsKey(NUMBER));
+        assertFalse(builder.attrs().containsKey(COLOR));
 
         Request req1 = builder.build();
 
-        builder.putAttr(NUMBER, 6L);
-        assertTrue(builder.getAttr(NUMBER).isPresent());
-        assertFalse(builder.getAttr(COLOR).isPresent());
+        builder.attr(NUMBER, 6L);
+        assertTrue(builder.attrs().containsKey(NUMBER));
+        assertFalse(builder.attrs().containsKey(COLOR));
+
         Request req2 = builder.build();
 
-        builder.putAttr(NUMBER, 70L);
-        assertTrue(builder.getAttr(NUMBER).isPresent());
-        assertFalse(builder.getAttr(COLOR).isPresent());
+        builder.attr(NUMBER, 70L);
+        assertTrue(builder.attrs().containsKey(NUMBER));
+        assertFalse(builder.attrs().containsKey(COLOR));
+
         Request req3 = builder.build();
 
-        builder.putAttrs(NUMBER.bindValue(6L), COLOR.bindValue("blue"));
-        assertTrue(builder.getAttr(NUMBER).isPresent());
-        assertTrue(builder.getAttr(COLOR).isPresent());
+        builder.attrs(builder.attrs().putAll(NUMBER.bindValue(6L), COLOR.bindValue("blue")));
+        assertTrue(builder.attrs().containsKey(NUMBER));
+        assertTrue(builder.attrs().containsKey(COLOR));
+
         Request req4 = builder.build();
 
-        builder.putAttrs(COLOR.bindValue("red"));
-        assertTrue(builder.getAttr(NUMBER).isPresent());
-        assertTrue(builder.getAttr(COLOR).isPresent());
+        builder.attrs(builder.attrs().putAll(COLOR.bindValue("red")));
+        assertTrue(builder.attrs().containsKey(NUMBER));
+        assertTrue(builder.attrs().containsKey(COLOR));
+
         Request req5 = builder.build();
 
-        assertFalse(req1.getAttr(NUMBER).isPresent());
-        assertFalse(req1.getAttr(COLOR).isPresent());
+        assertFalse(req1.attrs().containsKey(NUMBER));
+        assertFalse(req1.attrs().containsKey(COLOR));
 
-        assertEquals(Optional.of(6L), req2.getAttr(NUMBER));
-        assertEquals((Long) 6L, req2.attr(NUMBER));
-        assertFalse(req2.getAttr(COLOR).isPresent());
+        assertEquals(Optional.of(6L), req2.attrs().getOptional(NUMBER));
+        assertEquals((Long) 6L, req2.attrs().get(NUMBER));
+        assertFalse(req2.attrs().containsKey(COLOR));
 
-        assertEquals(Optional.of(70L), req3.getAttr(NUMBER));
-        assertEquals((Long) 70L, req3.attr(NUMBER));
-        assertFalse(req3.getAttr(COLOR).isPresent());
+        assertEquals(Optional.of(70L), req3.attrs().getOptional(NUMBER));
+        assertEquals((Long) 70L, req3.attrs().get(NUMBER));
+        assertFalse(req3.attrs().containsKey(COLOR));
 
-        assertEquals(Optional.of(6L), req4.getAttr(NUMBER));
-        assertEquals((Long) 6L, req4.attr(NUMBER));
-        assertEquals(Optional.of("blue"), req4.getAttr(COLOR));
-        assertEquals("blue", req4.attr(COLOR));
+        assertEquals(Optional.of(6L), req4.attrs().getOptional(NUMBER));
+        assertEquals((Long) 6L, req4.attrs().get(NUMBER));
+        assertEquals(Optional.of("blue"), req4.attrs().getOptional(COLOR));
+        assertEquals("blue", req4.attrs().get(COLOR));
 
-        assertEquals(Optional.of(6L), req5.getAttr(NUMBER));
-        assertEquals((Long) 6L, req5.attr(NUMBER));
-        assertEquals(Optional.of("red"), req5.getAttr(COLOR));
-        assertEquals("red", req5.attr(COLOR));
+        assertEquals(Optional.of(6L), req5.attrs().getOptional(NUMBER));
+        assertEquals((Long) 6L, req5.attrs().get(NUMBER));
+        assertEquals(Optional.of("red"), req5.attrs().getOptional(COLOR));
+        assertEquals("red", req5.attrs().get(COLOR));
     }
 
     @Test
@@ -106,7 +109,8 @@ public class RequestBuilderTest {
         Application app = new GuiceApplicationBuilder().build();
         Play.start(app);
         JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
-        Context ctx = new Context(new RequestBuilder().flash("a","1").flash("b","1").flash("b","2"), contextComponents);
+        RequestBuilder builder = new RequestBuilder().flash("a","1").flash("b","1").flash("b","2");
+        Context ctx = new Context(builder, contextComponents);
         assertEquals("1", ctx.flash().get("a"));
         assertEquals("2", ctx.flash().get("b"));
     }
@@ -127,25 +131,25 @@ public class RequestBuilderTest {
     public void testUsername() {
         final Request req1 =
             new RequestBuilder().uri("http://playframework.com/").build();
-        final Request req2 = req1.withAttr(Security.USERNAME, "user2");
+        final Request req2 = req1.withAttrs(req1.attrs().put(Security.USERNAME, "user2"));
         final Request req3 = req1.withUsername("user3");
         final Request req4 =
                 new RequestBuilder().uri("http://playframework.com/").username("user4").build();
 
         assertNull(req1.username());
-        assertFalse(req1.getAttr(Security.USERNAME).isPresent());
+        assertFalse(req1.attrs().containsKey(Security.USERNAME));
 
         assertEquals("user2", req2.username());
-        assertTrue(req2.getAttr(Security.USERNAME).isPresent());
-        assertEquals("user2", req2.attr(Security.USERNAME));
+        assertTrue(req2.attrs().containsKey(Security.USERNAME));
+        assertEquals("user2", req2.attrs().get(Security.USERNAME));
 
         assertEquals("user3", req3.username());
-        assertTrue(req3.getAttr(Security.USERNAME).isPresent());
-        assertEquals("user3", req3.attr(Security.USERNAME));
+        assertTrue(req3.attrs().containsKey(Security.USERNAME));
+        assertEquals("user3", req3.attrs().get(Security.USERNAME));
 
         assertEquals("user4", req4.username());
-        assertTrue(req4.getAttr(Security.USERNAME).isPresent());
-        assertEquals("user4", req4.attr(Security.USERNAME));
+        assertTrue(req4.attrs().containsKey(Security.USERNAME));
+        assertEquals("user4", req4.attrs().get(Security.USERNAME));
     }
 
     @Test

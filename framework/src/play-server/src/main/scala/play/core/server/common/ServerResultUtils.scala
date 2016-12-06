@@ -11,12 +11,18 @@ import play.api.mvc._
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
+import play.api.mvc.request.RequestAttrKey
+
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-object ServerResultUtils {
+private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration) {
 
-  private val logger = Logger(ServerResultUtils.getClass)
+  val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(httpConfiguration.cookies)
+  val sessionBaker: SessionCookieBaker = new DefaultSessionCookieBaker(httpConfiguration.session)
+  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.session)
+
+  private val logger = Logger(getClass)
 
   /**
    * Determine whether the connection should be closed, and what header, if any, should be added to the response.
@@ -203,11 +209,21 @@ object ServerResultUtils {
   /**
    * Bake the cookies and prepare the new Set-Cookie header.
    */
-  def prepareCookies(requestHeader: RequestHeader, result: Result, httpConfiguration: HttpConfiguration): Result = {
-    val sessionBaker = new DefaultSessionCookieBaker(httpConfiguration.session)
-    val flashBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.session)
-
-    result.bakeCookies(sessionBaker, flashBaker, !requestHeader.flash.isEmpty)
+  def prepareCookies(requestHeader: RequestHeader, result: Result): Result = {
+    val requestHasFlash = requestHeader.attrs.get(RequestAttrKey.Flash) match {
+      case None =>
+        // The request didn't have a flash object in it, either because we
+        // used a custom RequestFactory which didn't install the flash object
+        // or because there was an error in request processing which caused
+        // us to bypass the application's RequestFactory. In this case we
+        // can assume that there is no flash object we need to clear.
+        false
+      case Some(flashCell) =>
+        // The request had a flash object and it was non-empty, so the flash
+        // cookie value may need to be cleared.
+        !flashCell.value.isEmpty
+    }
+    result.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker, requestHasFlash)
   }
 
   /**
@@ -223,7 +239,7 @@ object ServerResultUtils {
       // Rewrite the headers with Set-Cookie split into separate headers
       headers.to[Seq].flatMap {
         case (SET_COOKIE, value) =>
-          val cookieParts = Cookies.SetCookieHeaderSeparatorRegex.split(value)
+          val cookieParts = cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value)
           cookieParts.map { cookiePart =>
             SET_COOKIE -> cookiePart
           }

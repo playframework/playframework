@@ -51,12 +51,13 @@ class ResultsSpec extends Specification {
     } finally Files.delete(file)
   }
 
+  lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
   lazy val sessionCookieBaker = new DefaultSessionCookieBaker()
   lazy val flashCookieBaker = new DefaultFlashCookieBaker()
 
   // bake the results cookies into the headers
   def bake(result: Result): Result = {
-    result.bakeCookies(sessionCookieBaker, flashCookieBaker)
+    result.bakeCookies(cookieHeaderEncoding, sessionCookieBaker, flashCookieBaker)
   }
 
   "Result" should {

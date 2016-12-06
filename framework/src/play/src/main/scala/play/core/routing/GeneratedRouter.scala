@@ -5,7 +5,7 @@ package play.core.routing
 
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
-import play.api.routing.Router
+import play.api.routing.{ HandlerDef, Router }
 
 /**
  * A route
@@ -71,12 +71,6 @@ case class RouteParams(path: Map[String, Either[Throwable, String]], queryString
   }
 
 }
-
-/**
- * Information about a `Handler`, especially useful for loading the handler
- * with reflection.
- */
-case class HandlerDef(classLoader: ClassLoader, routerPackage: String, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
 
 /**
  * A generated router.
@@ -243,9 +237,11 @@ abstract class GeneratedRouter extends Router {
       play.api.routing.Router.Tags.RouteActionMethod -> handlerDef.method,
       play.api.routing.Router.Tags.RouteComments -> handlerDef.comments
     )
-    val modifyRequestFunc = { rh: RequestHeader =>
+    val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
       val newTags = if (rh.tags.isEmpty) tags else rh.tags ++ tags
-      rh.copy(tags = newTags).withAttr(play.api.routing.Router.HandlerDefAttr, handlerDef)
+      val rh2 = rh.copy(tags = newTags)
+      val rh3 = rh2.withAttrs(rh2.attrs.updated(play.api.routing.Router.Attrs.HandlerDef, handlerDef))
+      rh3
     }
 
     // Wrap the invoker with another invoker that preprocesses requests as they are made,

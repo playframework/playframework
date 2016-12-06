@@ -13,6 +13,7 @@ import play.api._
 import play.api.mvc._
 import play.core.{ ApplicationProvider, DefaultWebCommands }
 import play.api.inject.DefaultApplicationLifecycle
+import play.api.libs.typedmap.TypedMap
 
 import scala.util.{ Failure, Success }
 import scala.concurrent.Future
@@ -49,14 +50,24 @@ trait Server extends ServerWithStop {
     try {
       applicationProvider.handleWebCommand(request) match {
         case Some(result) =>
+          // The ApplicationProvider handled the result
           Left(Future.successful(result))
         case None =>
+          // The ApplicationProvider didn't handle the result, so try
+          // handling it with the Application
           applicationProvider.get match {
             case Success(application) =>
-              application.requestHandler.handlerForRequest(request) match {
-                case (requestHeader, handler) => Right((requestHeader, handler, application))
-              }
-            case Failure(e) => logExceptionAndGetResult(e)
+              // We managed to get an Application, now make a fresh request
+              // using the Application's RequestFactory, then use the Application's
+              // logic to handle that request.
+              val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+              val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+              Right((handlerHeader, handler, application))
+            case Failure(e) =>
+              // The ApplicationProvider couldn't give us an application.
+              // This usually means there was a compile error or a problem
+              // starting the application.
+              logExceptionAndGetResult(e)
           }
       }
     } catch {

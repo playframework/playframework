@@ -211,7 +211,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
     object CustomHeaderFilter extends EssentialFilter {
       def apply(next: EssentialAction) = EssentialAction { request =>
-        next(request.copy(headers = addCustomHeader(request.headers)))
+        next(request.withHeaders(addCustomHeader(request.headers)))
       }
       def addCustomHeader(originalHeaders: Headers): Headers = {
         FakeHeaders(originalHeaders.headers :+ (filterAddedHeaderKey -> filterAddedHeaderVal))

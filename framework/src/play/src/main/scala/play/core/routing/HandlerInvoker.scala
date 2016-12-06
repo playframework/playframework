@@ -10,6 +10,7 @@ import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
+import play.api.routing.HandlerDef
 import play.core.j
 import play.core.j._
 import play.i18n.{ Langs, MessagesApi }

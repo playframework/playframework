@@ -71,7 +71,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfCheck() {
         assertThat(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-            .cookie(Http.Cookie.builder("foo", "bar").build())
+            .header("Cookie", "foo=bar")
             .bodyForm(Collections.singletonMap("foo", "bar")), mat).status(), equalTo(FORBIDDEN));
     }
 
