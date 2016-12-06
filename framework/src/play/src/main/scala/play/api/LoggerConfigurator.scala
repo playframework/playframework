@@ -61,7 +61,7 @@ object LoggerConfigurator {
 
   def apply(classLoader: ClassLoader): Option[LoggerConfigurator] = {
     findFromResources(classLoader).flatMap { className =>
-      apply(className, this.getClass.getClassLoader)
+      apply(className, classLoader)
     }
   }
 
