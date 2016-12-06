@@ -162,6 +162,29 @@ class WritesSpec extends org.specs2.mutable.Specification {
       written must_== Json.obj("bar" -> "Lorem", "time" -> time)
     }
 
+    "be transformed with a value transformation" in {
+      val transformed: Writes[Foo] = Writes.transform(writes) {
+        case (foo, obj @ JsObject(_)) =>
+          obj ++ Json.obj("hash" -> foo.hashCode)
+
+        case (_, v) => v
+      }
+      val foo = Foo("Lorem")
+      val written: JsValue = transformed.writes(foo)
+
+      written must_== Json.obj("bar" -> "Lorem", "hash" -> foo.hashCode)
+    }
+
+    "be transformed with an object transformation" in {
+      val transformed: OWrites[Foo] = OWrites.transform(writes) { (foo, obj) =>
+        obj ++ Json.obj("hash" -> foo.hashCode)
+      }
+      val foo = Foo("Lorem")
+      val written: JsObject = transformed.writes(foo)
+
+      written must_== Json.obj("bar" -> "Lorem", "hash" -> foo.hashCode)
+    }
+
     "be transformed with another OWrites" in {
       val transformed: OWrites[Foo] =
         writes.transform(OWrites[JsObject] { obj =>

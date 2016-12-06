@@ -29,15 +29,14 @@ trait Writes[-A] {
   def writes(o: A): JsValue
 
   /**
-   * Transforms the resulting [[JsValue]] using transformer function
+   * Transforms the resulting [[JsValue]] using transformer function.
    */
   def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A] { a => transformer(this.writes(a)) }
 
   /**
-   * Transforms resulting [[JsValue]] using Writes[JsValue]
+   * Transforms the resulting [[JsValue]] using a `Writes[JsValue]`.
    */
   def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A] { a => transformer.writes(this.writes(a)) }
-
 }
 
 @implicitNotFound(
@@ -47,13 +46,13 @@ trait OWrites[-A] extends Writes[A] {
   def writes(o: A): JsObject
 
   /**
-   * Transforms the resulting [[JsValue]] using transformer function
+   * Transforms the resulting [[JsObject]] using a transformer function.
    */
   def transform(transformer: JsObject => JsObject): OWrites[A] =
     OWrites[A] { a => transformer(this.writes(a)) }
 
   /**
-   * Transforms resulting [[JsValue]] using Writes[JsValue]
+   * Transforms the resulting [[JsValue]] using a `Writes[JsValue]`.
    */
   def transform(transformer: OWrites[JsObject]): OWrites[A] =
     OWrites[A] { a => transformer.writes(this.writes(a)) }
@@ -78,6 +77,18 @@ object OWrites extends PathWrites with ConstraintWrites {
   def apply[A](f: A => JsObject): OWrites[A] = new OWrites[A] {
     def writes(a: A): JsObject = f(a)
   }
+
+  /**
+   * Transforms the resulting [[JsObject]] using the given function,
+   * which is also applied with the initial input.
+   * def transform(transformer: (A, JsObject) => JsObject): OWrites[A] =
+   * OWrites[A] { a => transformer(a, this.writes(a)) }
+   *
+   * @param w the initial writer
+   * @param f the transformer function
+   */
+  def transform[A](w: OWrites[A])(f: (A, JsObject) => JsObject): OWrites[A] =
+    OWrites[A] { a => f(a, w.writes(a)) }
 }
 
 /**
@@ -88,15 +99,27 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
   val constraints: ConstraintWrites = this
   val path: PathWrites = this
 
-  implicit val contravariantfunctorWrites: ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
-
-    def contramap[A, B](wa: Writes[A], f: B => A): Writes[B] = Writes[B](b => wa.writes(f(b)))
-
-  }
+  implicit val contravariantfunctorWrites: ContravariantFunctor[Writes] =
+    new ContravariantFunctor[Writes] {
+      def contramap[A, B](wa: Writes[A], f: B => A): Writes[B] =
+        Writes[B](b => wa.writes(f(b)))
+    }
 
   def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
     def writes(a: A): JsValue = f(a)
   }
+
+  /**
+   * Transforms the resulting [[JsValue]] using the given function,
+   * which is also applied with the initial input.
+   * def transform(transformer: (A, JsValue) => JsValue): Writes[A] =
+   * Writes[A] { a => transformer(a, this.writes(a)) }
+   *
+   * @param w the initial writer
+   * @param f the transformer function
+   */
+  def transform[A](w: Writes[A])(f: (A, JsValue) => JsValue): Writes[A] =
+    Writes[A] { a => f(a, w.writes(a)) }
 }
 
 /**
