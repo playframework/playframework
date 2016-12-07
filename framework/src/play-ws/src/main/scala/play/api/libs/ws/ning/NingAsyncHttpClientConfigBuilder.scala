@@ -27,13 +27,9 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
   def build(): AsyncHttpClientConfig = {
     configureWS(config)
 
-    config.acceptAnyCertificate match {
-      case Some(true) =>
-      // lean on the AsyncHttpClient bug
+    val acceptAnyCertificate = config.acceptAnyCertificate.getOrElse(false)
+    configureSSL(acceptAnyCertificate, config.ssl.getOrElse(DefaultSSLConfig()))
 
-      case _ =>
-        configureSSL(config.ssl.getOrElse(DefaultSSLConfig()))
-    }
     builder.build()
   }
 
@@ -104,47 +100,55 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
   /**
    * Configures the SSL.  Can use the system SSLContext.getDefault() if "ws.ssl.default" is set.
    */
-  def configureSSL(sslConfig: SSLConfig) {
+  def configureSSL(acceptAnyCertificate: Boolean, sslConfig: SSLConfig) {
 
     // context!
-    val useDefault = sslConfig.default.getOrElse(false)
-    val sslContext = if (useDefault) {
-      logger.info("buildSSLContext: ws.ssl.default is true, using default SSLContext")
-      validateDefaultTrustManager(sslConfig)
-      SSLContext.getDefault
-    } else {
-      // break out the static methods as much as we can...
-      val keyManagerFactory = buildKeyManagerFactory(sslConfig)
-      val trustManagerFactory = buildTrustManagerFactory(sslConfig)
-      new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory).build()
-    }
+    val sslContext = configureContext(acceptAnyCertificate, sslConfig)
+
+    // Set up the engine parameters -- this is cloned, and changes are applied to the SSLEngine.
+    val engineParams = sslContext.getDefaultSSLParameters
 
     // protocols!
-    val defaultParams = sslContext.getDefaultSSLParameters
-    val defaultProtocols = defaultParams.getProtocols
+    val defaultProtocols = engineParams.getProtocols
     val protocols = configureProtocols(defaultProtocols, sslConfig)
-    defaultParams.setProtocols(protocols)
+    engineParams.setProtocols(protocols)
 
     // ciphers!
-    val defaultCiphers = defaultParams.getCipherSuites
+    val defaultCiphers = engineParams.getCipherSuites
     val cipherSuites = configureCipherSuites(defaultCiphers, sslConfig)
-    defaultParams.setCipherSuites(cipherSuites)
-
-    val sslEngineFactory = new DefaultSSLEngineFactory(sslConfig, sslContext, enabledProtocols = protocols, enabledCipherSuites = cipherSuites)
+    engineParams.setCipherSuites(cipherSuites)
 
     // Hostname Processing
     val disableHostnameVerification = sslConfig.loose.flatMap(_.disableHostnameVerification).getOrElse(false)
-    if (!disableHostnameVerification) {
+    if (disableHostnameVerification) {
+      logger.warn("buildHostnameVerifier: disabling hostname verification because disableHostnameVerification is set")
+    } else if (acceptAnyCertificate) {
+      logger.warn("buildHostnameVerifier: disabling hostname verification because acceptAnyCertificate is set")
+    } else {
       val hostnameVerifier = buildHostnameVerifier(sslConfig)
       builder.setHostnameVerifier(hostnameVerifier)
-    } else {
-      logger.warn("buildHostnameVerifier: disabling hostname verification")
     }
 
     builder.setSSLContext(sslContext)
 
     // Must set SSL engine factory AFTER the ssl context...
+    val sslEngineFactory = new DefaultSSLEngineFactory(sslContext, engineParams)
     builder.setSSLEngineFactory(sslEngineFactory)
+  }
+
+  def configureContext(acceptAnyCertificate: Boolean, sslConfig: SSLConfig): SSLContext = {
+    val useDefault = sslConfig.default.getOrElse(false)
+
+    if (useDefault) {
+      logger.info("configureContext: ws.ssl.default is true, using default SSLContext")
+      validateDefaultTrustManager(sslConfig)
+      SSLContext.getDefault
+    } else {
+      // break out the static methods as much as we can...
+      val keyManagerFactory = buildKeyManagerFactory(sslConfig)
+      val trustManagerFactory = buildTrustManagerFactory(acceptAnyCertificate, sslConfig)
+      new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory, acceptAnyCertificate).build()
+    }
   }
 
   def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {
@@ -152,9 +156,15 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     new DefaultKeyManagerFactoryWrapper(keyManagerAlgorithm)
   }
 
-  def buildTrustManagerFactory(ssl: SSLConfig): TrustManagerFactoryWrapper = {
-    val trustManagerAlgorithm = ssl.trustManagerConfig.flatMap(_.algorithm).getOrElse(TrustManagerFactory.getDefaultAlgorithm)
-    new DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm)
+  def buildTrustManagerFactory(acceptAnyCertificate: Boolean, ssl: SSLConfig): TrustManagerFactoryWrapper = {
+    if (acceptAnyCertificate) {
+      logger.warn("buildTrustManagerFactory: ws.acceptAnyCertificate is true, using AcceptAnyCertificateTrustManagerFactoryWrapper")
+
+      new AcceptAnyCertificateTrustManagerFactoryWrapper()
+    } else {
+      val trustManagerAlgorithm = ssl.trustManagerConfig.flatMap(_.algorithm).getOrElse(TrustManagerFactory.getDefaultAlgorithm)
+      new DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm)
+    }
   }
 
   def buildHostnameVerifier(sslConfig: SSLConfig): HostnameVerifier = {
@@ -194,7 +204,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
         algorithmChecker.checkKeyAlgorithms(cert)
       } catch {
         case e: CertPathValidatorException =>
-          logger.warn("You are using ws.ssl.default=true and have a weak certificate in your default trust store!  (You can modify ws.ssl.disabledKeyAlgorithms to remove this message.)", e)
+          logger.warn("You are using ws.ssl.default=true and have a weak certificate in your default trust store: " + e.getMessage)
       }
     }
   }
@@ -202,15 +212,10 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
   /**
    * Factory that creates an SSLEngine.
    */
-  class DefaultSSLEngineFactory(config: SSLConfig,
-      sslContext: SSLContext,
-      enabledProtocols: Array[String],
-      enabledCipherSuites: Array[String]) extends SSLEngineFactory {
+  class DefaultSSLEngineFactory(sslContext: SSLContext, sslParameters: SSLParameters) extends SSLEngineFactory {
     def newSSLEngine(): SSLEngine = {
       val sslEngine = sslContext.createSSLEngine()
-      sslEngine.setSSLParameters(sslContext.getDefaultSSLParameters)
-      sslEngine.setEnabledProtocols(enabledProtocols)
-      sslEngine.setEnabledCipherSuites(enabledCipherSuites)
+      sslEngine.setSSLParameters(sslParameters)
       sslEngine.setUseClientMode(true)
       sslEngine
     }
