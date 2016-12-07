@@ -99,7 +99,7 @@ object ProdServerStart {
 
     val httpPort = parsePort("http")
     val httpsPort = parsePort("https")
-    if (!(httpPort orElse httpsPort).isDefined) throw ServerStartException("Must provide either an HTTP or HTTPS port")
+    if ((httpPort orElse httpsPort).isEmpty) throw ServerStartException("Must provide either an HTTP or HTTPS port")
 
     val address = configuration.getOptional[String]("play.server.http.address").getOrElse("0.0.0.0")
 
