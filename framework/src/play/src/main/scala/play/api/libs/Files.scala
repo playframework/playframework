@@ -21,7 +21,7 @@ import play.api.inject.ApplicationLifecycle
 import scala.concurrent.Future
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.language.implicitConversions
-import scala.util.Try
+import scala.util.{ Failure, Try }
 import scala.concurrent.duration._
 
 /**
@@ -148,13 +148,7 @@ object Files {
         override def finalizeReferent(): Unit = {
           references.remove(this)
           val path = tempFile.path
-          if (JFiles.exists(path)) {
-            logger.info(s"Removing temporary file ${path.toAbsolutePath} through finalization")
-          }
-          try JFiles.deleteIfExists(path) catch {
-            case e: Exception =>
-              logger.error(s"Cannot delete $path", e)
-          }
+          delete(tempFile)
         }
       }
       references.add(reference)
@@ -162,7 +156,16 @@ object Files {
     }
 
     override def delete(tempFile: TemporaryFile): Try[Boolean] = {
-      Try(JFiles.deleteIfExists(tempFile.path))
+      deletePath(tempFile.path)
+    }
+
+    private def deletePath(path: Path): Try[Boolean] = {
+      logger.debug(s"deletePath: deleting = $path")
+      Try(JFiles.deleteIfExists(path)).recoverWith {
+        case e: Exception =>
+          logger.error(s"Cannot delete $path", e)
+          Failure(e)
+      }
     }
 
     /**
@@ -181,19 +184,13 @@ object Files {
     applicationLifecycle.addStopHook { () =>
       Future.successful(JFiles.walkFileTree(playTempFolder, new SimpleFileVisitor[Path] {
         override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-          logger.warn(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
-          try JFiles.deleteIfExists(path) catch {
-            case e: Exception =>
-              logger.error(s"Cannot delete file $path", e)
-          }
+          logger.debug(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
+          deletePath(path)
           FileVisitResult.CONTINUE
         }
 
         override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-          try JFiles.deleteIfExists(path) catch {
-            case e: Exception =>
-              logger.error(s"Cannot delete directory $path", e)
-          }
+          deletePath(path)
           FileVisitResult.CONTINUE
         }
       }))
