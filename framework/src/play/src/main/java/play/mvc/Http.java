@@ -902,7 +902,7 @@ public class Http {
                 play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(materializedData.size(), materializedData);
                 return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), MultipartFormatter.boundaryToContentType(boundary));
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException("Failure while materializing Multipart/Form Data");
+                throw new RuntimeException("Failure while materializing Multipart/Form Data", e);
             }
         }
 
