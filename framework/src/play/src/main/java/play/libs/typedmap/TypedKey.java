@@ -16,7 +16,7 @@ public final class TypedKey<A> {
     }
 
     /**
-     * Get the underlying Scala TypedKey which this instance wraps.
+     * @return the underlying Scala TypedKey which this instance wraps.
      */
     public play.api.libs.typedmap.TypedKey<A> underlying() {
         return underlying;
