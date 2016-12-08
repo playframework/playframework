@@ -17,8 +17,6 @@ resolvers += Resolver.typesafeRepo("releases")
 
 Snapshots are published daily from our [[Continuous Integration Server|ThirdPartyTools]] to the Sonatype snapshots repository at <https://oss.sonatype.org/content/repositories/snapshots/>.
 
-> **Note:** it's an ivy style repository.
-
 ```scala
 resolvers += Resolver.sonatypeRepo("snapshots")
 ```
