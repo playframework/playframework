@@ -269,8 +269,8 @@ trait RequestHeader {
 
   /**
    * Copy the request.
-   * @deprecated("Use the with* methods instead", "2.6.0")
    */
+  @deprecated("Use the with* methods instead", "2.6.0")
   def copy(
     id: java.lang.Long = null,
     tags: Map[String, String] = null,

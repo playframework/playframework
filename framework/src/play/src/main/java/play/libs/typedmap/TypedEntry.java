@@ -17,14 +17,14 @@ public final class TypedEntry<A> {
     }
 
     /**
-     * Get the key part of this entry.
+     * @return the key part of this entry.
      */
     public TypedKey<A> key() {
         return key;
     }
 
     /**
-     * Get the value part of this entry.
+     * @return the value part of this entry.
      */
     public A value() {
         return value;

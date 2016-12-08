@@ -27,7 +27,7 @@ public final class TypedMap {
     }
 
     /**
-     * Get the underlying Scala TypedMap which this instance wraps.
+     * @return the underlying Scala TypedMap which this instance wraps.
      */
     public play.api.libs.typedmap.TypedMap underlying() {
         return underlying;
@@ -100,14 +100,15 @@ public final class TypedMap {
     private static TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
 
     /**
-     * The empty <code>TypedMap</code> instance.
+     * return the empty <code>TypedMap</code> instance.
      */
     public static TypedMap empty() {
         return empty;
     }
 
     /**
-     * Builds a <code>TypedMap</code> from a list of keys and values.
+     * @param entries the list of typed entries
+     * @return a newly built <code>TypedMap</code> from a list of keys and values.
      */
     public static TypedMap create(TypedEntry<?>... entries) {
         return empty.putAll(entries);

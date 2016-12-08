@@ -526,7 +526,7 @@ public class Http {
         boolean secure();
 
         /**
-         * A map of typed attributes associated with the request.
+         * @return a map of typed attributes associated with the request.
          */
         TypedMap attrs();
 
@@ -757,6 +757,7 @@ public class Http {
          * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from
          * 127.0.0.1 over an insecure connection. The request is created using the given
          * factory.
+         * @param requestFactory the incoming request factory
          */
         public RequestBuilder(RequestFactory requestFactory) {
             req = requestFactory.createRequest(
