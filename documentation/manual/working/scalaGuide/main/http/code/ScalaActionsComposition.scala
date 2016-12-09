@@ -5,6 +5,7 @@
 package scalaguide.http.scalaactionscomposition {
 
 import javax.inject.Inject
+
 import akka.actor._
 import akka.stream.ActorMaterializer
 import play.api.http._
@@ -16,9 +17,11 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
 import play.api.mvc.Controller
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import org.specs2.execute.AsResult
+import play.api.libs.Files.SingletonTemporaryFileCreator
 
 case class User(name: String)
 object User {
@@ -45,7 +48,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -97,7 +100,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -212,7 +215,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer())
+      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val userAction = new UserAction(parser)
 
       def currentUser = userAction { request =>

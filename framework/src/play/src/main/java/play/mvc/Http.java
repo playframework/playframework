@@ -23,6 +23,7 @@ import play.i18n.Lang;
 import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.libs.Files;
 import play.libs.Json;
 import play.libs.XML;
 import play.libs.typedmap.TypedKey;
@@ -837,14 +838,15 @@ public class Http {
         }
 
         /**
-         * Set a Binary Data to this request.
+         * Set a Binary Data to this request using a singleton temp file creator
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
          *
          * @param data the Binary Data
          * @return the modified builder
          */
         public RequestBuilder bodyRaw(ByteString data) {
-            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), data);
+            final Files.TemporaryFileCreator tempFileCreator = Files.singletonTemporaryFileCreator();
+            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
             return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), "application/octet-stream");
         }
 
@@ -853,10 +855,36 @@ public class Http {
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
          *
          * @param data the Binary Data
+         * @param tempFileCreator the temporary file creator for binary data.
+         * @return the modified builder
+         */
+        public RequestBuilder bodyRaw(ByteString data, Files.TemporaryFileCreator tempFileCreator) {
+            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
+            return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), "application/octet-stream");
+        }
+
+        /**
+         * Set a Binary Data to this request using a singleton temporary file creator.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         *
+         * @param data the Binary Data
          * @return the modified builder
          */
         public RequestBuilder bodyRaw(byte[] data) {
-            return bodyRaw(ByteString.fromArray(data));
+            Files.TemporaryFileCreator tempFileCreator = Files.singletonTemporaryFileCreator();
+            return bodyRaw(ByteString.fromArray(data), tempFileCreator);
+        }
+
+        /**
+         * Set a Binary Data to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         *
+         * @param data the Binary Data
+         * @param tempFileCreator the temporary file creator for binary data.
+         * @return the modified builder
+         */
+        public RequestBuilder bodyRaw(byte[] data, Files.TemporaryFileCreator tempFileCreator) {
+            return bodyRaw(ByteString.fromArray(data), tempFileCreator);
         }
 
         /**
@@ -887,10 +915,11 @@ public class Http {
          * Set a Multipart Form url encoded body to this request.
          *
          * @param data the multipart-form parameters
+         * @param temporaryFileCreator the temporary file creator.
          * @param mat a Akka Streams Materializer
          * @return the modified builder
          */
-        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Materializer mat) {
+        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
             String boundary = MultipartFormatter.randomBoundary();
             try {
                 ByteString materializedData = MultipartFormatter
@@ -899,7 +928,7 @@ public class Http {
                         .toCompletableFuture()
                         .get();
 
-                play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(materializedData.size(), materializedData);
+                play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(materializedData.size(), temporaryFileCreator.asScala(), materializedData);
                 return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), MultipartFormatter.boundaryToContentType(boundary));
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Failure while materializing Multipart/Form Data", e);

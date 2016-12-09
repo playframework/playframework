@@ -58,10 +58,10 @@ class MultipartFormDataParserSpec extends PlaySpecification {
         parts.dataParts.get("noQuotesText1:colon") must_== Some(Seq("text field with unquoted name and colon"))
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
         }
         parts.file("file2") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the second file\r\n"
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
         }
     }
   }

@@ -6,6 +6,7 @@ package play.inject;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
+import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
@@ -21,6 +22,7 @@ public class BuiltInModule extends play.api.inject.Module {
           bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
           bind(CSRFTokenSigner.class).to(DefaultCSRFTokenSigner.class),
           bind(CookieSigner.class).to(HMACSHA1CookieSigner.class),
+          bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
           bind(FileMimeTypes.class).toSelf()
         );
     }

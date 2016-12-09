@@ -12,6 +12,7 @@ import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.api.http.{ DefaultHttpErrorHandler, ParserConfiguration }
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc.{ PlayBodyParsers, RawBuffer }
 import play.core.j.JavaParsers
 import play.core.test.FakeRequest
@@ -23,7 +24,8 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
   implicit val system = ActorSystem("content-types-spec")
   implicit val materializer = ActorMaterializer()(system)
-  val parsers = PlayBodyParsers(ParserConfiguration(), DefaultHttpErrorHandler, materializer)
+  val tempFileCreator = SingletonTemporaryFileCreator
+  val parsers = PlayBodyParsers(ParserConfiguration(), DefaultHttpErrorHandler, materializer, tempFileCreator)
 
   def afterAll(): Unit = {
     materializer.shutdown()
@@ -68,7 +70,8 @@ class RawBodyParserSpec extends Specification with AfterAll {
           val scalaParser = PlayBodyParsers(
             ParserConfiguration(),
             new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty),
-            ActorMaterializer()
+            ActorMaterializer(),
+            tempFileCreator
           ).raw
           val javaParser = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](
             scalaParser,

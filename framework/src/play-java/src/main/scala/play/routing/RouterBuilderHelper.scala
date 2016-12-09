@@ -7,6 +7,7 @@ import java.util.concurrent.CompletionStage
 
 import play.api.Play
 import play.api.http.{ HttpConfiguration, JavaHttpErrorHandlerDelegate, ParserConfiguration }
+import play.api.libs.Files.TemporaryFileCreator
 import play.api.mvc.{ ActionBuilder, PlayBodyParsers, Results }
 import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.core.routing.HandlerInvokerFactory
@@ -67,7 +68,8 @@ private[routing] object RouterBuilderHelper {
 
                 // Convert to a Scala action
                 val parser = HandlerInvokerFactory.javaBodyParserToScala {
-                  val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer)
+                  val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+                  val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer, tempFileCreator)
                   new play.mvc.BodyParser.Default(
                     new JavaHttpErrorHandlerDelegate(app.errorHandler),
                     app.injector.instanceOf[HttpConfiguration], bp)

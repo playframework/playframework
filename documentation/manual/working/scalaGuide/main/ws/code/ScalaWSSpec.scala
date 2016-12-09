@@ -214,7 +214,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       "post with multipart/form encoded body from a file" in withServer {
         case("POST", "/") => Action(BodyParsers.parse.multipartFormData){r =>
             val file = r.body.file("hello").head
-          Ok(scala.io.Source.fromFile(file.ref.file).mkString)
+          Ok(scala.io.Source.fromFile(file.ref).mkString)
         }
       } { ws =>
         val tmpFile = new File("/tmp/picture/tmpformuploaded")

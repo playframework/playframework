@@ -8,7 +8,7 @@ import java.security.cert.X509Certificate
 
 import akka.util.ByteString
 import play.api.http.HttpConfiguration
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
@@ -139,7 +139,8 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
    * Adds a raw body to the request
    */
   def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
-    withBody(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
+    val tempFileCreator = SingletonTemporaryFileCreator
+    withBody(body = AnyContentAsRaw(RawBuffer(bytes.size, tempFileCreator, bytes)))
   }
 
   /**

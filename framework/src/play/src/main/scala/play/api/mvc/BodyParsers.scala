@@ -4,6 +4,7 @@
 package play.api.mvc
 
 import java.io._
+import java.nio.channels.{ ByteChannel, Channels }
 import java.util.Locale
 import javax.inject.{ Inject, Provider }
 
@@ -16,7 +17,7 @@ import play.api._
 import play.api.data.Form
 import play.api.http.Status._
 import play.api.http._
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
@@ -180,14 +181,16 @@ object MultipartFormData {
  * Handle the request body a raw bytes data.
  *
  * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
+ * @param temporaryFileCreator the temporary file creator to store the content as file.
+ * @param initialData the initial data, ByteString.empty by default.
  */
-case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.empty) {
+case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCreator, initialData: ByteString = ByteString.empty) {
 
   import play.api.libs.Files._
 
   @volatile private var inMemory: ByteString = initialData
   @volatile private var backedByTemporaryFile: TemporaryFile = _
-  @volatile private var outStream: OutputStream = _
+  @volatile private var outStream: FileOutputStream = _
 
   private[play] def push(chunk: ByteString) {
     if (inMemory != null) {
@@ -209,8 +212,8 @@ case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.
   }
 
   private[play] def backToTemporaryFile() {
-    backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
-    outStream = new FileOutputStream(backedByTemporaryFile.file)
+    backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
+    outStream = new FileOutputStream(backedByTemporaryFile)
     outStream.write(inMemory.toArray)
     inMemory = null
   }
@@ -219,7 +222,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.
    * Buffer size.
    */
   def size: Long = {
-    if (inMemory != null) inMemory.size else backedByTemporaryFile.file.length
+    if (inMemory != null) inMemory.size else backedByTemporaryFile.length
   }
 
   /**
@@ -238,7 +241,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.
       Some(if (inMemory != null) {
         inMemory
       } else {
-        ByteString(PlayIO.readFile(backedByTemporaryFile.file))
+        ByteString(PlayIO.readFile(backedByTemporaryFile.path))
       })
     } else {
       None
@@ -253,7 +256,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.
       backToTemporaryFile()
       close()
     }
-    backedByTemporaryFile.file
+    backedByTemporaryFile
   }
 
   override def toString = {
@@ -278,9 +281,10 @@ trait BodyParsers {
   private def parserConfig: ParserConfiguration = maybeApp.fold(ParserConfiguration())(hcCache(_).parser)
   private def parserErrorHandler: HttpErrorHandler = maybeApp.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
   private def parserMaterializer: Materializer = maybeApp.fold[Materializer](mat)(_.materializer)
+  private def parserTemporaryFileCreator: TemporaryFileCreator = maybeApp.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(_.injector.instanceOf[TemporaryFileCreator])
 
   @deprecated("Inject PlayBodyParsers or use AbstractController instead", "2.6.0")
-  lazy val parse: PlayBodyParsers = PlayBodyParsers(parserConfig, parserErrorHandler, parserMaterializer)
+  lazy val parse: PlayBodyParsers = PlayBodyParsers(parserConfig, parserErrorHandler, parserMaterializer, parserTemporaryFileCreator)
 }
 
 /**
@@ -360,19 +364,20 @@ trait BodyParserUtils {
     }
 }
 
-class PlayBodyParsersImpl(conf: => ParserConfiguration, eh: => HttpErrorHandler, mat: => Materializer) extends PlayBodyParsers {
+class PlayBodyParsersImpl(conf: => ParserConfiguration, eh: => HttpErrorHandler, mat: => Materializer, tfc: => TemporaryFileCreator) extends PlayBodyParsers {
   def config = conf
   def materializer = mat
   def errorHandler = eh
+  def temporaryFileCreator = tfc
 
   @Inject
-  def this(config: Provider[ParserConfiguration], eh: Provider[HttpErrorHandler], mat: Provider[Materializer]) =
-    this(config.get, eh.get, mat.get)
+  def this(config: Provider[ParserConfiguration], eh: Provider[HttpErrorHandler], mat: Provider[Materializer], tfc: Provider[TemporaryFileCreator]) =
+    this(config.get, eh.get, mat.get, tfc.get)
 }
 
 object PlayBodyParsers {
-  def apply(conf: => ParserConfiguration, eh: => HttpErrorHandler, mat: => Materializer) =
-    new PlayBodyParsersImpl(conf, eh, mat)
+  def apply(conf: => ParserConfiguration, eh: => HttpErrorHandler, mat: => Materializer, tfc: => TemporaryFileCreator) =
+    new PlayBodyParsersImpl(conf, eh, mat, tfc)
 }
 
 /**
@@ -385,6 +390,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   private[play] implicit def materializer: Materializer
   private[play] def config: ParserConfiguration
   private[play] def errorHandler: HttpErrorHandler
+  private[play] def temporaryFileCreator: TemporaryFileCreator
 
   /**
    * Unlimited size.
@@ -461,7 +467,7 @@ trait PlayBodyParsers extends BodyParserUtils {
     BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
       import play.core.Execution.Implicits.trampoline
       enforceMaxLength(request, maxLength, Accumulator {
-        val buffer = RawBuffer(memoryThreshold)
+        val buffer = RawBuffer(memoryThreshold, temporaryFileCreator)
         val sink = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) => bf.push(bs); bf }
         sink.mapMaterializedValue { future =>
           future andThen { case _ => buffer.close() }
@@ -637,8 +643,8 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Store the body content into a temporary file.
    */
   def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
-    val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
-    file(tempFile.file)(request).map(_ => Right(tempFile))(play.core.Execution.Implicits.trampoline)
+    val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
+    file(tempFile)(request).map(_ => Right(tempFile))(play.core.Execution.Implicits.trampoline)
   }
 
   // -- FormUrlEncoded
@@ -736,7 +742,7 @@ trait PlayBodyParsers extends BodyParserUtils {
 
       case Some("multipart/form-data") =>
         logger.trace("Parsing AnyContent as multipartFormData")
-        multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge).apply(request)
+        multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLengthOrDefaultLarge).apply(request)
           .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
 
       case _ =>
@@ -751,7 +757,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Parse the content as multipart/form-data
    */
   def multipartFormData: BodyParser[MultipartFormData[TemporaryFile]] =
-    multipartFormData(Multipart.handleFilePartAsTemporaryFile)
+    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator))
 
   /**
    * Parse the content as multipart/form-data
@@ -822,8 +828,8 @@ object BodyParsers extends BodyParsers {
    * The default body parser provided by Play
    */
   class Default @Inject() (parse: PlayBodyParsers) extends BodyParser[AnyContent] {
-    def this(config: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer) =
-      this(PlayBodyParsers(config, eh, mat))
+    def this(config: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer, tfc: TemporaryFileCreator) =
+      this(PlayBodyParsers(config, eh, mat, tfc))
     override def apply(rh: RequestHeader) = parse.default(None)(rh)
   }
 
