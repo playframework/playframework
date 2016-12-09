@@ -3,7 +3,9 @@
  */
 package play.core.server.akkahttp
 
-import java.net.{ InetAddress, InetSocketAddress, URI }
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.URI
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -12,11 +14,17 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
-import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
+import play.api.http.HttpChunk
+import play.api.http.HttpErrorHandler
+import play.api.http.Status
+import play.api.http.{ HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.{ RemoteConnection, RequestAttrKey, RequestTarget }
-import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestAttrKey
+import play.api.mvc.request.RequestTarget
+import play.core.server.common.ForwardedHeaderHandler
+import play.core.server.common.ServerResultUtils
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -165,19 +173,24 @@ private[akkahttp] class ModelConversion(
     }
   }
 
+  def parseContentType(contentType: Option[String]): ContentType = {
+    // actually play allows content types to be not spec compliant
+    // so we can't rely on the parsed content type of akka
+    contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
+      MediaType.custom(ct, binary = true) match {
+        case b: MediaType.Binary => ContentType(b)
+        case _ => ContentTypes.NoContentType
+      }
+    }
+  }
+
   def convertResultBody(
     requestHeaders: RequestHeader,
     convertedHeaders: AkkaHttpHeaders,
     result: Result,
     protocol: HttpProtocol): ResponseEntity = {
 
-    val contentType = result.body.contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
-      HttpHeader.parse(CONTENT_TYPE, ct) match {
-        case HttpHeader.ParsingResult.Ok(`Content-Type`(akkaCt), _) => akkaCt
-        case _ => ContentTypes.NoContentType
-      }
-
-    }
+    val contentType = parseContentType(result.body.contentType)
 
     result.body match {
       case PlayHttpEntity.Strict(data, _) =>

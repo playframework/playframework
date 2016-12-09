@@ -63,7 +63,7 @@ trait AssetsSpec extends PlaySpecification
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
       result.header(CACHE_CONTROL) must_== defaultCacheControl
-    }.skipUntilAkkaHttpFixed
+    }
 
     "serve an asset in a subdirectory" in withServer { client =>
       val result = await(client.url("/subdir/baz.txt").get())

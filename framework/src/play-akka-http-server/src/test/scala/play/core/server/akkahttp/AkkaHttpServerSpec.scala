@@ -50,7 +50,7 @@ class AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
         case ("GET", "/hello") => Action(Ok("greetings"))
       } { response =>
         response.status must_== 200
-        response.header(CONTENT_TYPE) must_== Some("text/plain; charset=UTF-8")
+        response.header(CONTENT_TYPE) must_== Some("text/plain; charset=utf-8")
         response.header(CONTENT_LENGTH) must_== Some("9")
         response.header(TRANSFER_ENCODING) must_== None
         response.body must_== "greetings"
@@ -66,7 +66,7 @@ class AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
         }
       } { response =>
         response.status must_== 200
-        response.header(CONTENT_TYPE) must_== Some("text/plain; charset=UTF-8")
+        response.header(CONTENT_TYPE) must_== Some("text/plain; charset=utf-8")
         response.header(CONTENT_LENGTH) must_== Some("9")
         response.header(TRANSFER_ENCODING) must_== None
         response.body must_== "greetings"
