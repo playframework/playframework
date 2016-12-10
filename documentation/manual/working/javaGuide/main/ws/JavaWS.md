@@ -199,6 +199,10 @@ Or, you can run the `WSClient` completely standalone without involving a running
 
 @[ws-standalone](code/javaguide/ws/Standalone.java)
 
+If you want to run `WSClient` standalone, but still use [[non-programatic configuration|JavaWS#configuring-ws]] (including [[SSL|WsSSL]]), you can use a configuration parser like this:
+
+@[ws-standalone-with-config](code/javaguide/ws/StandaloneWithConfig.java)
+
 Once you are done with your custom client work, you **must** close the client:
 
 @[ws-close-client](code/javaguide/ws/JavaWS.java)
