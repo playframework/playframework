@@ -32,7 +32,7 @@ You will require these imports to create `Reads`:
 `JsPath` has methods to create special `Reads` that apply another `Reads` to a `JsValue` at a specified path:
 
 - `JsPath.read[T](implicit r: Reads[T]): Reads[T]` - Creates a `Reads[T]` that will apply the implicit argument `r` to the `JsValue` at this path.
-- `JsPath.readNullable[T](implicit r: Reads[T]): Reads[Option[T]]readNullable` - Use for paths that may be missing or can contain a null value.
+- `JsPath.readNullable[T](implicit r: Reads[T]): Reads[Option[T]]` - Use for paths that may be missing or can contain a null value.
 
 > Note: The JSON library provides implicit `Reads` for basic types such as `String`, `Int`, `Double`, etc.
 
