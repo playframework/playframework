@@ -21,11 +21,14 @@ public class TransactionalAction extends Action<Transactional> {
         this.jpaApi = jpaApi;
     }
 
+    @Override
     public CompletionStage<Result> call(final Context ctx) {
         return jpaApi.withTransaction(
             configuration.value(),
             configuration.readOnly(),
-            () -> delegate.call(ctx)
+            ctx,
+            true, // keepTransactionOpen?
+            em -> delegate.call(ctx).whenComplete((result, error) -> JPAEntityManagerContext.closeAllTransactionsAndEntityManagers(ctx, error != null))
         );
     }
 
