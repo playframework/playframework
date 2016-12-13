@@ -52,14 +52,14 @@ object PlayMinimalJava extends AutoPlugin {
  * via sbt's enablePlugins mechanism e.g.:
  *
  * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayFormsJava)
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
  * }}}
  */
 object PlayJava extends AutoPlugin {
   override def requires = Play
   override def projectSettings =
     PlaySettings.defaultJavaSettings ++
-      Seq(libraryDependencies += PlayImport.javaCore)
+      Seq(libraryDependencies += PlayImport.javaForms)
 }
 
 /**

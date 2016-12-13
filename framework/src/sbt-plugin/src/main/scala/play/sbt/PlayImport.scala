@@ -33,6 +33,8 @@ object PlayImport {
 
   val javaCore = component("play-java")
 
+  val javaForms = component("play-java-forms")
+
   val javaJdbc = component("play-java-jdbc")
 
   def javaEbean = movedExternal(
