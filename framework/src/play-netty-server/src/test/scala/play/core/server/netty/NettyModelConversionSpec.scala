@@ -34,6 +34,13 @@ class NettyModelConversionSpec extends Specification {
       request.path must_=== "/dynatable/"
       request.queryString must_=== Map("queries[search]" -> Seq("{\"condition\":\"AND\",\"rules\":[]}"), "page" -> Seq("1"), "perPage" -> Seq("10"), "offset" -> Seq("0"))
     }
+    "handle '/foo%20bar.txt' as a URI" in {
+      val request = nettyModelConversion.convertRequest(localChannel, new DefaultHttpRequest(
+        HttpVersion.HTTP_1_1,
+        HttpMethod.GET, "/foo%20bar.txt")).get
+
+      request.path must_=== "/foo%20bar.txt"
+    }
     "handle '/?filter=a&filter=b' as a URI" in {
       val request = nettyModelConversion.convertRequest(localChannel, new DefaultHttpRequest(
         HttpVersion.HTTP_1_1,
