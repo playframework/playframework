@@ -9,21 +9,22 @@ import javax.inject.Singleton;
 import javax.validation.Validator;
 import javax.validation.Validation;
 import javax.validation.ConstraintValidatorFactory;
+import javax.validation.ValidatorFactory;
 
 @Singleton
 public class ValidatorProvider implements Provider<Validator> {
 
-    private ConstraintValidatorFactory constraintValidatorFactory;
+    private ValidatorFactory validatorFactory;
 
     @Inject
     public ValidatorProvider(ConstraintValidatorFactory constraintValidatorFactory) {
-        this.constraintValidatorFactory = constraintValidatorFactory;
+        this.validatorFactory = Validation.byDefaultProvider().configure()
+                .constraintValidatorFactory(constraintValidatorFactory)
+                .buildValidatorFactory();
     }
 
     public Validator get() {
-        return Validation.buildDefaultValidatorFactory().usingContext()
-            .constraintValidatorFactory(constraintValidatorFactory)
-            .getValidator();
+        return this.validatorFactory.getValidator();
     }
 
 }
