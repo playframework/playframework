@@ -205,7 +205,7 @@ private class AdditionalRouterProvider(additional: Router) extends Provider[Rout
   lazy val get = Router.from(additional.routes.orElse(fallback.get.routes))
 }
 
-private class FakeRoutes(
+class FakeRoutes(
     injected: => PartialFunction[(String, String), Handler], fallback: Router) extends Router {
   def documentation = fallback.documentation
   // Use withRoutes first, then delegate to the parentRoutes if no route is defined
