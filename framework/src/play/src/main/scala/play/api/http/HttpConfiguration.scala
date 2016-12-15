@@ -53,7 +53,7 @@ case class CookiesConfiguration(strict: Boolean = true) {
  */
 case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boolean = false,
   maxAge: Option[FiniteDuration] = None, httpOnly: Boolean = true,
-  domain: Option[String] = None)
+  domain: Option[String] = None, path: String = "/")
 
 /**
  * The flash configuration
@@ -62,7 +62,7 @@ case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boo
  * @param secure     Whether the flash cookie should set the secure flag or not
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true)
+case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true, path: String = "/")
 
 /**
  * Configuration for body parsers.
@@ -97,13 +97,21 @@ object HttpConfiguration {
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
 
   def fromConfiguration(config: Configuration) = {
-    val context = {
-      val ctx = config.getDeprecated[String]("play.http.context", "application.context")
-      if (!ctx.startsWith("/")) {
-        throw config.globalError("play.http.context must start with a /")
+
+    def getPath(key: String, deprecatedKey: Option[String] = None): String = {
+      val path = deprecatedKey match {
+        case Some(depKey) => config.getDeprecated[String](key, depKey)
+        case None => config.get[String](key)
       }
-      ctx
+      if (!path.startsWith("/")) {
+        throw config.globalError(s"$key must start with a /")
+      }
+      path
     }
+
+    val context = getPath("play.http.context", Some("application.context"))
+    val sessionPath = getPath("play.http.session.path")
+    val flashPath = getPath("play.http.flash.path")
 
     if (config.has("mimetype")) {
       throw config.globalError("mimetype replaced by play.http.fileMimeTypes map")
@@ -128,18 +136,20 @@ object HttpConfiguration {
         secure = config.getDeprecated[Boolean]("play.http.session.secure", "session.secure"),
         maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
-        domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain")
+        domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
+        path = sessionPath
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
         secure = config.get[Boolean]("play.http.flash.secure"),
-        httpOnly = config.get[Boolean]("play.http.flash.httpOnly")
+        httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
+        path = flashPath
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
         config.get[String]("play.http.fileMimeTypes")
         .split('\n')
         .map(_.trim)
-        .filter(_.size > 0)
+        .filter(_.nonEmpty)
         .filter(_ (0) != '#')
         .map(_.split('='))
         .map(parts => parts(0) -> parts.drop(1).mkString).toMap
