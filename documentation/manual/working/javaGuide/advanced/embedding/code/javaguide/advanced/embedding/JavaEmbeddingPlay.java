@@ -5,7 +5,6 @@ package javaguide.advanced.embedding;
 
 import java.io.IOException;
 
-import org.asynchttpclient.AsyncHttpClientConfig;
 import org.junit.Test;
 
 import play.libs.ws.WSClient;

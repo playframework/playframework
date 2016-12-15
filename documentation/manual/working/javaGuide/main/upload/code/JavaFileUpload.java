@@ -7,7 +7,6 @@ import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import javaguide.http.JavaBodyParsers;
 import org.junit.Test;
 import play.core.parsers.Multipart;
 import play.libs.streams.Accumulator;
