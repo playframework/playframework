@@ -6,7 +6,6 @@ import play.api.inject.BindingKey;
 import play.api.inject.guice.GuiceableModule;
 import play.api.inject.guice.GuiceableModule$;
 import play.inject.guice.GuiceApplicationLoader;
-import scala.collection.JavaConversions;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -236,9 +236,9 @@ object PlayDocsValidation {
   val generateUpstreamCodeSamplesTask = Def.task {
     docsJarFile.value match {
       case Some(jarFile) =>
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         val jar = new JarFile(jarFile)
-        val parsedFiles = jar.entries().toIterator.collect {
+        val parsedFiles = jar.entries().asScala.collect {
           case entry if entry.getName.endsWith(".md") && entry.getName.startsWith("play/docs/content/manual") =>
             val fileName = entry.getName.stripPrefix("play/docs/content")
             val contents = IO.readStream(jar.getInputStream(entry))

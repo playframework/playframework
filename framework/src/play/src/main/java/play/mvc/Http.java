@@ -28,7 +28,7 @@ import play.libs.Json;
 import play.libs.XML;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.collection.Seq;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
@@ -106,10 +106,10 @@ public class Http {
             this.header = request._underlyingHeader();
             this.id = header.id();
             this.response = new Response();
-            this.session = new Session(JavaConversions.mapAsJavaMap(header.session().data()));
-            this.flash = new Flash(JavaConversions.mapAsJavaMap(header.flash().data()));
+            this.session = new Session(JavaConverters.mapAsJavaMap(header.session().data()));
+            this.flash = new Flash(JavaConverters.mapAsJavaMap(header.flash().data()));
             this.args = new HashMap<String,Object>();
-            this.args.putAll(JavaConversions.mapAsJavaMap(header.tags()));
+            this.args.putAll(JavaConverters.mapAsJavaMap(header.tags()));
             this.components = components;
         }
 
@@ -1052,7 +1052,7 @@ public class Http {
          * @deprecated Use typed attributes, i.e. <code>attrs()</code>, instead.
          */
         public Map<String, String> tags() {
-            return JavaConversions.mapAsJavaMap(req.tags());
+            return JavaConverters.mapAsJavaMap(req.tags());
         }
 
         /**
@@ -1284,7 +1284,7 @@ public class Http {
          * @return the cookies in a Java map
          */
         public Map<String,String> flash() {
-          return JavaConversions.mapAsJavaMap(req.flash().data());
+          return JavaConverters.mapAsJavaMap(req.flash().data());
         }
 
         /**
@@ -1316,7 +1316,7 @@ public class Http {
          * @return the sessions in the request
          */
         public Map<String,String> session() {
-            return JavaConversions.mapAsJavaMap(req.session().data());
+            return JavaConverters.mapAsJavaMap(req.session().data());
         }
 
         /**
@@ -1370,7 +1370,7 @@ public class Http {
         public Optional<List<X509Certificate>> clientCertificateChain() {
             return OptionConverters.toJava(
                     req.connection().clientCertificateChain()).map(
-                            list -> new ArrayList<X509Certificate>(JavaConversions.asJavaCollection(list)));
+                            list -> new ArrayList<X509Certificate>(JavaConverters.asJavaCollection(list)));
         }
 
         /**
@@ -1382,7 +1382,7 @@ public class Http {
             req = req.withConnection(RemoteConnection$.MODULE$.apply(
                     req.connection().remoteAddress(),
                     req.connection().secure(),
-                    OptionConverters.toScala(Optional.ofNullable(JavaConversions.asScalaBuffer(clientCertificateChain).toList()))
+                    OptionConverters.toScala(Optional.ofNullable(JavaConverters.asScalaBuffer(clientCertificateChain).toList()))
             ));
             return this;
         }
@@ -1390,7 +1390,7 @@ public class Http {
         protected static scala.collection.immutable.Map<String,Seq<String>> mapListToScala(Map<String,List<String>> data) {
             Map<String,Seq<String>> seqs = new HashMap<>();
             for (String key: data.keySet()) {
-                seqs.put(key, JavaConversions.asScalaBuffer(data.get(key)));
+                seqs.put(key, JavaConverters.asScalaBuffer(data.get(key)));
             }
             return asScala(seqs);
         }

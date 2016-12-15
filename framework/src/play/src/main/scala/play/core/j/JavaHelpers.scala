@@ -17,7 +17,7 @@ import play.libs.typedmap.TypedMap
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.{ Security, Result => JResult }
 
-import scala.collection.{ JavaConversions, mutable }
+import scala.collection.{ JavaConverters, mutable }
 import scala.collection.JavaConverters._
 import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.Future
@@ -64,7 +64,7 @@ trait JavaHelpers {
 
   def javaMapOfArraysToScalaSeqOfPairs(m: java.util.Map[String, Array[String]]): Seq[(String, String)] = {
     for {
-      (k, arr) <- JavaConversions.mapAsScalaMap(m).to[Vector]
+      (k, arr) <- JavaConverters.mapAsScalaMap(m).to[Vector]
       el <- arr
     } yield (k, el)
   }

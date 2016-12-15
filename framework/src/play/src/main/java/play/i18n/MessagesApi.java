@@ -5,7 +5,7 @@ package play.i18n;
 
 import org.apache.commons.lang3.ArrayUtils;
 import play.mvc.Http;
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.collection.Seq;
 import scala.collection.mutable.Buffer;
 
@@ -115,7 +115,7 @@ public class MessagesApi {
      * @return the most appropriate Messages instance given the candidate languages
      */
     public Messages preferred(Collection<Lang> candidates) {
-        Seq<Lang> cs = JavaConversions.collectionAsScalaIterable(candidates).toSeq();
+        Seq<Lang> cs = JavaConverters.collectionAsScalaIterable(candidates).toSeq();
         play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
         return new MessagesImpl(new Lang(msgs.lang()), this);
     }
