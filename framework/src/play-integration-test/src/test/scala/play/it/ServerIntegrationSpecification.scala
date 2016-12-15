@@ -9,7 +9,7 @@ import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server.{ NettyServer, ServerProvider }
-import play.core.server.akkahttp.AkkaHttpServer
+import play.core.server.AkkaHttpServer
 
 import scala.concurrent.duration._
 

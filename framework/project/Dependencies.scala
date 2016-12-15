@@ -151,7 +151,7 @@ object Dependencies {
   val nettyUtilsDependencies = slf4j
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(

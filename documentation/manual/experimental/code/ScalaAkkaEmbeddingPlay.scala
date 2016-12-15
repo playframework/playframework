@@ -14,7 +14,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play with akka" should {
     "be very simple" in {
       //#simple-akka-http
-      import play.core.server.akkahttp.AkkaHttpServer
+      import play.core.server.AkkaHttpServer
       import play.api.routing.sird._
       import play.api.mvc._
 
@@ -37,7 +37,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
     "be configurable with akka" in {
       //#config-akka-http
       import play.core.server._
-      import play.core.server.akkahttp.AkkaHttpServer
+      import play.core.server.AkkaHttpServer
       import play.api.routing.sird._
       import play.api.mvc._
 
@@ -60,7 +60,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
     "allow overriding components" in {
       //#components-akka-http
-      import play.core.server.akkahttp.AkkaServerComponents
+      import play.core.server.AkkaServerComponents
       import play.api.routing.Router
       import play.api.routing.sird._
       import play.api.mvc._
@@ -97,7 +97,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
     "allow usage from a running application" in {
       //#application-akka-http
       import play.api.inject.guice.GuiceApplicationBuilder
-      import play.core.server.akkahttp.AkkaHttpServer
+      import play.core.server.AkkaHttpServer
       import play.core.server.ServerConfig
       import play.api.routing.sird._
       import play.api.routing.SimpleRouterImpl

@@ -9,8 +9,10 @@ import play.api.mvc._
 import play.api.mvc.BodyParsers.parse
 import play.api.mvc.Results._
 import play.api.test._
+
 import scala.concurrent.Future
 import akka.util.Timeout
+import play.core.server.AkkaHttpServer
 
 class AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
   // Provide a flag to disable Akka HTTP tests

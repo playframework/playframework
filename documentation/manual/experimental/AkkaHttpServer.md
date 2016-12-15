@@ -108,7 +108,7 @@ akka {
 
 ## Embedded Usage
 
-Play Akka HTTP server is also configurable as a embedded Play server. The simplest way to start an Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/akkahttp/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouter` method:
+Play Akka HTTP server is also configurable as a embedded Play server. The simplest way to start an Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouter` method:
 
 @[simple-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 
@@ -116,7 +116,7 @@ By default, this will start a server on port 9000 in prod mode.  You can configu
 
 @[config-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 
-You may want to customise some of the components that Play provides, for example, the HTTP error handler.  A simple way of doing this is by using Play's components traits, the [`AkkaServerComponents`](api/scala/play/core/server/akkahttp/AkkaServerComponents.html) trait is provided for this purpose, and can be conveniently combined with [`BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) to build the application that it requires:
+You may want to customise some of the components that Play provides, for example, the HTTP error handler.  A simple way of doing this is by using Play's components traits, the [`AkkaServerComponents`](api/scala/play/core/server/AkkaServerComponents.html) trait is provided for this purpose, and can be conveniently combined with [`BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) to build the application that it requires:
 
 @[components-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 

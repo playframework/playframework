@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.core.server.akkahttp
+package play.core.server
 
 import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
@@ -27,6 +27,7 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
 import play.core.server._
+import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
@@ -133,11 +134,11 @@ class AkkaHttpServer(
     new ServerResultUtils(httpConfiguration)
   }
 
-  private lazy val modelConversion: ModelConversion = {
+  private lazy val modelConversion: AkkaModelConversion = {
     val configuration: Option[Configuration] = applicationProvider.get.toOption.map(_.configuration)
     val forwardedHeaderHandler = new ForwardedHeaderHandler(
       ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(configuration))
-    new ModelConversion(resultUtils, forwardedHeaderHandler)
+    new AkkaModelConversion(resultUtils, forwardedHeaderHandler)
   }
 
   private def handleRequest(remoteAddress: InetSocketAddress, request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
@@ -288,7 +289,7 @@ class AkkaHttpServer(
     Await.result(stopHook(), Duration.Inf)
   }
 
-  override lazy val mainAddress = {
+  override lazy val mainAddress: InetSocketAddress = {
     httpServerBinding.orElse(httpsServerBinding).map(_.localAddress).get
   }
 
@@ -328,7 +329,7 @@ object AkkaHttpServer {
   /**
    * A ServerProvider for creating an AkkaHttpServer.
    */
-  implicit val provider = new AkkaHttpServerProvider
+  implicit val provider: AkkaHttpServerProvider = new AkkaHttpServerProvider
 
   /**
    * Create a Netty server from the given application and server configuration.
@@ -344,7 +345,7 @@ object AkkaHttpServer {
 
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
     new AkkaServerComponents with BuiltInComponents {
-      override lazy val serverConfig = config
+      override lazy val serverConfig: ServerConfig = config
       lazy val router: Router = Router.from(routes)
     }.server
   }

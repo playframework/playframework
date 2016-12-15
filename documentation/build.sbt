@@ -58,7 +58,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       playProject("Play-JDBC") % "test",
       playProject("Play-Logback") % "test",
       playProject("Play-Java-JDBC") % "test",
-      playProject("Play-Akka-Http-Server-Experimental") % "test"
+      playProject("Play-Akka-Http-Server") % "test"
     )
 
 lazy val playDocs = playProject("Play-Docs")
