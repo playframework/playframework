@@ -29,12 +29,11 @@ import scala.concurrent.Future
 trait JavaHelpers {
 
   def cookieToScalaCookie(c: play.mvc.Http.Cookie): Cookie = {
-    Cookie(c.name, c.value,
-      if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+    Cookie(c.name, c.value, Option(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
   }
 
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
-    cookies.asScala.toSeq.map(cookieToScalaCookie(_))
+    cookies.asScala.toSeq.map(cookieToScalaCookie)
   }
 
   def cookiesToJavaCookies(cookies: Cookies) = {

@@ -65,6 +65,7 @@ trait Cookies extends Traversable[Cookie] {
 /**
  * Helper utilities to encode Cookies.
  */
+@deprecated("Inject [[play.api.mvc.CookieHeaderEncoding]] instead", "2.6.0")
 object Cookies extends CookieHeaderEncoding {
 
   // Use global state for cookie header configuration
@@ -325,7 +326,7 @@ trait CookieBaker[T <: AnyRef] {
   /**
    *  The cookie path.
    */
-  def path = "/"
+  def path: String
 
   /**
    * The cookie signer.

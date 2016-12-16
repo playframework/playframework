@@ -76,7 +76,7 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
 
   lazy val emptyCookie = new Flash
 
-  override def path = HttpConfiguration.current.context
+  override def path = config.path
   override def secure = config.secure
   override def httpOnly = config.httpOnly
   override def domain = sessionConfig.domain
@@ -94,8 +94,10 @@ class DefaultFlashCookieBaker @Inject() (val config: FlashConfiguration, val ses
   def this() = this(FlashConfiguration(), SessionConfiguration())
 }
 
+@deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
 object Flash extends FlashCookieBaker {
   def config = HttpConfiguration.current.flash
   def sessionConfig = HttpConfiguration.current.session
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
+  override def path = HttpConfiguration.current.context
 }

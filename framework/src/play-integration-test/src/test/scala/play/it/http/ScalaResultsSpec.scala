@@ -3,7 +3,6 @@
  */
 package play.it.http
 
-import play.api.http.{ FlashConfiguration, SessionConfiguration }
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test._
@@ -101,10 +100,16 @@ class ScalaResultsSpec extends PlaySpecification {
     _.configure(Map(config: _*) + ("play.crypto.secret" -> "foo"))
   )(block)
 
-  def withFooPath[T](block: Application => T) = withApplication("play.http.context" -> "/foo")(block)
-
   def withFooDomain[T](block: Application => T) = withApplication("play.http.session.domain" -> ".foo.com")(block)
 
   def withSecureSession[T](block: Application => T) = withApplication("play.http.session.secure" -> true)(block)
 
+  def withFooPath[T](block: Application => T) = {
+    val path = "/foo"
+    withApplication(
+      "play.http.context" -> path,
+      "play.http.session.path" -> path,
+      "play.http.flash.path" -> path
+    )(block)
+  }
 }

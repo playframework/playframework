@@ -27,9 +27,11 @@ class HttpConfigurationSpec extends Specification {
         "play.http.session.maxAge" -> "10s",
         "play.http.session.httpOnly" -> "true",
         "play.http.session.domain" -> "playframework.com",
+        "play.http.session.path" -> "/session",
         "play.http.flash.cookieName" -> "PLAY_FLASH",
         "play.http.flash.secure" -> "true",
         "play.http.flash.httpOnly" -> "true",
+        "play.http.flash.path" -> "/flash",
         "play.http.fileMimeTypes" -> "foo=text/foo"
       )
     }
@@ -43,6 +45,28 @@ class HttpConfigurationSpec extends Specification {
 
     "throw an error when context does not starts with /" in {
       val config = properties + ("play.http.context" -> "something")
+      val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
+      new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration).get must throwA[PlayException]
+    }
+
+    "configure a session path" in {
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
+      httpConfiguration.session.path must beEqualTo("/session")
+    }
+
+    "throw an error when session path does not starts with /" in {
+      val config = properties + ("play.http.session.path" -> "something")
+      val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
+      new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration).get must throwA[PlayException]
+    }
+
+    "configure a flash path" in {
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
+      httpConfiguration.flash.path must beEqualTo("/flash")
+    }
+
+    "throw an error when flash path does not starts with /" in {
+      val config = properties + ("play.http.flash.path" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration).get must throwA[PlayException]
     }

@@ -79,7 +79,7 @@ trait SessionCookieBaker extends CookieBaker[Session] {
   override def secure = config.secure
   override def maxAge = config.maxAge.map(_.toSeconds.toInt)
   override def httpOnly = config.httpOnly
-  override def path = HttpConfiguration.current.context
+  override def path = config.path
   override def domain = config.domain
   override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
@@ -92,7 +92,9 @@ class DefaultSessionCookieBaker @Inject() (val config: SessionConfiguration) ext
   def this() = this(SessionConfiguration())
 }
 
+@deprecated("Inject [[play.api.mvc.SessionCookieBaker]] instead", "2.6.0")
 object Session extends SessionCookieBaker {
   def config = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
+  override def path = HttpConfiguration.current.context
 }
