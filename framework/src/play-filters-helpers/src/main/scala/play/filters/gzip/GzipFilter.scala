@@ -4,7 +4,6 @@
 package play.filters.gzip
 
 import java.util.function.BiFunction
-import java.util.zip.GZIPOutputStream
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.stream.scaladsl._
@@ -20,7 +19,7 @@ import play.api.mvc._
 import play.core.j
 
 import scala.compat.java8.FunctionConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * A gzip filter.
@@ -67,13 +66,11 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
       result.body match {
 
         case HttpEntity.Strict(data, contentType) =>
-          Future.successful(Result(header, compressStrictEntity(data, contentType)))
+          compressStrictEntity(Source.single(data), contentType).map(entity => Result(header, entity))
 
         case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType) if contentLength <= config.chunkedThreshold =>
           // It's below the chunked threshold, so buffer then compress and send
-          entity.consumeData.map { data =>
-            Result(header, compressStrictEntity(data, contentType))
-          }
+          compressStrictEntity(entity.data, contentType).map(strictEntity => Result(header, strictEntity))
 
         case HttpEntity.Streamed(data, _, contentType) =>
           // It's above the chunked threshold, compress through the gzip flow, and send as chunked
@@ -112,12 +109,9 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
     }
   }
 
-  private def compressStrictEntity(data: ByteString, contentType: Option[String]) = {
-    val builder = ByteString.newBuilder
-    val gzipOs = new GZIPOutputStream(builder.asOutputStream, config.bufferSize, true)
-    gzipOs.write(data.toArray)
-    gzipOs.close()
-    HttpEntity.Strict(builder.result(), contentType)
+  private def compressStrictEntity(source: Source[ByteString, Any], contentType: Option[String])(implicit ec: ExecutionContext) = {
+    val compressed = source.via(GzipFlow.gzip(config.bufferSize)).runFold(ByteString.empty)(_ ++ _)
+    compressed.map(data => HttpEntity.Strict(data, contentType))
   }
 
   /**

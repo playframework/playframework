@@ -3,9 +3,7 @@
  */
 package play.api.libs.streams
 
-import java.util.zip.GZIPOutputStream
-
-import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.{ Compression, Flow }
 import akka.stream.stage._
 import akka.stream._
 import akka.util.ByteString
@@ -13,7 +11,7 @@ import akka.util.ByteString
 /**
  * A simple Gzip Flow
  *
- * GZIPs each chunk separately using the JDK7 syncFlush feature.
+ * GZIPs each chunk separately.
  */
 object GzipFlow {
 
@@ -21,59 +19,57 @@ object GzipFlow {
    * Create a Gzip Flow with the given buffer size.
    */
   def gzip(bufferSize: Int = 512): Flow[ByteString, ByteString, _] = {
-    Flow[ByteString].via(new GzipStage(bufferSize))
+    Flow[ByteString].via(new Chunker(bufferSize)).via(Compression.gzip)
   }
 
-  private class GzipStage(bufferSize: Int) extends GraphStage[FlowShape[ByteString, ByteString]] {
+  // http://doc.akka.io/docs/akka/2.4.14/scala/stream/stream-cookbook.html#Chunking_up_a_stream_of_ByteStrings_into_limited_size_ByteStrings
+  private class Chunker(val chunkSize: Int) extends GraphStage[FlowShape[ByteString, ByteString]] {
+    private val in = Inlet[ByteString]("Chunker.in")
+    private val out = Outlet[ByteString]("Chunker.out")
 
-    val in = Inlet[ByteString]("GzipStage.in")
-    val out = Outlet[ByteString]("GzipStage.out")
+    override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
+    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+      private var buffer = ByteString.empty
 
-    override val shape = FlowShape.of(in, out)
-
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
-      new GraphStageLogic(shape) with InHandler with OutHandler {
-
-        val builder = ByteString.newBuilder
-        // Uses syncFlush mode
-        val gzipOs = new GZIPOutputStream(builder.asOutputStream, bufferSize, true)
-
+      setHandler(out, new OutHandler {
+        override def onPull(): Unit = {
+          if (isClosed(in)) emitChunk()
+          else pull(in)
+        }
+      })
+      setHandler(in, new InHandler {
         override def onPush(): Unit = {
-          // For each chunk, we write it to the gzip output stream, flush which forces it to be entirely written to the
-          // underlying ByteString builder, then we create the ByteString and clear the builder.
           val elem = grab(in)
-          gzipOs.write(elem.toArray)
-          gzipOs.flush()
-          val result = builder.result()
-          builder.clear()
-          push(out, result)
+          buffer ++= elem
+          emitChunk()
         }
 
-        override def onPull(): Unit = {
-          // If finished, push the last ByteString
-          if (isClosed(in)) {
-            push(out, builder.result())
-            completeStage()
-          } else {
-            // Otherwise request more demand from upstream
-            pull(in)
+        override def onUpstreamFinish(): Unit = {
+          if (buffer.isEmpty) completeStage()
+          else {
+            // There are elements left in buffer, so
+            // we keep accepting downstream pulls and push from buffer until emptied.
+            //
+            // It might be though, that the upstream finished while it was pulled, in which
+            // case we will not get an onPull from the downstream, because we already had one.
+            // In that case we need to emit from the buffer.
+            if (isAvailable(out)) emitChunk()
           }
         }
+      })
 
-        override def onUpstreamFinish() = {
-          // Absorb termination, so we can send the last chunk out of the gzip output stream on the next pull
-          gzipOs.close()
-          if (isAvailable(out)) onPull()
+      private def emitChunk(): Unit = {
+        if (buffer.isEmpty) {
+          if (isClosed(in)) completeStage()
+          else pull(in)
+        } else {
+          val (chunk, nextBuffer) = buffer.splitAt(chunkSize)
+          buffer = nextBuffer
+          push(out, chunk)
         }
-
-        override def postStop() = {
-          // Close in case it's not already closed to release native deflate resources
-          gzipOs.close()
-          builder.clear()
-        }
-
-        setHandlers(in, out, this)
       }
+
+    }
   }
 
 }
