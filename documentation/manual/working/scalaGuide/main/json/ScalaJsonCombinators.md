@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # JSON Reads/Writes/Format Combinators
 
-[[JSON basics|ScalaJson]] introduced [`Reads`](api/scala/play/api/libs/json/Reads.html) and [`Writes`](api/scala/play/api/libs/json/Writes.html) converters which are used to convert between [`JsValue`](api/scala/play/api/libs/json/JsValue.html) structures and other data types. This page covers in greater detail how to build these converters and how to use validation during conversion.
+[[JSON basics|ScalaJson]] introduced [`Reads`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Reads.html) and [`Writes`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Writes.html) converters which are used to convert between [`JsValue`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) structures and other data types. This page covers in greater detail how to build these converters and how to use validation during conversion.
 
 The examples on this page will use this `JsValue` structure and corresponding model:
 
@@ -11,17 +11,17 @@ The examples on this page will use this `JsValue` structure and corresponding mo
 
 ## JsPath
 
-[`JsPath`](api/scala/play/api/libs/json/JsPath.html) is a core building block for creating `Reads`/`Writes`. `JsPath` represents the location of data in a `JsValue` structure. You can use the `JsPath` object (root path) to define a `JsPath` child instance by using syntax similar to traversing `JsValue`:
+[`JsPath`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsPath.html) is a core building block for creating `Reads`/`Writes`. `JsPath` represents the location of data in a `JsValue` structure. You can use the `JsPath` object (root path) to define a `JsPath` child instance by using syntax similar to traversing `JsValue`:
 
 @[jspath-define](code/ScalaJsonCombinatorsSpec.scala)
 
-The [`play.api.libs.json`](api/scala/play/api/libs/json/) package defines an alias for `JsPath`: `__` (double underscore). You can use this if you prefer:
+The [`play.api.libs.json`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/) package defines an alias for `JsPath`: `__` (double underscore). You can use this if you prefer:
 
 @[jspath-define-alias](code/ScalaJsonCombinatorsSpec.scala)
 
 ## Reads
 
-[`Reads`](api/scala/play/api/libs/json/Reads.html) converters are used to convert from a `JsValue` to another type. You can combine and nest `Reads` to create more complex `Reads`.
+[`Reads`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Reads.html) converters are used to convert from a `JsValue` to another type. You can combine and nest `Reads` to create more complex `Reads`.
 
 You will require these imports to create `Reads`:
 
@@ -48,7 +48,7 @@ For easier understanding, we'll break down the combine functionality into two st
 
 @[reads-complex-builder](code/ScalaJsonCombinatorsSpec.scala)
 
-This will yield a type of `FunctionalBuilder[Reads]#CanBuild2[Double, Double]`. This is an intermediary object and you don't need to worry too much about it, just know that it's used to create a complex `Reads`. 
+This will yield a type of `FunctionalBuilder[Reads]#CanBuild2[Double, Double]`. This is an intermediary object and you don't need to worry too much about it, just know that it's used to create a complex `Reads`.
 
 Second call the `apply` method of `CanBuildX` with a function to translate individual values to your model, this will return your complex `Reads`. If you have a case class with a matching constructor signature, you can just use its `apply` method:
 
@@ -64,9 +64,9 @@ The `JsValue.validate` method was introduced in [[JSON basics|ScalaJson]] as the
 
 @[reads-validation-simple](code/ScalaJsonCombinatorsSpec.scala)
 
-Default validation for `Reads` is minimal, such as checking for type conversion errors. You can define custom validation rules by using `Reads` validation helpers. Here are some that are commonly used: 
+Default validation for `Reads` is minimal, such as checking for type conversion errors. You can define custom validation rules by using `Reads` validation helpers. Here are some that are commonly used:
 
-- `Reads.email` - Validates a String has email format.  
+- `Reads.email` - Validates a String has email format.
 - `Reads.minLength(nb)` - Validates the minimum length of a collection or String.
 - `Reads.min` - Validates a minimum value.
 - `Reads.max` - Validates a maximum value.
@@ -88,7 +88,7 @@ Note that complex `Reads` can be nested. In this case, `placeReads` uses the pre
 
 ## Writes
 
-[`Writes`](api/scala/play/api/libs/json/Writes.html) converters are used to convert from some type to a `JsValue`.
+[`Writes`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Writes.html) converters are used to convert from some type to a `JsValue`.
 
 You can build complex `Writes` using `JsPath` and combinators very similar to `Reads`. Here's the `Writes` for our example model:
 
@@ -108,7 +108,7 @@ One special case that our example model doesn't demonstrate is how to handle `Re
 
 ## Format
 
-[`Format[T]`](api/scala/play/api/libs/json/Format.html) is just a mix of the `Reads` and `Writes` traits and can be used for implicit conversion in place of its components.
+[`Format[T]`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Format.html) is just a mix of the `Reads` and `Writes` traits and can be used for implicit conversion in place of its components.
 
 ### Creating Format from Reads and Writes
 

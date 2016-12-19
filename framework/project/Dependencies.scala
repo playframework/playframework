@@ -8,6 +8,7 @@ object Dependencies {
 
   val akkaVersion = "2.4.14"
   val akkaHttpVersion = "10.0.0"
+  val playJsonVersion = "2.6.0-M1"
 
   val specsVersion = "3.8.6"
   val specsBuild = Seq(
@@ -26,7 +27,9 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.7.8")
+  ).map(_ % "2.8.5")
+
+  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
@@ -119,6 +122,8 @@ object Dependencies {
     jacksons ++
     Seq(
       "commons-codec" % "commons-codec" % "1.10",
+
+      playJson,
 
       guava,
 
@@ -215,11 +220,7 @@ object Dependencies {
     logback % Test
   ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
 
-  def jsonDependencies(scalaVersion: String) = Seq(
-    "org.scala-lang" % "scala-reflect" % scalaVersion,
-    logback % Test) ++
-  jacksons ++
-  specsBuild.map(_ % Test)
+
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,

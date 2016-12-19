@@ -36,7 +36,9 @@ See [[JPAMigration26]].
 
 See [[MessagesMigration26]].
 
-## Removed Crypto API
+## Removed APIs
+
+### Removed Crypto API
 
 The Crypto API has removed the deprecated class `play.api.libs.Crypto` and `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
 
@@ -84,6 +86,16 @@ public class Yaml {
 }
 ```
 
+### Play JSON moved to separate project
+
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no depependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+
+```
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
+```
+
+Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
+
 ### Guice DI support moved to separate module
 
 In Play 2.6, the core Play module no longer includes Guice. You can add it by adding `guice` to your `libraryDependencies`:
@@ -96,7 +108,7 @@ If you explicitly depend on an alternate DI library for play, or have defined yo
 
 Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
 
-### Removed Libraries
+### Removed libraries
 
 In order to make the default play distribution a bit smaller we removed some libraries.
 The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
@@ -388,7 +400,7 @@ The mapping of file extensions to MIME types has been moved to `reference.conf` 
 
 Note that `play.http.fileMimeTypes` configuration setting is defined using triple quotes as a single string -- this is because several file extensions have syntax that breaks HOCON, such as `c++`.
 
-To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/master/HOCON.md#string-value-concatenation): 
+To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/master/HOCON.md#string-value-concatenation):
 
 ```
 play.http.fileMimeTypes = ${play.http.fileMimeTypes} """
@@ -400,17 +412,17 @@ There is a syntax that allows configurations defined as `mimetype.foo=text/bar` 
 
 ### Java API
 
-There is a `Http.Context.current().fileMimeTypes()` method that is provided under the hood to `Results.sendFile` and other methods that look up content types from file extensions.  No migration is necessary. 
+There is a `Http.Context.current().fileMimeTypes()` method that is provided under the hood to `Results.sendFile` and other methods that look up content types from file extensions.  No migration is necessary.
 
 ### Scala API
 
-The `play.api.libs.MimeTypes` class has been changed to `play.api.http.FileMimeTypes` interface, and the implementation has changed to `play.api.http.DefaultMimeTypes`.  
+The `play.api.libs.MimeTypes` class has been changed to `play.api.http.FileMimeTypes` interface, and the implementation has changed to `play.api.http.DefaultMimeTypes`.
 
 All the results that send files or resources now take `FileMimeTypes` implicitly, i.e.
 
 ```scala
 implicit val fileMimeTypes: FileMimeTypes = ...
-Ok(file) // <-- takes implicit FileMimeTypes 
+Ok(file) // <-- takes implicit FileMimeTypes
 ```
 
 An implicit instance of `FileMimeTypes` is provided by `AbstractController` through the `ControllerComponents` class, to provide a convenient binding:

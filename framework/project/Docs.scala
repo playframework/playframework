@@ -143,15 +143,22 @@ object Docs {
       javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
     }
 
-    // Known Java libraries in non-standard locations...
-    // All the external Javadoc URLs that must be fixed.
-    val externalJavadocLinks = Set(
-      javaApiUrl,
-      javaxInjectUrl,
-      ehCacheUrl,
-      guiceUrl,
-      ahcUrl
-    ) ++ Dependencies.slf4j.map(moduleIDToJavadoc)
+    val externalJavadocLinks = {
+      // Known Java libraries in non-standard locations...
+      // All the external Javadoc URLs that must be fixed.
+      val nonStandardJavadocLinks = Set(
+        javaApiUrl,
+        javaxInjectUrl,
+        ehCacheUrl,
+        guiceUrl,
+        ahcUrl
+      )
+
+      import Dependencies._
+      val standardJavadocModuleIDs = Set(playJson) ++ slf4j
+
+      nonStandardJavadocLinks ++ standardJavadocModuleIDs.map(moduleIDToJavadoc)
+    }
 
     import scala.util.matching.Regex
     import scala.util.matching.Regex.Match

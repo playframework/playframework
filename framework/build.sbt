@@ -42,12 +42,6 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("SBT-Routes-Compiler", "route
 lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
     .settings(libraryDependencies ++= streamsDependencies)
 
-lazy val FunctionalProject = PlayCrossBuiltProject("Play-Functional", "play-functional")
-
-lazy val JsonProject = PlayCrossBuiltProject("Play-Json", "play-json")
-    .settings(libraryDependencies ++= jsonDependencies(scalaVersion.value))
-    .dependsOn(FunctionalProject)
-
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
 lazy val PlayNettyUtilsProject = PlayNonCrossBuiltProject("Play-Netty-Utils", "play-netty-utils")
@@ -82,7 +76,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     ).settings(Docs.playdocSettings: _*)
     .dependsOn(
       BuildLinkProject,
-      JsonProject,
       PlayNettyUtilsProject,
       StreamsProject
     )
@@ -262,8 +255,6 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
-  FunctionalProject,
-  JsonProject,
   RoutesCompilerProject,
   SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
