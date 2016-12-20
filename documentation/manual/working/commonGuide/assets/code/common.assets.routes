@@ -10,3 +10,4 @@ GET  /favicon.ico        controllers.Assets.at(path="/public", file="favicon.ico
 GET  /javascripts/*file        controllers.Assets.at(path="/public/javascripts", file)
 GET  /images/*file             controllers.Assets.at(path="/public/images", file)
 #assets-two-mappings
+

@@ -74,6 +74,35 @@ This trait makes `Action` and `parse` refer to injected instances rather than th
 
 `ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `BaseController` and injecting your own bundle of components (though Play does not require controllers to implement any particular trait).
 
+## Assets
+
+User-facing APIs are generally the same, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
+
+```
+play.assets {
+  path = "/public"
+  urlPrefix = "/assets"
+}
+```
+
+Then in routes you can do:
+```
+# prefix must match `play.assets.urlPrefix`
+/assets/*file           controllers.Assets.at(file)
+/versionedAssets/*file  controllers.Assets.versioned(file)
+```
+You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
+
+Then in your template you can use `AssetsFinder#path` to find the final path of the asset:
+
+```scala
+@(assets: AssetsFinder)
+
+<img alt="hamburger" src="@assets.path("images/hamburger.jpg")">
+```
+
+You can still continue to use reverse routes with `Assets.versioned`, but some global state is required to convert the asset name you provide to the final asset name, which can be problematic if you want to run multiple applications at once.
+
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].
