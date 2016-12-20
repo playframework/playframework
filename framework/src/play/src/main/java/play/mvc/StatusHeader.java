@@ -20,7 +20,6 @@ import akka.util.ByteString;
 import akka.util.ByteString$;
 import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -342,7 +341,7 @@ public class StatusHeader extends Result {
         ByteStringBuilder builder = ByteString$.MODULE$.newBuilder();
 
         try {
-            JsonGenerator jgen = new JsonFactory(mapper).createGenerator(builder.asOutputStream(), encoding);
+            JsonGenerator jgen = mapper.getFactory().createGenerator(builder.asOutputStream(), encoding);
 
             mapper.writeValue(jgen, json);
             String contentType = "application/json; charset=" + encoding.getJavaName();
