@@ -127,8 +127,14 @@ object RoutesCompiler extends AutoPlugin {
   )
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
-    compileRoutes(routesCompilerTasks.value, routesGenerator.value, (target in routes).value, streams.value.cacheDirectory,
-      state.value.log)
+    val log = state.value.log
+    if (routesGenerator.value.id == StaticRoutesGenerator.id) {
+      log.warn(
+        "StaticRoutesGenerator is deprecated. Please use InjectedRoutesGenerator or a custom router instead.\n" +
+          "For more info see https://www.playframework.com/documentation/2.6.x/JavaRouting#Dependency-Injection"
+      )
+    }
+    compileRoutes(routesCompilerTasks.value, routesGenerator.value, (target in routes).value, streams.value.cacheDirectory, log)
   }
 
   def compileRoutes(tasks: Seq[RoutesCompilerTask], generator: RoutesGenerator, generatedDir: File,

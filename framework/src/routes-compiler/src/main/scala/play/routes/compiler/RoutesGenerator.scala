@@ -40,6 +40,7 @@ private object RoutesGenerator {
 /**
  * A routes generator that generates static routers
  */
+@deprecated("Use InjectedRoutesGenerator or a custom router. Global state will be removed soon.", "2.6.0")
 object StaticRoutesGenerator extends RoutesGenerator {
 
   import RoutesGenerator._
