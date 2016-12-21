@@ -16,7 +16,11 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 ## Dependency Injection
 
-Play supports generating two types of routers, one is a dependency injected router, the other is a static router. The default is the dependency injected router, and that is also the case in the Play seed Activator templates, since we recommend you use dependency-injected controllers. If you need to use static controllers you can switch to the static routes generator by adding the following configuration to your `build.sbt`:
+Play's default routes generator creates a router class that accepts controller instances in an `@Inject`-annotated constructor. That means the class is suitable for use with dependency injection and can also be instantiated manually using the constructor.
+
+Play also comes with a legacy static routes generator that works with controllers declared as objects. This is generally not recommended because it breaks encapsulation, makes code less testable, and is incompatible with many of Play's new APIs.
+
+If you need to use static controllers, you can switch to the static routes generator by adding the following configuration to your `build.sbt`.
 
 ```scala
 routesGenerator := StaticRoutesGenerator
