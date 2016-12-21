@@ -84,7 +84,7 @@ object Formats {
    * @param key Key name of the field to parse
    * @param data Field data
    */
-  private def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
+  def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
     stringFormat.bind(key, data).right.flatMap { s =>
       scala.util.control.Exception.allCatch[T]
         .either(parse(s))
