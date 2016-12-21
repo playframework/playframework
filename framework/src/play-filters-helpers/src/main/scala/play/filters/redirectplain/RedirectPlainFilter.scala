@@ -6,7 +6,7 @@ package play.filters.redirectplain
 import javax.inject.{ Inject, Provider }
 
 import akka.stream.Materializer
-import play.api.Configuration
+import com.typesafe.config.{ Config, ConfigFactory }
 import play.api.http.HeaderNames._
 import play.api.inject.SimpleModule
 import play.api.mvc._
@@ -38,16 +38,21 @@ case class RedirectPlainFilter @Inject() (val mat: Materializer, config: Redirec
 
 case class RedirectPlainConfig(enabled: Boolean, strictTransportSecurityMaxAge: Long)
 
-class RedirectPlainConfigProvider @Inject() (configuration: Configuration)
+class RedirectPlainConfigProvider @Inject() (config: Config)
     extends Provider[RedirectPlainConfig] {
 
-  lazy val enabled: Boolean = configuration
-    .getOptional[Boolean]("play.filters.redirectplain.enabled")
-    .getOrElse(false)
+  // Set default values to use
+  lazy val configWithFallback = config.withFallback(ConfigFactory.parseString(
+    """
+      |play.filters.redirectplain.enabled=false
+      |play.filters.redirectplain.strict-transport-security.max-age=31536000
+    """.stripMargin))
 
-  lazy val strictTransportSecurityMaxAge = configuration
-    .getOptional[Long]("play.filters.redirectplain.strict-transport-security.max-age")
-    .getOrElse(31536000l)
+  lazy val enabled: Boolean = configWithFallback
+    .getBoolean("play.filters.redirectplain.enabled")
+
+  lazy val strictTransportSecurityMaxAge = configWithFallback
+    .getLong("play.filters.redirectplain.strict-transport-security.max-age")
 
   lazy val get = RedirectPlainConfig(enabled, strictTransportSecurityMaxAge)
 
