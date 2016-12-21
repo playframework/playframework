@@ -22,7 +22,7 @@ import com.typesafe.config.ConfigFactory
 import play.api.{ Configuration, _ }
 import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
 import play.api.inject.DefaultApplicationLifecycle
-import play.api.libs.streams.{ Accumulator, MaterializeOnDemandPublisher }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
@@ -234,8 +234,7 @@ class AkkaHttpServer(
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.map(source => Source.fromPublisher(new MaterializeOnDemandPublisher(source)))
-        .orElse(Some(Source.empty))
+      requestBodySource.map(source => Source.lazily(() => source)).orElse(Some(Source.empty))
     } else {
       requestBodySource
     }
