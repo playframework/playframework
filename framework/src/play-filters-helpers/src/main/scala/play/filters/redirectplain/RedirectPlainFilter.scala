@@ -42,11 +42,11 @@ class RedirectPlainConfigProvider @Inject() (configuration: Configuration)
     extends Provider[RedirectPlainConfig] {
 
   lazy val enabled: Boolean = configuration
-    .getOptional[Boolean]("filters.redirectplain.enabled")
+    .getOptional[Boolean]("play.filters.redirectplain.enabled")
     .getOrElse(false)
 
   lazy val strictTransportSecurityMaxAge = configuration
-    .getOptional[Long]("filters.redirectplain.strict-transport-security.max-age")
+    .getOptional[Long]("play.filters.redirectplain.strict-transport-security.max-age")
     .getOrElse(31536000l)
 
   lazy val get = RedirectPlainConfig(enabled, strictTransportSecurityMaxAge)

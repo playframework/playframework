@@ -57,19 +57,19 @@ class RedirectPlainFilterSpec extends PlaySpecification {
       status(request(app, "http")) must_== OK
     }
 
-    "redirect when not on https" in withApplication("filters.redirectplain.enabled=true") { app =>
+    "redirect when not on https" in withApplication("play.filters.redirectplain.enabled=true") { app =>
       status(request(app, "http")) must_== MOVED_PERMANENTLY
       header(LOCATION, request(app, "http", "/test/123?foo=bar&bar=baz")) must_== Some ("https://localhost/test/123?foo=bar&bar=baz")
     }
 
-    "not redirect when on https" in withApplication("filters.redirectplain.enabled=true") { app =>
+    "not redirect when on https" in withApplication("play.filters.redirectplain.enabled=true") { app =>
       status(request(app, "https")) must_== OK
     }
 
     "add strict transport security headers on https" in withApplication(
       """
-        |filters.redirectplain.enabled=true
-        |filters.redirectplain.strict-transport-security.max-age=12345
+        |play.filters.redirectplain.enabled=true
+        |play.filters.redirectplain.strict-transport-security.max-age=12345
       """.stripMargin) { app =>
       header(STRICT_TRANSPORT_SECURITY, request(app, "https")) must_== Some ("max-age=12345")
     }
