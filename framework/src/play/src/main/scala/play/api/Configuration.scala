@@ -98,7 +98,7 @@ object Configuration {
 
       Configuration(resolvedConfig)
     } catch {
-      case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+      case e: ConfigException => throw configError(e.getMessage, Option(e.origin), Some(e))
     }
   }
 
@@ -143,18 +143,20 @@ object Configuration {
    */
   def apply(data: (String, Any)*): Configuration = from(data.toMap)
 
-  private[api] def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
+  private[api] def configError(
+    message: String, origin: Option[ConfigOrigin] = None, e: Option[Throwable] = None): PlayException = {
+    println(origin)
     /*
       The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
       This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
      */
-    val originLine = Option(origin.lineNumber: java.lang.Integer).orNull
-    val originUrl = Option(origin.url)
-    val originSourceName = Option(origin.filename).orNull
+    val originLine = origin.map(_.lineNumber: java.lang.Integer).orNull
+    val originSourceName = origin.map(_.filename).orNull
+    val originUrlOpt = origin.flatMap(o => Option(o.url))
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
       def line = originLine
       def position = null
-      def input = originUrl.map(PlayIO.readUrlAsString).orNull
+      def input = originUrlOpt.map(PlayIO.readUrlAsString).orNull
       def sourceName = originSourceName
       override def toString = "Configuration error: " + getMessage
     }
@@ -979,7 +981,8 @@ case class Configuration(underlying: Config) {
    * @return a configuration exception
    */
   def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
+    val origin = Option(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin)
+    Configuration.configError(message, origin, e)
   }
 
   /**
@@ -996,7 +999,7 @@ case class Configuration(underlying: Config) {
    * @return a configuration exception
    */
   def globalError(message: String, e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(underlying.root.origin, message, e)
+    Configuration.configError(message, Option(underlying.root.origin), e)
   }
 }
 

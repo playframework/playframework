@@ -132,6 +132,9 @@ class ConfigurationSpec extends Specification {
         load(Mode.Test) must not(throwA[PlayException])
       }
     }
+    "throw a useful exception when invalid collections are passed in the load method" in {
+      Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
+    }
   }
 
 }
