@@ -307,7 +307,7 @@ trait HeaderNames {
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
   val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
 
-  val STRICT_TRANSPORT_SECURITY = "Strict-Tranpsort-Security"
+  val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
 }
 
 /**
