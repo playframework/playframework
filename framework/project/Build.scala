@@ -268,7 +268,24 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= anormDependencies,
       resolvers += sonatypeSnapshots,
-      addScalaModules(scalaParserCombinators)
+      addScalaModules(scalaParserCombinators),
+      binaryIssueFilters ++= Seq(
+        // Not part of the public API (private/internal def)
+        ProblemFilters.exclude[MissingMethodProblem]("anorm.Sql.sql"),
+        ProblemFilters.exclude[MissingMethodProblem]("anorm.Sql.anorm$Sql$$as"),
+        ProblemFilters.exclude[MissingMethodProblem](
+          "anorm.Sql.resultSetToStream"),
+        ProblemFilters.exclude[MissingMethodProblem](
+          "anorm.Sql.anorm$Sql$$data$1"),
+        ProblemFilters.exclude[MissingMethodProblem]("anorm.Sql.foldWhile"),
+        ProblemFilters.exclude[MissingMethodProblem]("anorm.Sql.fold"),
+        ProblemFilters.exclude[MissingMethodProblem]("anorm.Sql.resultSet"),
+        ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+          "anorm.SqlQueryResult"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem](
+          "anorm.SimpleSql.resultSet"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem](
+          "anorm.SqlQuery.resultSet"))
     )
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
