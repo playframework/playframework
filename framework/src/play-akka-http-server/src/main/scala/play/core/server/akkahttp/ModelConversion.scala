@@ -181,6 +181,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
               data = dataSource(enum)
             ))
           case ServerResultUtils.StreamWithNoBody =>
+            // Ensure that the body is consumed in case any onDoneEnumerating handlers are registered
+            result.body |>>> Iteratee.ignore
             valid(HttpEntity.Empty)
           case ServerResultUtils.StreamWithKnownLength(enum) =>
             convertedHeaders.contentLength.get match {

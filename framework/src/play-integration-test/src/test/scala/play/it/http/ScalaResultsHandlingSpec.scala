@@ -6,6 +6,7 @@ package play.it.http
 import akka.util.Timeout
 import java.io.IOException
 import java.util.concurrent.{ LinkedBlockingQueue, TimeUnit }
+import java.util.concurrent.atomic.AtomicBoolean
 import play.api.http._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -16,6 +17,7 @@ import play.api.libs.iteratee._
 import play.api.routing.Router
 import play.core.server.common.ServerResultException
 import play.it._
+import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.util.{ Failure, Success, Try }
@@ -441,5 +443,60 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         }
     }
 
+    "trigger onDoneEnumerating when a repsonse with a non-empty body completes" in {
+      val triggered = new AtomicBoolean(false)
+      withServer {
+        val ret = Results.Ok("Result with some body")
+        ret.copy(body = ret.body.onDoneEnumerating(triggered.set(true)))
+      } { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.status must_== 200
+        triggered.get must_== true
+      }
+    }
+
+    "trigger onDoneEnumerating when a repsonse with an empty body completes" in {
+      val triggered = new AtomicBoolean(false)
+      withServer {
+        val ret = Results.Ok
+        ret.copy(body = ret.body.onDoneEnumerating(triggered.set(true)))
+      } { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.status must_== 200
+        triggered.get must_== true
+      }
+    }
+
+    "trigger onDoneEnumerating when a 204 repsonse completes" in {
+      val triggered = new AtomicBoolean(false)
+      withServer {
+        val ret = Results.NoContent
+        ret.copy(body = ret.body.onDoneEnumerating(triggered.set(true)))
+      } { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.status must_== 204
+        triggered.get must_== true
+      }
+    }
+
+    "trigger onDoneEnumerating when a 304 repsonse completes" in {
+      val triggered = new AtomicBoolean(false)
+      withServer {
+        val ret = Results.NotModified
+        ret.copy(body = ret.body.onDoneEnumerating(triggered.set(true)))
+      } { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.status must_== 304
+        triggered.get must_== true
+      }
+    }
   }
 }
