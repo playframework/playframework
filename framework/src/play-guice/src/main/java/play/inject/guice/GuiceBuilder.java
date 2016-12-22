@@ -6,6 +6,7 @@ package play.inject.guice;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import play.Configuration;
 import play.Environment;
 import play.Mode;
@@ -98,7 +99,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @return a copy of this builder configured with the supplied configuration
      */
     public final Self configure(Map<String, Object> conf) {
-        return configure(new Configuration(conf));
+        return configure(ConfigFactory.parseMap(conf));
     }
 
     /**

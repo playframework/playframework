@@ -4,6 +4,7 @@
 package play.api.inject
 
 import com.google.inject.AbstractModule
+import com.typesafe.config.Config
 import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
@@ -43,14 +44,28 @@ class ModulesSpec extends Specification {
     "load Guice modules that take a Java Environment and Configuration" in {
       val env = Environment.simple()
       val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[JavaGuiceModule].getName
+        classOf[JavaGuiceConfigurationModule].getName
       ))
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
       located.head must beLike {
-        case mod: JavaGuiceModule =>
+        case mod: JavaGuiceConfigurationModule =>
           mod.environment.underlying must_== env
           mod.configuration.underlying must_== conf.underlying
+      }
+    }
+
+    "load Guice modules that take a Java Environment and Config" in {
+      val env = Environment.simple()
+      val conf = Configuration("play.modules.enabled" -> Seq(
+        classOf[JavaGuiceConfigModule].getName
+      ))
+      val located: Seq[Any] = Modules.locate(env, conf)
+      located.size must_== 1
+      located.head must beLike {
+        case mod: JavaGuiceConfigModule =>
+          mod.environment.underlying must_== env
+          mod.config must_== conf.underlying
       }
     }
 
@@ -68,7 +83,13 @@ class ScalaGuiceModule(
   def configure(): Unit = ()
 }
 
-class JavaGuiceModule(
+class JavaGuiceConfigModule(
+    val environment: JavaEnvironment,
+    val config: Config) extends AbstractModule {
+  def configure(): Unit = ()
+}
+
+class JavaGuiceConfigurationModule(
     val environment: JavaEnvironment,
     val configuration: JavaConfiguration) extends AbstractModule {
   def configure(): Unit = ()

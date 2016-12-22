@@ -7,11 +7,13 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.Test;
 import play.api.inject.Binding;
-import play.Configuration;
 import play.Environment;
 import play.inject.Injector;
 import play.Mode;
@@ -58,18 +60,18 @@ public class GuiceInjectorBuilderTest {
 
     @Test
     public void setConfiguration() {
-        Configuration conf = new GuiceInjectorBuilder()
-            .configure(new Configuration(ImmutableMap.of("a", 1)))
+        Config conf = new GuiceInjectorBuilder()
+            .configure(ConfigFactory.parseMap(ImmutableMap.of("a", 1)))
             .configure(ImmutableMap.of("b", 2))
             .configure("c", 3)
             .configure("d.1", 4)
             .configure("d.2", 5)
             .bindings(new ConfigurationModule())
             .injector()
-            .instanceOf(Configuration.class);
+            .instanceOf(Config.class);
 
-        assertThat(conf.subKeys().size(), is(4));
-        assertThat(conf.subKeys(), hasItems("a", "b", "c", "d"));
+        assertThat(conf.root().keySet().size(), is(4));
+        assertThat(conf.root().keySet(), hasItems("a", "b", "c", "d"));
 
         assertThat(conf.getInt("a"), is(1));
         assertThat(conf.getInt("b"), is(2));
@@ -87,7 +89,7 @@ public class GuiceInjectorBuilderTest {
             .injector();
 
         assertThat(injector.instanceOf(Environment.class), instanceOf(Environment.class));
-        assertThat(injector.instanceOf(Configuration.class), instanceOf(Configuration.class));
+        assertThat(injector.instanceOf(Config.class), instanceOf(Config.class));
         assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
         assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
         assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
@@ -132,11 +134,11 @@ public class GuiceInjectorBuilderTest {
     public static class ConfigurationModule extends play.api.inject.Module {
         @Override
         public Seq<Binding<?>> bindings(play.api.Environment env, play.api.Configuration conf) {
-            return seq(bind(Configuration.class).toInstance(new Configuration(conf)));
+            return seq(bind(Config.class).toInstance(conf.underlying()));
         }
     }
 
-    public static interface A {}
+    public interface A {}
     public static class A1 implements A {}
     public static class A2 implements A {}
 
@@ -152,7 +154,7 @@ public class GuiceInjectorBuilderTest {
         }
     }
 
-    public static interface B {}
+    public interface B {}
     public static class B1 implements B {}
     public static class B2 implements B {}
 
@@ -162,7 +164,7 @@ public class GuiceInjectorBuilderTest {
         }
     }
 
-    public static interface C {}
+    public interface C {}
     public static class C1 implements C {}
 
     public static class CModule extends com.google.inject.AbstractModule {
@@ -171,13 +173,7 @@ public class GuiceInjectorBuilderTest {
         }
     }
 
-    public static interface D {}
+    public interface D {}
     public static class D1 implements D {}
-
-    public static class DModule extends com.google.inject.AbstractModule {
-        public void configure() {
-            bind(D.class).to(D1.class);
-        }
-    }
 
 }
