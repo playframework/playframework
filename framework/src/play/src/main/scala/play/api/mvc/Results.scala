@@ -13,6 +13,7 @@ import akka.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.{ FileMimeTypes, _ }
 import play.api.i18n.{ Lang, MessagesApi }
+import play.api.{ Logger, Mode }
 import play.core.utils.CaseInsensitiveOrdered
 import play.utils.UriEncoding
 
@@ -179,9 +180,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    if (shouldWarnIfNotRedirect(flash)) {
-      logRedirectWarning("flashing")
-    }
+    warnFlashingIfNotRedirect(flash)
     copy(newFlash = Some(flash))
   }
 
@@ -246,19 +245,14 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
-   * Returns true if the status code is not 3xx and the application is in Dev mode.
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
-  private def shouldWarnIfNotRedirect(flash: Flash): Boolean = {
-    play.api.Play.privateMaybeApplication.exists(app =>
-      (app.mode == play.api.Mode.Dev) && (!flash.isEmpty) && (header.status < 300 || header.status > 399))
-  }
-
-  /**
-   * Logs a redirect warning.
-   */
-  private def logRedirectWarning(methodName: String) {
-    val status = header.status
-    play.api.Logger("play").warn(s"You are using status code '$status' with $methodName, which should only be used with a redirect status!")
+  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
+    if (!flash.isEmpty && header.status / 100 == 3) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
   }
 
   /**

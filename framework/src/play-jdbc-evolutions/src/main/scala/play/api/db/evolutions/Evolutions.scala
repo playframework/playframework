@@ -234,15 +234,13 @@ object Evolutions {
   }
 }
 
-@deprecated("Use OfflineEvolutions class instead", "2.6.0")
-object OfflineEvolutions extends OfflineEvolutions(Play.privateMaybeApplication.exists(_.mode == Mode.Test))
-
 /**
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
-class OfflineEvolutions(isTest: => Boolean = false) {
+object OfflineEvolutions {
 
-  private val logger = Logger(this.getClass)
+  // Get a logger that doesn't log in tests
+  private val nonTestLogger = Logger(this.getClass).forMode(Mode.Dev, Mode.Prod)
 
   private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
     val _dbApi = dbApi
@@ -267,9 +265,7 @@ class OfflineEvolutions(isTest: => Boolean = false) {
   def applyScript(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, autocommit: Boolean = true, schema: String = ""): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
     val scripts = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema)
-    if (!isTest) {
-      logger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
-    }
+    nonTestLogger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
     evolutions.evolutionsApi.evolve(dbName, scripts, autocommit, schema)
   }
 
@@ -285,9 +281,7 @@ class OfflineEvolutions(isTest: => Boolean = false) {
    */
   def resolve(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, revision: Int, schema: String = ""): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
-    if (!isTest) {
-      logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
-    }
+    nonTestLogger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     evolutions.evolutionsApi.resolve(dbName, revision, schema)
   }
 

@@ -186,7 +186,9 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
       parallelExecution in Test := false,
       // quieten deprecation warnings in tests
       scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-    ).dependsOn(PlayProject)
+    )
+    .dependsOn(PlayProject)
+    .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
   .dependsOn(PlayProject)
