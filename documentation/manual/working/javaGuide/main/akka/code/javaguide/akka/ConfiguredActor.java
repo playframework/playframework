@@ -5,16 +5,16 @@ package javaguide.akka;
 
 //#injected
 import akka.actor.UntypedActor;
-import play.Configuration;
+import com.typesafe.config.Config;
 
 import javax.inject.Inject;
 
 public class ConfiguredActor extends UntypedActor {
 
-    private Configuration configuration;
+    private Config configuration;
 
     @Inject
-    public ConfiguredActor(Configuration configuration) {
+    public ConfiguredActor(Config configuration) {
         this.configuration = configuration;
     }
 

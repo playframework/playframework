@@ -5,8 +5,9 @@ package play.api.inject.guice
 
 import org.specs2.mutable.Specification
 import com.google.inject.AbstractModule
+import com.typesafe.config.Config
 import play.api.i18n.I18nModule
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+import play.{ Environment => JavaEnvironment }
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.inject.{ BuiltinModule, DefaultApplicationLifecycle }
 
@@ -100,7 +101,7 @@ class ScalaConfiguredModule(
 }
 class JavaConfiguredModule(
     environment: JavaEnvironment,
-    configuration: JavaConfiguration) extends AbstractModule {
+    config: Config) extends AbstractModule {
   def configure(): Unit = {
     bind(classOf[Foo]) to classOf[JavaConfiguredFoo]
   }
