@@ -4,29 +4,37 @@ buildInfoSettings
 
 sourceGenerators in Compile += Def.task(buildInfo.value).taskValue
 
-val sbtNativePackagerVersion = "1.1.1"
-val sbtTwirlVersion = sys.props.getOrElse("twirl.version", "1.3.0")
+val Versions = new {
+  val sbtNativePackager = "1.1.1"
+  val mima = "0.1.12"
+  val sbtScalariform = "1.6.0"
+  val sbtJmh = "0.2.16"
+  val sbtDoge = "0.1.5"
+  val webjarsLocatorCore = "0.26"
+  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.0")
+  val interplay: String = sys.props.getOrElse("interplay.version", "1.3.4")
+}
 
 buildInfoKeys := Seq[BuildInfoKey](
-  "sbtNativePackagerVersion" -> sbtNativePackagerVersion,
-  "sbtTwirlVersion" -> sbtTwirlVersion
+  "sbtNativePackagerVersion" -> Versions.sbtNativePackager,
+  "sbtTwirlVersion" -> Versions.sbtTwirl
 )
 
 logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.3.4"))
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.12")
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.16")
+addSbtPlugin("com.typesafe.play" % "interplay" % Versions.interplay)
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
-  "org.webjars" % "webjars-locator-core" % "0.26"
+  "org.webjars" % "webjars-locator-core" % Versions.webjarsLocatorCore
 )
 
 resolvers += Resolver.typesafeRepo("releases")
 
-addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")
+addSbtPlugin("com.eed3si9n" % "sbt-doge" % Versions.sbtDoge)
