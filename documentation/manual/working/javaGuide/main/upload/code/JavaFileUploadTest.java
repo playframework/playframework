@@ -37,7 +37,7 @@ public class JavaFileUploadTest extends WithApplication {
     @Test
     public void testFileUpload() throws IOException {
         File file = getFile();
-        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "Arvind.pdf", "application/pdf", FileIO.fromFile(file));
+        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromFile(file));
 
         //###replace:     Http.RequestBuilder request = new Http.RequestBuilder().uri(routes.MyController.upload().url())
         Http.RequestBuilder request = new Http.RequestBuilder().uri("/upload")
@@ -56,7 +56,7 @@ public class JavaFileUploadTest extends WithApplication {
     //#testSyncUpload
 
     private File getFile() throws IOException {
-        String filePath ="/com/egnaro/data/Arvind.pdf";
+        String filePath ="/tmp/data/file.pdf";
         java.nio.file.Path tempFilePath = Files.createTempFile(null, null);
         byte[] expectedData = filePath.getBytes();
         Files.write(tempFilePath, expectedData);
