@@ -5,7 +5,8 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ HttpConfiguration, SessionConfiguration }
+import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfiguration }
+import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
 import scala.collection.JavaConverters._
@@ -81,15 +82,14 @@ trait SessionCookieBaker extends CookieBaker[Session] {
   override def httpOnly = config.httpOnly
   override def path = config.path
   override def domain = config.domain
-  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 
   def deserialize(data: Map[String, String]) = new Session(data)
 
   def serialize(session: Session) = session.data
 }
 
-class DefaultSessionCookieBaker @Inject() (val config: SessionConfiguration) extends SessionCookieBaker {
-  def this() = this(SessionConfiguration())
+class DefaultSessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner) extends SessionCookieBaker {
+  def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
 @deprecated("Inject [[play.api.mvc.SessionCookieBaker]] instead", "2.6.0")
@@ -97,4 +97,5 @@ object Session extends SessionCookieBaker {
   def config = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
   override def path = HttpConfiguration.current.context
+  override def cookieSigner = play.api.libs.Crypto.cookieSigner
 }

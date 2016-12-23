@@ -8,7 +8,6 @@ import java.time.Instant
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, FileMimeTypesConfiguration }
 import play.api.mvc.ResponseHeader
-import play.api.{ Configuration, Environment, Mode }
 import play.utils.InvalidUriEncodingException
 
 class AssetsSpec extends Specification {

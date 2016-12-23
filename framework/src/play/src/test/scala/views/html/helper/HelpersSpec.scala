@@ -16,7 +16,7 @@ class HelpersSpec extends Specification {
 
   val conf = Configuration.reference
   val langs = new DefaultLangsProvider(conf).get
-  val httpConfiguration = HttpConfiguration.fromConfiguration(conf)
+  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, Environment.simple())
   val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 

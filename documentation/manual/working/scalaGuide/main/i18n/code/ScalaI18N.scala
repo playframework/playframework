@@ -70,9 +70,10 @@ class ScalaI18nSpec extends PlaySpecification with Controller {
 
   "A Scala translation" should {
 
+    val env = Environment.simple()
     val langs = new DefaultLangsProvider(conf).get
-    val httpConfiguration = HttpConfiguration.fromConfiguration(conf)
-    val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
+    val httpConfiguration = HttpConfiguration.fromConfiguration(conf, env)
+    val messagesApi = new DefaultMessagesApiProvider(env, conf, langs, httpConfiguration).get
 
     implicit val lang = Lang("en")
 

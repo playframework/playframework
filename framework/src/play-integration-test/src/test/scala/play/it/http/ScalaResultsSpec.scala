@@ -97,7 +97,7 @@ class ScalaResultsSpec extends PlaySpecification {
   }
 
   def withApplication[T](config: (String, Any)*)(block: Application => T): T = running(
-    _.configure(Map(config: _*) + ("play.crypto.secret" -> "foo"))
+    _.configure(Map(config: _*) + ("play.http.secret.key" -> "foo"))
   )(block)
 
   def withFooDomain[T](block: Application => T) = withApplication("play.http.session.domain" -> ".foo.com")(block)

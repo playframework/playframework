@@ -6,7 +6,8 @@ package play.api.http
 import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.ConfigMemorySize
-import play.api.{ Application, Configuration, Play }
+import org.apache.commons.codec.digest.DigestUtils
+import play.api.{ http, _ }
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
 import scala.concurrent.duration.FiniteDuration
@@ -27,7 +28,39 @@ case class HttpConfiguration(
   cookies: CookiesConfiguration = CookiesConfiguration(),
   session: SessionConfiguration = SessionConfiguration(),
   flash: FlashConfiguration = FlashConfiguration(),
-  fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration())
+  fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
+  secret: SecretConfiguration = SecretConfiguration())
+
+/**
+ * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
+ * production.
+ *
+ * With the the Play secret we want to:
+ *
+ * 1) Encourage the practice of *not* using the same secret in dev and prod.
+ * 2) Make it obvious that the secret should be changed.
+ * 3) Ensure that in dev mode, the secret stays stable across restarts.
+ * 4) Ensure that in dev mode, sessions do not interfere with other applications that may be or have been running
+ *   on localhost.  Eg, if I start Play app 1, and it stores a PLAY_SESSION cookie for localhost:9000, then I stop
+ *   it, and start Play app 2, when it reads the PLAY_SESSION cookie for localhost:9000, it should not see the
+ *   session set by Play app 1.  This can be achieved by using different secrets for the two, since if they are
+ *   different, they will simply ignore the session cookie set by the other.
+ *
+ * To achieve 1 and 2, we will, in Activator templates, set the default secret to be "changeme".  This should make
+ * it obvious that the secret needs to be changed and discourage using the same secret in dev and prod.
+ *
+ * For safety, if the secret is not set, or if it's changeme, and we are in prod mode, then we will fail fatally.
+ * This will further enforce both 1 and 2.
+ *
+ * To achieve 3, if in dev or test mode, if the secret is either changeme or not set, we will generate a secret
+ * based on the location of application.conf.  This should be stable across restarts for a given application.
+ *
+ * To achieve 4, using the location of application.conf to generate the secret should ensure this.
+ *
+ * @param secret   the application secre
+ * @param provider the JCE provider to use. If null, uses the platform default
+ */
+case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
 
 /**
  * The cookies configuration
@@ -94,9 +127,10 @@ case class FileMimeTypesConfiguration(mimeTypes: Map[String, String] = Map.empty
 
 object HttpConfiguration {
 
+  private val logger = Logger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
 
-  def fromConfiguration(config: Configuration) = {
+  def fromConfiguration(config: Configuration, environment: Environment) = {
 
     def getPath(key: String, deprecatedKey: Option[String] = None): String = {
       val path = deprecatedKey match {
@@ -153,8 +187,39 @@ object HttpConfiguration {
         .filter(_ (0) != '#')
         .map(_.split('='))
         .map(parts => parts(0) -> parts.drop(1).mkString).toMap
-      )
+      ),
+      secret = getSecretConfiguration(config, environment)
     )
+  }
+
+  private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
+
+    val Blank = """\s*""".r
+
+    val secret = config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
+      case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
+        val message =
+          """
+            |The application secret has not been set, and we are in prod mode. Your application is not secure.
+            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+          """.stripMargin
+        throw config.reportError("play.http.secret", message)
+      case Some("changeme") | Some(Blank()) | None =>
+        val appConfLocation = environment.resource("application.conf")
+        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+        val secret = appConfLocation.fold(
+          // No application.conf?  Oh well, just use something hard coded.
+          "she sells sea shells on the sea shore"
+        )(_.toString)
+        val md5Secret = DigestUtils.md5Hex(secret)
+        logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
+        md5Secret
+      case Some(s) => s
+    }
+
+    val provider = config.getDeprecated[Option[String]]("play.http.secret.provider", "play.crypto.provider")
+
+    SecretConfiguration(String.valueOf(secret), provider)
   }
 
   /**
@@ -168,8 +233,8 @@ object HttpConfiguration {
   def createWithDefaults() = apply()
 
   @Singleton
-  class HttpConfigurationProvider @Inject() (configuration: Configuration) extends Provider[HttpConfiguration] {
-    lazy val get = fromConfiguration(configuration)
+  class HttpConfigurationProvider @Inject() (configuration: Configuration, environment: Environment) extends Provider[HttpConfiguration] {
+    lazy val get = fromConfiguration(configuration, environment)
   }
 
   @Singleton
@@ -200,5 +265,10 @@ object HttpConfiguration {
   @Singleton
   class FileMimeTypesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FileMimeTypesConfiguration] {
     lazy val get = conf.fileMimeTypes
+  }
+
+  @Singleton
+  class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
+    lazy val get: SecretConfiguration = conf.secret
   }
 }

@@ -126,7 +126,7 @@ To stop the server once you've started it, simply call the `stop` method:
 
 @[stop-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 
-> **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.crypto.secret` system property.
+> **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
 
 Another way is to create a Play Application via [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) in combination with the `fromApplication` method:
  

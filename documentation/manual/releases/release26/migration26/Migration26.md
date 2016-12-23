@@ -451,3 +451,11 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 ```
 
 
+## Other Configuration changes
+
+There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
+
+| Old key                   | New key                            |
+| ------------------------- | ---------------------------------- |
+| `play.crypto.secret`      | `play.http.secret.key`             |
+| `play.crypto.provider`    | `play.http.secret.provider`        |

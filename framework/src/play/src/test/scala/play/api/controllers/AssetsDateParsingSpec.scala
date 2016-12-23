@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
 
 class AssetsDateParsingSpec extends Specification {
 

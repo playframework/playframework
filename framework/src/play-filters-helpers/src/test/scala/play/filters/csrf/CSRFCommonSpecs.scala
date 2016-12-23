@@ -6,7 +6,7 @@ package play.filters.csrf
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Application
-import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
+import play.api.http.{ ContentTypeOf, ContentTypes, SecretConfiguration, Writeable }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto._
 import play.api.libs.ws._
@@ -27,7 +27,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
-  val crypto = new DefaultCSRFTokenSigner(new HMACSHA1CookieSigner(CryptoConfig(CRYPTO_SECRET)), java.time.Clock.systemUTC())
+  val crypto = new DefaultCSRFTokenSigner(new DefaultCookieSigner(SecretConfiguration(CRYPTO_SECRET)), java.time.Clock.systemUTC())
 
   val Boundary = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
@@ -282,7 +282,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
       .routes(router)
       .build()
     val ws = inject[WSClient]
@@ -291,7 +291,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withActionServer[T](config: Seq[(String, String)])(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
       .appRoutes(app => router(app))
       .build()
     val ws = inject[WSClient]

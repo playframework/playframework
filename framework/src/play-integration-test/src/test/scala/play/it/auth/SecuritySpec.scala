@@ -65,6 +65,6 @@ class SecuritySpec extends PlaySpecification {
   case class Connection(name: String)
 
   def withApplication[T](block: Application => T) = {
-    running(_.configure("play.crypto.secret" -> "foobar"))(block)
+    running(_.configure("play.http.secret.key" -> "foobar"))(block)
   }
 }
