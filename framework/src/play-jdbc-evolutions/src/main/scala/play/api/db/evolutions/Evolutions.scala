@@ -110,10 +110,10 @@ object Evolutions {
   /**
    * Apply pending evolutions for the given database.
    */
+  @deprecated("Inject or create an instance of EvolutionsApi and use EvolutionsApi#applyFor", "2.6.0")
   def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
-    val evolutions = Play.current.injector.instanceOf[EvolutionsApi]
-    val scripts = evolutions.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema)
-    evolutions.evolve(dbName, scripts, autocommit, schema)
+    val evolutionsApi = Play.current.injector.instanceOf[EvolutionsApi]
+    evolutionsApi.applyFor(dbName, path, autocommit, schema)
   }
 
   /**
@@ -234,14 +234,15 @@ object Evolutions {
   }
 }
 
+@deprecated("Use OfflineEvolutions class instead", "2.6.0")
+object OfflineEvolutions extends OfflineEvolutions(Play.privateMaybeApplication.exists(_.mode == Mode.Test))
+
 /**
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
-object OfflineEvolutions {
+class OfflineEvolutions(isTest: => Boolean = false) {
 
   private val logger = Logger(this.getClass)
-
-  private def isTest: Boolean = Play.privateMaybeApplication.exists(_.mode == Mode.Test)
 
   private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
     val _dbApi = dbApi
