@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext
  */
 final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
   private[play] def this(status: Int, _headers: java.util.Map[String, String], reasonPhrase: Option[String]) =
-    this(status, collection.JavaConverters.mapAsScalaMap(_headers).toMap, reasonPhrase)
+    this(status, _headers.asScala.toMap, reasonPhrase)
 
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 

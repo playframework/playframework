@@ -5,9 +5,9 @@ package play.libs.openid;
 
 import play.libs.Scala;
 import play.mvc.Http;
-import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.ExecutionContext;
+import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -48,16 +48,21 @@ public class DefaultOpenIdClient implements OpenIdClient {
         if (axOptional == null) axOptional = new HashMap<>();
         return FutureConverters.toJava(client.redirectURL(openID,
                 callbackURL,
-                JavaConverters.mapAsScalaMap(axRequired).toSeq(),
-                JavaConverters.mapAsScalaMap(axOptional).toSeq(),
+                Scala.asScala(axRequired).toSeq(),
+                Scala.asScala(axOptional).toSeq(),
                 Scala.Option(realm)));
     }
 
     @Override
     public CompletionStage<UserInfo> verifiedId(Http.RequestHeader request) {
-        return FutureConverters
-                .toJava(client.verifiedId(request.queryString()))
-                .thenApply(userInfo -> new UserInfo(userInfo.id(), JavaConverters.mapAsJavaMap(userInfo.attributes())));
+        scala.concurrent.Future<UserInfo> scalaPromise = client.verifiedId(request.queryString()).map(
+                new AbstractFunction1<play.api.libs.openid.UserInfo, UserInfo>() {
+                    @Override
+                    public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
+                        return new UserInfo(scalaUserInfo.id(), Scala.asJava(scalaUserInfo.attributes()));
+                    }
+                }, executionContext);
+        return FutureConverters.toJava(scalaPromise);
     }
 
     @Override
