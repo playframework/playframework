@@ -15,7 +15,6 @@ import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
 import play.libs.Scala;
-import scala.collection.JavaConverters;
 import scala.compat.java8.OptionConverters;
 
 import static play.mvc.Http.Cookie;
@@ -178,7 +177,7 @@ public class Result {
      * @return the immutable map of headers
      */
     public Map<String, String> headers() {
-        return Collections.unmodifiableMap(JavaConverters.mapAsJavaMap(this.header.headers()));
+        return Collections.unmodifiableMap(Scala.asJava(this.header.headers()));
     }
 
     /**

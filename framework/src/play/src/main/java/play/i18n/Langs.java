@@ -3,7 +3,7 @@
  */
 package play.i18n;
 
-import scala.collection.JavaConverters;
+import play.libs.Scala;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,7 +24,7 @@ public class Langs {
     public Langs(play.api.i18n.Langs langs) {
         this.langs = langs;
         List<Lang> availables = new ArrayList<>();
-        for (play.api.i18n.Lang lang : JavaConverters.asJavaIterable(langs.availables())) {
+        for (play.api.i18n.Lang lang : Scala.asJava(langs.availables())) {
             availables.add(new Lang(lang));
         }
         this.availables = Collections.unmodifiableList(availables);
@@ -55,6 +55,6 @@ public class Langs {
      * @return The preferred language
      */
     public Lang preferred(Collection<Lang> candidates) {
-        return new Lang(langs.preferred((scala.collection.Seq) JavaConverters.collectionAsScalaIterable(candidates).toSeq()));
+        return new Lang(langs.preferred((scala.collection.Seq) Scala.asScala(candidates).toSeq()));
     }
 }
