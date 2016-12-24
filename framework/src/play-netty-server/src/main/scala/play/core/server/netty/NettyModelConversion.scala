@@ -37,14 +37,30 @@ private[server] class NettyModelConversion(forwardedHeaderHandler: ForwardedHead
     if (withoutQueryString.isEmpty) "/" else withoutQueryString
   }
 
+  private def parsePathAndQuery(uri: String): (String, String) = {
+    // https://tools.ietf.org/html/rfc3986#section-3.3
+    val withoutHost = uri.dropWhile(_ != '/')
+    // The path is terminated by the first question mark ("?")
+    // or number sign ("#") character, or by the end of the URI.
+    val queryEndPos = Some(withoutHost.indexOf('#')).filter(_ != -1).getOrElse(withoutHost.length)
+    val pathEndPos = Some(withoutHost.indexOf('?')).filter(_ != -1).getOrElse(queryEndPos)
+    val path = withoutHost.substring(0, pathEndPos)
+    // https://tools.ietf.org/html/rfc3986#section-3.4
+    // The query component is indicated by the first question
+    // mark ("?") character and terminated by a number sign ("#") character
+    // or by the end of the URI.
+    val queryString = withoutHost.substring(pathEndPos, queryEndPos)
+    (path, queryString)
+  }
+
   def parseUri(rawUri: String): (String, Map[String, Seq[String]]) = {
+    val (rawPath, rawQueryString) = parsePathAndQuery(rawUri)
     // wrapping into URI to handle absoluteURI and Failures
-    val javaUri = new URI(rawUri)
-    val path = Option(javaUri.getRawPath).getOrElse {
+    val path = Option(new URI(rawPath).getRawPath).getOrElse {
       // if the URI has no path, this will trigger a 400 error
       throw new IllegalStateException(s"Cannot parse path from URI: ${pathError(rawUri)}")
     }
-    val decoder = new QueryStringDecoder(javaUri)
+    val decoder = new QueryStringDecoder(rawQueryString)
     val parameters: Map[String, Seq[String]] = {
       val decodedParameters = decoder.parameters()
       if (decodedParameters.isEmpty) Map.empty
