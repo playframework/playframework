@@ -125,10 +125,10 @@ $ sbt run
 
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
-(Server started, use Ctrl+D to stop and go back to the console...)
+(Server started, use Enter to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
+The application starts directly. When you quit the server using `Enter`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run
