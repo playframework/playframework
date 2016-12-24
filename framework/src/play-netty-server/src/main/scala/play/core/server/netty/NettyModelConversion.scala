@@ -35,12 +35,20 @@ private[server] class NettyModelConversion(
 
   private val logger = Logger(classOf[NettyModelConversion])
 
-  private def pathError(uri: String): String = {
-    // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
-    // path, and don't decode.
+  private def parsePathAndQuery(uri: String): (String, String) = {
+    // https://tools.ietf.org/html/rfc3986#section-3.3
     val withoutHost = uri.dropWhile(_ != '/')
-    val withoutQueryString = withoutHost.split('?').head
-    if (withoutQueryString.isEmpty) "/" else withoutQueryString
+    // The path is terminated by the first question mark ("?")
+    // or number sign ("#") character, or by the end of the URI.
+    val queryEndPos = Some(withoutHost.indexOf('#')).filter(_ != -1).getOrElse(withoutHost.length)
+    val pathEndPos = Some(withoutHost.indexOf('?')).filter(_ != -1).getOrElse(queryEndPos)
+    val path = withoutHost.substring(0, pathEndPos)
+    // https://tools.ietf.org/html/rfc3986#section-3.4
+    // The query component is indicated by the first question
+    // mark ("?") character and terminated by a number sign ("#") character
+    // or by the end of the URI.
+    val queryString = withoutHost.substring(pathEndPos, queryEndPos)
+    (path, queryString)
   }
 
   /**
@@ -87,19 +95,24 @@ private[server] class NettyModelConversion(
   }
 
   /** Create request target information from a Netty request. */
-  private def createRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
-    override val uri: URI = new URI(uriString)
-    override def uriString: String = request.getUri
-    override val path = uri.getRawPath
-    if (path == null) {
-      // if the URI has no path, this will trigger a 400 error
-      throw new IllegalStateException(s"Cannot parse path from URI: $uriString")
+  private def createRequestTarget(request: HttpRequest): RequestTarget = {
+    val (unsafePath, parsedQueryString) = parsePathAndQuery(request.getUri)
+    // wrapping into URI to handle absoluteURI and path validation
+    val parsedPath = Option(new URI(unsafePath).getRawPath).getOrElse {
+      // if the URI has a invalid path, this will trigger a 400 error
+      throw new IllegalStateException(s"Cannot parse path from URI: $unsafePath")
     }
-    override lazy val queryMap: Map[String, Seq[String]] = {
-      val decoder = new QueryStringDecoder(uri)
-      val decodedParameters = decoder.parameters()
-      if (decodedParameters.isEmpty) Map.empty
-      else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
+    new RequestTarget {
+      override lazy val uri: URI = new URI(uriString)
+      override def uriString: String = request.getUri
+      override val path: String = parsedPath
+      override val queryString: String = parsedQueryString.stripPrefix("?")
+      override lazy val queryMap: Map[String, Seq[String]] = {
+        val decoder = new QueryStringDecoder(parsedQueryString)
+        val decodedParameters = decoder.parameters()
+        if (decodedParameters.isEmpty) Map.empty
+        else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
+      }
     }
   }
 
@@ -110,7 +123,7 @@ private[server] class NettyModelConversion(
   def createUnparsedRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
     override lazy val uri: URI = new URI(uriString)
     override def uriString = request.getUri
-    override lazy val path = {
+    override lazy val path: String = {
       // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
       // path, and don't decode.
       // RICH: This looks like a source of potential security bugs to me!
