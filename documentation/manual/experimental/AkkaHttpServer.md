@@ -35,7 +35,7 @@ Now Play should automatically select the Akka HTTP server for running in dev mod
 If for some reason you have both the Akka HTTP server and the Netty HTTP server on your classpath, you'll need to manually select it.  This can be done using the `play.server.provider` system property, for example, in dev mode:
 
 ```
-run -Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider
+run -Dplay.server.provider=play.core.server.AkkaHttpServerProvider
 ```
 
 ### Verifying that the Akka HTTP server is running
@@ -57,7 +57,7 @@ The Akka HTTP server is configured with Typesafe Config, like the rest of Play. 
 play {
 
   # The server provider class name
-  server.provider = "play.core.server.akkahttp.AkkaHttpServerProvider"
+  server.provider = "play.core.server.AkkaHttpServerProvider"
 
   akka {
     # How long to wait when binding to the listening socket

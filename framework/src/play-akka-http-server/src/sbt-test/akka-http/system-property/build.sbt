@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
 
 fork in Test := true
 
-javaOptions in Test += "-Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
+javaOptions in Test += "-Dplay.server.provider=play.core.server.AkkaHttpServerProvider"
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
