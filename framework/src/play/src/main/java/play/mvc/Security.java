@@ -31,25 +31,24 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
         
-        public F.Promise<Result> call(Context ctx) {
+        public F.Promise<Result> call(Context ctx) throws Throwable {
+            Authenticator authenticator;
             try {
-                Authenticator authenticator = configuration.value().newInstance();
-                String username = authenticator.getUsername(ctx);
-                if(username == null) {
-                    Result unauthorized = authenticator.onUnauthorized(ctx);
-                    return F.Promise.pure(unauthorized);
-                } else {
-                    try {
-                        ctx.request().setUsername(username);
-                        return delegate.call(ctx);
-                    } finally {
-                        ctx.request().setUsername(null);
-                    }
+                authenticator = configuration.value().newInstance();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            String username = authenticator.getUsername(ctx);
+            if (username == null) {
+                Result unauthorized = authenticator.onUnauthorized(ctx);
+                return F.Promise.pure(unauthorized);
+            } else {
+                try {
+                    ctx.request().setUsername(username);
+                    return delegate.call(ctx);
+                } finally {
+                    ctx.request().setUsername(null);
                 }
-            } catch(RuntimeException e) {
-                throw e;
-            } catch(Throwable t) {
-                throw new RuntimeException(t);
             }
         }
 
