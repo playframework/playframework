@@ -4,16 +4,20 @@
 package play.api.libs.openid
 
 import org.specs2.mutable.Specification
+
 import scala.Predef._
 import org.specs2.mock.Mockito
 import org.mockito._
 import play.api.mvc.Request
 import play.api.http._
 import play.api.http.Status._
-import play.api.libs.openid.Errors.{ BAD_RESPONSE, AUTH_ERROR }
+import play.api.libs.openid.Errors.{ AUTH_ERROR, BAD_RESPONSE }
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
+
+import play.api.libs.ws.BodyWritable
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -116,7 +120,7 @@ class OpenIDSpec extends Specification with Mockito {
 
       val argument = ArgumentCaptor.forClass(classOf[Params])
       "direct verification using a POST request was used" in {
-        there was one(ws.request).post(argument.capture())(any[Writeable[Params]])
+        there was one(ws.request).post(argument.capture())(any[BodyWritable[Params]])
 
         val verificationQuery = argument.getValue
 
@@ -154,7 +158,7 @@ class OpenIDSpec extends Specification with Mockito {
           // Use discovery to resolve the endpoint
           one(ws.request).get()
           // Verify the response
-          one(ws.request).post(any[Params])(any[Writeable[Params]])
+          one(ws.request).post(any[Params])(any[BodyWritable[Params]])
         }
       }
       "use direct verification on the discovered endpoint" in {
@@ -174,7 +178,7 @@ class OpenIDSpec extends Specification with Mockito {
 
       Await.result(openId.verifiedId(setupMockRequest()), dur) must throwA[AUTH_ERROR.type]
 
-      there was one(ws.request).post(any[Params])(any[Writeable[Params]])
+      there was one(ws.request).post(any[Params])(any[BodyWritable[Params]])
     }
 
     "fail response verification if the response indicates an error" in {
@@ -210,7 +214,7 @@ class OpenIDSpec extends Specification with Mockito {
           // Use discovery to resolve the endpoint
           one(ws.request).get()
           // Verify the response
-          one(ws.request).post(any[Params])(any[Writeable[Params]])
+          one(ws.request).post(any[Params])(any[BodyWritable[Params]])
         }
       }
     }

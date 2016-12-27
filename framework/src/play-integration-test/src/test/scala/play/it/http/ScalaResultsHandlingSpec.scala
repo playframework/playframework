@@ -46,7 +46,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       tryRequest(result)(tryResult => block(tryResult.get))
     }
 
-    def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
+    def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: play.api.test.Port => T) = {
       val port = testServerPort
       val app = GuiceApplicationBuilder()
         .overrides(bind[HttpErrorHandler].to(errorHandler))

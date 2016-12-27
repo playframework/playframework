@@ -14,6 +14,7 @@ import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
+import play.api.libs.ws.WSClient
 import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.routing.HandlerDef
 import play.api.test._
@@ -446,9 +447,9 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   }
 
   def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
-    withServer(app => webSocket(app)(FORBIDDEN)) { app =>
-      implicit val port = testServerPort
-      await(wsUrl("/stream").withHeaders(
+    withServer(app => webSocket(app)(FORBIDDEN)) { implicit app =>
+      val ws = app.injector.instanceOf[WSClient]
+      await(ws.url(s"http://localhost:$testServerPort/stream").withHeaders(
         "Upgrade" -> "websocket",
         "Connection" -> "upgrade",
         "Sec-WebSocket-Version" -> "13",

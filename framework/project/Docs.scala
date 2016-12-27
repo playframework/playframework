@@ -150,8 +150,7 @@ object Docs {
         javaApiUrl,
         javaxInjectUrl,
         ehCacheUrl,
-        guiceUrl,
-        ahcUrl
+        guiceUrl
       )
 
       import Dependencies._
@@ -202,8 +201,6 @@ object Docs {
   val ehCacheUrl = raw"http://www.ehcache.org/apidocs/2.6.9/index.html"
   // nonstandard guice location
   val guiceUrl = raw"http://google.github.io/guice/api-docs/${Dependencies.guiceVersion}/javadoc/index.html"
-  // non standard ahc location
-  val ahcUrl = raw"http://static.javadoc.io/org.asynchttpclient/async-http-client/${Dependencies.asyncHttpClientVersion}/index.html"
 
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)

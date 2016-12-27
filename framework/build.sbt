@@ -5,8 +5,9 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
+import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
 import interplay.PlayBuildBase.autoImport._
+import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
 
@@ -171,6 +172,9 @@ lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
       libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
       sourceGenerators in Compile += Def.task(PlayVersion(version.value, (scalaVersion in PlayProject).value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
 
+      //
+      ivyScala := { ivyScala.value map {_.copy(overrideScalaVersion = sbtPlugin.value)} },
+
       // This only publishes the sbt plugin projects on each scripted run.
       // The runtests script does a full publish before running tests.
       // When developing the sbt plugins, run a publishLocal in the root project first.
@@ -189,7 +193,13 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
     ).dependsOn(PlayProject)
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
-  .dependsOn(PlayProject)
+    .settings(
+      libraryDependencies ++= playWsDeps,
+      parallelExecution in Test := false,
+      // quieten deprecation warnings in tests
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+  ).dependsOn(PlayProject)
+  .dependsOn(PlayTestProject % "test")
 
 lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
   .settings(
@@ -199,6 +209,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
   ).dependsOn(PlayWsProject, PlayJavaProject)
   .dependsOn(PlaySpecs2Project % "test")
+  .dependsOn(PlayTestProject % "compile->compile; test->test")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .settings(

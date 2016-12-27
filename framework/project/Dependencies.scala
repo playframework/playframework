@@ -247,15 +247,17 @@ object Dependencies {
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
-  val asyncHttpClientVersion = "2.0.24"
-  val playAhcWsDeps = Seq(
-    guava,
-    "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
+  val playWsStandaloneVersion = "1.0.0-SNAPSHOT"
+  val playWsDeps = Seq(
+    "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     logback % Test
-  ) ++
-    Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
+  ) ++    
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
+
+  val playAhcWsDeps = Seq(
+    "com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion
+  )
 
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
