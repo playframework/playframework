@@ -256,7 +256,9 @@ object PlayBuild extends Build {
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
       binaryIssueFilters := Seq(
         // Needed so compile-time DI can use temporary files, raw request bodies
-        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.tempFileCreator")
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.tempFileCreator"),
+        // internal API
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.Configuration.configError")
       ),
 
       sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,

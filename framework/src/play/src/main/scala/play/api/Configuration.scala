@@ -1048,7 +1048,8 @@ private[play] class PlayConfig(val underlying: Config) {
    * @return a configuration exception
    */
   def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
+    val origin = Option(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin)
+    Configuration.configError(message, origin, e)
   }
 
   /**
