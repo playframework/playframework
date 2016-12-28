@@ -60,7 +60,7 @@ $ /path/to/bin/<project-name> -Dconfig.file=/opt/conf/prod.conf
 Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
 
 ```
-$ /path/to/bin/<project-name> -Dplay.crypto.secret=abcdefghijk -Ddb.default.password=toto
+$ /path/to/bin/<project-name> -Dplay.http.secret.key=abcdefghijk -Ddb.default.password=toto
 ```
 
 #### Specifying the HTTP server address and port using system properties

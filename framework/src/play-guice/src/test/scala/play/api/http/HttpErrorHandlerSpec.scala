@@ -19,6 +19,8 @@ import play.i18n.{ Langs, MessagesApi }
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
 
+import scala.collection.JavaConverters._
+
 class HttpErrorHandlerSpec extends Specification {
 
   def await[T](future: Future[T]) = Await.result(future, Duration.Inf)
@@ -69,12 +71,14 @@ class HttpErrorHandlerSpec extends Specification {
   }
 
   def handler(handlerClass: String, mode: Mode.Mode): HttpErrorHandler = {
-    import scala.collection.JavaConverters._
-    val config = ConfigFactory.parseMap(Map("play.http.errorHandler" -> handlerClass).asJava)
-      .withFallback(ConfigFactory.defaultReference())
+    val properties = Map(
+      "play.http.errorHandler" -> handlerClass,
+      "play.http.secret.key" -> "mysecret"
+    )
+    val config = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
     val configuration = Configuration(config)
     val env = Environment.simple(mode = mode)
-    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
     val langs = new play.api.i18n.DefaultLangsProvider(configuration).get
     val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
     val jLangs = new play.i18n.Langs(langs)

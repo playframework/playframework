@@ -2,7 +2,8 @@ package play.api.mvc.request
 
 import javax.inject.Inject
 
-import play.api.http.HttpConfiguration
+import play.api.http.{ HttpConfiguration, SecretConfiguration }
+import play.api.libs.crypto.CookieSignerProvider
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.system.RequestIdProvider
@@ -89,8 +90,8 @@ class DefaultRequestFactory @Inject() (
 
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
-    new DefaultSessionCookieBaker(config.session),
-    new DefaultFlashCookieBaker(config.flash, config.session)
+    new DefaultSessionCookieBaker(config.session, new CookieSignerProvider(SecretConfiguration()).get),
+    new DefaultFlashCookieBaker(config.flash, config.session, new CookieSignerProvider(SecretConfiguration()).get)
   )
 
   override def createRequestHeader(

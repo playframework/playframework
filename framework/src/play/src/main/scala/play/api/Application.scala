@@ -55,7 +55,12 @@ trait Application {
   /**
    * `Dev`, `Prod` or `Test`
    */
-  def mode: Mode.Mode
+  def mode: Mode.Mode = environment.mode
+
+  /**
+   * The application's environment
+   */
+  def environment: Environment
 
   private[play] def isDev = (mode == Mode.Dev)
   private[play] def isTest = (mode == Mode.Test)
@@ -63,7 +68,7 @@ trait Application {
 
   def configuration: Configuration
 
-  private[play] lazy val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+  private[play] lazy val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
 
   /**
    * The default ActorSystem used by the application.
@@ -209,7 +214,7 @@ class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
 class DefaultApplication @Inject() (
-    environment: Environment,
+    override val environment: Environment,
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
@@ -222,8 +227,6 @@ class DefaultApplication @Inject() (
   def path = environment.rootPath
 
   def classloader = environment.classLoader
-
-  def mode = environment.mode
 
   def stop() = applicationLifecycle.stop()
 }
@@ -246,7 +249,7 @@ trait BuiltInComponents {
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
-  lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+  lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
@@ -260,9 +263,7 @@ trait BuiltInComponents {
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
-  lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
-
-  lazy val cookieSigner: CookieSigner = new CookieSignerProvider(cryptoConfig).get
+  lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
 
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 

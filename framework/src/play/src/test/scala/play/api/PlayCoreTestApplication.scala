@@ -16,8 +16,7 @@ import play.api.mvc.request.DefaultRequestFactory
  */
 private[play] case class PlayCoreTestApplication(
     config: Map[String, Any] = Map(),
-    path: File = new File("."),
-    mode: Mode.Mode = Mode.Test) extends Application {
+    path: File = new File(".")) extends Application {
 
   def this() = this(config = Map())
 
@@ -30,4 +29,5 @@ private[play] case class PlayCoreTestApplication(
   lazy val requestFactory = new DefaultRequestFactory(httpConfiguration)
   val errorHandler = DefaultHttpErrorHandler
   val requestHandler = NotImplementedHttpRequestHandler
+  override lazy val environment: Environment = Environment.simple(path, mode)
 }

@@ -26,7 +26,7 @@ class FormSpec extends Specification {
 
   val environment = Environment.simple()
   val config = Configuration.load(environment)
-  val httpConfiguration = HttpConfiguration.fromConfiguration(config)
+  val httpConfiguration = HttpConfiguration.fromConfiguration(config, environment)
 
   val langs = new DefaultLangsProvider(config).get
   val messagesApi = new DefaultMessagesApiProvider(environment, config, langs, httpConfiguration).get

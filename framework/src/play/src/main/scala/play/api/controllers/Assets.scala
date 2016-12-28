@@ -35,7 +35,7 @@ package controllers {
 
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
-  import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HeaderNames, HttpConfiguration }
+  import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HeaderNames }
   import play.api.inject.Module
 
   object Execution extends TrampolineContextProvider
@@ -144,7 +144,9 @@ package controllers {
       app.injector.instanceOf[FileMimeTypes]
     ).getOrElse {
       import play.api.http.HttpConfiguration.HttpConfigurationProvider
-      val httpConfig = new HttpConfigurationProvider(Configuration.reference).get
+      // Mode.Prod is the default mode for assets, when there is no maybeApplication
+      // See AssetsConfiguration.fromConfiguration
+      val httpConfig = new HttpConfigurationProvider(Configuration.reference, Environment.simple(new File("."), Mode.Prod)).get
       new DefaultFileMimeTypesProvider(httpConfig.fileMimeTypes).get
     }
   )
@@ -308,7 +310,7 @@ package controllers {
 
     val mimeType: String = fileMimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-    val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
+    lazy val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
     def url(gzipAvailable: Boolean): URL = {
       gzipUrl match {

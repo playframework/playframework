@@ -47,6 +47,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[SessionConfiguration].toProvider[SessionConfigurationProvider],
     bind[ActionCompositionConfiguration].toProvider[ActionCompositionConfigurationProvider],
     bind[FileMimeTypesConfiguration].toProvider[FileMimeTypesConfigurationProvider],
+    bind[SecretConfiguration].toProvider[SecretConfigurationProvider],
     bind[TemporaryFileReaperConfiguration].toProvider[TemporaryFileReaperConfigurationProvider],
 
     bind[RequestFactory].to[DefaultRequestFactory],
@@ -74,7 +75,6 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[Executor].to[ExecutionContextExecutor],
     bind[HttpExecutionContext].toSelf,
 
-    bind[CryptoConfig].toProvider[CryptoConfigParser],
     bind[CookieSigner].toProvider[CookieSignerProvider],
     bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
 

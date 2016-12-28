@@ -200,7 +200,7 @@ trait JavaHelpers {
    */
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
     val langs = new DefaultLangsProvider(configuration).get
-    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+    val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
     val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
     val fileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
     createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)

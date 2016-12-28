@@ -43,7 +43,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
   private lazy val resultUtils: ServerResultUtils = {
     val httpConfiguration = server.applicationProvider.get match {
-      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration)
+      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration, app.environment)
       case Failure(_) => HttpConfiguration()
     }
     new ServerResultUtils(httpConfiguration)

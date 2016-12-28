@@ -7,9 +7,9 @@ import java.time.{ Clock, Instant, ZoneId }
 import javax.inject.Inject
 
 import play.api.Application
-import play.api.http.{ ContentTypes, HttpFilters }
+import play.api.http.{ ContentTypes, HttpFilters, SecretConfiguration }
 import play.api.inject.bind
-import play.api.libs.crypto.{ CryptoConfig, DefaultCSRFTokenSigner, HMACSHA1CookieSigner }
+import play.api.libs.crypto.{ DefaultCSRFTokenSigner, DefaultCookieSigner }
 import play.api.mvc.{ DefaultActionBuilder, Results }
 import play.api.routing.Router
 import play.api.routing.sird._
@@ -28,9 +28,9 @@ object CORSWithCSRFSpec {
 
   class CORSWithCSRFRouter @Inject() (action: DefaultActionBuilder) extends Router {
     val signer = {
-      val cryptoConfig = CryptoConfig("0123456789abcdef", None)
+      val secretConfiguration = SecretConfiguration("0123456789abcdef", None)
       val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
-      val signer = new HMACSHA1CookieSigner(cryptoConfig)
+      val signer = new DefaultCookieSigner(secretConfiguration)
       new DefaultCSRFTokenSigner(signer, clock)
     }
 

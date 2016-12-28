@@ -10,10 +10,11 @@ import play.api.i18n._
 
 class ScalaFieldConstructorSpec extends Specification {
 
+  val environment = Environment.simple()
   val conf = Configuration.reference
   val langs = new DefaultLangsProvider(conf).get
-  val httpConfiguration = HttpConfiguration.fromConfiguration(conf)
-  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
+  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, environment)
+  val messagesApi = new DefaultMessagesApiProvider(environment, conf, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "field constructors" should {

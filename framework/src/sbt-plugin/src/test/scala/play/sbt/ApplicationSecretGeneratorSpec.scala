@@ -12,14 +12,14 @@ class ApplicationSecretGeneratorSpec extends Specification {
       val configContent =
         """
           |# test configuration
-          |play.crypto.secret=changeme
+          |play.http.secret.key=changeme
           |""".stripMargin
       val config = ConfigFactory.parseString(configContent)
       val lines = configContent.split("\n").toList
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
-      newConfig.getString("play.crypto.secret").should_===("newSecret")
+      newConfig.getString("play.http.secret.key").should_===("newSecret")
     }
 
     "override nested secret" in {
@@ -27,8 +27,10 @@ class ApplicationSecretGeneratorSpec extends Specification {
         """
           |# test configuration
           |play {
-          |  crypto {
-          |    secret=changeme
+          |  http {
+          |    secret {
+          |      key=changeme
+          |    }
           |  }
           |}
           |""".stripMargin
@@ -37,20 +39,24 @@ class ApplicationSecretGeneratorSpec extends Specification {
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
-      newConfig.getString("play.crypto.secret").should_===("newSecret")
+      newConfig.getString("play.http.secret.key").should_===("newSecret")
     }
 
-    "deletes existing nested application.secret while overwriting secret" in {
+    "deletes existing nested play.crypto.secret while overwriting secret" in {
       val configContent =
         """
           |# test configuration
           |play {
-          |  crypto {
-          |    secret=changeme
+          |  http {
+          |    secret {
+          |      key=changeme
+          |    }
           |  }
           |}
-          |application {
-          |  secret=deleteme
+          |play {
+          |  crypto {
+          |    secret=deleteme
+          |  }
           |}
           |""".stripMargin
       val config = ConfigFactory.parseString(configContent)
@@ -58,20 +64,22 @@ class ApplicationSecretGeneratorSpec extends Specification {
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
-      newConfig.getString("play.crypto.secret") must_== ("newSecret")
-      newConfig.hasPath("application.secret") must beFalse
+      newConfig.getString("play.http.secret.key") must_== "newSecret"
+      newConfig.hasPath("play.crypto.secret") must beFalse
     }
 
-    "deletes existing fixed application.secret while overwriting secret" in {
+    "deletes existing fixed play.crypto.secret while overwriting secret" in {
       val configContent =
         """
           |# test configuration
           |play {
-          |  crypto {
-          |    secret=changeme
+          |  http {
+          |    secret {
+          |      key=changeme
+          |    }
           |  }
           |}
-          |application.secret=deleteme
+          |play.crypto.secret=deleteme
           |
           |""".stripMargin
       val config = ConfigFactory.parseString(configContent)
@@ -79,8 +87,8 @@ class ApplicationSecretGeneratorSpec extends Specification {
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
-      newConfig.getString("play.crypto.secret") must_== ("newSecret")
-      newConfig.hasPath("application.secret") must beFalse
+      newConfig.getString("play.http.secret.key") must_== "newSecret"
+      newConfig.hasPath("play.crypto.secret") must beFalse
     }
   }
 }

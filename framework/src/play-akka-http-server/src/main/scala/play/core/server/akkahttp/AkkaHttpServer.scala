@@ -127,7 +127,7 @@ class AkkaHttpServer(
 
   private lazy val resultUtils: ServerResultUtils = {
     val httpConfiguration = applicationProvider.get match {
-      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration)
+      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration, app.environment)
       case Failure(_) => HttpConfiguration()
     }
     new ServerResultUtils(httpConfiguration)
