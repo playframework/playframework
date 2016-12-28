@@ -310,6 +310,9 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.crypto"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.aesCrypter"),
 
+        // private[play.api]
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.Configuration.configError"),
+
         // All these methods are private[play.api.mvc]
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.copy"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.UnsatisfiableRangeSet.entityLength"),
