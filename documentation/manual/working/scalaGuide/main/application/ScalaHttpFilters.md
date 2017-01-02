@@ -27,13 +27,24 @@ We save a timestamp before invoking the next filter in the chain. Invoking the n
 
 ## Using filters
 
-The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/scala/play/api/http/HttpFilters.html) trait in the root package. Typically you should extend the [`DefaultHttpFilters`](api/scala/play/api/http/DefaultHttpFilters.html) class and pass your filters to the varargs constructor:
+The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/scala/play/api/http/HttpFilters.html) trait in the root package. If you're using Play's runtime dependency injection support (such as Guice) you can extend the [`DefaultHttpFilters`](api/scala/play/api/http/DefaultHttpFilters.html) class and pass your filters to the varargs constructor:
 
 @[filters](code/ScalaHttpFilters.scala)
 
-If you want to have different filters in different environments, or would prefer not putting this class in the root package, you can configure where Play should find the class by setting `play.http.filters` in `application.conf` to the fully qualified class name of the class.  For example:
+If you want to have different filters in different environments, or would prefer not putting this class in the root package, you can configure where Play should find the class by setting `play.http.filters` in `application.conf` to the fully qualified class name of the class. For example:
 
     play.http.filters=com.example.MyFilters
+
+If you're using `BuiltInComponents` for [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you can simply override the `httpFilters` lazy val:
+
+@[components-filters](code/ScalaHttpFilters.scala)
+
+The filters provided by Play all provide traits that work with `BuiltInComponents`:
+ - [`GzipFilterComponents`](api/scala/play/filters/gzip/GzipFilterComponents.html)
+ - [`CSRFComponents`](api/scala/play/filters/csrf/CSRFComponents.html)
+ - [`CORSComponents`](api/scala/play/filters/cors/CORSComponents.html)
+ - [`SecurityHeadersComponents`](api/scala/play/filters/headers/SecurityHeadersComponents.html)
+ - [`AllowedHostsComponents`](api/scala/play/filters/hosts/AllowedHostsComponents.html)
 
 ## Where do filters fit in?
 
