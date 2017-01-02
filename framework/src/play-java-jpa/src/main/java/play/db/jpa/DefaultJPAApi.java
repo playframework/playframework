@@ -36,6 +36,20 @@ public class DefaultJPAApi implements JPAApi {
     public static class JPAApiProvider implements Provider<JPAApi> {
         private final JPAApi jpaApi;
 
+        /**
+         * JPAApi has an implicit dependency on DBApi because DBApi sets up JNDI, so you probably want to use the
+         * constructor that accepts DBApi, unless you have otherwise ensured the proper initialization order.
+         *
+         * See https://github.com/playframework/playframework/issues/6792
+         */
+        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle) {
+            this(jpaConfig, context, lifecycle, null);
+        }
+
+        /**
+         * This constructor has a dependency on DBApi as a workaround for an issue with JNDI
+         * See https://github.com/playframework/playframework/issues/6792
+         */
         @Inject
         public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised

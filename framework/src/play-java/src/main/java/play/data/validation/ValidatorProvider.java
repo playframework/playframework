@@ -20,6 +20,16 @@ public class ValidatorProvider implements Provider<Validator> {
 
     private ValidatorFactory validatorFactory;
 
+    /**
+     * @deprecated as of 2.5.11. Use ValidatorProvider(ConstraintValidatorFactory, ApplicationLifecycle)
+     */
+    @Deprecated
+    public ValidatorProvider(ConstraintValidatorFactory constraintValidatorFactory) {
+      this.validatorFactory = Validation.byDefaultProvider().configure()
+          .constraintValidatorFactory(constraintValidatorFactory)
+          .buildValidatorFactory();
+    }
+
     @Inject
     public ValidatorProvider(ConstraintValidatorFactory constraintValidatorFactory, final ApplicationLifecycle lifecycle) {
         this.validatorFactory = Validation.byDefaultProvider().configure()
