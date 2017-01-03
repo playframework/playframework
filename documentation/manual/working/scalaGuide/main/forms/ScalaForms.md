@@ -306,20 +306,29 @@ You can populate a form with initial values using [`Form#fill`](api/scala/play/a
 
 Or you can define a default mapping on the number using [`Forms.default`](api/scala/play/api/data/Forms$.html):
 
-```
-Form(
-  mapping(
-    "name" -> default(text, "Bob")
-    "age" -> default(number, 18)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-default](code/ScalaForms.scala)
 
 ### Ignored values
 
 If you want a form to have a static value for a field, use [`Forms.ignored`](api/scala/play/api/data/Forms$.html):
 
 @[userForm-static-value](code/ScalaForms.scala)
+
+### Custom binders for form mappings
+
+Each form mapping uses an implicitly provided [`Formatter[T]`](api/scala/play/api/data/format/Formatter.html) binder object that performs the conversion of incoming `String` form data to/from the target data type.
+
+@[userData-custom-datatype](code/ScalaForms.scala)
+
+To bind to a custom type like java.net.URL in the example above, define a form mapping like this:
+
+@[userForm-custom-datatype](code/ScalaForms.scala)
+
+For this to work you will need to make an implicit `Formatter[java.net.URL]` available to perform the data binding/unbinding.
+
+@[userForm-custom-formatter](code/ScalaForms.scala)
+
+Note the [`Formats.parsing`](api/scala/play/api/data/format/Formats$.html) function is used to capture any exceptions thrown in the act of converting a `String` to target type `T` and registers a [`FormError`](api/scala/play/api/data/FormError.html) on the form field binding.
 
 ## Putting it all together
 
