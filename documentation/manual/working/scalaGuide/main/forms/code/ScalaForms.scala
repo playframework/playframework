@@ -434,7 +434,7 @@ class Application extends Controller with I18nSupport {
   //#userForm-default
   Form(
     mapping(
-      "name" -> default(text, "Bob")
+      "name" -> default(text, "Bob"),
       "age" -> default(number, 18)
     )(User.apply)(User.unapply)
   )
