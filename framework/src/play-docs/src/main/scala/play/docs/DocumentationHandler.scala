@@ -23,18 +23,16 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
   def this(repo: FileRepository) = this(repo, repo)
 
   private val fileMimeTypes: FileMimeTypes = {
-    new FileMimeTypes {
-      override def forFileName(name: String): Option[String] = name match {
-        case "html" => Some("text/html")
-        case "css" => Some("text/css")
-        case "png" => Some("image/png")
-        case "js" => Some("application/javascript")
-        case "ico" => Some("application/javascript")
-        case "jpg" => Some("image/jpeg")
-        case "ico" => Some("ico=image/x-icon")
-        case _ => None
-      }
-    }
+    val mimeTypesConfiguration = FileMimeTypesConfiguration(Map(
+      "html" -> "text/html",
+      "css" -> "text/css",
+      "png" -> "image/png",
+      "js" -> "application/javascript",
+      "ico" -> "application/javascript",
+      "jpg" -> "image/jpeg",
+      "ico" -> "ico=image/x-icon"
+    ))
+    new DefaultFileMimeTypes(mimeTypesConfiguration)
   }
 
   /**
