@@ -5,6 +5,8 @@ package scalaguide.forms.scalaforms {
 
 import javax.inject.Inject
 
+import java.net.URL
+
 import play.api.{Configuration, Environment}
 import play.api.i18n._
 
@@ -436,7 +438,7 @@ class Application extends Controller with I18nSupport {
     mapping(
       "name" -> default(text, "Bob"),
       "age" -> default(number, 18)
-    )(User.apply)(User.unapply)
+    )(UserData.apply)(UserData.unapply)
   )
   //#userForm-default
 
@@ -463,6 +465,7 @@ class Application extends Controller with I18nSupport {
   //#userForm-custom-datatype
 
   //#userForm-custom-formatter
+  import play.api.data.format.Formatter
   import play.api.data.format.Formats._
   implicit object UrlFormatter extends Formatter[URL] {
     override val format = Some(("format.url", Nil))
