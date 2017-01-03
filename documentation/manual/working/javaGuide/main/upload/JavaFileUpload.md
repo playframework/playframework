@@ -23,6 +23,14 @@ Now let’s define the `upload` action:
 
 @[syncUpload](code/JavaFileUpload.java)
 
+### Testing the file upload
+
+You can also write an automated JUnit test to your `upload` action:
+
+@[testSyncUpload](code/JavaFileUploadTest.java)
+
+Basically, we are creating a `Http.MultipartFormData.FilePart` that is required by `RequestBuilder` method `bodyMultipart`. Besides that, everything else is just like [[unit testing controllers|JavaTest#Unit-testing-controllers]].
+
 ## Direct file upload
 
 Another way to send files to the server is to use Ajax to upload files asynchronously from a form. In this case, the request body will not be encoded as `multipart/form-data`, but will just contain the plain file contents.
