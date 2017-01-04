@@ -204,10 +204,10 @@ class Application1 @Inject() (cached: Cached)(implicit ec: ExecutionContext) ext
   }
   //#cached-action
 
-  import play.api.mvc.Security.Authenticated
+  import play.api.mvc.Security._
 
   //#composition-cached-action
-  def userProfile = Authenticated { userId =>
+  def userProfile = WithAuthentication(_.session.get("username")) { userId =>
     cached(req => "profile." + userId) {
       Action.async {
         User.find(userId).map { user =>
