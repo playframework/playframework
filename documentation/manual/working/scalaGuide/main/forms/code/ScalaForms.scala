@@ -5,6 +5,8 @@ package scalaguide.forms.scalaforms {
 
 import javax.inject.Inject
 
+import java.net.URL
+
 import play.api.{Configuration, Environment}
 import play.api.i18n._
 
@@ -169,6 +171,10 @@ case class UserListData(name: String, emails: List[String])
 case class UserOptionalData(name: String, email: Option[String])
 // #userData-optional
 
+// #userData-custom-datatype
+case class UserCustomData(name:String, website: java.net.URL)
+// #userData-custom-datatype
+
 //#messages-request
 class MessagesRequest[A](request: Request[A], val messages: Messages)
   extends WrappedRequest(request) with play.api.i18n.MessagesProvider {
@@ -198,8 +204,6 @@ case class ContactInformation(label: String,
 }
 
 package controllers {
-
-import play.api.i18n.{I18nSupport, Lang}
 
 import views.html._
 import views.html.contact._
@@ -429,6 +433,16 @@ class Application extends Controller with I18nSupport {
     user.email
   }
 
+  //#userForm-default
+  Form(
+    mapping(
+      "name" -> default(text, "Bob"),
+      "age" -> default(number, 18)
+    )(UserData.apply)(UserData.unapply)
+  )
+  //#userForm-default
+
+
   case class UserStaticData(id: Long, name: String, email: Option[String])
 
   //#userForm-static-value
@@ -440,6 +454,26 @@ class Application extends Controller with I18nSupport {
     )(UserStaticData.apply)(UserStaticData.unapply)
   )
   //#userForm-static-value
+
+  //#userForm-custom-datatype
+  val userFormCustom = Form(
+    mapping(
+      "name" -> text,
+      "website" ->  of[URL]
+    )(UserCustomData.apply)(UserCustomData.unapply)
+  )
+  //#userForm-custom-datatype
+
+  //#userForm-custom-formatter
+  import play.api.data.format.Formatter
+  import play.api.data.format.Formats._
+  implicit object UrlFormatter extends Formatter[URL] {
+    override val format = Some(("format.url", Nil))
+    override def bind(key: String, data: Map[String, String]) = parsing(new URL(_), "error.url", Nil)(key, data)
+    override def unbind(key: String, value: URL) = Map(key -> value.toString)
+  }
+  //#userForm-custom-formatter
+
 
   val userFormStaticId = {
     val anyData = Map("id" -> "1", "name" -> "bob")
