@@ -108,6 +108,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/scalikejdbc/scalikejdbc-play-support>
 * **Short description:** Provides yet another database access API for Play
 
+### Redis Cache Plugin (Java and Scala)
+
+* **Website:** <https://github.com/KarelCemus/play-redis>
+* **Short description:** Provides both blocking and asynchronous redis based cache implementation. It implements common Play's CacheApi for both Java and Scala plus provides a few more Scala APIs implementing various Redis commands including the support of collections.
+
 
 
 ## Deployment
