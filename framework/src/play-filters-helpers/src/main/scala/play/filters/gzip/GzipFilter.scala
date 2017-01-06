@@ -61,21 +61,28 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
+
       val header = result.header.copy(headers = setupHeader(result.header.headers))
 
       result.body match {
 
         case HttpEntity.Strict(data, contentType) =>
-          compressStrictEntity(Source.single(data), contentType).map(entity => Result(header, entity))
+          compressStrictEntity(Source.single(data), contentType).map(entity =>
+            result.copy(header = header, body = entity)
+          )
 
         case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType) if contentLength <= config.chunkedThreshold =>
           // It's below the chunked threshold, so buffer then compress and send
-          compressStrictEntity(entity.data, contentType).map(strictEntity => Result(header, strictEntity))
+          compressStrictEntity(entity.data, contentType).map(strictEntity =>
+            result.copy(header = header, body = strictEntity)
+          )
 
         case HttpEntity.Streamed(data, _, contentType) =>
           // It's above the chunked threshold, compress through the gzip flow, and send as chunked
           val gzipped = data via GzipFlow.gzip(config.bufferSize) map (d => HttpChunk.Chunk(d))
-          Future.successful(Result(header, HttpEntity.Chunked(gzipped, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType))
+          )
 
         case HttpEntity.Chunked(chunks, contentType) =>
           val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
@@ -102,7 +109,9 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
             new FlowShape(broadcast.in, concat.out)
           })
 
-          Future.successful(Result(header, HttpEntity.Chunked(chunks via gzipFlow, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(chunks via gzipFlow, contentType))
+          )
       }
     } else {
       Future.successful(result)

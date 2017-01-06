@@ -9,16 +9,18 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Application
-import play.api.http.{ HttpEntity, HttpFilters }
+import play.api.http.{ HttpChunk, HttpEntity, HttpFilters }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.routing.{ SimpleRouterImpl, Router }
+import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test._
-import play.api.mvc.{ DefaultActionBuilder, Result }
+import play.api.mvc.{ Cookie, DefaultActionBuilder, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
+
 import org.apache.commons.io.IOUtils
+
 import scala.concurrent.Future
 import scala.util.Random
 import org.specs2.matcher.DataTables
@@ -117,36 +119,112 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
 
     val body = Random.nextString(1000)
 
-    "not buffer more than the configured threshold" in withApplication(
-      Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)), chunkedThreshold = 512) { implicit app =>
+    "a streamed body" should {
+
+      val entity = HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)
+
+      "not buffer more than the configured threshold" in withApplication(
+        Ok.sendEntity(entity), chunkedThreshold = 512) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzippedBody(result, body)(app.materializer)
+          await(result).body must beAnInstanceOf[HttpEntity.Chunked]
+        }
+
+      "preserve original headers, cookies, flash and session values" in {
+
+        "when buffer is less than configured threshold" in withApplication(
+          Ok.sendEntity(entity)
+            .withHeaders(SERVER -> "Play")
+            .withCookies(Cookie("cookieName", "cookieValue"))
+            .flashing("flashName" -> "flashValue")
+            .withSession("sessionName" -> "sessionValue"),
+          chunkedThreshold = 2048 // body size is 1000
+        ) { implicit app =>
+            val result = makeGzipRequest(app)
+            checkGzipped(result)
+            header(SERVER, result) must beSome("Play")
+            cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+            flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+            session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          }
+
+        "when buffer more than configured threshold" in withApplication(
+          Ok.sendEntity(entity)
+            .withHeaders(SERVER -> "Play")
+            .withCookies(Cookie("cookieName", "cookieValue"))
+            .flashing("flashName" -> "flashValue")
+            .withSession("sessionName" -> "sessionValue"),
+          chunkedThreshold = 512
+        ) { implicit app =>
+            val result = makeGzipRequest(app)
+            checkGzippedBody(result, body)(app.materializer)
+            header(SERVER, result) must beSome("Play")
+            cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+            flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+            session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          }
+      }
+    }
+
+    "a chunked body" should {
+      val chunkedBody = Source.fromIterator(() =>
+        Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
+      )
+
+      val entity = HttpEntity.Chunked(chunkedBody, Some("text/plain"))
+
+      "preserve original headers, cookie, flash and session values" in withApplication(
+        Ok.sendEntity(entity)
+          .withHeaders(SERVER -> "Play")
+          .withCookies(Cookie("cookieName", "cookieValue"))
+          .flashing("flashName" -> "flashValue")
+          .withSession("sessionName" -> "sessionValue")
+      ) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzipped(result)
+          header(SERVER, result) must beSome("Play")
+          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        }
+    }
+
+    "a strict body" should {
+
+      "zip a strict body even if it exceeds the threshold" in withApplication(Ok(body), 512) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzippedBody(result, body)(app.materializer)
-        await(result).body must beAnInstanceOf[HttpEntity.Chunked]
+        await(result).body must beAnInstanceOf[HttpEntity.Strict]
       }
 
-    "zip a strict body even if it exceeds the threshold" in withApplication(Ok(body), 512) { implicit app =>
-      val result = makeGzipRequest(app)
-      checkGzippedBody(result, body)(app.materializer)
-      await(result).body must beAnInstanceOf[HttpEntity.Strict]
+      "preserve original headers, cookie, flash and session values" in withApplication(
+        Ok("hello")
+          .withHeaders(SERVER -> "Play")
+          .withCookies(Cookie("cookieName", "cookieValue"))
+          .flashing("flashName" -> "flashValue")
+          .withSession("sessionName" -> "sessionValue")
+      ) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzipped(result)
+          header(SERVER, result) must beSome("Play")
+          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        }
+
+      "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzipped(result)
+        header(VARY, result) must beSome.which(header => header contains "original,")
+      }
+
+      "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(Ok("hello").withHeaders(VARY -> "original,ACCEPT-encoding")) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzipped(result)
+        header(VARY, result) must beSome.which(header => header.split(",").count(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)) == 1)
+      }
     }
 
-    "preserve original headers" in withApplication(Ok("hello").withHeaders(SERVER -> "Play")) { implicit app =>
-      val result = makeGzipRequest(app)
-      checkGzipped(result)
-      header(SERVER, result) must beSome("Play")
-    }
-
-    "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) { implicit app =>
-      val result = makeGzipRequest(app)
-      checkGzipped(result)
-      header(VARY, result) must beSome.which(header => header contains "original,")
-    }
-
-    "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(Ok("hello").withHeaders(VARY -> "original,ACCEPT-encoding")) { implicit app =>
-      val result = makeGzipRequest(app)
-      checkGzipped(result)
-      header(VARY, result) must beSome.which(header => header.split(",").filter(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)).size == 1)
-    }
   }
 
   def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {
