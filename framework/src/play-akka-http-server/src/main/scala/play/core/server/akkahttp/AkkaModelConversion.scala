@@ -3,9 +3,7 @@
  */
 package play.core.server.akkahttp
 
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.URI
+import java.net.{ InetAddress, InetSocketAddress, URI }
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -14,17 +12,11 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.HeaderNames._
-import play.api.http.HttpChunk
-import play.api.http.HttpErrorHandler
-import play.api.http.Status
-import play.api.http.{ HttpEntity => PlayHttpEntity }
+import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.RemoteConnection
-import play.api.mvc.request.RequestAttrKey
-import play.api.mvc.request.RequestTarget
-import play.core.server.common.ForwardedHeaderHandler
-import play.core.server.common.ServerResultUtils
+import play.api.mvc.request.{ RemoteConnection, RequestAttrKey, RequestTarget }
+import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -32,7 +24,7 @@ import scala.concurrent.Future
 /**
  * Conversions between Akka's and Play's HTTP model objects.
  */
-private[akkahttp] class ModelConversion(
+private[server] class AkkaModelConversion(
     resultUtils: ServerResultUtils,
     forwardedHeaderHandler: ForwardedHeaderHandler) {
 

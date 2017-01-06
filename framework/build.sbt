@@ -91,7 +91,7 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "pl
     .settings(libraryDependencies ++= netty)
     .dependsOn(PlayServerProject)
 
-lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental", "play-akka-http-server")
+lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .settings(libraryDependencies ++= akkaHttp)
     // Include scripted tests here as well as in the SBT Plugin, because we
     // don't want the SBT Plugin to have a dependency on an experimental module.

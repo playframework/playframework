@@ -1,16 +1,17 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.core.server.akkahttp
+package play.core.server
 
+import akka.util.Timeout
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
-import play.api.mvc._
 import play.api.mvc.BodyParsers.parse
 import play.api.mvc.Results._
+import play.api.mvc._
 import play.api.test._
+
 import scala.concurrent.Future
-import akka.util.Timeout
 
 class AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
   // Provide a flag to disable Akka HTTP tests

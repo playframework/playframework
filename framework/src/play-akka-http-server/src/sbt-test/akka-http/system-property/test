@@ -4,7 +4,7 @@
 > playStop
 
 # Start dev mode with an overridden server - AkkaHttpServer
-> run -Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider
+> run -Dplay.server.provider=play.core.server.AkkaHttpServerProvider
 > verifyResourceContains / 200 akka-http
 > playStop
 
