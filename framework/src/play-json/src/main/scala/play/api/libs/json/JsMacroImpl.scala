@@ -433,15 +433,10 @@ object JsMacroImpl {
     }
 
     // combines all reads into CanBuildX
-    val cfgName = TermName(c.freshName("config"))
     val resolvedImplicits = ImplicitResolver(params)
     val canBuild = resolvedImplicits.map {
       case ImplicitResolver.Implicit(name, pt, impl, _, _) =>
-        // Equivalent to __ \ "name", but uses a naming scheme
-        // of (String) => (String) to find the correct "name"
-        val cn = c.Expr[String](
-          q"$cfgName.naming(${name.decodedName.toString})")
-
+        val cn = c.Expr[String](q"${name.decodedName.toString}")
         val jspathTree = q"""$JsPath \ $cn"""
 
         // If we're not recursive, simple, just invoke read/write/format
@@ -498,8 +493,6 @@ object JsMacroImpl {
         q"""
         $syntaxImport
 
-        val $cfgName = implicitly[$json.JsonConfiguration]
-
         $canBuildCall
         """
       } else {
@@ -521,7 +514,7 @@ object JsMacroImpl {
         val generated = TypeName(c.freshName("Generated"))
 
         q"""
-        final class $generated()(implicit $cfgName: $json.JsonConfiguration) {
+        final class $generated() {
           // wrap there for self reference
 
           $syntaxImport
