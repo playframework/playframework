@@ -2,6 +2,7 @@ package play.db.jpa;
 
 import play.mvc.Http;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -9,6 +10,9 @@ import java.util.Deque;
 public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
 
     private static final String CURRENT_ENTITY_MANAGER = "entityManagerContext";
+
+    @Inject
+    public JPAEntityManagerContext() {}
 
     @Override
     public Deque<EntityManager> initialValue() {

@@ -18,7 +18,8 @@ public class JPAModule extends Module {
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
             bind(JPAApi.class).toProvider(DefaultJPAApi.JPAApiProvider.class),
-            bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class)
+            bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class),
+            bind(JPAEntityManagerContext.class).toSelf()
         );
     }
 
