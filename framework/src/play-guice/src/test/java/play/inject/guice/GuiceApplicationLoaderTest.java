@@ -11,7 +11,6 @@ import org.junit.rules.ExpectedException;
 import play.Application;
 import play.ApplicationLoader;
 import play.Environment;
-import play.api.Configuration;
 
 import java.util.Properties;
 
@@ -27,7 +26,7 @@ public class GuiceApplicationLoaderTest {
     public ExpectedException exception = ExpectedException.none();
 
     private ApplicationLoader.Context fakeContext() {
-        return ApplicationLoader.Context.create(Environment.simple());
+        return ApplicationLoader.create(Environment.simple());
     }
 
     @Test
@@ -69,7 +68,7 @@ public class GuiceApplicationLoaderTest {
 
         GuiceApplicationBuilder builder = new GuiceApplicationBuilder();
         ApplicationLoader loader = new GuiceApplicationLoader(builder);
-        ApplicationLoader.Context context = ApplicationLoader.Context.create(Environment.simple())
+        ApplicationLoader.Context context = ApplicationLoader.create(Environment.simple())
                 .withConfig(config);
         Application app = loader.load(context);
 

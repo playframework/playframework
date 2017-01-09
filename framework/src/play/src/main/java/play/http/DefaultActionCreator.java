@@ -28,8 +28,4 @@ public class DefaultActionCreator implements ActionCreator {
     };
   }
 
-  @Override
-  public final Action wrapAction(Action action) {
-    return action;
-  }
 }

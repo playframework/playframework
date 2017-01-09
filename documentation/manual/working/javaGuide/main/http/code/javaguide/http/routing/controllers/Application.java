@@ -19,8 +19,7 @@ public class Application extends Controller {
     //#show-page-action
     public Result show(String page) {
         String content = Page.getContentOf(page);
-        response().setContentType("text/html");
-        return ok(content);
+        return ok(content).as("text/html");
     }
     //#show-page-action
 

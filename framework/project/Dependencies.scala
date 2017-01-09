@@ -7,7 +7,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.4.16"
-  val akkaHttpVersion = "10.0.0"
+  val akkaHttpVersion = "10.0.1"
   val playJsonVersion = "2.6.0-M1"
 
   val specsVersion = "3.8.6"
@@ -31,17 +31,17 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.22")
+  val logback = "ch.qos.logback" % "logback-classic" % "1.1.8"
 
-  val guava = "com.google.guava" % "guava" % "19.0"
+  val guava = "com.google.guava" % "guava" % "20.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.192"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.12.1.1"
+  val h2database = "com.h2database" % "h2" % "1.4.193"
+  val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.36-j7p"
+  val acolyteVersion = "1.0.43-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
@@ -55,16 +55,16 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.1.0.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "5.2.6.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4")
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5")
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.2.7.RELEASE"
+  val springFrameworkVersion = "4.3.5.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -73,7 +73,7 @@ object Dependencies {
       .exclude("com.google.code.findbugs", "annotations"),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.4",
+    "net.jodah" % "typetools" % "0.4.8",
 
     logback % Test
   ) ++ specsBuild.map(_ % Test)
@@ -108,7 +108,7 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val guiceVersion = "4.0"
+  val guiceVersion = "4.1.0"
   val guiceDeps = Seq(
     "com.google.inject" % "guice" % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
@@ -126,7 +126,7 @@ object Dependencies {
 
       guava,
 
-      "org.apache.commons" % "commons-lang3" % "3.4",
+      "org.apache.commons" % "commons-lang3" % "3.5",
 
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
@@ -139,7 +139,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.41.Final"
+  val nettyVersion = "4.0.42.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8",
@@ -154,7 +154,7 @@ object Dependencies {
   )
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
-    "commons-io" % "commons-io" % "2.4",
+    "commons-io" % "commons-io" % "2.5",
     specsMatcherExtra % Test,
     logback % Test
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
@@ -223,7 +223,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.13.2"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.13.4"     % Test
   )
 
   val playServerDependencies = Seq(
