@@ -181,6 +181,15 @@ trait Application {
    * @return The injector.
    */
   def injector: Injector = NewInstanceInjector
+
+  /**
+   * Returns true if the global application is enabled for this app. If set to false, this changes the behavior of
+   * Play.start, Play.current, and Play.maybeApplication to disallow access to the global application instance,
+   * also affecting the deprecated Play APIs that use these.
+   */
+  lazy val globalApplicationEnabled: Boolean = {
+    configuration.getOptional[Boolean](Play.GlobalAppConfigKey).getOrElse(true)
+  }
 }
 
 object Application {
