@@ -7,7 +7,7 @@ import java.time.{ Clock, Instant, ZoneId }
 import javax.inject.Inject
 
 import play.api.Application
-import play.api.http.{ ContentTypes, HttpFilters, SecretConfiguration }
+import play.api.http.{ ContentTypes, HttpFilters, SecretConfiguration, SessionConfiguration }
 import play.api.inject.bind
 import play.api.libs.crypto.{ DefaultCSRFTokenSigner, DefaultCookieSigner }
 import play.api.mvc.{ DefaultActionBuilder, Results }
@@ -27,17 +27,19 @@ object CORSWithCSRFSpec {
   }
 
   class CORSWithCSRFRouter @Inject() (action: DefaultActionBuilder) extends Router {
-    val signer = {
+    private val signer = {
       val secretConfiguration = SecretConfiguration("0123456789abcdef", None)
       val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
       val signer = new DefaultCookieSigner(secretConfiguration)
       new DefaultCSRFTokenSigner(signer, clock)
     }
 
+    private val sessionConfiguration = SessionConfiguration()
+
     override def routes = {
       case p"/error" => action { req => throw sys.error("error") }
       case _ =>
-        val csrfCheck = new CSRFCheck(play.filters.csrf.CSRFConfig(), signer)
+        val csrfCheck = CSRFCheck(play.filters.csrf.CSRFConfig(), signer, sessionConfiguration)
         csrfCheck(action(Results.Ok), CSRF.DefaultErrorHandler)
     }
     override def withPrefix(prefix: String) = this

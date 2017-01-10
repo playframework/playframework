@@ -42,7 +42,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
-            Option<String> headerToken = CSRFAction.getTokenToValidate(request, config, crypto);
+            Option<String> headerToken = CSRFAction.getTokenToValidate(request);
             if (headerToken.isDefined()) {
                 String tokenToCheck = null;
 
