@@ -43,7 +43,7 @@ or you can download it as an example project from the [download page](https://pl
 
 ### Database / ORM Access
 
-Play is unopinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
+Play is non-opinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
 
 #### Slick
 
@@ -205,7 +205,7 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 
 #### REST APIs
 
-* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](https://blog.shinetech.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
+* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](https://shinesolutions.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
 
 #### Anorm
 
@@ -219,7 +219,7 @@ Knoldus has a nice series of blog posts on Anorm:
 #### Forms
 
 * [Example form including multiple checkboxes and selection](https://ics-software-engineering.github.io/play-example-form/) by Philip Johnson.
-* [UX-friendly conditional form mapping in Play](http://blog.ntcoding.com/2016/02/play-framework-conditional-form-mappings.html) by Nick Tune.
+* [UX-friendly conditional form mapping in Play](http://ntcoding.com/blog/2016/02/play-framework-conditional-form-mappings) by Nick Tune.
 
 ### 2.2.x
 

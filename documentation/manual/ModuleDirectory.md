@@ -193,12 +193,6 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Repository:** <https://github.com/adrianhurt/play-bootstrap>
 * **Short description:** A library for Bootstrap that gives you an out-of-the-box solution with a set of input helpers and field constructors.
 
-### Play Dok
-
-* **Website:** <https://go.fudok.com/en/>
-* **Documentation:** <https://github.com/cchantep/play-dok/>
-* **Short description:** Library to integrate Fukdok PDF templating service with your Play application.
-
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
 * **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
@@ -233,7 +227,7 @@ to Twirl
 
 * **Website:** <https://edulify.github.io/play-sitemap-module.edulify.com/>
 * **Documentation:** <https://github.com/edulify/play-sitemap-module.edulify.com/blob/master/README.md>
-* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play
+* **Short description:** Automatic [sitemaps](https://www.sitemaps.org/) generator for Play
 
 
 

@@ -4,11 +4,11 @@
 
 ## New York
 
-http://www.meetup.com/Play-NYC/
+https://www.meetup.com/Play-NYC/
 
 ## Berlin
 
-http://www.meetup.com/Play-Berlin-Brandenburg/
+https://www.meetup.com/Play-Berlin-Brandenburg/
 
 ## Cologne
 
@@ -20,11 +20,11 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 ## Buenos Aires
 
-http://www.meetup.com/play-argentina/
+https://www.meetup.com/play-argentina/
 
 ## Belgium
 
-http://www.play-be.org
+<https://groups.google.com/forum/#!forum/play-be>
 
 ## Japan
 
@@ -41,5 +41,5 @@ http://www.play-be.org
  
 ## New Delhi - INDIA
 
-http://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/
+https://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/
 

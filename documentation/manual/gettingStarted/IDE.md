@@ -215,6 +215,6 @@ Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you 
 
 1. Eclipse Scala IDE: <http://scala-ide.org/>
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
-3. IntelliJ IDEA Scala Plugin: <http://blog.jetbrains.com/scala/>
+3. IntelliJ IDEA Scala Plugin: <https://blog.jetbrains.com/scala/>
 4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)
