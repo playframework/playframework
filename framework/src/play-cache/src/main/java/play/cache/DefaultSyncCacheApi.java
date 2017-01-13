@@ -14,7 +14,7 @@ import javax.inject.Inject;
  */
 public class DefaultSyncCacheApi implements SyncCacheApi, CacheApi {
 
-    private AsyncCacheApi cacheApi;
+    private final AsyncCacheApi cacheApi;
 
     protected long awaitTimeoutMillis = 5000;
 
@@ -48,7 +48,7 @@ public class DefaultSyncCacheApi implements SyncCacheApi, CacheApi {
 
     @Override
     public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
-        return blocking(cacheApi.getOrElseUpdate(key, () -> CompletableFuture.completedFuture(block.call())));
+        return blocking(cacheApi.getOrElseUpdate(key, () -> CompletableFuture.completedFuture(block.call()), expiration));
     }
 
     @Override

@@ -25,7 +25,6 @@ public interface AsyncCacheApi {
      *
      * @param <T> the type of the stored object
      * @param key the key to look up
-     * @return the object or null
      * @return a CompletionStage containing the value
      */
     <T> CompletionStage<T> get(String key);
