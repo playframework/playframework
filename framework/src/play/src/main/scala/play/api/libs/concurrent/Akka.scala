@@ -6,15 +6,11 @@ package play.api.libs.concurrent
 import java.util.concurrent.TimeoutException
 import javax.inject.{ Inject, Provider, Singleton }
 
-import play.libs.concurrent.{ PlaySupervisionProvider => JavaPlaySupervisionProvider }
 import akka.actor._
-import akka.stream.Supervision.Decider
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Materializer }
 import com.typesafe.config.Config
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
-import play.utils.Reflect
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
@@ -103,32 +99,6 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
     system
   }
 
-}
-
-/**
- * Provider for the default flow materializer
- */
-@Singleton
-class MaterializerProvider @Inject() (actorSystem: ActorSystem, environment: Environment, configuration: Configuration) extends Provider[Materializer] {
-  private val LoaderKey = "play.supervision.provider"
-  private val settings = {
-    val decider = Reflect.configuredClass[PlaySupervisionProvider, JavaPlaySupervisionProvider, DefaultPlaySupervisionProvider](
-      environment, configuration, LoaderKey, classOf[DefaultPlaySupervisionProvider].getName
-    ) match {
-      case None => new DefaultPlaySupervisionProvider()
-      case Some(Left(scalaClass)) => scalaClass.newInstance()
-      case Some(Right(javaClass)) =>
-        val javaSupervisionProvider = javaClass.newInstance()
-        new PlaySupervisionProvider {
-          override def decider: Decider = { e =>
-            javaSupervisionProvider.decider().apply(e)
-          }
-        }
-    }
-    ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider.decider)
-  }
-
-  lazy val get: Materializer = ActorMaterializer(settings)(actorSystem)
 }
 
 /**
