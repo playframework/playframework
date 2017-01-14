@@ -47,7 +47,7 @@ public class AhcWSRequest implements WSRequest {
     private String method = "GET";
     private Object body = null;
     private final Map<String, List<String>> headers = new HashMap<>();
-    private final Map<String, List<String>> queryParameters = new HashMap<>();
+    private final Map<String, List<String>> queryParameters = new LinkedHashMap<>();
 
     private String username;
     private String password;
