@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.cache
 
 import javax.inject.{ Inject, Provider }
@@ -51,4 +54,4 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
 }
 
 class NamedCacheController @Inject() (
-  @NamedCache("custom") val cache: CacheApi)
+  @NamedCache("custom") val cache: SyncCacheApi)
