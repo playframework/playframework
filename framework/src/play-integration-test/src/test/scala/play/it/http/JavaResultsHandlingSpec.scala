@@ -51,12 +51,13 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
-        )
+        Results.ok("Hello world")
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true))
       }
     }) { response =>
-      response.header("Set-Cookie").get must contain("bar=KitKat;")
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
       response.body must_== "Hello world"
     }
 

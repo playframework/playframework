@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -261,11 +262,13 @@ public class Result {
 
     /**
      * Returns a copy of this result with the given cookies.
-     * @param cookies the cookies to add to the result.
+     * @param newCookies the cookies to add to the result.
      * @return the transformed copy.
      */
-    public Result withCookies(Cookie... cookies) {
-        return new Result(header, body, session, flash, Arrays.asList(cookies));
+    public Result withCookies(Cookie... newCookies) {
+        List<Cookie> finalCookies = new ArrayList<>(cookies);
+        finalCookies.addAll(Arrays.asList(newCookies));
+        return new Result(header, body, session, flash, finalCookies);
     }
 
     /**
