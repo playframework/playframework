@@ -3,14 +3,14 @@
  */
 package play.api.test
 
+import java.util.concurrent.TimeUnit
+
+import com.google.common.base.Function
+import org.fluentlenium.adapter.FluentAdapter
+import org.fluentlenium.core.domain.{ FluentList, FluentWebElement }
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
-
-import org.fluentlenium.core._
-
-import java.util.concurrent.TimeUnit
-import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
 
 /**
@@ -18,9 +18,9 @@ import org.openqa.selenium.support.ui.FluentWait
  *
  * @param webDriver The WebDriver instance to use.
  */
-case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends FluentAdapter(webDriver) {
-
-  baseUrl.map(baseUrl => withDefaultUrl(baseUrl))
+case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends FluentAdapter() {
+  super.initFluent(webDriver)
+  baseUrl.foreach(baseUrl => super.getConfiguration.setBaseUrl(baseUrl))
 
   /**
    * Submits a form with the given field values
@@ -32,12 +32,12 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    *   )
    * }}}
    */
-  def submit(selector: String, fields: (String, String)*): Fluent = {
+  def submit(selector: String, fields: (String, String)*): FluentList[FluentWebElement] = {
     fields.foreach {
       case (fieldName, fieldValue) =>
-        fill(s"${selector} *[name=${fieldName}]").`with`(fieldValue)
+        $(s"$selector *[name=$fieldName]").fill.`with`(fieldValue)
     }
-    super.submit(selector)
+    $(selector).submit()
   }
 
   /**
@@ -75,6 +75,11 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    * to set cookies, manage timeouts among other things
    */
   def manage: WebDriver.Options = super.getDriver.manage
+
+  def quit() {
+    Option(super.getDriver).foreach(_.quit())
+    releaseFluent()
+  }
 }
 
 /**

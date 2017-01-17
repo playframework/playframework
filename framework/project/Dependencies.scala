@@ -235,9 +235,12 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    "net.sourceforge.htmlunit" % "htmlunit" % "2.20", // adds support for jQuery 2.20; can be removed as soon as fluentlenium has it in it's own dependencies
-    ("org.fluentlenium" % "fluentlenium-core" % "0.10.9")
+    ("org.fluentlenium" % "fluentlenium-core" % "3.1.1")
       .exclude("org.jboss.netty", "netty"),
+    "net.sourceforge.htmlunit" % "htmlunit" % "2.23",
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.23.2",
+    "org.seleniumhq.selenium" % "selenium-firefox-driver" % "3.0.1",
+    "org.seleniumhq.selenium" % "selenium-support" % "3.0.1",
     logback % Test
   ) ++ guiceDeps
 
