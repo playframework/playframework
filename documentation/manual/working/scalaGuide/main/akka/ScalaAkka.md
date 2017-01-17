@@ -136,6 +136,16 @@ Similarly, to run a block of code 10 milliseconds from now:
 
 @[schedule-callback](code/ScalaAkka.scala)
 
+## Using your own Materializer
+
+Play allows overriding the default Materializer via configuration. It can be set via `play.akka.materializer.provider` and needs to be of type `javax.inject.Provider[Materializer]`. 
+
+> **Note:** This feature is useful if you want to override the Supervision Strategy of the default Materializer. By default the Play Materializer will log Errors to the Error Logger.
+
+For example you can create a Materializer that keeps track of all the errors it triggered:
+
+@[overwritten-materializer](code/ScalaAkka.scala)
+
 ## Using your own Actor system
 
 While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:

@@ -29,11 +29,11 @@ private[play] object AkkaMaterializerProvider {
  * Provider for the default flow materializer
  */
 @Singleton
-final class DefaultAkkaMaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
+class DefaultAkkaMaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
 
-  private val logger = Logger("play.akka")
+  private val logger = Logger(this.getClass)
 
-  private val decider: Decider = { e =>
+  protected def decider: Decider = { e =>
     logger.error("Unhandled exception in stream", e)
     Supervision.Stop
   }

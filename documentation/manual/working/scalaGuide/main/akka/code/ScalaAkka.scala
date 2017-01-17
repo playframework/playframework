@@ -11,8 +11,27 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.test._
 import java.io.File
+import javax.inject.Inject
 
+import akka.stream.Supervision
+import akka.stream.Supervision.Decider
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.Timeout
+import play.api.libs.concurrent.DefaultAkkaMaterializerProvider
+
+//#overwritten-materializer
+class SimpleMaterializer @Inject()(actorSystem: ActorSystem) extends DefaultAkkaMaterializerProvider(actorSystem) {
+
+  private var errorCount: Int = 0
+  def getErrorCount: Int = errorCount
+
+  override protected def decider: Decider = { e =>
+    errorCount += 1
+    Supervision.Stop
+  }
+
+}
+//#overwritten-materializer
 
 class ScalaAkkaSpec extends PlaySpecification {
 
@@ -29,7 +48,6 @@ class ScalaAkkaSpec extends PlaySpecification {
   }
 
   override def defaultAwaitTimeout: Timeout = 5.seconds
-
 
   "The Akka support" should {
 
@@ -113,6 +131,13 @@ class ScalaAkkaSpec extends PlaySpecification {
       //#schedule-callback
       Thread.sleep(200)
       file.exists() must beFalse
+    }
+
+    "override the materializer" in new WithApplication(_.configure("play.akka.materializer.provider" -> "scalaguide.akka.SimpleMaterializer")) {
+      val simpleMaterializer = app.injector.instanceOf[SimpleMaterializer]
+      implicit val mat = app.materializer
+      await(Source.single(1).map(_ => throw new Exception).runWith(Sink.ignore))
+      simpleMaterializer.getErrorCount must_== 1
     }
   }
 }
