@@ -29,7 +29,7 @@
 @if(userForm.hasGlobalErrors) {
   <ul>
   @for(error <- userForm.globalErrors) {
-    <li>@Messages(error.messages, error.args)</li>
+    <li>@error.format</li>
   }
   </ul>
 }

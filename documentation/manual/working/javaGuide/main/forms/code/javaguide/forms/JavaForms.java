@@ -83,13 +83,25 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void adhocValidation() {
-        Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class);
-        Form<javaguide.forms.u3.User> bound = userForm.bind(ImmutableMap.of("email", "e", "password", "p"));
-        assertThat(bound.hasGlobalErrors(), equalTo(true));
-        assertThat(bound.globalError().message(), equalTo("Invalid email or password"));
+        Result result = MockJavaActionHelper.call(new U3UserController(), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
 
         // Run it through the template
-        assertThat(javaguide.forms.html.view.render(bound).toString(), containsString("Invalid email or password"));
+        assertThat(contentAsString(result), containsString("Invalid email or password"));
+    }
+
+    public class U3UserController extends MockJavaAction {
+
+        public Result index() {
+            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest();
+
+            if (userForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(userForm));
+            } else {
+                javaguide.forms.u3.User user = userForm.get();
+                return ok("Got user " + user);
+            }
+        }
     }
 
     public static String authenticate(String email, String password) {
@@ -98,12 +110,11 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void listValidation() {
-        Form<UserForm> userForm = formFactory().form(UserForm.class).bind(ImmutableMap.of("email", "e"));
-        assertThat(userForm.errors().get("email"), notNullValue());
-        assertThat(userForm.errors().get("email").get(0).message(), equalTo("This e-mail is already registered."));
+        Result result = MockJavaActionHelper.call(new ListValidationController(), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
-        assertThat(javaguide.forms.html.view.render(userForm).toString(), containsString("<p>This e-mail is already registered.</p>"));
+        assertThat(contentAsString(result), containsString("This e-mail is already registered."));
     }
 
     public static class UserForm {
@@ -132,6 +143,20 @@ public class JavaForms extends WithApplication {
             return errors.isEmpty() ? null : errors;
         }
         //#list-validate
+    }
+
+    public class ListValidationController extends MockJavaAction {
+
+        public Result index() {
+            Form<UserForm> userForm = formFactory().form(UserForm.class).bindFromRequest();
+
+            if (userForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(userForm));
+            } else {
+                UserForm user = userForm.get();
+                return ok("Got user " + user);
+            }
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ package play.data.validation;
 import java.util.*;
 
 import com.google.common.collect.ImmutableList;
+import play.i18n.Messages;
 
 /**
  * A form validation error.
@@ -86,6 +87,16 @@ public class ValidationError {
      */
     public List<Object> arguments() {
         return arguments;
+    }
+
+    /**
+     * Returns the formatted error message (message + arguments) in the given Messages.
+     *
+     * @param messagesObj the play.i18n.Messages object containing the language.
+     * @return the results of messagesObj.at(messages, arguments).
+     */
+    public String format(Messages messagesObj) {
+        return messagesObj.at(messages, arguments);
     }
 
     public String toString() {

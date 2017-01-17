@@ -9,7 +9,7 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[user](code/javaguide/forms/u1/User.java)
 
-To wrap a class you have to inject a `play.data.FormFactory` into your Controller which then allows you to create the form:
+To wrap a class you have to inject a [`play.data.FormFactory`](api/java/play/data/FormFactory.html) into your Controller which then allows you to create the form:
 
 @[create](code/javaguide/forms/JavaForms.java)
 
@@ -35,7 +35,7 @@ You can also define an ad-hoc validation by adding a `validate` method to your t
 
 @[user](code/javaguide/forms/u3/User.java)
 
-The message returned in the above example will become a global error.
+The message returned in the above example will become a global error.  Errors are defined as [`play.data.validation.ValidationError`](api/java/play/data/validation/ValidationError.html).
 
 The `validate`-method can return the following types: `String`, `List<ValidationError>` or `Map<String,List<ValidationError>>`
 
@@ -57,10 +57,11 @@ Typically, as shown above, the form simply gets passed to a template.  Global er
 
 @[global-errors](code/javaguide/forms/view.scala.html)
 
-Errors for a particular field can be rendered in the following manner:
+Errors for a particular field can be rendered in the following manner with [`error.format`](api/scala/play/api/data/FormError.html):
 
 @[field-errors](code/javaguide/forms/view.scala.html)
 
+Note that `error.format` takes `messages()` as an argument -- this is an [`play.18n.Messages`](api/java/play/i18n/Messages.html) instance defined in [[JavaI18n]].
 
 ## Filling a form with initial default values
 

@@ -420,6 +420,13 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
    * @param message The new message.
    */
   def withMessage(message: String): FormError = FormError(key, message)
+
+  /**
+   * Displays the formatted message, for use in a template.
+   */
+  def format(implicit messages: play.api.i18n.Messages): String = {
+    messages.apply(message, args)
+  }
 }
 
 object FormError {
