@@ -18,6 +18,10 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 [Xing](https://www.xing.com/communities/groups/scala-user-group-koeln-bonn-1035441) / [Twitter](https://twitter.com/scalacgn)
 
+## Vienna - AUSTRIA
+
+http://playframework.wien
+
 ## Buenos Aires
 
 http://www.meetup.com/play-argentina/
