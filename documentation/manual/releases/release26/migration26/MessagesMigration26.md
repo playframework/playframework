@@ -193,7 +193,6 @@ Json.parse(contentAsString(result)) must beEqualTo(Json.obj("age" -> Json.arr("m
 For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
 
 ```scala
-
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.api.mvc.Controller
 import play.api.i18n._

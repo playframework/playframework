@@ -7,6 +7,44 @@ This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate 
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
 
+### Play upgrade
+
+Update the Play version number in project/plugins.sbt to upgrade Play:
+
+```scala
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.x")
+```
+
+Where the "x" in `2.6.x` is the minor version of Play you want to use, per instance `2.6.0`.
+
+### sbt upgrade to 0.13.13
+
+Although Play 2.6 will still work with sbt 0.13.11, we recommend upgrading to the latest sbt version, 0.13.13.  The 0.13.13 release of sbt has a number of [improvements and bug fixes](https://github.com/sbt/sbt/releases/tag/v0.13.13).
+
+Update your `project/build.properties` so that it reads:
+
+```
+sbt.version=0.13.13
+```
+
+### Guice DI support moved to separate module
+
+In Play 2.6, the core Play module no longer includes Guice. You will need to configure the Guice module by adding `guice` to your `libraryDependencies`:
+
+```scala
+libraryDependencies += guice
+```
+
+### Play JSON moved to separate project
+
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no depependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
+```
+
+Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
+
 ## Scala ActionBuilder and BodyParser changes:
 
 The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
@@ -15,7 +53,7 @@ The `Action` global object and `BodyParsers.parse` are now deprecated. They are 
 
 To provide a mostly source-compatible API, controllers can extend the `AbstractController` class and pass through the `ControllerComponents` in the constructor:
 
-```
+```scala
 class FooController @Inject() (components: ControllerComponents) extends AbstractController(components) {
   // Action and parse now use the injected components
   def foo = Action(parse.text) {
@@ -30,11 +68,15 @@ This trait makes `Action` and `parse` refer to injected instances rather than th
 
 ## JPA Migration Notes
 
-See [[JPAMigration26]].
+See [[JPA migration notes|JPAMigration26]].
 
 ## I18n Migration Notes
 
-See [[MessagesMigration26]].
+See [[I18N API Migration|MessagesMigration26]].
+
+## Cache APIs Migration Notes
+
+See [[Cache APIs Migration|CacheMigration26]]
 
 ## Removed APIs
 
@@ -47,13 +89,13 @@ The Crypto API has removed the deprecated class `play.api.libs.Crypto` and `play
 We removed `play.libs.Yaml` since there was no use of it inside of play anymore.
 If you still need support for the Play YAML integration you need to add `snakeyaml` in you `build.sbt`:
 
-```
+```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 ```
 
 And create the following Wrapper in your Code:
 
-```
+```java
 public class Yaml {
 
     private final play.Environment environment;
@@ -86,24 +128,6 @@ public class Yaml {
 }
 ```
 
-### Play JSON moved to separate project
-
-Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no depependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
-
-```
-libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
-```
-
-Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
-
-### Guice DI support moved to separate module
-
-In Play 2.6, the core Play module no longer includes Guice. You can add it by adding `guice` to your `libraryDependencies`:
-
-```
-libraryDependencies += guice
-```
-
 If you explicitly depend on an alternate DI library for play, or have defined your own custom application loader, no changes should be required.
 
 Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
@@ -119,19 +143,19 @@ If you can, you could migrate all occurences to Java8 `java.time`.
 
 If you can't and still need to use Joda-Time in Play Forms and Play-Json you can just add the `play-joda` project:
 
-```
+```scala
 libraryDependencies += "com.typesafe.play" % "play-joda" % "1.0.0"
 ```
 
 And then import the corresponding Object for Forms:
 
-```
+```scala
 import play.api.data.JodaForms._
 ```
 
 or for Play-Json
 
-```
+```scala
 import play.api.data.JodaWrites._
 import play.api.data.JodaReads._
 ```
@@ -140,7 +164,7 @@ import play.api.data.JodaReads._
 
 Play had some internal uses of `joda-convert` if you used it in your project you need to add it to your `build.sbt`:
 
-```
+```scala
 libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 ```
 
@@ -149,7 +173,7 @@ libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it.
 If your project relies on the external package you can simply add it to your `build.sbt`:
 
-```
+```scala
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 ```
 
@@ -158,13 +182,13 @@ libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 Prior versions of Play prepackaged the H2 database. But to make the core of Play smaller we removed it.
 If you make use of h2 you can add it to your `build.sbt`:
 
-```
+```scala
 libraryDependencies += "com.h2database" % "h2" % "1.4.191"
 ```
 
 If you only used it in your test you can also just use the `Test` scope:
 
-```
+```scala
 libraryDependencies += "com.h2database" % "h2" % "1.4.191" % Test
 ```
 
@@ -175,7 +199,7 @@ The [[H2 Browser|Developing-with-the-H2-Database#H2-Browser]] will still work af
 Play removed `play.libs.Yaml` and therefore the dependency on `snakeyaml` was dropped.
 If you still use it add it to your `build.sbt`:
 
-```
+```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 ```
 
@@ -183,13 +207,35 @@ libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 
 Play removed the `tomcat-servlet-api` since it was of no use.
 
-```
+```scala
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ```
 
 ### Akka Migration
 
 The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Please dependency inject an `ActorSystem` instance for access to the actor system.
+
+For Scala:
+
+```scala
+class MyComponent @Inject() (system: ActorSystem) {
+
+}
+```
+
+And for Java:
+
+```java
+public class MyComponent {
+
+    private final ActorSystem system;
+
+    @Inject
+    public MyComponent(ActorSystem system) {
+        this.system = system;
+    }
+}
+```
 
 ### Request attributes
 
@@ -202,6 +248,7 @@ Tags have been deprecated so you should start migrating from using tags to using
 The easiest migration path is to migrate from a tag to an attribute with a `String` type.
 
 Java before:
+
 ```java
 // Getting a tag from a Request or RequestHeader
 String userName = req.tags().get("userName");
@@ -212,6 +259,7 @@ Request builtReq = requestBuilder.tag("userName", newName).build();
 ```
 
 Java after:
+
 ```java
 class Attrs {
   public static final TypedKey<String> USER_NAME = TypedKey.<String>create("userName");
@@ -226,6 +274,7 @@ Request builtReq = requestBuilder.attr(Attrs.USER_NAME, newName).build();
 ```
 
 Scala before:
+
 ```scala
 // Getting a tag from a Request or RequestHeader
 val userName: String = req.tags("userName")
@@ -235,7 +284,8 @@ val newReq = req.copy(tags = req.tags.updated("userName", newName))
 ```
 
 Scala after:
-```
+
+```scala
 object Attrs {
   val UserName: TypedKey[String] = TypedKey[String]("userName")
 }
@@ -255,7 +305,8 @@ class Attrs {
 ```
 
 Scala after:
-```
+
+```scala
 object Attrs {
   val UserName: TypedKey[User] = TypedKey[User]("user")
 }
@@ -320,15 +371,22 @@ If you used any of the `Router.Tags.*` tags, you should change your code to use 
 
 This new attribute contains a `HandlerDef` object with all the information that is currently in the tags. The current tags all correspond to a field in the `HandlerDef` object:
 
-Java tag name | Scala tag name | `HandlerDef` method
--- | --
-`ROUTE_PATTERN` | `RoutePattern` | `path`
-`ROUTE_VERB` | `RouteVerb` | `verb`
-`ROUTE_CONTROLLER` | `RouteController` | `controller`
-`ROUTE_ACTION_METHOD` | `RouteActionMethod` | `method`
-`ROUTE_COMMENTS` | `RouteComments` | `comments`
+| Java tag name         | Scala tag name      | `HandlerDef` method |
+|:----------------------|:--------------------|:--------------------|
+| `ROUTE_PATTERN`       | `RoutePattern`      | `path`              |
+| `ROUTE_VERB`          | `RouteVerb`         | `verb`              |
+| `ROUTE_CONTROLLER`    | `RouteController`   | `controller`        |
+| `ROUTE_ACTION_METHOD` | `RouteActionMethod` | `method`            |
+| `ROUTE_COMMENTS`      | `RouteComments`     | `comments`          |
 
-Note: As part of this change the `HandlerDef` object has been moved from the `play.core.routing` internal package into the `play.api.routing` public API package.
+> **Note**: As part of this change the `HandlerDef` object has been moved from the `play.core.routing` internal package into the `play.api.routing` public API package.
+
+### Remove deprecated `play.Routes`
+
+The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
+
+* [[Javascript Routing in Scala|ScalaJavascriptRouting]]
+* [[Javascript Routing in Java|JavaJavascriptRouter]]
 
 ### Execution
 
@@ -364,7 +422,7 @@ class MyExecutionContext @Inject()(actorSystem: ActorSystem)
  extends CustomExecutionContext(actorSystem, "my.dispatcher.name")
 ```
 
-``` java
+```java
 import play.libs.concurrent.CustomExecutionContext;
 class MyExecutionContext extends CustomExecutionContext {
    @Inject
@@ -401,9 +459,9 @@ The following deprecated test helpers have been removed in 2.6.x:
 
 ## Changes to Template Helpers
 
-The requireJs template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
+The `requireJs` template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
 
-The requireJs template helper has an extra parameter `isProd` added to it that indicates whether the minified version of the helper should be used:
+The `requireJs` template helper has an extra parameter `isProd` added to it that indicates whether the minified version of the helper should be used:
 
 ```
 @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url, isProd = true)
