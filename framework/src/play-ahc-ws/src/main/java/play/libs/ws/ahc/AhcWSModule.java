@@ -9,6 +9,7 @@ import play.api.Environment;
 import play.api.inject.Binding;
 import play.api.inject.Module;
 import play.libs.ws.WSClient;
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 import scala.collection.Seq;
 
 import javax.inject.Inject;
@@ -27,33 +28,17 @@ public class AhcWSModule extends Module {
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
                 // AsyncHttpClientProvider is added by the Scala API
-                bind(StandaloneAhcWSClient.class).toProvider(StandaloneAhcWSClientProvider.class),
-                bind(WSClient.class).toProvider(WSClientProvider.class)
+                bind(WSClient.class).toProvider(AhcWSClientProvider.class)
         );
     }
 
     @Singleton
-    public static class StandaloneAhcWSClientProvider implements Provider<StandaloneAhcWSClient> {
-        private final StandaloneAhcWSClient standaloneAhcWSClient;
-
-        @Inject
-        public StandaloneAhcWSClientProvider(play.shaded.ahc.org.asynchttpclient.AsyncHttpClient asyncHttpClient, Materializer materializer) {
-            standaloneAhcWSClient = new StandaloneAhcWSClient(asyncHttpClient, materializer);
-        }
-
-        @Override
-        public StandaloneAhcWSClient get() {
-            return standaloneAhcWSClient;
-        }
-    }
-
-    @Singleton
-    public static class WSClientProvider implements Provider<WSClient> {
+    public static class AhcWSClientProvider implements Provider<WSClient> {
         private final AhcWSClient client;
 
         @Inject
-        public WSClientProvider(StandaloneAhcWSClient plainAhcWSClient) {
-            client = new AhcWSClient(plainAhcWSClient);
+        public AhcWSClientProvider(AsyncHttpClient asyncHttpClient, Materializer materializer) {
+            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
         }
 
         @Override

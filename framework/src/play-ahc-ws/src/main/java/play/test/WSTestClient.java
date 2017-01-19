@@ -7,7 +7,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Terminated;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
-import play.libs.ws.ahc.AhcWSModule;
+import play.libs.ws.ahc.StandaloneAhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClientConfig;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
@@ -50,9 +50,7 @@ public class WSTestClient {
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
         final AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(config);
-        final AhcWSModule.StandaloneAhcWSClientProvider provider = new AhcWSModule.StandaloneAhcWSClientProvider(asyncHttpClient, materializer);
-
-        final WSClient client = new AhcWSClient(provider.get());
+        final WSClient client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
 
         return new WSClient() {
             public Object getUnderlying() {

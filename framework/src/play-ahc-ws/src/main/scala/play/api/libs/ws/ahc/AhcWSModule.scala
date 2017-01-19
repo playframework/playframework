@@ -10,6 +10,5 @@ import play.api.libs.ws._
  */
 class AhcWSModule extends SimpleModule(
   bind[AsyncHttpClient].toProvider[AsyncHttpClientProvider],
-  bind[StandaloneAhcWSClient].toProvider[StandaloneAhcWSClientProvider],
   bind[WSClient].toProvider[WSClientProvider]
 )

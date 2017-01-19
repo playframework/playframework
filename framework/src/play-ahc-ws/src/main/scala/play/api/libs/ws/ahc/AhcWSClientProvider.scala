@@ -3,11 +3,22 @@ package play.api.libs.ws.ahc
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.stream.Materializer
+import com.typesafe.sslconfig.ssl.SystemConfiguration
+import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
 import play.shaded.ahc.org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClient }
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.{ WSClient, WSClientConfig, WSConfigParser }
 import play.api.{ Configuration, Environment }
 
+import scala.concurrent.Future
+
+/**
+ * Provides an instance of AsyncHttpClient configured from the Configuration object.
+ *
+ * @param configuration the Play configuration
+ * @param environment the Play environment
+ * @param applicationLifecycle app lifecycle, instance is closed automatically.
+ */
 @Singleton
 class AsyncHttpClientProvider @Inject() (
     configuration: Configuration,
@@ -24,19 +35,30 @@ class AsyncHttpClientProvider @Inject() (
 
   private val asyncHttpClientConfig = new AhcConfigBuilder(ahcWsClientConfig).build()
 
-  lazy val get = new DefaultAsyncHttpClient(asyncHttpClientConfig)
+  private def configure(): Unit = {
+    // JSSE depends on various system properties which must be set before JSSE classes
+    // are pulled into memory, so these must come first.
+    val loggerFactory = StandaloneAhcWSClient.loggerFactory
+    if (wsClientConfig.ssl.debug.enabled) {
+      new DebugConfiguration(loggerFactory).configure(wsClientConfig.ssl.debug)
+    }
+    new SystemConfiguration(loggerFactory).configure(wsClientConfig.ssl)
+  }
+
+  lazy val get: AsyncHttpClient = {
+    configure()
+    new DefaultAsyncHttpClient(asyncHttpClientConfig)
+  }
+
+  // Always close the AsyncHttpClient afterwards.
+  applicationLifecycle.addStopHook(() =>
+    Future.successful(get.close())
+  )
 }
 
 @Singleton
-class StandaloneAhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
-    extends Provider[StandaloneAhcWSClient] {
-
-  lazy val get: StandaloneAhcWSClient = new StandaloneAhcWSClient(asyncHttpClient)
-}
-
-@Singleton
-class WSClientProvider @Inject() (plainAhcWSClient: StandaloneAhcWSClient)
+class WSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
     extends Provider[WSClient] {
 
-  lazy val get: WSClient = new AhcWSClient(plainAhcWSClient)
+  lazy val get: WSClient = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))
 }
