@@ -222,6 +222,13 @@ to Twirl
 * **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play
 
 
+### play-guard (Scala)
+
+* **Website:** <https://github.com/sief/play-guard/>
+* **Documentation:** <https://github.com/sief/play-guard/blob/master/README.md>
+* **Short description:** Play2 module for blocking and throttling abusive requests
+
+
 
 ## Cloud services
 
