@@ -136,6 +136,7 @@ class ScalaAkkaSpec extends PlaySpecification {
     "override the materializer" in new WithApplication(_.configure("play.akka.materializer.provider" -> "scalaguide.akka.SimpleMaterializer")) {
       val simpleMaterializer = app.injector.instanceOf[SimpleMaterializer]
       implicit val mat = app.materializer
+      implicit val timeout: Timeout = 5.seconds
       await(Source.single(1).map(_ => throw new Exception).runWith(Sink.ignore))
       simpleMaterializer.getErrorCount must_== 1
     }
