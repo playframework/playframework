@@ -44,10 +44,10 @@ class CSRFAction(
   lazy val csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner)
 
   private def checkFailed(req: RequestHeader, msg: String): Accumulator[ByteString, Result] =
-    Accumulator.done(csrfActionHelper.clearTokenIfInvalid(req, config, errorHandler, msg))
+    Accumulator.done(csrfActionHelper.clearTokenIfInvalid(req, errorHandler, msg))
 
   def apply(untaggedRequest: RequestHeader) = {
-    val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest, config, tokenSigner)
+    val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
     // this function exists purely to aid readability
     def continue = next(request)
@@ -55,7 +55,7 @@ class CSRFAction(
     // Only filter unsafe methods and content types
     if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
 
-      if (!csrfActionHelper.requiresCsrfCheck(request, config)) {
+      if (!csrfActionHelper.requiresCsrfCheck(request)) {
         continue
       } else {
 
@@ -63,7 +63,7 @@ class CSRFAction(
         csrfActionHelper.getTokenToValidate(request).map { headerToken =>
 
           // First check if there's a token in the query string or header, if we find one, don't bother handling the body
-          csrfActionHelper.getHeaderToken(request, config).map { queryStringToken =>
+          csrfActionHelper.getHeaderToken(request).map { queryStringToken =>
 
             if (tokenProvider.compareTokens(headerToken, queryStringToken)) {
               filterLogger.trace("[CSRF] Valid token found in query string")
@@ -108,7 +108,7 @@ class CSRFAction(
 
       // Once done, add it to the result
       next(requestWithNewToken).map(result =>
-        csrfActionHelper.addTokenToResponse(config, newToken, request, result))
+        csrfActionHelper.addTokenToResponse(newToken, request, result))
 
     } else {
       filterLogger.trace("[CSRF] No check necessary")
@@ -153,7 +153,7 @@ class CSRFAction(
     ).mapFuture { validatedBodySource =>
         action(request).run(validatedBodySource)
       }.recoverWith {
-        case NoTokenInBody => csrfActionHelper.clearTokenIfInvalid(request, config, errorHandler, "No CSRF token found in body")
+        case NoTokenInBody => csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
       }
   }
 
@@ -386,11 +386,11 @@ private[csrf] class CSRFActionHelper(
   /**
    * Tag incoming requests with the token in the header
    */
-  private[csrf] def tagRequestFromHeader(request: RequestHeader, config: CSRFConfig, tokenSigner: CSRFTokenSigner): RequestHeader = {
+  private[csrf] def tagRequestFromHeader(request: RequestHeader): RequestHeader = {
     getTokenToValidate(request).fold(request) { tokenValue =>
-      val token = Token(config.tokenName, tokenValue)
+      val token = Token(csrfConfig.tokenName, tokenValue)
       val newReq = tagRequest(request, token)
-      if (config.signTokens) {
+      if (csrfConfig.signTokens) {
         // Extract the signed token, and then resign it. This makes the token random per request, preventing the BREACH
         // vulnerability
         val newTokenValue = tokenSigner.extractSignedToken(token.value).map(tokenSigner.signToken)
@@ -401,8 +401,8 @@ private[csrf] class CSRFActionHelper(
     }
   }
 
-  private[csrf] def tagRequestFromHeader[A](request: Request[A], config: CSRFConfig, tokenSigner: CSRFTokenSigner): Request[A] = {
-    Request(tagRequestFromHeader(request: RequestHeader, config, tokenSigner), request.body)
+  private[csrf] def tagRequestFromHeader[A](request: Request[A]): Request[A] = {
+    Request(tagRequestFromHeader(request: RequestHeader), request.body)
   }
 
   private[csrf] def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
@@ -416,37 +416,37 @@ private[csrf] class CSRFActionHelper(
     Request(tagRequest(request: RequestHeader, token), request.body)
   }
 
-  private[csrf] def getHeaderToken(request: RequestHeader, config: CSRFConfig) = {
-    val queryStringToken = request.getQueryString(config.tokenName)
-    val headerToken = request.headers.get(config.headerName)
+  private[csrf] def getHeaderToken(request: RequestHeader) = {
+    val queryStringToken = request.getQueryString(csrfConfig.tokenName)
+    val headerToken = request.headers.get(csrfConfig.headerName)
 
     queryStringToken orElse headerToken
   }
 
-  private[csrf] def requiresCsrfCheck(request: RequestHeader, config: CSRFConfig): Boolean = {
-    if (config.bypassCorsTrustedOrigins && request.tags.contains(CORSFilter.RequestTag)) {
+  private[csrf] def requiresCsrfCheck(request: RequestHeader): Boolean = {
+    if (csrfConfig.bypassCorsTrustedOrigins && request.tags.contains(CORSFilter.RequestTag)) {
       filterLogger.trace("[CSRF] Bypassing check because CORSFilter request tag found")
       false
     } else {
-      config.shouldProtect(request)
+      csrfConfig.shouldProtect(request)
     }
   }
 
-  private[csrf] def addTokenToResponse(config: CSRFConfig, newToken: String, request: RequestHeader, result: Result) = {
+  private[csrf] def addTokenToResponse(newToken: String, request: RequestHeader, result: Result) = {
     if (isCached(result)) {
       filterLogger.trace("[CSRF] Not adding token to cached response")
       result
     } else {
       filterLogger.trace("[CSRF] Adding token to result: " + result)
 
-      config.cookieName.map {
+      csrfConfig.cookieName.map {
         // cookie
         name =>
           result.withCookies(Cookie(name, newToken, path = sessionConfiguration.path, domain = sessionConfiguration.domain,
-            secure = config.secureCookie, httpOnly = config.httpOnlyCookie))
+            secure = csrfConfig.secureCookie, httpOnly = csrfConfig.httpOnlyCookie))
       } getOrElse {
 
-        val newSession = result.session(request) + (config.tokenName -> newToken)
+        val newSession = result.session(request) + (csrfConfig.tokenName -> newToken)
         result.withSession(newSession)
       }
     }
@@ -456,18 +456,18 @@ private[csrf] class CSRFActionHelper(
   private[csrf] def isCached(result: Result): Boolean =
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 
-  private[csrf] def clearTokenIfInvalid(request: RequestHeader, config: CSRFConfig, errorHandler: ErrorHandler, msg: String): Future[Result] = {
+  private[csrf] def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
     errorHandler.handle(request, msg) map { result =>
       CSRF.getToken(request).fold(
-        config.cookieName.flatMap { cookie =>
+        csrfConfig.cookieName.flatMap { cookie =>
           request.cookies.get(cookie).map { token =>
             result.discardingCookies(
-              DiscardingCookie(cookie, domain = sessionConfiguration.domain, path = sessionConfiguration.path, secure = config.secureCookie))
+              DiscardingCookie(cookie, domain = sessionConfiguration.domain, path = sessionConfiguration.path, secure = csrfConfig.secureCookie))
           }
         }.getOrElse {
-          result.withSession(result.session(request) - config.tokenName)
+          result.withSession(result.session(request) - csrfConfig.tokenName)
         }
       )(_ => result)
     }
@@ -490,16 +490,16 @@ case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner
     def parser = wrapped.parser
     def executionContext = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
-      val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest, config, tokenSigner)
+      val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       // Maybe bypass
-      if (!csrfActionHelper.requiresCsrfCheck(request, config) || !config.checkContentType(request.contentType)) {
+      if (!csrfActionHelper.requiresCsrfCheck(request) || !config.checkContentType(request.contentType)) {
         wrapped(request)
       } else {
         // Get token from header
         csrfActionHelper.getTokenToValidate(request).flatMap { headerToken =>
           // Get token from query string
-          csrfActionHelper.getHeaderToken(request, config)
+          csrfActionHelper.getHeaderToken(request)
             // Or from body if not found
             .orElse({
               val form = request.body match {
@@ -516,7 +516,7 @@ case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
         }.getOrElse {
-          csrfActionHelper.clearTokenIfInvalid(request, config, errorHandler, "CSRF token check failed")
+          csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "CSRF token check failed")
         }
       }
     }
@@ -551,7 +551,7 @@ case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner, 
     def parser = wrapped.parser
     def executionContext = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
-      val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest, config, crypto)
+      val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       if (csrfActionHelper.getTokenToValidate(request).isEmpty) {
         // No token in header and we have to create one if not found, so create a new token
@@ -563,7 +563,7 @@ case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner, 
         // Once done, add it to the result
         import play.core.Execution.Implicits.trampoline
         wrapped(requestWithNewToken).map(result =>
-          csrfActionHelper.addTokenToResponse(config, newToken, request, result))
+          csrfActionHelper.addTokenToResponse(newToken, request, result))
       } else {
         wrapped(request)
       }

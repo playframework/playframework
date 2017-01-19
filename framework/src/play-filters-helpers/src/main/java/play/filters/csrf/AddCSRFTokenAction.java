@@ -40,7 +40,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
         CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
 
         play.api.mvc.Request<RequestBody> request =
-                csrfActionHelper.tagRequestFromHeader(ctx.request()._underlyingRequest(), config, tokenSigner);
+                csrfActionHelper.tagRequestFromHeader(ctx.request()._underlyingRequest());
 
         if (csrfActionHelper.getTokenToValidate(request).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token

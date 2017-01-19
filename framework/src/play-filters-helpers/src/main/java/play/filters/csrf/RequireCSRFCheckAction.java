@@ -40,9 +40,9 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
         CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
 
-        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader(), config, tokenSigner);
+        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader());
         // Check for bypass
-        if (!csrfActionHelper.requiresCsrfCheck(request, config)) {
+        if (!csrfActionHelper.requiresCsrfCheck(request)) {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
@@ -51,7 +51,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                 String tokenToCheck = null;
 
                 // Get token from query string
-                Option<String> queryStringToken = csrfActionHelper.getHeaderToken(request, config);
+                Option<String> queryStringToken = csrfActionHelper.getHeaderToken(request);
                 if (queryStringToken.isDefined()) {
                     tokenToCheck = queryStringToken.get();
                 } else {
