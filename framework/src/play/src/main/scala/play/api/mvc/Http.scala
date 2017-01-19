@@ -820,6 +820,16 @@ package play.api.mvc {
     def toCookie = Cookie(name, "", Some(-86400), path, domain, secure)
   }
 
+  object Cookie {
+    import scala.concurrent.duration._
+
+    /**
+     * The cookie's max age, in seconds, when we expire the cookie. This is also used to determine Expires. It's set
+     * to one day ago to work for clients that only support Expires and have a clock that is slightly behind.
+     */
+    val DiscardedMaxAge: Int = -1.day.toSeconds.toInt
+  }
+
   /**
    * The HTTP cookies set.
    */
