@@ -15,6 +15,12 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+/**
+ * The Play module to provide Java bindings for WS to an AsyncHTTPClient implementation.
+ *
+ * This binding does not bind an AsyncHttpClient instance, as it's assumed you'll use the
+ * Scala and Java modules together.
+ */
 public class AhcWSModule extends Module {
 
     @Override

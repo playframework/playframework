@@ -11,10 +11,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 
 /**
- * A WS client backed by an AsyncHttpClient.
- *
- * Normally a StandaloneAhcWSClientProvider is provided through AhcWsModule to
- * resolve dependencies here.
+ * A WS client backed by AsyncHttpClient.
  */
 public class AhcWSClient implements WSClient {
 
@@ -32,7 +29,7 @@ public class AhcWSClient implements WSClient {
 
     @Override
     public WSRequest url(String url) {
-        final StandaloneAhcWSRequest plainWSRequest = (StandaloneAhcWSRequest) client.url(url);
+        final StandaloneAhcWSRequest plainWSRequest = client.url(url);
         return new AhcWSRequest(this, plainWSRequest);
     }
 

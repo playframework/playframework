@@ -11,22 +11,20 @@ import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
- *
+ * A Play WS request backed by AsyncHTTPClient implementation.
  */
 public class AhcWSRequest implements WSRequest {
 
     private final AhcWSClient client;
     private final StandaloneAhcWSRequest request;
-    private Function<StandaloneWSResponse, WSResponse> responseFunction;
-
-    private Function<StandaloneWSRequest, WSRequest> converter = new Function<StandaloneWSRequest, WSRequest>() {
+    private final Function<StandaloneWSResponse, WSResponse> responseFunction = AhcWSResponse::new;
+    private final Function<StandaloneWSRequest, WSRequest> converter = new Function<StandaloneWSRequest, WSRequest>() {
         public WSRequest apply(StandaloneWSRequest standaloneWSRequest) {
             final StandaloneAhcWSRequest plainAhcWSRequest = (StandaloneAhcWSRequest) standaloneWSRequest;
             return new AhcWSRequest(client, plainAhcWSRequest);
@@ -36,7 +34,6 @@ public class AhcWSRequest implements WSRequest {
     AhcWSRequest(AhcWSClient client, StandaloneAhcWSRequest request) {
         this.client = client;
         this.request = request;
-        responseFunction = AhcWSResponse::new;
     }
 
     @Override
@@ -157,6 +154,7 @@ public class AhcWSRequest implements WSRequest {
         return converter.apply(request.setBody(body));
     }
 
+    @Deprecated
     @Override
     public WSRequest setBody(InputStream body) {
         return converter.apply(request.setBody(body));
@@ -223,7 +221,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public StandaloneWSRequest setRequestFilter(WSRequestFilter filter) {
+    public WSRequest setRequestFilter(WSRequestFilter filter) {
         return converter.apply(request.setRequestFilter(filter));
     }
 

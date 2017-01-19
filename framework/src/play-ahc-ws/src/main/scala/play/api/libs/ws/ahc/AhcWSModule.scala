@@ -6,7 +6,7 @@ import play.api.inject.bind
 import play.api.libs.ws._
 
 /**
- *
+ * A Play binding for the Scala WS API to the AsyncHTTPClient implementation.
  */
 class AhcWSModule extends SimpleModule(
   bind[AsyncHttpClient].toProvider[AsyncHttpClientProvider],

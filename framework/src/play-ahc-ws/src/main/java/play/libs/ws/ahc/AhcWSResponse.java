@@ -12,78 +12,78 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * A Play WS response backed by an AsyncHttpClient response.
  */
 public class AhcWSResponse implements WSResponse {
 
-    private final StandaloneWSResponse response;
+    private final StandaloneWSResponse underlying;
 
     public AhcWSResponse(StandaloneWSResponse response) {
-        this.response = response;
+        this.underlying = response;
     }
 
     @Override
     public Map<String, List<String>> getAllHeaders() {
-        return response.getAllHeaders();
+        return underlying.getAllHeaders();
     }
 
     @Override
     public String getHeader(String key) {
-        return response.getHeader(key);
+        return underlying.getHeader(key);
     }
 
     @Override
     public Object getUnderlying() {
-        return response.getUnderlying();
+        return underlying.getUnderlying();
     }
 
     @Override
     public int getStatus() {
-        return response.getStatus();
+        return underlying.getStatus();
     }
 
     @Override
     public String getStatusText() {
-        return response.getStatusText();
+        return underlying.getStatusText();
     }
 
     @Override
     public List<WSCookie> getCookies() {
-        return response.getCookies();
+        return underlying.getCookies();
     }
 
     @Override
     public WSCookie getCookie(String name) {
-        return response.getCookie(name);
+        return underlying.getCookie(name);
     }
 
     @Override
     public String getBody() {
-        return response.getBody();
+        return underlying.getBody();
     }
 
     @Override
     public Document asXml() {
-        return response.asXml();
+        return underlying.asXml();
     }
 
     @Override
     public JsonNode asJson() {
-        return response.asJson();
+        return underlying.asJson();
     }
 
     @Override
     public InputStream getBodyAsStream() {
-        return response.getBodyAsStream();
+        return underlying.getBodyAsStream();
     }
 
     @Override
     public byte[] asByteArray() {
-        return response.asByteArray();
+        return underlying.asByteArray();
     }
 
     @Override
     public URI getUri() {
-        return response.getUri();
+        return underlying.getUri();
     }
 }
