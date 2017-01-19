@@ -11,10 +11,9 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
-import play.api.Play
 import play.api.http.HeaderNames._
-import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfiguration }
-import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider, CookieSignerProvider }
+import play.api.http.SessionConfiguration
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.core.parsers.Multipart
@@ -364,22 +363,6 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
 }
 
 private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
-
-@deprecated("This has no public API and will be removed in the future", "2.6.0")
-object CSRFAction extends CSRFActionHelper(
-  HttpConfiguration.current.session,
-  Play.maybeApplication match {
-    case Some(app) => app.injector.instanceOf[CSRFConfig]
-    case None => CSRFConfig()
-  },
-  Play.maybeApplication match {
-    case Some(app) =>
-      app.injector.instanceOf[CSRFTokenSigner]
-    case None =>
-      val cookieSignerProvider = new CookieSignerProvider(SecretConfiguration())
-      new CSRFTokenSignerProvider(cookieSignerProvider.get).get
-  }
-)
 
 private[csrf] class CSRFActionHelper(
     sessionConfiguration: SessionConfiguration,

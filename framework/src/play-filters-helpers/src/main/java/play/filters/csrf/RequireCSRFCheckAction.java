@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage;
 
 import javax.inject.Inject;
 
+import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
@@ -20,34 +21,37 @@ import scala.Option;
 public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     private final CSRFConfig config;
+    private final SessionConfiguration sessionConfiguration;
     private final CSRF.TokenProvider tokenProvider;
-    private final CSRFTokenSigner crypto;
+    private final CSRFTokenSigner tokenSigner;
     private final Injector injector;
 
     @Inject
-    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
+    public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
         this.config = config;
+        this.sessionConfiguration = sessionConfiguration;
         this.tokenProvider = tokenProvider;
-        this.crypto = csrfTokenSigner;
+        this.tokenSigner = csrfTokenSigner;
         this.injector = injector;
     }
 
-    private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
-
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
-        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
+
+        CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
+
+        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader(), config, tokenSigner);
         // Check for bypass
-        if (!CSRFAction.requiresCsrfCheck(request, config)) {
+        if (!csrfActionHelper.requiresCsrfCheck(request, config)) {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
-            Option<String> headerToken = CSRFAction.getTokenToValidate(request);
+            Option<String> headerToken = csrfActionHelper.getTokenToValidate(request);
             if (headerToken.isDefined()) {
                 String tokenToCheck = null;
 
                 // Get token from query string
-                Option<String> queryStringToken = CSRFAction.getHeaderToken(request, config);
+                Option<String> queryStringToken = csrfActionHelper.getHeaderToken(request, config);
                 if (queryStringToken.isDefined()) {
                     tokenToCheck = queryStringToken.get();
                 } else {
