@@ -12,6 +12,7 @@ class Task {
   type Min = play.data.validation.Constraints.Min @field
   type Required = play.data.validation.Constraints.Required @field
   type I18NConstraint = play.data.validation.TestConstraints.I18Constraint @field
+  type AnotherI18NConstraint = play.data.validation.TestConstraints.AnotherI18NConstraint @field
   type DateTime = play.data.format.Formats.DateTime @field
 
   @Min(10)
@@ -36,6 +37,10 @@ class Task {
   @BeanProperty
   @I18NConstraint(value = "patterns.zip")
   var zip: String = _
+
+  @BeanProperty
+  @AnotherI18NConstraint(value = "patterns.zip")
+  var anotherZip: String = _
 
 }
 

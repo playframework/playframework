@@ -309,6 +309,7 @@ public class HttpFormsTest {
             data.put("name", "peter");
             data.put("dueDate", "11/11/2009");
             data.put("zip", "1234");
+            data.put("anotherZip", "1234");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
             Context ctx = new Context(rb, contextComponents(app));
             Context.current.set(ctx);
@@ -324,6 +325,7 @@ public class HttpFormsTest {
             data.put("name", "peter");
             data.put("dueDate", "11/11/2009");
             data.put("zip", "567");
+            data.put("anotherZip", "567");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
             ctx = new Context(rb, contextComponents(app));
             Context.current.set(ctx);
@@ -340,6 +342,7 @@ public class HttpFormsTest {
             data.put("name", "peter");
             data.put("dueDate", "11/11/2009");
             data.put("zip", "1234");
+            data.put("anotherZip", "1234");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
             ctx = new Context(rb, contextComponents(app));
             Context.current.set(ctx);
@@ -351,6 +354,8 @@ public class HttpFormsTest {
             myForm.data().clear();
             assertThat(myForm.error("zip").messages().size()).isEqualTo(1);
             assertThat(myForm.error("zip").message()).isEqualTo("error.i18nconstraint");
+            assertThat(myForm.error("anotherZip").messages().size()).isEqualTo(1);
+            assertThat(myForm.error("anotherZip").message()).isEqualTo("error.anotheri18nconstraint");
         });
     }
 

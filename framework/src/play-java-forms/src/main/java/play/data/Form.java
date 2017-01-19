@@ -312,13 +312,14 @@ public class Form<T> {
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
         final Map<String, String> objectDataFinal = objectData;
-        withRequestLocale(() -> { dataBinder.bind(new MutablePropertyValues(objectDataFinal)); return null; });
-        Set<ConstraintViolation<Object>> validationErrors;
-        if (groups != null) {
-            validationErrors = validator.validate(dataBinder.getTarget(), groups);
-        } else {
-            validationErrors = validator.validate(dataBinder.getTarget());
-        }
+        Set<ConstraintViolation<Object>> validationErrors = withRequestLocale(() -> {
+            dataBinder.bind(new MutablePropertyValues(objectDataFinal));
+            if (groups != null) {
+                return validator.validate(dataBinder.getTarget(), groups);
+            } else {
+                return validator.validate(dataBinder.getTarget());
+            }
+        });
 
         BindingResult result = dataBinder.getBindingResult();
 
