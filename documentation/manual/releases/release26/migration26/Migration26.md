@@ -269,7 +269,22 @@ Now that cookies are stored in request attributes updating the cookie will chang
 
 If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
-#### Request Security username property is now an attribute
+#### play.api.mvc.Security.username (Scala API), session.username config key and dependent actions helpers are deprecated
+
+`Security.username` just retrieves the `session.username` key from configuration, which defined the session key used to get the username. It was removed since it required statics to work, and it's fairly easy to implement the same or similar behavior yourself.
+
+You can read the username session key from configuration yourself using `configuration.get[String]("session.username")`.
+
+If you're using the `Authenticated(String => EssentialAction)` method, you can easily create your own action to do something similar:
+
+```scala
+  def AuthenticatedWithUsername(action: String => EssentialAction) =
+    WithAuthentication[String](_.session.get(UsernameKey))(action)
+```
+
+where `UsernameKey` represents the session key you want to use for the username.
+
+#### Request Security (Java API) username property is now an attribute
 
 The Java Request object contains a `username` property which is set when the `Security.Authenticated` annotation is added to a Java action. In Play 2.6 the username property has been deprecated. The username property methods have been updated to store the username in the `Security.USERNAME` attribute. You should update your code to use the `Security.USERNAME` attribute directly. In a future version of Play we will remove the username property.
 
