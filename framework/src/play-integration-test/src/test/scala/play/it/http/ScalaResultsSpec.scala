@@ -3,7 +3,6 @@
  */
 package play.it.http
 
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
@@ -33,7 +32,7 @@ object ScalaResultsSpec extends PlaySpecification {
     setCookies("preferences").value must be_==("blue")
     setCookies("lang").value must be_==("fr")
     setCookies("logged").maxAge must beSome
-    setCookies("logged").maxAge must beSome(0)
+    setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     val playSession = Session.decodeFromCookie(setCookies.get(Session.COOKIE_NAME))
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }

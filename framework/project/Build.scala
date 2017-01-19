@@ -309,6 +309,7 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart.partParser"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.crypto"),
         ProblemFilters.exclude[MissingMethodProblem]("play.api.BuiltInComponents.aesCrypter"),
+        ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Cookie$"),
 
         // private[play.api]
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.Configuration.configError"),
