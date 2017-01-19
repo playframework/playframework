@@ -65,18 +65,18 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
       result.body match {
 
         case HttpEntity.Strict(data, contentType) =>
-          Future.successful(Result(header, compressStrictEntity(data, contentType)))
+          Future.successful(result.copy(header = header, body = compressStrictEntity(data, contentType)))
 
         case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType) if contentLength <= config.chunkedThreshold =>
           // It's below the chunked threshold, so buffer then compress and send
           entity.consumeData.map { data =>
-            Result(header, compressStrictEntity(data, contentType))
+            result.copy(header = header, body = compressStrictEntity(data, contentType))
           }
 
         case HttpEntity.Streamed(data, _, contentType) =>
           // It's above the chunked threshold, compress through the gzip flow, and send as chunked
           val gzipped = data via GzipFlow.gzip(config.bufferSize) map (d => HttpChunk.Chunk(d))
-          Future.successful(Result(header, HttpEntity.Chunked(gzipped, contentType)))
+          Future.successful(result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType)))
 
         case HttpEntity.Chunked(chunks, contentType) =>
           val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
@@ -103,7 +103,9 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
             new FlowShape(broadcast.in, concat.out)
           })
 
-          Future.successful(Result(header, HttpEntity.Chunked(chunks via gzipFlow, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(chunks via gzipFlow, contentType))
+          )
       }
     } else {
       Future.successful(result)

@@ -14,11 +14,13 @@ import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing.Router
 import play.api.test._
-import play.api.mvc.{ Action, Result }
+import play.api.mvc.{ Action, Cookie, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
+
 import org.apache.commons.io.IOUtils
+
 import scala.concurrent.Future
 import scala.util.Random
 import org.specs2.matcher.DataTables
@@ -125,6 +127,24 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       header(SERVER, result) must beSome("Play")
     }
 
+    "preserve original cookies" in withApplication(Ok("hello").withCookies(Cookie("cookieName", "cookieValue"))) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzipped(result)
+      cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+    }
+
+    "preserve original session" in withApplication(Ok("hello").withSession("sessionName" -> "sessionValue")) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzipped(result)
+      session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+    }
+
+    "preserve original flash" in withApplication(Ok("hello").flashing("flashName" -> "flashValue")) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzipped(result)
+      flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+    }
+
     "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) { implicit app =>
       val result = makeGzipRequest(app)
       checkGzipped(result)
@@ -134,7 +154,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(Ok("hello").withHeaders(VARY -> "original,ACCEPT-encoding")) { implicit app =>
       val result = makeGzipRequest(app)
       checkGzipped(result)
-      header(VARY, result) must beSome.which(header => header.split(",").filter(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)).size == 1)
+      header(VARY, result) must beSome.which(header => header.split(",").count(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)) == 1)
     }
   }
 
@@ -142,7 +162,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     def filters = Seq(gzipFilter)
   }
 
-  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {
+  def withApplication[T](result: => Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
