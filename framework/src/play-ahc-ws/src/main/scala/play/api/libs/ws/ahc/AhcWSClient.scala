@@ -4,7 +4,7 @@ import akka.stream.Materializer
 import play.api.libs.ws.{ WSClient, WSRequest }
 
 /**
- *
+ * Async WS Client backed by AsyncHttpClient.
  */
 class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
   /**
@@ -16,7 +16,9 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
   override def underlying[T]: T = underlyingClient.underlying[T]
 
   /**
-   * Generates a request.
+   * Generates a WS Request.  This is a builder that can be used to build up an
+   * HTTP request, finally calling a termination method like `get()` or `execute()`
+   * which returns a `Future[WSResponse]`.
    *
    * @param url The base URL to make HTTP requests to.
    * @return a request

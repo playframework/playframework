@@ -7,6 +7,11 @@ import play.api.libs.ws._
 
 import scala.xml.Elem
 
+/**
+ * A WS HTTP Response backed by an AsyncHttpClient response.
+ *
+ * @param underlying
+ */
 case class AhcWSResponse(underlying: StandaloneAhcWSResponse) extends WSResponse {
 
   def this(ahcResponse: AHCResponse) = {

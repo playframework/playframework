@@ -7,17 +7,21 @@ Play WS historically consisted of two libraries, `ws` and `playWs`, containing t
 
 ## Project changes
 
-Play WS now exists as a Play specific wrapper on top of a standalone WS library, which does not depend on Play classes, and which uses package renamed "shaded" versions of AsyncHttpClient, Signpost, and Netty 4.0.  
+Play WS now exists as a Play specific wrapper on top of a standalone WS library, which does not depend on Play classes, and which uses package renamed "shaded" versions of AsyncHttpClient, Signpost, and Netty 4.0.
 
 By providing a standalone WS version and using shaded libraries, WS is more flexible and has fewer collisions with other libraries and projects.
 
-The Play WS API extends Standalone WS `post` with `Http.Multipart` and `Multipart` classes that are only available in Play.
+The Play WS API extends Standalone WS `post` with `Http.Multipart` and `Multipart` types that are only available in Play, for example:
+
+```scala
+def withBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Self 
+```
 
 Signpost OAuth has been changed so that instead of using the Commons HTTPClient OAuthProvider, it now uses the DefaultOAuthProvider, which uses HTTPURLConnection under the hood.
 
 The standalone WS instance is available at https://github.com/playframework/play-ws and can be added to an SBT project with:
 
-```
+```scala
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
 ```
 
@@ -26,6 +30,12 @@ libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
 ### Scala
 
 The `WSAPI` class has been removed.  The `WSClient` interface is the point of entry for the WS API.
+
+`WSRequest` had a `withBody[T](body: T)(implicit writable: play.api.http.Writable[T])` method has been replaced as it was difficult to track the behavior of `Writable`. There is now a custom `BodyWritable[T]` type class that fills the same function, and which has type class instances defined in Standalone WS:
+
+```scala
+override def withBody[T: BodyWritable](body: T)
+```
 
 The deprecated Scala singleton object `play.api.libs.ws.WS` has been removed.  An instance of `WSClient` should be used instead.  If compile time dependency injection is being used, then the `AhcWSComponents` trait should be mixed in.
 

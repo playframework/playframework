@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 /**
- *
+ * A WS Request backed by AsyncHTTPClient.
  */
 case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
   override type Self = WSRequest
@@ -173,12 +173,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
   }
 
   override def execute(): Future[Response] = {
-    val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
-
     implicit val ec = underlying.client.executionContext
     require(ec != null)
-
-    logger.error(s"execute: url = $url")
 
     val futureResponse: Future[StandaloneWSResponse] = underlying.execute()
     futureResponse.map { f =>
