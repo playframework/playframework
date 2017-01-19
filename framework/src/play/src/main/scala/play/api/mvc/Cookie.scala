@@ -34,6 +34,16 @@ case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path:
   }
 }
 
+object Cookie {
+  import scala.concurrent.duration._
+
+  /**
+   * The cookie's max age, in seconds, when we expire the cookie. This is also used to determine Expires. It's set
+   * to one day ago to work for clients that only support Expires and have a clock that is slightly behind.
+   */
+  val DiscardedMaxAge: Int = -1.day.toSeconds.toInt
+}
+
 /**
  * A cookie to be discarded.  This contains only the data necessary for discarding a cookie.
  *
@@ -43,7 +53,7 @@ case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path:
  * @param secure whether this cookie is secured
  */
 case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(-86400), path, domain, secure)
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure)
 }
 
 /**

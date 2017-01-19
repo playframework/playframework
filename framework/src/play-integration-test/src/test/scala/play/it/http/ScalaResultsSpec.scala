@@ -46,7 +46,7 @@ class ScalaResultsSpec extends PlaySpecification {
     setCookies("preferences").value must be_==("blue")
     setCookies("lang").value must be_==("fr")
     setCookies("logged").maxAge must beSome
-    setCookies("logged").maxAge must beSome(0)
+    setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     val playSession = sessionBaker.decodeFromCookie(setCookies.get(sessionBaker.COOKIE_NAME))
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }
