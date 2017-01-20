@@ -7,7 +7,10 @@ import java.util.concurrent.Callable;
 
 /**
  * The Cache API.
+ *
+ * @deprecated Deprecated as of 2.6.0. Use {@link SyncCacheApi} or {@link AsyncCacheApi}.
  */
+@Deprecated
 public interface CacheApi {
     /**
      * Retrieves an object by key.

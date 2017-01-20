@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 public class Application extends Controller {
 
-    @Inject @NamedCache("session-cache") CacheApi cache;
+    @Inject @NamedCache("session-cache") SyncCacheApi cache;
 
     // ...
 }
