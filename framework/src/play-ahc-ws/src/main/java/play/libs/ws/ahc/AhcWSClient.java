@@ -4,8 +4,10 @@
 
 package play.libs.ws.ahc;
 
+import akka.stream.Materializer;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -20,6 +22,16 @@ public class AhcWSClient implements WSClient {
     @Inject
     public AhcWSClient(StandaloneAhcWSClient client) {
         this.client = client;
+    }
+
+    /**
+     * Secondary constructor for manually created AhcWSClient
+     *
+     * @param asyncHttpClient an AHC instance
+     * @param materializer an Akka materializer
+     */
+    public AhcWSClient(AsyncHttpClient asyncHttpClient, Materializer materializer) {
+        this.client = new StandaloneAhcWSClient(asyncHttpClient, materializer);
     }
 
     @Override

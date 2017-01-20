@@ -9,16 +9,14 @@ import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import play.api.Environment;
-import play.api.Mode;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
 import play.libs.ws.WSClient;
 import play.libs.ws.ahc.AhcWSClient;
-
-import java.io.File;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 
 public class StandaloneWithConfig {
 
@@ -30,16 +28,11 @@ public class StandaloneWithConfig {
         ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        WSConfigParser parser = new WSConfigParser(
-                play.api.Configuration.apply(conf),
-                new Environment(new File("."), ClassLoader.getSystemClassLoader(), Mode.Prod()));
-
+        WSConfigParser parser = new WSConfigParser(conf, ClassLoader.getSystemClassLoader());
         AhcWSClientConfig clientConf = AhcWSClientConfigFactory.forClientConfig(parser.parse());
 
-        WSClient client = new AhcWSClient(
-                new AhcConfigBuilder(clientConf)
-                        .configure()
-                        .build(),
+        final DefaultAsyncHttpClientConfig asyncHttpClientConfig = new AhcConfigBuilder(clientConf).configure().build();
+        WSClient client = new AhcWSClient(new DefaultAsyncHttpClient(asyncHttpClientConfig),
                 materializer);
     }
 }

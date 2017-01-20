@@ -172,9 +172,6 @@ lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
       libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
       sourceGenerators in Compile += Def.task(PlayVersion(version.value, (scalaVersion in PlayProject).value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
 
-      //
-      ivyScala := { ivyScala.value map {_.copy(overrideScalaVersion = sbtPlugin.value)} },
-
       // This only publishes the sbt plugin projects on each scripted run.
       // The runtests script does a full publish before running tests.
       // When developing the sbt plugins, run a publishLocal in the root project first.

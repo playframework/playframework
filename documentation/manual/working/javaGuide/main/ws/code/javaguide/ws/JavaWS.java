@@ -7,11 +7,9 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
-import play.api.libs.ws.ahc.AhcCurlRequestLogger;
 import play.libs.ws.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 // #ws-imports
@@ -24,10 +22,6 @@ import play.libs.Json;
 // #multipart-imports
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
-
-import play.libs.ws.ahc.AhcWSClient;
-import play.mvc.Http;
-import scala.compat.java8.FutureConverters;
 
 import java.io.*;
 import java.util.concurrent.ExecutionException;
@@ -45,7 +39,7 @@ import play.http.HttpEntity;
 import play.mvc.Http.Status;
 
 // #ws-custom-client-imports
-import org.asynchttpclient.*;
+import play.shaded.ahc.org.asynchttpclient.*;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
@@ -78,7 +72,7 @@ public class JavaWS {
             // #ws-complex-holder
 
             // #ws-get
-            CompletionStage<WSResponse> responsePromise = complexRequest.get();
+            CompletionStage<? extends WSResponse> responsePromise = complexRequest.get();
             // #ws-get
 
             String url = "http://example.com";
@@ -140,7 +134,7 @@ public class JavaWS {
             Stream<ByteString> largeSource = IntStream.range(0,10).boxed().map(i -> seedValue);
             Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
             // #ws-stream-request
-            CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
+            CompletionStage<? extends WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
             // #ws-stream-request
         }
 
@@ -163,7 +157,7 @@ public class JavaWS {
             String url = "http://example.com";
             // #stream-count-bytes
             // Make the request
-            CompletionStage<StreamedResponse> futureResponse = 
+            CompletionStage<? extends StreamedResponse> futureResponse =
                 ws.url(url).setMethod("GET").stream();
 
             CompletionStage<Long> bytesReturned = futureResponse.thenCompose(res -> {
@@ -185,7 +179,7 @@ public class JavaWS {
             FileOutputStream outputStream = new FileOutputStream(file);
 
             // Make the request
-            CompletionStage<StreamedResponse> futureResponse =
+            CompletionStage<? extends StreamedResponse> futureResponse =
                 ws.url(url).setMethod("GET").stream();
 
             CompletionStage<File> downloadedFile = futureResponse.thenCompose(res -> {
@@ -214,7 +208,7 @@ public class JavaWS {
             String url = "http://example.com";
             //#stream-to-result
             // Make the request
-            CompletionStage<StreamedResponse> futureResponse = ws.url(url).setMethod("GET").stream();
+            CompletionStage<? extends StreamedResponse> futureResponse = ws.url(url).setMethod("GET").stream();
 
             CompletionStage<Result> result = futureResponse.thenApply(response -> {
                 WSResponseHeaders responseHeaders = response.getHeaders();
@@ -250,7 +244,7 @@ public class JavaWS {
         public void streamPut() {
             String url = "http://example.com";
             //#stream-put
-            CompletionStage<StreamedResponse> futureResponse  =
+            CompletionStage<? extends StreamedResponse> futureResponse  =
                 ws.url(url).setMethod("PUT").setBody("some body").stream();
             //#stream-put
         }
@@ -258,20 +252,20 @@ public class JavaWS {
         public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final CompletionStage<WSResponse> responseThreePromise = ws.url(urlOne).get()
+            final CompletionStage<? extends WSResponse> responseThreePromise = ws.url(urlOne).get()
                     .thenCompose(responseOne -> ws.url(responseOne.getBody()).get())
                     .thenCompose(responseTwo -> ws.url(responseTwo.getBody()).get());
             // #ws-composition
 
             // #ws-recover
-            CompletionStage<WSResponse> responsePromise = ws.url("http://example.com").get();
-            CompletionStage<WSResponse> recoverPromise = responsePromise.handle((result, error) -> {
+            CompletionStage<? extends WSResponse> responsePromise = ws.url("http://example.com").get();
+            responsePromise.handle((result, error) -> {
                 if (error != null) {
                     return ws.url("http://backup.example.com").get();
                 } else {
                     return CompletableFuture.completedFuture(result);
                 }
-            }).thenCompose(Function.identity());
+            });
             // #ws-recover
         }
 
@@ -296,15 +290,16 @@ public class JavaWS {
             DefaultAsyncHttpClientConfig.Builder ahcBuilder = builder.configure();
             AsyncHttpClientConfig.AdditionalChannelInitializer logging = new AsyncHttpClientConfig.AdditionalChannelInitializer() {
                 @Override
-                public void initChannel(io.netty.channel.Channel channel) throws IOException {
-                    channel.pipeline().addFirst("log", new io.netty.handler.logging.LoggingHandler("debug"));
+                public void initChannel(play.shaded.ahc.io.netty.channel.Channel channel) throws IOException {
+                    channel.pipeline().addFirst("log", new play.shaded.ahc.io.netty.handler.logging.LoggingHandler("debug"));
                 }
             };
             ahcBuilder.setHttpAdditionalChannelInitializer(logging);
             // #ws-custom-client
 
             // #ws-client
-            WSClient customWSClient = new play.libs.ws.ahc.AhcWSClient(ahcBuilder.build(), materializer);
+            AsyncHttpClient client = new DefaultAsyncHttpClient(ahcBuilder.build());
+            WSClient customWSClient = new play.libs.ws.ahc.AhcWSClient(client, materializer);
             // #ws-client
 
             org.slf4j.Logger logger = play.Logger.underlying();
@@ -368,7 +363,7 @@ public class JavaWS {
                 return next;
             };
 
-            return ws.url(feedUrl).withRequestFilter(filter).get().thenApply(response ->
+            return ws.url(feedUrl).setRequestFilter(filter).get().thenApply(response ->
                     ok("Feed title: " + response.asJson().findPath("title").asText())
             );
         }

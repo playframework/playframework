@@ -7,8 +7,9 @@ package javaguide.ws;
 import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
-import org.asynchttpclient.AsyncHttpClientConfig;
-import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClientConfig;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
 
@@ -27,7 +28,7 @@ public class Standalone {
         ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        WSClient client = new AhcWSClient(config, materializer);
+        WSClient client = new AhcWSClient(new DefaultAsyncHttpClient(config), materializer);
         client.url("http://www.google.com").get().whenComplete((r, e) -> {
             Optional.ofNullable(r).ifPresent(response -> {
                 String statusText = response.getStatusText();

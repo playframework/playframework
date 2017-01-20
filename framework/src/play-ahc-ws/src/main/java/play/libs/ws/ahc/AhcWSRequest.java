@@ -135,7 +135,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public CompletionStage<StreamedResponse> stream() {
+    public CompletionStage<? extends StreamedResponse> stream() {
         return request.stream();
     }
 
@@ -273,6 +273,11 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public boolean getFollowRedirects() {
         return request.getFollowRedirects();
+    }
+
+    @Override
+    public String getContentType() {
+        return request.getContentType();
     }
 
     @Override

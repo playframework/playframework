@@ -247,7 +247,7 @@ object Dependencies {
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
-  val playWsStandaloneVersion = "1.0.0-M1"
+  val playWsStandaloneVersion = "1.0.0-M2"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     logback % Test

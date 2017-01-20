@@ -77,6 +77,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
    */
   override def proxyServer: Option[WSProxyServer] = underlying.proxyServer
 
+  override def contentType: Option[String] = underlying.contentType
+
   override def sign(calc: WSSignatureCalculator): Self = toWSRequest {
     underlying.sign(calc)
   }
@@ -101,8 +103,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
     underlying.withRequestTimeout(timeout)
   }
 
-  override def withRequestFilter(filter: WSRequestFilter[Self, Response]): WSRequest = toWSRequest {
-    underlying.withRequestFilter(filter.asInstanceOf[WSRequestFilter[underlying.Self, underlying.Response]])
+  override def withRequestFilter(filter: WSRequestFilter): WSRequest = toWSRequest {
+    underlying.withRequestFilter(filter.asInstanceOf[WSRequestFilter])
   }
 
   override def withVirtualHost(vh: String): Self = toWSRequest {
