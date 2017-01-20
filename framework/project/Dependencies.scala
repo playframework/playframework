@@ -298,14 +298,19 @@ object Dependencies {
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
-  val asyncHttpClientVersion = "2.0.11"
+
+  val asyncHttpClientVersion = "2.0.24"
   val playWsDeps = Seq(
     guava,
     "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
     logback % Test
-  ) ++
-    Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
-    (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
+  ) ++ Seq(
+    "oauth.signpost" % "signpost-core" % "1.2.1.2",
+    "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2" excludeAll(
+      ExclusionRule(organization = "org.apache.httpcomponents")
+      ),
+    "org.apache.httpcomponents" % "httpclient" % "4.5.2"
+  ) ++ (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(
