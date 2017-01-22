@@ -26,6 +26,9 @@ JSON is a lightweight data-interchange format and looks like this:
 
 > To learn more about JSON, see [json.org](http://json.org/).
 
+> Need to create case class from json? There is [json2caseclass](http://json2caseclass.cleverapps.io/) to help you
+
+
 ## The Play JSON library
 
 The [`play.api.libs.json`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Some of the features of this package are:
