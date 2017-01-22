@@ -3,44 +3,48 @@
  */
 package javaguide.ws;
 
-//#ws-standalone-with-config
 import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import play.api.Environment;
-import play.api.Mode;
+import org.junit.Test;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
 import play.libs.ws.WSClient;
 import play.libs.ws.ahc.AhcWSClient;
+import play.libs.ws.ahc.StandaloneAhcWSClient;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 
-import java.io.File;
+import java.io.IOException;
 
 public class StandaloneWithConfig {
 
-    public static void main(String[] args) {
-        Config conf = ConfigFactory.load();
-
+    @Test
+    public void testMe() throws IOException {
+        //#ws-standalone-with-config
+        // Set up Akka
         String name = "wsclient";
         ActorSystem system = ActorSystem.create(name);
         ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        WSConfigParser parser = new WSConfigParser(
-                play.api.Configuration.apply(conf),
-                new Environment(new File("."), ClassLoader.getSystemClassLoader(), Mode.Prod()));
-
+        // Read in config file from application.conf
+        Config conf = ConfigFactory.load();
+        WSConfigParser parser = new WSConfigParser(conf, ClassLoader.getSystemClassLoader());
         AhcWSClientConfig clientConf = AhcWSClientConfigFactory.forClientConfig(parser.parse());
 
-        WSClient client = new AhcWSClient(
-                new AhcConfigBuilder(clientConf)
-                        .configure()
-                        .build(),
-                materializer);
+        // Start up asynchttpclient
+        final DefaultAsyncHttpClientConfig asyncHttpClientConfig = new AhcConfigBuilder(clientConf).configure().build();
+        final DefaultAsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
+
+        // Create a new WS client, and then close the client.
+        WSClient client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
+        client.close();
+        system.terminate();
+        //#ws-standalone-with-config
     }
 }
-//#ws-standalone-with-config

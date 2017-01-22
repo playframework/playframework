@@ -5,12 +5,13 @@ package play.api.libs.ws.ahc
 
 import java.nio.charset.StandardCharsets
 
-import org.asynchttpclient.util.HttpUtils
+import play.shaded.ahc.org.asynchttpclient.util.HttpUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.ws._
-import scala.concurrent.Future
+
 import com.google.common.io.BaseEncoding
 import com.google.common.base.Charsets
+
 /**
  * Logs WSRequest and pulls information into Curl format to an SLF4J logger.
  *
@@ -18,12 +19,9 @@ import com.google.common.base.Charsets
  */
 class AhcCurlRequestLogger(logger: org.slf4j.Logger) extends WSRequestFilter with CurlFormat {
   def apply(executor: WSRequestExecutor): WSRequestExecutor = {
-    new WSRequestExecutor {
-      override def execute(request: WSRequest): Future[WSResponse] = {
-        val ningRequest = request.asInstanceOf[AhcWSRequest]
-        logger.info(toCurl(ningRequest))
-        executor.execute(request)
-      }
+    WSRequestExecutor { request =>
+      logger.info(toCurl(request.asInstanceOf[StandaloneAhcWSRequest]))
+      executor(request)
     }
   }
 }
@@ -42,7 +40,7 @@ object AhcCurlRequestLogger {
 }
 
 trait CurlFormat {
-  def toCurl(request: AhcWSRequest): String = {
+  def toCurl(request: StandaloneAhcWSRequest): String = {
     val b = new StringBuilder("curl \\\n")
 
     // verbose, since it's a fair bet this is for debugging
@@ -98,7 +96,7 @@ trait CurlFormat {
     curlOptions
   }
 
-  protected def findCharset(request: AhcWSRequest): String = {
+  protected def findCharset(request: StandaloneAhcWSRequest): String = {
     request.contentType.map { ct =>
       Option(HttpUtils.parseCharset(ct)).getOrElse {
         StandardCharsets.UTF_8

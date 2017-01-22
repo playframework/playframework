@@ -5,13 +5,15 @@ Sometimes we would like to call other HTTP services from within a Play applicati
 
 There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS library. Finally, we'll discuss some common use cases.
 
-> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [CompletionStage section of the migration guide](https://www.playframework.com/documentation/2.5.x/JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage) will be very helpful.
+> **Note**: In Play 2.6, Play WS has been split into two, with an underlying standalone client that does not depend on Play, and a wrapper on top that uses Play specific classes.  In addition, shaded versions of AsyncHttpClient and Netty are now used in Play WS to minimize library conflicts, primarily so that Play's HTTP engine can use a different version of Netty.  Please see the [[2.6 migration guide|WSMigration26]] for more information.
 
-## Making a Request
+## Adding WS to project
 
 To use WS, first add `ws` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
+
+## Making a Request
 
 Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
 
@@ -33,9 +35,11 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
+> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [CompletionStage section of the migration guide](https://www.playframework.com/documentation/2.5.x/JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage) will be very helpful.
+
 ### Request with authentication
 
-If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an [`WSAuthScheme`](api/java/play/libs/ws/WSAuthScheme.html).  Options for the `WSAuthScheme` are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
+If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `WSAuthScheme`.  Options for the `WSAuthScheme` are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
 
 @[ws-auth](code/javaguide/ws/JavaWS.java)
 
@@ -103,7 +107,7 @@ The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.libs.ws.WSRequestFilter`](api/java/play/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
 
 @[ws-request-filter](code/javaguide/ws/JavaWS.java)
 
@@ -187,31 +191,41 @@ However, if you choose, you can instantiate a `WSClient` directly from code and 
 
 Here is an example of how to create a `WSClient` instance by yourself:
 
-@[ws-custom-client-imports](code/javaguide/ws/JavaWS.java)
-
-@[ws-custom-client](code/javaguide/ws/JavaWS.java)
+@[ws-client-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-client](code/javaguide/ws/JavaWS.java)
 
-You can also use [`play.libs.ws.WS.newClient`](api/java/play/libs/ws/WS.html) to create an instance of `WSClient` in a functional test.  See [[JavaTestingWebServiceClients]] for more details. 
+You can also use [`play.test.WSTestClient.newClient`](api/java/play/test/WSTestClient.html) to create an instance of `WSClient` in a functional test.  See [[JavaTestingWebServiceClients]] for more details. 
 
-Or, you can run the `WSClient` completely standalone without involving a running Play application at all:
+Or, you can run the `WSClient` completely standalone without involving a running Play application or configuration at all:
+
+@[ws-standalone-imports](code/javaguide/ws/Standalone.java)
 
 @[ws-standalone](code/javaguide/ws/Standalone.java)
 
-If you want to run `WSClient` standalone, but still use [[non-programatic configuration|JavaWS#configuring-ws]] (including [[SSL|WsSSL]]), you can use a configuration parser like this:
+If you want to run `WSClient` standalone, but still use [[configuration|JavaWS#configuring-ws]] (including [[SSL|WsSSL]]), you can use a configuration parser like this:
 
 @[ws-standalone-with-config](code/javaguide/ws/StandaloneWithConfig.java)
 
-Once you are done with your custom client work, you **must** close the client:
+Again, once you are done with your custom client work, you **must** close the client, or you will leak threads:
 
 @[ws-close-client](code/javaguide/ws/JavaWS.java)
 
 Ideally, you should only close a client after you know all requests have been completed.  You should not use [`try-with-resources`](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) to automatically close a WSClient instance, because WSClient logic is asynchronous and `try-with-resources` only supports synchronous code in its body.
 
+## Standalone WS
+
+If you want to call WS outside of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
+```
+
+Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
+
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying shaded [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 

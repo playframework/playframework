@@ -1,30 +1,51 @@
-/*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
- */
 package play.libs.ws;
-
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.mvc.Http;
-
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 /**
- * This is the main interface to building a WS request in Java.
- * <p>
- * Note that this interface does not expose properties that are only exposed
- * after building the request: notably, the URL, headers and query parameters
- * are shown before an OAuth signature is calculated.
+ * An enhanced WSRequest that can use Play specific classes.
  */
-public interface WSRequest {
+public interface WSRequest extends StandaloneWSRequest {
+
+    /**
+     * Perform a PATCH on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+    /**
+     * Perform a POST on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+    /**
+     * Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+    /**
+     * Set the multipart body this request should use.
+     *
+     * @param body the body of the request.
+     * @return the modified WSRequest.
+     */
+    WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
 
     //-------------------------------------------------------------------------
     // "GET"
@@ -71,15 +92,7 @@ public interface WSRequest {
      * @param body represented as a File
      * @return a promise to the response
      */
-    CompletionStage<WSResponse> patch(File body);
-
-    /**
-     * Perform a PATCH on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+    CompletionStage<? extends WSResponse> patch(File body);
 
     //-------------------------------------------------------------------------
     // "POST"
@@ -117,14 +130,6 @@ public interface WSRequest {
      */
     CompletionStage<WSResponse> post(File body);
 
-    /**
-     * Perform a POST on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
-
     //-------------------------------------------------------------------------
     // "PUT"
     //-------------------------------------------------------------------------
@@ -160,14 +165,6 @@ public interface WSRequest {
      * @return a promise to the response
      */
     CompletionStage<WSResponse> put(File body);
-
-    /**
-     * Perform a PUT on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
     // Miscellaneous execution methods
@@ -214,15 +211,7 @@ public interface WSRequest {
      *
      * @return a promise to the streaming response
      */
-    CompletionStage<StreamedResponse> stream();
-
-    /**
-     * Adds a request filter.
-     *
-     * @param filter a transforming filter.
-     * @return the modified request.
-     */
-    WSRequest withRequestFilter(WSRequestFilter filter);
+    CompletionStage<? extends StreamedResponse> stream();
 
     //-------------------------------------------------------------------------
     // Setters
@@ -231,7 +220,7 @@ public interface WSRequest {
     /**
      * Sets the HTTP method this request should use, where the no args execute() method is invoked.
      *
-     * @param method    the HTTP method.
+     * @param method the HTTP method.
      * @return the modified WSRequest.
      */
     WSRequest setMethod(String method);
@@ -239,14 +228,15 @@ public interface WSRequest {
     /**
      * Set the body this request should use.
      *
-     * @param body    the body of the request.
+     * @param body the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(String body);
 
     /**
      * Set the body this request should use.
-     * @param body    the body of the request.
+     *
+     * @param body the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(JsonNode body);
@@ -254,9 +244,9 @@ public interface WSRequest {
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(Source)} instead.
      * @param body Deprecated
      * @return Deprecated
+     * @deprecated use {@link #setBody(Source)} instead.
      */
     @Deprecated
     WSRequest setBody(InputStream body);
@@ -264,31 +254,25 @@ public interface WSRequest {
     /**
      * Set the body this request should use.
      *
-     * @param body    the body of the request.
+     * @param body the body of the request.
      * @return the modified WSRequest.
      */
     WSRequest setBody(File body);
 
     /**
      * Set the body this request should use.
-     * @param body    the body of the request.
+     *
+     * @param body the body of the request.
      * @return the modified WSRequest.
      */
-    WSRequest setBody(Source<ByteString,?> body);
-
-    /**
-     * Set the multipart body this request should use.
-     * @param body    the body of the request.
-     * @return the modified WSRequest.
-     */
-    WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+    <U> WSRequest setBody(Source<ByteString, U> body);
 
     /**
      * Adds a header to the request.  Note that duplicate headers are allowed
      * by the HTTP specification, and removing a header is not available
      * through this API.
      *
-     * @param name the header name
+     * @param name  the header name
      * @param value the header value
      * @return the modified WSRequest.
      */
@@ -305,7 +289,7 @@ public interface WSRequest {
     /**
      * Sets a query parameter with the given name, this can be called repeatedly.  Duplicate query parameters are allowed.
      *
-     * @param name the query parameter name
+     * @param name  the query parameter name
      * @param value the query parameter value
      * @return the modified WSRequest.
      */
@@ -352,7 +336,7 @@ public interface WSRequest {
      * @param followRedirects true if the request should follow redirects
      * @return the modified WSRequest
      */
-    WSRequest setFollowRedirects(Boolean followRedirects);
+    WSRequest setFollowRedirects(boolean followRedirects);
 
     /**
      * Sets the virtual host as a "hostname:port" string.
@@ -371,6 +355,14 @@ public interface WSRequest {
     WSRequest setRequestTimeout(long timeout);
 
     /**
+     * Adds a request filter.
+     *
+     * @param filter a transforming filter.
+     * @return the modified request.
+     */
+    WSRequest setRequestFilter(WSRequestFilter filter);
+
+    /**
      * Set the content type.  If the request body is a String, and no charset parameter is included, then it will
      * default to UTF-8.
      *
@@ -378,57 +370,5 @@ public interface WSRequest {
      * @return the modified WSRequest
      */
     WSRequest setContentType(String contentType);
-
-    //-------------------------------------------------------------------------
-    // Getters
-    //-------------------------------------------------------------------------
-
-    /**
-     * @return the URL of the request.  This has not passed through an internal request builder and so will not be signed.
-     */
-    String getUrl();
-
-    /**
-     * @return the headers (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
-     */
-    Map<String, Collection<String>> getHeaders();
-
-    /**
-     * @return the query parameters (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
-     */
-    Map<String, Collection<String>> getQueryParameters();
-
-    /**
-     * @return the auth username, null if not an authenticated request.
-     */
-    String getUsername();
-
-    /**
-     * @return the auth password, null if not an authenticated request
-     */
-    String getPassword();
-
-    /**
-     * @return the auth scheme, null if not an authenticated request.
-     */
-    WSAuthScheme getScheme();
-
-    /**
-     * @return the signature calculator (example: OAuth), null if none is set.
-     */
-    WSSignatureCalculator getCalculator();
-
-    /**
-     * Gets the original request timeout in milliseconds, passed into the
-     * request as input.
-     *
-     * @return the timeout
-     */
-    long getRequestTimeout();
-
-    /**
-     * @return true if the request is configure to follow redirect, false if it is configure not to, null if nothing is configured and the global client preference should be used instead.
-     */
-    Boolean getFollowRedirects();
 
 }

@@ -5,7 +5,9 @@ Sometimes we would like to call other HTTP services from within a Play applicati
 
 There are two important parts to using the WSClient: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WSClient.  Finally, we'll discuss some common use cases.
 
-## Making a Request
+> **Note**: In Play 2.6, Play WS has been split into two, with an underlying standalone client that does not depend on Play, and a wrapper on top that uses Play specific classes.  In addition, shaded versions of AsyncHttpClient and Netty are now used in Play WS to minimize library conflicts, primarily so that Play's HTTP engine can use a different version of Netty.  Please see the [[2.6 migration guide|WSMigration26]] for more information.
+
+## Adding WS to project
 
 To use WSClient, first add `ws` to your `build.sbt` file:
 
@@ -14,6 +16,8 @@ libraryDependencies ++= Seq(
   ws
 )
 ```
+
+## Making a Request
 
 Now any component that wants to use WS will have to declare a dependency on the `WSClient`:
 
@@ -39,7 +43,7 @@ This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs
 
 ### Request with authentication
 
-If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an [AuthScheme](api/scala/play/api/libs/ws/WSAuthScheme.html).  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
+If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `AuthScheme`.  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
 
 @[auth-request](code/ScalaWSSpec.scala)
 
@@ -117,7 +121,7 @@ The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[Byte
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.api.libs.ws.WSRequestFilter`](api/scala/play/api/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.api.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
 A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
 
@@ -237,6 +241,16 @@ Again, once you are done with your custom client work, you **must** close the cl
 @[close-client](code/ScalaWSSpec.scala)
 
 Ideally, you should close a client after you know all requests have been completed.  Be careful of using an automatic resource management pattern to close the client, because WSClient logic is asynchronous and many ARM solutions may be designed for a single threaded synchronous solution.
+
+## Standalone WS
+
+If you want to call WS outside of the context of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
+```
+
+Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
 
 ## Accessing AsyncHttpClient
 

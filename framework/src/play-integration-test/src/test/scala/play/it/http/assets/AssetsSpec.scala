@@ -106,7 +106,7 @@ trait AssetsSpec extends PlaySpecification
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       //result.header(CONTENT_ENCODING) must beSome("gzip")
-      val ahcResult: org.asynchttpclient.Response = result.underlying.asInstanceOf[org.asynchttpclient.Response]
+      val ahcResult: play.shaded.ahc.org.asynchttpclient.Response = result.underlying.asInstanceOf[play.shaded.ahc.org.asynchttpclient.Response]
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
       IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
       // release deflate resources

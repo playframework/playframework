@@ -5,7 +5,7 @@
 package play.it.action
 
 import akka.stream.scaladsl.Source
-import io.netty.handler.codec.http.HttpHeaders
+import play.shaded.ahc.io.netty.handler.codec.http.HttpHeaders
 import org.specs2.mutable.Specification
 import play.api.Play
 import play.api.http.HeaderNames._
@@ -21,7 +21,7 @@ import play.it._
 import play.it.tools.HttpBinApplication._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import org.asynchttpclient.netty.NettyResponse
+import play.shaded.ahc.org.asynchttpclient.netty.NettyResponse
 import play.api.libs.typedmap.TypedKey
 
 class NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification

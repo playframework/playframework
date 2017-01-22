@@ -3,42 +3,49 @@
  */
 package play.libs.ws.ahc;
 
+import akka.stream.Materializer;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
 import play.api.inject.Module;
-import play.api.inject.SimpleModule;
-import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 import scala.collection.Seq;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+/**
+ * The Play module to provide Java bindings for WS to an AsyncHTTPClient implementation.
+ *
+ * This binding does not bind an AsyncHttpClient instance, as it's assumed you'll use the
+ * Scala and Java modules together.
+ */
 public class AhcWSModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
-                bind(WSAPI.class).to(AhcWSAPI.class),
-                bind(WSClient.class).toProvider(WSClientProvider.class)
+                // AsyncHttpClientProvider is added by the Scala API
+                bind(WSClient.class).toProvider(AhcWSClientProvider.class)
         );
     }
 
     @Singleton
-    public static class WSClientProvider implements Provider<WSClient> {
-        private final WSAPI wsApi;
+    public static class AhcWSClientProvider implements Provider<WSClient> {
+        private final AhcWSClient client;
 
         @Inject
-        public WSClientProvider(WSAPI wsApi) {
-            this.wsApi = wsApi;
+        public AhcWSClientProvider(AsyncHttpClient asyncHttpClient, Materializer materializer) {
+            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
         }
 
         @Override
         public WSClient get() {
-            return wsApi.client();
+            return client;
         }
+
     }
 
 }

@@ -3,31 +3,42 @@
  */
 package javaguide.ws;
 
-//#ws-standalone
+//#ws-standalone-imports
 import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.ActorMaterializerSettings;
-import org.asynchttpclient.AsyncHttpClientConfig;
-import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import org.junit.Test;
+import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
+//#ws-standalone-imports
 
 import java.util.Optional;
 
 public class Standalone {
 
-    public static void main(String[] args) {
-        AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
-                .setMaxRequestRetry(0)
-                .setShutdownQuietPeriod(0)
-                .setShutdownTimeout(0).build();
-
+    @Test
+    public void testMe() {
+        //#ws-standalone
+        // Set up Akka
         String name = "wsclient";
         ActorSystem system = ActorSystem.create(name);
         ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        WSClient client = new AhcWSClient(config, materializer);
+        // Set up AsyncHttpClient directly from config
+        AsyncHttpClientConfig asyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
+                .setMaxRequestRetry(0)
+                .setShutdownQuietPeriod(0)
+                .setShutdownTimeout(0).build();
+        AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
+
+        // Set up WSClient instance directly from asynchttpclient.
+        WSClient client = new AhcWSClient(
+                new StandaloneAhcWSClient(asyncHttpClient, materializer)
+        );
+
+        // Call out to a remote system and then and close the client and akka.
         client.url("http://www.google.com").get().whenComplete((r, e) -> {
             Optional.ofNullable(r).ifPresent(response -> {
                 String statusText = response.getStatusText();
@@ -40,7 +51,6 @@ public class Standalone {
                 e.printStackTrace();
             }
         }).thenRun(system::terminate);
-
+        //#ws-standalone
     }
 }
-//#ws-standalone
