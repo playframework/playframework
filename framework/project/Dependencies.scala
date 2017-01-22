@@ -309,7 +309,8 @@ object Dependencies {
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2" excludeAll(
       ExclusionRule(organization = "org.apache.httpcomponents")
       ),
-    "org.apache.httpcomponents" % "httpclient" % "4.5.2"
+    "org.apache.httpcomponents" % "httpclient" % "4.5.2",
+    "org.apache.httpcomponents" % "httpcore" % "4.4.4"
   ) ++ (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
 
