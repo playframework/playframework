@@ -5,15 +5,17 @@
 package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
+import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
-import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
 
 /**
- * A WS client backed by AsyncHttpClient.
+ * A WS client backed by AsyncHttpClient implementation.
+ *
+ * See https://www.playframework.com/documentation/latest/JavaWS for documentation.
  */
 public class AhcWSClient implements WSClient {
 
@@ -25,13 +27,19 @@ public class AhcWSClient implements WSClient {
     }
 
     /**
-     * Secondary constructor for manually created AhcWSClient
+     * Creates WS client manually from configuration, internally creating a new
+     * instance of AsyncHttpClient and managing its own thread pool.
      *
-     * @param asyncHttpClient an AHC instance
+     * This client is not managed as part of Play's lifecycle, and <b>must</b>
+     * be closed by calling ws.close(), otherwise you will run into memory leaks.
+     *
+     * @param config a config object, usually from AhcWSClientConfigFactory
      * @param materializer an Akka materializer
+     * @return a new instance of AhcWSClient.
      */
-    public AhcWSClient(AsyncHttpClient asyncHttpClient, Materializer materializer) {
-        this.client = new StandaloneAhcWSClient(asyncHttpClient, materializer);
+    public static AhcWSClient create(AhcWSClientConfig config, Materializer materializer) {
+        final StandaloneAhcWSClient client = StandaloneAhcWSClient.create(config, materializer);
+        return new AhcWSClient(client);
     }
 
     @Override

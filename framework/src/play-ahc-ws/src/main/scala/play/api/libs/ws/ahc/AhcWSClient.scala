@@ -5,6 +5,8 @@ import play.api.libs.ws.{ WSClient, WSRequest }
 
 /**
  * Async WS Client backed by AsyncHttpClient.
+ *
+ * See https://www.playframework.com/documentation/latest/ScalaWS for documentation.
  */
 class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
   /**

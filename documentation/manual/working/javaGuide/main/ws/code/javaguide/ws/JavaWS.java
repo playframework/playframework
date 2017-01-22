@@ -7,6 +7,7 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
+import play.api.Configuration;
 import play.libs.ws.*;
 
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import play.libs.Json;
 // #json-imports
 
 // #multipart-imports
+import play.libs.ws.ahc.*;
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
@@ -38,19 +40,11 @@ import javax.inject.Inject;
 import play.http.HttpEntity;
 import play.mvc.Http.Status;
 
-// #ws-custom-client-imports
-import play.shaded.ahc.org.asynchttpclient.*;
-import play.api.libs.ws.WSClientConfig;
-import play.api.libs.ws.ahc.AhcWSClientConfig;
-import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
-import play.api.libs.ws.ahc.AhcConfigBuilder;
-import com.typesafe.sslconfig.ssl.SSLConfigFactory;
-import scala.concurrent.duration.Duration;
-
+// #ws-client-imports
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
-// #ws-custom-client-imports
+// #ws-client-imports
 
 public class JavaWS {
     private static final String feedUrl = "http://localhost:3333/feed";
@@ -270,36 +264,19 @@ public class JavaWS {
         }
 
         public void clientExamples() {
-            // #ws-custom-client
-            // Set up the client config (you can also use a parser here):
-            scala.Option<String> noneString = scala.None$.empty();
-            WSClientConfig wsClientConfig = new WSClientConfig(
-                    Duration.apply(120, TimeUnit.SECONDS), // connectionTimeout
-                    Duration.apply(120, TimeUnit.SECONDS), // idleTimeout
-                    Duration.apply(120, TimeUnit.SECONDS), // requestTimeout
-                    true, // followRedirects
-                    true, // useProxyProperties
-                    noneString, // userAgent
-                    true, // compressionEnabled / enforced
-                    SSLConfigFactory.defaultConfig());
-
-            AhcWSClientConfig clientConfig = AhcWSClientConfigFactory.forClientConfig(wsClientConfig);
-
-            // Add underlying asynchttpclient options to WSClient
-            AhcConfigBuilder builder = new AhcConfigBuilder(clientConfig);
-            DefaultAsyncHttpClientConfig.Builder ahcBuilder = builder.configure();
-            AsyncHttpClientConfig.AdditionalChannelInitializer logging = new AsyncHttpClientConfig.AdditionalChannelInitializer() {
-                @Override
-                public void initChannel(play.shaded.ahc.io.netty.channel.Channel channel) throws IOException {
-                    channel.pipeline().addFirst("log", new play.shaded.ahc.io.netty.handler.logging.LoggingHandler("debug"));
-                }
-            };
-            ahcBuilder.setHttpAdditionalChannelInitializer(logging);
-            // #ws-custom-client
+            play.api.Configuration configuration = Configuration.reference();
+            play.Environment environment = play.Environment.simple();
 
             // #ws-client
-            AsyncHttpClient client = new DefaultAsyncHttpClient(ahcBuilder.build());
-            WSClient customWSClient = new play.libs.ws.ahc.AhcWSClient(client, materializer);
+            // Set up the client config (you can also use a parser here):
+            // play.api.Configuration configuration = ... // injection
+            // play.Environment environment = ... // injection
+
+            WSClient customWSClient = play.libs.ws.ahc.AhcWSClient.create(
+                    play.libs.ws.ahc.AhcWSClientConfigFactory.forConfig(
+                            configuration.underlying(),
+                            environment.classLoader()),
+                    materializer);
             // #ws-client
 
             org.slf4j.Logger logger = play.Logger.underlying();
@@ -312,8 +289,8 @@ public class JavaWS {
             // #ws-close-client
 
             // #ws-underlying-client
-            org.asynchttpclient.AsyncHttpClient underlyingClient =
-                (org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
+            play.shaded.ahc.org.asynchttpclient.AsyncHttpClient underlyingClient =
+                (play.shaded.ahc.org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
             // #ws-underlying-client
 
         }
@@ -355,12 +332,9 @@ public class JavaWS {
         // #ws-request-filter
         public CompletionStage<Result> index() {
             Logger logger = org.slf4j.LoggerFactory.getLogger("testLogger");
-            WSRequestFilter filter = executor -> {
-                WSRequestExecutor next = request -> {
-                    logger.debug("url = {}", request.getUrl());
-                    return executor.apply(request);
-                };
-                return next;
+            WSRequestFilter filter = executor -> request -> {
+                logger.debug("url = {}", request.getUrl());
+                return executor.apply(request);
             };
 
             return ws.url(feedUrl).setRequestFilter(filter).get().thenApply(response ->
