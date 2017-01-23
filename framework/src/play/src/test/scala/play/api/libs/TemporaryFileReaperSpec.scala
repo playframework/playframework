@@ -8,26 +8,33 @@ import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
+import org.specs2.specification.AfterAll
 import play.api.libs.Files.{ DefaultTemporaryFileReaper, TemporaryFileReaperConfiguration }
 
-class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
+class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification with AfterAll {
   sequential
 
   val utf8 = Charset.forName("UTF8")
+
+  val system = ActorSystem()
+
+  override def afterAll = {
+    system.terminate()
+  }
 
   "DefaultTemporaryFileReaper" should {
 
     "Find an expired file" in {
       import scala.concurrent.duration._
-      val system = ActorSystem()
       val parentDirectory: Path = {
         val f = JFiles.createTempDirectory(null)
         f.toFile.deleteOnExit()
         f
       }
 
+      // Start with "enabled = false" so that reaper must be called manually
       val config = TemporaryFileReaperConfiguration(
-        true,
+        enabled = false,
         olderThan = 1.seconds,
         initialDelay = 0 seconds,
         interval = 100 millis)
@@ -41,21 +48,20 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
       reaper.updateTempFolder(parentDirectory)
       val result = reaper.reap() must contain(file).await
 
-      system.terminate()
       result
     }
 
     "Not reap a non-expired file" in {
       import scala.concurrent.duration._
-      val system = ActorSystem()
       val parentDirectory: Path = {
         val f = JFiles.createTempDirectory(null)
         f.toFile.deleteOnExit()
         f
       }
 
+      // Start with "enabled = false" so that reaper must be called manually
       val config = TemporaryFileReaperConfiguration(
-        true,
+        enabled = false,
         olderThan = 1.seconds,
         initialDelay = 0 seconds,
         interval = 100 millis)
@@ -69,7 +75,6 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
       reaper.updateTempFolder(parentDirectory)
       val result = reaper.reap() must beEmpty[Seq[Path]].await
 
-      system.terminate()
       result
     }
 
@@ -78,7 +83,7 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
       val system = ActorSystem()
 
       val config = TemporaryFileReaperConfiguration(
-        false,
+        enabled = false,
         olderThan = 1.seconds,
         initialDelay = 0 seconds,
         interval = 100 millis)
@@ -87,16 +92,14 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
       }
       val result = reaper.enabled must be_==(false)
 
-      system.terminate()
       result
     }
 
     "Enable the reaper if set in config" in {
       import scala.concurrent.duration._
-      val system = ActorSystem()
 
       val config = TemporaryFileReaperConfiguration(
-        true,
+        enabled = true,
         olderThan = 1.seconds,
         initialDelay = 0 seconds,
         interval = 100 millis)
@@ -105,7 +108,7 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification {
       }
       val result = reaper.enabled must be_==(true)
 
-      system.terminate()
+      reaper.disable() // prevent spam messages
       result
     }
 
