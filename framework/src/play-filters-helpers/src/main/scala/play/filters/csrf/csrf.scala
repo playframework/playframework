@@ -279,7 +279,6 @@ class CSRFModule extends Module {
  * The CSRF components.
  */
 trait CSRFComponents {
-  def environment: Environment
   def configuration: Configuration
   def csrfTokenSigner: CSRFTokenSigner
   def httpErrorHandler: HttpErrorHandler
