@@ -255,6 +255,10 @@ object Files {
       }
     }
 
+    private[play] def disable(): Unit = {
+      cancellable.foreach(_.cancel())
+    }
+
     if (config.enabled) {
       import config._
       logger.info(s"Reaper enabled on $playTempFolder, starting in $initialDelay with $interval intervals")
