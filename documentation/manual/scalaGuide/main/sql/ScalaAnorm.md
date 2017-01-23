@@ -266,9 +266,9 @@ When you need to execute SQL statement several times with different arguments, b
 import anorm.BatchSql
 
 val batch = BatchSql(
-  "INSERT INTO books(title, author) VALUES({title}, {author}", 
+  SQL("INSERT INTO books(title, author) VALUES({title}, {author}"), 
   Seq(Seq[NamedParameter](
-    "title" -> "Play 2 for Scala", "author" -> Peter Hilton"),
+    "title" -> "Play 2 for Scala", "author" -> "Peter Hilton"),
     Seq[NamedParameter]("title" -> "Learning Play! Framework 2",
       "author" -> "Andy Petrella")))
 
