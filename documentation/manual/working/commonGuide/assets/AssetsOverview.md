@@ -178,7 +178,7 @@ The above declaration ensures that Node.js is used when executing any sbt-web pl
 
 ## Range requests support
 
-`Assets` controller automatically supports part of [RFC 7233](http://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. The `Assets` controller will delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for all assets delivery.
+`Assets` controller automatically supports part of [RFC 7233](https://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. The `Assets` controller will delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for all assets delivery.
 
 > **Note:** Besides the fact that some parsing is done to better handle multiple ranges, `multipart/byteranges` is not fully supported yet.
 

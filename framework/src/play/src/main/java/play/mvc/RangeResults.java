@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * Java API for Range results.
  *
- * For reference, see <a href="http://tools.ietf.org/html/rfc7233">RFC 7233</a>.
+ * For reference, see <a href="https://tools.ietf.org/html/rfc7233">RFC 7233</a>.
  */
 public class RangeResults {
 
