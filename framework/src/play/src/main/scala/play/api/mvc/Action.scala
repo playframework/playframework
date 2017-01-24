@@ -5,6 +5,7 @@ package play.api.mvc
 
 import javax.inject.Inject
 
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
@@ -29,6 +30,12 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
    */
   def apply() = this
 
+  /**
+   * Same as apply(RequestHeader), but promises to not block.
+   */
+  def async(request: RequestHeader)(implicit mat: Materializer) =
+    Accumulator.flatten(Future(apply(request))(mat.executionContext))
+
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
     def apply(rh: play.mvc.Http.RequestHeader) = {
       import play.core.Execution.Implicits.trampoline
@@ -47,6 +54,24 @@ object EssentialAction {
   def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader) = f(rh)
   }
+}
+
+/**
+ * For Java.
+ */
+abstract class AbstractEssentialAction extends EssentialAction
+
+object NonBlockingAction {
+
+  /**
+   * Creates a [[EssentialAction]] that can avoid running on [[ExecutionContext]]s because f is assumed to be
+   * non-blocking (and fast).
+   */
+  def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = new EssentialAction {
+    def apply(rh: RequestHeader) = f(rh)
+    override def async(rh: RequestHeader)(implicit mat: Materializer) = f(rh)
+  }
+
 }
 
 /**

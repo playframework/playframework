@@ -7,6 +7,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
+import akka.util.ByteString
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
@@ -97,12 +98,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
       //execute normal action
       case Right((action: EssentialAction, app)) =>
-        val recovered = EssentialAction { rh =>
-          import play.core.Execution.Implicits.trampoline
-          action(rh).recoverWith {
-            case error => app.errorHandler.onServerError(rh, error)
-          }
-        }
+        val recovered = (rh: RequestHeader, mat: Materializer) =>
+          action.async(rh)(mat).recoverWith { case error => app.errorHandler.onServerError(rh, error) }(trampoline)
         handleAction(recovered, requestHeader, request, Some(app))
 
       case Right((ws: WebSocket, app)) if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
@@ -119,8 +116,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         executed.flatMap(identity).flatMap {
           case Left(result) =>
             // WebSocket was rejected, send result
-            val action = EssentialAction(_ => Accumulator.done(result))
-            handleAction(action, requestHeader, request, Some(app))
+            handleAction((_, _) => Accumulator.done(result), requestHeader, request, Some(app))
           case Right(flow) =>
             import app.materializer
             val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
@@ -130,20 +126,19 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         }.recoverWith {
           case error =>
             app.errorHandler.onServerError(requestHeader, error).flatMap { result =>
-              val action = EssentialAction(_ => Accumulator.done(result))
-              handleAction(action, requestHeader, request, Some(app))
+              handleAction((_, _) => Accumulator.done(result), requestHeader, request, Some(app))
             }
         }
 
       //handle bad websocket request
       case Right((ws: WebSocket, app)) =>
         logger.trace("Bad websocket request")
-        val action = EssentialAction(_ => Accumulator.done(
+        val action = (_: Any, _: Any) => Accumulator.done(
           Results.Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required").withHeaders(
             HeaderNames.UPGRADE -> "websocket",
             HeaderNames.CONNECTION -> HeaderNames.UPGRADE
           )
-        ))
+        )
         handleAction(action, requestHeader, request, Some(app))
 
       // This case usually indicates an error in Play's internal routing or handling logic
@@ -154,8 +149,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
       case Left(e) =>
         logger.trace("No handler, got direct result: " + e)
-        val action = EssentialAction(_ => Accumulator.done(e))
-        handleAction(action, requestHeader, request, None)
+        handleAction((_, _) => Accumulator.done(e), requestHeader, request, None)
 
     }
   }
@@ -253,13 +247,13 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   /**
    * Handle an essential action.
    */
-  private def handleAction(action: EssentialAction, requestHeader: RequestHeader,
+  private def handleAction(actionFn: (RequestHeader, Materializer) => Accumulator[ByteString, Result], requestHeader: RequestHeader,
     request: HttpRequest, app: Option[Application]): Future[HttpResponse] = {
     implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
     import play.core.Execution.Implicits.trampoline
 
+    val bodyParser = actionFn(requestHeader, mat)
     for {
-      bodyParser <- Future(action(requestHeader))(mat.executionContext)
       // Execute the action and get a result
       actionResult <- {
         val body = modelConversion.convertRequestBody(request)
