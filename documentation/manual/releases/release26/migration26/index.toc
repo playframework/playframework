@@ -1,3 +1,5 @@
 Migration26:Migration Guide
 MessagesMigration26:Messages Migration
 WSMigration26:WS Migration
+CacheMigration26:Cache Migration
+JPAMigration26:JPA Migration
