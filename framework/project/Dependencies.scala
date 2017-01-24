@@ -7,7 +7,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.4.16"
-  val akkaHttpVersion = "10.0.1"
+  val akkaHttpVersion = "10.0.2"
   val playJsonVersion = "2.6.0-M1"
 
   val specsVersion = "3.8.6"
@@ -139,10 +139,10 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.42.Final"
+  val nettyVersion = "4.1.7.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64",
     logback % Test
   ) ++ specsBuild.map(_ % Test)
