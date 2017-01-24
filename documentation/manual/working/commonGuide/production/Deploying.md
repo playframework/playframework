@@ -204,7 +204,7 @@ Now add the following configuration to your `build.sbt`:
 Now you can build the artifact by running `sbt assembly`, and run your application by running:
 
 ```
-$ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar -Dplay.crypto.secret=abcdefghijk
+$ java -jar -Dplay.crypto.secret=abcdefghijk target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.
