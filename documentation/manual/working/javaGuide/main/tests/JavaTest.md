@@ -81,14 +81,14 @@ In this way, the `UserService.isAdmin` method can be tested by mocking the `User
 
 You can test your controllers using Play's [test helpers](api/java/play/test/Helpers.html) to extract useful properties.
 
-@[test-controller-test](code/javaguide/tests/ApplicationTest.java)
+@[test-controller-test](code/javaguide/tests/ControllerTest.java)
 
 You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use `FakeRequest` which is a mock for request data:
 
-@[test-controller-routes](code/javaguide/tests/ApplicationTest.java)
+@[test-controller-routes](code/javaguide/tests/ControllerTest.java)
 
 ## Unit testing view templates
 
 As a template is a standard Scala function, you can execute it from a test and check the result:
 
-@[test-template](code/javaguide/tests/ApplicationTest.java)
+@[test-template](code/javaguide/tests/ControllerTest.java)
