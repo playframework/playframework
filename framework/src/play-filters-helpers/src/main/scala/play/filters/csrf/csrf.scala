@@ -9,7 +9,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.api._
-import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpConfiguration, HttpErrorHandler }
 import play.api.inject.{ Binding, Module }
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Results._
@@ -282,13 +282,14 @@ trait CSRFComponents {
   def configuration: Configuration
   def csrfTokenSigner: CSRFTokenSigner
   def httpErrorHandler: HttpErrorHandler
+  def httpConfiguration: HttpConfiguration
   implicit def materializer: Materializer
 
   lazy val csrfConfig: CSRFConfig = CSRFConfig.fromConfiguration(configuration)
   lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig, csrfTokenSigner).get
   lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRFHttpErrorHandler(httpErrorHandler)
-  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, csrfTokenSigner, csrfTokenProvider, csrfErrorHandler)
-  lazy val csrfCheck: CSRFCheck = new CSRFCheck(csrfConfig, csrfTokenSigner)
-  lazy val csrfAddToken: CSRFAddToken = new CSRFAddToken(csrfConfig, csrfTokenSigner)
+  lazy val csrfFilter: CSRFFilter = new CSRFFilter(csrfConfig, csrfTokenSigner, httpConfiguration.session, csrfTokenProvider, csrfErrorHandler)
+  lazy val csrfCheck: CSRFCheck = CSRFCheck(csrfConfig, csrfTokenSigner, httpConfiguration.session)
+  lazy val csrfAddToken: CSRFAddToken = CSRFAddToken(csrfConfig, csrfTokenSigner, httpConfiguration.session)
 
 }
