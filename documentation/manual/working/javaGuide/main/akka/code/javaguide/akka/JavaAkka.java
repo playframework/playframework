@@ -3,28 +3,41 @@
  */
 package javaguide.akka;
 
-import akka.actor.*;
-import static akka.pattern.Patterns.ask;
-import com.typesafe.config.*;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.stream.Materializer;
+import akka.stream.javadsl.Keep;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
+import com.google.inject.Injector;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
-
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.duration.Duration;
 
-import java.util.concurrent.*;
+import javax.inject.Provider;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.*;
+import static akka.pattern.Patterns.ask;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
 public class JavaAkka {
 
     private static volatile CountDownLatch latch;
+
     public static class MyActor extends UntypedActor {
         @Override
         public void onReceive(Object msg) throws Exception {
@@ -50,9 +63,9 @@ public class JavaAkka {
     @Test
     public void injected() throws Exception {
         Application app = new GuiceApplicationBuilder()
-            .bindings(new javaguide.akka.modules.MyModule())
-            .configure("my.config", "foo")
-            .build();
+                .bindings(new javaguide.akka.modules.MyModule())
+                .configure("my.config", "foo")
+                .build();
         running(app, () -> {
             javaguide.akka.inject.Application controller = app.injector().instanceOf(javaguide.akka.inject.Application.class);
 
@@ -68,9 +81,9 @@ public class JavaAkka {
     @Test
     public void factoryinjected() throws Exception {
         Application app = new GuiceApplicationBuilder()
-            .bindings(new javaguide.akka.factorymodules.MyModule())
-            .configure("my.config", "foo")
-            .build();
+                .bindings(new javaguide.akka.factorymodules.MyModule())
+                .configure("my.config", "foo")
+                .build();
         running(app, () -> {
             ActorRef parent = app.injector().instanceOf(play.inject.Bindings.bind(ActorRef.class).qualifiedWith("parent-actor"));
 
@@ -113,12 +126,12 @@ public class JavaAkka {
             ActorRef testActor = system.actorOf(Props.create(MyActor.class));
             //#schedule-actor
             system.scheduler().schedule(
-                Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
-                Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
-                testActor,
-                "tick",
-                system.dispatcher(),
-                null
+                    Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
+                    Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
+                    testActor,
+                    "tick",
+                    system.dispatcher(),
+                    null
             );
             //#schedule-actor
             try {
@@ -144,9 +157,9 @@ public class JavaAkka {
             final MockFile file = new MockFile();
             //#schedule-code
             system.scheduler().scheduleOnce(
-                Duration.create(10, TimeUnit.MILLISECONDS),
-                () -> file.delete(),
-                system.dispatcher()
+                    Duration.create(10, TimeUnit.MILLISECONDS),
+                    () -> file.delete(),
+                    system.dispatcher()
             );
             //#schedule-code
             try {
@@ -155,7 +168,29 @@ public class JavaAkka {
                 throw new RuntimeException(e);
             }
         });
+    }
 
+    @Test
+    public void customerSimpleMaterializerProvider() throws Exception {
+        Application app = new GuiceApplicationBuilder()
+                .configure("play.akka.materializer.provider", "javaguide.akka.SimpleMaterializerProvider")
+                .build();
+        running(app, () -> {
+            SimpleMaterializerProvider provider = app.injector().instanceOf(SimpleMaterializerProvider.class);
+            Materializer mat = app.injector().instanceOf(Materializer.class);
+            try {
+                Source.single(1).map(t -> {
+                    if (t == 1) {
+                        throw new RuntimeException();
+                    } else {
+                        return t;
+                    }
+                }).toMat(Sink.foreach(System.out::println), Keep.right()).run(mat).toCompletableFuture().get();
+            } catch (InterruptedException | ExecutionException ignored) {
+                // Ignore errors like a Materialized Graph
+            }
+            assertEquals(1, provider.getErrorCount());
+        });
     }
 
 }

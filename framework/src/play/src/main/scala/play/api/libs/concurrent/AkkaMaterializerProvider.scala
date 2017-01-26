@@ -3,6 +3,7 @@
  */
 package play.api.libs.concurrent
 
+import java.util.{ function => japi }
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor.ActorSystem
@@ -17,9 +18,10 @@ private[play] object AkkaMaterializerProvider {
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     Reflect.configuredClass[Provider[Materializer], Provider[Materializer], DefaultAkkaMaterializerProvider](
       environment,
-      configuration, "play.akka.materializer.provider", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+      configuration, "play.akka.materializer.provider", classOf[DefaultAkkaMaterializerProvider].getName).fold(Seq[Binding[_]]()) { either =>
       val impl = either.fold(identity, identity)
-      Seq(BindingKey(classOf[Materializer]).toProvider(impl))
+      // Ensures that the Provider is bound Singleton, always and Bounds the Provider to the Materializer
+      Seq(BindingKey(impl).toSelf.in(classOf[Singleton]), BindingKey(classOf[Materializer]).toProvider(impl))
     }
   }
 
@@ -33,9 +35,16 @@ class DefaultAkkaMaterializerProvider @Inject() (actorSystem: ActorSystem) exten
 
   private val logger = Logger(this.getClass)
 
-  protected def decider: Decider = { e =>
-    logger.error("Unhandled exception in stream", e)
-    Supervision.Stop
+  protected def supervisionDecider: japi.Function[Throwable, Supervision.Directive] = {
+    (t: Throwable) =>
+      {
+        logger.error("Unhandled exception in stream", t)
+        Supervision.Stop
+      }
+  }
+
+  protected def decider: Decider = { t =>
+    supervisionDecider.apply(t)
   }
 
   override lazy val get: Materializer = {

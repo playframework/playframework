@@ -136,3 +136,13 @@ For example, to send a message to the `testActor` every 30 minutes:
 Alternatively, to run a block of code ten milliseconds from now:
 
 @[schedule-code](code/javaguide/akka/JavaAkka.java)
+
+## Using your own Materializer
+
+Play allows overriding the default Materializer via configuration. It can be set via `play.akka.materializer.provider` and needs to be of type `javax.inject.Provider[Materializer]`. 
+
+> **Note:** This feature is useful if you want to override the Supervision Strategy of the default Materializer. By default the Play Materializer will log Errors to the Error Logger.
+
+For example you can create a Materializer that keeps track of all the errors it triggered:
+
+@[overwritten-materializer](code/javaguide/akka/SimpleMaterializerProvider.java)
