@@ -522,7 +522,11 @@ Or get a custom one:
 ```scala
 val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(Map("foo" -> "text/bar"))).get
 ```
+## Updated libraries
 
+### Fluentlenium
+The Fluentlenium library was updated to version 3.1.1 and as a result the underlying Selenium version changed to [3.0.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/). If you were using Selenium's WebDriver API before, there shouldn't be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
+If you were using the Fluentlenium library you might have to change some syntax to get your tests working again. Please see Fluentlenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/)
 
 ## Other Configuration changes
 

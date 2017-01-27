@@ -3,12 +3,10 @@
  */
 package play.test;
 
-import org.openqa.selenium.*;
-import org.openqa.selenium.support.ui.*;
-
-import org.fluentlenium.core.*;
-
 import com.google.common.base.Function;
+import org.fluentlenium.adapter.FluentAdapter;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.FluentWait;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,8 +34,8 @@ public class TestBrowser extends FluentAdapter {
      * @param baseUrl The base url to use for relative requests.
      */
     public TestBrowser(WebDriver webDriver, String baseUrl) {
-        super(webDriver);
-        withDefaultUrl(baseUrl);
+        super.initFluent(webDriver);
+        super.getConfiguration().setBaseUrl(baseUrl);
     }
 
     /**
@@ -97,5 +95,15 @@ public class TestBrowser extends FluentAdapter {
      */
     public WebDriver.Options manage() {
         return super.getDriver().manage();
+    }
+
+    /**
+     * Quits and releases the {@link WebDriver}
+     */
+    void quit() {
+        if (getDriver() != null) {
+            getDriver().quit();
+        }
+        releaseFluent();
     }
 }

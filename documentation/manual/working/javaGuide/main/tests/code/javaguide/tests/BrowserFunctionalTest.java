@@ -22,7 +22,7 @@ public class BrowserFunctionalTest extends WithBrowser {
     @Test
     public void runInBrowser() {
         browser.goTo("/");
-        assertNotNull(browser.$("title").getText());
+        assertNotNull(browser.$("title").text());
     }
 
 }

@@ -78,9 +78,9 @@ public class FunctionalTest extends WithApplication {
     public void runInBrowser() {
         running(testServer(), HTMLUNIT, browser -> {
             browser.goTo("/");
-            assertEquals("Welcome to Play!", browser.$("#title").getText());
+            assertEquals("Welcome to Play!", browser.$("#title").text());
             browser.$("a").click();
-            assertEquals("/login", browser.url());
+            assertEquals("login", browser.url());
         });
     }
     //#test-browser
