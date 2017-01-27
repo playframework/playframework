@@ -38,8 +38,21 @@ public class WithApplication {
      * @param <T> the type to return, using `app.injector.instanceOf`
      * @return an instance of type T.
      */
-    <T> T inject(Class<T> clazz) {
+    protected <T> T instanceOf(Class<T> clazz) {
         return app.injector().instanceOf(clazz);
+    }
+
+    /**
+     * Provides an instance from the application.
+     *
+     * @param clazz the type's class.
+     * @param <T> the type to return, using `app.injector.instanceOf`
+     * @return an instance of type T.
+     *
+     * @deprecated As of 2.6.0. Use {@link #instanceOf(Class)}.
+     */
+    <T> T inject(Class<T> clazz) {
+        return instanceOf(clazz);
     }
 
     @Before
