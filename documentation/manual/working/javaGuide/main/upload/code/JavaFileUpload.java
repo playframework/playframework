@@ -8,6 +8,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
 import play.libs.streams.Accumulator;
 import play.mvc.BodyParser;
@@ -124,7 +125,7 @@ public class JavaFileUpload extends WithApplication {
         play.libs.Files.TemporaryFileCreator tfc = play.libs.Files.singletonTemporaryFileCreator();
         Source source = FileIO.fromPath(Files.createTempFile("temp", "txt"));
         Http.MultipartFormData.FilePart dp = new Http.MultipartFormData.FilePart<Source>("name", "filename", "text/plain", source);
-        assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction() {
+        assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                     public Result uploadCustomMultiPart() throws Exception {
                         final Http.MultipartFormData<File> formData = request().body().asMultipartFormData();

@@ -7,7 +7,9 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
+import play.Application;
 import play.api.Configuration;
+import play.core.j.JavaHandlerComponents;
 import play.libs.ws.*;
 
 import java.util.Arrays;
@@ -21,15 +23,12 @@ import play.libs.Json;
 // #json-imports
 
 // #multipart-imports
-import play.libs.ws.ahc.*;
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.*;
 
 import org.w3c.dom.Document;
@@ -51,8 +50,15 @@ public class JavaWS {
 
     public static class Controller0 extends MockJavaAction {
 
-        private WSClient ws;
-        private Materializer materializer;
+        private final WSClient ws;
+        private final Materializer materializer;
+
+        @Inject
+        Controller0(JavaHandlerComponents javaHandlerComponents, WSClient ws, Materializer materializer) {
+            super(javaHandlerComponents);
+            this.ws = ws;
+            this.materializer = materializer;
+        }
 
         public void requestExamples() {
             // #ws-holder
@@ -298,8 +304,13 @@ public class JavaWS {
 
     public static class Controller1 extends MockJavaAction {
 
+        private final WSClient ws;
+
         @Inject
-        private WSClient ws;
+        public Controller1(JavaHandlerComponents javaHandlerComponents, WSClient client) {
+            super(javaHandlerComponents);
+            this.ws = client;
+        }
 
         // #ws-action
         public CompletionStage<Result> index() {
@@ -312,8 +323,13 @@ public class JavaWS {
 
     public static class Controller2 extends MockJavaAction {
 
+        private final WSClient ws;
+
         @Inject
-        private WSClient ws;
+        public Controller2(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
+            super(javaHandlerComponents);
+            this.ws = ws;
+        }
 
         // #composed-call
         public CompletionStage<Result> index() {
@@ -326,14 +342,24 @@ public class JavaWS {
 
     public static class Controller3 extends MockJavaAction {
 
+        private final WSClient ws;
+        private Logger logger;
+
         @Inject
-        private WSClient ws;
+        public Controller3(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
+            super(javaHandlerComponents);
+            this.ws = ws;
+            this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
+        }
+
+        public void setLogger(Logger logger) {
+            this.logger = logger;
+        }
 
         // #ws-request-filter
         public CompletionStage<Result> index() {
-            Logger logger = org.slf4j.LoggerFactory.getLogger("testLogger");
             WSRequestFilter filter = executor -> request -> {
-                logger.debug("url = {}", request.getUrl());
+                logger.debug("url = " + request.getUrl());
                 return executor.apply(request);
             };
 
