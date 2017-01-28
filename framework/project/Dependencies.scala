@@ -7,7 +7,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.4.16"
-  val akkaHttpVersion = "10.0.2"
+  val akkaHttpVersion = "10.0.3"
   val playJsonVersion = "2.6.0-M1"
 
   val specsVersion = "3.8.6"
