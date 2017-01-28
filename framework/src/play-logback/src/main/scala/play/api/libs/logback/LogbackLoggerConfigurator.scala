@@ -48,12 +48,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     // Get an explicitly configured URL
     def explicitUrl = sys.props.get("logger.url").map(new URL(_))
 
-    // application-logger.xml and logger.xml are no longer supported methods for supplying the configuration
-    // Support removed in Play 2.5. This notice can be removed in future versions of Play
-    if (!env.resource("application-logger.xml").orElse(env.resource("logger.xml")).isEmpty) {
-      System.err.println("application-logger.xml and logger.xml are no longer supported. Please name your file logback.xml");
-    }
-
     // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
     // if no other file is found
     def resourceUrl = env.resource("logback.xml")
