@@ -559,7 +559,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val ahcBuilder = builder.configure()
       ahcBuilder.setHttpAdditionalChannelInitializer(logging)
       val ahcConfig = ahcBuilder.build()
-      val wsClient = new AhcWSClient(ahcConfig)
+      val wsClient = AhcWSClient(ahcConfig)
       //#ws-custom-client
 
       //#close-client
