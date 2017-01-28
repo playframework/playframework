@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Managing library dependencies
 
 > **Note:** Some sections of this page were copied from sbt manual, specifically from the [Library Dependencies](http://www.scala-sbt.org/0.13/docs/Library-Dependencies.html) page. Please, for a most updated version.
