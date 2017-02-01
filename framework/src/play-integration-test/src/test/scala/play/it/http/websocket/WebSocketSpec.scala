@@ -29,26 +29,9 @@ import scala.reflect.ClassTag
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
-// class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
-//
-// These tests fail in Netty because there is no close frame returned from runWebSocket.
-//
-// # testOnly play.it.http.websocket.NettyPingWebSocketOnlySpec
-//
-// # application.conf
-// play.server.netty.log.wire = true
-// logback.xml:
-//
-// <logger name="io.netty.handler" level="DEBUG"/>
-// <logger name="play.it.http.websocket" level="DEBUG"/>
-//
-// Best way to track it down is to add a LoggingHandler to
-// the context and see where the close frame gets eaten.
-// The server seems to send one out, but since WebsocketClient
-// is built on Netty, it's not impossible it could be eaten
-// before it gets to the flow.
-//
-// IntelliJ debugging directly against the spec seems to work well.
+class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+
 trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIntegrationSpecification with WebSocketSpecMethods {
 
   sequential
@@ -341,7 +324,8 @@ trait WebSocketSpec extends PlaySpecification
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  override implicit def defaultAwaitTimeout = 5.seconds
+  // Extend the default spec timeout for Travis CI.
+  override implicit def defaultAwaitTimeout = 10.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
     val currentApp = new AtomicReference[Application]
