@@ -107,7 +107,7 @@ package controllers {
     enableCacheControl: Boolean = false,
     configuredCacheControl: Map[String, Option[String]] = Map.empty,
     defaultCacheControl: String = "public, max-age=3600",
-    aggressiveCacheControl: String = "public, max-age=31536000",
+    aggressiveCacheControl: String = "public, max-age=31536000, immutable",
     digestAlgorithm: String = "md5",
     checkForMinified: Boolean = true,
     textContentTypes: Set[String] = Set("application/json", "application/javascript"))
