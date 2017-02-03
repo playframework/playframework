@@ -93,7 +93,7 @@ private[controllers] object AssetInfo {
 
   lazy val defaultCacheControl = config(_.getString("assets.defaultCache")).getOrElse("public, max-age=3600")
 
-  lazy val aggressiveCacheControl = config(_.getString("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+  lazy val aggressiveCacheControl = config(_.getString("assets.aggressiveCache")).getOrElse("public, max-age=31536000, immutable")
 
   lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
 
