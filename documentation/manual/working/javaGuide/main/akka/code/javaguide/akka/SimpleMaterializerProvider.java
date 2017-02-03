@@ -23,15 +23,12 @@ public class SimpleMaterializerProvider extends DefaultAkkaMaterializerProvider 
     @Override
     public java.util.function.Function<Throwable, Supervision.Directive> supervisionDecider() {
         return param -> {
-            System.out.println("Error" + this.toString());
             errorCount = errorCount + 1;
-            System.out.println("count: " + errorCount);
             return Supervision.stop();
         };
     }
 
     public int getErrorCount() {
-        System.out.println("COUNT GET: " + errorCount + this.toString());
         return errorCount;
     }
 

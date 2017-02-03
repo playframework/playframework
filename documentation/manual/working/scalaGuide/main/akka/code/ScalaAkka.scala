@@ -5,13 +5,14 @@ package scalaguide.akka {
 
   import java.io.File
   import java.util.concurrent.atomic.AtomicInteger
-  import javax.inject.{Inject, Singleton}
+  import javax.inject.{ Inject, Singleton }
 
+  import akka.Done
   import akka.actor.ActorSystem
   import akka.stream.Supervision.Decider
   import akka.stream._
-  import akka.stream.scaladsl.{Keep, Sink, Source}
-  import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+  import akka.stream.scaladsl.{ Keep, Sink, Source }
+  import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
   import akka.util.Timeout
   import play.api.libs.concurrent.DefaultAkkaMaterializerProvider
   import play.api.test._

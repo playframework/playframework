@@ -139,9 +139,13 @@ Alternatively, to run a block of code ten milliseconds from now:
 
 ## Using your own Materializer
 
-Play allows overriding the default Materializer via configuration. It can be set via `play.akka.materializer.provider` and needs to be of type `javax.inject.Provider[Materializer]`. 
+Play allows to override the default Materializer via `play.akka.materializer.provider` and needs to be of type `javax.inject.Provider[Materializer]`. You can change this via an entry in the `conf/application.conf`:
 
-> **Note:** This feature is useful if you want to override the Supervision Strategy of the default Materializer. By default the Play Materializer will log Errors to the Error Logger.
+```
+play.akka.materializer.provider = "javaguide.akka.SimpleMaterializerProvider"
+```
+
+> **Note:** This feature is useful if you want to override the Supervision Strategy of the default [Materializer](http://doc.akka.io/japi/akka/2.4/akka/stream/Materializer.html). By default the Play Materializer will log Errors to the Error Logger.
 
 For example you can create a Materializer that keeps track of all the errors it triggered:
 

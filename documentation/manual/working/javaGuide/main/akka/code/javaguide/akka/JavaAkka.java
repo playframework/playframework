@@ -7,11 +7,11 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import com.google.inject.Injector;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import javaguide.testhelpers.MockJavaAction;
@@ -23,7 +23,6 @@ import play.mvc.Result;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.duration.Duration;
 
-import javax.inject.Provider;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -178,6 +177,9 @@ public class JavaAkka {
         running(app, () -> {
             SimpleMaterializerProvider provider = app.injector().instanceOf(SimpleMaterializerProvider.class);
             Materializer mat = app.injector().instanceOf(Materializer.class);
+            if (mat.getClass() == ActorMaterializer.class) {
+                assertEquals(((ActorMaterializer) mat).settings().supervisionDecider(), provider.supervisionDecider());
+            }
             try {
                 Source.single(1).map(t -> {
                     if (t == 1) {

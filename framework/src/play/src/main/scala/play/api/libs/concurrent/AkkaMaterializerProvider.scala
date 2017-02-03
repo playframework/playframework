@@ -43,8 +43,8 @@ class DefaultAkkaMaterializerProvider @Inject() (actorSystem: ActorSystem) exten
       }
   }
 
-  protected def decider: Decider = { t =>
-    supervisionDecider.apply(t)
+  protected def decider: Decider = {
+    supervisionDecider(_)
   }
 
   override lazy val get: Materializer = {
