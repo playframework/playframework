@@ -9,7 +9,9 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.actor.{ Actor, Props, Status }
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import org.specs2.execute.{ AsResult, EventuallyResults }
 import org.specs2.matcher.Matcher
+import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -78,6 +80,14 @@ trait WebSocketSpec extends PlaySpecification
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
+
+  /*
+   * This is the flakiest part of the test suite -- the CI server will timeout websockets
+   * and fail tests seemingly at random.
+   */
+  override def aroundEventually[R: AsResult](r: => R) = {
+    EventuallyResults.eventually[R](5, 100.milliseconds)(r)
+  }
 
   sequential
 
@@ -190,7 +200,7 @@ trait WebSocketSpec extends PlaySpecification
             closeFrame(1003)
           ))
         }
-      }.skipUntilNettyHttpFixed
+      }
 
     }
 

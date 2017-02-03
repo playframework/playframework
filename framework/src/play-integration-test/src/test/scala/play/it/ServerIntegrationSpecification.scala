@@ -26,11 +26,12 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
-  /**
-   * Retry up to 3 times.
-   */
+  def aroundEventually[R: AsResult](r: => R) = {
+    EventuallyResults.eventually[R](1, 20.milliseconds)(r)
+  }
+
   def around[R: AsResult](r: => R) = {
-    AsResult(EventuallyResults.eventually(1, 20.milliseconds)(r))
+    AsResult(aroundEventually(r))
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
