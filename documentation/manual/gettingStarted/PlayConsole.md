@@ -5,7 +5,7 @@
 
 The SBT console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
-To launch the Play console, change to the directory of your project, and run SBT (or `activator` in place of the `sbt` command):
+To launch the Play console, change to the directory of your project, and run `sbt`:
 
 ```bash
 $ cd my-first-app
@@ -38,7 +38,7 @@ If there are any compilation errors you will see the result of the compilation d
 
 [[images/errorPage.png]]
 
-To stop the server, type `Crtl+D` key, and you will be returned to the Play console prompt.
+To stop the server, type `Ctrl+D` key (or `Enter` key), and you will be returned to the Play console prompt.
 
 ## Compiling
 
@@ -77,7 +77,7 @@ To start application inside scala console (e.g. to access database):
 You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `sbt -jvm-debug <port>` command to do that:
 
 ```bash
-$ activator -jvm-debug 9999
+$ sbt -jvm-debug 9999
 ```
 
 When a JPDA port is available, the JVM will log this line during boot:
@@ -112,6 +112,14 @@ You can also do the same for `~ test`, to continuously test your project each ti
 [my-first-app] $ ~ test
 ```
 
+This could be especially useful if you want to run just a small set of your tests using `testOnly` command. For instance:
+
+```bash
+[my-first-app] $ ~ testOnly com.acme.SomeClassTest 
+```
+
+Will trigger the execution of `com.acme.SomeClassTest` test every time you modify a source file.
+
 ## Using the play commands directly
 
 You can also run commands directly without entering the Play console. For example, enter `sbt run`:
@@ -128,7 +136,7 @@ $ sbt run
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
+The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run
