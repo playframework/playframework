@@ -71,7 +71,7 @@ If you make any important changes to your application, such as changing the clas
 
 The generated configuration files contain absolute references to your framework installation. These are specific to your own installation. When you work in a team, each developer must keep his Eclipse configuration files private.
 
-## IntelliJ
+## IntelliJ IDEA
 
 [Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
@@ -79,9 +79,8 @@ Before you start creating a Play application in IntelliJ IDEA, make sure that th
 
 To create a Play application:
 
-1. Open ***New Project*** wizard, select ***Activator*** under ***Scala*** section and click ***Next***.
-2. Select one of the templates suitable. For the basic empty application you can select [Play Scala Seed](https://www.lightbend.com/activator/template/play-scala). The full list of templates can be found on [Lightbend Activator templates page](https://www.lightbend.com/activator/templates).
-3. Enter your project's information and click ***Finish***.
+1. Open ***New Project*** wizard, select ***Sbt*** under ***Scala*** section and click ***Next***.
+2. Enter your project's information and click ***Finish***.
 
 You can also import an existing Play project.
 
@@ -91,6 +90,8 @@ To import a Play project:
 2. In the window that opens, select a project you want to import and click ***OK***.
 3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***.
+
+> **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://playframework.com/download#examples).
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
@@ -123,7 +124,7 @@ play.editor="http://localhost:63342/api/file/?file=%s&line=%s"
 
 You can also set play.editor from `build.sbt`:
 
-```
+```scala
 fork := true // required for "sbt run" to pick up javaOptions
 
 javaOptions += "-Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s"
