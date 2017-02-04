@@ -9,18 +9,24 @@ import akka.dispatch.MessageDispatcher
 import scala.concurrent.ExecutionContextExecutor
 
 /**
- * This class defines a custom execution context that delegates to an [[ActorSystem]].
+ * This class defines a custom execution context that delegates to an akka.actor.ActorSystem.
  *
  * It is very useful for situations in which the default execution context should not
  * be used, for example if a database or blocking I/O is being used.
  *
- * To define a custom context, subclass DispatcherExecutionContext with the dispatcher
- * name and have it bound through dependency injection:
+ * To define a custom context, subclass CustomExecutionContext with the dispatcher
+ * name:
  *
  * {{{
  * @Singleton
  * class DatabaseExecutionContext @Inject()(system: ActorSystem)
  *    extends CustomExecutionContext(system, "database-dispatcher")
+ * }}}
+ *
+ * and then bind it in dependency injection:
+ * 
+ * {{{
+ * bind[DatabaseExecutionContext].to(classOf[DatabaseExecutionContext]).asEagerSingleton()
  * }}}
  *
  * and then have the execution context passed in as a class parameter:

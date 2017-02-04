@@ -11,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
  * This trait is used to provide a non-blocking timeout on an operation that returns a Future.
  *
- * Please note that the [[play.api.Application]] default [[ActorSystem]] should
+ * Please note that the [[play.api.Application]] default ActorSystem should
  * be used as input here, as the actorSystem.scheduler is responsible for scheduling
  * the timeout, using <a href="http://doc.akka.io/docs/akka/current/scala/futures.html#After">akka.pattern.actor</a> under the hood.
  *
@@ -50,7 +50,7 @@ trait Timeout {
 
   /**
    * Creates a future which will resolve to a timeout exception if the
-   * given [[Future]] has not successfully completed within timeoutDuration.
+   * given Future has not successfully completed within timeoutDuration.
    *
    * Note that timeout is not the same as cancellation.  Even in case of timeout,
    * the given future will still complete, even though that completed value
@@ -107,7 +107,7 @@ trait LowPriorityTimeoutImplicits {
 
     /**
      * Creates a future which will resolve to a timeout exception if the
-     * given [[Future]] has not successfully completed within timeoutDuration.
+     * given Future has not successfully completed within timeoutDuration.
      *
      * This version uses an implicit [[akka.util.Timeout]] rather than a [[FiniteDuration]].
      *

@@ -157,8 +157,8 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
 }
 
 /**
- * Object with helper methods for building [[FakeRequest]] values. This object uses a
- * [[DefaultRequestFactory]] with default configuration to build
+ * Object with helper methods for building [[play.core.test.FakeRequest]] values. This object uses a
+ * [[play.api.mvc.request.DefaultRequestFactory]] with default configuration to build
  * the requests.
  */
 object FakeRequest extends FakeRequestFactory(new DefaultRequestFactory(HttpConfiguration()))

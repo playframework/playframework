@@ -39,7 +39,7 @@ trait CSRFTokenSigner {
   def generateSignedToken: String
 
   /**
-   * Extract a signed token that was signed by [[signToken(String)]].
+   * Extract a signed token that was signed by `signToken(String)`.
    *
    * @param token The signed token to extract.
    * @return The verified raw token, or None if the token isn't valid.
@@ -57,9 +57,9 @@ trait CSRFTokenSigner {
    * Given a length that both Strings are equal to, this method will always
    * run in constant time.  This prevents timing attacks.
    *
-   * @deprecated Please use [[java.security.MessageDigest.isEqual(a.getBytes("utf-8"), b.getBytes("utf-8"))]] over this method.
+   * @deprecated Please use `java.security.MessageDigest.isEqual(a.getBytes("utf-8"), b.getBytes("utf-8"))` over this method.
    */
-  @deprecated("Please use [[java.security.MessageDigest.isEqual(a.getBytes(\"utf-8\"), b.getBytes(\"utf-8\"))]] over this method.", "2.6.0")
+  @deprecated("Please use java.security.MessageDigest.isEqual(a.getBytes(\"utf-8\"), b.getBytes(\"utf-8\")) over this method.", "2.6.0")
   def constantTimeEquals(a: String, b: String): Boolean
 }
 

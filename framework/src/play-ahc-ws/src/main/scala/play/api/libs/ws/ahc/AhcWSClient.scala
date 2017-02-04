@@ -38,7 +38,7 @@ object AhcWSClient {
   private[ahc] val loggerFactory = new AhcLoggerFactory()
 
   /**
-   * Convenient factory method that uses a [[play.api.libs.ws.WSClientConfig]] value for configuration instead of
+   * Convenient factory method that uses a play.api.libs.ws.WSClientConfig value for configuration instead of
    * an [[http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
