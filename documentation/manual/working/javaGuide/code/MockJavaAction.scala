@@ -81,7 +81,9 @@ object MockJavaActionHelper {
  */
 object MockJavaActionJavaMocker {
   def findActionMethod(obj: AnyRef): Method = {
-    val maybeMethod = obj.getClass.getDeclaredMethods.find(!_.isSynthetic)
+    val maybeMethod = obj.getClass.getDeclaredMethods.find { method =>
+      !method.isSynthetic && method.getParameterCount == 0
+    }
     val theMethod = maybeMethod.getOrElse(
       throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")
     )
