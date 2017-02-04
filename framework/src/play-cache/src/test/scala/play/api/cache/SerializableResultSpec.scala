@@ -42,7 +42,7 @@ class SerializableResultSpec extends PlaySpecification {
       compareResults(r, r2)
     }
 
-    "serialize and deserialize statūs" in {
+    "serialize and deserialize status" in {
       checkSerialization(Results.Ok("x").withHeaders(CONTENT_TYPE -> "text/banana"))
       checkSerialization(Results.NotFound)
     }
