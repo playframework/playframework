@@ -24,12 +24,12 @@ import scala.concurrent.ExecutionContextExecutor
  * }}}
  *
  * and then bind it in dependency injection:
- * 
+ *
  * {{{
  * bind[DatabaseExecutionContext].to(classOf[DatabaseExecutionContext]).asEagerSingleton()
  * }}}
  *
- * and then have the execution context passed in as a class parameter:
+ * Then have the execution context passed in as an implicit parameter:
  *
  * {{{
  * class DatabaseService @Inject()(implicit executionContext: DatabaseExecutionContext) {
