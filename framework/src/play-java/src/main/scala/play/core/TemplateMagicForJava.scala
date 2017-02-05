@@ -4,6 +4,9 @@
 package play.core.j
 
 import java.util.Optional
+
+import play.mvc.Http
+
 import scala.util.control.NonFatal
 
 /** Defines a magic helper for Play templates in a Java context. */
@@ -15,28 +18,22 @@ object PlayMagicForJava {
   /** Transforms a Play Java `Optional` to a proper Scala `Option`. */
   implicit def javaOptionToScala[T](x: Optional[T]): Option[T] = x.asScala
 
+  private def ctx = Http.Context.current()
+
   implicit def implicitJavaLang: play.api.i18n.Lang = {
     try {
-      play.mvc.Http.Context.Implicit.lang.asInstanceOf[play.api.i18n.Lang]
+      ctx.lang
     } catch {
       case NonFatal(_) => play.api.i18n.Lang.defaultLang
     }
   }
 
   implicit def requestHeader: play.api.mvc.RequestHeader = {
-    play.mvc.Http.Context.Implicit.ctx._requestHeader
+    ctx._requestHeader
   }
 
-  implicit def implicitJavaMessages: play.api.i18n.Messages =
-    try {
-      val context = play.mvc.Http.Context.current()
-      context.messages().asScala
-    } catch {
-      case NonFatal(_) =>
-        val app = play.api.Play.privateMaybeApplication.get
-        val api = play.api.i18n.Messages.messagesApiCache(app)
-        val lang = play.api.i18n.Lang.defaultLang
-        play.api.i18n.MessagesImpl(lang, api)
-    }
+  implicit def implicitJavaMessages: play.api.i18n.Messages = {
+    ctx.messages().asScala
+  }
 
 }

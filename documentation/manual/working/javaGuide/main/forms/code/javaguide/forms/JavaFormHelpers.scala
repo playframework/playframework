@@ -4,16 +4,25 @@
 package javaguide.forms
 
 import play.api.Application
-import play.api.test.{WithApplication, PlaySpecification}
+import play.api.test.{FakeRequest, Injecting, PlaySpecification, WithApplication}
 import play.data.Form
-import javaguide.forms.html.{UserForm, User}
+import javaguide.forms.html.{User, UserForm}
+
+import play.mvc.Http.{Context => JContext}
 import java.util
+
+import play.core.j.JavaContextComponents
+import play.mvc.Http
 
 class JavaFormHelpers extends PlaySpecification {
 
   "java form helpers" should {
     {
       def segment(name: String)(implicit app: Application) = {
+        val requestBuilder = new Http.RequestBuilder()
+        val components: JavaContextComponents = app.injector.instanceOf[JavaContextComponents]
+        val ctx = new JContext(requestBuilder, components)
+        JContext.current.set(ctx)
         val formFactory = app.injector.instanceOf[play.data.FormFactory]
         val form = formFactory.form(classOf[User])
         val u = new UserForm
