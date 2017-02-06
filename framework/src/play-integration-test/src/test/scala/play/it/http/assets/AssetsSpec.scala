@@ -24,7 +24,7 @@ trait AssetsSpec extends PlaySpecification
   "Assets controller" should {
 
     val defaultCacheControl = Some("public, max-age=3600")
-    val aggressiveCacheControl = Some("public, max-age=31536000")
+    val aggressiveCacheControl = Some("public, max-age=31536000, immutable")
 
     def withServer[T](block: WSClient => T): T = {
       Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {
