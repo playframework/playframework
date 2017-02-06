@@ -766,7 +766,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def multipartFormData[A](filePartHandler: Multipart.FilePartHandler[A], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
     BodyParser("multipartFormData") { request =>
-      val bodyAccumulator = Multipart.multipartParser(DefaultMaxTextLength, filePartHandler).apply(request)
+      val bodyAccumulator = Multipart.multipartParser(DefaultMaxTextLength, filePartHandler, errorHandler).apply(request)
       enforceMaxLength(request, maxLength, bodyAccumulator)
     }
   }

@@ -8,12 +8,12 @@ import akka.stream.scaladsl._
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
-import play.api.Play
 import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.MultipartFormData._
 import play.api.http.Status._
+import play.api.http.HttpErrorHandler
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -33,7 +33,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Int)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
+  def partParser[A](maxMemoryBufferSize: Int, errorHandler: HttpErrorHandler)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType
@@ -62,7 +62,7 @@ object Multipart {
       partHandler.through(multipartFlow)
 
     }.getOrElse {
-      Accumulator.done(createBadResult("Missing boundary header")(request))
+      Accumulator.done(createBadResult(msg = "Missing boundary header", errorHandler = errorHandler)(request))
     }
   }
 
@@ -72,8 +72,8 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param filePartHandler The accumulator to handle the file parts.
    */
-  def multipartParser[A](maxMemoryBufferSize: Int, filePartHandler: FilePartHandler[A])(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
-    partParser(maxMemoryBufferSize) {
+  def multipartParser[A](maxMemoryBufferSize: Int, filePartHandler: FilePartHandler[A], errorHandler: HttpErrorHandler)(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
+    partParser(maxMemoryBufferSize, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
           filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType)).run(filePart.ref)
@@ -83,11 +83,11 @@ object Multipart {
       val multipartAccumulator = Accumulator(Sink.fold[Seq[Part[A]], Part[A]](Vector.empty)(_ :+ _)).mapFuture { parts =>
 
         def parseError = parts.collectFirst {
-          case ParseError(msg) => createBadResult(msg)(request)
+          case ParseError(msg) => createBadResult(msg, errorHandler = errorHandler)(request)
         }
 
         def bufferExceededError = parts.collectFirst {
-          case MaxMemoryBufferExceeded(msg) => createBadResult(msg, REQUEST_ENTITY_TOO_LARGE)(request)
+          case MaxMemoryBufferExceeded(msg) => createBadResult(msg, REQUEST_ENTITY_TOO_LARGE, errorHandler)(request)
         }
 
         parseError orElse bufferExceededError getOrElse {
@@ -210,9 +210,8 @@ object Multipart {
     }
   }
 
-  private def createBadResult[A](msg: String, status: Int = BAD_REQUEST): RequestHeader => Future[Either[Result, A]] = { request =>
-    Play.privateMaybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
-      _.errorHandler.onClientError(request, status, msg).map(Left(_)))
+  private def createBadResult[A](msg: String, status: Int = BAD_REQUEST, errorHandler: HttpErrorHandler): RequestHeader => Future[Either[Result, A]] = { request =>
+    errorHandler.onClientError(request, status, msg).map(Left(_))
   }
 
   private type RawPart = Either[Part[Unit], ByteString]
@@ -487,7 +486,7 @@ object Multipart {
         def done(): StateResult = null // StateResult is a phantom type
 
         // the length of the needle without the preceding CRLF
-        def boundaryLength = needle.length - 2
+        def boundaryLength: Int = needle.length - 2
 
         @tailrec def boundary(input: ByteString, offset: Int, ix: Int = 2): Boolean =
           (ix == needle.length) || (byteAt(input, offset + ix - 2) == needle(ix)) && boundary(input, offset, ix + 1)

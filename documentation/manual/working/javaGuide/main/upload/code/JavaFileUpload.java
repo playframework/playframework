@@ -8,6 +8,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.Test;
+import play.api.http.HttpErrorHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
 import play.libs.streams.Accumulator;
@@ -76,8 +77,8 @@ public class JavaFileUpload extends WithApplication {
     public static class MultipartFormDataWithFileBodyParser extends BodyParser.DelegatingMultipartFormDataBodyParser<File> {
 
         @Inject
-        public MultipartFormDataWithFileBodyParser(Materializer materializer, play.api.http.HttpConfiguration config) {
-            super(materializer, config.parser().maxDiskBuffer());
+        public MultipartFormDataWithFileBodyParser(Materializer materializer, play.api.http.HttpConfiguration config, HttpErrorHandler errorHandler) {
+            super(materializer, config.parser().maxDiskBuffer(), errorHandler);
         }
 
         /**
