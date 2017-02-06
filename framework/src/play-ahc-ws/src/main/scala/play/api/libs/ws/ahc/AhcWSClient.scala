@@ -1,6 +1,9 @@
 package play.api.libs.ws.ahc
 
+import javax.cache.Cache
+
 import akka.stream.Materializer
+import play.api.libs.ws.ahc.cache.{ EffectiveURIKey, ResponseEntry }
 import play.api.libs.ws.{ WSClient, WSRequest }
 
 /**
@@ -53,9 +56,12 @@ object AhcWSClient {
    *   }
    * }}}
    *
-   * @param config configuration settings
+   * @param config configuration settings, AhcWSClientConfig() by default
+   * @param cache enables HTTP cache-control, None by default
    */
-  def apply(config: AhcWSClientConfig = AhcWSClientConfig())(implicit materializer: Materializer): AhcWSClient = {
-    new AhcWSClient(StandaloneAhcWSClient(config))
+  def apply(
+    config: AhcWSClientConfig = AhcWSClientConfig(),
+    cache: Option[Cache[EffectiveURIKey, ResponseEntry]] = None)(implicit materializer: Materializer): AhcWSClient = {
+    new AhcWSClient(StandaloneAhcWSClient(config, cache))
   }
 }

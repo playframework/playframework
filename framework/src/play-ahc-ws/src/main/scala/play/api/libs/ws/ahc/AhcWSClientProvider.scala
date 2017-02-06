@@ -5,10 +5,10 @@ import javax.inject.{ Inject, Provider, Singleton }
 import akka.stream.Materializer
 import com.typesafe.sslconfig.ssl.SystemConfiguration
 import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
-import play.shaded.ahc.org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClient }
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.{ WSClient, WSClientConfig, WSConfigParser }
 import play.api.{ Configuration, Environment }
+import play.shaded.ahc.org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClient }
 
 import scala.concurrent.Future
 
@@ -60,5 +60,7 @@ class AsyncHttpClientProvider @Inject() (
 class WSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
     extends Provider[WSClient] {
 
-  lazy val get: WSClient = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))
+  lazy val get: WSClient = {
+    new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))
+  }
 }
