@@ -10,15 +10,16 @@ import akka.stream.OverflowStrategy;
 import akka.NotUsed;
 
 import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.Result;
 import play.test.WithApplication;
 
 import java.io.*;
 import java.util.Optional;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
@@ -27,10 +28,15 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void byDefault() {
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest(), mat)), equalTo("Hello World"));
+        assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("Hello World"));
     }
 
     public static class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#by-default
         public Result index() {
             return ok("Hello World");
@@ -45,13 +51,18 @@ public class JavaStream extends WithApplication {
         try (OutputStream os = new FileOutputStream(file)) {
             IOUtils.write("hi", os, "UTF-8");
         }
-        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest(), mat);
+        Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
         assertThat(contentAsString(result, mat), equalTo("hi"));
         assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
         file.delete();
     }
 
     public static class Controller2 extends MockJavaAction {
+
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#serve-file
         public Result index() {
             return ok(new java.io.File("/tmp/fileToServe.pdf"));
@@ -61,7 +72,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void inputStream() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest(), mat), mat);
+        String content = contentAsString(call(new Controller3(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
         // Wait until results refactoring is merged, then this will work
         // assertThat(content, containsString("hello"));
     }
@@ -71,6 +82,11 @@ public class JavaStream extends WithApplication {
     }
 
     public static class Controller3 extends MockJavaAction {
+
+        Controller3(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#input-stream
         public Result index() {
             InputStream is = getDynamicStreamSomewhere();
@@ -81,11 +97,16 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void chunked() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest(), mat), mat);
+        String content = contentAsString(call(new Controller4(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
         assertThat(content, equalTo("kikifoobar"));
     }
 
     public static class Controller4 extends MockJavaAction {
+
+        Controller4(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#chunked
         public Result index() {
             // Prepare a chunked text stream

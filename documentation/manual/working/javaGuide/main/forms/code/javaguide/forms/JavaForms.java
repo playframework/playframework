@@ -6,6 +6,7 @@ package javaguide.forms;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import play.Application;
+import play.core.j.JavaHandlerComponents;
 import play.data.DynamicForm;
 import play.data.Form;
 import play.data.FormFactory;
@@ -16,15 +17,12 @@ import play.mvc.*;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.forms.u1.User;
 
-import java.text.ParseException;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
@@ -46,7 +44,7 @@ public class JavaForms extends WithApplication {
         //#create
 
         //#bind
-        Map<String,String> anyData = new HashMap();
+        Map<String,String> anyData = new HashMap<>();
         anyData.put("email", "bob@gmail.com");
         anyData.put("password", "secret");
 
@@ -59,12 +57,17 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void bindFromRequest() {
-        Result result = MockJavaActionHelper.call(new Controller1(),
+        Result result = call(new Controller1(instanceOf(JavaHandlerComponents.class)),
                 fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
         assertThat(contentAsString(result), equalTo("e"));
     }
 
     public class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         public Result index() {
             Form<User> userForm = formFactory().form(User.class);
             //#bind-from-request
@@ -83,7 +86,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void adhocValidation() {
-        Result result = MockJavaActionHelper.call(new U3UserController(), fakeRequest("POST", "/")
+        Result result = call(new U3UserController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
 
         // Run it through the template
@@ -91,6 +94,10 @@ public class JavaForms extends WithApplication {
     }
 
     public class U3UserController extends MockJavaAction {
+
+        U3UserController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
 
         public Result index() {
             Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest();
@@ -110,7 +117,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void listValidation() {
-        Result result = MockJavaActionHelper.call(new ListValidationController(), fakeRequest("POST", "/")
+        Result result = call(new ListValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
@@ -147,6 +154,10 @@ public class JavaForms extends WithApplication {
 
     public class ListValidationController extends MockJavaAction {
 
+        ListValidationController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         public Result index() {
             Form<UserForm> userForm = formFactory().form(UserForm.class).bindFromRequest();
 
@@ -161,7 +172,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void handleErrors() {
-        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest("POST", "/")
+        Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
             .bodyForm(ImmutableMap.of("email", "e")), mat);
         assertThat(contentAsString(result), startsWith("Got user"));
     }
@@ -178,6 +189,10 @@ public class JavaForms extends WithApplication {
             String render(Form<?> form) {
                 return "rendered";
             }
+        }
+
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
         }
 
         public Result index() {
@@ -212,13 +227,18 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void dynamicForm() {
-        Result result = MockJavaActionHelper.call(new Controller3(),
+        Result result = call(new Controller3(instanceOf(JavaHandlerComponents.class)),
                 fakeRequest("POST", "/").bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")), mat);
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }
 
     public class Controller3 extends MockJavaAction {
         FormFactory formFactory = formFactory();
+
+        Controller3(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#dynamic
         public Result hello() {
             DynamicForm requestData = formFactory.form().bindFromRequest();

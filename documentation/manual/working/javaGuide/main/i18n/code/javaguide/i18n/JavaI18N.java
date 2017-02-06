@@ -4,7 +4,6 @@
 package javaguide.i18n;
 
 import org.junit.Test;
-import org.junit.Before;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -13,6 +12,7 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.i18n.html.hellotemplate;
 import javaguide.i18n.html.helloscalatemplate;
 import play.Application;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -58,11 +58,16 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultHello() {
-        Result result = MockJavaActionHelper.call(new DefaultLangController(), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultLangController extends MockJavaAction {
+
+        DefaultLangController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#default-lang-render
         public Result index() {
             return ok(hellotemplate.render()); // "hello"
@@ -72,11 +77,16 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultScalaHello() {
-        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultScalaLangController extends MockJavaAction {
+
+        DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         public Result index() {
             return ok(helloscalatemplate.render()); // "hello"
         }
@@ -84,7 +94,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkChangeLangHello() {
-        Result result = MockJavaActionHelper.call(new ChangeLangController(), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new ChangeLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("bonjour"));
     }
 
@@ -96,6 +106,11 @@ public class JavaI18N extends WithApplication {
     }
 
     public static class ChangeLangController extends MockJavaAction {
+
+        ChangeLangController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#change-lang-render
         public Result index() {
             ctx().changeLang("fr");
@@ -106,11 +121,9 @@ public class JavaI18N extends WithApplication {
 
     public static class ContextMessagesController extends MockJavaAction {
 
-        private final MessagesApi messagesApi;
-
         @javax.inject.Inject
-        public ContextMessagesController(MessagesApi messagesApi) {
-            this.messagesApi = messagesApi;
+        public ContextMessagesController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
         }
 
         //#show-context-messages
@@ -124,11 +137,16 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSetTransientLangHello() {
-        Result result = MockJavaActionHelper.call(new SetTransientLangController(), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new SetTransientLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("howdy"));
     }
 
     public static class SetTransientLangController extends MockJavaAction {
+
+        SetTransientLangController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#set-transient-lang-render
         public Result index() {
             ctx().setTransientLang("en-US");

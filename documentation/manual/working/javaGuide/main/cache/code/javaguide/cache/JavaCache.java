@@ -9,18 +9,18 @@ import org.junit.Test;
 import play.Application;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.*;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
 
 import java.lang.Throwable;
-import java.util.Arrays;
-import java.util.concurrent.Callable;
+import java.util.Collections;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletableFuture;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
@@ -29,10 +29,10 @@ public class JavaCache extends WithApplication {
 
     @Override
     protected Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Arrays.asList("session-cache")));
+        return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
     }
 
-    public class News {}
+    private class News {}
 
     @Test
     public void inject() {
@@ -65,7 +65,7 @@ public class JavaCache extends WithApplication {
         //#get
         assertThat(block(news), equalTo(frontPageNews));
         //#get-or-else
-        CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", () -> lookUpFrontPageNews());
+        CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
         //#get-or-else
         assertThat(block(maybeCached), equalTo(frontPageNews));
         {
@@ -82,6 +82,11 @@ public class JavaCache extends WithApplication {
     }
 
     public static class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#http
         @Cached(key = "homePage")
         public Result index() {
@@ -94,10 +99,10 @@ public class JavaCache extends WithApplication {
     public void http() {
         AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest(), mat)), equalTo("Hello world"));
+        assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("Hello world"));
         assertThat(cache.sync().get("homePage"), notNullValue());
         cache.set("homePage", Results.ok("something else"));
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest(), mat)), equalTo("something else"));
+        assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("something else"));
     }
 
     private static <T> T block(CompletionStage<T> stage) {

@@ -4,12 +4,13 @@
 package javaguide.http;
 
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.test.WithApplication;
 import javaguide.testhelpers.MockJavaAction;
 import play.mvc.*;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
@@ -21,7 +22,7 @@ public class JavaContentNegotiation extends WithApplication {
 
     @Test
     public void negotiateContent() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#negotiate-content
                     public Result list() {
                         List<Item> items = Item.find.all();
@@ -48,7 +49,7 @@ public class JavaContentNegotiation extends WithApplication {
 
     static class Find {
         List<Item> all() {
-            return Arrays.asList(new Item("foo"));
+            return Collections.singletonList(new Item("foo"));
         }
     }
 

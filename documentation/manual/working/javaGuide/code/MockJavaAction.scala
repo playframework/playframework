@@ -7,35 +7,14 @@ import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import play.api.mvc.{Action, Request}
 import play.core.j._
-import play.http.DefaultActionCreator
 import play.mvc.{Controller, Http, Result}
-import play.api.http.HttpConfiguration
 import play.api.test.Helpers
-import play.i18n.{Langs => JLangs, MessagesApi => JMessagesApi}
-import play.mvc.{FileMimeTypes => JFileMimeTypes}
 import java.lang.reflect.Method
 
 import akka.stream.Materializer
 
-abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
+abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends Controller with Action[Http.RequestBody] {
   self =>
-
-  private lazy val app = play.api.Play.current
-
-  private lazy val contextComponents = new DefaultJavaContextComponents(
-    app.injector.instanceOf(classOf[JMessagesApi]),
-    app.injector.instanceOf(classOf[JLangs]),
-    app.injector.instanceOf(classOf[JFileMimeTypes]),
-    HttpConfiguration()
-  )
-
-  private lazy val handlerComponents = new DefaultJavaHandlerComponents(
-    app.injector,
-    new DefaultActionCreator,
-    HttpConfiguration(),
-    this.executionContext,
-    contextComponents
-  )
 
   private lazy val action = new JavaAction(handlerComponents) {
     val annotations = new JavaActionAnnotations(controller, method, handlerComponents.httpConfiguration.actionComposition)
@@ -102,7 +81,9 @@ object MockJavaActionHelper {
  */
 object MockJavaActionJavaMocker {
   def findActionMethod(obj: AnyRef): Method = {
-    val maybeMethod = obj.getClass.getDeclaredMethods.find(!_.isSynthetic)
+    val maybeMethod = obj.getClass.getDeclaredMethods.find { method =>
+      !method.isSynthetic && method.getParameterCount == 0
+    }
     val theMethod = maybeMethod.getOrElse(
       throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")
     )
@@ -118,8 +99,8 @@ object MockJavaActionJavaMocker {
  */
 package play {
 
-object HandlerInvokerFactoryAccessor {
-  val javaBodyParserToScala = play.core.routing.HandlerInvokerFactory.javaBodyParserToScala _
-}
+  object HandlerInvokerFactoryAccessor {
+    val javaBodyParserToScala = play.core.routing.HandlerInvokerFactory.javaBodyParserToScala _
+  }
 
 }

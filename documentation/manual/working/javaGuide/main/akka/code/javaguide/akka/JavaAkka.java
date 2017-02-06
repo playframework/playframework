@@ -11,9 +11,11 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
 import play.Application;
+import play.core.j.JavaHandlerComponents;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
 import scala.compat.java8.FutureConverters;
+import scala.concurrent.*;
 import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.*;
@@ -88,14 +90,15 @@ public class JavaAkka {
     @Test
     public void conf() throws Exception {
         Config config = ConfigFactory.parseURL(getClass().getResource("akka.conf"));
-        ActorSystem.create("conf", config).shutdown();
+        scala.concurrent.Future<Terminated> future = ActorSystem.create("conf", config).terminate();
+        Await.ready(future, Duration.create("10s"));
     }
 
     @Test
     public void async() throws Exception {
         Application app = fakeApplication();
         running(app, () -> {
-            Result result = MockJavaActionHelper.call(new MockJavaAction() {
+            Result result = MockJavaActionHelper.call(new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                 public CompletionStage<Result> index() {
                     return new javaguide.akka.async.Application().index();
                 }

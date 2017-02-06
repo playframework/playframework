@@ -10,7 +10,6 @@ import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
-import play.Play;
 import play.core.j.JavaContextComponents;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -28,14 +27,18 @@ import static org.fest.assertions.Assertions.assertThat;
 public class HttpTest {
 
     /** Gets the PLAY_LANG cookie, or the last one if there is more than one */
-    private String responseLangCookie(Context ctx) {
+    private String responseLangCookie(Context ctx, MessagesApi messagesApi) {
         String value = null;
         for (Cookie c : ctx.response().cookies()) {
-          if (c.name().equals(Play.application().injector().instanceOf(MessagesApi.class).langCookieName())) {
+          if (c.name().equals(messagesApi.langCookieName())) {
             value = c.value();
           }
         }
         return value;
+    }
+
+    private MessagesApi messagesApi(Application app) {
+        return app.injector().instanceOf(MessagesApi.class);
     }
 
     private static Config addLangs(Environment environment) {
@@ -64,12 +67,12 @@ public class HttpTest {
             Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Change the language to 'en-US'
             assertThat(ctx.changeLang("en-US")).isTrue();
             // The language and cookie should now be 'en-US'
             assertThat(ctx.lang().code()).isEqualTo("en-US");
-            assertThat(responseLangCookie(ctx)).isEqualTo("en-US");
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isEqualTo("en-US");
             // ctx.messages() takes the language which is set now into account
             assertThat(ctx.messages().at("hello")).isEqualTo("Aloha");
         });
@@ -83,12 +86,12 @@ public class HttpTest {
             Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Try to change the language to 'en-NZ' - which will fail and return false
             assertThat(ctx.changeLang("en-NZ")).isFalse();
             // The language should still be 'en' and cookie should still be empty
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
         });
     }
 
@@ -101,12 +104,12 @@ public class HttpTest {
             // Set 'fr' as our initial language
             assertThat(ctx.changeLang("fr")).isTrue();
             assertThat(ctx.lang().code()).isEqualTo("fr");
-            assertThat(responseLangCookie(ctx)).isEqualTo("fr");
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isEqualTo("fr");
             // Clear language
             ctx.clearLang();
             // The language should now be 'en' and the cookie should be null
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isEqualTo("");
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isEqualTo("");
         });
     }
 
@@ -118,12 +121,12 @@ public class HttpTest {
             Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Change the language to 'en-US'
             ctx.setTransientLang("en-US");
             // The language should now be 'en-US', but the cookie mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("en-US");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // ctx.messages() takes the language which is set now into account
             assertThat(ctx.messages().at("hello")).isEqualTo("Aloha");
         });
@@ -137,7 +140,7 @@ public class HttpTest {
             Context ctx = new Context(new RequestBuilder(), contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Try to change the language to 'en-NZ' - which will throw an exception
             ctx.setTransientLang("en-NZ");
         });
@@ -153,17 +156,17 @@ public class HttpTest {
             Context ctx = new Context(rb, contextComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("fr");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Change the language to 'en-US'
             ctx.setTransientLang("en-US");
             // The language should now be 'en-US', but the cookie mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("en-US");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
             // Clear the language to the default for the current request
             ctx.clearTransientLang();
             // The language should now be back to 'fr', and the cookie still mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("fr");
-            assertThat(responseLangCookie(ctx)).isNull();
+            assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
         });
     }
 }

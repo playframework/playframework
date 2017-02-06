@@ -50,9 +50,9 @@ class ScalaWebSockets extends PlaySpecification {
       }
 
       "allow cleaning up" in new WithApplication() {
-        val closed = Promise[Unit]()
+        val closed = Promise[Boolean]()
         val someResource = new Closeable() {
-          def close() = closed.success(())
+          def close() = closed.success(true)
         }
         class MyActor extends Actor {
           def receive = PartialFunction.empty
@@ -69,7 +69,7 @@ class ScalaWebSockets extends PlaySpecification {
         runWebSocket(
           WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))), Source.empty, 0
         ) must beRight[List[Message]]
-        await(closed.future) must_== ()
+        await(closed.future) must_== true
       }
 
       "allow closing the WebSocket" in new WithApplication() {

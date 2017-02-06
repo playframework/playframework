@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaContextComponents;
+import play.core.j.JavaHandlerComponents;
 import play.i18n.Langs;
 import play.i18n.MessagesApi;
 import play.libs.Json;
@@ -60,7 +61,7 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void responseHeaders() {
-        Map<String, String> headers = call(new MockJavaAction() {
+        Map<String, String> headers = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#response-headers
             public Result index() {
                 response().setHeader(CACHE_CONTROL, "max-age=3600");
@@ -127,7 +128,7 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void charset() {
-        assertThat(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#charset
                     public Result index() {
                         return ok("<h1>Hello World!</h1>", "iso-8859-1").as("text/html; charset=iso-8859-1");
