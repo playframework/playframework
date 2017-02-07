@@ -16,11 +16,11 @@ And you will see something like:
 
 ```bash
 [info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
-[info] Loading project definition from /Users/play-developer/tmp/lixo/my-first-app/project
+[info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Updating {file:/Users/play-developer/my-first-app/project/}my-first-app-build...
 [info] Resolving org.fusesource.jansi#jansi;1.4 ...
 [info] Done updating.
-[info] Set current project to my-first-app (in build file:/Users/play-developer/tmp/lixo/my-first-app/)
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 [my-first-app] $
 ```
 
