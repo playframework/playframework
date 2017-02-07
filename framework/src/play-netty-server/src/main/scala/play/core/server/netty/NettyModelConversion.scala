@@ -22,7 +22,7 @@ import play.api.http.HeaderNames._
 import play.api.http.{ HttpChunk, HttpEntity, HttpErrorHandler }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.api.mvc.request.{ RemoteConnection, RequestAttrKey, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
@@ -162,7 +162,10 @@ private[server] class NettyModelConversion(
       target,
       request.getProtocolVersion.text(),
       headers,
-      TypedMap.empty
+      // Send a tag so our tests can tell which kind of server we're using.
+      // We only do this for the "non-default" engine, so we used to tag
+      // akka-http explicitly, so that benchmarking isn't affected by this.
+      TypedMap(RequestAttrKey.Tags -> Map("HTTP_SERVER" -> "netty"))
     )
   }
 

@@ -2,7 +2,8 @@ Configuration:Configuration
 ConfigFile:Configuration file syntax and features
 ApplicationSecret:Configuring the application secret
 SettingsJDBC:Configuring the JDBC connection pool
-SettingsNetty:Configuring Netty server
 ThreadPools:Configuring Play's thread pools
+SettingsAkkaHttp:Configuring Akka Http Server Backend
+SettingsNetty:Configuring Netty Server Backend
 SettingsLogger:Configuring logging
 WsSSL:Configuring WS SSL

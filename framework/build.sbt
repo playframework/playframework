@@ -91,14 +91,14 @@ lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
 lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
     .settings(libraryDependencies ++= netty)
     .dependsOn(PlayServerProject)
-
+    
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .settings(libraryDependencies ++= akkaHttp)
     // Include scripted tests here as well as in the SBT Plugin, because we
     // don't want the SBT Plugin to have a dependency on an experimental module.
     //.settings(ScriptedPlugin.scriptedSettings ++ playScriptedSettings)
     .dependsOn(PlayServerProject, StreamsProject)
-    .dependsOn(PlaySpecs2Project % "test", PlayAhcWsProject % "test")
+    .dependsOn(PlayGuiceProject % "test")
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "play-jdbc-api")
     .dependsOn(PlayProject)
@@ -131,7 +131,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
       parallelExecution in Test := false
     ).dependsOn(
   PlayGuiceProject,
-  PlayNettyServerProject
+  PlayAkkaHttpServerProject
 )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
@@ -159,7 +159,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
     .settings(
       libraryDependencies ++= playDocsDependencies
-    ).dependsOn(PlayNettyServerProject)
+    ).dependsOn(PlayAkkaHttpServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
     .settings(libraryDependencies ++= guiceDeps ++ specsBuild.map(_ % "test"))
@@ -235,6 +235,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayJavaFormsProject)
     .dependsOn(PlayAkkaHttpServerProject)
+    .dependsOn(PlayNettyServerProject)
 
 // This project is just for microbenchmarking Play, not really a public artifact
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
@@ -246,7 +247,7 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
-    .dependsOn(PlayAkkaHttpServerProject)
+    .dependsOn(PlayNettyServerProject)
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(

@@ -36,7 +36,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       // Don't include sbt files in the resources
       excludeFilter in(Test, unmanagedResources) := (excludeFilter in(Test, unmanagedResources)).value || "*.sbt",
 
-      crossScalaVersions := Seq("2.11.8"),
+      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.8"),
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
@@ -58,7 +58,8 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       playProject("Play-JDBC") % "test",
       playProject("Play-Logback") % "test",
       playProject("Play-Java-JDBC") % "test",
-      playProject("Play-Akka-Http-Server") % "test"
+      playProject("Play-Akka-Http-Server") % "test",
+      playProject("Play-Netty-Server") % "test"
     )
 
 lazy val playDocs = playProject("Play-Docs")

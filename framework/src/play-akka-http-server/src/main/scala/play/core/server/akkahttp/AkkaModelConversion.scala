@@ -15,7 +15,7 @@ import play.api.http.HeaderNames._
 import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.{ RemoteConnection, RequestAttrKey, RequestTarget }
+import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.immutable
@@ -81,11 +81,7 @@ private[server] class AkkaModelConversion(
       },
       request.protocol.value,
       headers,
-      // Send a tag so our tests can tell which kind of server we're using.
-      // We could get NettyServer to send a similar tag, but for the moment
-      // let's not, just in case it slows NettyServer down a bit. If Akka
-      // HTTP becomes our default backend we should probably remove this.
-      TypedMap(RequestAttrKey.Tags -> Map("HTTP_SERVER" -> "akka-http"))
+      TypedMap.empty
     )
   }
 

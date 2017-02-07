@@ -6,6 +6,7 @@ package play.sbt
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import play.sbt.PlayImport.PlayKeys
+import play.sbt.PlayNettyServer.allRequirements
 import play.sbt.routes.RoutesCompiler
 import play.twirl.sbt.SbtTwirl
 import sbt.Keys._
@@ -80,7 +81,6 @@ object PlayScala extends AutoPlugin {
  */
 object PlayNettyServer extends AutoPlugin {
   override def requires = Play
-  override def trigger = allRequirements
 
   override def projectSettings = Seq(
     libraryDependencies ++= {
@@ -98,8 +98,9 @@ object PlayNettyServer extends AutoPlugin {
  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires = Play
+  override def trigger = allRequirements
 
   override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current
+    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server" % play.core.PlayVersion.current
   )
 }

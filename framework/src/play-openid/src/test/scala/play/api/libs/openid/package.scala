@@ -4,7 +4,7 @@
 package play.api.libs
 
 import scala.io.Source
-import io.netty.handler.codec.http.QueryStringDecoder
+import play.shaded.ahc.io.netty.handler.codec.http.QueryStringDecoder
 import java.net.{ MalformedURLException, URL }
 import util.control.Exception._
 import collection.JavaConverters._
