@@ -22,7 +22,11 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
         "ScalaAnorm",
         "PlaySlickMigrationGuide",
         "ScalaTestingWithScalaTest",
-        "ScalaFunctionalTestingWithScalaTest"
+        "ScalaFunctionalTestingWithScalaTest",
+        "ScalaJson",
+        "ScalaJsonAutomated",
+        "ScalaJsonCombinators",
+        "ScalaJsonTransformers"
       )),
 
       PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
