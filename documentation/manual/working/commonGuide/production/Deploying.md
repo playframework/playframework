@@ -11,7 +11,7 @@ Before you run your application in production mode, you need to generate an appl
 
 ## Using the dist task
 
-The dist task builds a binary version of your application that you can deploy to a server without any dependency on SBT or Activator, the only thing the server needs is a Java installation.
+The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on SBT, the only thing the server needs is a Java installation.
 
 In the Play console, simply type `dist`:
 

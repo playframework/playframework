@@ -128,7 +128,7 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 #### Database
 
-* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an activator project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
 
 ### 2.4.x
 
