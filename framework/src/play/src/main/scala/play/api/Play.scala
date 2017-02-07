@@ -12,7 +12,7 @@ import java.io._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
-import javax.xml.parsers.SAXParserFactory
+import javax.xml.parsers.{ SAXParser, SAXParserFactory }
 import org.apache.xerces.impl.Constants
 import javax.xml.XMLConstants
 
@@ -48,10 +48,20 @@ object Play {
   xercesSaxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)
   xercesSaxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
 
+  //Use thread local SAXParser to avoid classload locking
+  private val localSAXParser = new ThreadLocal[SAXParser]
+
   /*
    * A parser to be used that is configured to ensure that no schemas are loaded.
    */
-  private[play] def XML = scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
+  private[play] def XML = {
+    val saxParser = Option(localSAXParser.get()).getOrElse {
+      val newSAXParser = xercesSaxParserFactory.newSAXParser()
+      localSAXParser.set(newSAXParser)
+      newSAXParser
+    }
+    scala.xml.XML.withSAXParser(saxParser)
+  }
 
   /**
    * Returns the currently running application, or `null` if not defined.
