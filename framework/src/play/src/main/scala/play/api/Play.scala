@@ -13,7 +13,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
-import org.apache.xerces.impl.Constants
+import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
 /** Application mode, either `DEV`, `TEST`, or `PROD`. */
@@ -41,8 +41,7 @@ object Play {
    * no explicit doco stating this is the case. That said, there does not appear to be any other way than
    * declaring a factory in order to yield a parser of a specific type.
    */
-  private[play] val xercesSaxParserFactory =
-    SAXParserFactory.newInstance("org.apache.xerces.jaxp.SAXParserFactoryImpl", Play.getClass.getClassLoader)
+  private[play] val xercesSaxParserFactory = SAXParserFactory.newInstance()
   xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)

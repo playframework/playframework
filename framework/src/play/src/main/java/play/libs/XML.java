@@ -3,10 +3,12 @@
  */
 package play.libs;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import akka.util.ByteString;
+import akka.util.ByteString$;
+import akka.util.ByteStringBuilder;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -16,30 +18,50 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import akka.util.ByteString;
-import akka.util.ByteString$;
-import akka.util.ByteStringBuilder;
-import org.apache.xerces.impl.Constants;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * XML utilities.
  */
 public class XML {
-    
+
+    private static final ThreadLocal<DocumentBuilder> localDocumentBuilder = new ThreadLocal<DocumentBuilder>();
+
+    //Use thread local document builder to avoid class loading lock
+    private static DocumentBuilder documentBuilder() {
+        DocumentBuilder local = localDocumentBuilder.get();
+        if(local == null) {
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+                factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+                factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
+                factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                factory.setNamespaceAware(true);
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                localDocumentBuilder.set(builder);
+                return builder;
+            }  catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return local;
+        }
+    }
+
     /**
      * Parse an XML string as DOM.
-     */ 
+     */
     public static Document fromString(String xml) {
         try {
             return fromInputStream(
-                new ByteArrayInputStream(xml.getBytes("utf-8")),
-                "utf-8"
+                    new ByteArrayInputStream(xml.getBytes("utf-8")),
+                    "utf-8"
             );
-        } catch(UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
@@ -64,19 +86,7 @@ public class XML {
      */
     public static Document fromInputSource(InputSource source) {
         try {
-
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", XML.class.getClassLoader());
-            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-            factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-
-            return builder.parse(source);
-
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
+            return documentBuilder().parse(source);
         } catch (SAXException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -94,10 +104,23 @@ public class XML {
         ByteStringBuilder builder = ByteString$.MODULE$.newBuilder();
         try {
             TransformerFactory.newInstance().newTransformer()
-                .transform(new DOMSource(document), new StreamResult(builder.asOutputStream()));
+                    .transform(new DOMSource(document), new StreamResult(builder.asOutputStream()));
         } catch (TransformerException e) {
             throw new RuntimeException(e);
         }
         return builder.result();
     }
+
+    /**
+     * Includes the SAX prefixes from 'com.sun.org.apache.xerces.internal.impl.Constants'
+     * since they will likely be internal in JDK9
+     */
+    public static class Constants {
+        public static final String SAX_FEATURE_PREFIX = "http://xml.org/sax/features/";
+        public static final String XERCES_FEATURE_PREFIX = "http://apache.org/xml/features/";
+        public static final String EXTERNAL_GENERAL_ENTITIES_FEATURE = "external-general-entities";
+        public static final String EXTERNAL_PARAMETER_ENTITIES_FEATURE = "external-parameter-entities";
+        public static final String DISALLOW_DOCTYPE_DECL_FEATURE = "disallow-doctype-decl";
+    }
+
 }
