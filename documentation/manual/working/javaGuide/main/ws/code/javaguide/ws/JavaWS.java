@@ -276,7 +276,8 @@ public class JavaWS {
                     play.libs.ws.ahc.AhcWSClientConfigFactory.forConfig(
                             configuration.underlying(),
                             environment.classLoader()),
-                    materializer);
+                            null, // no HTTP caching
+                            materializer);
             // #ws-client
 
             org.slf4j.Logger logger = play.Logger.underlying();
