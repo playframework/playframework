@@ -11,12 +11,11 @@ import akka.stream.ActorMaterializer
 import play.api.http._
 import play.api.test._
 import play.api.test.Helpers._
-import play.api.mvc.BodyParsers
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
-import play.api.mvc.Controller
+import play.api.mvc.Results._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -29,7 +28,7 @@ object User {
 }
 
 @RunWith(classOf[JUnitRunner])
-class ScalaActionsCompositionSpec extends Specification with Controller {
+class ScalaActionsCompositionSpec extends Specification {
 
   "an action composition" should {
 
@@ -92,7 +91,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           block(request)
         }
-        override def composeAction[A](action: Action[A]) = new Logging(action)
+        override def composeAction[A](action: Action[A]) = Logging(action)
       }
       //#actions-wrapping-builder
 

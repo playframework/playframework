@@ -19,7 +19,7 @@ import scala.language.reflectiveCalls
 class HelpersSpec extends Specification {
 
   val ctrl = new Controller {
-    private val Action = ActionBuilder.ignoringBody
+    override val Action = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
       Ok("abc").as("text/plain")
     }

@@ -23,7 +23,7 @@ object Default extends Default
  */
 class Default @Inject() () extends Controller {
 
-  private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
+  override val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
 
   /**
    * Returns a 501 NotImplemented response.
