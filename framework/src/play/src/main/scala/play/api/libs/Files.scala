@@ -313,7 +313,7 @@ object Files {
   }
 
   /**
-   * Creates temporary folders using [[java.nio.file.Files.createTempFile]].
+   * Creates temporary folders using java.nio.file.Files.createTempFile.
    *
    * Files created by this method will not be cleaned up with the application
    * or JVM stops.

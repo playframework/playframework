@@ -32,7 +32,7 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
  * @param  pathPrefixes  whitelist of path prefixes to restrict the filter
  *
  * @see [[play.filters.cors.CORSConfig]]
- * @see [[play.filters.cors.AbstractCORSPolicy]]
+ * @see play.filters.cors.AbstractCORSPolicy
  * @see [[play.filters.cors.CORSActionBuilder]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */

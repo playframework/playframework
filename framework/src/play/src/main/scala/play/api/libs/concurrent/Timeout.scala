@@ -33,7 +33,7 @@ import scala.concurrent.duration.FiniteDuration
  * }
  * }}}
  *
- * You should check for timeout by using [[Future.recover()]] or [[Future.recoverWith()]]
+ * You should check for timeout by using [[scala.concurrent.Future.recover()]] or [[scala.concurrent.Future.recoverWith()]]
  * and checking for [[TimeoutException]]:
  *
  * {{{
@@ -91,7 +91,7 @@ trait LowPriorityTimeoutImplicits {
 
     /**
      * Creates a future which will resolve to a timeout exception if the
-     * given [[Future]] has not successfully completed within timeoutDuration.
+     * given [[scala.concurrent.Future]] has not successfully completed within timeoutDuration.
      *
      * Note that timeout is not the same as cancellation.  Even in case of timeout,
      * the given future will still complete, even though that completed value
@@ -109,7 +109,7 @@ trait LowPriorityTimeoutImplicits {
      * Creates a future which will resolve to a timeout exception if the
      * given Future has not successfully completed within timeoutDuration.
      *
-     * This version uses an implicit [[akka.util.Timeout]] rather than a [[FiniteDuration]].
+     * This version uses an implicit [[akka.util.Timeout]] rather than a [[scala.concurrent.duration.FiniteDuration]].
      *
      * Note that timeout is not the same as cancellation.  Even in case of timeout,
      * the given future will still complete, even though that completed value
