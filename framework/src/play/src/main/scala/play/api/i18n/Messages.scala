@@ -74,7 +74,7 @@ object Lang {
     Lang(defaultLocale.getLanguage, defaultLocale.getCountry)
   }
 
-  private val SimpleLocale = """([a-zA-Z]{2})""".r
+  private val SimpleLocale = """([a-zA-Z]{2,3})""".r
   private val CountryLocale = (SimpleLocale.toString + """-([a-zA-Z]{2}|[0-9]{3})""").r
 
   /**
