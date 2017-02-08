@@ -28,13 +28,13 @@ trait RequestHeader {
     new RequestHeaderImpl(newConnection, method, target, version, headers, attrs)
 
   /**
-   * The request id. The request id is stored as an attribute indexed by [[RequestAttrKey.Id]].
+   * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
    */
   final def id: Long = attrs(RequestAttrKey.Id)
 
   /**
    * The request Tags. The request's tags are stored in an optional attribute indexed by
-   * [[RequestAttrKey.Tags]]. If the attribute is not present then the tags are assumed to be empty.
+   * [[play.api.mvc.request.RequestAttrKey.Tags]]. If the attribute is not present then the tags are assumed to be empty.
    */
   @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
   final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
@@ -207,20 +207,20 @@ trait RequestHeader {
 
   /**
    * The HTTP cookies. The request's cookies are stored in an attribute indexed by
-   * [[RequestAttrKey.Cookies]]. The attribute uses a [[Cell]] to store the cookies,
+   * [[play.api.mvc.request.RequestAttrKey.Cookies]]. The attribute uses a Cell to store the cookies,
    * to allow them to be evaluated on-demand.
    */
   def cookies: Cookies = attrs(RequestAttrKey.Cookies).value
 
   /**
    * Parses the `Session` cookie and returns the `Session` data. The request's session cookie is stored in an attribute indexed by
-   * [[RequestAttrKey.Session]]. The attribute uses a [[Cell]] to store the session cookie, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a Cell to store the session cookie, to allow it to be evaluated on-demand.
    */
   def session: Session = attrs(RequestAttrKey.Session).value
 
   /**
    * Parses the `Flash` cookie and returns the `Flash` data. The request's flash cookie is stored in an attribute indexed by
-   * [[RequestAttrKey.Flash]]. The attribute uses a [[Cell]] to store the session, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[Cell]] to store the session, to allow it to be evaluated on-demand.
    */
   def flash: Flash = attrs(RequestAttrKey.Flash).value
 

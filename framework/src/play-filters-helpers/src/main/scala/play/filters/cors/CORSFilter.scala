@@ -17,20 +17,22 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
  *
  * It can be configured to...
  *
- *  - filter paths by a whitelist of path prefixes
- *  - allow only requests with origins from a whitelist (by default all origins are allowed)
- *  - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
- *  - allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)
- *  - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
- *  - disable/enable support for credentials (by default credentials support is enabled)
- *  - set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)
- *  - enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)
+ * <ul>
+ *  <li>filter paths by a whitelist of path prefixes</li>
+ *  <li>allow only requests with origins from a whitelist (by default all origins are allowed)<li>
+ *  <li>allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)</li>
+ *  <li>allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)</li>
+ *  <li>set custom HTTP headers to be exposed in the response (by default no headers are exposed)</li>
+ *  <li>disable/enable support for credentials (by default credentials support is enabled)</li>
+ *  <li>set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)</li>
+ *  <li>enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)</li>
+ * </ul>
  *
  * @param  corsConfig  configuration of the CORS policy
  * @param  pathPrefixes  whitelist of path prefixes to restrict the filter
  *
  * @see [[play.filters.cors.CORSConfig]]
- * @see [[play.filters.cors.AbstractCORSPolicy]]
+ * @see play.filters.cors.AbstractCORSPolicy
  * @see [[play.filters.cors.CORSActionBuilder]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */

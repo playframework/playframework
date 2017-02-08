@@ -189,7 +189,7 @@ object Server {
    * The passed in block takes the port that the application is running on. By default, this will be a random ephemeral
    * port. This can be changed by passing in an explicit port with the config parameter.
    *
-   * An easy way to set up an application with given routes is to use [[BuiltInComponentsFromContext]] with
+   * An easy way to set up an application with given routes is to use [[play.api.BuiltInComponentsFromContext]] with
    * any extra components needed:
    *
    * {{{
@@ -202,7 +202,7 @@ object Server {
    *  } { withClient(block)(_) }
    * }}}
    *
-   * @param appProducer A function that takes an [[ApplicationLoader.Context]] and produces [[Application]]
+   * @param appProducer A function that takes an ApplicationLoader.Context and produces [[Application]]
    * @param config The configuration for the server. Defaults to test config with the http port bound to a random
    *               ephemeral port.
    * @param block The block of code to run.

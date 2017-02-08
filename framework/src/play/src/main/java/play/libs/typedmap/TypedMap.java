@@ -100,7 +100,7 @@ public final class TypedMap {
     private static TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
 
     /**
-     * return the empty <code>TypedMap</code> instance.
+     * @return the empty <code>TypedMap</code> instance.
      */
     public static TypedMap empty() {
         return empty;

@@ -80,7 +80,7 @@ object Files {
     }
 
     /**
-     * Move the file using a [[Path]].
+     * Move the file using a [[java.nio.file.Path]].
      *
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
@@ -313,7 +313,7 @@ object Files {
   }
 
   /**
-   * Creates temporary folders using [[JFiles.createTempFile]].
+   * Creates temporary folders using java.nio.file.Files.createTempFile.
    *
    * Files created by this method will not be cleaned up with the application
    * or JVM stops.
