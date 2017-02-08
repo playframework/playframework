@@ -48,4 +48,34 @@ class Filters @Inject() (
   log: LoggingFilter
 ) extends DefaultHttpFilters(gzip, log)
 //#filters
+
+object router {
+  class Routes extends play.api.routing.Router {
+    def routes = ???
+    def documentation = ???
+    def withPrefix(prefix: String) = ???
+  }
+}
+
+//#components-filters
+
+import play.api._
+import play.filters.gzip._
+import router.Routes
+
+class MyComponents(context: ApplicationLoader.Context)
+    extends BuiltInComponentsFromContext(context)
+    with GzipFilterComponents {
+
+  // implicit executionContext and materializer are defined in BuiltInComponents
+  lazy val loggingFilter: LoggingFilter = new LoggingFilter()
+
+  // gzipFilter is defined in GzipFilterComponents
+  override lazy val httpFilters = Seq(gzipFilter, loggingFilter)
+
+  lazy val router = new Routes(/* ... */)
+}
+
+//#components-filters
+
 }
