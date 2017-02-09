@@ -27,6 +27,8 @@ object Play {
 
   private val logger = Logger(Play.getClass)
 
+  private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
+
   /*
    * We want control over the sax parser used so we specify the factory required explicitly. We know that
    * SAXParserFactoryImpl will yield a SAXParser having looked at its source code, despite there being
@@ -62,9 +64,9 @@ object Play {
 
   private[play] def privateMaybeApplication: Option[Application] = {
     Option(_currentApp) match {
-      case Some(app) if !app.configuration.getOptional[Boolean]("play.globalApplication").getOrElse(true) =>
+      case Some(app) if !app.globalApplicationEnabled =>
         (new RuntimeException).printStackTrace()
-        sys.error("The global application is disabled. Set play.globalApplication to allow global state here")
+        sys.error(s"The global application is disabled. Set $GlobalAppConfigKey to allow global state here.")
       case opt => opt
     }
   }
@@ -86,20 +88,33 @@ object Play {
   @volatile private var _currentApp: Application = _
 
   /**
-   * Starts this application.
+   * Sets the global application instance.
+   *
+   * If another app was previously started using this API and the global application is enabled, Play.stop will be
+   * called on the existing application.
    *
    * @param app the application to start
    */
-  def start(app: Application) {
+  def start(app: Application): Unit = {
 
-    // First stop previous app if exists
-    stop(_currentApp)
+    val globalApp = app.globalApplicationEnabled
 
-    _currentApp = app
+    // Stop the current app if the new app needs to replace the current app instance
+    if (globalApp && _currentApp != null && _currentApp.globalApplicationEnabled) {
+      logger.info("Stopping current application")
+      stop(_currentApp)
+    }
 
     app.mode match {
       case Mode.Test =>
-      case mode => logger.info("Application started (" + mode + ")")
+      case mode =>
+        logger.info(s"Application started ($mode)${if (!globalApp) " (no global state)" else ""}")
+    }
+
+    // Set the current app if the global application is enabled
+    // Also set it if the current app is null, in order to display more useful errors if we try to use the app
+    if (globalApp || _currentApp == null) {
+      _currentApp = app
     }
 
   }

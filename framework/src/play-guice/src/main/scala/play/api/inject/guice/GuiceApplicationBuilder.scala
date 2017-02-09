@@ -35,6 +35,12 @@ final case class GuiceApplicationBuilder(
   def this() = this(environment = Environment.simple())
 
   /**
+   * Sets the configuration key to enable/disable global application state
+   */
+  def globalApp(enabled: Boolean): GuiceApplicationBuilder =
+    configure(Play.GlobalAppConfigKey -> enabled)
+
+  /**
    * Set the initial configuration loader.
    * Overrides the default or any previously configured values.
    */
