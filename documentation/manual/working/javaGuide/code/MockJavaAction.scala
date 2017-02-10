@@ -13,6 +13,8 @@ import java.lang.reflect.Method
 
 import akka.stream.Materializer
 
+import scala.concurrent.ExecutionContext
+
 abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends Controller with Action[Http.RequestBody] {
   self =>
 
@@ -35,7 +37,7 @@ abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends 
   private val controller = this.getClass
   private val method = MockJavaActionJavaMocker.findActionMethod(this)
 
-  def executionContext = play.api.libs.concurrent.Execution.defaultContext
+  def executionContext: ExecutionContext = handlerComponents.executionContext
 
   def invocation = {
     method.invoke(this) match {
