@@ -30,7 +30,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   import system.dispatcher
   implicit val mat = ActorMaterializer()
   val tempFileCreator = SingletonTemporaryFileCreator
-  val parse = new PlayBodyParsersImpl(
+  val parse = new DefaultPlayBodyParsers(
     ParserConfiguration(), new DefaultHttpErrorHandler(Environment.simple(), Configuration.empty), mat, tempFileCreator)
 
   override def afterAll: Unit = {
