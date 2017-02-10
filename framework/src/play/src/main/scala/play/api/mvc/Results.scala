@@ -50,6 +50,10 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _ => false
   }
+
+  def asJava: play.mvc.ResponseHeader = {
+    new play.mvc.ResponseHeader(status, headers.asJava, reasonPhrase.orNull)
+  }
 }
 object ResponseHeader {
   val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
@@ -258,7 +262,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   /**
    * Convert this result to a Java result.
    */
-  def asJava: play.mvc.Result = new play.mvc.Result(header, body.asJava,
+  def asJava: play.mvc.Result = new play.mvc.Result(header.asJava, body.asJava,
     newSession.map(_.asJava).orNull, newFlash.map(_.asJava).orNull, newCookies.map(_.asJava).asJava)
 
   /**
