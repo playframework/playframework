@@ -7,6 +7,7 @@ import javax.validation.Validator;
 
 import java.util.*;
 
+import com.google.common.collect.ImmutableMap;
 import play.data.validation.*;
 import play.data.format.Formatters;
 import play.i18n.MessagesApi;
@@ -16,7 +17,7 @@ import play.i18n.MessagesApi;
  */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
-    private final Map<String, String> rawData;
+    private final ImmutableMap<String, String> rawData;
     
     /**
      * Creates a new empty dynamic form.
@@ -27,7 +28,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(DynamicForm.Dynamic.class, messagesApi, formatters, validator);
-        rawData = new HashMap<>();
+        rawData = ImmutableMap.of();
     }
     
     /**
@@ -42,10 +43,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
-        rawData = new HashMap<>();
+        ImmutableMap.Builder<String, String> rawDataBuilder = ImmutableMap.builder();
         for (Map.Entry<String, String> e : data.entrySet()) {
-            rawData.put(asNormalKey(e.getKey()), e.getValue());
+            rawDataBuilder.put(asNormalKey(e.getKey()), e.getValue());
         }
+        rawData = rawDataBuilder.build();
 
     }
     
@@ -105,15 +107,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        {
-            Map<String,String> newData = new HashMap<>();
-            for(Map.Entry<String, String> e: data.entrySet()) {
-                newData.put(asDynamicKey(e.getKey()), e.getValue());
-            }
-            data = newData;
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        for(Map.Entry<String, String> e: data.entrySet()) {
+            builder.put(asDynamicKey(e.getKey()), e.getValue());
         }
-        
-        Form<Dynamic> form = super.bind(data, allowedFields);
+
+        Form<Dynamic> form = super.bind(builder.build(), allowedFields);
         return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
     
@@ -127,9 +126,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         // #1310: We specify inner class as Form.Field rather than Field because otherwise,
         // javadoc cannot find the static inner class.
         Field field = super.field(asDynamicKey(key));
-        return new Field(this, key, field.constraints(), field.format(), field.errors(),
-            field.value() == null ? get(key) : field.value()
-        );
+        return field.withNameValue(key, field.value() == null ? get(key) : field.value());
     }
 
     /**
@@ -140,12 +137,28 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     /**
+     * Adds an error to this form
+     * @param error Error to add
+     * @return a copy of this form with the added error
+     */
+    public DynamicForm withError(ValidationError error) {
+        String dynamicKey = asDynamicKey(error.key());
+        if (!Objects.equals(dynamicKey, error.key())) {
+            error = new ValidationError(dynamicKey, error.message(), error.arguments());
+        }
+        Form<Dynamic> form = super.withError(error);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+    }
+
+    /**
      * Adds an error to this form.
      *
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
      */
+    @Deprecated
     public void reject(String key, String error, List<Object> args) {
         super.reject(asDynamicKey(key), error, args);
     }
@@ -155,7 +168,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
+     */
+    @Deprecated
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
     }

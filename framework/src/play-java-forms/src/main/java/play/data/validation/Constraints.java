@@ -3,6 +3,7 @@
  */
 package play.data.validation;
 
+import com.google.common.collect.ImmutableList;
 import play.data.Form.Display;
 
 import static play.libs.F.*;
@@ -17,6 +18,7 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,14 +73,38 @@ public class Constraints {
      * @return a list of tuples showing readable constraints.
      */
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
+        @SuppressWarnings("unchecked") // ok, as values are immutable
+        List<Tuple<String, List<Object>>> result = (List) displayableConstraintImmutable(constraints, orderedAnnotations);
+        return result;
+    }
+
+    /**
+     * Converts a set of constraints to human-readable values in guaranteed order.
+     * Only constraints that have an annotation that intersect with the {@code orderedAnnotations} parameter will be considered.
+     * The order of the returned constraints corresponds to the order of the {@code orderedAnnotations parameter}.
+     * @param constraints           the set of constraint descriptors.
+     * @param orderedAnnotations    the array of annotations
+     * @return a list of tuples showing readable constraints.
+     */
+    public static ImmutableList<Tuple<String,ImmutableList<Object>>> displayableConstraintImmutable(Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
         final List<Annotation> constraintAnnot = constraints.stream().
-            map(c -> c.getAnnotation()).
-            collect(Collectors.<Annotation>toList());
+                map(c -> c.getAnnotation()).
+                collect(Collectors.<Annotation>toList());
 
         return Stream.of(orderedAnnotations).filter(constraintAnnot::contains) // only use annotations for which we actually have a constraint
-            .filter(a -> a.annotationType().isAnnotationPresent(Display.class)).map(a -> 
-                displayableConstraint(constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get())
-        ).collect(Collectors.toList());
+                .filter(a -> a.annotationType().isAnnotationPresent(Display.class)).map(a ->
+                        displayableConstraintImmutable(constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get())
+                ).collect(toImmutableList());
+    }
+
+    /** collect a stream into an immutable list */
+    private static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> toImmutableList() {
+        return Collector.of(
+                ImmutableList.Builder<T>::new,
+                ImmutableList.Builder<T>::add,
+                (l, r) -> l.addAll(r.build()),
+                ImmutableList.Builder<T>::build
+        );
     }
     
     /**
@@ -88,9 +114,22 @@ public class Constraints {
      * @return A tuple containing the constraint's display name and the constraint attributes.
      */
     public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
-        final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
-        return Tuple(displayAnnotation.name(), Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList()));
+        @SuppressWarnings("unchecked") // ok, as values are immutable
+        Tuple<String, List<Object>> res = (Tuple) displayableConstraintImmutable(constraint);
+        return res;
     }
+
+    /**
+     * Converts a constraint to a human-readable value.
+     *
+     * @param constraint    the constraint descriptor.
+     * @return A tuple containing the constraint's display name and the constraint attributes.
+     */
+    public static Tuple<String,ImmutableList<Object>> displayableConstraintImmutable(ConstraintDescriptor<?> constraint) {
+        final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
+        return Tuple(displayAnnotation.name(), Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(toImmutableList()));
+    }
+
 
     // --- Required
 

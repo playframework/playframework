@@ -57,10 +57,24 @@ class DynamicFormSpec extends Specification {
       html must contain("There was an error")
     }
 
+    "display errors in template helpers (immutable API)" in {
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      val errForm = form.withError("foo", "There was an error")
+      val html = inputText(errForm("foo")).body
+      html must contain("There was an error")
+    }
+
     "display errors when a field is not present" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map()))
       form.reject("foo", "Foo is required")
       val html = inputText(form("foo")).body
+      html must contain("Foo is required")
+    }
+
+    "display errors when a field is not present" in {
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map()))
+      val errForm = form.withError("foo", "Foo is required")
+      val html = inputText(errForm("foo")).body
       html must contain("Foo is required")
     }
 
