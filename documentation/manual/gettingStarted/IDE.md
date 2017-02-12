@@ -92,6 +92,12 @@ For more detailed information, see the Play Framework 2.x tutorial at the follow
 
 <http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
 
+### Navigate from an error page to the source code
+Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page. Since then, you can easily navigate from error pages to IntelliJ, directly into the source code (you need to install the Remote Call <https://github.com/Zolotov/RemoteCall> IntelliJ plugin first).
+
+Just install the Remote Call plugin and run your app with the following options:
+`-Dplay.editor=http://localhost:8091/?message=%s:%s -Dapplication.mode=dev`
+
 
 ## Netbeans
 
