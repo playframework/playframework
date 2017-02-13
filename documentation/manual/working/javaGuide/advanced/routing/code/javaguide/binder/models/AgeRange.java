@@ -27,7 +27,7 @@ public Optional<AgeRange> bind(String key, Map<String, String[]> data) {
 		return Optional.of(this);
 		
 	} catch (Exception e){ // no parameter match return None
-		return Optional.of(null);
+		return Optional.empty();
 	}
 }
 
