@@ -1,1 +1,2 @@
-ScalaEmbeddingPlay:Embedding Play
+ScalaEmbeddingPlayAkkaHttp:Embedding Play with Akka HTTP Server
+ScalaEmbeddingPlayNetty:Embedding Play with Netty Server

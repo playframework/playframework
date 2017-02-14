@@ -1,47 +1,44 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package scalaguide.advanced.embedding
-
 import org.specs2.mutable.Specification
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class ScalaEmbeddingPlay extends Specification with WsTestClient {
+class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
-  "Embedding play" should {
+  "Embedding play with akka" should {
     "be very simple" in {
-
-      //#simple
-      import play.core.server._
-      import play.api.routing.sird._
+      //#simple-akka-http
       import play.api.mvc._
+      import play.api.routing.sird._
+      import play.core.server.AkkaHttpServer
 
-      val server = NettyServer.fromRouter() {
+      val server = AkkaHttpServer.fromRouter() {
         case GET(p"/hello/$to") => Action {
           Results.Ok(s"Hello $to")
         }
       }
-      //#simple
 
       try {
         testRequest(9000)
       } finally {
-        //#stop
+        //#stop-akka-http
         server.stop()
-        //#stop
+        //#stop-akka-http
       }
     }
+    //#simple-akka-http
 
-    "be configurable" in {
-      //#config
-      import play.core.server._
-      import play.api.routing.sird._
+    "be configurable with akka" in {
+      //#config-akka-http
       import play.api.mvc._
+      import play.api.routing.sird._
+      import play.core.server.{AkkaHttpServer, _}
 
-      val server = NettyServer.fromRouter(ServerConfig(
+      val server = AkkaHttpServer.fromRouter(ServerConfig(
         port = Some(19000),
         address = "127.0.0.1"
       )) {
@@ -49,7 +46,7 @@ class ScalaEmbeddingPlay extends Specification with WsTestClient {
           Results.Ok(s"Hello $to")
         }
       }
-      //#config
+      //#config-akka-http
 
       try {
         testRequest(19000)
@@ -59,16 +56,17 @@ class ScalaEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "allow overriding components" in {
-      //#components
-      import play.core.server._
-      import play.api.routing.Router
-      import play.api.routing.sird._
-      import play.api.mvc._
+      //#components-akka-http
       import play.api.BuiltInComponents
       import play.api.http.DefaultHttpErrorHandler
+      import play.api.mvc._
+      import play.api.routing.Router
+      import play.api.routing.sird._
+      import play.core.server.AkkaHttpServerComponents
+
       import scala.concurrent.Future
 
-      val components = new NettyServerComponents with BuiltInComponents {
+      val components = new AkkaHttpServerComponents with BuiltInComponents {
 
         lazy val router = Router.from {
           case GET(p"/hello/$to") => Action {
@@ -85,13 +83,39 @@ class ScalaEmbeddingPlay extends Specification with WsTestClient {
         }
       }
       val server = components.server
-      //#components
+      //#components-akka-http
 
       try {
         testRequest(9000)
       } finally {
         server.stop()
       }
+    }
+
+    "allow usage from a running application" in {
+      //#application-akka-http
+      import play.api.inject.guice.GuiceApplicationBuilder
+      import play.api.mvc._
+      import play.api.routing.SimpleRouterImpl
+      import play.api.routing.sird._
+      import play.core.server.{AkkaHttpServer, ServerConfig}
+
+      val server = AkkaHttpServer.fromApplication(GuiceApplicationBuilder().router(new SimpleRouterImpl({
+        case GET(p"/hello/$to") => Action {
+          Results.Ok(s"Hello $to")
+        }
+      })).build(), ServerConfig(
+        port = Some(19000),
+        address = "127.0.0.1"
+      ))
+      //#config-akka-http
+
+      try {
+        testRequest(19000)
+      } finally {
+        server.stop()
+      }
+      //#application-akka-http
     }
 
   }

@@ -12,7 +12,7 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.1")
 scalaSource in Test := (baseDirectory.value / "tests")
 
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-akka-http-server-experimental" % sys.props("project.version"),
+  "com.typesafe.play" %% "play-akka-http-server" % sys.props("project.version"),
   guice,
   ws,
   specs2 % Test

@@ -344,7 +344,7 @@ object AkkaHttpServer {
   }
 
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
-    new AkkaServerComponents with BuiltInComponents {
+    new AkkaHttpServerComponents with BuiltInComponents {
       override lazy val serverConfig: ServerConfig = config
       lazy val router: Router = Router.from(routes)
     }.server
@@ -360,7 +360,7 @@ class AkkaHttpServerProvider extends ServerProvider {
       context.stopHook)
 }
 
-trait AkkaServerComponents {
+trait AkkaHttpServerComponents {
   lazy val serverConfig: ServerConfig = ServerConfig()
   lazy val server: AkkaHttpServer = {
     // Start the application first

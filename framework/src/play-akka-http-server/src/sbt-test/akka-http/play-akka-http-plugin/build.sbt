@@ -3,8 +3,7 @@
 //
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, PlayAkkaHttpServer)
-  .disablePlugins(PlayNettyServer)
+  .enablePlugins(PlayScala)
 
 name := "compiled-class"
 

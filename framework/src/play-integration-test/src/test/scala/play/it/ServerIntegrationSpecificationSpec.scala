@@ -10,11 +10,11 @@ import play.api.test._
 
 class NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
   override def isAkkaHttpServer = false
-  override def expectedServerTag = None
+  override def expectedServerTag = Some("netty")
 }
 class AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with AkkaHttpIntegrationSpecification {
   override def isAkkaHttpServer = true
-  override def expectedServerTag = Some("akka-http")
+  override def expectedServerTag = None
 }
 
 /**

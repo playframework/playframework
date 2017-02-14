@@ -30,10 +30,9 @@ In contrast, the following types of IO do not block:
 
 Play uses a number of different thread pools for different purposes:
 
-* **Netty boss/worker thread pools** - These are used internally by Netty for handling Netty IO.  An application's code should never be executed by a thread in these thread pools.
-* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Akka, described below.
+* **Internal thread pools** - These are used internally by the server engine for handling IO.  An application's code should never be executed by a thread in these thread pools.  Play is configured with Akka HTTP server backend by default, and so [[configuration settings|SettingsAkkaHttp]] from `application.conf` should be used to change the backend.  Alternately, Play also comes with a Netty server backend which, if enabled, also has settings that can be [[configured|SettingsNetty]] from `application.conf`.
 
-> Note that in Play 2.4 several thread pools were combined together into the Play default thread pool.
+* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Akka, described below.
 
 ## Using the default thread pool
 

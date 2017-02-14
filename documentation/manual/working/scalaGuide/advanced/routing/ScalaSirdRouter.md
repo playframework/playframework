@@ -79,7 +79,7 @@ mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
 
 ### Embedding play
 
-An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlay]] section.
+An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlayAkkaHttp]] section.
 
 ### Providing a DI router
 
