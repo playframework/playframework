@@ -7,6 +7,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
@@ -1676,7 +1677,12 @@ public class Http {
             } else if (body instanceof RawBuffer) {
                 return ((RawBuffer) body).asBytes();
             } else if (body instanceof JsonNode) {
-                return ByteString.fromString(Json.stringify((JsonNode) body));
+                try {
+                    // TODO: find nice alternative to using global mapper here
+                    return ByteString.fromString(Json.mapper().writeValueAsString(body));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Error converting request body to JsonNode", e);
+                }
             } else if (body instanceof Document) {
                 return XML.toBytes((Document) body);
             } else {

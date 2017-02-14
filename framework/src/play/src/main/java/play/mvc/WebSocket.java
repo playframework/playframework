@@ -6,6 +6,7 @@ package play.mvc;
 import akka.stream.javadsl.Flow;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import play.api.http.websocket.CloseCodes;
 import play.http.websocket.Message;
 import play.libs.F;
@@ -16,6 +17,7 @@ import scala.PartialFunction;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A WebSocket handler.
@@ -58,19 +60,22 @@ public abstract class WebSocket {
 
     /**
      * Acceptor for JSON WebSockets.
+     *
+     * @deprecated As of 2.6.0. Use json(objectMapper) with an explicit ObjectMapper
      */
-    public static final MappedWebSocketAcceptor<JsonNode, JsonNode> Json = new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
-        try {
-            if (message instanceof Message.Binary) {
-                return F.Either.Left(play.libs.Json.parse(((Message.Binary) message).data().iterator().asInputStream()));
-            } else if (message instanceof Message.Text) {
-                return F.Either.Left(play.libs.Json.parse(((Message.Text) message).data()));
-            }
-        } catch (RuntimeException e) {
-            return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
-        }
-        throw Scala.noMatch();
-    }), json -> new Message.Text(play.libs.Json.stringify(json)));
+    @Deprecated
+    public static final MappedWebSocketAcceptor<JsonNode, JsonNode> Json =
+        json(JsonNode.class, play.libs.Json::mapper);
+
+    /**
+     * Acceptor for JSON WebSockets.
+     *
+     * @param mapper The ObjectMapper to use.
+     * @return The WebSocket acceptor.
+     */
+    public static MappedWebSocketAcceptor<JsonNode, JsonNode> json(ObjectMapper mapper) {
+        return json(JsonNode.class, mapper);
+    }
 
     /**
      * Acceptor for JSON WebSockets.
@@ -79,14 +84,34 @@ public abstract class WebSocket {
      * @param <In> The websocket's input type (what it receives from clients)
      * @param <Out> The websocket's output type (what it writes to clients)
      * @return The WebSocket acceptor.
+     *
+     * @deprecated As of 2.6.0. Use json(in, objectMapper) with an explicit ObjectMapper
      */
+    @Deprecated
     public static <In, Out> MappedWebSocketAcceptor<In, Out> json(Class<In> in) {
+        return json(in, play.libs.Json.mapper());
+    }
+
+    /**
+     * Acceptor for JSON WebSockets.
+     *
+     * @param in The class of the incoming messages, used to decode them from the JSON.
+     * @param mapper The ObjectMapper to use
+     * @param <In> The websocket's input type (what it receives from clients)
+     * @param <Out> The websocket's output type (what it writes to clients)
+     * @return The WebSocket acceptor.
+     */
+    public static <In, Out> MappedWebSocketAcceptor<In, Out> json(Class<In> in, ObjectMapper mapper) {
+        return json(in, () -> mapper);
+    }
+
+    private static <In, Out> MappedWebSocketAcceptor<In, Out> json(Class<In> in, Supplier<ObjectMapper> mapper) {
         return new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
             try {
                 if (message instanceof Message.Binary) {
-                    return F.Either.Left(play.libs.Json.mapper().readValue(((Message.Binary) message).data().iterator().asInputStream(), in));
+                    return F.Either.Left(mapper.get().readValue(((Message.Binary) message).data().iterator().asInputStream(), in));
                 } else if (message instanceof Message.Text) {
-                    return F.Either.Left(play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));
+                    return F.Either.Left(mapper.get().readValue(((Message.Text) message).data(), in));
                 }
             } catch (Exception e) {
                 return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), e.getMessage()));
@@ -94,7 +119,7 @@ public abstract class WebSocket {
             throw Scala.noMatch();
         }), outMessage -> {
             try {
-                return new Message.Text(play.libs.Json.mapper().writeValueAsString(outMessage));
+                return new Message.Text(mapper.get().writeValueAsString(outMessage));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

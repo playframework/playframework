@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
@@ -139,7 +140,8 @@ public class HttpFormsTest {
             error.add(new ValidationError("key", "error.custom", args));
             Map<String,List<ValidationError>> errors = new HashMap<>();
             errors.put("foo", error);
-            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
+            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi,
+                formatters, validator, new ObjectMapper());
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });

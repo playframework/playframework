@@ -301,9 +301,23 @@ public class StatusHeader extends Result {
      *
      * @param json the json node to send
      * @return a '200 OK' result containing the json encoded as UTF-8.
+     *
+     * @deprecated as of 2.6.0. Use sendJson(JsonNode, ObjectMapper)
      */
+    @Deprecated
     public Result sendJson(JsonNode json) {
-        return sendJson(json, JsonEncoding.UTF8);
+        return sendJson(json, Json.mapper(), JsonEncoding.UTF8);
+    }
+
+    /**
+     * Send a json result.
+     *
+     * @param json the json node to send
+     * @param mapper the ObjectMapper to use for encoding
+     * @return a '200 OK' result containing the json encoded as UTF-8.
+     */
+    public Result sendJson(JsonNode json, ObjectMapper mapper) {
+        return sendJson(json, mapper, JsonEncoding.UTF8);
     }
 
     /**
@@ -313,7 +327,7 @@ public class StatusHeader extends Result {
      * @param charset the charset in which to encode the json (e.g. "UTF-8")
      * @return a '200 OK' result containing the json encoded with the given charset
      *
-     * @deprecated As of 2.6.0, use sendJson(JsonNode, JsonEncoding)
+     * @deprecated as of 2.6.0. Use sendJson(JsonNode, ObjectMapper, JsonEncoding)
      */
     @Deprecated
     public Result sendJson(JsonNode json, String charset) {
@@ -322,22 +336,22 @@ public class StatusHeader extends Result {
                 .orElseGet(() -> {
                     throw new IllegalArgumentException(charset + " is not a valid JsonEncoding");
                 });
-        return sendJson(json, encoding);
+        return sendJson(json, Json.mapper(), encoding);
     }
 
     /**
      * Send a json result.
      *
      * @param json the json to send
+     * @param mapper the ObjectMapper to use for encoding
      * @param encoding the encoding in which to encode the json (e.g. "UTF-8")
      * @return a '200 OK' result containing the json encoded with the given charset
      */
-    public Result sendJson(JsonNode json, JsonEncoding encoding) {
+    public Result sendJson(JsonNode json, ObjectMapper mapper, JsonEncoding encoding) {
         if (json == null) {
             throw new NullPointerException("Null content");
         }
 
-        ObjectMapper mapper = Json.mapper();
         ByteStringBuilder builder = ByteString$.MODULE$.newBuilder();
 
         try {

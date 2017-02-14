@@ -24,6 +24,9 @@ public class Json {
   private static final ObjectMapper defaultObjectMapper = newDefaultMapper();
   private static volatile ObjectMapper objectMapper = null;
 
+  /**
+   * @return An ObjectMapper with Play's default configuration
+   */
   public static ObjectMapper newDefaultMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new Jdk8Module());
@@ -67,7 +70,10 @@ public class Json {
    *
    * @param data Value to convert in Json.
    * @return the JSON node.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#valueToTree
    */
+  @Deprecated
   public static JsonNode toJson(final Object data) {
     try {
       return mapper().valueToTree(data);
@@ -83,7 +89,10 @@ public class Json {
    * @param json Json value to convert.
    * @param clazz Expected Java value type.
    * @return the return value.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#treeToValue
    */
+  @Deprecated
   public static <A> A fromJson(JsonNode json, Class<A> clazz) {
     try {
       return mapper().treeToValue(json, clazz);
@@ -95,7 +104,10 @@ public class Json {
   /**
    * Creates a new empty ObjectNode.
    * @return new empty ObjectNode.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#createObjectNode
    */
+  @Deprecated
   public static ObjectNode newObject() {
     return mapper().createObjectNode();
   }
@@ -103,7 +115,10 @@ public class Json {
   /**
    * Creates a new empty ArrayNode.
    * @return a new empty ArrayNode.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#createArrayNode
    */
+  @Deprecated
   public static ArrayNode newArray() {
     return mapper().createArrayNode();
   }
@@ -112,7 +127,10 @@ public class Json {
    * Converts a JsonNode to its string representation.
    * @param json    the JSON node to convert.
    * @return the string representation.
+   *
+   * @deprecated as of 2.6.0. Use ObjectWriter#writeValueAsString
    */
+  @Deprecated
   public static String stringify(JsonNode json) {
     return generateJson(json, false, false);
   }
@@ -121,7 +139,10 @@ public class Json {
    * Converts a JsonNode to its string representation, escaping non-ascii characters.
    * @param json    the JSON node to convert.
    * @return the string representation with escaped non-ascii characters.
+   *
+   * @deprecated as of 2.6.0. Use ObjectWriter#with(Feature.ESCAPE_NON_ASCII).writeValueAsString
    */
+  @Deprecated
   public static String asciiStringify(JsonNode json) {
     return generateJson(json, false, true);
   }
@@ -130,7 +151,10 @@ public class Json {
    * Converts a JsonNode to its string representation.
    * @param json    the JSON node to convert.
    * @return the string representation, pretty printed.
+   *
+   * @deprecated as of 2.6.0. Use ObjectWriter#with(SerializationFeature.INDENT_OUTPUT).writeValueAsString
    */
+  @Deprecated
   public static String prettyPrint(JsonNode json) {
     return generateJson(json, true, false);
   }
@@ -139,7 +163,10 @@ public class Json {
    * Parses a String representing a json, and return it as a JsonNode.
    * @param src    the JSON string.
    * @return the JSON node.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#readTree
    */
+  @Deprecated
   public static JsonNode parse(String src) {
     try {
       return mapper().readTree(src);
@@ -152,7 +179,10 @@ public class Json {
    * Parses a InputStream representing a json, and return it as a JsonNode.
    * @param src    the JSON input stream.
    * @return the JSON node.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#readTree
    */
+  @Deprecated
   public static JsonNode parse(java.io.InputStream src) {
     try {
       return mapper().readTree(src);
@@ -165,7 +195,10 @@ public class Json {
    * Parses a byte array representing a json, and return it as a JsonNode.
    * @param src    the JSON input bytes.
    * @return the JSON node.
+   *
+   * @deprecated as of 2.6.0. Use ObjectMapper#readTree
    */
+  @Deprecated
   public static JsonNode parse(byte[] src) {
     try {
       return mapper().readTree(src);

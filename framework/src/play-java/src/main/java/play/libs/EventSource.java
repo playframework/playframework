@@ -6,6 +6,7 @@ package play.libs;
 import akka.NotUsed;
 import akka.stream.javadsl.Flow;
 import akka.util.ByteString;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -92,9 +93,16 @@ public class EventSource {
         /**
          * @param json Json value to use
          * @return An event with a string representation of {@code json} as content
+         *
+         * @deprecated As of 2.6.0. Use event(ObjectWriter#writeValueAsString(json))
          */
+        @Deprecated
         public static Event event(JsonNode json) {
-            return new Event(Json.stringify(json), null, null);
+            try {
+                return new Event(Json.mapper().writeValueAsString(json), null, null);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Error converting event JSON to string", e);
+            }
         }
 
     }

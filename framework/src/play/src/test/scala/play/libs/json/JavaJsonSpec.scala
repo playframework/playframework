@@ -70,7 +70,7 @@ class JavaJsonSpec extends Specification {
       }
     }
     "ignore unknown fields when deserializing to a POJO" in new JsonScope(Json.newDefaultMapper()) {
-      val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
+      val javaPOJO = mapper.treeToValue(testJson, classOf[JavaPOJO])
       javaPOJO.getBar must_== "baz"
       javaPOJO.getFoo must_== "bar"
       javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)

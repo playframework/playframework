@@ -45,7 +45,7 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
       jsonNode.put("field", "value&")
 
       val statusHeader = new StatusHeader(Http.Status.OK)
-      val result = statusHeader.sendJson(jsonNode, JsonEncoding.UTF8)
+      val result = statusHeader.sendJson(jsonNode, Json.mapper, JsonEncoding.UTF8)
 
       val content = Await.result(for {
         byteString <- result.body.dataStream.runWith(Sink.head, materializer)

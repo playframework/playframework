@@ -7,6 +7,7 @@ import javax.validation.Validator;
 
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import play.data.validation.*;
 import play.data.format.Formatters;
 import play.i18n.MessagesApi;
@@ -17,7 +18,7 @@ import play.i18n.MessagesApi;
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     private final Map<String, String> rawData;
-    
+
     /**
      * Creates a new empty dynamic form.
      *
@@ -25,11 +26,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param formatters     the formatters component.
      * @param validator      the validator component.
      */
-    public DynamicForm(MessagesApi messagesApi, Formatters formatters, Validator validator) {
-        super(DynamicForm.Dynamic.class, messagesApi, formatters, validator);
+    public DynamicForm(MessagesApi messagesApi, Formatters formatters, Validator validator, ObjectMapper mapper) {
+        super(DynamicForm.Dynamic.class, messagesApi, formatters, validator, mapper);
         rawData = new HashMap<>();
     }
-    
+
     /**
      * Creates a new dynamic form.
      *
@@ -40,15 +41,16 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param formatters     the formatters component.
      * @param validator      the validator component.
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value,
+        MessagesApi messagesApi, Formatters formatters, Validator validator, ObjectMapper mapper) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator, mapper);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
         }
 
     }
-    
+
     /**
      * Gets the concrete value if the submission was a success.
      * @param key the string key.
@@ -74,7 +76,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator, objectMapper);
     }
 
     /**
@@ -112,11 +114,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             }
             data = newData;
         }
-        
+
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.data(), form.errors(), form.value(),
+            messagesApi, formatters, validator, objectMapper);
     }
-    
+
     /**
      * Retrieves a field.
      *
@@ -155,7 +158,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     */
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
     }
@@ -179,7 +182,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     // -- /
-    
+
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
@@ -215,6 +218,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
     }
-    
+
 }
 

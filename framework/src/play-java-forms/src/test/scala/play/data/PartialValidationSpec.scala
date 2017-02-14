@@ -5,6 +5,7 @@ package play.data
 
 import javax.validation.Validation
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.mutable.Specification
 import play.api.i18n._
 import play.data.format.Formatters
@@ -18,7 +19,7 @@ class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator())
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator(), new ObjectMapper())
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

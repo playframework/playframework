@@ -12,6 +12,7 @@ import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.http.HttpEntity;
+import play.libs.Json;
 import play.twirl.api.Content;
 
 import static play.mvc.Http.HeaderNames.LOCATION;
@@ -114,7 +115,7 @@ public class Results {
      * @param content the result's body content, as a play-json object
      * @param charset the charset into which the json should be encoded
      *
-     * @deprecated As of 2.6.0, use status(int, JsonNode, JsonEncoding)
+     * @deprecated As of 2.6.0, use status(int, JsonNode, ObjectMapper, JsonEncoding)
      *
      * @return the result
      *
@@ -141,7 +142,7 @@ public class Results {
         if (content == null) {
             throw new NullPointerException("Null content");
         }
-        return status(status).sendJson(content, encoding);
+        return status(status).sendJson(content, Json.mapper(), encoding);
     }
 
     /**

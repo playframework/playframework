@@ -8,6 +8,7 @@ import java.util.Optional
 import javax.validation.{ Validation, Validator, Configuration => vConfiguration }
 import javax.validation.groups.Default
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultFileMimeTypesProvider, HttpConfiguration }
@@ -35,7 +36,7 @@ class FormSpec extends Specification {
 
   val defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
   val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, defaultFileMimeTypes, httpConfiguration)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator())
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator(), new ObjectMapper())
 
   "a java form" should {
     "be valid" in {
@@ -265,7 +266,7 @@ class FormSpec extends Specification {
         // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
         // used come from the form, not the input data
         new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-          Map.empty.asJava, Optional.empty[JavaForm], null, null, FormSpec.validator())
+          Map.empty.asJava, Optional.empty[JavaForm], null, null, FormSpec.validator(), new ObjectMapper())
       }
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {

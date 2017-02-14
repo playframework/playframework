@@ -3,7 +3,11 @@
  */
 package play.libs;
 
+import com.fasterxml.jackson.core.JsonGenerator.Feature;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import play.twirl.api.Content;
 
 /**
@@ -30,6 +34,12 @@ import play.twirl.api.Content;
  */
 public class Jsonp implements Content {
 
+    // To be valid JS we use ESCAPE_NON_ASCII here
+    private ObjectWriter writer = new ObjectMapper().writer().with(Feature.ESCAPE_NON_ASCII);
+
+    private final String padding;
+    private final JsonNode json;
+
     public Jsonp(String padding, JsonNode json) {
         this.padding = padding;
         this.json = json;
@@ -37,16 +47,17 @@ public class Jsonp implements Content {
 
     @Override
     public String body() {
-        return padding + "(" + Json.stringify(json) + ");";
+        try {
+            return padding + "(" + writer.writeValueAsString(json) + ");";
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error writing JSONP", e);
+        }
     }
 
     @Override
     public String contentType() {
         return "text/javascript";
     }
-
-    private final String padding;
-    private final JsonNode json;
 
     /**
      * @param padding Name of the callback

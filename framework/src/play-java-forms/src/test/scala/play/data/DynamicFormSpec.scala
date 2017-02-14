@@ -5,6 +5,7 @@ package play.data
 
 import javax.validation.Validation
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.mutable.Specification
 import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
@@ -27,55 +28,63 @@ class DynamicFormSpec extends Specification {
   "a dynamic form" should {
 
     "bind values from a request" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.get("foo") must_== "bar"
     }
 
     "allow access to raw data values from request" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.data().get("foo") must_== "bar"
     }
 
     "display submitted values in template helpers" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       val html = inputText(form("foo")).body
       html must contain("value=\"bar\"")
       html must contain("name=\"foo\"")
     }
 
     "render correctly when no value is submitted in template helpers" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map()))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map()))
       val html = inputText(form("foo")).body
       html must contain("value=\"\"")
       html must contain("name=\"foo\"")
     }
 
     "display errors in template helpers" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.reject("foo", "There was an error")
       val html = inputText(form("foo")).body
       html must contain("There was an error")
     }
 
     "display errors when a field is not present" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map()))
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .bindFromRequest(FormSpec.dummyRequest(Map()))
       form.reject("foo", "Foo is required")
       val html = inputText(form("foo")).body
       html must contain("Foo is required")
     }
 
     "allow access to the property when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asJava)
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .fill(Map("foo" -> "bar").asJava)
       form.get("foo") must_== "bar"
     }
 
     "allow access to the equivalent of the raw data when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asJava)
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator, new ObjectMapper())
+        .fill(Map("foo" -> "bar").asJava)
       form("foo").value() must_== "bar"
     }
 
     "don't throw NullPointerException when all components of form are null" in {
-      val form = new DynamicForm(null, null, null).fill(Map("foo" -> "bar").asJava)
+      val form = new DynamicForm(null, null, null, null).fill(Map("foo" -> "bar").asJava)
       form("foo").value() must_== "bar"
     }
 

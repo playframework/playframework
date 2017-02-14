@@ -9,6 +9,7 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.Arrays;
@@ -56,16 +57,42 @@ public abstract class Comet {
     }
 
     /**
-     * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode.  Calls
-     * out to Comet.flow internally.
+     * Produces a flow of ByteString from a Flow of an arbitrary class, by converting that class to JSON using the
+     * provided ObjectMapper. Calls out to Comet.flow internally.
+     *
+     * @param callbackName the javascript callback method.
+     * @param mapper the ObjectMapper used to convert the JsonNodes
+     * @param flowClass the class that the flow contains
+     * @return a flow of ByteString elements.
+     */
+    public static <T> Flow<T, ByteString, NotUsed> json(String callbackName, ObjectMapper mapper, Class<T> flowClass) {
+        return Flow.of(flowClass)
+            .map(json -> ByteString.fromString(mapper.writeValueAsString(json)))
+            .via(flow(callbackName));
+    }
+
+    /**
+     * Produces a flow of ByteString from a Flow of JsonNode.
+     *
+     * @param callbackName the javascript callback method.
+     * @param mapper the ObjectMapper used to convert the JsonNodes
+     * @return a flow of ByteString elements.
+     */
+    public static Flow<JsonNode, ByteString, NotUsed> json(String callbackName, ObjectMapper mapper) {
+        return json(callbackName, mapper, JsonNode.class);
+    }
+
+    /**
+     * Produces a flow of ByteString from a Flow of JsonNode.
      *
      * @param callbackName the javascript callback method.
      * @return a flow of ByteString elements.
+     *
+     * @deprecated as of 2.6.0. Use json(callbackName, mapper) with an explicit ObjectMapper.
      */
+    @Deprecated
     public static Flow<JsonNode, ByteString, NotUsed> json(String callbackName) {
-        return Flow.of(JsonNode.class).map(json -> {
-            return ByteString.fromString(Json.stringify(json));
-        }).via(flow(callbackName));
+        return json(callbackName, Json.mapper());
     }
 
     /**

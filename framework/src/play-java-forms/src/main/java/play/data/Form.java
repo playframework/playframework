@@ -3,36 +3,58 @@
  */
 package play.data;
 
-import javax.validation.*;
-import javax.validation.metadata.*;
-import javax.validation.groups.Default;
-
-import java.util.*;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.lang.annotation.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.groups.Default;
+import javax.validation.metadata.BeanDescriptor;
+import javax.validation.metadata.ConstraintDescriptor;
+import javax.validation.metadata.PropertyDescriptor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.NotReadablePropertyException;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+import play.data.format.Formatters;
+import play.data.validation.Constraints;
+import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 
-import static play.libs.F.*;
-
-import play.data.validation.*;
-import play.data.format.Formatters;
-
-import org.springframework.beans.*;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.validation.*;
-import org.springframework.validation.beanvalidation.*;
-import org.springframework.context.support.*;
-
-import com.google.common.collect.ImmutableList;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static play.libs.F.Tuple;
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -60,6 +82,7 @@ public class Form<T> {
     final MessagesApi messagesApi;
     final Formatters formatters;
     final javax.validation.Validator validator;
+    final ObjectMapper objectMapper;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -81,28 +104,38 @@ public class Form<T> {
      * @param formatters     formatters component.
      * @param validator      validator component.
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(null, clazz, messagesApi, formatters, validator);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator,
+        ObjectMapper mapper) {
+        this(null, clazz, messagesApi, formatters, validator, mapper);
     }
 
-    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation
+        .Validator validator, ObjectMapper mapper) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator, mapper);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters,
+        javax.validation.Validator validator, ObjectMapper mapper) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator, mapper);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters,
+        javax.validation.Validator validator, ObjectMapper mapper) {
+        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters,
+            validator, mapper);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors,
+        Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator,
+        ObjectMapper mapper) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator, mapper);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors,
+        Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator
+        validator, ObjectMapper mapper) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi,
+            formatters, validator, mapper);
     }
 
     /**
@@ -118,7 +151,17 @@ public class Form<T> {
      * @param formatters used for parsing and printing form fields
      * @param validator the validator component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(
+        String rootName,
+        Class<T> clazz,
+        Map<String,String> data,
+        Map<String,List<ValidationError>> errors,
+        Optional<T> value, Class<?>[] groups,
+        MessagesApi messagesApi,
+        Formatters formatters,
+        javax.validation.Validator validator,
+        ObjectMapper objectMapper
+    ) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
@@ -128,6 +171,7 @@ public class Form<T> {
         this.messagesApi = messagesApi;
         this.formatters = formatters;
         this.validator = validator;
+        this.objectMapper = objectMapper;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -144,13 +188,7 @@ public class Form<T> {
 
         Map<String,String> jsonData = new HashMap<>();
         if (request.body().asJson() != null) {
-            jsonData = play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("",
-                    play.api.libs.json.Json.parse(
-                        play.libs.Json.stringify(request.body().asJson())
-                    )
-                )
-            );
+            jsonData = convertJson(request.body().asJson());
         }
 
         Map<String,String[]> queryString = request.queryString();
@@ -222,15 +260,18 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
-        return bind(
-            play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("",
-                    play.api.libs.json.Json.parse(
-                        play.libs.Json.stringify(data)
-                    )
-                )
-            ),
-            allowedFields
+        return bind(convertJson(data), allowedFields);
+    }
+
+    private Map<String, String> convertJson(JsonNode data) {
+        String jsonString;
+        try {
+            jsonString = objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error converting request body to JSON", e);
+        }
+        return play.libs.Scala.asJava(
+            play.api.data.FormUtils.fromJson("", play.api.libs.json.Json.parse(jsonString))
         );
     }
 
@@ -378,7 +419,8 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups,
+                messagesApi, formatters, this.validator, this.objectMapper);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -407,9 +449,11 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()),
+                    groups, messagesApi, formatters, this.validator, this.objectMapper);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)
+                result.getTarget()), groups, messagesApi, formatters, this.validator, this.objectMapper);
         }
     }
 
@@ -464,7 +508,8 @@ public class Form<T> {
                 groups,
                 messagesApi,
                 formatters,
-                validator
+                validator,
+                objectMapper
         );
     }
 
@@ -556,7 +601,7 @@ public class Form<T> {
                 allMessages.put(key, messages);
             }
         });
-        return play.libs.Json.toJson(allMessages);
+        return objectMapper.valueToTree(allMessages);
     }
 
     private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
