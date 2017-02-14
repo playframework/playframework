@@ -9,8 +9,11 @@ import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.test.Helpers;
 
-public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
-
+/**
+ * @deprecated as of 2.6.0.
+ */
+@Deprecated
+public class GlobalStateRoutingDslTest extends AbstractRoutingDslTest {
     private static Application app;
 
     @BeforeClass
@@ -21,7 +24,7 @@ public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
 
     @Override
     RoutingDsl routingDsl() {
-        return app.injector().instanceOf(RoutingDsl.class);
+        return new RoutingDsl();
     }
 
     @AfterClass

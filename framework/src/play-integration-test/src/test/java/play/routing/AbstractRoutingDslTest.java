@@ -6,31 +6,32 @@ package play.routing;
 import org.junit.Test;
 import play.mvc.PathBindable;
 import play.mvc.Result;
-import play.mvc.Results;
-import play.test.WithApplication;
 
 import java.io.InputStream;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
+import static play.mvc.Results.ok;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
  * This class is in the integration tests so that we have the right helper classes to build a request with to test it.
  */
-public abstract class AbstractRoutingDslTest extends WithApplication {
+public abstract class AbstractRoutingDslTest {
 
     abstract RoutingDsl routingDsl();
 
-    abstract Router router(RoutingDsl routing);
+    private Router router(Function<RoutingDsl, Router> function) {
+        return function.apply(routingDsl());
+    }
 
     @Test
     public void noParameters() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -38,10 +39,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void oneParameter() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/:to").routeTo(to -> Results.ok("Hello " + to));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/:to").routeTo(to -> ok("Hello " + to)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -49,10 +49,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void twoParameters() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:say/:to").routeTo((say, to) -> Results.ok(say + " " + to));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/:say/:to").routeTo((say, to) -> ok(say + " " + to)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/Hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo"));
@@ -60,10 +59,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void threeParameters() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:say/:to/:extra").routeTo((say, to, extra) -> Results.ok(say + " " + to + extra));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/:say/:to/:extra").routeTo((say, to, extra) -> ok(say + " " + to + extra)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/Hello/world/!"), equalTo("Hello world!"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -71,10 +69,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void noParametersAsync() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/world").routeAsync(() -> CompletableFuture.completedFuture(Results.ok("Hello world")));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/world").routeAsync(() -> completedFuture(ok("Hello world"))).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -82,10 +79,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void oneParameterAsync() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/:to").routeAsync(to -> CompletableFuture.completedFuture(Results.ok("Hello " + to)));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/:to").routeAsync(to -> completedFuture(ok("Hello " + to))).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -93,10 +89,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void twoParametersAsync() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:say/:to").routeAsync((say, to) -> CompletableFuture.completedFuture(Results.ok(say + " " + to)));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/:say/:to").routeAsync((say, to) -> completedFuture(ok(say + " " + to))).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/Hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/foo"));
@@ -104,11 +99,12 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void threeParametersAsync() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:say/:to/:extra").routeAsync((say, to, extra) -> CompletableFuture.completedFuture(
-                Results.ok(say + " " + to + extra)));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl
+                .GET("/:say/:to/:extra")
+                .routeAsync((say, to, extra) -> completedFuture(ok(say + " " + to + extra)))
+                .build()
+        );
 
         assertThat(makeRequest(router, "GET", "/Hello/world/!"), equalTo("Hello world!"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -116,10 +112,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void get() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -127,10 +122,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void head() {
-        RoutingDsl routing = routingDsl()
-                .HEAD("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.HEAD("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "HEAD", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -138,10 +132,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void post() {
-        RoutingDsl routing = routingDsl()
-                .POST("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.POST("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "POST", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/hello/world"));
@@ -149,10 +142,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void put() {
-        RoutingDsl routing = routingDsl()
-                .PUT("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.PUT("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "PUT", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -160,10 +152,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void delete() {
-        RoutingDsl routing = routingDsl()
-                .DELETE("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.DELETE("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "DELETE", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -171,10 +162,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void patch() {
-        RoutingDsl routing = routingDsl()
-                .PATCH("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.PATCH("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "PATCH", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -182,10 +172,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void options() {
-        RoutingDsl routing = routingDsl()
-                .OPTIONS("/hello/world").routeTo(() -> Results.ok("Hello world"));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.OPTIONS("/hello/world").routeTo(() -> ok("Hello world")).build()
+        );
 
         assertThat(makeRequest(router, "OPTIONS", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
@@ -193,10 +182,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void starMatcher() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/*to").routeTo((to) -> Results.ok("Hello " + to));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/*to").routeTo((to) -> ok("Hello " + to)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/blah/world"), equalTo("Hello blah/world"));
         assertNull(makeRequest(router, "GET", "/foo/bar"));
@@ -204,10 +192,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void regexMatcher() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/$to<[a-z]+>").routeTo((to) -> Results.ok("Hello " + to));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/$to<[a-z]+>").routeTo((to) -> ok("Hello " + to)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/hello/10"));
@@ -215,13 +202,14 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void multipleRoutes() {
-        RoutingDsl routing = routingDsl()
-                .GET("/hello/:to").routeTo((to) -> Results.ok("Hello " + to))
-                .GET("/foo/bar").routeTo(() -> Results.ok("foo bar"))
-                .POST("/hello/:to").routeTo((to) -> Results.ok("Post " + to))
-                .GET("/*path").routeTo((path) -> Results.ok("Path " + path));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl
+                .GET("/hello/:to").routeTo((to) -> ok("Hello " + to))
+                .GET("/foo/bar").routeTo(() -> ok("foo bar"))
+                .POST("/hello/:to").routeTo((to) -> ok("Post " + to))
+                .GET("/*path").routeTo((path) -> ok("Path " + path))
+                .build()
+        );
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertThat(makeRequest(router, "GET", "/foo/bar"), equalTo("foo bar"));
@@ -231,12 +219,13 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void encoding() {
-        RoutingDsl routing = routingDsl()
-                .GET("/simple/:to").routeTo((to) -> Results.ok("Simple " + to))
-                .GET("/path/*to").routeTo((to) -> Results.ok("Path " + to))
-                .GET("/regex/$to<.*>").routeTo((to) -> Results.ok("Regex " + to));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl
+                .GET("/simple/:to").routeTo((to) -> ok("Simple " + to))
+                .GET("/path/*to").routeTo((to) -> ok("Path " + to))
+                .GET("/regex/$to<.*>").routeTo((to) -> ok("Regex " + to))
+                .build()
+        );
 
         assertThat(makeRequest(router, "GET", "/simple/dollar%24"), equalTo("Simple dollar$"));
         assertThat(makeRequest(router, "GET", "/path/dollar%24"), equalTo("Path dollar%24"));
@@ -245,31 +234,31 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void typed() {
-        RoutingDsl routing = routingDsl()
+        Router router = router(routingDsl ->
+            routingDsl
                 .GET("/:a/:b/:c").routeTo((Integer a, Boolean b, String c) ->
-                        Results.ok("int " + a + " boolean " + b + " string " + c));
-
-        Router router = router(routing);
+                    ok("int " + a + " boolean " + b + " string " + c)
+                ).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/20/true/foo"), equalTo("int 20 boolean true string foo"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void wrongNumberOfParameters() {
-        routingDsl().GET("/:a/:b").routeTo(foo -> Results.ok(foo.toString()));
+        routingDsl().GET("/:a/:b").routeTo(foo -> ok(foo.toString()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void badParameterType() {
-        routingDsl().GET("/:a").routeTo((InputStream is) -> Results.ok());
+        routingDsl().GET("/:a").routeTo((InputStream is) -> ok());
     }
 
     @Test
     public void bindError() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:a").routeTo((Integer a) -> Results.ok("int " + a));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/:a").routeTo((Integer a) -> ok("int " + a)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/foo"),
                 equalTo("Cannot parse parameter a as Int: For input string: \"foo\""));
@@ -277,10 +266,9 @@ public abstract class AbstractRoutingDslTest extends WithApplication {
 
     @Test
     public void customPathBindable() {
-        RoutingDsl routing = routingDsl()
-                .GET("/:a").routeTo((MyString myString) -> Results.ok(myString.value));
-
-        Router router = router(routing);
+        Router router = router(routingDsl ->
+            routingDsl.GET("/:a").routeTo((MyString myString) -> ok(myString.value)).build()
+        );
 
         assertThat(makeRequest(router, "GET", "/foo"), equalTo("a:foo"));
     }
