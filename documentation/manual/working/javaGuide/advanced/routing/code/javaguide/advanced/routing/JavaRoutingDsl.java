@@ -113,9 +113,9 @@ public class JavaRoutingDsl extends WithApplication {
     //#inject
     public class MyComponent {
 
-        @Inject
         private final RoutingDsl routingDsl;
 
+        @Inject
         public MyComponent(RoutingDsl routing) {
             this.routingDsl = routing;
         }
