@@ -53,7 +53,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[RequestFactory].to[DefaultRequestFactory],
     bind[TemporaryFileReaper].to[DefaultTemporaryFileReaper],
     bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
-    bind[PlayBodyParsers].to[PlayBodyParsersImpl],
+    bind[PlayBodyParsers].to[DefaultPlayBodyParsers],
     bind[BodyParsers.Default].toSelf,
     bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
     bind[ControllerComponents].to[DefaultControllerComponents],
