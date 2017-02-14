@@ -5,7 +5,6 @@ package play.core.server
 
 import java.io.IOException
 import java.net.InetSocketAddress
-import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.actor.ActorSystem

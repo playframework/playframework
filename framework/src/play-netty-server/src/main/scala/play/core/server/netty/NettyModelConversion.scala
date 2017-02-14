@@ -6,7 +6,7 @@ package play.core.server.netty
 import java.net.{ InetAddress, InetSocketAddress, URI }
 import java.security.cert.X509Certificate
 import java.time.Instant
-import javax.net.ssl.{ SSLEngine, SSLPeerUnverifiedException }
+import javax.net.ssl.SSLPeerUnverifiedException
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
@@ -60,8 +60,8 @@ private[server] class NettyModelConversion(
     channel: Channel,
     request: HttpRequest): Try[RequestHeader] = {
 
-    if (request.getDecoderResult.isFailure) {
-      Failure(request.getDecoderResult.cause())
+    if (request.decoderResult.isFailure) {
+      Failure(request.decoderResult.cause())
     } else {
       tryToCreateRequest(channel, request)
     }
@@ -96,7 +96,7 @@ private[server] class NettyModelConversion(
 
   /** Create request target information from a Netty request. */
   private def createRequestTarget(request: HttpRequest): RequestTarget = {
-    val (unsafePath, parsedQueryString) = parsePathAndQuery(request.getUri)
+    val (unsafePath, parsedQueryString) = parsePathAndQuery(request.uri)
     // wrapping into URI to handle absoluteURI and path validation
     val parsedPath = Option(new URI(unsafePath).getRawPath).getOrElse {
       // if the URI has a invalid path, this will trigger a 400 error
@@ -104,7 +104,7 @@ private[server] class NettyModelConversion(
     }
     new RequestTarget {
       override lazy val uri: URI = new URI(uriString)
-      override def uriString: String = request.getUri
+      override def uriString: String = request.uri
       override val path: String = parsedPath
       override val queryString: String = parsedQueryString.stripPrefix("?")
       override lazy val queryMap: Map[String, Seq[String]] = {
@@ -122,7 +122,7 @@ private[server] class NettyModelConversion(
    */
   def createUnparsedRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
     override lazy val uri: URI = new URI(uriString)
-    override def uriString = request.getUri
+    override def uriString: String = request.uri
     override lazy val path: String = {
       // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
       // path, and don't decode.
@@ -133,8 +133,8 @@ private[server] class NettyModelConversion(
     }
     override lazy val queryMap: Map[String, Seq[String]] = {
       // Very rough parse of query string that doesn't decode
-      if (request.getUri.contains("?")) {
-        request.getUri.split("\\?", 2)(1).split('&').map { keyPair =>
+      if (request.uri.contains("?")) {
+        request.uri.split("\\?", 2)(1).split('&').map { keyPair =>
           keyPair.split("=", 2) match {
             case Array(key) => key -> ""
             case Array(key, value) => key -> value
@@ -158,9 +158,9 @@ private[server] class NettyModelConversion(
     val headers = new NettyHeadersWrapper(request.headers)
     new RequestHeaderImpl(
       createRemoteConnection(channel, headers),
-      request.getMethod.name(),
+      request.method.name(),
       target,
-      request.getProtocolVersion.text(),
+      request.protocolVersion.text(),
       headers,
       TypedMap.empty
     )
@@ -233,7 +233,7 @@ private[server] class NettyModelConversion(
       // Content type and length
       if (resultUtils.mayHaveEntity(result.header.status)) {
         result.body.contentLength.foreach { contentLength =>
-          if (HttpHeaders.isContentLengthSet(response)) {
+          if (HttpUtil.isContentLengthSet(response)) {
             val manualContentLength = response.headers.get(CONTENT_LENGTH)
             if (manualContentLength == contentLength.toString) {
               logger.info(s"Manual Content-Length header, ignoring manual header.")
@@ -241,9 +241,9 @@ private[server] class NettyModelConversion(
               logger.warn(s"Content-Length header was set manually in the header ($manualContentLength) but is not the same as actual content length ($contentLength).")
             }
           }
-          HttpHeaders.setContentLength(response, contentLength)
+          HttpUtil.setContentLength(response, contentLength)
         }
-      } else if (HttpHeaders.isContentLengthSet(response)) {
+      } else if (HttpUtil.isContentLengthSet(response)) {
         val manualContentLength = response.headers.get(CONTENT_LENGTH)
         logger.warn(s"Ignoring manual Content-Length ($manualContentLength) since it is not allowed for ${result.header.status} responses.")
         response.headers.remove(CONTENT_LENGTH)
@@ -269,7 +269,7 @@ private[server] class NettyModelConversion(
     } {
       // Fallback response
       val response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.EMPTY_BUFFER)
-      HttpHeaders.setContentLength(response, 0)
+      HttpUtil.setContentLength(response, 0)
       response.headers().add(DATE, dateHeader)
       response.headers().add(CONNECTION, "close")
       response
@@ -302,7 +302,7 @@ private[server] class NettyModelConversion(
     })
 
     val response = new DefaultStreamedHttpResponse(httpVersion, responseStatus, httpContentPublisher)
-    HttpHeaders.setTransferEncodingChunked(response)
+    HttpUtil.setTransferEncodingChunked(response, true)
     response
   }
 
