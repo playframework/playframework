@@ -9,6 +9,14 @@ The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  S
 
 @[imports](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
+And then you may use [[Dependency Injection|JavaDependencyInjection]] to get a `RoutingDsl` instance:
+
+@[inject](code/javaguide/advanced/routing/JavaRoutingDsl.java)
+
+Or you can directly create a new instance:
+
+@[new-routing-dsl](code/javaguide/advanced/routing/JavaRoutingDsl.java)
+
 A simple example of the DSL's use is:
 
 @[simple](code/javaguide/advanced/routing/JavaRoutingDsl.java)
@@ -38,17 +46,14 @@ Asynchronous actions are of course also supported, using the `routeAsync` method
 Configuring an application to use a Routing DSL can be achieved in many ways, depending on use case:
 
 ### Embedding play
+
 An example of embedding a play server with Routing DSL can be found in [[Embedding Play|JavaEmbeddingPlay]] section.
 
 ### Providing a DI router
 
-A router can be provided to the application similarly as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]], using e.g. a java builder class:
+A router can be provided to the application similarly as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]], using e.g. a java builder class and an application loader:
 
-@[](code/router/RoutingDslBuilder.java)
-
-and in the application loader:
-
-@[load](code/AppLoader.scala)
+@[load](code/AppLoader.java)
 
 ### Providing a DI router with Guice
 

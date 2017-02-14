@@ -699,6 +699,9 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def default: BodyParser[AnyContent] = default(None)
 
+  // this is an alias method since "default" is a Java reserved word
+  def defaultBodyParser: BodyParser[AnyContent] = default
+
   /**
    * If the request has a body, parse the body content by checking the Content-Type header.
    */

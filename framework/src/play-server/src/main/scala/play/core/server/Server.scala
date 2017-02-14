@@ -3,6 +3,8 @@
  */
 package play.core.server
 
+import java.util.function.{ Function => JFunction }
+
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api.http.{ DefaultHttpErrorHandler, Port }
@@ -13,7 +15,7 @@ import play.api._
 import play.api.mvc._
 import play.core.{ ApplicationProvider, DefaultWebCommands }
 import play.api.inject.DefaultApplicationLifecycle
-import play.api.libs.typedmap.TypedMap
+import play.core.j.JavaContextComponents
 
 import scala.util.{ Failure, Success }
 import scala.concurrent.Future
@@ -202,7 +204,7 @@ object Server {
    *  } { withClient(block)(_) }
    * }}}
    *
-   * @param appProducer A function that takes an ApplicationLoader.Context and produces [[Application]]
+   * @param appProducer A function that takes an ApplicationLoader.Context and produces [[play.api.Application]]
    * @param config The configuration for the server. Defaults to test config with the http port bound to a random
    *               ephemeral port.
    * @param block The block of code to run.
@@ -222,14 +224,19 @@ object Server {
 
 private[play] object JavaServerHelper {
   def forRouter(router: Router, mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
-    val r = router
+    forRouter(mode, httpPort, sslPort)(new JFunction[BuiltInComponents, Router] {
+      override def apply(components: BuiltInComponents): Router = router
+    })
+  }
+
+  def forRouter(mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer])(block: JFunction[BuiltInComponents, Router]): Server = {
     val context = ApplicationLoader.Context(
       Environment.simple(mode = mode),
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
     )
     val application = new BuiltInComponentsFromContext(context) {
-      def router = r
+      override def router: Router = block.apply(this)
     }.application
     Play.start(application)
     val serverConfig = ServerConfig(mode = mode, port = httpPort.map(_.intValue), sslPort = sslPort.map(_.intValue))
