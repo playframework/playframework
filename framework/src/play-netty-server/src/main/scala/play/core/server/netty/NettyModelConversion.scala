@@ -319,16 +319,6 @@ private[server] class NettyModelConversion(
     new DefaultHttpContent(byteStringToByteBuf(bytes))
   }
 
-  private def clientCertificatesFromSslEngine(sslEngine: Option[SSLEngine]): Option[Seq[X509Certificate]] = {
-    try {
-      sslEngine.map { engine =>
-        engine.getSession.getPeerCertificates.toSeq.collect { case x509: X509Certificate => x509 }
-      }
-    } catch {
-      case e: SSLPeerUnverifiedException => None
-    }
-  }
-
   // cache the date header of the last response so we only need to compute it every second
   private var cachedDateHeader: (Long, String) = (Long.MinValue, null)
   private def dateHeader: String = {
