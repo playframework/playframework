@@ -24,7 +24,7 @@ import scala.util.Random
 /**
  * Specs for the global CSRF filter
  */
-class CSRFFilterSpec extends CSRFCommonSpecs {
+class CSRFFilterSpec extends CSRFCommonSpecs with WsTestClient {
 
   sequential
 

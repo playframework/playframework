@@ -38,8 +38,9 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
     }
 
     "run the right HTTP server when using TestServer constructor" in {
-      running(TestServer(testServerPort, GuiceApplicationBuilder().routes(httpServerTagRoutes).build())) {
-        val plainRequest = wsUrl("/httpServerTag")(testServerPort)
+      val app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()
+      running(TestServer(testServerPort, app)) {
+        val plainRequest = app.wsUrl("/httpServerTag")(testServerPort)
         val responseFuture = plainRequest.get()
         val response = await(responseFuture)
         response.status must_== 200
@@ -49,7 +50,7 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
 
     "run the right server when using WithServer trait" in new WithServer(
       app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()) {
-      val response = await(wsUrl("/httpServerTag").get())
+      val response = await(app.wsUrl("/httpServerTag")(port).get())
       response.status must equalTo(OK)
       response.body must_== expectedServerTag.toString
     }

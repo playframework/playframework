@@ -20,6 +20,9 @@ case class TestServer(
     application: Application,
     serverProvider: Option[ServerProvider]) {
 
+  // alias to help WithAppAndPort structural type
+  def app: Application = application
+
   private var testServerProcess: TestServerProcess = _
 
   /**

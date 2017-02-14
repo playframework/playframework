@@ -3,22 +3,148 @@
  */
 package play.api.test
 
+import play.api.Application
 import play.api.libs.ws._
 import play.api.mvc.Call
 
+import WSClientResolver._
+
 /**
- * A standalone test client that is useful for running standalone integration tests.
+ * wsCall and wsUrl methods that require an implicit port parameter.
  */
-trait WsTestClient {
+trait WSTestMethods {
+  def wsClient: WSClient
 
-  type Port = Int
-
-  private val clientProducer: (Port, String) => WSClient = { (port, scheme) =>
-    new WsTestClient.InternalWSClient(scheme, port)
+  /**
+   * Provides a WSRequest against client.url(s"http://localhost:" + port + call.url)
+   *
+   * Note that this method does not use the call.method.  If you need it, call:
+   *
+   * {{{
+   * wsCall(call).withMethod(call.method)
+   * }}}
+   *
+   * @param call the call relative to the server.
+   * @param port the port relative to the server.
+   * @return a WSRequest from WSClient
+   */
+  def wsCall(call: Call)(implicit port: Port): WSRequest = {
+    wsUrl(call.url)
   }
 
   /**
-   * Constructs a WS request for the given reverse route.  Optionally takes a WSClient producing function.  Note that the WS client used
+   * Provides a WSRequest against client.url(s"http://localhost:" + port + path)
+   *
+   * @param path the relative path to call
+   * @param port the port to use
+   * @return a WSRequest from WSClient
+   */
+  def wsUrl(path: String)(implicit port: Port): WSRequest = {
+    wsClient.url(s"http://localhost:" + port + path)
+  }
+}
+
+/**
+ * wsCall and wsUrl methods that do not require an implicit port parameter.
+ */
+trait WSTestMethodsWithPort {
+  def wsClient: WSClient
+  def wsClientPort: play.api.test.Port
+
+  /**
+   * Provides a WSRequest against client.url(s"http://localhost:" + port + call.url)
+   *
+   * Note that this method does not use the call.method.  If you need it, call:
+   *
+   * {{{
+   * wsCall(call).withMethod(call.method)
+   * }}}
+   *
+   * @param call the call relative to the server.
+   * @return a WSRequest from WSClient
+   */
+  def wsCall(call: Call): WSRequest = {
+    wsUrl(call.url)
+  }
+
+  /**
+   * Provides a WSRequest against client.url(s"http://localhost:" + port + path)
+   *
+   * @param path the relative path to call
+   * @return a WSRequest from WSClient
+   */
+  def wsUrl(path: String): WSRequest = {
+    val methods = new WSTestMethods {
+      override def wsClient: WSClient = WSTestMethodsWithPort.this.wsClient
+    }
+    methods.wsUrl(path)(wsClientPort)
+  }
+}
+
+/**
+ * Used to extend types like `new WithApplication`
+ *
+ * {{{
+ *   new WithApplication with AppWSTestMethods {
+ *
+ *   }
+ * }}}
+ */
+trait AppWSTestMethods extends WSTestMethods {
+  self: HasApp =>
+  import scala.language.reflectiveCalls
+
+  def wsClient: WSClient = currentClient(self.app)
+}
+
+trait ServerWSTestMethods extends WSTestMethodsWithPort {
+  self: HasAppAndPort =>
+  import scala.language.reflectiveCalls
+
+  def wsClient: WSClient = currentClient(self.app)
+  def wsClientPort: play.api.test.Port = self.port
+}
+
+/**
+ * Converts anything with Application and Port to an instance of WSTestMethods.
+ */
+trait WSTestMethodsImplicits {
+  import scala.language.implicitConversions
+  import scala.language.reflectiveCalls
+
+  implicit def fromHasAppAndPort(hasAppAndPort: HasAppAndPort): WSTestMethodsWithPort = new WSTestMethodsWithPort {
+    override def wsClient: WSClient = currentClient(hasAppAndPort.app)
+    override def wsClientPort: Port = hasAppAndPort.port
+  }
+
+  implicit def fromHasApp(hasApp: HasApp): WSTestMethods = new WSTestMethods {
+    override def wsClient: WSClient = currentClient(hasApp.app)
+  }
+
+  implicit def fromClient(client: WSClient): WSTestMethods = new WSTestMethods {
+    override def wsClient: WSClient = client
+  }
+
+  implicit def fromApplication(app: Application): WSTestMethods = new WSTestMethods {
+    override def wsClient: WSClient = currentClient(app)
+  }
+
+}
+
+/**
+ * A standalone test client that is useful for running functional tests.
+ */
+trait WsTestClient extends WSTestMethodsImplicits {
+
+  // Use the current app as a fallback
+  private def currentClient(implicit app: Application): WSClient = {
+    Application.instanceCache[WSClient].apply(app)
+  }
+
+  type Port = play.api.test.Port
+
+  /**
+   * Constructs a WS request for the given reverse route.  Optionally takes a WSClient.  Note that the WS client used
    * by default requires a running Play application (use WithApplication for tests).
    *
    * For example:
@@ -28,16 +154,18 @@ trait WsTestClient {
    * }
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
-    wsUrl(call.url)
+  @deprecated("Please see https://playframework.com/documentation/2.6.x/WSMigration26", "2.6.0")
+  def wsCall(call: Call)(implicit port: Port, client: WSClient = currentClient(play.api.Play.privateMaybeApplication.get)): WSRequest = {
+    client.url(s"http://localhost:" + port + call.url)
   }
 
   /**
-   * Constructs a WS request holder for the given relative URL.  Optionally takes a scheme, a port, or a client producing function.  Note that the WS client used
+   * Constructs a WS request for the given relative URL.  Optionally takes a port and WSClient.  Note that the WS client used
    * by default requires a running Play application (use WithApplication for tests).
    */
-  def wsUrl(url: String)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
-    client(port, scheme).url(s"$scheme://localhost:" + port + url)
+  @deprecated("Please see https://playframework.com/documentation/2.6.x/WSMigration26", "2.6.0")
+  def wsUrl(url: String)(implicit port: Port, client: WSClient = currentClient(play.api.Play.privateMaybeApplication.get)): WSRequest = {
+    client.url(s"http://localhost:" + port + url)
   }
 
   /**
@@ -58,12 +186,14 @@ trait WsTestClient {
    * }
    * }}}
    *
-   * @param block The block of code to run
-   * @param port The port
-   * @return The result of the block of code
+   * @param block  The block of code to run
+   * @param port   The port
+   * @param scheme The scheme
+   * @return       The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http") = {
-    val client = clientProducer(port.value, scheme)
+  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
+    require(scheme != null)
+    val client = new WsTestClient.InternalWSClient(scheme, port)
     try {
       block(client)
     } finally {
@@ -84,16 +214,15 @@ object WsTestClient extends WsTestClient {
    * @param port   the port to connect to the server on.
    * @param scheme the scheme to connect on ("http" or "https")
    */
-  class InternalWSClient(scheme: String, port: Port) extends WSClient {
+  class InternalWSClient(scheme: String, port: play.api.http.Port) extends WSClient {
 
     singletonClient.addReference(this)
 
     def underlying[T] = singletonClient.underlying.asInstanceOf[T]
 
     def url(url: String): WSRequest = {
-      if (url.startsWith("/") && port != -1) {
-        val httpPort = new play.api.http.Port(port)
-        singletonClient.url(s"$scheme://localhost:$httpPort$url")
+      if (url.startsWith("/") && port.value != -1) {
+        singletonClient.url(s"$scheme://localhost:$port$url")
       } else {
         singletonClient.url(url)
       }
@@ -212,3 +341,11 @@ object WsTestClient extends WsTestClient {
   }
 
 }
+
+private[test] object WSClientResolver {
+  def currentClient(app: Application): WSClient = {
+    // intentionally does not use Application.instanceCache
+    app.injector.instanceOf[WSClient]
+  }
+}
+

@@ -13,10 +13,22 @@ package object test {
   type Port = Int
 
   /**
+   * A structural type indicating there is an port.
+   */
+  type HasPort = {
+    def port: Port
+  }
+
+  /**
    * A structural type indicating there is an application.
    */
   type HasApp = {
     def app: Application
   }
+
+  /**
+   * A structural type indicating that there is an application and a port.
+   */
+  type HasAppAndPort = HasApp with HasPort
 
 }

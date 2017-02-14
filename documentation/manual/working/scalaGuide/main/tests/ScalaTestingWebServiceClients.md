@@ -3,6 +3,8 @@
 
 A lot of code can go into writing a web service client - preparing the request, serializing and deserializing the bodies, setting the correct headers.  Since a lot of this code works with strings and weakly typed maps, testing it is very important.  However testing it also presents some challenges.  Some common approaches include:
 
+## Testing Approaches
+
 ### Test against the actual web service
 
 This of course gives the highest level of confidence in the client code, however it is usually not practical.  If it's a third party web service, there may be rate limiting in place that prevents your tests from running (and running automated tests against a third party service is not considered being a good netizen).  It may not be possible to set up or ensure the existence of the necessary data that your tests require on that service, and your tests may have undesirable side effects on the service.
@@ -21,7 +23,71 @@ This approach is a good compromise between testing against the actual web servic
 
 Play provides some helper utilities for mocking a web service in tests, making this approach to testing a very viable and attractive option.
 
-## Testing a GitHub client
+## Helper Methods
+
+There are a number of helper methods available in `play.api.test` that enable convenient functional testing by leveraging `WSClient`.
+
+You can extend [`WithServer`](api/scala/play/api/test/WithServer.html) or [`WithBrowser`](api/scala/play/api/test/WithServer.html) with [`ServerWSTestMethods`](api/scala/play/api/test/ServerWSTestMethods.html) to provide the `wsCall` and `wsUrl` methods directly:
+
+```scala
+"run a test" in new WithServer() with ServerWSTestMethods {
+  val response = await(wsUrl("/withServer").get())
+  ...
+}
+```
+
+You can also extend [`WithApplication`](api/scala/play/api/test/WithApplication.html) with [`AppWSTestMethods`](api/scala/play/api/test/AppWSTestMethods.html) in the same way:
+
+```scala
+"run a test" in new WithServer() with AppWSTestMethods {
+  val response = await(wsUrl("/withServer").get())
+  ...
+}
+```
+
+The `WsTestClient` trait will now automatically enrich `WSClient`, `Application`, or `TestServer` types with `wsUrl` or `wsCall` methods, which can be very convenient:
+
+```scala
+class MySpec extends PlaySpecification with WsTestClient {
+  "test" should {
+    "call server.wsUrl on given port" in {
+      ...
+      val server = TestServer(someNonDefaultPort, app)
+      running(server) {
+        val plainRequest = server.wsUrl("/someUrl")
+        ...
+      }
+    }
+  }
+}
+```
+
+In fact, anything that contains `def app: Application` will have `wsCall` and `wsUrl` methods.  If you have a `def port: play.api.test.Port` as well, then the result of that `port` method is used, otherwise `Helpers.testServerPort` is the default.
+
+If the type does not have a port available, i.e. an `Application` or a `WSClient`, then you can still call `wsUrl` but there is an implicit port parameter that must be resolved, either from `WithServer`, or by using `Helpers.testServerPort`:
+
+```scala
+class MySpec extends PlaySpecification with WsTestClient {
+  "test" should {
+    "call app.wsUrl with explicit port" in new WithApplication() {
+      val response = await(app.wsUrl("/someUrl")(Helpers.testServerPort).get())
+    }
+    
+    "call app.wsUrl with implicit val port" in new WithApplication() {
+      implicit val implicitPort = Helpers.testServerPort
+      val response = await(app.wsUrl("/someUrl").get())
+    }
+    
+    "call app.wsUrl with implicit port from WithServer scope" in new WithServer() {
+      val response = await(app.wsUrl("/someUrl").get())
+    }
+  }
+}
+```
+
+## Testing a GitHub client using WsTestClient
+
+The convenience `wsUrl` and `wsCall` methods are good for spot integration tests, but for more domain specific tests, it can be useful to seperate client based activity completely from the server.
 
 As an example, let's say you've written a GitHub client, and you want to test it.  The client is very simple, it just allows you to look up the names of the public repositories:
 
@@ -35,7 +101,7 @@ To test this, we want an embedded Play server that will implement this endpoint.
 
 The `withRouter` method takes a block of code that takes as input the port number that the server starts on.  By default, Play starts the server on a random free port - this means that you don't need to worry about resource contention on build servers or assigning ports to tests, but it means that your code does need to be told which port is going to be used.
 
-Now to test the GitHub client, we need a `WSClient` for it.  Play provides a [`WsTestClient`](api/scala/play/api/test/WsTestClient$.html) trait that has some factory methods for creating test clients.  The `withClient` takes an implicit port, this is handy to use in combination with the `Server.withRouter` method.
+Now to test the GitHub client, we need a `WSClient` for it.  Play provides a [`WsTestClient`](api/scala/play/api/test/WsTestClient$.html) trait that has some factory methods for creating test clients.  The `withClient` method takes an implicit port, this is handy to use in combination with the `Server.withRouter` method.
 
 The client that the `WsTestClient.withClient` method creates here is a special client - if you give it a relative URL, then it will default the hostname to `localhost` and the port number to the port number passed in implicitly.  Using this, we can simply set the base url for our GitHub client to be an empty String.
 

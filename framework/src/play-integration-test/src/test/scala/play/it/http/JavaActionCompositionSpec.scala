@@ -19,7 +19,7 @@ class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }.build()
 
     running(TestServer(port, app)) {
-      val response = await(wsUrl("/").get())
+      val response = await(app.wsUrl("/").get())
       block(response)
     }
   }

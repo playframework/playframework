@@ -29,15 +29,11 @@ libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
 
 ### Scala
 
-The `WSAPI` class has been removed.  The `WSClient` interface is the point of entry for the WS API.
-
-`WSRequest` had a `withBody[T](body: T)(implicit writable: play.api.http.Writable[T])` method has been replaced as it was difficult to track the behavior of `Writable`. There is now a custom `BodyWritable[T]` type class that fills the same function, and which has type class instances defined in Standalone WS:
-
-```scala
-override def withBody[T: BodyWritable](body: T)
-```
+#### Removed Global WS.client
 
 The deprecated Scala singleton object `play.api.libs.ws.WS` has been removed.  An instance of `WSClient` should be used instead.  If compile time dependency injection is being used, then the `AhcWSComponents` trait should be mixed in.
+
+The `WSAPI` class has been removed.  The `WSClient` interface is the point of entry for the WS API.
 
 For Guice, there is a `WSClient` available in the system:
 
@@ -59,7 +55,82 @@ play.api.test.WsTestClient.withClient { ws =>
 }
 ```
 
+#### ning package removed
+
 The `ning` package has been replaced by the `ahc` package, and the Ning* classes replaced by AHC*.
+
+
+#### WithBody changed
+
+`WSRequest` had a `withBody[T](body: T)(implicit writable: play.api.http.Writable[T])` method has been replaced as it was difficult to track the behavior of `Writable`. There is now a custom `BodyWritable[T]` type class that fills the same function, and which has type class instances defined in Standalone WS:
+
+```scala
+override def withBody[T: BodyWritable](body: T)
+```
+
+### Refactored WSTestClient Methods
+
+The `wsCall` and `wsUrl` methods in `play.api.test.WsTestClient` have the goal of calling `wsClient.url(s"$scheme://localhost:" + self.port + path)` -- they resolve a `WSClient`, and call a relative URL on a given port.
+
+These methods relied on `Play.current` when no implicit `Application` was found and were not very flexible.  They have been deprecated in favor of `wsCall` and `wsUrl` methods in the context of an application and a port.
+
+You can extend `WithServer` or `WithBrowser` with `ServerWSTestMethods` to provide the `wsCall` and `wsUrl` methods directly:
+
+```scala
+"run a test" in new WithServer() with ServerWSTestMethods {
+  val response = await(wsUrl("/withServer").get())
+  ...
+}
+```
+
+You can also extend `WithApplication` with `AppWSTestMethods` in the same way:
+
+```scala
+"run a test" in new WithServer() with AppWSTestMethods {
+  val response = await(wsUrl("/withServer").get())
+  ...
+}
+```
+
+The `WsTestClient` trait will now automatically enrich `WSClient`, `Application`, or `TestServer` types with `wsUrl` or `wsCall` methods, which can be very convenient:
+
+```scala
+class MySpec extends PlaySpecification with WsTestClient {
+  "test" should {
+    "call server.wsUrl on given port" in {
+      ...
+      val server = TestServer(someNonDefaultPort, app)
+      running(server) {
+        val plainRequest = server.wsUrl("/someUrl")
+        ...
+      }
+    }
+  }
+}
+```
+
+In fact, anything that contains `def app: Application` will have `wsCall` and `wsUrl` methods.  If you have a `def port: play.api.test.Port` as well, then the result of that `port` method is used, otherwise `Helpers.testServerPort` is the default.
+
+If the type does not have a port available, i.e. an `Application` or a `WSClient`, then you can still call `wsUrl` but there is an implicit port parameter that must be resolved, either from `WithServer`, or by using `Helpers.testServerPort`:
+
+```scala
+class MySpec extends PlaySpecification with WsTestClient {
+  "test" should {
+    "call app.wsUrl with explicit port" in new WithApplication() {
+      val response = await(app.wsUrl("/someUrl")(Helpers.testServerPort).get())
+    }
+    
+    "call app.wsUrl with implicit val port" in new WithApplication() {
+      implicit val implicitPort = Helpers.testServerPort
+      val response = await(app.wsUrl("/someUrl").get())
+    }
+    
+    "call app.wsUrl with implicit port from WithServer scope" in new WithServer() {
+      val response = await(app.wsUrl("/someUrl").get())
+    }
+  }
+}
+```
 
 ### Java
 
@@ -89,3 +160,5 @@ WSClient ws = play.test.WsTestClient.newClient(19001);
 ...
 ws.close();
 ```
+
+
