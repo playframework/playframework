@@ -11,6 +11,7 @@ import akka.stream.{ ActorMaterializer, Materializer }
 import javax.inject.Singleton
 
 import play.api.http._
+import play.api.i18n.I18nComponents
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.libs.Files._
 import play.api.libs.concurrent.ActorSystemProvider
@@ -18,6 +19,7 @@ import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
+import play.core.j.JavaHelpers
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
@@ -243,7 +245,7 @@ class DefaultApplication @Inject() (
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents {
+trait BuiltInComponents extends I18nComponents {
   def environment: Environment
   def sourceMapper: Option[SourceMapper]
   def webCommands: WebCommands
@@ -280,4 +282,6 @@ trait BuiltInComponents {
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper)
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
+
+  lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 }

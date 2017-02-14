@@ -230,7 +230,13 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject % "test->test", PlaySpecs2Project)
+    .dependsOn(
+      PlayProject % "test->test",
+      PlayLogback % "test->test",
+      PlayAhcWsProject % "test->test",
+      PlayServerProject % "test->test",
+      PlaySpecs2Project
+    )
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayJavaFormsProject)

@@ -7,9 +7,9 @@ package javaguide.tests;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.*;
-import play.routing.Router;
 import play.libs.Json;
 import play.libs.ws.*;
 import play.routing.RoutingDsl;
@@ -20,23 +20,21 @@ import static org.junit.Assert.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 
 public class GitHubClientTest {
-    GitHubClient client;
-    WSClient ws;
-    Server server;
+    private GitHubClient client;
+    private WSClient ws;
+    private Server server;
 
     @Before
     public void setup() {
-        Router router = new RoutingDsl()
-            .GET("/repositories").routeTo(() -> {
-                ArrayNode repos = Json.newArray();
-                ObjectNode repo = Json.newObject();
-                repo.put("full_name", "octocat/Hello-World");
-                repos.add(repo);
-                return ok(repos);
-            })
-            .build();
-
-        server = Server.forRouter(router);
+        server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+                .GET("/repositories").routeTo(() -> {
+                    ArrayNode repos = Json.newArray();
+                    ObjectNode repo = Json.newObject();
+                    repo.put("full_name", "octocat/Hello-World");
+                    repos.add(repo);
+                    return ok(repos);
+                })
+                .build());
         ws = play.test.WSTestClient.newClient(server.httpPort());
         client = new GitHubClient(ws);
         client.baseUrl = "";

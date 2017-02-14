@@ -5,7 +5,6 @@ package javaguide.tests;
 
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
-import play.routing.Router;
 import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.routing.RoutingDsl;
@@ -23,17 +22,15 @@ public class JavaTestingWebServiceClients {
     @Test
     public void mockService() {
         //#mock-service
-        Router router = new RoutingDsl()
-            .GET("/repositories").routeTo(() -> {
-                ArrayNode repos = Json.newArray();
-                ObjectNode repo = Json.newObject();
-                repo.put("full_name", "octocat/Hello-World");
-                repos.add(repo);
-                return ok(repos);
-            })
-            .build();
-
-        Server server = Server.forRouter(router);
+        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+                .GET("/repositories").routeTo(() -> {
+                    ArrayNode repos = Json.newArray();
+                    ObjectNode repo = Json.newObject();
+                    repo.put("full_name", "octocat/Hello-World");
+                    repos.add(repo);
+                    return ok(repos);
+                })
+                .build());
         //#mock-service
 
         server.stop();
@@ -42,14 +39,13 @@ public class JavaTestingWebServiceClients {
     @Test
     public void sendResource() throws Exception {
         //#send-resource
-        Router router = new RoutingDsl()
-            .GET("/repositories").routeTo(() ->
-                    ok().sendResource("github/repositories.json")
-            )
-            .build();
+        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+                .GET("/repositories").routeTo(() ->
+                        ok().sendResource("github/repositories.json")
+                )
+                .build()
+        );
         //#send-resource
-
-        Server server = Server.forRouter(router);
 
         WSClient ws = play.test.WSTestClient.newClient(server.httpPort());
         GitHubClient client = new GitHubClient(ws);

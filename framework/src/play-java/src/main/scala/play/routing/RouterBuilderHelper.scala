@@ -5,12 +5,8 @@ package play.routing
 
 import java.util.concurrent.CompletionStage
 
-import play.api.Play
-import play.api.http.{ HttpConfiguration, JavaHttpErrorHandlerDelegate, ParserConfiguration }
-import play.api.libs.Files.TemporaryFileCreator
-import play.api.mvc.{ ActionBuilder, PlayBodyParsers, Results }
+import play.api.mvc._
 import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.Context
 import play.mvc.Result
 import play.utils.UriEncoding
@@ -19,7 +15,8 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
-private[routing] object RouterBuilderHelper {
+private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], contextComponents: JavaContextComponents) {
+
   def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.asScala
 
@@ -62,20 +59,7 @@ private[routing] object RouterBuilderHelper {
             val action = maybeParams match {
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(parameters) =>
-                // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
-                // it to instantiate the default body parser, we have to instantiate it ourselves.
-                val app = Play.privateMaybeApplication.get // throw exception if no current app
-
-                // Convert to a Scala action
-                val parser = HandlerInvokerFactory.javaBodyParserToScala {
-                  val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
-                  val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer, tempFileCreator)
-                  new play.mvc.BodyParser.Default(
-                    new JavaHttpErrorHandlerDelegate(app.errorHandler),
-                    app.injector.instanceOf[HttpConfiguration], bp)
-                }
-                ActionBuilder.ignoringBody.async(parser) { request =>
-                  val contextComponents = app.injector.instanceOf[JavaContextComponents]
+                ActionBuilder.ignoringBody.async(bodyParser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)

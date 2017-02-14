@@ -4,13 +4,9 @@
 package play.core.server
 
 import com.google.common.io.Files
-import com.typesafe.config.ConfigException
 import java.io.File
-import java.nio.charset.Charset
 import java.util.Properties
 import org.specs2.mutable.Specification
-import play.api.{ Mode, Play, PlayException }
-import play.core.ApplicationProvider
 
 case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
 

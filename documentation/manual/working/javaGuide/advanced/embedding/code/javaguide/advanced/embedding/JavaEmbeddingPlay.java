@@ -15,7 +15,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 //#imports
-import play.Mode;
 import play.routing.RoutingDsl;
 import play.server.Server;
 import static play.mvc.Controller.*;
@@ -29,12 +28,11 @@ public class JavaEmbeddingPlay {
     @Test
     public void simple() throws Exception {
         //#simple
-        Server server = Server.forRouter(new RoutingDsl()
-            .GET("/hello/:to").routeTo(to ->
-                ok("Hello " + to)
-            )
-            .build()
-        );
+        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+                .GET("/hello/:to").routeTo(to ->
+                        ok("Hello " + to)
+                )
+                .build());
         //#simple
 
         try {
@@ -60,19 +58,18 @@ public class JavaEmbeddingPlay {
     @Test
     public void config() throws Exception {
         //#config
-        Server server = Server.forRouter(new RoutingDsl()
-            .GET("/hello/:to").routeTo(to ->
-                ok("Hello " + to)
-            )
-            .build(),
-            Mode.TEST, 19000
+        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+                .GET("/hello/:to").routeTo(to ->
+                        ok("Hello " + to)
+                )
+                .build()
         );
         //#config
 
         try {
             withClient(ws -> {
                     try {
-                        assertThat(ws.url("http://localhost:19000/hello/world").get().toCompletableFuture().get(10,
+                        assertThat(ws.url("http://localhost:" + server.httpPort() + "/hello/world").get().toCompletableFuture().get(10,
                                 TimeUnit.SECONDS).getBody(), equalTo("Hello world"));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
