@@ -5,9 +5,6 @@ package play.routing;
 
 import org.junit.BeforeClass;
 import play.api.ApplicationLoader;
-import play.api.Mode;
-
-import java.io.File;
 
 public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
@@ -15,14 +12,7 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
     @BeforeClass
     public static void startApp() {
-        play.api.Environment environment = play.api.Environment.simple(new File("."), Mode.Test());
-        play.api.ApplicationLoader.Context context = new play.api.ApplicationLoader.Context(
-                environment,
-                scala.Option.empty(),
-                new play.core.DefaultWebCommands(),
-                play.api.Configuration.load(environment),
-                new play.api.inject.DefaultApplicationLifecycle()
-        );
+        play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).underlying();
         components = new TestComponents(context);
     }
 
