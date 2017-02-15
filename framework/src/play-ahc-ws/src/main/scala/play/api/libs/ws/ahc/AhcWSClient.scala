@@ -27,7 +27,9 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
    *
    * @param url The base URL to make HTTP requests to.
    * @return a request
+   * @throws IllegalArgumentException if the URL is invalid.
    */
+  @throws[IllegalArgumentException]
   override def url(url: String): WSRequest = {
     AhcWSRequest(underlyingClient.url(url).asInstanceOf[StandaloneAhcWSRequest])
   }

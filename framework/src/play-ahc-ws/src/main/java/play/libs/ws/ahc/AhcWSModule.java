@@ -4,6 +4,7 @@
 package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
@@ -37,8 +38,8 @@ public class AhcWSModule extends Module {
         private final AhcWSClient client;
 
         @Inject
-        public AhcWSClientProvider(AsyncHttpClient asyncHttpClient, Materializer materializer) {
-            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
+        public AhcWSClientProvider(AsyncHttpClient asyncHttpClient, Materializer materializer, ObjectMapper objectMapper) {
+            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer, objectMapper));
         }
 
         @Override
