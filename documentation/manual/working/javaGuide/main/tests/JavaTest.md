@@ -83,10 +83,6 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 @[test-controller-test](code/javaguide/tests/ControllerTest.java)
 
-You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use `FakeRequest` which is a mock for request data:
-
-@[test-controller-routes](code/javaguide/tests/ControllerTest.java)
-
 ## Unit testing view templates
 
 As a template is a standard Scala function, you can execute it from a test and check the result:

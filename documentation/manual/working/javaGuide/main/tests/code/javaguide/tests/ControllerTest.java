@@ -11,16 +11,9 @@ import static play.test.Helpers.*;
 
 import javaguide.tests.controllers.HomeController;
 
-import java.util.ArrayList;
-
-import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
-import play.Application;
-import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
-import play.test.Helpers;
-import play.test.WithApplication;
 import play.twirl.api.Content;
 
 public class ControllerTest {
@@ -36,18 +29,7 @@ public class ControllerTest {
 
   //###replace: }
 //#test-controller-test
-  
-  //#test-controller-routes
-  @Test
-  public void testCallIndex() {
-    Result result = route(
-      //###replace:     controllers.routes.HomeController.index(),
-      javaguide.tests.controllers.routes.HomeController.index()
-    );
-    assertEquals(OK, result.status());
-  }
-  //#test-controller-routes
-  
+
   //#test-template
   @Test
   public void renderTemplate() {
