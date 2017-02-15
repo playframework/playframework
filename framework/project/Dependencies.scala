@@ -6,11 +6,11 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.4.16"
+  val akkaVersion = "2.4.17"
   val akkaHttpVersion = "10.0.3"
-  val playJsonVersion = "2.6.0-M2"
+  val playJsonVersion = "2.6.0-M3"
 
-  val specsVersion = "3.8.6"
+  val specsVersion = "3.8.8"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -27,14 +27,14 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.8.5")
+  ).map(_ % "2.8.6")
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.22")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.8"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.1"
 
-  val guava = "com.google.guava" % "guava" % "20.0"
+  val guava = "com.google.guava" % "guava" % "21.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
@@ -207,7 +207,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
-  val playDocVersion = "1.7.0"
+  val playDocVersion = "1.8.0"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
