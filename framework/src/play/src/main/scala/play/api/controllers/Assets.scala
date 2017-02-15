@@ -36,16 +36,52 @@ package controllers {
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
   import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HeaderNames }
-  import play.api.inject.Module
+  import play.api.inject.{ ApplicationLifecycle, Module }
 
   object Execution extends TrampolineContextProvider
 
   class AssetsModule extends Module {
     override def bindings(environment: Environment, configuration: Configuration) = Seq(
       bind[Assets].toSelf,
-      bind[AssetsMetadata].toSelf,
+      bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
+      bind[AssetsFinder].to[AssetsMetadata],
       bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
     )
+  }
+
+  /**
+   * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[PathBindable]]
+   * for assets does additional "magic" using statics so routes like {@code routes.Assets.versioned("foo.js") } will
+   * find the minified and digested version of that asset.
+   *
+   * It is also possible to avoid this provider and simply inject [[AssetsFinder]]. Then you can call
+   * [[AssetsFinder.path]] to get the final path of an asset according to the path and url prefix in configuration.
+   */
+  @Singleton
+  class AssetsMetadataProvider @Inject() (
+      env: Environment,
+      config: AssetsConfiguration,
+      fileMimeTypes: FileMimeTypes,
+      lifecycle: ApplicationLifecycle
+  ) extends Provider[DefaultAssetsMetadata] {
+    lazy val get = {
+      import StaticAssetsMetadata.instance
+      val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
+      StaticAssetsMetadata.synchronized {
+        instance = Some(assetsMetadata)
+      }
+      lifecycle.addStopHook(() => Future.successful {
+        StaticAssetsMetadata.synchronized {
+          // Set instance to None if this application was the last to set the instance.
+          // Otherwise it's the responsibility of whoever set it last to unset it.
+          // We don't want to break a running application that needs a static instance.
+          if (instance contains assetsMetadata) {
+            instance = None
+          }
+        }
+      })
+      assetsMetadata
+    }
   }
 
   trait AssetsComponents {
@@ -53,8 +89,16 @@ package controllers {
     def environment: Environment
     def httpErrorHandler: HttpErrorHandler
     def fileMimeTypes: FileMimeTypes
-    lazy val assetsConfiguration: AssetsConfiguration = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
-    lazy val assetsMetadata: AssetsMetadata = new AssetsMetadata(environment, assetsConfiguration, fileMimeTypes)
+    def applicationLifecycle: ApplicationLifecycle
+
+    lazy val assetsConfiguration: AssetsConfiguration =
+      AssetsConfiguration.fromConfiguration(configuration, environment.mode)
+
+    lazy val assetsMetadata: AssetsMetadata =
+      new AssetsMetadataProvider(environment, assetsConfiguration, fileMimeTypes, applicationLifecycle).get
+
+    lazy val assetFinder: AssetsFinder = assetsMetadata
+
     lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
   }
 
@@ -102,6 +146,8 @@ package controllers {
   }
 
   case class AssetsConfiguration(
+    path: String = "/public",
+    urlPrefix: String = "/assets",
     defaultCharSet: String = "utf-8",
     enableCaching: Boolean = true,
     enableCacheControl: Boolean = false,
@@ -115,6 +161,8 @@ package controllers {
   object AssetsConfiguration {
     def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Prod): AssetsConfiguration = {
       AssetsConfiguration(
+        path = c.get[String]("play.assets.path"),
+        urlPrefix = c.get[String]("play.assets.urlPrefix"),
         defaultCharSet = c.getDeprecated[String]("play.assets.default.charset", "default.charset"),
         enableCaching = mode != Mode.Dev,
         enableCacheControl = mode == Mode.Prod,
@@ -133,38 +181,136 @@ package controllers {
     def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
   }
 
-  object LazyAssetsMetadata extends AssetsMetadata(
-    Play.maybeApplication.map(app =>
-      AssetsConfiguration.fromConfiguration(app.configuration, app.mode)
-    ).getOrElse(AssetsConfiguration()),
-    { name =>
-      Play.maybeApplication.flatMap(app => new Environment(new File("."), app.classloader, app.mode).resource(name))
-    },
-    Play.maybeApplication.map(app =>
-      app.injector.instanceOf[FileMimeTypes]
-    ).getOrElse {
-      import play.api.http.HttpConfiguration.HttpConfigurationProvider
-      // Mode.Prod is the default mode for assets, when there is no maybeApplication
-      // See AssetsConfiguration.fromConfiguration
-      val httpConfig = new HttpConfigurationProvider(Configuration.reference, Environment.simple(new File("."), Mode.Prod)).get
-      new DefaultFileMimeTypesProvider(httpConfig.fileMimeTypes).get
-    }
-  )
+  /**
+   * INTERNAL API: provides static access to AssetsMetadata for legacy global state and reverse routing.
+   */
+  private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
 
-  /*
-   * Retains meta information regarding an asset that can be readily cached.
+    @volatile private[controllers] var instance: Option[AssetsMetadata] = None
+
+    private[this] lazy val defaultAssetsMetadata = new DefaultAssetsMetadata(
+      AssetsConfiguration(),
+      name => None,
+      {
+        import play.api.http.HttpConfiguration.HttpConfigurationProvider
+        // Mode.Prod is the default mode for assets, when there is no maybeApplication
+        // See AssetsConfiguration.fromConfiguration
+        val httpConfig = new HttpConfigurationProvider(Configuration.reference, Environment.simple(new File("."), Mode.Prod)).get
+        new DefaultFileMimeTypesProvider(httpConfig.fileMimeTypes).get
+      }
+    )
+
+    private[this] def delegate: AssetsMetadata = instance getOrElse defaultAssetsMetadata
+
+    /**
+     * The configured assets path
+     */
+    override def assetsBasePath = delegate.assetsBasePath
+    override def assetsUrlPrefix = delegate.assetsUrlPrefix
+    override def findAssetPath(base: String, path: String) =
+      delegate.findAssetPath(base, path)
+    override private[controllers] def digest(path: String) =
+      delegate.digest(path)
+    override private[controllers] def assetInfoForRequest(request: RequestHeader, name: String) =
+      delegate.assetInfoForRequest(request, name)
+  }
+
+  /**
+   * Retains metadata for assets that can be readily cached.
+   *
+   * To get the final path of an asset, you can inject an instance and call finalPath.
+   */
+  trait AssetsMetadata extends AssetsFinder {
+    private[controllers] def digest(path: String): Option[String]
+    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]]
+  }
+
+  /**
+   * Can be used to find assets according to configured base path and URL base.
+   */
+  trait AssetsFinder { self =>
+
+    /**
+     * The configured assets path
+     */
+    def assetsBasePath: String
+
+    /**
+     * The configured assets prefix
+     */
+    def assetsUrlPrefix: String
+
+    /**
+     * Get the final path, unprefixed, for a given base assets directory.
+     *
+     * @param basePath the location to look for the assets
+     * @param rawPath the initial path of the asset
+     * @return
+     */
+    def findAssetPath(basePath: String, rawPath: String): String
+
+    /**
+     * Used to obtain the final path of an asset according to assets configuration. This returns the minified path,
+     * if exists, with a digest if it exists. It is possible to use this in cases where minification and digests
+     * are used and where they are not. If no alternative file is found, the original filename is returned.
+     *
+     * This method is like unprefixedPath, but it prepends the prefix defined in configuration.
+     *
+     * Note: to get the path without a URL prefix, you can use {@code this.unprefixed.path(rawPath)}
+     *
+     * @param rawPath The original path of the asset
+     */
+    def path(rawPath: String): String = {
+      val base = assetsBasePath
+      s"$assetsUrlPrefix/${findAssetPath(base, s"$base/$rawPath")}"
+    }
+
+    /**
+     * @return an AssetsFinder with no URL prefix
+     */
+    lazy val unprefixed: AssetsFinder = this.withUrlPrefix("")
+
+    /**
+     * Create an AssetsFinder with a custom URL prefix (replacing the current prefix)
+     */
+    def withUrlPrefix(newPrefix: String): AssetsFinder = new AssetsFinder {
+      override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
+      override def assetsUrlPrefix = newPrefix
+      override def assetsBasePath = self.assetsBasePath
+    }
+
+    /**
+     * Create an AssetsFinder with a custom assets location (replacing the current assets base path)
+     */
+    def withAssetsPath(newPath: String): AssetsFinder = new AssetsFinder {
+      override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
+      override def assetsUrlPrefix = self.assetsUrlPrefix
+      override def assetsBasePath = newPath
+    }
+  }
+
+  /**
+   * Default implementation of [[AssetsMetadata]].
+   *
+   * If your application uses reverse routing with assets or the [[Assets]] static object, you should use the
+   * [[AssetsMetadataProvider]] to set up needed statics.
    */
   @Singleton
-  class AssetsMetadata(config: AssetsConfiguration, resource: String => Option[URL], fileMimeTypes: FileMimeTypes) {
+  class DefaultAssetsMetadata(
+      config: AssetsConfiguration,
+      resource: String => Option[URL],
+      fileMimeTypes: FileMimeTypes
+  ) extends AssetsMetadata {
 
     @Inject
     def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) = this(config, env.resource _, fileMimeTypes)
 
     import HeaderNames._
-    import config._
 
-    // Get the final path (minified and digested)
-    def finalPath(base: String, path: String): String = blocking {
+    val assetsBasePath = config.path
+    val assetsUrlPrefix = config.urlPrefix
+
+    def findAssetPath(base: String, path: String): String = blocking {
       val minPath = minifiedPath(path)
       digest(minPath).fold(minPath) { dgst =>
         val lastSep = minPath.lastIndexOf("/")
@@ -183,9 +329,9 @@ package controllers {
 
     private[controllers] def digest(path: String): Option[String] = {
       digestCache.getOrElse(path, {
-        val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
+        val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
         val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
-        if (enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
+        if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
         maybeDigest
       })
     }
@@ -201,12 +347,12 @@ package controllers {
           val minPath = noextPath + delim + "min." + ext
           resource(minPath).map(_ => minPath)
         }
-        val maybeMinifiedPath = if (checkForMinified) {
+        val maybeMinifiedPath = if (config.checkForMinified) {
           minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
         } else {
           path
         }
-        if (enableCaching) minifiedPathsCache.put(path, maybeMinifiedPath)
+        if (config.enableCaching) minifiedPathsCache.put(path, maybeMinifiedPath)
         maybeMinifiedPath
       })
     }
@@ -225,7 +371,7 @@ package controllers {
     }
 
     private def assetInfo(name: String): Future[Option[AssetInfo]] = {
-      if (enableCaching) {
+      if (config.enableCaching) {
         assetInfoCache.putIfAbsent(name)(assetInfoFromResource)
       } else {
         Future.successful(assetInfoFromResource(name))
@@ -353,7 +499,19 @@ package controllers {
    * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
    * }}}
    */
-  object Assets extends AssetsBuilder(LazyHttpErrorHandler, LazyAssetsMetadata) {
+  object Assets extends AssetsBuilder(LazyHttpErrorHandler, StaticAssetsMetadata) {
+
+    @deprecated("Inject Assets and use Assets#at", "2.6.0")
+    override def at(file: String) = super.at(file)
+
+    @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
+    override def versioned(file: String) = super.versioned(file)
+
+    @deprecated("Inject Assets and use Assets#at", "2.6.0")
+    override def at(path: String, file: String, aggressiveCaching: Boolean) = super.at(path, file, aggressiveCaching)
+
+    @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
+    override def versioned(path: String, file: Asset) = super.versioned(path, file)
 
     import ResponseHeader.basicDateFormatPattern
 
@@ -416,13 +574,14 @@ package controllers {
         ).toString
       }
 
+      // This uses StaticAssetsMetadata to obtain the full path to the asset.
       implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
         def bind(key: String, value: String) = Right(new Asset(value))
 
         def unbind(key: String, value: Asset): String = {
           val base = pathFromParams(rrc)
           val path = base + "/" + value.name
-          LazyAssetsMetadata.finalPath(base, path)
+          StaticAssetsMetadata.findAssetPath(base, path)
         }
       }
     }
@@ -478,6 +637,16 @@ package controllers {
         response
       }
     }
+
+    /**
+     * Generates an `Action` that serves a static resource, using the base asset path from configuration.
+     */
+    def at(file: String): Action[AnyContent] = at(meta.assetsBasePath, file)
+
+    /**
+     * Generates an `Action` that serves a versioned static resource, using the base asset path from configuration.
+     */
+    def versioned(file: String): Action[AnyContent] = versioned(meta.assetsBasePath, Asset(file))
 
     /**
      * Generates an `Action` that serves a versioned static resource.
