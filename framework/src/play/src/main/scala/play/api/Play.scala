@@ -95,7 +95,7 @@ object Play {
    *
    * @param app the application to start
    */
-  def start(app: Application): Unit = {
+  def start(app: Application): Unit = synchronized {
 
     val globalApp = app.globalApplicationEnabled
 
@@ -122,13 +122,17 @@ object Play {
   /**
    * Stops the given application.
    */
-  def stop(app: Application) {
+  def stop(app: Application): Unit = {
     if (app != null) {
       Threads.withContextClassLoader(app.classloader) {
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
-    _currentApp = null
+    synchronized {
+      if (app == _currentApp) { // Don't bother un-setting the current app unless it's our app
+        _currentApp = null
+      }
+    }
   }
 
   /**
