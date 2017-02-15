@@ -34,7 +34,7 @@ public class FunctionalTest extends WithApplication {
                 .method(GET)
                 .uri("/xx/Kiwi");
 
-        Result result = route(request);
+        Result result = route(app, request);
         assertEquals(NOT_FOUND, result.status());
     }
     //#bad-route
@@ -60,11 +60,9 @@ public class FunctionalTest extends WithApplication {
     public void testInServer() throws Exception {
         TestServer server = testServer(3333);
         running(server, () -> {
-            try {
-                WSClient ws = play.test.WSTestClient.newClient(3333);
+            try (WSClient ws = WSTestClient.newClient(3333)) {
                 CompletionStage<WSResponse> completionStage = ws.url("/").get();
                 WSResponse response = completionStage.toCompletableFuture().get();
-                ws.close();
                 assertEquals(OK, response.getStatus());
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

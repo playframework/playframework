@@ -37,6 +37,14 @@ To run tests with an `Application` [[created by Guice|JavaTestingWithGuice]], yo
 
 Note that there are different ways to customize the `Application` creation when using Guice to test.
 
+## Testing a Controller Action through Routing
+
+With a running application, you can retrieve an action reference from the reverse router and invoke it. This also allows you to use `RequestBuilder` which creates a fake request:
+
+@[bad-route-import](code/javaguide/tests/FunctionalTest.java)
+
+@[bad-route](code/javaguide/tests/FunctionalTest.java)
+
 ## Testing with a server
 
 Sometimes you want to test the real HTTP stack from within your test. You can do this by starting a test server:
@@ -56,11 +64,3 @@ If you want to test your application from with a Web browser, you can use [Selen
 And, of course there, is the [`WithBrowser`](api/java/play/test/WithBrowser.html) class to automatically open and close a browser for each test:
 
 @[test-withbrowser](code/javaguide/tests/BrowserFunctionalTest.java)
-
-## Testing the router
-
-Instead of calling the `Action` yourself, you can let the `Router` do it:
-
-@[bad-route-import](code/javaguide/tests/FunctionalTest.java)
-
-@[bad-route](code/javaguide/tests/FunctionalTest.java)

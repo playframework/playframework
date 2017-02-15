@@ -11,27 +11,13 @@ import static play.test.Helpers.*;
 
 import javaguide.tests.controllers.HomeController;
 
-import java.util.ArrayList;
-
-import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
-import play.Application;
-import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
-import play.test.Helpers;
-import play.test.WithApplication;
 import play.twirl.api.Content;
 
-public class ApplicationTest extends WithApplication {
+public class ControllerTest {
   
-  @Override
-  protected Application provideApplication() {
-    return new GuiceApplicationBuilder()
-      .configure("play.http.router", "javaguide.tests.Routes")
-      .build();
-  }
-
   @Test
   public void testIndex() {
     Result result = new HomeController().index();
@@ -43,18 +29,7 @@ public class ApplicationTest extends WithApplication {
 
   //###replace: }
 //#test-controller-test
-  
-  //#test-controller-routes
-  @Test
-  public void testCallIndex() {
-    Result result = route(
-      //###replace:     controllers.routes.HomeController.index(),
-      javaguide.tests.controllers.routes.HomeController.index()
-    );
-    assertEquals(OK, result.status());
-  }
-  //#test-controller-routes
-  
+
   //#test-template
   @Test
   public void renderTemplate() {
