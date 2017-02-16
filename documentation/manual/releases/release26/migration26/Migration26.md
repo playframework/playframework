@@ -45,6 +45,24 @@ libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 
 Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
+### Play Iteratees moved to separate project
+
+Play Iteratees has been moved to a separate library hosted at https://github.com/playframework/play-iteratees. Since Play Iteratees has no dependencies on the rest of Play, the main change is that the you'll have to specify the library manually:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1"
+```
+
+The project also has a sub project that integrates Iteratees with [Reactive Streams](http://www.reactive-streams.org/). You may need to add the following dependency as well: 
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
+```
+
+> **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary. 
+
+Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
+
 ## Writeable[JsValue] changes
 
 Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
