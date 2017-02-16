@@ -35,6 +35,14 @@ In Play 2.6, the core Play module no longer includes Guice. You will need to con
 libraryDependencies += guice
 ```
 
+### OpenID support moved to separate module
+
+In Play 2.6, the core Play module no longer includes the OpenID support in `play.api.libs.openid` (Scala) and `play.libs.openid` (Java). To use these packages add `openId` to your `libraryDependencies`:
+
+```scala
+libraryDependencies += openId
+```
+
 ### Play JSON moved to separate project
 
 Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no depependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
