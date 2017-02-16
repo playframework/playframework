@@ -142,18 +142,18 @@ Here's an example of configuration that uses a rolling file appender, as well as
     </root>
 
 </configuration>
-
 ```
 
 This demonstrates a few useful features:
 
-- It uses `RollingFileAppender` which can help manage growing log files.
-- It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
+- It uses `RollingFileAppender` which can help manage growing log files. See more [details here](https://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy).
+- It writes log files to a directory external to the application so they will not affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
 - The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
 - Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](http://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.
 
+> **Note**: the `file` tag is optional and you can omit it if you want to avoid file renaming. See [Logback docs](https://logback.qos.ch/codes.html#renamingError) for more information.
 
 ## Including Properties
 
