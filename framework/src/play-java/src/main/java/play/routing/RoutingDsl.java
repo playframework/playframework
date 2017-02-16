@@ -102,7 +102,7 @@ public class RoutingDsl {
     @Deprecated
     public RoutingDsl() {
         logger.warn(
-            "RoutingDsl.build() method was deprecated in favor of using Dependency Injection. " +
+            "RoutingDsl default constructor was deprecated in favor of using Dependency Injection. " +
             "You should migrate to use a version that uses the #RoutingDsl(BodyParser, JavaContextComponents) constructor " +
             "or just inject an instance of play.routing.RoutingDsl."
         );
