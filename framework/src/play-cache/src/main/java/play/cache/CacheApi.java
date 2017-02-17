@@ -67,4 +67,10 @@ public interface CacheApi {
      * @param key The key to remove the value for.
      */
     public void remove(String key);
+
+    /**
+     * Removes all values from the cache.
+     *
+     */
+    public void clearAll();
 }

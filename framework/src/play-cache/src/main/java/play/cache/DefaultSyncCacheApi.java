@@ -71,6 +71,11 @@ public class DefaultSyncCacheApi implements SyncCacheApi, CacheApi {
         blocking(cacheApi.remove(key));
     }
 
+    @Override
+    public void clearAll() {
+        blocking(cacheApi.clearAll());
+    }
+
     private <T> T blocking(CompletionStage<T> stage) {
         boolean interrupted = false;
         try {

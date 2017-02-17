@@ -78,4 +78,11 @@ public interface AsyncCacheApi {
      * @return a CompletionStage containing the value
      */
     CompletionStage<Done> remove(String key);
+
+    /**
+     * Removes all values from the cache.
+     *
+     * @return a CompletionStage containing the value
+     */
+    CompletionStage<Done> clearAll();
 }
