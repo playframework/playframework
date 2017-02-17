@@ -37,7 +37,7 @@ libraryDependencies += guice
 
 ### Play JSON moved to separate project
 
-Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no depependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
@@ -176,7 +176,7 @@ The following libraries are no longer dependencies in Play 2.6, so you will need
 
 #### Joda-Time removal
 
-If you can, you could migrate all occurences to Java8 `java.time`.
+If you can, you could migrate all occurrences to Java8 `java.time`.
 
 If you can't and still need to use Joda-Time in Play Forms and Play-Json you can just add the `play-joda` project:
 
@@ -220,13 +220,13 @@ Prior versions of Play prepackaged the H2 database. But to make the core of Play
 If you make use of h2 you can add it to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.h2database" % "h2" % "1.4.191"
+libraryDependencies += "com.h2database" % "h2" % "1.4.193"
 ```
 
 If you only used it in your test you can also just use the `Test` scope:
 
 ```scala
-libraryDependencies += "com.h2database" % "h2" % "1.4.191" % Test
+libraryDependencies += "com.h2database" % "h2" % "1.4.193" % Test
 ```
 
 The [[H2 Browser|Developing-with-the-H2-Database#H2-Browser]] will still work after you added the dependency.
@@ -276,7 +276,7 @@ public class MyComponent {
 
 ### Request attributes
 
-All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, wherease tags only supported storing strings.
+All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing strings.
 
 #### Request tags deprecation
 
@@ -425,7 +425,7 @@ The deprecated `play.Routes` class used to create a JavaScript router were remov
 * [[Javascript Routing in Scala|ScalaJavascriptRouting]]
 * [[Javascript Routing in Java|JavaJavascriptRouter]]
 
-### Execution
+### `play.api.libs.concurrent.Execution` is deprecated
 
 The `play.api.libs.concurrent.Execution` class has been deprecated, as it was using global mutable state under the hood to pull the "current" application's ExecutionContext.
 
@@ -561,9 +561,10 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 ```
 ## Updated libraries
 
-### Fluentlenium
-The Fluentlenium library was updated to version 3.1.1 and as a result the underlying Selenium version changed to [3.0.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/). If you were using Selenium's WebDriver API before, there shouldn't be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
-If you were using the Fluentlenium library you might have to change some syntax to get your tests working again. Please see Fluentlenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/)
+### FluentLenium
+
+The FluentLenium library was updated to version 3.1.1 and as a result the underlying Selenium version changed to [3.0.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/). If you were using Selenium's WebDriver API before, there shouldn't be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
+If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
 ## Other Configuration changes
 
