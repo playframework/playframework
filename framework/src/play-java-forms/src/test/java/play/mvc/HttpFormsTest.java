@@ -135,10 +135,8 @@ public class HttpFormsTest {
 
             List<Object> args = new ArrayList<>();
             args.add("error.customarg");
-            List<ValidationError> error = new ArrayList<>();
-            error.add(new ValidationError("key", "error.custom", args));
-            Map<String,List<ValidationError>> errors = new HashMap<>();
-            errors.put("foo", error);
+            List<ValidationError> errors = new ArrayList<>();
+            errors.add(new ValidationError("foo", "error.custom", args));
             Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");

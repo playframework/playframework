@@ -129,6 +129,10 @@ Then in your template you can use `AssetsFinder#path` to find the final path of 
 
 You can still continue to use reverse routes with `Assets.versioned`, but some global state is required to convert the asset name you provide to the final asset name, which can be problematic if you want to run multiple applications at once.
 
+## Java Form Changes
+
+The `.errors()` method of a `play.data.Form` instance now returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
+
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].

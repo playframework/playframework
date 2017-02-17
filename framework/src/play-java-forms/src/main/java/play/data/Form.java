@@ -54,7 +54,7 @@ public class Form<T> {
     private final String rootName;
     private final Class<T> backedType;
     private final Map<String,String> data;
-    private final Map<String,List<ValidationError>> errors;
+    private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
     final MessagesApi messagesApi;
@@ -94,13 +94,29 @@ public class Form<T> {
     }
 
     public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validator);
     }
 
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    }
+
+    /**
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
     }
 
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    }
+
+    /**
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
@@ -118,16 +134,34 @@ public class Form<T> {
      * @param formatters used for parsing and printing form fields
      * @param validator the validator component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
-        this.errors = errors;
+        this.errors = errors != null ? errors : new ArrayList<>();
         this.value = value;
         this.groups = groups;
         this.messagesApi = messagesApi;
         this.formatters = formatters;
         this.validator = validator;
+    }
+
+    /**
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(
+            rootName,
+            clazz,
+            data,
+            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<>(),
+            value,
+            groups,
+            messagesApi,
+            formatters,
+            validator
+        );
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -341,14 +375,11 @@ public class Form<T> {
         }
 
         if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            Map<String,List<ValidationError>> errors = new HashMap<>();
+            final List<ValidationError> errors = new ArrayList<>();
             for (FieldError error: result.getFieldErrors()) {
                 String key = error.getObjectName() + "." + error.getField();
                 if (key.startsWith("target.") && rootName == null) {
                     key = key.substring(7);
-                }
-                if (!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<>());
                 }
 
                 ValidationError validationError;
@@ -367,7 +398,7 @@ public class Form<T> {
                     validationError = new ValidationError(key, error.getDefaultMessage(),
                             convertErrorArguments(error.getArguments()));
                 }
-                errors.get(key).add(validationError);
+                errors.add(validationError);
             }
 
             List<ValidationError> globalErrors = result.getGlobalErrors().stream()
@@ -375,7 +406,7 @@ public class Form<T> {
                     .collect(Collectors.toList());
 
             if (!globalErrors.isEmpty()) {
-                errors.put("", globalErrors);
+                errors.addAll(globalErrors);
             }
 
             return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
@@ -392,24 +423,17 @@ public class Form<T> {
                 }
             }
             if (globalError != null) {
-                Map<String,List<ValidationError>> errors = new HashMap<>();
+                final List<ValidationError> errors = new ArrayList<>();
                 if (globalError instanceof String) {
-                    errors.put("", new ArrayList<>());
-                    errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
+                    errors.add(new ValidationError("", (String)globalError, new ArrayList()));
                 } else if (globalError instanceof List) {
-                    for (ValidationError error : (List<ValidationError>) globalError) {
-                      List<ValidationError> errorsForKey = errors.get(error.key());
-                      if (errorsForKey == null) {
-                        errors.put(error.key(), errorsForKey = new ArrayList<>());
-                      }
-                      errorsForKey.add(error);
-                    }
+                    errors.addAll((List<ValidationError>) globalError);
                 } else if (globalError instanceof Map) {
-                    errors = (Map<String,List<ValidationError>>)globalError;
+                    errors.addAll(((Map<String,List<ValidationError>>)globalError).values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()));
                 }
                 return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
     }
 
@@ -459,7 +483,7 @@ public class Form<T> {
                 rootName,
                 backedType,
                 new HashMap<>(),
-                new HashMap<String,ValidationError>(),
+                new ArrayList<>(),
                 Optional.ofNullable(value),
                 groups,
                 messagesApi,
@@ -479,7 +503,7 @@ public class Form<T> {
      * @return <code>true</code> if there any global errors related to this form.
      */
     public boolean hasGlobalErrors() {
-        return errors.containsKey("") && !errors.get("").isEmpty();
+        return !globalErrors().isEmpty();
     }
 
     /**
@@ -488,11 +512,7 @@ public class Form<T> {
      * @return All global errors.
      */
     public List<ValidationError> globalErrors() {
-        List<ValidationError> e = errors.get("");
-        if (e == null) {
-            e = new ArrayList<>();
-        }
-        return e;
+        return errors.stream().filter(error -> error.key().isEmpty()).collect(Collectors.toList());
     }
 
     /**
@@ -513,8 +533,19 @@ public class Form<T> {
      *
      * @return All errors associated with this form.
      */
-    public Map<String,List<ValidationError>> errors() {
+    public List<ValidationError> errors() {
         return errors;
+    }
+
+    /**
+     * @param key    the field name associated with the error.
+     * @return All errors for this key.
+     */
+    public List<ValidationError> errors(String key) {
+        if(key == null) {
+            return new ArrayList<>();
+        }
+        return errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList());
     }
 
     /**
@@ -522,11 +553,7 @@ public class Form<T> {
      * @return an error by key, or null.
      */
     public ValidationError error(String key) {
-        List<ValidationError> err = errors.get(key);
-        if (err == null || err.isEmpty()) {
-            return null;
-        }
-        return err.get(0);
+        return errors(key).stream().findFirst().orElse(null);
     }
 
     /**
@@ -543,17 +570,15 @@ public class Form<T> {
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
-        errors.forEach((key, errs) -> {
-            if (errs != null && !errs.isEmpty()) {
-                List<String> messages = new ArrayList<>();
-                for (ValidationError error : errs) {
-                    if (messagesApi != null && lang != null) {
-                        messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
-                    } else {
-                        messages.add(error.message());
-                    }
+        errors.forEach(error -> {
+            if (error != null) {
+                final List<String> messages = new ArrayList<>();
+                if (messagesApi != null && lang != null) {
+                    messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
+                } else {
+                    messages.add(error.message());
                 }
-                allMessages.put(key, messages);
+                allMessages.put(error.key(), messages);
             }
         });
         return play.libs.Json.toJson(allMessages);
@@ -596,10 +621,9 @@ public class Form<T> {
      * @param error the <code>ValidationError</code> to add.
      */
     public void reject(ValidationError error) {
-        if (!errors.containsKey(error.key())) {
-           errors.put(error.key(), new ArrayList<>());
+        if (error != null) {
+            errors.add(error);
         }
-        errors.get(error.key()).add(error);
     }
 
     /**
@@ -665,7 +689,7 @@ public class Form<T> {
      * @param key field name
      * @return the field (even if the field does not exist you get a field)
      */
-    public Field field(String key) {
+    public Field field(final String key) {
 
         // Value
         String fieldValue = null;
@@ -691,12 +715,6 @@ public class Form<T> {
                     }
                 }
             }
-        }
-
-        // Error
-        List<ValidationError> fieldErrors = errors.get(key);
-        if (fieldErrors == null) {
-            fieldErrors = new ArrayList<>();
         }
 
         // Format
@@ -764,7 +782,7 @@ public class Form<T> {
             }
         }
 
-        return new Field(this, key, constraints, format, fieldErrors, fieldValue);
+        return new Field(this, key, constraints, format, errors(key), fieldValue);
     }
 
     public String toString() {

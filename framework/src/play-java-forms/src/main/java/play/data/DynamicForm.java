@@ -6,6 +6,7 @@ package play.data;
 import javax.validation.Validator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import play.data.validation.*;
 import play.data.format.Formatters;
@@ -40,13 +41,28 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param formatters     the formatters component.
      * @param validator      the validator component.
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
+    public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
         }
 
+    }
+
+    /**
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
+        this(
+                data,
+                errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<>(),
+                value,
+                messagesApi,
+                formatters,
+                validator
+        );
     }
     
     /**
