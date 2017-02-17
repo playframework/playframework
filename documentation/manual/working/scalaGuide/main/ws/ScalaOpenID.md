@@ -18,7 +18,7 @@ To use OpenID, first add `openid`  to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
-  openid
+  openId
 )
 ```
 

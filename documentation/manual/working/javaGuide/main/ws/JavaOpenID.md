@@ -14,9 +14,9 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenID, first add `openid` to your `build.sbt` file:
+To use OpenID, first add `openId` to your `build.sbt` file:
 
-@[javaws-sbt-dependencies](code/javaws.sbt)
+@[javaopenid-sbt-dependencies](code/javaopenid.sbt)
 
 Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/java/play/libs/openid/OpenIdClient.html).
 
