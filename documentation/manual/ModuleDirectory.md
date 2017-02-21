@@ -87,6 +87,10 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website (docs, sample):** <https://github.com/alexanderjarvis/play-jongo>
 * **Short description:** Provides managed MongoDB access and object mapping using [Jongo](http://jongo.org/)
 
+### MongoDB Morphia Plugin (Java)
+* **Website (docs, sample):** <https://github.com/morellik/play-morphia>
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://mongodb.github.io/morphia/)
+
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>
 * **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
