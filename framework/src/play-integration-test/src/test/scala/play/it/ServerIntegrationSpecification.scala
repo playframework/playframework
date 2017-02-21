@@ -56,6 +56,19 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
+  implicit class UntilFastCIServer[T: AsResult](t: => T) {
+    def skipOnSlowCIServer: Result = parent match {
+      case _ if isContinuousIntegrationEnvironment => Skipped()
+      case _ => ResultExecution.execute(AsResult(t))
+    }
+  }
+
+  // There are some tests that we still want to run, but Travis CI will fail
+  // because the server is underpowered...
+  def isContinuousIntegrationEnvironment: Boolean = {
+    System.getenv("CONTINUOUS_INTEGRATION") == "true"
+  }
+
   /**
    * Override the standard TestServer factory method.
    */

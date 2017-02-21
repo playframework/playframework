@@ -47,7 +47,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
       responses(0).body must beLeft("long")
       responses(1).status must_== 200
       responses(1).body must beLeft("short")
-    }
+    }.skipOnSlowCIServer
 
     "wait for the first response body to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
@@ -68,7 +68,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
       responses(0).body.right.get._1 must containAllOf(Seq("chunk", "chunk", "chunk")).inOrder
       responses(1).status must_== 200
       responses(1).body must beLeft("short")
-    }
+    }.skipOnSlowCIServer
 
   }
 }
