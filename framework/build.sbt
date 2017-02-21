@@ -208,7 +208,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
   ).dependsOn(PlayWsProject, PlayJavaProject)
   .dependsOn(PlaySpecs2Project % "test")
-  .dependsOn(PlayTestProject % "compile->compile; test->test")
+  .dependsOn(PlayTestProject % "test->test")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .settings(
