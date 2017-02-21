@@ -80,4 +80,4 @@ As described before, Play provides a number of helper traits for wiring in other
 
 @[messages](code/CompileTimeDependencyInjection.scala)
 
-Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWsComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)
+Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWSComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)
