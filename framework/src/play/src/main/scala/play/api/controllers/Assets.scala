@@ -35,7 +35,7 @@ package controllers {
 
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
-  import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HeaderNames }
+  import play.api.http._
   import play.api.inject.{ ApplicationLifecycle, Module }
 
   object Execution extends TrampolineContextProvider
@@ -159,7 +159,7 @@ package controllers {
     textContentTypes: Set[String] = Set("application/json", "application/javascript"))
 
   object AssetsConfiguration {
-    def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Prod): AssetsConfiguration = {
+    def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Test): AssetsConfiguration = {
       AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
         urlPrefix = c.get[String]("play.assets.urlPrefix"),
@@ -188,17 +188,15 @@ package controllers {
 
     @volatile private[controllers] var instance: Option[AssetsMetadata] = None
 
-    private[this] lazy val defaultAssetsMetadata = new DefaultAssetsMetadata(
-      AssetsConfiguration(),
-      name => None,
-      {
-        import play.api.http.HttpConfiguration.HttpConfigurationProvider
-        // Mode.Prod is the default mode for assets, when there is no maybeApplication
-        // See AssetsConfiguration.fromConfiguration
-        val httpConfig = new HttpConfigurationProvider(Configuration.reference, Environment.simple(new File("."), Mode.Prod)).get
-        new DefaultFileMimeTypesProvider(httpConfig.fileMimeTypes).get
-      }
-    )
+    private[this] lazy val defaultAssetsMetadata: AssetsMetadata = {
+      val environment = Environment.simple()
+      val configuration = Configuration.reference
+      val assetsConfig = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
+      val httpConfig = HttpConfiguration.fromConfiguration(configuration, environment)
+      val fileMimeTypes = new DefaultFileMimeTypes(httpConfig.fileMimeTypes)
+
+      new DefaultAssetsMetadata(environment, assetsConfig, fileMimeTypes)
+    }
 
     private[this] def delegate: AssetsMetadata = instance getOrElse defaultAssetsMetadata
 
