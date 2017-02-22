@@ -468,7 +468,7 @@ trait ControllerComponentsFactory {
     materializer: Materializer = NoMaterializer): ControllerComponents = {
     DefaultControllerComponents(
       DefaultActionBuilder(bodyParser)(executionContent),
-      PlayBodyParsers(materializer),
+      PlayBodyParsers.stub(materializer),
       messagesApi,
       langs,
       fileMimeTypes,

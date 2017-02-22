@@ -248,7 +248,7 @@ object BodyParser {
    * }}}
    *
    * @param content the content to return, AnyContentAsEmpty by default
-   * @return
+   * @return a BodyParser for type T that returns Accumulator.done(Right(content))
    */
   def stub[T](content: T = AnyContentAsEmpty): BodyParser[T] = {
     BodyParser(_ => Accumulator.done(Right(content)))

@@ -414,12 +414,12 @@ object PlayBodyParsers {
   }
 
   /**
-   * Stub apply method for unit testing.
+   * Stub apply method for unit testing, using NoTemporaryFileCreator.
    *
-   * @param mat materializer the input materializer.
-   * @return a minimal PlayBodyParsers
+   * @param mat the input materializer.
+   * @return a minimal PlayBodyParsers for unit testing.
    */
-  def apply(mat: Materializer): PlayBodyParsers = {
+  def stub(mat: Materializer): PlayBodyParsers = {
     val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
     PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
   }
