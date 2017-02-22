@@ -17,7 +17,7 @@ import play.api._
 import play.api.data.Form
 import play.api.http.Status._
 import play.api.http._
-import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
+import play.api.libs.Files.{ NoTemporaryFileCreator, SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
@@ -81,6 +81,39 @@ sealed trait AnyContent {
     case _ => None
   }
 
+}
+
+/**
+ * Factory object for creating an AnyContent instance.  Useful for unit testing.
+ */
+object AnyContent {
+  def apply(): AnyContent = {
+    AnyContentAsEmpty
+  }
+
+  def apply(contentText: String): AnyContent = {
+    AnyContentAsText(contentText)
+  }
+
+  def apply(json: JsValue): AnyContent = {
+    AnyContentAsJson(json)
+  }
+
+  def apply(xml: NodeSeq): AnyContent = {
+    AnyContentAsXml(xml)
+  }
+
+  def apply(formUrlEncoded: Map[String, Seq[String]]): AnyContent = {
+    AnyContentAsFormUrlEncoded(formUrlEncoded)
+  }
+
+  def apply(formData: MultipartFormData[TemporaryFile]): AnyContent = {
+    AnyContentAsMultipartFormData(formData)
+  }
+
+  def apply(raw: RawBuffer): AnyContent = {
+    AnyContentAsRaw(raw)
+  }
 }
 
 /**
@@ -378,6 +411,17 @@ class DefaultPlayBodyParsers @Inject() (
 object PlayBodyParsers {
   def apply(conf: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer, tfc: TemporaryFileCreator): PlayBodyParsers = {
     new DefaultPlayBodyParsers(conf, eh, mat, tfc)
+  }
+
+  /**
+   * Stub apply method for unit testing.
+   *
+   * @param mat materializer the input materializer.
+   * @return a minimal PlayBodyParsers
+   */
+  def apply(mat: Materializer): PlayBodyParsers = {
+    val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
+    PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
   }
 }
 

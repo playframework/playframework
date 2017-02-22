@@ -12,6 +12,7 @@ import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
 import play.api.http._
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
@@ -19,8 +20,7 @@ import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
@@ -434,6 +434,48 @@ trait ResultExtractors {
 
 }
 
+trait ControllerComponentsFactory {
+
+  /**
+   * Create a minimal controller components, useful for unit testing.
+   *
+   * In most cases, you'll want the standard defaults:
+   *
+   * {{{
+   *   val controller = new MyController(controllerComponents())
+   * }}}
+   *
+   * A custom body parser can be used with BodyParser.stub to provide a request body to the controller:
+   *
+   * {{{
+   * val cc = controllerComponents(BodyParser.stub(AnyContent("request body text")))
+   * }}}
+   *
+   * @param bodyParser the body parser used to parse any content, BodyParser.stub() by default.
+   * @param messagesApi: the messages api, new DefaultMessagesApi() by default.
+   * @param langs the langs instance for messaging, new DefaultLangs() by default.
+   * @param fileMimeTypes the mime type associated with file extensions, new DefaultFileMimeTypes(FileMimeTypesConfiguration() by default.
+   * @param executionContent an execution context, defaults to ExecutionContext.global
+   * @param materializer the akka Materializer passed in, defaults to NoMaterializer
+   * @return a fully configured ControllerComponents instance.
+   */
+  def controllerComponents(
+    bodyParser: BodyParser[AnyContent] = BodyParser.stub(),
+    messagesApi: MessagesApi = new DefaultMessagesApi(),
+    langs: Langs = new DefaultLangs(),
+    fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
+    executionContent: ExecutionContext = ExecutionContext.global,
+    materializer: Materializer = NoMaterializer): ControllerComponents = {
+    DefaultControllerComponents(
+      DefaultActionBuilder(bodyParser)(executionContent),
+      PlayBodyParsers(materializer),
+      messagesApi,
+      langs,
+      fileMimeTypes,
+      executionContent)
+  }
+}
+
 object Helpers extends PlayRunners
   with HeaderNames
   with Status
@@ -445,6 +487,7 @@ object Helpers extends PlayRunners
   with EssentialActionCaller
   with RouteInvokers
   with FutureAwaits
+  with ControllerComponentsFactory
 
 /**
  * A trait declared on a class that contains an `def app: Application`, and can provide
@@ -469,7 +512,7 @@ trait Injecting {
  * strict body. So, rather than always requiring an implicit materializer, we use one if provided, otherwise we have
  * a default one that simply throws an exception if used.
  */
-private[play] object NoMaterializer extends Materializer {
+object NoMaterializer extends Materializer {
   override def withNamePrefix(name: String): Materializer =
     throw new UnsupportedOperationException("NoMaterializer cannot be named")
   override def materialize[Mat](runnable: Graph[ClosedShape, Mat]): Mat =

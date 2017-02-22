@@ -99,6 +99,18 @@ object Files {
     }
   }
 
+  object NoTemporaryFileCreator extends TemporaryFileCreator {
+    override def create(prefix: String, suffix: String): TemporaryFile = {
+      throw new UnsupportedOperationException("Cannot create temporary file")
+    }
+    override def create(path: Path): TemporaryFile = {
+      throw new UnsupportedOperationException(s"Cannot create temporary file at $path")
+    }
+    override def delete(file: TemporaryFile): Try[Boolean] = {
+      throw new UnsupportedOperationException(s"Cannot delete temporary file at $file")
+    }
+  }
+
   /**
    * Creates temporary folders inside a single temporary folder. deleting all files on a
    * successful application stop.  Note that this will not clean up the filesystem if the
