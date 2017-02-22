@@ -140,6 +140,10 @@ This is an incomplete list of several helpful blog posts, and because some of th
 * [Play Multidomain Seed](https://github.com/adrianhurt/play-multidomain-seed) by Adrianhurt: tries to be a skeleton for a simple multidomain project (www.myweb.com and admin.myweb.com). It shows you how to use subprojects for that and how to share common code. It is also ready to use with Webjars, CoffeeScript, LESS, RequireJS, assets Gzip and assets fingerprinting. Please, check the readme file for more details.
 * [Play Multidomain Auth](https://github.com/adrianhurt/play-multidomain-auth) by Adrianhurt: this is a second part of play-multidomain-seed project. This project tries to be an example of how to implement an Authentication and Authorization layer using the Silhouette authentication library. It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
 
+#### Upgrading
+
+* [Upgrading from Play 2.3 to Play 2.5](https://www.lucidchart.com/techblog/2017/02/22/upgrading-play-framework-2-3-play-2-5/) by Gregg Hernandez: Learn how to deal with common problems when upgrading to Play 2.5, including maintaining legacy behavior, transitioning to Akka Streams, and implementing compile-time dependency injection.
+
 ### 2.4.x
 
 #### Semisafe
