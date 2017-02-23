@@ -101,6 +101,6 @@ Once the template is defined with its dependencies, then the controller can have
 
 ## Message Authentication using Blake2b 
 
-In the wake of the [SHA-1 collision](https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html?m=1), Play's cookie handling now uses [Blake2b](https://blake2.net/) by default for message authentication, instead of SHA-1 HMAC. 
+In the wake of the [SHA-1 collision](https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html), Play's cookie handling now uses [Blake2b](https://blake2.net/) by default for message authentication, instead of SHA-1 HMAC. 
 
 This should be transparent to most projects but if the previous cookie signing behavior is required, then  `play.http.secret.mac=HmacSHA1` should be set in `application.conf`.

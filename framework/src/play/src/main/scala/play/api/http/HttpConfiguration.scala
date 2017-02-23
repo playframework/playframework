@@ -57,9 +57,9 @@ case class HttpConfiguration(
  *
  * To achieve 4, using the location of application.conf to generate the secret should ensure this.
  *
- * @param secret   the application secret\
+ * @param secret   the application secret
  * @param provider the JCE provider to use. If null, uses the platform default
- * @param mac the MAC to use for message authentication.
+ * @param mac the algorithm to use for message authentication.
  */
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None, mac: Option[String] = None)
 
