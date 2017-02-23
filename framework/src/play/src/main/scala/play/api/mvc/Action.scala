@@ -240,19 +240,6 @@ object BodyParser {
     override def toString = "BodyParser(" + debugName + ")"
   }
 
-  /**
-   * Stub method that returns the content immediately.  Useful for unit testing.
-   *
-   * {{{
-   * val bodyParser = BodyParser.stub(AnyContent("hello"))
-   * }}}
-   *
-   * @param content the content to return, AnyContentAsEmpty by default
-   * @return a BodyParser for type T that returns Accumulator.done(Right(content))
-   */
-  def stub[T](content: T = AnyContentAsEmpty): BodyParser[T] = {
-    BodyParser(_ => Accumulator.done(Right(content)))
-  }
 }
 
 /**

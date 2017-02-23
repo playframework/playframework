@@ -3,6 +3,8 @@
  */
 package play.api.test
 
+import java.nio.file.Path
+
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
@@ -14,6 +16,7 @@ import play.api._
 import play.api.http._
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.Files
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -24,6 +27,7 @@ import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Fut
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
  * Helper functions to run tests.
@@ -434,7 +438,38 @@ trait ResultExtractors {
 
 }
 
-trait ControllerComponentsFactory {
+trait StubPlayBodyParsersFactory {
+
+  /**
+   * Stub method for unit testing, using NoTemporaryFileCreator.
+   *
+   * @param mat the input materializer.
+   * @return a minimal PlayBodyParsers for unit testing.
+   */
+  def stubPlayBodyParsers(mat: Materializer): PlayBodyParsers = {
+    val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
+    PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
+  }
+
+}
+
+trait StubBodyParserFactory {
+  /**
+   * Stub method that returns the content immediately.  Useful for unit testing.
+   *
+   * {{{
+   * val stubParser = bodyParser(AnyContent("hello"))
+   * }}}
+   *
+   * @param content the content to return, AnyContentAsEmpty by default
+   * @return a BodyParser for type T that returns Accumulator.done(Right(content))
+   */
+  def stubBodyParser[T](content: T = AnyContentAsEmpty): BodyParser[T] = {
+    BodyParser(_ => Accumulator.done(Right(content)))
+  }
+}
+
+trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory {
 
   /**
    * Create a minimal controller components, useful for unit testing.
@@ -442,33 +477,33 @@ trait ControllerComponentsFactory {
    * In most cases, you'll want the standard defaults:
    *
    * {{{
-   *   val controller = new MyController(controllerComponents())
+   *   val controller = new MyController(stubControllerComponents())
    * }}}
    *
-   * A custom body parser can be used with BodyParser.stub to provide a request body to the controller:
+   * A custom body parser can be used with bodyParser() to provide a request body to the controller:
    *
    * {{{
-   * val cc = controllerComponents(BodyParser.stub(AnyContent("request body text")))
+   * val cc = stubControllerComponents(bodyParser(AnyContent("request body text")))
    * }}}
    *
-   * @param bodyParser the body parser used to parse any content, BodyParser.stub() by default.
+   * @param bodyParser the body parser used to parse any content, stubBodyParser(AnyContentAsEmpty) by default.
+   * @param playBodyParsers the playbodyparsers, defaults to stubPlayBodyParsers(NoMaterializer)
    * @param messagesApi: the messages api, new DefaultMessagesApi() by default.
    * @param langs the langs instance for messaging, new DefaultLangs() by default.
    * @param fileMimeTypes the mime type associated with file extensions, new DefaultFileMimeTypes(FileMimeTypesConfiguration() by default.
    * @param executionContent an execution context, defaults to ExecutionContext.global
-   * @param materializer the akka Materializer passed in, defaults to NoMaterializer
    * @return a fully configured ControllerComponents instance.
    */
-  def controllerComponents(
-    bodyParser: BodyParser[AnyContent] = BodyParser.stub(),
+  def stubControllerComponents(
+    bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
+    playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
     messagesApi: MessagesApi = new DefaultMessagesApi(),
     langs: Langs = new DefaultLangs(),
     fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
-    executionContent: ExecutionContext = ExecutionContext.global,
-    materializer: Materializer = NoMaterializer): ControllerComponents = {
+    executionContent: ExecutionContext = ExecutionContext.global): ControllerComponents = {
     DefaultControllerComponents(
       DefaultActionBuilder(bodyParser)(executionContent),
-      PlayBodyParsers.stub(materializer),
+      playBodyParsers,
       messagesApi,
       langs,
       fileMimeTypes,
@@ -487,7 +522,7 @@ object Helpers extends PlayRunners
   with EssentialActionCaller
   with RouteInvokers
   with FutureAwaits
-  with ControllerComponentsFactory
+  with StubControllerComponentsFactory
 
 /**
  * A trait declared on a class that contains an `def app: Application`, and can provide
@@ -504,6 +539,21 @@ trait Injecting {
    */
   def inject[T: ClassTag]: T = {
     self.app.injector.instanceOf
+  }
+}
+
+/**
+ * A temporary file creator with no implementation.
+ */
+object NoTemporaryFileCreator extends Files.TemporaryFileCreator {
+  override def create(prefix: String, suffix: String): Files.TemporaryFile = {
+    throw new UnsupportedOperationException("Cannot create temporary file")
+  }
+  override def create(path: Path): Files.TemporaryFile = {
+    throw new UnsupportedOperationException(s"Cannot create temporary file at $path")
+  }
+  override def delete(file: Files.TemporaryFile): Try[Boolean] = {
+    throw new UnsupportedOperationException(s"Cannot delete temporary file at $file")
   }
 }
 

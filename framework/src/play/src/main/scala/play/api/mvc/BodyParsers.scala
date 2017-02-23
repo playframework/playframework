@@ -17,7 +17,7 @@ import play.api._
 import play.api.data.Form
 import play.api.http.Status._
 import play.api.http._
-import play.api.libs.Files.{ NoTemporaryFileCreator, SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
@@ -411,17 +411,6 @@ class DefaultPlayBodyParsers @Inject() (
 object PlayBodyParsers {
   def apply(conf: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer, tfc: TemporaryFileCreator): PlayBodyParsers = {
     new DefaultPlayBodyParsers(conf, eh, mat, tfc)
-  }
-
-  /**
-   * Stub apply method for unit testing, using NoTemporaryFileCreator.
-   *
-   * @param mat the input materializer.
-   * @return a minimal PlayBodyParsers for unit testing.
-   */
-  def stub(mat: Materializer): PlayBodyParsers = {
-    val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
-    PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
   }
 }
 
