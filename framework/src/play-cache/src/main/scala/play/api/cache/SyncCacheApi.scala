@@ -44,11 +44,6 @@ trait SyncCacheApi {
    * @return result as Option[T]
    */
   def get[T: ClassTag](key: String): Option[T]
-
-  /**
-   * Remove all values from the cache
-   */
-  def clearAll: Unit
 }
 
 /**
@@ -87,11 +82,6 @@ trait CacheApi {
    * @return result as Option[T]
    */
   def get[T: ClassTag](key: String): Option[T]
-
-  /**
-   * Remove all values from the cache
-   */
-  def clearAll: Unit
 }
 
 /**
@@ -120,9 +110,5 @@ class DefaultSyncCacheApi @Inject() (cacheApi: AsyncCacheApi) extends SyncCacheA
 
   def remove(key: String): Unit = {
     Await.result(cacheApi.remove(key), awaitTimeout)
-  }
-
-  def clearAll: Unit = {
-    Await.result(cacheApi.clearAll, awaitTimeout)
   }
 }

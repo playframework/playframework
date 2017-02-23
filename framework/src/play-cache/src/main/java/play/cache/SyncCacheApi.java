@@ -64,10 +64,4 @@ public interface SyncCacheApi {
      * @param key The key to remove the value for.
      */
     void remove(String key);
-
-    /**
-     * Removes all values from the cache.
-     *
-     */
-    void clearAll();
 }
