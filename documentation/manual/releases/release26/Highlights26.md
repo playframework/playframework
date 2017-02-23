@@ -56,7 +56,7 @@ First, add the `@Inject` annotation to Twirl in `build.sbt`:
 TwirlKeys.constructorAnnotations += "@javax.inject.Inject()"
 ```
 
-Then create a file `indexTemplate.scala.html` using the `@this` syntax for the constructor:
+Then create a file `indexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
 
 ```scala
 @this(trc: TemplateRenderingComponent)
