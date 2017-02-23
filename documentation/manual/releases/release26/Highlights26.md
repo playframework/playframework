@@ -103,4 +103,6 @@ Once the template is defined with its dependencies, then the controller can have
 
 In the wake of the [SHA-1 collision](https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html), Play's cookie handling now uses [Blake2b](https://blake2.net/) by default for message authentication, instead of SHA-1 HMAC. 
 
-This should be transparent to most projects but if the previous cookie signing behavior is required, then  `play.http.secret.mac=HmacSHA1` should be set in `application.conf`.
+Because the session cookie is authenticated differently between Play 2.5.x and Play 2.6.x, this means that an upgrade from an existing Play 2.5.x application will result in sessions being invalidated as users rollover between servers. 
+
+If the previous cookie signing behavior is required, then `play.http.secret.mac=HmacSHA1` should be set in `application.conf`.
