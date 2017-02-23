@@ -112,8 +112,6 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
     withBody(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
-  def certs = Future.successful(IndexedSeq.empty)
-
   /**
    * Adds a JSON body to the request.
    */
@@ -146,7 +144,7 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
   /**
    * Adds a multipart form data body to the request
    */
-  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
+  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]): FakeRequest[AnyContentAsMultipartFormData] = {
     withBody(body = AnyContentAsMultipartFormData(form))
   }
 
@@ -216,7 +214,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       new RequestTarget {
         override lazy val uri: URI = new URI(uriString)
         override def uriString: String = _uri
-        override lazy val path = uriString.split('?').take(1).mkString
+        override lazy val path: String = uriString.split('?').take(1).mkString
         override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
       },
       version,
