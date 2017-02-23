@@ -66,6 +66,30 @@ case class Lang(locale: Locale) {
  * Utilities related to Lang values.
  */
 object Lang {
+  import play.api.libs.json.{ Json, JsString, OWrites, Reads, Writes }
+
+  implicit val jsonWrites: OWrites[Lang] = OWrites[Lang] { lang =>
+    Json.obj(
+      "language" -> lang.language,
+      "country" -> lang.country,
+      "variant" -> lang.variant
+    )
+  }
+
+  val jsonLocaleWrites: Writes[Lang] =
+    Writes[Lang] { lang => JsString(lang.locale.toLanguageTag) }
+
+  implicit val jsonReads: Reads[Lang] = Reads[Lang] { json =>
+    for {
+      l <- (json \ "language").validate[String]
+      c <- (json \ "country").validate[String]
+      v <- (json \ "variant").validate[String]
+    } yield Lang(new Locale(l, c, v))
+  }
+
+  val jsonLocaleReads: Reads[Lang] = Reads[Lang] {
+    _.validate[String].map { tag => Lang(Locale.forLanguageTag(tag)) }
+  }
 
   /**
    * The default Lang to use if nothing matches (platform default)
@@ -118,6 +142,7 @@ object Lang {
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     langsCache(app).preferred(langs)
   }
+
 }
 
 /**
