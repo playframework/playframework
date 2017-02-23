@@ -34,6 +34,9 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
     private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
 
+    private static final String CSRF_TOKEN = "CSRF_TOKEN";
+    private static final String CSRF_TOKEN_NAME = "CSRF_TOKEN_NAME";
+
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
 
@@ -47,8 +50,8 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             String newToken = tokenProvider.generateToken();
 
             // Place this token into the context
-            ctx.args.put(Token.RequestTag(), newToken);
-            ctx.args.put(Token.NameRequestTag(), config.tokenName());
+            ctx.args.put(CSRF_TOKEN, newToken);
+            ctx.args.put(CSRF_TOKEN_NAME, config.tokenName());
 
             // Create a new Scala RequestHeader with the token
             request = csrfActionHelper.tagRequest(request, new CSRF.Token(config.tokenName(), newToken));

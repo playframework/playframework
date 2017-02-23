@@ -15,6 +15,7 @@ import play.api.http.HeaderNames._
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.core.parsers.Multipart
 import play.filters.cors.CORSFilter
@@ -374,10 +375,10 @@ private[csrf] class CSRFActionHelper(
    * Get the header token, that is, the token that should be validated.
    */
   private[csrf] def getTokenToValidate(request: RequestHeader) = {
-    val tagToken = request.tags.get(Token.RequestTag)
+    val attrToken = CSRF.getToken(request).map(_.value)
     val cookieToken = csrfConfig.cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
     val sessionToken = request.session.get(csrfConfig.tokenName)
-    cookieToken orElse sessionToken orElse tagToken filter { token =>
+    cookieToken orElse sessionToken orElse attrToken filter { token =>
       // return None if the token is invalid
       !csrfConfig.signTokens || tokenSigner.extractSignedToken(token).isDefined
     }
@@ -394,7 +395,9 @@ private[csrf] class CSRFActionHelper(
         // Extract the signed token, and then resign it. This makes the token random per request, preventing the BREACH
         // vulnerability
         val newTokenValue = tokenSigner.extractSignedToken(token.value).map(tokenSigner.signToken)
-        newTokenValue.fold(newReq)(newReq.withTag(Token.ReSignedRequestTag, _))
+        newTokenValue.fold(newReq)(tv =>
+          newReq.withAttrs(newReq.attrs + (Token.InfoAttr -> TokenInfo(token, tv)))
+        )
       } else {
         newReq
       }
@@ -406,10 +409,7 @@ private[csrf] class CSRFActionHelper(
   }
 
   private[csrf] def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
-    request.copy(tags = request.tags ++ Map(
-      Token.NameRequestTag -> token.name,
-      Token.RequestTag -> token.value
-    ))
+    request.withAttrs(request.attrs + (Token.InfoAttr -> TokenInfo(token)))
   }
 
   private[csrf] def tagRequest[A](request: Request[A], token: Token): Request[A] = {
