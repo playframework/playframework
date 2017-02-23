@@ -32,7 +32,7 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
 
     "be injectable" in {
       running() { app =>
-        app.injector.instanceOf[inject.Application]
+        app.injector.instanceOf[injected.Application]
         ok
       }
     }
@@ -159,7 +159,7 @@ object html {
 
 }
 
-package inject {
+package injected {
 //#inject
 import play.api.cache._
 import play.api.mvc._

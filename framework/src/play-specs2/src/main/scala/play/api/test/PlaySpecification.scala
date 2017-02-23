@@ -22,5 +22,6 @@ trait PlaySpecification extends Specification
     with Writeables
     with RouteInvokers
     with FutureAwaits
-    with HttpVerbs {
+    with HttpVerbs
+    with Injectable {
 }
