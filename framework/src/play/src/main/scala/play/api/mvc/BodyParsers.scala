@@ -84,6 +84,39 @@ sealed trait AnyContent {
 }
 
 /**
+ * Factory object for creating an AnyContent instance.  Useful for unit testing.
+ */
+object AnyContent {
+  def apply(): AnyContent = {
+    AnyContentAsEmpty
+  }
+
+  def apply(contentText: String): AnyContent = {
+    AnyContentAsText(contentText)
+  }
+
+  def apply(json: JsValue): AnyContent = {
+    AnyContentAsJson(json)
+  }
+
+  def apply(xml: NodeSeq): AnyContent = {
+    AnyContentAsXml(xml)
+  }
+
+  def apply(formUrlEncoded: Map[String, Seq[String]]): AnyContent = {
+    AnyContentAsFormUrlEncoded(formUrlEncoded)
+  }
+
+  def apply(formData: MultipartFormData[TemporaryFile]): AnyContent = {
+    AnyContentAsMultipartFormData(formData)
+  }
+
+  def apply(raw: RawBuffer): AnyContent = {
+    AnyContentAsRaw(raw)
+  }
+}
+
+/**
  * AnyContent - Empty request body
  */
 case object AnyContentAsEmpty extends AnyContent

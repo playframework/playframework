@@ -466,6 +466,9 @@ object ActionBuilder {
 
 /**
  * A trait representing the default action builder used by Play's controllers.
+ *
+ * This trait is used for binding, since some dependency injection frameworks doesn't deal
+ * with types very well.
  */
 trait DefaultActionBuilder extends ActionBuilder[Request, AnyContent]
 
