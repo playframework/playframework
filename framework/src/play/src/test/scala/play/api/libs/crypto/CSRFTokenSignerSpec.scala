@@ -11,7 +11,7 @@ import play.api.http.SecretConfiguration
 class CSRFTokenSignerSpec extends Specification {
 
   val key = "0123456789abcdef"
-  val secretConfiguration = SecretConfiguration(key, None)
+  val secretConfiguration = SecretConfiguration(key, Some("HmacSHA1"))
   val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
   val signer = new DefaultCookieSigner(secretConfiguration)
   val tokenSigner = new DefaultCSRFTokenSigner(signer, clock)
