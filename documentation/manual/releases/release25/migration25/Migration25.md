@@ -8,6 +8,8 @@ As well as the information contained on this page, there is more detailed migrat
 - [[Streams Migration Guide|StreamsMigration25]] – Migrating to Akka Streams, now used in place of iteratees in many Play APIs
 - [[Java Migration Guide|JavaMigration25]] - Migrating Java applications. Play now uses native Java types for functional types and offers several new customizable components in Java.
 
+Lucidchart has also put together an informative blog post on [upgrading from Play 2.3.x to Play 2.5.x](https://www.lucidchart.com/techblog/2017/02/22/upgrading-play-framework-2-3-play-2-5/).
+
 ## How to migrate
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
