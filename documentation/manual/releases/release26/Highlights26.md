@@ -56,7 +56,7 @@ First, add the `@Inject` annotation to Twirl in `build.sbt`:
 TwirlKeys.constructorAnnotations += "@javax.inject.Inject()"
 ```
 
-Then create a file `indexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
+Then create a file `IndexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
 
 ```scala
 @this(trc: TemplateRenderingComponent)
@@ -68,12 +68,12 @@ Then create a file `indexTemplate.scala.html` using the `@this` syntax for the c
 And finally define the controller by injecting the template in the constructor:
 
 ```scala
-public MyController @Inject()(template: views.html.indexTemplate, 
+public MyController @Inject()(indexTemplate: views.html.IndexTemplate, 
                               cc: ControllerComponents) 
   extends AbstractController(cc) {
   
   def index = Action { implicit request =>
-    Ok(template())
+    Ok(indexTemplate())
   }
 }
 ```
