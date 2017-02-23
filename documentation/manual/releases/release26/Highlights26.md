@@ -43,3 +43,58 @@ val newReq = req.withAttrs(req.attrs.updated(Attrs.User, newUser))
 Attributes are stored in a `TypedMap`. You can read more about attributes in the `TypedMap` documentation: [Javadoc](api/java/play/libs/typedmap/TypedMap.html), [Scaladoc](api/scala/play/api/libs/typedmap/TypedMap.html).
 
 Request tags have now been deprecated and you should migrate to use attributes instead. See the [[tags section|Migration26#Request-tags-deprecation]] in the migration docs for more information.
+
+## Injectable Twirl Templates
+
+Twirl templates can now be created with a constructor annotation using `@this`.  The constructor annotation means that Twirl templates can be injected into templates directly and can manage their own dependencies, rather than the controller having to manage dependencies not only for itself, but also for the templates it has to render.
+
+As an example, suppose a template has a dependency on a component `TemplateRenderingComponent`, which is not used by the controller.  
+
+First, add the `@Inject` annotation to Twirl in `build.sbt`:
+
+```scala
+TwirlKeys.constructorAnnotations += "@javax.inject.Inject()"
+```
+
+Then create a file `IndexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
+
+```scala
+@this(trc: TemplateRenderingComponent)
+@()
+
+@{trc.render(item)}
+```
+
+And finally define the controller by injecting the template in the constructor:
+
+```scala
+public MyController @Inject()(indexTemplate: views.html.IndexTemplate, 
+                              cc: ControllerComponents) 
+  extends AbstractController(cc) {
+  
+  def index = Action { implicit request =>
+    Ok(indexTemplate())
+  }
+}
+```
+
+or 
+
+```java
+public class MyController extends Controller {
+  
+  private final views.html.indexTemplate template;
+
+  @Inject
+  public MyController(views.html.indexTemplate template) {
+    this.template = template;
+  }
+
+  public Result index() {
+    return ok(template.render());
+  }
+
+}
+```
+
+Once the template is defined with its dependencies, then the controller can have the template injected into the controller, but the controller does not see `TemplateRenderingComponent`.
