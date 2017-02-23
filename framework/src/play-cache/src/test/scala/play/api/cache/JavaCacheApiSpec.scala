@@ -116,13 +116,5 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       cacheApi.remove("foo")
       cacheApi.get[String]("foo") must beNull
     }
-
-    "clear all values from cache" in new WithApplication {
-      val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-      cacheApi.set("foo", "bar")
-      cacheApi.get[String]("foo") must beEqualTo("bar")
-      cacheApi.clearAll
-      cacheApi.get[String]("foo") must beNull
-    }
   }
 }

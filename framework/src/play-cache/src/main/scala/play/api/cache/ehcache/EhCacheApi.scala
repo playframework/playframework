@@ -184,12 +184,5 @@ class EhCacheApi @Inject() (cache: Ehcache)(implicit context: ExecutionContext) 
       Done
     }
   }
-
-  def clearAll: Future[Done] = {
-    Future.successful {
-      cache.removeAll
-      Done
-    }
-  }
 }
 
