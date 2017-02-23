@@ -1,16 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.specs2
 
 import play.api.test._
-import play.api.test.Helpers._
 
 import org.specs2.execute.{Result, AsResult}
 
-/**
- *
- */
 class WithDbDataSpec extends PlaySpecification {
 
   // #scalafunctionaltest-withdbdata

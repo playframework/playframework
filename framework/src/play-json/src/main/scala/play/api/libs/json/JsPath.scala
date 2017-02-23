@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.json
 
@@ -410,7 +410,7 @@ case class JsPath(path: List[PathNode] = List()) {
 
   object json {
     /**
-     * (__ \ 'key).json.pick[A <: JsValue] is a Reads[A] that:
+     * (`__` \ 'key).json.pick[A <: JsValue] is a Reads[A] that:
      * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
      * - validates this element as an object of type A (inheriting JsValue)
      * - returns a JsResult[A]
@@ -427,7 +427,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jsPick(self)
 
     /**
-     * (__ \ 'key).json.pick is a Reads[JsValue] that:
+     * (`__` \ 'key).json.pick is a Reads[JsValue] that:
      * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
      * - validates this element as an object of type JsValue
      * - returns a JsResult[JsValue]
@@ -444,7 +444,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def pick: Reads[JsValue] = pick[JsValue]
 
     /**
-     * (__ \ 'key).json.pickBranch[A <: JsValue](readsOfA) is a Reads[JsObject] that:
+     * (`__` \ 'key).json.pickBranch[A <: JsValue](readsOfA) is a Reads[JsObject] that:
      * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
      * - validates this relative JsValue as an object of type A (inheriting JsValue) potentially modifying it
      * - creates a JsObject from JsPath and validated JsValue
@@ -462,7 +462,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def pickBranch[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsPickBranch[A](self)(reads)
 
     /**
-     * (__ \ 'key).json.pickBranch is a Reads[JsObject] that:
+     * (`__` \ 'key).json.pickBranch is a Reads[JsObject] that:
      * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
      * - creates a JsObject from JsPath and JsValue
      * - returns a JsResult[JsObject]
@@ -479,7 +479,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
 
     /**
-     * (__ \ 'key).put(fixedValue) is a Reads[JsObject] that:
+     * (`__` \ 'key).put(fixedValue) is a Reads[JsObject] that:
      * - creates a JsObject setting A (inheriting JsValue) at given JsPath
      * - returns a JsResult[JsObject]
      *
@@ -496,7 +496,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def put(a: => JsValue): Reads[JsObject] = Reads.jsPut(self, a)
 
     /**
-     * (__ \ 'key).json.copyFrom(reads) is a Reads[JsObject] that:
+     * (`__` \ 'key).json.copyFrom(reads) is a Reads[JsObject] that:
      * - copies a JsValue using passed Reads[A]
      * - creates a new branch from JsPath and copies previous value into it
      *
@@ -512,7 +512,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def copyFrom[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsCopyTo(self)(reads)
 
     /**
-     * (__ \ 'key).json.update(reads) is the most complex Reads[JsObject] but the most powerful:
+     * (`__` \ 'key).json.update(reads) is the most complex Reads[JsObject] but the most powerful:
      * - copies the whole JsValue => A
      * - applies the passed Reads[A] on JsValue => B
      * - deep merges both JsValues (A ++ B) so B overwrites A identical branches
@@ -529,7 +529,7 @@ case class JsPath(path: List[PathNode] = List()) {
     def update[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsUpdate(self)(reads)
 
     /**
-     * (__ \ 'key).json.prune is Reads[JsObject] that prunes the branch and returns remaining JsValue
+     * (`__` \ 'key).json.prune is Reads[JsObject] that prunes the branch and returns remaining JsValue
      *
      * Example :
      * {{{

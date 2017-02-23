@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import com.google.common.collect.ImmutableMap;
 import com.jolbox.bonecp.BoneCPDataSource;
 
+import org.jdbcdslog.LogSqlDataSource;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.Test;
@@ -186,5 +187,14 @@ public class DatabaseTest {
         exception.expect(SQLException.class);
         exception.expectMessage(endsWith("has been closed."));
         db.getConnection().close();
+    }
+
+    @Test
+    public void useLogSqlDataSourceWhenLogSqlIsTrue() throws Exception {
+        Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
+        Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
+        assertThat(db.getDataSource(), instanceOf(LogSqlDataSource.class));
+        assertThat(JNDI.initialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
+        db.shutdown();
     }
 }

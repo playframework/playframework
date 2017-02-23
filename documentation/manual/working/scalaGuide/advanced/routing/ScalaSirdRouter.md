@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # String Interpolating Routing DSL
 
 Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
@@ -53,3 +53,48 @@ To further the point that these are just regular extractor objects, you can see 
 
 @[complex](code/ScalaSirdRouter.scala)
 
+## Binding sird Router
+
+Configuring an application to use a sird Router can be achieved in many ways, depending on use case:
+
+### Using SIRD router from a routes files
+
+To use the routing DSL in conjunction with a regular Play project that uses [[a routes file|ScalaRouting]] and [[controllers|ScalaActions]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
+
+@[inject-sird-router](code/ApiRouter.scala)
+
+Add the following line to conf/routes:
+
+```
+->      /api                        api.ApiRouter
+```
+
+### Composing SIRD routers
+
+You can compose multiple routers together, because Routes are partial functions:
+
+``` scala
+mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
+```
+
+### Embedding play
+
+An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlay]] section.
+
+### Providing a DI router
+
+A router can be provided to the application as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]]:
+
+@[load](code/SirdAppLoader.scala)
+
+### Providing a DI router with Guice
+
+A SIRD router can be provided in Guice-based Play apps by overriding the `GuiceApplicationLoader` and the `Provider[Router]`:
+
+@[load-guice](code/ScalaSimpleRouter.scala)
+
+A SIRD router is more powerful than the routes file and is more accessible by IDE's.
+
+### Overriding binding
+
+A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|ScalaTestingWithGuice#Override-bindings]]

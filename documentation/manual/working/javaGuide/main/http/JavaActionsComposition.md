@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Action composition
 
 This chapter introduces several ways to define generic action functionality.
@@ -9,7 +9,7 @@ Previously, we said that an action is a Java method that returns a `play.mvc.Res
 
 ```java
 public abstract class Action {
-  public abstract Promise<Result> call(Context ctx) throws Throwable;
+  public abstract CompletionStage<Result> call(Context ctx);
 }
 ```
 
@@ -53,14 +53,7 @@ You can then use your new annotation with an action method:
 
 You can also put any action composition annotation directly on the `Controller` class. In this case it will be applied to all action methods defined by this controller.
 
-```java
-@Authenticated
-public class Admin extends Controller {
-    
-  …
-    
-}
-```
+@[annotated-controller](code/javaguide/http/JavaActionsComposition.java)
 
 > **Note:** If you want the action composition annotation(s) put on a ```Controller``` class to be executed before the one(s) put on action methods set ```play.http.actionComposition.controllerAnnotationsFirst = true``` in ```application.conf```. However, be aware that if you use a third party module in your project it may rely on a certain execution order of its annotations.
 

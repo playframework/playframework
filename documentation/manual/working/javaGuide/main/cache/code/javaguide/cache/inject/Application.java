@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.cache.inject;
 //#inject
@@ -10,7 +10,12 @@ import javax.inject.Inject;
 
 public class Application extends Controller {
 
-    @Inject CacheApi cache;
+    private CacheApi cache;
+
+    @Inject
+    public Application(CacheApi cache) {
+        this.cache = cache;
+    }
 
     // ...
 }

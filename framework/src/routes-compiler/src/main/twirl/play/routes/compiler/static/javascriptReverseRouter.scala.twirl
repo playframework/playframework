@@ -29,8 +29,8 @@ package @(packageName).javascript @ob
     def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@(packageName).@(controller).@(method)",
       @tq
-        function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
-          @javascriptCall(route)
+        function(@reverseParametersJavascript(routes).map(_._1.name).mkString(",")) @ob
+          @javascriptCall(route, reverseLocalNames(route, reverseParametersJavascript(routes)))
         @cb
       @tq
     )
@@ -40,7 +40,7 @@ package @(packageName).javascript @ob
     def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@(packageName).@(controller).@(method)",
       @tq
-        function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
+        function(@reverseParametersJavascript(routes).map(_._1.name).mkString(",")) @ob
         @for((route, localNames, constraints) <- javascriptCollectNonDeadRoutes(routes)) {
           if (@constraints) @ob
             @javascriptCall(route, localNames)

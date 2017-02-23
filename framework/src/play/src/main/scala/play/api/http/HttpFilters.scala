@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -8,9 +8,10 @@ import javax.inject.Inject
 import play.api.{ PlayConfig, Configuration, Environment }
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
+import scala.collection.JavaConverters._
 
 /**
- * Provides filters to the [[play.http.HttpRequestHandler]].
+ * Provides filters to the [[play.api.http.HttpRequestHandler]].
  */
 trait HttpFilters {
 
@@ -18,7 +19,20 @@ trait HttpFilters {
    * Return the filters that should filter every request
    */
   def filters: Seq[EssentialFilter]
+
+  def asJava: play.http.HttpFilters = new JavaHttpFiltersDelegate(this)
 }
+
+/**
+ * A default implementation of HttpFilters that accepts filters as a varargs constructor and exposes them as a
+ * filters sequence. For example:
+ *
+ * {{{
+ *   class Filters @Inject()(csrfFilter: CSRFFilter, corsFilter: CORSFilter)
+ *     extends DefaultHttpFilters(csrfFilter, corsFilter)
+ * }}}
+ */
+class DefaultHttpFilters(val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {
 
@@ -38,18 +52,17 @@ object HttpFilters {
  * A filters provider that provides no filters.
  */
 class NoHttpFilters extends HttpFilters {
-  def filters = Nil
+  override def filters = Nil
 }
 
 object NoHttpFilters extends NoHttpFilters
 
 /**
- * Adapter from the Java HttpFliters to the Scala HttpFilters interface.
+ * Adapter from the Java HttpFilters to the Scala HttpFilters interface.
  */
 class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters) extends HttpFilters {
-  def filters = underlying.filters()
+  override def filters = underlying.filters
 }
 
-class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters) extends play.http.HttpFilters {
-  def filters() = delegate.filters.toArray
-}
+class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
+  extends play.http.DefaultHttpFilters(delegate.filters: _*)

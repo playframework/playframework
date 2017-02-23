@@ -1,13 +1,13 @@
 #! /bin/sh
 
-# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+# Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 
 year=`date +%Y`
 cd manual
 for f in `find . -name '*.md'`
 do
-  echo "<!--- Copyright (C) 2009-$year Typesafe Inc. <http://www.typesafe.com> -->" > /tmp/mdcw
-  if head -n 1 $f | grep -q "Typesafe Inc. <http://www.typesafe.com>"
+  echo "<!--- Copyright (C) 2009-$year Lightbend Inc. <https://www.lightbend.com> -->" > /tmp/mdcw
+  if head -n 1 $f | grep -qiE "(Lightbend|Typesafe) Inc. <https?://(www.)?(lightbend|typesafe).com"
   then
     tail -n +2 $f >> /tmp/mdcw
   else
@@ -17,4 +17,4 @@ do
   rm /tmp/mdcw
   echo Updated $f
 done
-    
+

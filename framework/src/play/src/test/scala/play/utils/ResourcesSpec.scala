@@ -1,11 +1,14 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.utils
 
 import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }
-import java.net.{ URI, URLEncoder, URL, URLConnection, URLStreamHandler }
+import java.net.{ URL, URLConnection, URLStreamHandler }
 import java.util.zip.{ ZipEntry, ZipOutputStream }
 import org.specs2.mutable.Specification
 
-import play.api.FakeApplication
+import play.api.PlayCoreTestApplication
 
 /**
  * Tests for Resources object
@@ -13,7 +16,7 @@ import play.api.FakeApplication
 object ResourcesSpec extends Specification {
   import Resources._
 
-  lazy val app = FakeApplication()
+  lazy val app = PlayCoreTestApplication()
   lazy val tmpDir = createTempDir("resources-", ".tmp")
   lazy val jar = File.createTempFile("jar-", ".tmp", tmpDir)
   lazy val fileRes = File.createTempFile("file-", ".tmp", tmpDir)
@@ -114,7 +117,27 @@ object ResourcesSpec extends Specification {
       isDirectory(osgiClassloader, url) must beFalse
     }
 
-    "throw an exception for a URL with a protocol other than 'file'/'jar'/'bundle'" in {
+    "return true for a directory resource URL with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, dirRes), EmptyURLStreamHandler)
+      isDirectory(classloader, url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the zip path with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(spacesJar, dirRes), EmptyURLStreamHandler)
+      isDirectory(classloader, url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the file path with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, dirSpacesRes), EmptyURLStreamHandler)
+      isDirectory(classloader, url) must beTrue
+    }
+
+    "return false for a file resource URL with the 'zip' protocol" in {
+      val url = new URL("zip", "", 0, createZipUrl(jar, fileRes), EmptyURLStreamHandler)
+      isDirectory(classloader, url) must beFalse
+    }
+
+    "throw an exception for a URL with a protocol other than 'file'/'jar'/'zip' / 'bundle'" in {
       val url = new URL("ftp", "", "/some/path")
       isDirectory(classloader, url) must throwAn[IllegalArgumentException]
     }
@@ -129,8 +152,18 @@ object ResourcesSpec extends Specification {
     }
   }
 
+  object EmptyURLStreamHandler extends URLStreamHandler {
+    def openConnection(u: URL) = new URLConnection(u) {
+      def connect() {}
+    }
+  }
+
   private def createJarUrl(jarFile: File, file: File) = {
     s"${jarFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
+  }
+
+  private def createZipUrl(zipFile: File, file: File) = {
+    s"zip:${zipFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
   }
 
   private def createTempDir(prefix: String, suffix: String, parent: File = null) = {

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Accessing an SQL database
 
 ## Configuring JDBC connection pools
@@ -127,7 +127,7 @@ db.default.logSql=true
 
 After that, you can configure the jdbcdslog-exp [log level as explained in their manual](https://code.google.com/p/jdbcdslog/wiki/UserGuide#Setup_logging_engine). Basically, you need to configure your root logger to `INFO` and then decide what jdbcdslog-exp will log (connections, statements and result sets). Here is an example using `logback.xml` to configure the logs:
 
-@[](/confs/play/logback-play-logSql.xml)
+@[](/confs/play-logback/logback-play-logSql.xml)
 
 > **Warning**: Keep in mind that this is intended to be used just in development environments and you should not configure it in production, since there is a performance degradation and it will pollute your logs.
 
@@ -143,7 +143,7 @@ libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 
 ## Selecting and configuring the connection pool
 
-Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/).  The default is HikariCP, but this can be changed by setting the `play.db.pool` property:
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://www.jolbox.com/).  The default is HikariCP, but this can be changed by setting the `play.db.pool` property:
 
 ```
 play.db.pool=bonecp

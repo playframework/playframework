@@ -1,26 +1,21 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Writing functional tests
 
 Play provides a number of classes and convenience methods that assist with functional testing. Most of these can be found either in the [`play.test`](api/java/play/test/package-summary.html) package or in the [`Helpers`](api/java/play/test/Helpers.html) class.
 
 You can add these methods and classes by importing the following:
 
-```java
-import play.test.*;
-import static play.test.Helpers.*;
-```
+@[test-imports](code/javaguide/tests/FakeApplicationTest.java)
 
-## FakeApplication
+## Creating `Application` instances for testing
 
-Play frequently requires a running [`Application`](api/java/play/Application.html) as context: it is usually provided from [`play.Play.application()`](api/java/play/Play.html).
-
-To provide an environment for tests, Play provides a [`FakeApplication`](api/java/play/test/FakeApplication.html) class which can be configured with a different Global object, additional configuration, or even additional plugins.
+Play frequently requires a running [`Application`](api/java/play/Application.html) as context. To provide an environment for tests, Play provides helpers that produce new application instances for testing:
 
 @[test-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
 ## Injecting tests
 
-If you're using Guice for [[dependency injection|JavaDependencyInjection]] then an `Application` for testing can be [[built directly|JavaTestingWithGuice]], instead of using FakeApplication. You can also inject any members of a test class that you might need. It's generally best practice to inject members only in functional tests and to manually create instances in unit tests.
+If you're using Guice for [[dependency injection|JavaDependencyInjection]] then an `Application` for testing can be [[built directly|JavaTestingWithGuice]]. You can also inject any members of a test class that you might need. It's generally best practice to inject members only in functional tests and to manually create instances in unit tests.
 
 @[test-injection](code/javaguide/tests/InjectionTest.java)
 
@@ -30,11 +25,9 @@ To run tests with an `Application`, you can do the following:
 
 @[test-running-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
-You can also extend [`WithApplication`](api/java/play/test/WithApplication.html), this will automatically ensure that an application is started and stopped for you:
+You can also extend [`WithApplication`](api/java/play/test/WithApplication.html), this will automatically ensure that an application is started and stopped for each test method:
 
 @[test-withapp](code/javaguide/tests/FunctionalTest.java)
-
-This will ensure that a [`FakeApplication`](api/java/play/test/FakeApplication.html) will be started and stopped for each test method.
 
 ## Testing with a Guice application
 

@@ -4,5 +4,5 @@
 # Check that the compile errors are successfully mapped from the generated Scala back to the original source
 > checkLogContains app/views/index.scala.html:3: not found: value foo
 > checkLogContains Foo: @foo.bar
-> checkLogContains conf/routes:3: object Foo is not a member of package controllers
+> checkLogContains conf/routes:3: type Foo is not a member of package controllers
 > checkLogContains GET / controllers.Foo.index

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.ws;
 
 import java.util.concurrent.CompletionStage;
@@ -5,7 +8,6 @@ import java.util.concurrent.CompletionStage;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import play.libs.ws.util.CollectionUtil;
-import scala.Tuple2;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
@@ -34,7 +36,7 @@ public class StreamedResponse {
 		CompletionStage<play.api.libs.ws.StreamedResponse> res = FutureConverters.toJava(from);
 		java.util.function.Function<play.api.libs.ws.StreamedResponse, StreamedResponse> mapper = response -> {
 			WSResponseHeaders headers = toJavaHeaders(response.headers());
-			Source<ByteString, ?> source = toJavaSource(response.body());
+			Source<ByteString, ?> source = response.body().asJava();
 			return new StreamedResponse(headers, source);
 	    };
 	    return res.thenApply(mapper);	
@@ -43,7 +45,4 @@ public class StreamedResponse {
 	private static WSResponseHeaders toJavaHeaders(play.api.libs.ws.WSResponseHeaders from) {
 		return new DefaultWSResponseHeaders(from.status(), CollectionUtil.convert(from.headers()));
 	}
-	private static Source<ByteString, ?> toJavaSource(akka.stream.scaladsl.Source<ByteString, ?> source) {
-		return Source.adapt(source);
-	}	
 }

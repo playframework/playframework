@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 package guice
@@ -113,6 +113,20 @@ object GuiceInjectorBuilderSpec extends Specification {
       injector.instanceOf[B] must beAnInstanceOf[B1]
       injector.instanceOf[C] must beAnInstanceOf[C1]
       injector.instanceOf[D] must beAnInstanceOf[D1]
+    }
+
+    "configure binder" in {
+      val injector = new GuiceInjectorBuilder()
+        .requireExplicitBindings()
+        .bindings(
+          bind[A].to[A1],
+          bind[B].to[B1]
+        )
+        .injector
+      injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[B] must beAnInstanceOf[B1]
+      injector.instanceOf[B1] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[C1] must throwA[com.google.inject.ConfigurationException]
     }
 
   }

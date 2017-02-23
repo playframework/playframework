@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
@@ -10,7 +10,7 @@ object TestExecutionContext {
   /**
    * Create a `TestExecutionContext` that delegates to the iteratee package's default `ExecutionContext`.
    */
-  def apply(): TestExecutionContext = new TestExecutionContext(Execution.defaultExecutionContext)
+  def apply(): TestExecutionContext = new TestExecutionContext(Execution.trampoline)
 
 }
 

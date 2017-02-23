@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.persistence.EntityManager;
-import play.libs.F;
 
 /**
  * JPA API.
@@ -15,6 +15,8 @@ public interface JPAApi {
 
     /**
      * Initialise JPA entity manager factories.
+     *
+     * @return JPAApi instance
      */
     public JPAApi start();
 
@@ -22,32 +24,62 @@ public interface JPAApi {
      * Get the EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
+     * @return EntityManager for the specified persistence unit name
      */
     public EntityManager em(String name);
 
     /**
+     * Get the EntityManager for a particular persistence unit for this thread.
+     *
+     * @return EntityManager for the specified persistence unit name
+     */
+    public EntityManager em();
+
+    /**
+     * Run a block of code with a given EntityManager.
+     *
+     * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
+     */
+    public <T> T withTransaction(Function<EntityManager, T> block);
+
+    /**
+     * Run a block of code with a given EntityManager.
+     *
+     * @param name The persistence unit name
+     * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
+     */
+    public <T> T withTransaction(String name, Function<EntityManager, T> block);
+
+    /**
+     * Run a block of code with a given EntityManager.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
+     */
+    public <T> T withTransaction(String name, boolean readOnly, Function<EntityManager, T> block);
+
+    /**
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
     public <T> T withTransaction(Supplier<T> block);
 
     /**
-     * Run a block of asynchronous code in a JPA transaction.
-     *
-     * @param block Block of code to execute
-     *
-     * @deprecated This may cause deadlocks
-     */
-    @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(Supplier<F.Promise<T>> block);
-
-    /**
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
      */
-    public void withTransaction(final Runnable block);
+    public void withTransaction(Runnable block);
 
     /**
      * Run a block of code in a JPA transaction.
@@ -55,20 +87,10 @@ public interface JPAApi {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
     public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block);
-
-    /**
-     * Run a block of asynchronous code in a JPA transaction.
-     *
-     * @param name The persistence unit name
-     * @param readOnly Is the transaction read-only?
-     * @param block Block of code to execute.
-     *
-     * @deprecated This may cause deadlocks
-     */
-    @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, Supplier<F.Promise<T>> block);
 
     /**
      * Close all entity manager factories.

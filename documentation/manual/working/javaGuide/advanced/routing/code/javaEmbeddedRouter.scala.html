@@ -1,0 +1,11 @@
+@* #javascript-embedded-router *@
+@()
+
+@* ###skip: 2 *@
+@import javaguide.binder.controllers.routes
+
+@helper.javascriptRouter("jsRoutes")(
+    routes.javascript.Users.list,
+    routes.javascript.Users.get
+)
+@* #javascript-embedded-router *@

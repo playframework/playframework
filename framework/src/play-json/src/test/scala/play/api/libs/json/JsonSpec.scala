@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.json
 
 import java.util.{ Calendar, Date, TimeZone }
 
-import com.fasterxml.jackson.databind.{ ObjectMapper, JsonMappingException, JsonNode }
-
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
+
+import scala.collection.immutable.ListMap
 
 object JsonSpec extends org.specs2.mutable.Specification {
 
@@ -277,6 +278,42 @@ object JsonSpec extends org.specs2.mutable.Specification {
       parse(stringify(json)) must equalTo(json)
     }
 
+    "Write BigDecimals with large exponents in scientific notation" in {
+      val n = BigDecimal("1.2e1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "1.2E+1000"
+    }
+
+    "Write negative BigDecimals with large exponents in scientific notation" in {
+      val n = BigDecimal("-2.5e1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "-2.5E+1000"
+    }
+
+    "Write BigDecimals with large negative exponents in scientific notation" in {
+      val n = BigDecimal("6.75e-1000")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "6.75E-1000"
+    }
+
+    "Write BigDecimals with small exponents as a plain string" in {
+      val n = BigDecimal("1.234e3")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "1234"
+    }
+
+    "Write BigDecimals with small negative exponents as a plain string" in {
+      val n = BigDecimal("1.234e-3")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "0.001234"
+    }
+
+    "Write BigDecimals with integer base" in {
+      val n = BigDecimal("2e128")
+      val jsonString = stringify(toJson(n))
+      jsonString must_== "2E+128"
+    }
+
     "Not lose precision when parsing big integers" in {
       // By big integers, we just mean integers that overflow long, since Jackson has different code paths for them
       // from decimals
@@ -469,6 +506,37 @@ object JsonSpec extends org.specs2.mutable.Specification {
       )(unlift(TestCase.unapply))
 
       Json.toJson(TestCase("my-id", "foo", "bar")) must beEqualTo(js)
+    }
+
+    "keep the insertion order on ListMap" in {
+      val test = Json.toJson(
+        ListMap(
+          "name" -> "foo",
+          "zip" -> "foo",
+          "city" -> "foo"
+        ))
+      val req = """{"name":"foo", "zip":"foo", "city":"foo"}"""
+      test.toString must beEqualTo(Json.parse(req).toString).ignoreSpace
+    }
+    "keep insertion order on large ListMap" in {
+      val test = Json.toJson(
+        ListMap(
+          "name" -> "a", "zip" -> "foo", "city" -> "foo",
+          "address" -> "foo", "phone" -> "foo", "latitude" -> "foo",
+          "longitude" -> "foo", "hny" -> "foo", "hz" -> "foo",
+          "hek" -> "foo", "hev" -> "foo", "kny" -> "foo",
+          "kz" -> "foo", "kek" -> "foo", "kev" -> "foo",
+          "szeny" -> "foo", "szez" -> "foo", "szeek" -> "foo",
+          "szeev" -> "foo", "csny" -> "foo", "csz" -> "foo",
+          "csek" -> "foo", "csev" -> "foo", "pny" -> "foo",
+          "pz" -> "foo", "pek" -> "foo", "pev" -> "foo",
+          "szony" -> "foo", "szoz" -> "foo", "szoek" -> "foo",
+          "szoev" -> "foo", "vny" -> "foo", "vz" -> "foo",
+          "vek" -> "foo", "vev" -> "foo"
+        )
+      )
+      val req = """{"name": "a", "zip": "foo", "city": "foo", "address": "foo", "phone": "foo", "latitude": "foo", "longitude": "foo", "hny": "foo", "hz": "foo", "hek": "foo", "hev": "foo", "kny": "foo", "kz": "foo", "kek": "foo", "kev": "foo", "szeny": "foo", "szez": "foo", "szeek": "foo", "szeev": "foo", "csny": "foo", "csz": "foo", "csek": "foo", "csev": "foo", "pny": "foo", "pz": "foo", "pek": "foo", "pev": "foo", "szony": "foo", "szoz": "foo", "szoek": "foo", "szoev": "foo", "vny": "foo", "vz": "foo", "vek": "foo", "vev": "foo"}"""
+      test.toString must beEqualTo(Json.parse(req).toString).ignoreSpace
     }
   }
 }

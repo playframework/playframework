@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+# Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 #
 
 GET         /                       controllers.Application.index
@@ -13,7 +13,9 @@ GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
 GET         /take-bool              controllers.Application.takeBool(b: Boolean)
 GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
 GET         /take-list              controllers.Application.takeList(x: List[Int])
+GET         /take-list-tick-param   controllers.Application.takeListTickedParam(`b[]`: List[Int])
 GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[java.lang.Integer])
+GET         /take-ticked-params     controllers.Application.takeTickedParams(`b[]`: List[Int], `b%%`: String)
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 
@@ -68,3 +70,7 @@ GET         /routestest             controllers.Application.routetest(yield)
 GET         /routesdefault          controllers.Application.routedefault(type ?= "x")
 
 GET         /public/*file           controllers.Assets.versioned(path="/public", file: Asset)
+
+# This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
+# generates a non interpolated string containing $routes. As does this comment.
+GET					/intwarn/:routes        controllers.Application.interpolatorWarning(routes)

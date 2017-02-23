@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl.debug
@@ -19,7 +19,7 @@ object DebugConfigurationSpec extends Specification with After {
   sequential // global settings, must be sequential
 
   // Loggers not needed, but useful to doublecheck that the code is doing what it should.
-  // ./build test-only play.api.libs.ws.ssl.debug.DebugConfigurationSpec
+  // sbt 'test-only play.api.libs.ws.ssl.debug.DebugConfigurationSpec'
   val internalDebugLogger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging")
   val certpathDebugLogger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging")
 

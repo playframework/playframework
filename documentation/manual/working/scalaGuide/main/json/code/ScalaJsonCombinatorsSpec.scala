@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.json
 
@@ -159,7 +159,7 @@ class ScalaJsonCombinatorsSpec extends Specification {
 
       nameResult match {
         case s: JsSuccess[String] => println("Name: " + s.get)
-        case e: JsError => println("Errors: " + JsError.toFlatJson(e).toString())
+        case e: JsError => println("Errors: " + JsError.toJson(e).toString())
       }
       //#reads-validation-simple
       nameResult must beLike {case x: JsSuccess[String] =>  x.get === "Watership Down"}

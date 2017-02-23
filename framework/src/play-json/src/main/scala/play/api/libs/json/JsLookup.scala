@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
@@ -105,7 +108,7 @@ sealed trait JsLookupResult extends Any with JsReadable {
   def get: JsValue = toOption.get
   def getOrElse(v: => JsValue): JsValue = toOption.getOrElse(v)
 
-  def validate[A](implicit rds: Reads[A]) = this match {
+  def validate[A](implicit rds: Reads[A]): JsResult[A] = this match {
     case JsDefined(v) => v.validate[A]
     case undef: JsUndefined => JsError(undef.validationError)
   }

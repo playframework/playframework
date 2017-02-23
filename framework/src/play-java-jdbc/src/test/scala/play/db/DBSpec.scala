@@ -1,5 +1,9 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.db
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeApplication
 
 object DBSpec extends org.specs2.mutable.Specification {
@@ -48,9 +52,9 @@ object DBSpec extends org.specs2.mutable.Specification {
 
   lazy val fakeApp = {
     acolyte.jdbc.Driver.register("test", acolyte.jdbc.CompositeHandler.empty())
-    FakeApplication(additionalConfiguration = Map(
+    GuiceApplicationBuilder().configure(
       "db.default.driver" -> "acolyte.jdbc.Driver",
-      "db.default.url" -> "jdbc:acolyte:test?handler=test"))
-
+      "db.default.url" -> "jdbc:acolyte:test?handler=test"
+    ).build()
   }
 }

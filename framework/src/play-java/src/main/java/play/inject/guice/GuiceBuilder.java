@@ -1,22 +1,25 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
-import java.io.File;
-import java.util.Map;
-import play.api.inject.guice.GuiceableModule;
 import play.Configuration;
 import play.Environment;
-import play.inject.DelegateInjector;
+import play.Mode;
+import play.api.inject.guice.GuiceableModule;
 import play.inject.Injector;
 import play.libs.Scala;
-import play.Mode;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * A builder for creating Guice-backed Play Injectors.
+ *
+ * @param <Self> the concrete type that is extending this class
+ * @param <Delegate> a scala GuiceBuilder type.
  */
 public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.GuiceBuilder<Delegate>> {
 
@@ -28,6 +31,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Set the environment.
+     *
+     * @param env the environment to configure into this application
+     * @return a copy of this builder with the new environment
      */
     public final Self in(Environment env) {
         return newBuilder(delegate.in(env.underlying()));
@@ -35,6 +41,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Set the environment path.
+     *
+     * @param path the path to configure
+     * @return a copy of this builder with the new path
      */
     public final Self in(File path) {
         return newBuilder(delegate.in(path));
@@ -42,6 +51,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Set the environment mode.
+     *
+     * @param mode the mode to configure
+     * @return a copy of this build configured with this mode
      */
     public final Self in(Mode mode) {
         return newBuilder(delegate.in(play.api.Mode.apply(mode.ordinal())));
@@ -49,6 +61,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Set the environment class loader.
+     *
+     * @param classLoader the class loader to use
+     * @return a copy of this builder configured with the class loader
      */
     public final Self in(ClassLoader classLoader) {
         return newBuilder(delegate.in(classLoader));
@@ -56,6 +71,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add additional configuration.
+     *
+     * @param conf the configuration to add
+     * @return a copy of this builder configured with the supplied configuration
      */
     public final Self configure(Configuration conf) {
         return newBuilder(delegate.configure(conf.getWrappedConfiguration()));
@@ -63,6 +81,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add additional configuration.
+     *
+     * @param conf the configuration to add
+     * @return a copy of this builder configured with the supplied configuration
      */
     public final Self configure(Map<String, Object> conf) {
         return configure(new Configuration(conf));
@@ -70,6 +91,10 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add additional configuration.
+     *
+     * @param key a configuration key to set
+     * @param value the associated value for <code>key</code>
+     * @return a copy of this builder configured with the key=value
      */
     public final Self configure(String key, Object value) {
         return configure(ImmutableMap.of(key, value));
@@ -77,6 +102,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add bindings from guiceable modules.
+     *
+     * @param modules the set of modules to bind
+     * @return a copy of this builder configured with those modules
      */
     public final Self bindings(GuiceableModule... modules) {
         return newBuilder(delegate.bindings(Scala.varargs(modules)));
@@ -84,6 +112,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add bindings from Guice modules.
+     *
+     * @param modules the set of Guice modules whose bindings to apply
+     * @return a copy of this builder configured with the provided bindings
      */
     public final Self bindings(com.google.inject.Module... modules) {
         return bindings(Guiceable.modules(modules));
@@ -91,6 +122,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add bindings from Play modules.
+     *
+     * @param modules the set of Guice modules whose bindings to apply
+     * @return a copy of this builder configured with the provided bindings
      */
     public final Self bindings(play.api.inject.Module... modules) {
         return bindings(Guiceable.modules(modules));
@@ -98,6 +132,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Add Play bindings.
+     *
+     * @param bindings the set of play bindings to apply
+     * @return a copy of this builder configured with the provided bindings
      */
     public final Self bindings(play.api.inject.Binding<?>... bindings) {
         return bindings(Guiceable.bindings(bindings));
@@ -105,6 +142,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Override bindings using guiceable modules.
+     *
+     * @param modules the set of Guice modules whose bindings override some previously configured ones
+     * @return a copy of this builder re-configured with the provided bindings
      */
     public final Self overrides(GuiceableModule... modules) {
         return newBuilder(delegate.overrides(Scala.varargs(modules)));
@@ -112,6 +152,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Override bindings using Guice modules.
+     *
+     * @param modules the set of Guice modules whose bindings override some previously configured ones
+     * @return a copy of this builder re-configured with the provided bindings
      */
     public final Self overrides(com.google.inject.Module... modules) {
         return overrides(Guiceable.modules(modules));
@@ -119,6 +162,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Override bindings using Play modules.
+     *
+     * @param modules the set of Play modules whose bindings override some previously configured ones
+     * @return a copy of this builder re-configured with the provided bindings
      */
     public final Self overrides(play.api.inject.Module... modules) {
         return overrides(Guiceable.modules(modules));
@@ -126,6 +172,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Override bindings using Play bindings.
+     *
+     * @param bindings a set of Play bindings that override some previously configured ones
+     * @return a copy of this builder re-configured with the provided bindings
      */
     public final Self overrides(play.api.inject.Binding<?>... bindings) {
         return overrides(Guiceable.bindings(bindings));
@@ -133,6 +182,9 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Disable modules by class.
+     *
+     * @param moduleClasses the module classes whose bindings should be disabled
+     * @return a copy of this builder configured to ignore the provided module classes
      */
     public final Self disable(Class<?>... moduleClasses) {
         return newBuilder(delegate.disable(Scala.toSeq(moduleClasses)));
@@ -140,6 +192,8 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Create a Guice module that can be used to inject an Application.
+     *
+     * @return the module
      */
     public Module applicationModule() {
         return delegate.applicationModule();
@@ -147,6 +201,8 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
 
     /**
      * Create a Play Injector backed by Guice using this configured builder.
+     *
+     * @return the injector
      */
     public Injector injector() {
         return delegate.injector().instanceOf(Injector.class);

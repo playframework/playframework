@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application with specs2
 
 Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
@@ -13,9 +13,9 @@ You can run tests from the Play console.
 * To run only one test class, run `test-only` followed by the name of the class i.e. `test-only my.namespace.MySpec`.
 * To run only the tests that have failed, run `test-quick`.
 * To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
-* To access test helpers such as `FakeApplication` in console, run `test:console`.
+* To access test helpers such as `FakeRequest` in console, run `test:console`.
 
-Testing in Play is based on SBT, and a full description is available in the [testing SBT](http://www.scala-sbt.org/0.13.0/docs/Detailed-Topics/Testing) chapter.
+Testing in Play is based on SBT, and a full description is available in the [testing SBT](http://www.scala-sbt.org/0.13/docs/Testing.html) chapter.
 
 ## Using specs2
 
@@ -27,13 +27,13 @@ libraryDependencies += specs2 % Test
 
 In [specs2](https://etorreborre.github.io/specs2/), tests are organized into specifications, which contain examples which run the system under test through various different code paths.
 
-Specifications extend the [`Specification`](https://etorreborre.github.io/specs2/api/SPECS2-3.4/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
+Specifications extend the [`Specification`](https://etorreborre.github.io/specs2/api/SPECS2-3.6.6/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
 
 @[scalatest-helloworldspec](code/specs2/HelloWorldSpec.scala)
 
 Specifications can be run in either IntelliJ IDEA (using the [Scala plugin](https://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/)).  Please see the [[IDE page|IDE]] for more details.
 
-NOTE: Due to a bug in the [presentation compiler](https://scala-ide-portfolio.assembla.com/spaces/scala-ide/support/tickets/1001843-specs2-tests-with-junit-runner-are-not-recognized-if-there-is-package-directory-mismatch#/activity/ticket:), tests must be defined in a specific format to work with Eclipse:
+> **Note:** Due to a bug in the [presentation compiler](https://scala-ide-portfolio.assembla.com/spaces/scala-ide/support/tickets/1001843-specs2-tests-with-junit-runner-are-not-recognized-if-there-is-package-directory-mismatch#/activity/ticket:), tests must be defined in a specific format to work with Eclipse:
 
 * The package must be exactly the same as the directory path.
 * The specification must be annotated with `@RunWith(classOf[JUnitRunner])`.
@@ -61,17 +61,17 @@ When you use an example, you must return an example result. Usually, you will se
 "Hello world" must endWith("world")
 ```
 
-The expression that follows the `must` keyword are known as [`matchers`](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
+The expression that follows the `must` keyword are known as [`matchers`](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
 
-The most useful matchers are the [match results](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Matchers.html#out-of-the-box). These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
+The most useful matchers are the [match results](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Matchers.html#out-of-the-box). These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
 
-There are also [optional matchers](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Matchers.html#optional) that allow for XML and JSON matching in tests.
+There are also [optional matchers](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Matchers.html#optional) that allow for XML and JSON matching in tests.
 
 ### Mockito
 
 Mocks are used to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
 
-[Mockito](https://github.com/mockito/mockito) is integrated into specs2 as the default [mocking library](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.UseMockito.html).
+[Mockito](https://github.com/mockito/mockito) is integrated into specs2 as the default [mocking library](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.UseMockito.html).
 
 To use Mockito, add the following import:
 
@@ -131,17 +131,17 @@ In this way, the `isAdmin` method can be tested by mocking out the `UserReposito
 
 ## Unit Testing Controllers
 
-When defining controllers as objects, they can be trickier to unit test. In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]]. Another way to finesse unit testing with a controller declared as a object is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
+Since your controllers are just regular classes, you can easily unit test them using Play helpers. If your controllers depends on another classes, using [[dependency injection|ScalaDependencyInjection]] will enable you to mock these dependencies. Per instance, given the following controller:
 
 @[scalatest-examplecontroller](code/specs2/ExampleControllerSpec.scala)
 
-and then test the trait:
+You can test it like:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 
-Testing [`Action`](api/scala/play/api/mvc/Action.html) or [`Filter`](api/scala/play/api/mvc/Filter.html) can require to test an [`EssentialAction`](api/scala/play/api/mvc/EssentialAction.html) ([[more information about what an EssentialAction is|HttpApi]])
+Testing [`Action`](api/scala/play/api/mvc/Action.html) or [`Filter`](api/scala/play/api/mvc/Filter.html) can require to test an [`EssentialAction`](api/scala/play/api/mvc/EssentialAction.html) ([[more information about what an EssentialAction is|ScalaEssentialAction]])
 
 For this, the test [`Helpers.call`](api/scala/play/api/test/Helpers$.html#call) can be used like that:
 

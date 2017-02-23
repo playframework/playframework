@@ -1,11 +1,18 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.ws;
 
-import com.ning.http.client.AsyncHttpClientConfig;
-import play.Application;
-import play.libs.ws.ning.NingWSClient;
+import akka.actor.ActorSystem;
+import akka.stream.ActorMaterializer;
+import akka.stream.ActorMaterializerSettings;
+
+import java.io.IOException;
+
+import org.asynchttpclient.AsyncHttpClientConfig;
+
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import play.libs.ws.ahc.AhcWSClient;
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -16,10 +23,11 @@ public class WS {
      * Returns the default WSClient object managed by the Play application.
      *
      * @return a configured WSClient
+     * @deprecated Please use a WSClient instance using DI (since 2.5)
      */
+    @Deprecated
     public static WSClient client() {
-        Application app = play.Play.application();
-        return app.injector().instanceOf(WSClient.class);
+        return play.api.Play.current().injector().instanceOf(WSClient.class);
     }
 
     /**
@@ -28,7 +36,9 @@ public class WS {
      * return an asynchronous {@code Promise<WSResponse>}.
      *
      * @param url the URL to request
+     * @deprecated Please use a WSClient instance using DI (since 2.5)
      */
+    @Deprecated
     public static WSRequest url(String url) {
         return client().url(url);
     }
@@ -45,9 +55,16 @@ public class WS {
      * @param port The port to use on localhost when relative URLs are requested.
      * @return A running WS client.
      */
-    public static WSClient newClient(int port) {
-        WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder()
-            .setMaxRequestRetry(0).build());
+    public static WSClient newClient(final int port) {
+        AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
+                .setMaxRequestRetry(0).setShutdownQuietPeriod(0).setShutdownTimeout(0).build();
+
+        String name = "ws-java-newClient";
+        final ActorSystem system = ActorSystem.create(name);
+        ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
+        ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+
+        final WSClient client = new AhcWSClient(config, materializer);
 
         return new WSClient() {
             public Object getUnderlying() {
@@ -60,8 +77,13 @@ public class WS {
                     return client.url(url);
                 }
             }
-            public void close() {
-                client.close();
+            public void close() throws IOException {
+                try {
+                    client.close();
+                }
+                finally {
+                    system.terminate();
+                }
             }
         };
     }

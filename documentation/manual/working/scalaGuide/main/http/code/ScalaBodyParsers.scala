@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.http.scalabodyparsers {
 
@@ -84,8 +84,7 @@ import org.specs2.execute.AsResult
       }
 
       "body parser limit file" in {
-        val app = FakeApplication()
-        running(app) {
+        running() { app =>
           implicit val mat = ActorMaterializer()(app.actorSystem)
           val storeInUserFile = scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
           //#body-parser-limit-file
@@ -138,14 +137,13 @@ import org.specs2.execute.AsResult
         import play.api.libs.concurrent.Execution.Implicits.defaultContext
         import akka.util.ByteString
         import akka.stream.scaladsl._
-        import akka.stream.io.Framing
 
         val csv: BodyParser[Seq[Seq[String]]] = BodyParser { req =>
 
           // A flow that splits the stream into CSV lines
           val sink: Sink[ByteString, Future[Seq[Seq[String]]]] = Flow[ByteString]
             // We split by the new line character, allowing a maximum of 1000 characters per line
-            .via(Framing.delimiter(ByteString("\n"), 1000, true))
+            .via(Framing.delimiter(ByteString("\n"), 1000, allowTruncation = true))
             // Turn each line to a String and split it by commas
             .map(_.utf8String.trim.split(",").toSeq)
             // Now we fold it into a list
@@ -166,8 +164,7 @@ import org.specs2.execute.AsResult
     }
 
     def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
         val result = call(action, request)
         status(result) must_== expectedResponse

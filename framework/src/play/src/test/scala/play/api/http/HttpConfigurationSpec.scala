@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -20,6 +20,7 @@ object HttpConfigurationSpec extends Specification {
         "play.http.parser.maxMemoryBuffer" -> "10k",
         "play.http.parser.maxDiskBuffer" -> "20k",
         "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.cookies.strict" -> "true",
         "play.http.session.cookieName" -> "PLAY_SESSION",
         "play.http.session.secure" -> "true",
@@ -103,6 +104,19 @@ object HttpConfigurationSpec extends Specification {
       "cookie httpOnly" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
         httpConfiguration.flash.httpOnly must beTrue
+      }
+    }
+
+    "configure action composition" in {
+
+      "controller annotations first" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
+        httpConfiguration.actionComposition.controllerAnnotationsFirst must beTrue
+      }
+
+      "execute request handler action first" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration).get
+        httpConfiguration.actionComposition.executeActionCreatorActionFirst must beTrue
       }
     }
   }

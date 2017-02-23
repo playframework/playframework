@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -99,6 +99,9 @@ object ConfigurationSpec extends Specification {
       "but not in test mode" in {
         load(Mode.Test) must not(throwA[PlayException])
       }
+    }
+    "throw a useful exception when invalid collections are passed in the load method" in {
+      Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
     }
   }
 

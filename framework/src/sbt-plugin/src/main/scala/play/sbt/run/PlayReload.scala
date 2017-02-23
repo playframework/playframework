@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt.run
 
@@ -33,7 +33,7 @@ object PlayReload {
   }
 
   def originalSource(file: File): Option[File] = {
-    play.twirl.compiler.MaybeGeneratedSource.unapply(file).map(_.file)
+    play.twirl.compiler.MaybeGeneratedSource.unapply(file).flatMap(_.source)
   }
 
   def compileFailure(streams: Option[Streams])(incomplete: Incomplete): CompileResult = {

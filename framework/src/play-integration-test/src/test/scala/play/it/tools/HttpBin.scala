@@ -1,21 +1,21 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.tools
 
 import akka.stream.Materializer
-import play.api.libs.ws.ning.NingWSComponents
+import akka.stream.scaladsl.Source
+import org.apache.commons.io.FileUtils
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.routing.SimpleRouter
 import play.api.routing.Router.Routes
 import play.api.routing.sird._
-import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
-
+import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
 import play.api.mvc._
 import play.api.mvc.Results._
-
-import play.api.libs.json._
-
+import play.api.libs.json.{ JsObject, _ }
 import play.filters.gzip.GzipFilter
 
 /**
@@ -50,6 +50,11 @@ object HttpBinApplication {
             case f: Map[String, Seq[String]] @unchecked =>
               Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
             // Anything else
+            case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
+              Json.obj(
+                "form" -> m.mdf.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
+                "file" -> JsString(m.mdf.file("upload").map(v => FileUtils.readFileToString(v.ref.file)).getOrElse(""))
+              )
             case b =>
               Json.obj("data" -> JsString(b.toString))
           })
@@ -201,7 +206,6 @@ object HttpBinApplication {
 
   val stream: Routes = {
     case GET(p"/stream/$param<[0-9]+>") =>
-      import play.api.libs.iteratee.Enumerator
       Action { request =>
         val body = requestHeaderWriter.writes(request).as[JsObject]
 
@@ -209,7 +213,7 @@ object HttpBinApplication {
           body ++ Json.obj("id" -> index)
         }
 
-        Ok.chunked(Enumerator(content: _*)).as("application/json")
+        Ok.chunked(Source(content)).as("application/json")
       }
   }
 
@@ -322,7 +326,7 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with NingWSComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
       def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)

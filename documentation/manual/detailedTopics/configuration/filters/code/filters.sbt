@@ -1,3 +1,0 @@
-//#content
-libraryDependencies += filters
-//#content

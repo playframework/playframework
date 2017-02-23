@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.oauth
 
 import akka.util.ByteString
 import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WS
 import play.api.mvc._
 import play.api.test._
@@ -49,12 +50,12 @@ class OAuthSpec extends PlaySpecification {
   def receiveRequest(makeRequest: Application => String => Future[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
     val promise = Promise[(RequestHeader, ByteString)]()
-    val app = FakeApplication(withRoutes = {
+    val app = GuiceApplicationBuilder().routes {
       case _ => Action(BodyParsers.parse.raw) { request =>
         promise.success((request, request.body.asBytes().getOrElse(ByteString.empty)))
         Results.Ok
       }
-    })
+    }.build()
     running(TestServer(testServerPort, app)) {
       await(makeRequest(app)(hostUrl))
     }

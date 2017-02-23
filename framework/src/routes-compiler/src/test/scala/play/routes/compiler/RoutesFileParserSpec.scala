@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routes.compiler
 
@@ -105,6 +105,11 @@ object RoutesFileParserSpec extends Specification {
 
     "parse argument fixed value" in {
       parseRoute("GET /s p.c.m(i: Int = 3)").call.parameters.get.head.fixed must beSome("3")
+    }
+
+    "parse argument with complex name" in {
+      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(Seq(
+        Parameter("`b[]`", "List[String]", None, Some("[]"))))
     }
 
     "parse a non instantiating route" in {

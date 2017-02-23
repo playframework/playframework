@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
@@ -56,10 +56,9 @@ public class JavaResponse extends WithApplication {
         Map<String, String> headers = call(new MockJavaAction() {
             //#response-headers
             public Result index() {
-                response().setContentType("text/html");
                 response().setHeader(CACHE_CONTROL, "max-age=3600");
                 response().setHeader(ETAG, "xxx");
-                return ok("<h1>Hello World!</h1>");
+                return ok("<h1>Hello World!</h1>").as("text/html");
             }
             //#response-headers
         }, fakeRequest(), mat).headers();

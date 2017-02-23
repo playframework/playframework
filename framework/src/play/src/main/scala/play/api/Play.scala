@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -55,21 +55,35 @@ object Play {
 
   /**
    * Returns the currently running application, or `null` if not defined.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
+  @deprecated("This is a static reference to application, use DI", "2.5.0")
   def unsafeApplication: Application = _currentApp
 
   /**
    * Optionally returns the current running application.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
+  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   def maybeApplication: Option[Application] = Option(_currentApp)
+
+  private[play] def privateMaybeApplication: Option[Application] = Option(_currentApp)
+
+  /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
+  def routesCompilerMaybeApplication: Option[Application] = Option(_currentApp)
 
   /**
    * Implicitly import the current running application in the context.
    *
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
-  implicit def current: Application = maybeApplication.getOrElse(sys.error("There is no started application"))
+  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
+  implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
 
   @volatile private[play] var _currentApp: Application = _
 
@@ -85,12 +99,16 @@ object Play {
 
     _currentApp = app
 
-    Threads.withContextClassLoader(classloader(app)) {
+    Threads.withContextClassLoader(app.classloader) {
+      // Call before start now
+      app.global.beforeStart(app)
+
       // Ensure routes are eagerly loaded, so that the reverse routers are
       // correctly initialised before plugins are started.
       app.routes
 
-      app.plugins.foreach(_.onStart())
+      // If the global plugin is loaded, then send it a start now.
+      app.global.onStart(app)
     }
 
     app.mode match {
@@ -105,10 +123,8 @@ object Play {
    */
   def stop(app: Application) {
     if (app != null) {
-      Threads.withContextClassLoader(classloader(app)) {
-        app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => logger.warn("Error stopping plugin", e) }
-        }
+      Threads.withContextClassLoader(app.classloader) {
+        app.global.onStop(app)
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
@@ -116,108 +132,83 @@ object Play {
   }
 
   /**
-   * Scans the current application classloader to retrieve a resources contents as a stream.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
-   * }}}
-   *
-   * @param name Absolute name of the resource (from the classpath root).
-   * @return Maybe a stream if found.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
     app.resourceAsStream(name)
   }
 
   /**
-   * Scans the current application classloader to retrieve a resource.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
-   * }}}
-   *
-   * @param name absolute name of the resource (from the classpath root)
-   * @return the resource URL, if found
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
     app.resource(name)
   }
 
   /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath the relative path of the file to fetch
-   * @return a file instance; it is not guaranteed that the file exists
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def getFile(relativePath: String)(implicit app: Application): File = {
     app.getFile(relativePath)
   }
 
   /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath relative path of the file to fetch
-   * @return an existing file
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
     app.getExistingFile(relativePath)
   }
 
   /**
-   * Returns the current application.
+   * @deprecated inject the [[play.api.Application]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def application(implicit app: Application): Application = app
 
   /**
-   * Returns the current application classloader.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def classloader(implicit app: Application): ClassLoader = app.classloader
 
   /**
-   * Returns the current application configuration.
+   * @deprecated inject the [[play.api.Configuration]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def configuration(implicit app: Application): Configuration = app.configuration
 
   /**
-   * Returns the current application router.
+   * @deprecated inject the [[play.api.routing.Router]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def routes(implicit app: Application): play.api.routing.Router = app.routes
 
   /**
-   * Returns the current application global settings.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
-  def global(implicit app: Application): GlobalSettings = app.global
-
-  /**
-   * Returns the current application mode.
-   */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def mode(implicit app: Application): Mode.Mode = app.mode
 
   /**
-   * Returns `true` if the current application is `DEV` mode.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
 
   /**
-   * Returns `true` if the current application is `PROD` mode.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
 
   /**
-   * Returns `true` if the current application is `TEST` mode.
+   * @deprecated inject the [[play.api.Environment]] instead
    */
+  @deprecated("inject the play.api.Environment instead", "2.5.0")
   def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
   /**

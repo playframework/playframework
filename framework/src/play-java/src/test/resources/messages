@@ -1,0 +1,4 @@
+error.custom=It looks like something {0}
+error.customarg=was not correct
+customFormats.date=dd/MM/yyyy
+patterns.zip=[1-4]{4}

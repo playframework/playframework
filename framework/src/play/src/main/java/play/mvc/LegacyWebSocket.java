@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -36,6 +36,8 @@ public abstract class LegacyWebSocket<A> {
     /**
      * If this method returns true, then the WebSocket should be handled by an actor.  The actor will be obtained by
      * passing an ActorRef representing to the actor method, which should return the props for creating the actor.
+     *
+     * @return true if the websocket should be handled by an actor.
      */
     public boolean isActor() {
         return false;

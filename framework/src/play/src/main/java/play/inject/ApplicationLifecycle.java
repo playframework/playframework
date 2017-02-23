@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject;
 
-import play.libs.F;
-
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Application lifecycle register.
@@ -25,5 +24,5 @@ public interface ApplicationLifecycle {
      * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
      * immediately and return a successful future.
      */
-    public void addStopHook(Callable<F.Promise<Void>> hook);
+    void addStopHook(Callable<? extends CompletionStage<?>> hook);
 }

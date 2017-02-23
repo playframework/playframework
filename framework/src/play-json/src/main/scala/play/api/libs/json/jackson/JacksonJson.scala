@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.json.jackson
 
@@ -44,16 +44,28 @@ private[jackson] object JsValueSerializer extends JsonSerializer[JsValue] {
   import java.math.{ BigDecimal => JBigDec, BigInteger }
   import com.fasterxml.jackson.databind.node.{ BigIntegerNode, DecimalNode }
 
+  // Maximum magnitude of BigDecimal to write out as a plain string
+  val MaxPlain: BigDecimal = 1e20
+  // Minimum magnitude of BigDecimal to write out as a plain string
+  val MinPlain: BigDecimal = 1e-10
+
   override def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
       case JsNumber(v) => {
         // Workaround #3784: Same behaviour as if JsonGenerator were
         // configured with WRITE_BIGDECIMAL_AS_PLAIN, but forced as this
         // configuration is ignored when called from ObjectMapper.valueToTree
-        val raw = v.bigDecimal.stripTrailingZeros.toPlainString
+        val shouldWritePlain = {
+          val va = v.abs
+          va < MaxPlain && va > MinPlain
+        }
+        val stripped = v.bigDecimal.stripTrailingZeros
+        val raw = if (shouldWritePlain) stripped.toPlainString else stripped.toString
 
-        if (raw contains ".") json.writeTree(new DecimalNode(new JBigDec(raw)))
-        else json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+        if (raw.indexOf('E') < 0 && raw.indexOf('.') < 0)
+          json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+        else
+          json.writeTree(new DecimalNode(new JBigDec(raw)))
       }
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)

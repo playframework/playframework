@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -16,13 +16,13 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 ## Dependency Injection
 
-Play supports generating two types of routers, one is a dependency injected router, the other is a static router.  The default is the static router, but if you created a new Play application using the Play seed Activator templates, your project will include the following configuration in `build.sbt` telling it to use the injected router:
+Play supports generating two types of routers, one is a dependency injected router, the other is a static router. The default is the dependency injected router, and that is also the case in the Play seed Activator templates, since we recommend you use dependency-injected controllers. If you need to use static controllers you can switch to the static routes generator by adding the following configuration to your `build.sbt`:
 
 ```scala
-routesGenerator := InjectedRoutesGenerator
+routesGenerator := StaticRoutesGenerator
 ```
 
-The code samples in Play's documentation assumes that you are using the injected routes generator.  If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+The code samples in Play's documentation assume that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
 
 ## The routes file syntax
 
@@ -32,7 +32,7 @@ Let’s see what a route definition looks like:
 
 @[clients-show](code/javaguide.http.routing.routes)
 
-> Note that in the action call, the parameter type comes after the parameter name, like in Scala.
+> **Note:** in the action call, the parameter type comes after the parameter name, like in Scala.
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element of a route is the call definition.
 
@@ -42,7 +42,7 @@ You can also add comments to the route file, with the `#` character:
 
 ## The HTTP method
 
-The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
+The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS`).
 
 ## The URI pattern
 
@@ -54,29 +54,34 @@ For example, to exactly match `GET /clients/all` incoming requests, you can defi
 
 @[static-path](code/javaguide.http.routing.routes)
 
-### Dynamic parts 
+### Dynamic parts
 
 If you want to define a route that, say, retrieves a client by id, you need to add a dynamic part:
 
 @[clients-show](code/javaguide.http.routing.routes)
 
-> Note that a URI pattern may have more than one dynamic part.
+> **Note:** A URI pattern may have more than one dynamic part.
 
-The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment.
+The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment. Unlike other pattern types, path segments are automatically URI-decoded in the route, before being passed to your controller, and encoded in the reverse route.
 
 ### Dynamic parts spanning several /
 
-If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.*` regular expression:
+If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, also known as a wildcard pattern, which uses the `.*` regular expression:
 
 @[spanning-path](code/javaguide.http.routing.routes)
 
 Here, for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
 
+Note that *dynamic parts spanning several `/` are not decoded by the router or encoded by the reverse router*. It is your responsibility to validate the raw URI segment as you would for any user input. The reverse router simply does a string concatenation, so you will need to make sure the resulting path is valid, and does not, for example, contain multiple leading slashes or non-ASCII characters.
+
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for a dynamic part, using the `$id<regex>` syntax:
-    
+
 @[regex-path](code/javaguide.http.routing.routes)
+
+
+Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
 
 ## Call to action generator method
 
@@ -136,7 +141,7 @@ Many routes can match the same request. If there is a conflict, the first route 
 
 The router can be used to generate a URL from within a Java call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`. 
+For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.mvc.Call` instead of a `play.mvc.Result`.
 
 The `play.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
 
@@ -152,4 +157,18 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 @[reverse-redirect](code/javaguide/http/routing/controllers/Application.java)
 
-> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello`.
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+
+The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
+
+## The Default Controller
+
+Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
+
+@[defaultcontroller](code/javaguide.http.routing.defaultcontroller.routes)
+
+In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+
+## Advanced Routing
+
+See [[Routing DSL|JavaRoutingDsl]].

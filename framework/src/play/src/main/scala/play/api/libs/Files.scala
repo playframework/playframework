@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs
 
@@ -7,10 +7,10 @@ import java.io._
 import java.nio.file.{ FileAlreadyExistsException, StandardCopyOption, SimpleFileVisitor, Path, FileVisitResult }
 import java.nio.file.attribute.BasicFileAttributes
 
-import javax.inject.{ Inject, Singleton };
+import javax.inject.{ Inject, Singleton }
 
-import play.api.{ Application, Play };
-import play.api.inject.ApplicationLifecycle;
+import play.api.{ Application, Play }
+import play.api.inject.ApplicationLifecycle
 import java.nio.file.{ Files => JFiles }
 
 import scala.concurrent.Future
@@ -35,7 +35,16 @@ object Files {
    */
   @Singleton
   class DefaultTemporaryFileCreator @Inject() (applicationLifecycle: ApplicationLifecycle) extends TemporaryFileCreator {
-    private lazy val playTempFolder = JFiles.createTempDirectory("playtemp")
+    private var _playTempFolder: Option[Path] = None
+
+    private[libs] def playTempFolder: Path = _playTempFolder match {
+      // We may need to recreate the file if it was deleted (e.g. by tmpwatch)
+      case Some(folder) if JFiles.exists(folder) => folder
+      case _ =>
+        val folder = JFiles.createTempDirectory("playtemp")
+        _playTempFolder = Some(folder)
+        folder
+    }
 
     /**
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
@@ -122,7 +131,7 @@ object Files {
      * instance or the SingletonTemporaryFileCreator if no application
      * is currently running.
      */
-    private def currentCreator: TemporaryFileCreator = Play.maybeApplication.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(creatorCache)
+    private def currentCreator: TemporaryFileCreator = Play.privateMaybeApplication.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(creatorCache)
 
     /**
      * Create a new temporary file.

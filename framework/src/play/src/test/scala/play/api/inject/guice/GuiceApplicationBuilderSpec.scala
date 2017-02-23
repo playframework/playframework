@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 package guice
@@ -88,6 +88,23 @@ object GuiceApplicationBuilderSpec extends Specification {
       builder.injector().instanceOf[C] must throwAn[ProvisionException]
     }
 
+    "display logger deprecation message" in {
+      List("logger", "logger.resource", "logger.resource.test").forall { path =>
+        List("DEBUG", "WARN", "INFO", "ERROR", "TRACE", "OFF").forall { value =>
+          val data = Map(path -> value)
+          val builder = new GuiceApplicationBuilder()
+          builder.shouldDisplayLoggerDeprecationMessage(Configuration.from(data)) must_=== true
+        }
+      }
+    }
+
+    "not display logger deprecation message" in {
+      List("logger", "logger.resource", "logger.resource.test").forall { path =>
+        val data = Map(path -> "NOT_A_DEPRECATED_VALUE")
+        val builder = new GuiceApplicationBuilder()
+        builder.shouldDisplayLoggerDeprecationMessage(Configuration.from(data)) must_=== false
+      }
+    }
   }
 
   trait A

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.cache;
 import play.mvc.With;
@@ -20,6 +20,8 @@ public @interface Cached {
 
     /**
      * The duration the action should be cached for.  Defaults to 0.
+     *
+     * @return the duration
      */
     int duration() default 0;
 }

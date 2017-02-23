@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -16,13 +16,13 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 ## Dependency Injection
 
-Play supports generating two types of routers, one is a dependency injected router, the other is a static router.  The default is the static router, but if you created a new Play application using the Play seed Activator templates, your project will include the following configuration in `build.sbt` telling it to use the injected router:
+Play supports generating two types of routers, one is a dependency injected router, the other is a static router. The default is the dependency injected router, and that is also the case in the Play seed Activator templates, since we recommend you use dependency-injected controllers. If you need to use static controllers you can switch to the static routes generator by adding the following configuration to your `build.sbt`:
 
 ```scala
-routesGenerator := InjectedRoutesGenerator
+routesGenerator := StaticRoutesGenerator
 ```
 
-The code samples in Play's documentation assumes that you are using the injected routes generator.  If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your controllers as an `object` rather than a `class`.
+The code samples in Play's documentation assumes that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your controllers as an `object` rather than a `class`.
 
 ## The routes file syntax
 
@@ -38,9 +38,17 @@ You can also add comments to the route file, with the `#` character.
 
 @[clients-show-comment](code/scalaguide.http.routing.routes)
 
+You can tell the routes file to use a different router under a specific prefix by using "->" followed by the given prefix:
+
+```
+->      /api                        api.MyRouter
+```
+
+This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
+
 ## The HTTP method
 
-The HTTP method can be any of the valid methods supported by HTTP (`GET`, `POST`, `PUT`, `DELETE`, `HEAD`).
+The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
 
 ## The URI pattern
 
@@ -52,29 +60,33 @@ For example, to exactly match incoming `GET /clients/all` requests, you can defi
 
 @[static-path](code/scalaguide.http.routing.routes)
 
-### Dynamic parts 
+### Dynamic parts
 
 If you want to define a route that retrieves a client by ID, you’ll need to add a dynamic part:
 
 @[clients-show](code/scalaguide.http.routing.routes)
 
-> Note that a URI pattern may have more than one dynamic part.
+> **Note:** A URI pattern may have more than one dynamic part.
 
-The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI part.
+The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment. Unlike other pattern types, path segments are automatically URI-decoded in the route, before being passed to your controller, and encoded in the reverse route.
 
 ### Dynamic parts spanning several `/`
 
-If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.+` regular expression:
+If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, also known as a wildcard pattern, which uses the `.*` regular expression:
 
 @[spanning-path](code/scalaguide.http.routing.routes)
 
 Here for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
 
+Note that *dynamic parts spanning several `/` are not decoded by the router or encoded by the reverse router*. It is your responsibility to validate the raw URI segment as you would for any user input. The reverse router simply does a string concatenation, so you will need to make sure the resulting path is valid, and does not, for example, contain multiple leading slashes or non-ASCII characters.
+
 ### Dynamic parts with custom regular expressions
 
 You can also define your own regular expression for the dynamic part, using the `$id<regex>` syntax:
-    
+
 @[regex-path](code/scalaguide.http.routing.routes)
+
+Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
 
 ## Call to the Action generator method
 
@@ -132,7 +144,7 @@ Many routes can match the same request. If there is a conflict, the first route 
 
 The router can also be used to generate a URL from within a Scala call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.api.mvc.Call` instead of a `play.api.mvc.Action`. 
+For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.api.mvc.Call` instead of a `play.api.mvc.Action`.
 
 The `play.api.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
 
@@ -147,3 +159,21 @@ And if you map it in the `conf/routes` file:
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
 @[reverse-router](code/ScalaRouting.scala)
+
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+
+The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
+
+## The Default Controller
+
+Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
+
+@[defaultcontroller](code/scalaguide.http.routing.defaultcontroller.routes)
+
+In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+
+## Custom routing
+
+Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
+
+See [[String Interpolating Routing DSL|ScalaSirdRouter]]

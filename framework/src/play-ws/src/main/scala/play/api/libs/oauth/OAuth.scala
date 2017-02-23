@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.oauth
 
 import _root_.oauth.signpost.basic.DefaultOAuthConsumer
 import _root_.oauth.signpost.commonshttp.CommonsHttpOAuthProvider
 import _root_.oauth.signpost.exception.OAuthException
-import com.ning.http.client.oauth.OAuthSignatureCalculator
-import com.ning.http.client.{ Request, RequestBuilderBase, SignatureCalculator }
+import org.asynchttpclient.oauth.OAuthSignatureCalculator
+import org.asynchttpclient.{ Request, RequestBuilderBase, SignatureCalculator }
 import play.api.libs.ws.WSSignatureCalculator
 
 /**
@@ -93,7 +93,7 @@ case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authoriz
  */
 class OAuthCalculator(consumerKey: ConsumerKey, requestToken: RequestToken) extends WSSignatureCalculator with SignatureCalculator {
 
-  import com.ning.http.client.oauth.{ ConsumerKey => AHCConsumerKey, RequestToken => AHCRequestToken }
+  import org.asynchttpclient.oauth.{ ConsumerKey => AHCConsumerKey, RequestToken => AHCRequestToken }
 
   private val ahcConsumerKey = new AHCConsumerKey(consumerKey.key, consumerKey.secret)
   private val ahcRequestToken = new AHCRequestToken(requestToken.token, requestToken.secret)

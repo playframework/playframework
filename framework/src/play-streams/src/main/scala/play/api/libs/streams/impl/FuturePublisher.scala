@@ -1,9 +1,12 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.streams.impl
 
 import org.reactivestreams._
 import play.api.libs.concurrent.StateMachine
 import play.api.libs.iteratee.Execution
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 /*

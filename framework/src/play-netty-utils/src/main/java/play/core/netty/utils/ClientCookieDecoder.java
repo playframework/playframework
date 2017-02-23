@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The Netty Project
+ * Copyright 2016 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -237,7 +237,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
 
         private void setMaxAge(String value) {
             try {
-                maxAge = Math.max(Integer.valueOf(value), 0);
+                maxAge = Integer.valueOf(value);
             } catch (NumberFormatException e1) {
                 // ignore failure to parse -> treat as session cookie
             }

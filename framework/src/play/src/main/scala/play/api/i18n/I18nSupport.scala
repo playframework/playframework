@@ -1,9 +1,12 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.i18n
 
 import play.api.mvc.{ RequestHeader, Result }
 
 /**
- * Brings a convenient implicit conversion from [[RequestHeader]] to [[Messages]].
+ * Brings a convenient implicit conversion from [[play.api.mvc.RequestHeader]] to [[Messages]].
  *
  * Example:
  * {{{
@@ -21,7 +24,7 @@ trait I18nSupport extends I18NSupportLowPriorityImplicits {
   def messagesApi: MessagesApi
 
   /**
-   * @return The preferred [[Messages]] according to the given [[RequestHeader]]
+   * @return The preferred [[Messages]] according to the given [[play.api.mvc.RequestHeader]]
    */
   implicit def request2Messages(implicit request: RequestHeader): Messages = messagesApi.preferred(request)
 

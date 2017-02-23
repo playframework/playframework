@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
-import com.typesafe.config._
 import java.io.File
 import java.util.Properties
 import play.api.{ Configuration, Mode }

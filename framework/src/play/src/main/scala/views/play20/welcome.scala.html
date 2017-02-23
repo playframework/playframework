@@ -46,14 +46,14 @@
             <h2>Why do you see this page?</h2>
 
             <p>
-                The <code>conf/routes</code> file defines a route that tells Play to invoke the <code>Application.index</code> action whenever a browser requests the <code>/</code> URI using the GET method:
+                The <code>conf/routes</code> file defines a route that tells Play to invoke the <code>HomeController.index</code> action whenever a browser requests the <code>/</code> URI using the GET method:
             </p>
 
 <pre><code># Home page
-GET     /               controllers.Application.index</code></pre>
+GET     /               controllers.HomeController.index</code></pre>
 
             <p>
-                Play has invoked the <code>controllers.Application.index</code> method to obtain the <code>Action</code> to execute:
+                Play has invoked the <code>controllers.HomeController.index</code> method to obtain the <code>Action</code> to execute:
             </p>
 
 <pre><code>def index = Action {
@@ -86,7 +86,7 @@ GET     /               controllers.Application.index</code></pre>
             <h2>Is this your first time?</h2>
 
             <p>
-                If you're not already using it, checkout out <a href="https://typesafe.com/activator">Activator</a>.
+                If you're not already using it, check out <a href="https://www.lightbend.com/community/core-tools/activator-and-sbt">Activator</a>.
                 If you start the Activator UI, by running:
             </p>
 
@@ -123,17 +123,17 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
                 to your application dependencies in <code>build.sbt</code> e.g.:
             </p>
 
-<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
+<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.38"
 </code></pre>
 
             <p>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
             </p>
 
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
+<pre><code>db.default.url="jdbc:mysql://localhost/database_name"
+db.default.driver=com.mysql.jdbc.Driver
+db.default.username=root
+db.default.password="secret"</code></pre>
 
             <h2>Need more help?</h2>
 
@@ -180,14 +180,14 @@ db.pass=secret</code></pre>
             <h2>Why do you see this page?</h2>
 
             <p>
-                The <code>conf/routes</code> file defines a route that tells Play to invoke the <code>Application.index</code> action whenever a browser requests the <code>/</code> URI using the GET method:
+                The <code>conf/routes</code> file defines a route that tells Play to invoke the <code>HomeController.index</code> action whenever a browser requests the <code>/</code> URI using the GET method:
             </p>
 
 <pre><code># Home page
-GET     /               controllers.Application.index()</code></pre>
+GET     /               controllers.HomeController.index()</code></pre>
 
             <p>
-                Play has invoked the <code>controllers.Application.index</code> method:
+                Play has invoked the <code>controllers.HomeController.index</code> method:
             </p>
 
 <pre><code>public static Result index() {
@@ -226,7 +226,7 @@ GET     /               controllers.Application.index()</code></pre>
             <h2>Is this your first time?</h2>
 
             <p>
-                If you're not already using it, checkout out <a href="https://typesafe.com/activator">Activator</a>.
+                If you're not already using it, checkout out <a href="https://www.lightbend.com/community/core-tools/activator-and-sbt">Activator</a>.
                 If you start the Activator UI, by running:
             </p>
 
@@ -263,17 +263,17 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
                 to your application dependencies in <code>build.sbt</code> e.g.:
             </p>
 
-<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
+<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.38"
 </code></pre>
 
             <p>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
             </p>
 
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
+<pre><code>db.default.url="jdbc:mysql://localhost/database_name"
+db.default.driver=com.mysql.jdbc.Driver
+db.default.username=root
+db.default.password="secret"</code></pre>
 
             <h2>Need more help?</h2>
 

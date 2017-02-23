@@ -1,15 +1,17 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.utils
 
-import java.util.BitSet
 import java.io.ByteArrayOutputStream
+import java.nio.charset.Charset
+import java.util.BitSet
 
 /**
  * Provides support for correctly encoding pieces of URIs.
  *
  * @see http://www.ietf.org/rfc/rfc3986.txt
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 object UriEncoding {
 
@@ -28,7 +30,7 @@ object UriEncoding {
    * other differences too.
    *
    * When encoding path segments the `encodePathSegment` method should always
-   * be used in preference to the [[java.net.URLEncoder.encode(String,String)]]
+   * be used in preference to the [[$javadoc/java/net/URLEncoder.html#encode-java.lang.String-java.lang.String- java.net.URLEncoder.encode]]
    * method. `URLEncoder.encode`, despite its name, actually provides encoding
    * in the `application/x-www-form-urlencoded` MIME format which is the encoding
    * used for form data in HTTP GET and POST requests. This encoding is suitable
@@ -59,6 +61,17 @@ object UriEncoding {
   }
 
   /**
+   * Encode a string so that it can be used safely in the "path segment" part of a URI.
+   *
+   * @param s The string to encode.
+   * @param inputCharset The charset of the encoding that the string `s` is encoded with.
+   * @return An encoded string in the US-ASCII character set.
+   */
+  def encodePathSegment(s: String, inputCharset: Charset): String = {
+    encodePathSegment(s, inputCharset.name)
+  }
+
+  /**
    * Decode a string according to the rules for the "path segment"
    * part of a URI. A path segment is defined in RFC 3986. In a URI such
    * as `http://www.example.com/abc/def?a=1&b=2` both `abc` and `def`
@@ -73,7 +86,7 @@ object UriEncoding {
    * other differences too.
    *
    * When decoding path segments the `decodePathSegment` method should always
-   * be used in preference to the [[java.net.URLDecoder.decode(String,String)]]
+   * be used in preference to the [[$javadoc/java/net/URLDecoder.html java.net.URLDecoder.decode]]
    * method. `URLDecoder.decode`, despite its name, actually decodes
    * the `application/x-www-form-urlencoded` MIME format which is the encoding
    * used for form data in HTTP GET and POST requests. This format is suitable
@@ -83,7 +96,7 @@ object UriEncoding {
    * @param s The string to decode. Must use the US-ASCII character set.
    * @param outputCharset The name of the encoding that the output should be encoded with.
    *     The output string will be converted from octets (bytes) using this character encoding.
-   * @throws InvalidEncodingException If the input is not a valid encoded path segment.
+   * @throws play.utils.InvalidUriEncodingException If the input is not a valid encoded path segment.
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePathSegment(s: String, outputCharset: String): String = {
@@ -119,7 +132,20 @@ object UriEncoding {
   }
 
   /**
-   * Decode the path path of a URI. Each path segment will be decoded
+   * Decode a string according to the rules for the "path segment" part of a URI.
+   *
+   * @param s The string to decode. Must use the US-ASCII character set.
+   * @param outputCharset The charset of the encoding that the output should be encoded with.
+   *     The output string will be converted from octets (bytes) using this character encoding.
+   * @throws play.utils.InvalidUriEncodingException If the input is not a valid encoded path segment.
+   * @return A decoded string in the `outputCharset` character set.
+   */
+  def decodePathSegment(s: String, outputCharset: Charset): String = {
+    decodePathSegment(s, outputCharset.name)
+  }
+
+  /**
+   * Decode the path of a URI. Each path segment will be decoded
    * using the same rules as ``decodePathSegment``. No normalization is performed:
    * leading, trailing and duplicated slashes, if present are left as they are and
    * if absent remain absent; dot-segments (".." and ".") are ignored.
@@ -130,7 +156,7 @@ object UriEncoding {
    * @param s The string to decode. Must use the US-ASCII character set.
    * @param outputCharset The name of the encoding that the output should be encoded with.
    *     The output string will be converted from octets (bytes) using this character encoding.
-   * @throws InvalidEncodingException If the input is not a valid encoded path.
+   * @throws play.utils.InvalidUriEncodingException If the input is not a valid encoded path.
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePath(s: String, outputCharset: String): String = {
@@ -138,6 +164,20 @@ object UriEncoding {
     // This would allow better handling of paths segments with encoded slashes in them.
     // However, there is no need for this yet, so the method hasn't been added yet.
     splitString(s, '/').map(decodePathSegment(_, outputCharset)).mkString("/")
+  }
+
+  /**
+   * Decode the path of a URI. Each path segment will be decoded
+   * using the same rules as ``decodePathSegment``.
+   *
+   * @param s The string to decode. Must use the US-ASCII character set.
+   * @param outputCharset The charset of the encoding that the output should be encoded with.
+   *     The output string will be converted from octets (bytes) using this character encoding.
+   * @throws play.utils.InvalidUriEncodingException If the input is not a valid encoded path.
+   * @return A decoded string in the `outputCharset` character set.
+   */
+  def decodePath(s: String, outputCharset: Charset): String = {
+    decodePath(s, outputCharset.name)
   }
 
   // RFC 3986, 3.3. Path

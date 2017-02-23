@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.json
 
@@ -140,11 +140,8 @@ object Json {
    *
    * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper
    * which is an empty trait that shouldn't end into unexpected implicit conversions.
-   *
-   * Something to note due to `JsValueWrapper` extending `NotNull` :
-   * `null` or `None` will end into compiling error : use JsNull instead.
    */
-  sealed trait JsValueWrapper extends NotNull
+  sealed trait JsValueWrapper
 
   private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
 
@@ -164,6 +161,7 @@ object Json {
    *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
    * }}}
    */
+  @deprecated("Use Enumeratee.map[A](Json.toJson(_)) instead", "2.5.0")
   def toJson[A: Writes]: Enumeratee[A, JsValue] = Enumeratee.map[A](Json.toJson(_))
   /**
    * Transform a stream of JsValue to a stream of A, keeping only successful results
@@ -172,6 +170,7 @@ object Json {
    *   val fooStream: Enumerator[Foo] = jsonStream &> Json.fromJson
    * }}}
    */
+  @deprecated("Use Enumeratee.map[JsValue]((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect[JsResult[A]] { case JsSuccess(value, _) => value } instead", "2.5.0")
   def fromJson[A: Reads]: Enumeratee[JsValue, A] =
     Enumeratee.map[JsValue]((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect[JsResult[A]] { case JsSuccess(value, _) => value }
 
@@ -184,7 +183,7 @@ object Json {
   import language.experimental.macros
 
   /**
-   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time.
+   * Creates a Reads[T] by resolving case class fields & required implicits at COMPILE-time.
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
@@ -204,7 +203,7 @@ object Json {
   def reads[A]: Reads[A] = macro JsMacroImpl.readsImpl[A]
 
   /**
-   * Creates a Writes[T] by resolving case class fields & required implcits at COMPILE-time
+   * Creates a Writes[T] by resolving case class fields & required implicits at COMPILE-time
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{

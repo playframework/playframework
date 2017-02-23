@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package gettingStarted
 
@@ -25,7 +25,6 @@ package consoleapp {
       val loader = ApplicationLoader(context)
       val app = loader.load(context)
       Play.start(app)
-      import Play.current 
 //#consoleapp
       Play.current
     }

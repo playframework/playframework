@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # OAuth
 
 [OAuth](http://oauth.net/) is a simple way to publish and interact with protected data. It's also a safer and more secure way for people to give you access. For example, it can be used to access your users' data on [Twitter](https://dev.twitter.com/docs/auth/using-oauth).
@@ -50,4 +50,4 @@ After implementing the flow, the timeline is available by signing requests throu
 
 @[extended](code/ScalaOAuthSpec.scala)
 
-> **NOTE**: OAuth does not provide any protection against MITM attacks.  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.cookie.secure=true` defined.
+> **Note:** OAuth does not provide any protection against MITM attacks.  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.cookie.secure=true` defined.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db.evolutions
 
@@ -30,10 +30,10 @@ class EvolutionsModule extends Module {
 trait EvolutionsComponents {
   def environment: Environment
   def configuration: Configuration
-  def dynamicEvolutions: DynamicEvolutions
   def dbApi: DBApi
   def webCommands: WebCommands
 
+  lazy val dynamicEvolutions: DynamicEvolutions = new DynamicEvolutions
   lazy val evolutionsConfig: EvolutionsConfig = new DefaultEvolutionsConfigParser(configuration).parse
   lazy val evolutionsReader: EvolutionsReader = new EnvironmentEvolutionsReader(environment)
   lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(dbApi)

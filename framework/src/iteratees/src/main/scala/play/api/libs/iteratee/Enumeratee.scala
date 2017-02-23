@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
@@ -182,6 +182,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapInput` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapInput[From] {
     /**
@@ -215,6 +217,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapConcatInput` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapConcatInput[From] {
     /**
@@ -233,6 +237,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapConcat` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapConcat[From] {
     /**
@@ -251,6 +257,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapFlatten` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapFlatten[From] {
     /**
@@ -283,6 +291,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapInputFlatten` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapInputFlatten[From] {
     /**
@@ -310,6 +320,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapInputM` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapInputM[From] {
     /**
@@ -339,6 +351,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `mapM` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait MapM[E] {
     /**
@@ -361,6 +375,8 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `map` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait Map[E] {
     /**
@@ -522,11 +538,13 @@ object Enumeratee {
 
   /**
    * A partially-applied function returned by the `collect` method.
+   *
+   * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
    */
   trait Collect[From] {
     /**
      * @param transformer A function to transform and filter the input elements with.
-     * $paramSingleEc
+     * $paramEcSingle
      */
     def apply[To](transformer: PartialFunction[From, To])(implicit ec: ExecutionContext): Enumeratee[From, To]
   }
@@ -584,7 +602,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that drops input until a predicate is satisfied.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def dropWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -612,7 +630,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through while a predicate is satisfied. Once the predicate
    * fails, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def takeWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -640,7 +658,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through until a predicate is satisfied. Once the predicate
    * is satisfied, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param p A predicate to test the input with.
    * $paramEcSingle
    */
   def breakE[E](p: E => Boolean)(implicit ec: ExecutionContext) = new Enumeratee[E, E] {
@@ -740,7 +758,7 @@ object Enumeratee {
    *
    * {{{
    *  Enumerator(0, 2, 4) &> Enumeratee.recover { (error, input) =>
-   *    Logger.error(f"oops failure occurred with input: $input", error)
+   *    Logger.error(f"oops failure occurred with input: \$input", error)
    *  } &> Enumeratee.map { i =>
    *    8 / i
    *  } |>>> Iteratee.getChunks // => List(4, 2)

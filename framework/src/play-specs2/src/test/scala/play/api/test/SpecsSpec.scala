@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
@@ -10,17 +10,17 @@ import play.api.{ Play, Application }
 
 object SpecsSpec extends Specification {
 
-  def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems: _*))
   def getConfig(key: String)(implicit app: Application) = app.configuration.getString(key)
 
   "WithApplication context" should {
-    "provide an app" in new WithApplication(fakeApp("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
+    "provide an app" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
       app.configuration.getString("foo") must beSome("bar")
     }
-    "make the app available implicitly" in new WithApplication(fakeApp("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
+    "make the app available implicitly" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
       getConfig("foo") must beSome("bar")
     }
-    "start the application" in new WithApplication(fakeApp("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
+    "start the application" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
+      //noinspection ScalaDeprecation
       Play.maybeApplication must beSome(app)
     }
   }

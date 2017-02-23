@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl
@@ -10,6 +10,8 @@ import org.specs2.mock.Mockito
 
 import javax.net.ssl.X509TrustManager
 import java.security.cert.{ CertificateException, X509Certificate }
+
+import play.core.server.ssl.CertificateGenerator
 
 object CompositeX509TrustManagerSpec extends Specification with Mockito {
 

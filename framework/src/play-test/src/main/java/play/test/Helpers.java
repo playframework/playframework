@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
@@ -8,11 +8,10 @@ import akka.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
-import play.api.routing.Router;
+import play.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
-import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
 import play.mvc.*;
 import play.api.test.Helpers$;
@@ -55,8 +54,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
+            final play.api.inject.Injector injector = play.api.Play.current().injector();
             return invokeHandler(
-                ((JavaHandler) handler).withComponents(Play.application().injector().instanceOf(JavaHandlerComponents.class)),
+                ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
                 requestBuilder, timeout
             );
         } else {
@@ -120,40 +120,46 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), new ArrayList<String>(), null);
+    public static Application fakeApplication() {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), null);
     }
 
     /**
      * Build a new fake application.
+     *
+     * @deprecated Use dependency injection (since 2.5.0)
      */
-    public static FakeApplication fakeApplication(GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), new ArrayList<String>(), global);
+    @Deprecated
+    public static Application fakeApplication(GlobalSettings global) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), global);
     }
 
     /**
-     * A fake Global
+     * A fake Global.
+     *
+     * @deprecated Use dependency injection (since 2.5.0)
      */
+    @Deprecated
     public static GlobalSettings fakeGlobal() {
         return new GlobalSettings();
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase(String name) {
         return inMemoryDatabase(name, Collections.<String, String>emptyMap());
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
      */
     public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
@@ -162,44 +168,18 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>(), null);
+    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
     }
 
     /**
      * Build a new fake application.
+     *
+     * @deprecated Use the version without GlobalSettings (since 2.5.0)
      */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>(), global);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin, null);
-    }
-
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin, global);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, null);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, global);
+    @Deprecated
+    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, global);
     }
 
     /**
@@ -224,7 +204,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a {@link akka.util.ByteString}.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @return The content of the result as a ByteString.
      */
     public static ByteString contentAsBytes(Result result, Materializer mat) {
@@ -235,7 +215,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a {@link akka.util.ByteString}.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a ByteString.
      */
@@ -282,7 +262,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @return The content of the result as a String.
      */
     public static String contentAsString(Result result, Materializer mat) {
@@ -294,7 +274,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      *
      * @param result The result to extract the content from.
-     * @param mat The materialiser to use to extract the body from the result stream.
+     * @param mat The materializer to use to extract the body from the result stream.
      * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a String.
      */
@@ -318,11 +298,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         try {
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
-            if(routes.routes().isDefinedAt(request._underlyingRequest())) {
-                return invokeHandler(routes.routes().apply(request._underlyingRequest()), request, timeout);
-            } else {
-                return null;
-            }
+            return routes.route(request).map(handler ->
+                invokeHandler(handler, request, timeout)
+            ).orElse(null);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -337,11 +315,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
-            if(router.routes().isDefinedAt(request._underlyingRequest())) {
-                return invokeHandler(router.routes().apply(request._underlyingRequest()), request, timeout);
-            } else {
-                return null;
-            }
+            return router.route(request).map(handler ->
+                invokeHandler(handler, request, timeout)
+            ).orElse(null);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -370,7 +346,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(RequestBuilder requestBuilder, long timeout) {
-      return route(play.Play.application(), requestBuilder, timeout);
+        final play.Application application = play.api.Play.current().injector().instanceOf(play.Application.class);
+
+        return route(application, requestBuilder, timeout);
     }
 
     public static Result route(Application app, RequestBuilder requestBuilder) {
@@ -421,7 +399,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given FakeApplication.
+     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given Application.
      */
     public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);
@@ -486,9 +464,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             try {
                 start(server);
                 startedServer = server;
-                browser = testBrowser(webDriver);
+                browser = testBrowser(webDriver, server.port());
                 block.accept(browser);
-            } 
+            }
             finally {
                 if (browser != null) {
                     browser.quit();

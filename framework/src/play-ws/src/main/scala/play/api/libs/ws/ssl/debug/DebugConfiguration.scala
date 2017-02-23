@@ -1,12 +1,11 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl.debug
 
 import play.api.libs.ws.ssl.{ JavaxNetDebugBuilder, JavaSecurityDebugBuilder, SSLDebugConfig }
-import play.api.libs.ws.ssl.debug.FixCertpathDebugLogging.SunSecurityUtilDebugLogger
 
 class DebugConfiguration {
 

@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .dependsOn(playmodule, nonplaymodule)
@@ -19,7 +23,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+  scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 )
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {

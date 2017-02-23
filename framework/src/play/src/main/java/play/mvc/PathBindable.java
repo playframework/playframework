@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -62,6 +62,7 @@ public interface PathBindable<T extends PathBindable<T>> {
      * Unbind a URL path parameter.
      *
      * @param key Parameter key
+     * @return a suitable string representation of T for use in constructing a new URL path
      */
     public String unbind(String key);
 

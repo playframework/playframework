@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
@@ -33,11 +34,10 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
   def withServer[T](action: EssentialAction, sslPort: Option[Int] = None)(block: Port => T) = {
     val port = testServerPort
-    running(TestServer(port, sslPort = sslPort, application = FakeApplication(
-      withRoutes = {
-        case _ => action
-      }
-    ))) {
+    running(TestServer(port, sslPort = sslPort, application = GuiceApplicationBuilder()
+      .routes { case _ => action }
+      .build()
+    )) {
       block(port)
     }
   }
@@ -46,26 +46,23 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
     val sslPort = 19943
 
+    def test(connection: HttpsURLConnection, expect: Boolean) = {
+      Source.fromInputStream(connection.getContent.asInstanceOf[InputStream]).mkString must_== expect.toString
+    }
+
     "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort)
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed // All these tests are waiting on Akka HTTP to support SSL
-    "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort)
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed
+      test(createConn(sslPort), true)
+    }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort, Some("https"))
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
-    }.pendingUntilAkkaHttpFixed
-    "not show that requests are secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort, Some("http"))
-      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "false"
-    }.pendingUntilAkkaHttpFixed
+      test(createConn(sslPort, Some("https")), true)
+    }
+    "not show that requests are not secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) { _ =>
+      test(createConn(sslPort, Some("http")), false)
+    }
   }
 
   "Play http server" should {
-    "not show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) { port =>
+    "not show that requests are not secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "foo")
       )
@@ -74,7 +71,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
     }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "https")), "foo")
+        BasicRequest("GET", "/", "HTTP/1.1", Map(X_FORWARDED_FOR -> "127.0.0.1", X_FORWARDED_PROTO -> "https"), "foo")
       )
       responses.length must_== 1
       responses(0).body must_== Left("true")
@@ -92,7 +89,10 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
   def createConn(sslPort: Int, forwardedProto: Option[String] = None) = {
     val conn = new URL("https://localhost:" + sslPort + "/").openConnection().asInstanceOf[HttpsURLConnection]
-    forwardedProto.foreach(proto => conn.setRequestProperty(X_FORWARDED_PROTO, proto))
+    forwardedProto.foreach { proto =>
+      conn.setRequestProperty(X_FORWARDED_FOR, "127.0.0.1")
+      conn.setRequestProperty(X_FORWARDED_PROTO, proto)
+    }
     conn.setSSLSocketFactory(sslFactory)
     conn
   }

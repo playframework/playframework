@@ -1,15 +1,14 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.bindings
 
 import java.lang.reflect.Method
+import java.util.concurrent.CompletableFuture
 
-import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws._
 import play.api.routing.Router
-import play.api.{ Application, Configuration, GlobalSettings }
+import play.api.Application
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.test._
@@ -17,7 +16,6 @@ import play.it._
 import play.it.http.{ MockController, JAction }
 import play.mvc.Http
 import play.mvc.Http.Context
-import scala.concurrent._
 
 object NettyGlobalSettingsSpec extends GlobalSettingsSpec with NettyIntegrationSpecification
 
@@ -29,7 +27,7 @@ trait GlobalSettingsSpec extends PlaySpecification with WsTestClient with Server
     implicit val port = testServerPort
     val additionalSettings = applicationGlobal.fold(Map.empty[String, String]) { s: String =>
       Map("application.global" -> s"play.it.bindings.$s")
-    }
+    } + ("play.http.requestHandler" -> "play.http.GlobalSettingsHttpRequestHandler")
     import play.api.inject._
     import play.api.routing.sird._
     lazy val app: Application = new GuiceApplicationBuilder()
@@ -88,7 +86,7 @@ class FooFilteringJavaGlobal extends play.GlobalSettings {
 class OnRequestJavaGlobal extends play.GlobalSettings {
   override def onRequest(request: Http.Request, actionMethod: Method) = {
     new play.mvc.Action.Simple {
-      def call(ctx: Context) = play.libs.F.Promise.pure(play.mvc.Results.ok("intercepted"))
+      def call(ctx: Context) = CompletableFuture.completedFuture(play.mvc.Results.ok("intercepted"))
     }
   }
 }

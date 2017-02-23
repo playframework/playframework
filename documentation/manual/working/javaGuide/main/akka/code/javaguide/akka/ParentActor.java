@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.akka;
 
@@ -12,7 +12,12 @@ import javax.inject.Inject;
 
 public class ParentActor extends UntypedActor implements InjectedActorSupport {
 
-    @Inject ConfiguredChildActorProtocol.Factory childFactory;
+    private ConfiguredChildActorProtocol.Factory childFactory;
+
+    @Inject
+    public ParentActor(ConfiguredChildActorProtocol.Factory childFactory) {
+        this.childFactory = childFactory;
+    }
 
     @Override
     public void onReceive(Object message) throws Exception {

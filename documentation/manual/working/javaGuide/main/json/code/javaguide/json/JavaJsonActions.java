@@ -1,7 +1,7 @@
-package javaguide.json;
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
+package javaguide.json;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ public class JavaJsonActions extends WithApplication {
 
     //#person-class
     // Note: can use getters/setters as well; here we just use public fields directly.
-    // if using getters/setters, you can keep keep the fields `protected` or `private`
+    // if using getters/setters, you can keep the fields `protected` or `private`
     public static class Person {
         public String firstName;
         public String lastName;
@@ -62,19 +62,6 @@ public class JavaJsonActions extends WithApplication {
         assertThat(personJson.get("firstName").asText(), equalTo("Foo"));
         assertThat(personJson.get("lastName").asText(), equalTo("Bar"));
         assertThat(personJson.get("age").asInt(), equalTo(30));
-    }
-
-    @Test
-    public void customObjectMapper() {
-        //#custom-object-mapper
-        ObjectMapper mapper = new ObjectMapper()
-            // enable features and customize the object mapper here ...
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            // etc.
-        Json.setObjectMapper(mapper);
-        //#custom-object-mapper
-        assertThat(Json.mapper(), equalTo(mapper));
     }
 
     @Test

@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper }
-import play.api.inject.{ bind, Injector => PlayInjector }
+import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
+import play.api.inject.{ DefaultApplicationLifecycle, bind }
 import play.core.WebCommands
 
 /**
@@ -26,6 +26,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
    */
   protected def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
     initialBuilder
+      .disableCircularProxies()
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
       .overrides(overrides(context): _*)
@@ -49,6 +50,7 @@ object GuiceApplicationLoader {
   def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     Seq(
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
-      bind[WebCommands] to context.webCommands)
+      bind[WebCommands] to context.webCommands,
+      bind[DefaultApplicationLifecycle] to context.lifecycle)
   }
 }

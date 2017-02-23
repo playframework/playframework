@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Accessing an SQL database
 
 ## Configuring JDBC connection pools
@@ -78,6 +78,17 @@ db.customers.driver=org.h2.Driver
 db.customers.url="jdbc:h2:mem:customers"
 ```
 
+## Exposing the datasource through JNDI
+
+Some libraries expect to retrieve the `Datasource` reference from JNDI. You can expose any Play managed datasource via JNDI by adding this configuration in `conf/application.conf`:
+
+```properties
+db.default.driver=org.h2.Driver
+db.default.url="jdbc:h2:mem:play"
+db.default.jndiName=DefaultDS
+```
+
+
 ## How to configure SQL log statement
 
 Not all connection pools offer (out of the box) a way to log SQL statements. HikariCP, per instance, suggests that you use the log capacities of your database vendor. From [HikariCP docs](https://github.com/brettwooldridge/HikariCP/tree/dev#log-statement-text--slow-query-logging):
@@ -97,7 +108,7 @@ db.default.logSql=true
 
 After that, you can configure the jdbcdslog-exp [log level as explained in their manual](https://code.google.com/p/jdbcdslog/wiki/UserGuide#Setup_logging_engine). Basically, you need to configure your root logger to `INFO` and then decide what jdbcdslog-exp will log (connections, statements and result sets). Here is an example using `logback.xml` to configure the logs:
 
-@[](/confs/play/logback-play-logSql.xml)
+@[](/confs/play-logback/logback-play-logSql.xml)
 
 > **Warning**: Keep in mind that this is intended to be used just in development environments and you should not configure it in production, since there is a performance degradation and it will pollute your logs.
 
@@ -112,16 +123,6 @@ libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 ```
 
 Or if the driver can't be found from repositories you can drop the driver into your project's [[unmanaged dependencies|Anatomy]] `lib` directory.
-
-## Accessing the JDBC datasource
-
-The `play.api.db` package provides access to the configured data sources:
-
-```scala
-import play.api.db._
-
-val ds = DB.getDataSource()
-```
 
 ## Obtaining a JDBC connection
 
@@ -145,7 +146,7 @@ The connection will be automatically closed at the end of the block.
 A variant is to set the connection's auto-commit to `false` and to manage a transaction for the block:
 
 ```scala
-DB.withTransaction { conn =>
+db.withTransaction { conn =>
   // do whatever you need with the connection
 }
 ```
@@ -156,7 +157,7 @@ For a database other than the default:
 
 ## Selecting and configuring the connection pool
 
-Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/). **The default is HikariCP**, but this can be changed by setting the `play.db.pool` property:
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://www.jolbox.com/). **The default is HikariCP**, but this can be changed by setting the `play.db.pool` property:
 
 ```
 play.db.pool=bonecp

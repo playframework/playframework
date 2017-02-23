@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.mvc
 
+import akka.stream.Materializer
+import java.util.concurrent.CompletionStage
+import java.util.function.{ Function => JFunction }
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ GlobalSettingsHttpRequestHandler, HttpRequestHandler, DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
@@ -23,24 +26,60 @@ object NettyGlobalFiltersSpec extends GlobalFiltersSpec with NettyIntegrationSpe
 object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
+
+  // Easy to use `withServer` method
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(block: WSClient => T) = {
+    withFlexibleServer(settings, errorHandler, (_: Materializer) => filters)(block)
+  }
+
+  // `withServer` method that allows filters to be constructed with a Materializer
+  def withFlexibleServer[T](settings: Map[String, String], errorHandler: Option[HttpErrorHandler], makeFilters: Materializer => Seq[EssentialFilter])(block: WSClient => T) = {
 
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
     )) {
       lazy val router = testRouter
-      override lazy val httpFilters: Seq[EssentialFilter] = filters
+      override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
         new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
       )
     }.application
 
     Server.withApplication(app) { implicit port =>
+      import app.materializer
       WsTestClient.withClient(block)
     }
 
   }
+
+  // Only run this test for injected filters; we can't use it for GlobalSettings
+  // filters because we can't get the Materializer that we need
+  "Java filters" should {
+    "work with a simple nop filter" in withFlexibleServer(
+      Map.empty, None,
+      (mat: Materializer) => Seq(new JavaSimpleFilter(mat))) { ws =>
+        val response = Await.result(ws.url("/ok").get(), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+  }
+
+  // A Java filter that extends Filter, not EssentialFilter
+  class JavaSimpleFilter(mat: Materializer) extends play.mvc.Filter(mat) {
+    println("Creating JavaSimpleFilter")
+    import play.mvc._
+    import play.libs.streams.Accumulator
+
+    override def apply(
+      next: JFunction[Http.RequestHeader, CompletionStage[Result]],
+      rh: Http.RequestHeader): CompletionStage[Result] = {
+      println("Calling JavaSimpleFilter.apply")
+      next(rh)
+    }
+
+  }
+
 }
 
 trait GlobalFiltersSpec extends FiltersSpec {
@@ -48,18 +87,22 @@ trait GlobalFiltersSpec extends FiltersSpec {
 
     import play.api.inject.bind
 
-    val appBuilder = new GuiceApplicationBuilder()
+    val app = new GuiceApplicationBuilder()
       .configure(settings)
-      .overrides(bind[Router].toInstance(testRouter))
+      .overrides(
+        bind[Router].toInstance(testRouter),
+        bind[HttpRequestHandler].to[GlobalSettingsHttpRequestHandler]
+      )
       .global(
         new WithFilters(filters: _*) {
           override def onHandlerNotFound(request: RequestHeader) = {
             errorHandler.fold(super.onHandlerNotFound(request))(_.onClientError(request, 404, ""))
           }
         }
-      )
+      ).build()
 
-    Server.withApplication(appBuilder.build()) { implicit port =>
+    Server.withApplication(app) { implicit port =>
+      import app.materializer
       WsTestClient.withClient(block)
     }
   }
@@ -109,6 +152,44 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       }
     }
 
+    "handle errors in Java" in {
+      "ErrorHandlingFilter has no effect on a GET that returns a 200 OK" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/ok").get(), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter has no effect on a POST that returns a 200 OK" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter recovers from a GET that throws a synchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error").get(), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedErrorText
+      }
+
+      "ErrorHandlingFilter recovers from a GET that throws an asynchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error-async").get(), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedErrorText
+      }
+
+      "ErrorHandlingFilter recovers from a POST that throws a synchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error").post(expectedOkText), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedOkText
+      }
+
+      "ErrorHandlingFilter recovers from a POST that throws an asynchronous exception" in withServer()(JavaErrorHandlingFilter) { ws =>
+        val response = Await.result(ws.url("/error-async").post(expectedOkText), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedOkText
+      }
+    }
+
     "Filters are not applied when the request is outside the application.context" in withServer(
       Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
         val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
@@ -139,6 +220,18 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       val response = Await.result(ws.url("/ok").get(), Duration.Inf)
       response.status must_== 500
       response.body must_== ThrowExceptionFilter.expectedText
+    }
+
+    object ThreadNameFilter extends EssentialFilter {
+      def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
+        Accumulator.done(Results.Ok(Thread.currentThread().getName))
+      }
+    }
+
+    "Filters should use the Akka ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      val threadName = result.body
+      threadName must startWith("application-akka.actor.default-dispatcher-")
     }
 
     val filterAddedHeaderKey = "CUSTOM_HEADER"
@@ -176,6 +269,28 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         }(play.api.libs.concurrent.Execution.Implicits.defaultContext)
       } catch {
         case t: Throwable => Accumulator.done(Results.InternalServerError(t.getMessage))
+      }
+    }
+  }
+
+  object JavaErrorHandlingFilter extends play.mvc.EssentialFilter {
+    import play.mvc._
+    import play.libs.streams.Accumulator
+
+    private def getResult(t: Throwable): Result = {
+      // Get the cause of the CompletionException
+      Results.internalServerError(Option(t.getCause).getOrElse(t).getMessage)
+    }
+
+    def apply(next: EssentialAction) = new EssentialAction {
+      override def apply(request: Http.RequestHeader) = {
+        try {
+          next.apply(request).recover(new java.util.function.Function[Throwable, Result]() {
+            def apply(t: Throwable) = getResult(t)
+          }, play.core.Execution.internalContext)
+        } catch {
+          case t: Throwable => Accumulator.done(getResult(t))
+        }
       }
     }
   }

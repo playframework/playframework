@@ -1,1 +1,2 @@
-JavaPlugins:Writing plugins
+JavaPlayModules:Writing Play modules
+JavaPlugins:Migrating from Plugins API

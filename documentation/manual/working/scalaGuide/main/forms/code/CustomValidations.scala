@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package scalaguide.forms.scalaforms {
 
 import play.api.data._

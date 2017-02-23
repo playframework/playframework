@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
@@ -32,7 +32,7 @@ object ScalaResultsSpec extends PlaySpecification {
     setCookies("preferences").value must be_==("blue")
     setCookies("lang").value must be_==("fr")
     setCookies("logged").maxAge must beSome
-    setCookies("logged").maxAge must beSome(0)
+    setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     val playSession = Session.decodeFromCookie(setCookies.get(Session.COOKIE_NAME))
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }
@@ -83,8 +83,8 @@ object ScalaResultsSpec extends PlaySpecification {
   }
 
   def withApplication[T](config: (String, Any)*)(block: => T): T = running(
-    FakeApplication(additionalConfiguration = Map(config: _*) + ("play.crypto.secret" -> "foo"))
-  )(block)
+    _.configure(Map(config: _*) + ("play.crypto.secret" -> "foo"))
+  )(_ => block)
 
   def withFooPath[T](block: => T) = withApplication("application.context" -> "/foo")(block)
 

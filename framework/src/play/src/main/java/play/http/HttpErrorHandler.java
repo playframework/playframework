@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.http;
 
-import play.libs.F;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
 
 /**
  * Component for handling HTTP errors in Play.
@@ -21,7 +22,7 @@ public interface HttpErrorHandler {
      * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
      * @param message The error message.
      */
-    F.Promise<Result> onClientError(RequestHeader request, int statusCode, String message);
+    CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message);
 
     /**
      * Invoked when a server error occurs.
@@ -29,5 +30,5 @@ public interface HttpErrorHandler {
      * @param request The request that triggered the server error.
      * @param exception The server error.
      */
-    F.Promise<Result> onServerError(RequestHeader request, Throwable exception);
+    CompletionStage<Result> onServerError(RequestHeader request, Throwable exception);
 }

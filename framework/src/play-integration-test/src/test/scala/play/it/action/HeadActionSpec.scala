@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.action
 
+import akka.stream.scaladsl.Source
+import io.netty.handler.codec.http.HttpHeaders
 import org.specs2.mutable.Specification
+import play.api.Play
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.ws.{ WSClient, WSResponse }
 import play.api.mvc._
 import play.api.routing.Router.Routes
@@ -18,8 +20,7 @@ import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication._
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.ning.http.client.providers.netty.response.NettyResponse
-import java.util.concurrent.atomic.AtomicBoolean
+import org.asynchttpclient.netty.NettyResponse
 
 object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
 object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
@@ -36,7 +37,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     val chunkedResponse: Routes = {
       case GET(p"/chunked") =>
         Action { request =>
-          Results.Ok.chunked(Enumerator("a", "b", "c"))
+          Results.Ok.chunked(Source(List("a", "b", "c")))
         }
     }
 
@@ -52,6 +53,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
       Server.withRouter()(routes) { implicit port =>
+        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }
@@ -60,6 +62,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       Server.withRouter() {
         case _ => action
       } { implicit port =>
+        implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
     }
@@ -85,10 +88,24 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       val responses = await(collectedFutures)
 
       val headHeaders = responses(0).underlying[NettyResponse].getHeaders
-      val getHeaders = responses(1).underlying[NettyResponse].getHeaders
+      val getHeaders: HttpHeaders = responses(1).underlying[NettyResponse].getHeaders
 
       // Exclude `Date` header because it can vary between requests
-      headHeaders.delete(DATE) must_== getHeaders.delete(DATE)
+      import scala.collection.JavaConverters._
+      val firstHeaders = headHeaders.remove(DATE)
+      val secondHeaders = getHeaders.remove(DATE)
+
+      // HTTPHeaders doesn't seem to be anything as simple as an equals method, so let's compare A !< B && B >! A
+      val notInFirst = secondHeaders.asScala.collectFirst {
+        case entry if !firstHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      val notInSecond = firstHeaders.asScala.collectFirst {
+        case entry if !secondHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      notInFirst must beEmpty
+      notInSecond must beEmpty
     }
 
     "return 404 in response to a URL without an associated GET handler" in withServer { client =>
@@ -102,18 +119,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       val responseList = await(collectedFutures)
 
       foreach(responseList)((_: WSResponse).status must_== NOT_FOUND)
-    }
-
-    "clean up any onDoneEnumerating callbacks" in {
-      val wasCalled = new AtomicBoolean()
-
-      val action = Action {
-        Results.Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
-      }
-      serverWithAction(action) { client =>
-        await(client.url("/get").head())
-        wasCalled.get() must be_==(true).eventually
-      }
     }
 
     "tag request with DefaultHttpRequestHandler" in serverWithAction(new RequestTaggingHandler with EssentialAction {

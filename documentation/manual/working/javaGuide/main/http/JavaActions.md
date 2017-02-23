@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Actions, Controllers and Results
 
 ## What is an Action?
 
-Most of the requests received by a Play application are handled by an `Action`. 
+Most of the requests received by a Play application are handled by an *action*. 
 
 An action is basically a Java method that processes the request parameters, and produces a result to be sent to the client.
 

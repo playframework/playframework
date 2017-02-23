@@ -1,19 +1,22 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
 import java.io._
-import java.util.Properties
+
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api._
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc._
-import play.api.libs.concurrent.ActorSystemProvider
 import play.core._
 import play.utils.Threads
+
 import scala.collection.JavaConverters._
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -86,7 +89,12 @@ object DevServerStart {
         // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
         // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
         // configure it here.
-        Logger.init(path, Mode.Dev)
+        LoggerConfigurator(this.getClass.getClassLoader) match {
+          case Some(loggerConfigurator) =>
+            loggerConfigurator.init(path, Mode.Dev)
+          case None =>
+            System.out.println("No play.logger.configurator found: logging must be configured entirely by the application.")
+        }
 
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
         println()
@@ -96,6 +104,7 @@ object DevServerStart {
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
           var currentWebCommands: Option[WebCommands] = None
+          var lastLifecycle: Option[DefaultApplicationLifecycle] = None
 
           override def current: Option[Application] = lastState.toOption
 
@@ -133,6 +142,10 @@ object DevServerStart {
                       // First, stop the old application if it exists
                       lastState.foreach(Play.stop)
 
+                      // Basically no matter if the last state was a Success, we need to
+                      // call all remaining hooks
+                      lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
+
                       // Create the new environment
                       val environment = Environment(path, projectClassloader, Mode.Dev)
                       val sourceMapper = new SourceMapper {
@@ -150,6 +163,7 @@ object DevServerStart {
 
                       val newApplication = Threads.withContextClassLoader(projectClassloader) {
                         val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands)
+                        lastLifecycle = Some(context.lifecycle)
                         val loader = ApplicationLoader(context)
                         loader.load(context)
                       }
@@ -203,9 +217,20 @@ object DevServerStart {
           properties = process.properties,
           configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
-        val (actorSystem, actorSystemStopHook) = ActorSystemProvider.start(classLoader, serverConfig.configuration)
+
+        // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
+        // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
+        // then both the dev mode and the application actor system will attempt to open that remote port, and one of
+        // them will fail.
+        val devModeAkkaConfig = serverConfig.configuration.underlying.getConfig("play.akka.dev-mode")
+        val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), actorSystemStopHook)
+          ActorMaterializer()(actorSystem), () => {
+            actorSystem.terminate()
+            Await.result(actorSystem.whenTerminated, Duration.Inf)
+            Future.successful(())
+          })
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {

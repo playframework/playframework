@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -24,11 +24,6 @@ trait ContentTypes {
   def HTML(implicit codec: Codec) = withCharset(MimeTypes.HTML)
 
   /**
-   * Content-Type of json.
-   */
-  def JSON(implicit codec: Codec) = withCharset(MimeTypes.JSON)
-
-  /**
    * Content-Type of xml.
    */
   def XML(implicit codec: Codec) = withCharset(MimeTypes.XML)
@@ -44,11 +39,6 @@ trait ContentTypes {
   def JAVASCRIPT(implicit codec: Codec) = withCharset(MimeTypes.JAVASCRIPT)
 
   /**
-   * Content-Type of form-urlencoded.
-   */
-  def FORM(implicit codec: Codec) = withCharset(MimeTypes.FORM)
-
-  /**
    * Content-Type of server sent events.
    */
   def EVENT_STREAM(implicit codec: Codec) = withCharset(MimeTypes.EVENT_STREAM)
@@ -59,6 +49,16 @@ trait ContentTypes {
   val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
 
   /**
+   * Content-Type of json. This content type does not define a charset parameter.
+   */
+  val JSON = MimeTypes.JSON
+
+  /**
+   * Content-Type of form-urlencoded. This content type does not define a charset parameter.
+   */
+  val FORM = MimeTypes.FORM
+
+  /**
    * Content-Type of binary data.
    */
   val BINARY = MimeTypes.BINARY
@@ -66,7 +66,7 @@ trait ContentTypes {
   /**
    * @return the `codec` charset appended to `mimeType`
    */
-  def withCharset(mimeType: String)(implicit codec: Codec) = mimeType + "; charset=" + codec.charset
+  def withCharset(mimeType: String)(implicit codec: Codec) = s"$mimeType; charset=${codec.charset}"
 
 }
 
@@ -175,6 +175,7 @@ trait Status {
   val NOT_MODIFIED = 304
   val USE_PROXY = 305
   val TEMPORARY_REDIRECT = 307
+  val PERMANENT_REDIRECT = 308
 
   val BAD_REQUEST = 400
   val UNAUTHORIZED = 401

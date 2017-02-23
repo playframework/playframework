@@ -1,8 +1,11 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package javaguide.tests;
 
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
-import play.api.routing.Router;
+import play.routing.Router;
 import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSClient;
@@ -10,6 +13,7 @@ import play.routing.RoutingDsl;
 import play.server.Server;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
@@ -37,7 +41,7 @@ public class JavaTestingWebServiceClients {
     }
 
     @Test
-    public void sendResource() {
+    public void sendResource() throws Exception {
         //#send-resource
         Router router = new RoutingDsl()
             .GET("/repositories").routeTo(() ->
@@ -49,16 +53,19 @@ public class JavaTestingWebServiceClients {
         Server server = Server.forRouter(router);
 
         WSClient ws = WS.newClient(server.httpPort());
-        GitHubClient client = new GitHubClient();
+        GitHubClient client = new GitHubClient(ws);
         client.baseUrl = "";
-        client.ws = ws;
 
         try {
-            List<String> repos = client.getRepositories().get(10000);
+            List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
             assertThat(repos, hasItem("octocat/Hello-World"));
         } finally {
-            ws.close();
-            server.stop();
+            try {
+                ws.close();
+            }
+            finally {
+                server.stop();
+            }
         }
     }
 

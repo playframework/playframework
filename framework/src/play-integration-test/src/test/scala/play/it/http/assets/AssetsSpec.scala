@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.assets
 
 import controllers.Assets
+import play.api.Play
 import play.api.libs.ws.WSClient
 import play.api.test._
 import org.apache.commons.io.IOUtils
@@ -23,12 +24,13 @@ trait AssetsSpec extends PlaySpecification
   "Assets controller" should {
 
     val defaultCacheControl = Some("public, max-age=3600")
-    val aggressiveCacheControl = Some("public, max-age=31536000")
+    val aggressiveCacheControl = Some("public, max-age=31536000, immutable")
 
     def withServer[T](block: WSClient => T): T = {
       Server.withRouter(ServerConfig(mode = Mode.Prod, port = Some(0))) {
         case req => Assets.versioned("/testassets", req.path)
       } { implicit port =>
+        implicit val materializer = Play.current.materializer
         withClient(block)
       }
     }
@@ -89,7 +91,7 @@ trait AssetsSpec extends PlaySpecification
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       //result.header(CONTENT_ENCODING) must beSome("gzip")
-      val ahcResult: com.ning.http.client.Response = result.underlying.asInstanceOf[com.ning.http.client.Response]
+      val ahcResult: org.asynchttpclient.Response = result.underlying.asInstanceOf[org.asynchttpclient.Response]
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
       IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
       // release deflate resources
@@ -208,10 +210,128 @@ trait AssetsSpec extends PlaySpecification
         Server.withRouter() {
           case req => Assets.versioned("/scala", req.path)
         } { implicit port =>
+          implicit val materializer = Play.current.materializer
           withClient { client =>
             await(client.url("/collection").get()).status must_== NOT_FOUND
           }
         }
+      }
+    }
+
+    "serve a partial content if requested" in {
+      "return a 206 Partial Content status" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-10")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+      }
+
+      "The first 500 bytes: 0-499 inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-499")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-499/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The second 500 bytes: 500-999 inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=500-999")
+            .get()
+        )
+
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 500-999/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The final 500 bytes: 9500-9999, inclusive" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=9500-9999")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The final 500 bytes using a open range: 9500-" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=9500-")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/10000"))
+        result.bodyAsBytes.length must beEqualTo(500)
+        result.header(CONTENT_LENGTH) must beSome("500")
+      }
+
+      "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=0-0,-1")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-0,-1/"))
+      }.pendingUntilFixed
+
+      "Multiple intervals to get the second 500 bytes" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=500-600,601-999")
+            .get()
+        )
+
+        result.status must_== PARTIAL_CONTENT
+        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("multipart/byteranges"))
+      }.pendingUntilFixed
+
+      "Return status 416 when first byte is gt the length of the complete entity" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.status must_== REQUESTED_RANGE_NOT_SATISFIABLE
+      }
+
+      "Return a Content-Range header for 416 responses" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.header(CONTENT_RANGE) must beSome.which(_ == "bytes */10000")
+      }
+
+      "No Content-Disposition header when serving assets" in withServer { client =>
+        val result = await(
+          client.url("/range.txt")
+            .withHeaders(RANGE -> "bytes=10500-10600")
+            .get()
+        )
+
+        result.header(CONTENT_DISPOSITION) must beNone
       }
     }
   }

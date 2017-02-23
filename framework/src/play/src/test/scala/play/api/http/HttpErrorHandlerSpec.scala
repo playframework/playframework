@@ -1,7 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
+
+import java.util.concurrent.CompletableFuture
 
 import org.specs2.mutable.Specification
 import play.api.inject.BindingKey
@@ -83,9 +85,9 @@ object HttpErrorHandlerSpec extends Specification {
 
   class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
     def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
-      play.libs.F.Promise.pure(play.mvc.Results.ok())
+      CompletableFuture.completedFuture(play.mvc.Results.ok())
     def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
-      play.libs.F.Promise.pure(play.mvc.Results.ok())
+      CompletableFuture.completedFuture(play.mvc.Results.ok())
   }
 
 }

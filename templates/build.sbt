@@ -1,27 +1,34 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 import play.sbt.activator.Templates._
 
 templateSettings
 
-scalaVersion := {
-  // If we're a snapshot build, then default to 2.10.5, since this is what gets built by default for Play
-  // If we're a production build, then we want 2.11.7.
-  sys.props.getOrElse("scala.version", if (isSnapshot.value) {
-    "2.10.5"
-  } else {
-    "2.11.7"
-  })
-}
+scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.10.5", "2.11.7")
+crossScalaVersions := Seq("2.11.7")
 
 templates := {
-  val dir = baseDirectory.value
+  def template(name: String, lang: String, includeDirNames: String*): TemplateSources = {
+    val dir = baseDirectory.value
+    TemplateSources(
+      name = name,
+      mainDir = dir / name,
+      includeDirs = includeDirNames.map(dir / _),
+      params = Map(
+        "LANG_FILE_SUFFIX" -> lang,
+        "LANG_TITLE_CASE" -> (lang.substring(0, 1).toUpperCase + lang.substring(1).toLowerCase)
+      )
+    )
+  }
   Seq(
-    "play-scala",
-    "play-java",
-    "play-scala-intro",
-    "play-java-intro"
-  ).map(template => dir / template)
+    template("play-scala", "scala", "play-common"),
+    template("play-java", "java", "play-common"),
+    template("play-scala-intro", "scala"),
+    template("play-java-intro", "java")
+  )
 }
 
 version := sys.props.getOrElse("play.version", version.value)
@@ -42,16 +49,21 @@ templateParameters := Map(
   "PLAY_VERSION" -> version.value,
   "SCALA_VERSION" -> scalaVersion.value,
   "PLAY_DOCS_URL" -> playDocsUrl(version.value),
-  "SBT_VERSION" -> "0.13.9",
+  "SBT_VERSION" -> "0.13.11",
   "COFFEESCRIPT_VERSION" -> "1.0.0",
   "LESS_VERSION" -> "1.1.0",
-  "JSHINT_VERSION" -> "1.0.3",
-  "DIGEST_VERSION" -> "1.1.0",
-  "RJS_VERSION" -> "1.0.7",
+  "JSHINT_VERSION" -> "1.0.4",
+  "DIGEST_VERSION" -> "1.1.1",
+  "RJS_VERSION" -> "1.0.8",
   "MOCHA_VERSION" -> "1.1.0",
+  "SASSIFY_VERSION" -> "1.4.6",
   "ENHANCER_VERSION" -> "1.1.0",
-  "EBEAN_VERSION" -> "1.0.0",
-  "PLAY_SLICK_VERSION" -> "1.0.0",
+  "EBEAN_VERSION" -> "3.0.2",
+  "PLAY_SLICK_VERSION" -> "2.0.2",
+  "SCALATESTPLUS_PLAY_VERSION" -> "1.5.1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )
+
+// Ignore Mac OS files contained in templates
+ignoreTemplateFiles += ".DS_Store"

@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Akka HTTP server backend _(experimental)_
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-Play 2's main server is built on top of [Netty](http://netty.io/). In Play 2.4 we started experimenting with an experimental server based on [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/). Akka HTTP is an HTTP library built on to of Akka. It is written by the authors of [Spray](http://spray.io/).
+Play 2's main server is built on top of [Netty](http://netty.io/). In Play 2.4 we started experimenting with an experimental server based on [Akka HTTP](http://doc.akka.io/docs/akka/2.4.4/scala/http/index.html). Akka HTTP is an HTTP library built on top of Akka. It is written by the authors of [Spray](http://spray.io/).
 
 The purpose of this backend is:
 
@@ -15,8 +15,6 @@ In future versions of Play we may implement a production quality Akka HTTP backe
 ## Known issues
 
 * Slow. There is a lot more copying in the Akka HTTP backend because the Play and Akka HTTP APIs are not naturally compatible. A lot of extra copying is needed to translate the objects.
-* WebSockets are not supported, due to missing support in Akka HTTP.
-* No HTTPS support, again due to missing support in Akka HTTP.
 * Server shutdown is a bit rough. HTTP server actors are just killed.
 * The implementation contains code duplicated from the Netty backend.
 

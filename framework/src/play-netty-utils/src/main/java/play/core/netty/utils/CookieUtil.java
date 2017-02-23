@@ -19,47 +19,57 @@ import java.util.BitSet;
 
 final class CookieUtil {
 
+    private static final BitSet VALID_COOKIE_NAME_OCTETS = validCookieNameOctets();
+
     private static final BitSet VALID_COOKIE_VALUE_OCTETS = validCookieValueOctets();
 
-    private static final BitSet VALID_COOKIE_NAME_OCTETS = validCookieNameOctets(VALID_COOKIE_VALUE_OCTETS);
+    private static final BitSet VALID_COOKIE_ATTRIBUTE_VALUE_OCTETS = validCookieAttributeValueOctets();
 
-    // US-ASCII characters excluding CTLs, whitespace, DQUOTE, comma, semicolon, and backslash
-    private static BitSet validCookieValueOctets() {
-        BitSet bits = new BitSet(8);
-        for (int i = 35; i < 127; i++) {
-            // US-ASCII characters excluding CTLs (%x00-1F / %x7F)
+    // token = 1*<any CHAR except CTLs or separators>
+    // separators = "(" | ")" | "<" | ">" | "@"
+    // | "," | ";" | ":" | "\" | <">
+    // | "/" | "[" | "]" | "?" | "="
+    // | "{" | "}" | SP | HT
+    private static BitSet validCookieNameOctets() {
+        BitSet bits = new BitSet();
+        for (int i = 32; i < 127; i++) {
             bits.set(i);
         }
-        bits.set('"', false);  // exclude DQUOTE = %x22
-        bits.set(',', false);  // exclude comma = %x2C
-        bits.set(';', false);  // exclude semicolon = %x3B
-        bits.set('\\', false); // exclude backslash = %x5C
+        int[] separators = new int[]
+                { '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t' };
+        for (int separator : separators) {
+            bits.set(separator, false);
+        }
         return bits;
     }
 
-    //    token          = 1*<any CHAR except CTLs or separators>
-    //    separators     = "(" | ")" | "<" | ">" | "@"
-    //                   | "," | ";" | ":" | "\" | <">
-    //                   | "/" | "[" | "]" | "?" | "="
-    //                   | "{" | "}" | SP | HT
-    private static BitSet validCookieNameOctets(BitSet validCookieValueOctets) {
-        BitSet bits = new BitSet(8);
-        bits.or(validCookieValueOctets);
-        bits.set('(', false);
-        bits.set(')', false);
-        bits.set('<', false);
-        bits.set('>', false);
-        bits.set('@', false);
-        bits.set(':', false);
-        bits.set('/', false);
-        bits.set('[', false);
-        bits.set(']', false);
-        bits.set('?', false);
-        bits.set('=', false);
-        bits.set('{', false);
-        bits.set('}', false);
-        bits.set(' ', false);
-        bits.set('\t', false);
+    // cookie-octet = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+    // US-ASCII characters excluding CTLs, whitespace, DQUOTE, comma, semicolon, and backslash
+    private static BitSet validCookieValueOctets() {
+        BitSet bits = new BitSet();
+        bits.set(0x21);
+        for (int i = 0x23; i <= 0x2B; i++) {
+            bits.set(i);
+        }
+        for (int i = 0x2D; i <= 0x3A; i++) {
+            bits.set(i);
+        }
+        for (int i = 0x3C; i <= 0x5B; i++) {
+            bits.set(i);
+        }
+        for (int i = 0x5D; i <= 0x7E; i++) {
+            bits.set(i);
+        }
+        return bits;
+    }
+
+    // path-value        = <any CHAR except CTLs or ";">
+    private static BitSet validCookieAttributeValueOctets() {
+        BitSet bits = new BitSet();
+        for (int i = 32; i < 127; i++) {
+            bits.set(i);
+        }
+        bits.set(';', false);
         return bits;
     }
 
@@ -143,6 +153,21 @@ final class CookieUtil {
             }
         }
         return cs;
+    }
+
+    static String validateAttributeValue(String name, String value) {
+        if (value == null) {
+            return null;
+        }
+        value = value.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        int i = firstInvalidOctet(value, VALID_COOKIE_ATTRIBUTE_VALUE_OCTETS);
+        if (i != -1) {
+            throw new IllegalArgumentException(name + " contains the prohibited characters: " + value.charAt(i));
+        }
+        return value;
     }
 
     private CookieUtil() {

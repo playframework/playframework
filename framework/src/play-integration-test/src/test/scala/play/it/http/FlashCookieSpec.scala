@@ -1,5 +1,9 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.it.http
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc.{ Cookie, Flash, Action }
 import play.api.mvc.Results._
@@ -14,7 +18,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
   sequential
 
-  def appWithRedirect = FakeApplication(withRoutes = {
+  def appWithRedirect = GuiceApplicationBuilder().routes {
     case ("GET", "/flash") =>
       Action {
         Redirect("/landing").flashing(
@@ -29,10 +33,12 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       Action {
         Ok("ok")
       }
-  })
+  }.build()
 
   def withClientAndServer[T](block: WSClient => T) = {
-    Server.withApplication(appWithRedirect) { implicit port =>
+    val app = appWithRedirect
+    import app.materializer
+    Server.withApplication(app) { implicit port =>
       withClient(block)
     }
   }
@@ -79,11 +85,9 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
     }
 
-    "honor configuration for flash.secure" in Helpers.running(
-      FakeApplication(additionalConfiguration = Map("play.http.flash.secure" -> true))
-    ) {
-        Flash.encodeAsCookie(Flash()).secure must beTrue
-      }
+    "honor configuration for flash.secure" in Helpers.running(_.configure("play.http.flash.secure" -> true)) { _ =>
+      Flash.encodeAsCookie(Flash()).secure must beTrue
+    }
   }
 
 }

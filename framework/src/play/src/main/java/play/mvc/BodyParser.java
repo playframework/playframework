@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
+import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.util.ByteString;
@@ -11,23 +12,40 @@ import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
 import play.api.http.Status$;
 import play.api.libs.Files;
-import play.api.mvc.BodyParsers$;
+import play.api.mvc.MaxSizeNotExceeded$;
+import play.api.mvc.MaxSizeStatus;
 import play.core.j.JavaParsers;
 import play.core.parsers.FormUrlEncodedParser;
+import play.core.parsers.Multipart;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
+import scala.Function1;
+import scala.Option;
+import scala.collection.Seq;
 import scala.compat.java8.FutureConverters;
+import scala.compat.java8.OptionConverters;
+import scala.concurrent.Future;
+import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static scala.collection.JavaConverters.mapAsJavaMapConverter;
+import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
 /**
  * A body parser parses the HTTP request body content.
@@ -53,18 +71,11 @@ public interface BodyParser<A> {
 
         /**
          * The class of the body parser to use.
+         *
+         * @return the class
          */
         Class<? extends BodyParser> value();
 
-        /**
-         *
-         * @deprecated maxLength is now ignored. To define the maxLength globally, set
-         * play.http.parser.maxMemoryBuffer and play.http.parser.maxDiskBuffer. To define a custom max length for a
-         * particular action, create a custom body parser, optionally extending one of the existing ones and passing
-         * the max length into their constructors.
-         */
-        @Deprecated
-        long maxLength() default -1;
     }
 
     /**
@@ -315,8 +326,9 @@ public interface BodyParser<A> {
 
         @Override
         protected Map<String, String[]> parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
-            return FormUrlEncodedParser.parseAsJavaArrayValues(bytes.decodeString(charset), charset);
+            String charset = request.charset().orElse("UTF-8");
+            String urlEncodedString = bytes.decodeString("UTF-8");
+            return FormUrlEncodedParser.parseAsJavaArrayValues(urlEncodedString, charset);
         }
     }
 
@@ -354,24 +366,26 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            return apply1(request).through(
-                    Flow.<ByteString>create()
-                            .transform(() -> new BodyParsers$.TakeUpTo(maxLength))
-            ).recoverWith(exception -> {
-                if (exception instanceof play.api.mvc.BodyParsers$.MaxLengthLimitAttained) {
-                    return FutureConverters.toJava(
-                            errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
-                                    .map(F.Either::<Result, A>Left).wrapped());
-                } else {
-                    CompletableFuture<F.Either<Result, A>> cf = new CompletableFuture<>();
-                    cf.completeExceptionally(exception);
-                    return cf;
-                }
-            }, JavaParsers.trampoline());
+            Flow<ByteString, ByteString, Future<MaxSizeStatus>> takeUpToFlow = Flow.fromGraph(play.api.mvc.BodyParsers$.MODULE$.takeUpTo(maxLength));
+            Sink<ByteString, CompletionStage<F.Either<Result, A>>> result = apply1(request).toSink();
+
+            return Accumulator.fromSink(takeUpToFlow.toMat(result, (statusFuture, resultFuture) ->
+               FutureConverters.toJava(statusFuture).thenCompose(status -> {
+                  if (status instanceof MaxSizeNotExceeded$) {
+                      return resultFuture;
+                  } else {
+                      return errorHandler.onClientError(request, Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(), "Request entity too large")
+                              .thenApply(F.Either::<Result, A>Left);
+                  }
+               })
+            ));
         }
 
         /**
          * Implement this method to implement the actual body parser.
+         *
+         * @param request header for the request to parse
+         * @return the accumulator that parses the request
          */
         protected abstract Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request);
     }
@@ -400,7 +414,7 @@ public interface BodyParser<A> {
                 try {
                     return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
-                    return FutureConverters.toJava(errorHandler.onClientError(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage()).wrapped())
+                    return errorHandler.onClientError(request, Status$.MODULE$.BAD_REQUEST(), errorMessage + ": " + e.getMessage())
                             .thenApply(F.Either::<Result, A>Left);
                 }
             }, JavaParsers.trampoline());
@@ -448,4 +462,132 @@ public interface BodyParser<A> {
         }
     }
 
+    /**
+     * A body parser that exposes a file part handler as an
+     * abstract method and delegates the implementation to the underlying
+     * Scala multipartParser.
+     */
+    abstract class DelegatingMultipartFormDataBodyParser<A> implements BodyParser<Http.MultipartFormData<A>> {
+
+        private final Materializer materializer;
+        private final long maxLength;
+        private final play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> delegate;
+
+        public DelegatingMultipartFormDataBodyParser(Materializer materializer, long maxLength) {
+            this.maxLength = maxLength;
+            this.materializer = materializer;
+            delegate = multipartParser();
+        }
+
+        /**
+         * Returns a FilePartHandler expressed as a Java function.
+         */
+        public abstract Function<Multipart.FileInfo, play.libs.streams.Accumulator<ByteString, Http.MultipartFormData.FilePart<A>>> createFilePartHandler();
+
+        /**
+         * Calls out to the Scala API to create a multipart parser.
+         */
+        private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
+            ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
+            return Multipart.multipartParser((int) maxLength, filePartHandler, materializer);
+        }
+
+        private class ScalaFilePartHandler extends AbstractFunction1<Multipart.FileInfo, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {
+            @Override
+            public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>> apply(Multipart.FileInfo fileInfo) {
+                return createFilePartHandler()
+                        .apply(fileInfo)
+                        .asScala()
+                        .map(new JavaFilePartToScalaFilePart(), materializer.executionContext());
+            }
+        }
+
+        private class JavaFilePartToScalaFilePart extends AbstractFunction1<Http.MultipartFormData.FilePart<A>, play.api.mvc.MultipartFormData.FilePart<A>> {
+            @Override
+            public play.api.mvc.MultipartFormData.FilePart<A> apply(Http.MultipartFormData.FilePart<A> filePart) {
+                return toScala(filePart);
+            }
+        }
+
+        /**
+         * Delegates underlying functionality to another body parser and converts the
+         * result to Java API.
+         */
+        @Override
+        public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>> apply(Http.RequestHeader request) {
+            return delegate.apply(request._underlyingHeader())
+                    .asJava()
+                    .map(result -> {
+                                if (result.isLeft()) {
+                                    return F.Either.Left(result.left().get().asJava());
+                                } else {
+                                    final play.api.mvc.MultipartFormData<A> scalaData = result.right().get();
+                                    return F.Either.Right(new DelegatingMultipartFormData(scalaData));
+                                }
+                            },
+                            JavaParsers.trampoline()
+                    );
+        }
+
+
+        /**
+         * Extends Http.MultipartFormData to use File specifically,
+         * converting from Scala API to Java API.
+         */
+        private class DelegatingMultipartFormData extends Http.MultipartFormData<A> {
+
+            private play.api.mvc.MultipartFormData<A> scalaFormData;
+
+            DelegatingMultipartFormData(play.api.mvc.MultipartFormData<A> scalaFormData) {
+                this.scalaFormData = scalaFormData;
+            }
+
+            @Override
+            public Map<String, String[]> asFormUrlEncoded() {
+                return mapAsJavaMapConverter(
+                        scalaFormData.asFormUrlEncoded().mapValues(arrayFunction())
+                ).asJava();
+            }
+
+            // maps from Scala Seq to String array
+            private Function1<Seq<String>, String[]> arrayFunction() {
+                return new AbstractFunction1<Seq<String>, String[]>() {
+                    @Override
+                    public String[] apply(Seq<String> v1) {
+                        String[] array = new String[v1.size()];
+                        v1.copyToArray(array);
+                        return array;
+                    }
+                };
+            }
+
+            @Override
+            public List<FilePart<A>> getFiles() {
+                return seqAsJavaListConverter(scalaFormData.files())
+                        .asJava()
+                        .stream()
+                        .map(part -> toJava(part))
+                        .collect(Collectors.toList());
+            }
+
+        }
+
+        private Http.MultipartFormData.FilePart<A> toJava(play.api.mvc.MultipartFormData.FilePart<A> filePart) {
+            return new Http.MultipartFormData.FilePart<>(
+                    filePart.key(),
+                    filePart.filename(),
+                    OptionConverters.toJava(filePart.contentType()).orElse(null),
+                    filePart.ref()
+            );
+        }
+
+        private play.api.mvc.MultipartFormData.FilePart<A> toScala(Http.MultipartFormData.FilePart<A> filePart) {
+            return new play.api.mvc.MultipartFormData.FilePart<>(
+                    filePart.getKey(),
+                    filePart.getFilename(),
+                    Option.apply(filePart.getContentType()),
+                    filePart.getFile()
+            );
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
@@ -71,6 +71,8 @@ public class GuiceApplicationBuilderTest {
     public void disableLoadedModules() {
         Injector injector = new GuiceApplicationBuilder()
             .disable(play.api.i18n.I18nModule.class)
+            .disable(play.data.FormFactoryModule.class)
+            .disable(play.data.format.FormattersModule.class)
             .injector();
 
         exception.expect(com.google.inject.ConfigurationException.class);

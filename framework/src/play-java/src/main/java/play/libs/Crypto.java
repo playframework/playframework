@@ -1,31 +1,35 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs;
+
+import play.libs.crypto.CSRFTokenSigner;
+import play.libs.crypto.CookieSigner;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Cryptographic utilities.
- * <br>
- * These utilities are intended as a convenience, however it is important to read each methods documentation and
- * understand the concepts behind encryption to use this class properly.  Safe encryption is hard, and there is no
- * substitute for an adequate understanding of cryptography.  These methods will not be suitable for all encryption
- * needs.
+ * This class is not suitable for use as a general cryptographic library, and is not used internally by Play.
+ * It will be removed in future versions.
  *
- * For more information about cryptography, we recommend reading the OWASP Cryptographic Storage Cheatsheet:
+ * Please see <a href="https://www.playframework.com/documentation/2.5.x/CryptoMigration25">Crypto Migration Guide</a> for details, including how to migrate to another crypto system.
  *
- * https://www.owasp.org/index.php/Cryptographic_Storage_Cheat_Sheet
+ * @deprecated This class is deprecated and will be removed in future versions.
  */
+@Deprecated
 @Singleton
-public class Crypto {
+public class Crypto implements CSRFTokenSigner, CookieSigner {
 
     private final play.api.libs.Crypto crypto;
 
     @Inject
     public Crypto(play.api.libs.Crypto crypto) {
         this.crypto = crypto;
+    }
+
+    public play.api.libs.Crypto asScala() {
+        return this.crypto;
     }
 
     /**
@@ -38,9 +42,9 @@ public class Crypto {
      * @param key     The private key to sign with.
      * @return A hexadecimal encoded signature.
      */
-    public String sign(String message, byte[] key) {
-        return crypto.sign(message, key);
-    }
+    //public String sign(String message, byte[] key) {
+    //      return crypto.sign(message, key);
+    //}
 
     /**
      * Signs the given String with HMAC-SHA1 using the application's secret key.
@@ -129,9 +133,11 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value The String to encrypt.
      * @return An hexadecimal encrypted string.
      */
+    @Deprecated
     public String encryptAES(String value) {
         return crypto.encryptAES(value);
     }
@@ -153,10 +159,12 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value      The String to encrypt.
      * @param privateKey The key used to encrypt.
      * @return An hexadecimal encrypted string.
      */
+    @Deprecated
     public String encryptAES(String value, String privateKey) {
         return crypto.encryptAES(value, privateKey);
     }
@@ -172,9 +180,11 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value An hexadecimal encrypted string.
      * @return The decrypted String.
      */
+    @Deprecated
     public String decryptAES(String value) {
         return crypto.decryptAES(value);
     }
@@ -192,10 +202,12 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
+     * @deprecated This method is deprecated and will be removed in future versions.
      * @param value      An hexadecimal encrypted string.
      * @param privateKey The key used to encrypt.
      * @return The decrypted String.
      */
+    @Deprecated
     public String decryptAES(String value, String privateKey) {
         return crypto.decryptAES(value, privateKey);
     }

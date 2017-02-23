@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -24,6 +24,9 @@ public class DefaultDatabase implements Database {
 
     /**
      * Create a default BoneCP-backed database.
+     *
+     * @param name name for the db's underlying datasource
+     * @param configuration the database's configuration
      */
     public DefaultDatabase(String name, Configuration configuration) {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(
@@ -34,6 +37,9 @@ public class DefaultDatabase implements Database {
 
     /**
      * Create a default BoneCP-backed database.
+     *
+     * @param name name for the db's underlying datasource
+     * @param config the db's configuration
      */
     public DefaultDatabase(String name, Map<String, ? extends Object> config) {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(

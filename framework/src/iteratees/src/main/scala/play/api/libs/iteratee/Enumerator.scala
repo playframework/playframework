@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
@@ -16,6 +16,7 @@ import scala.language.reflectiveCalls
  *
  * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
  * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 trait Enumerator[E] {
   parent =>
@@ -48,7 +49,7 @@ trait Enumerator[E] {
    * If the iteratee is left in a [[play.api.libs.iteratee.Done]]
    * state then the promise is completed with the iteratee's result.
    * If the iteratee is left in an [[play.api.libs.iteratee.Error]] state, then the
-   * promise is completed with a [[java.lang.RuntimeException]] containing the
+   * promise is completed with a [[$javadoc/java/lang/RuntimeException.html RuntimeException]] containing the
    * iteratee's error message.
    *
    * Unlike `apply` or `|>>`, this method does not allow you to access the

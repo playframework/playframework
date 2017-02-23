@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.json
 
@@ -15,7 +15,7 @@ case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extend
 sealed trait JsValue extends JsReadable {
   override def toString = Json.stringify(this)
 
-  def validate[A](implicit rds: Reads[A]) = rds.reads(this)
+  def validate[A](implicit rds: Reads[A]): JsResult[A] = rds.reads(this)
 
   def validateOpt[A](implicit rds: Reads[A]): JsResult[Option[A]] = JsDefined(this).validateOpt[A]
 }

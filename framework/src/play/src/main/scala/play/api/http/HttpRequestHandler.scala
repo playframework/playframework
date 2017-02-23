@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
-import javax.inject.{ Provider, Inject }
+import javax.inject.{ Inject, Provider }
 
-import play.api.inject.{ BindingKey, Binding }
-import play.api.libs.streams.Accumulator
-import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
+import play.api.inject.{ Binding, BindingKey }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.core.j.{ JavaHandler, JavaHandlerComponents }
+import play.api.{ Configuration, Environment, GlobalSettings, PlayConfig }
+import play.core.j.{ JavaHttpRequestHandlerDelegate, JavaHandler, JavaHandlerComponents }
 import play.utils.Reflect
 
 /**
@@ -34,30 +34,34 @@ trait HttpRequestHandler {
    * @return The possibly modified/tagged request, and a handler to handle it
    */
   def handlerForRequest(request: RequestHeader): (RequestHeader, Handler)
+
+  /**
+   * Adapt this to a Java HttpRequestHandler
+   */
+  def asJava = new JavaHttpRequestHandlerDelegate(this)
 }
 
 object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    val javaComponentsBinding = BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](environment,
+      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler")
 
-    Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
-      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler") match {
-        case None => Nil
-        case Some(Left(scalaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to(scalaImpl),
-            // Need to bind the default Java one in case the Scala one depends on JavaHandlerComponents
-            BindingKey(classOf[play.http.HttpRequestHandler]).to[play.http.GlobalSettingsHttpRequestHandler],
-            javaComponentsBinding
-          )
-        case Some(Right(javaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to[JavaCompatibleHttpRequestHandler],
-            BindingKey(classOf[play.http.HttpRequestHandler]).to(javaImpl),
-            javaComponentsBinding
-          )
+    val javaComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
+
+    fromConfiguration ++ javaComponentsBindings
+  }
+}
+
+object ActionCreator {
+  import play.http.{ ActionCreator, HttpRequestHandlerActionCreator }
+
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    Reflect.configuredClass[ActionCreator, ActionCreator, HttpRequestHandlerActionCreator](environment,
+      PlayConfig(configuration), "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+        val impl = either.fold(identity, identity)
+        Seq(BindingKey(classOf[ActionCreator]).to(impl))
       }
   }
 }
@@ -70,14 +74,12 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
 }
 
 /**
- * A default implementation of the [[HttpRequestHandler]].
+ * A base implementation of the [[HttpRequestHandler]] that handles Scala actions. If you use Java actions in your
+ * application, you should override [[JavaCompatibleHttpRequestHandler]]; otherwise you can override this for your
+ * custom handler.
  *
- * This can be conveniently overridden to plug in global interception or custom routing logic into Play's existing
- * request handling infrastructure.
- *
- * Technically, this is not the default request handler that Play uses, rather, the [[GlobalSettingsHttpRequestHandler]]
- * is the default one, in order to ensure that existing legacy implementations of global request interception still
- * work. In future, this will become the default request handler.
+ * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
+ * is the default one, in order to provide support for Java actions.
  *
  * The default implementations of method interception methods on [[play.api.GlobalSettings]] match the implementations
  * of this, so when not providing any custom logic, whether this is used or the global settings http request handler
@@ -175,10 +177,11 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
 /**
  * An [[HttpRequestHandler]] that delegates to [[play.api.GlobalSettings]].
  *
- * This is the default request handler used by Play, in order to support legacy global settings request interception.
+ * This handler should be used in order to support legacy global settings request interception.
  *
  * Custom handlers need not extend this.
  */
+@deprecated("GlobalSettings is deprecated. Use DefaultHttpRequestHandler or JavaCompatibleHttpRequestHandler.", "2.5.0")
 class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSettings]) extends HttpRequestHandler {
   def handlerForRequest(request: RequestHeader) = global.get.onRequestReceived(request)
 }

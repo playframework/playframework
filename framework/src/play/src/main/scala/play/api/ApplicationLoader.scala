@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.inject.guice.GuiceApplicationLoader
-import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
+import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
 
 /**
@@ -44,7 +45,9 @@ object ApplicationLoader {
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration)
+  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration) {
+    val lifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle()
+  }
 
   /**
    * Locate and instantiate the ApplicationLoader.
@@ -102,5 +105,6 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
+  override lazy val applicationLifecycle = context.lifecycle
 }
 

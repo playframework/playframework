@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 import play.api._
 
 object Global extends GlobalSettings {

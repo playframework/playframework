@@ -1,21 +1,25 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # WebSockets
 
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
 
 Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript WebSocket API.  However WebSockets are not limited in just being used by WebBrowsers, there are many WebSocket client libraries available, allowing for example servers to talk to each other, and also native mobile apps to use WebSockets.  Using WebSockets in these contexts has the advantage of being able to reuse the existing TCP port that a Play server uses.
 
+> **Tip:** Check [caniuse.com](http://caniuse.com/#feat=websockets) to see more about which browsers supports WebSockets, known issues and more information.
+
 ## Handling WebSockets
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
-Play provides two different built in mechanisms for handling WebSockets.  The first is using actors, the second is using iteratees.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/scala/play/api/mvc/WebSocket$.html).
+Play provides two different built in mechanisms for handling WebSockets.  The first is using Akka Streams (usually with actors), and the second is using iteratees.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/scala/play/api/mvc/WebSocket$.html).
 
-## Handling WebSockets with actors
+## Handling WebSockets with Akka Streams and actors
 
 To handle a WebSocket with an actor, we need to give Play a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection.  Play will give us an `akka.actor.ActorRef` to send upstream messages to, so we can use that to help create the `Props` object:
 
 @[actor-accept](code/ScalaWebSockets.scala)
+
+Note that `ActorFlow.actorRef(...)` can be replaced with any Akka Streams `Flow[In, Out, _]`, but actors are generally the most straightforward way to do it.
 
 The actor that we're sending to here in this case looks like this:
 
@@ -37,9 +41,11 @@ Play will automatically close the WebSocket when your actor that handles the Web
 
 ### Rejecting a WebSocket
 
-Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides `tryAcceptWithActor` to address this, allowing you to return either a result (such as forbidden, or not found), or the actor to handle the WebSocket with:
+Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides `acceptOrResult` to address this, allowing you to return either a result (such as forbidden, or not found), or the actor to handle the WebSocket with:
 
 @[actor-try-accept](code/ScalaWebSockets.scala)
+
+> **Note**: the WebSocket protocol does not implement [Same Origin Policy](https://en.wikipedia.org/wiki/Same-origin_policy), and so does not protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).  To secure a websocket against hijacking, the `Origin` header in the request must be checked against the server's origin, and manual authentication (including CSRF tokens) should be implemented.  If a WebSocket request does not pass the security checks, then `acceptOrResult` should reject the request by returning a Forbidden result.
 
 ### Handling different types of messages
 
@@ -53,7 +59,7 @@ For example, let's say we want to receive JSON messages, and we want to parse in
 
 @[actor-json-formats](code/ScalaWebSockets.scala)
 
-Now we can create WebSocket `FrameFormatter`'s for these types:
+Now we can create a `MessageFlowTransformer` for these types:
 
 @[actor-json-frames](code/ScalaWebSockets.scala)
 
@@ -64,8 +70,6 @@ And finally, we can use these in our WebSocket:
 Now in our actor, we will receive messages of type `InEvent`, and we can send messages of type `OutEvent`.
 
 ## Handling WebSockets with iteratees
-
-While actors are a better abstraction for handling discrete messages, iteratees are often a better  abstraction for handling streams.
 
 To handle a WebSocket request, use a `WebSocket` instead of an `Action`:
 

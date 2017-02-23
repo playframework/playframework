@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
+
+import java.util.concurrent.{ CompletionStage, CompletableFuture }
 
 import play.api._
 import play.api.mvc.EssentialAction
 import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
 import play.core.routing.HandlerInvokerFactory
-import play.http.DefaultHttpRequestHandler
 import play.mvc.{ Http, Result }
-import play.libs.F.Promise
 
 /**
  * Use this to mock Java actions, eg:
@@ -30,14 +30,14 @@ object JAction {
     val components = app.injector.instanceOf[JavaHandlerComponents]
     new JavaAction(components) {
       val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
-      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.injector.instanceOf(annotations.parser))
+      val parser = HandlerInvokerFactory.javaBodyParserToScala(components.getBodyParser(annotations.parser))
       def invocation = c.invocation
     }
   }
 }
 
 trait AbstractMockController {
-  def invocation: Promise[Result]
+  def invocation: CompletionStage[Result]
 
   def ctx = Http.Context.current()
   def response = ctx.response()
@@ -48,10 +48,10 @@ trait AbstractMockController {
 
 abstract class MockController extends AbstractMockController {
   def action: Result
-  def invocation: Promise[Result] = Promise.pure(action)
+  def invocation: CompletionStage[Result] = CompletableFuture.completedFuture(action)
 }
 
 abstract class AsyncMockController extends AbstractMockController {
-  def action: Promise[Result]
-  def invocation: Promise[Result] = action
+  def action: CompletionStage[Result]
+  def invocation: CompletionStage[Result] = action
 }

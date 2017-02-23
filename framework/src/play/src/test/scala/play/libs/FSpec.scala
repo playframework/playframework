@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
 
@@ -14,6 +14,8 @@ import java.util.function.{ Consumer, Function, Predicate, Supplier }
 
 object FSpec extends Specification
     with ExecutionSpecification {
+
+  sequential
 
   "An F.Promise" should {
 
@@ -269,7 +271,7 @@ object FSpec extends Specification
     }
 
     "transform its failed throwable (with default ExecutionContext)" in {
-      val p = F.Promise.throwing(new RuntimeException("1"))
+      val p = F.Promise.throwing[Int](new RuntimeException("1"))
       val mapped = p.transform(
         new Function[Int, Int] {
           def apply(x: Int) = x
@@ -282,7 +284,7 @@ object FSpec extends Specification
     }
 
     "transform its failed throwable (with explicit ExecutionContext)" in {
-      val p = F.Promise.throwing(new RuntimeException("1"))
+      val p = F.Promise.throwing[Int](new RuntimeException("1"))
       mustExecute(1) { ec =>
         val mapped = p.transform(
           new Function[Int, Int] {
@@ -309,14 +311,14 @@ object FSpec extends Specification
     }
 
     "combine a sequence of promises from a vararg" in {
-      mustExecute(8) { ec =>
+      mustExecute(3) { ec =>
         import F.Promise.pure
         F.Promise.sequence[Int](ec, pure(1), pure(2), pure(3)).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
       }
     }
 
     "combine a sequence of promises from an iterable" in {
-      mustExecute(8) { ec =>
+      mustExecute(3) { ec =>
         import F.Promise.pure
         F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)), ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
       }

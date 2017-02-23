@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl
@@ -9,8 +9,6 @@ import java.security.KeyStore
 
 import java.io._
 import java.security.cert._
-import org.apache.commons.codec.binary.Base64
-import scala.collection.JavaConverters
 
 trait KeyStoreBuilder {
   def build(): KeyStore

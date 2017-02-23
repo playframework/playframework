@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
@@ -24,6 +24,8 @@ public final class GuiceInjectorBuilder extends GuiceBuilder<GuiceInjectorBuilde
 
     /**
      * Create a Play Injector backed by Guice using this configured builder.
+     *
+     * @return the injector
      */
     public Injector build() {
         return injector();

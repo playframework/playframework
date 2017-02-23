@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl
@@ -11,7 +11,7 @@ import javax.net.ssl._
 
 import org.specs2.mock._
 import org.specs2.mutable._
-import play.core.server.ssl.FakeKeyStore
+import play.core.server.ssl.{ CertificateGenerator, FakeKeyStore }
 
 class ConfigSSLContextBuilderSpec extends Specification with Mockito {
 

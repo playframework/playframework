@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package com.typesafe.play.docs.sbtplugin
 
-import java.io.{ Closeable, BufferedReader, InputStreamReader, InputStream }
+import java.io.{ BufferedReader, InputStreamReader, InputStream }
 import java.net.HttpURLConnection
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
+import com.typesafe.play.docs.sbtplugin.Imports._
 import org.pegdown.ast._
 import org.pegdown.ast.Node
 import org.pegdown.plugins.{ ToHtmlSerializerPlugin, PegDownPlugins }
@@ -314,20 +315,15 @@ object PlayDocsValidation {
     val base = manualPath.value
     val validationConfig = playDocsValidationConfig.value
 
-    val docsJarRepo: play.doc.FileRepository with Closeable = if (docsJarFile.value.isDefined) {
-      val jar = new JarFile(docsJarFile.value.get)
-      new JarRepository(jar, Some("play/docs/content")) with Closeable
-    } else {
-      new play.doc.FileRepository with Closeable {
-        def loadFile[A](path: String)(loader: (InputStream) => A) = None
-        def handleFile[A](path: String)(handler: (FileHandle) => A) = None
-        def findFileWithName(name: String) = None
-        def close(): Unit = ()
-      }
+    val allResources = PlayDocsKeys.resources.value
+    val repos = allResources.map {
+      case PlayDocsDirectoryResource(directory) => new FilesystemRepository(directory)
+      case PlayDocsJarFileResource(jarFile, base) => new JarRepository(new JarFile(jarFile), base)
     }
 
+    val combinedRepo = new AggregateFileRepository(repos)
+
     val fileRepo = new FilesystemRepository(base / "manual")
-    val combinedRepo = new AggregateFileRepository(Seq(docsJarRepo, fileRepo))
 
     val pageIndex = PageIndex.parseFrom(combinedRepo, "", None)
 
@@ -346,7 +342,7 @@ object PlayDocsValidation {
     }
 
     def fileExists(path: String): Boolean = {
-      new File(base, path).isFile || docsJarRepo.loadFile(path)(_ => ()).nonEmpty
+      combinedRepo.loadFile(path)(_ => ()).nonEmpty
     }
 
     def assertLinksNotMissing(desc: String, links: Seq[LinkRef], errorMessage: String): Unit = {
@@ -369,7 +365,7 @@ object PlayDocsValidation {
     }
 
     assertLinksNotMissing("Missing wiki links test", report.wikiLinks.filterNot { link =>
-      pages.contains(link.link) || validationConfig.downstreamWikiPages(link.link) || docsJarRepo.findFileWithName(link.link + ".md").nonEmpty
+      pages.contains(link.link) || validationConfig.downstreamWikiPages(link.link) || combinedRepo.findFileWithName(link.link + ".md").nonEmpty
     }, "Could not find link")
 
     def relativeLinkOk(link: LinkRef) = {
@@ -406,14 +402,7 @@ object PlayDocsValidation {
     def segmentExists(sample: CodeSampleRef) = {
       if (sample.segment.nonEmpty) {
         // Find the code segment
-        val sourceCode = {
-          val file = new File(base, sample.source)
-          if (file.exists()) {
-            IO.readLines(new File(base, sample.source))
-          } else {
-            docsJarRepo.loadFile(sample.source)(is => IO.readLines(new BufferedReader(new InputStreamReader(is)))).get
-          }
-        }
+        val sourceCode = combinedRepo.loadFile(sample.source)(is => IO.readLines(new BufferedReader(new InputStreamReader(is)))).get
         val notLabel = (s: String) => !s.contains("#" + sample.segment)
         val segment = sourceCode dropWhile (notLabel) drop (1) takeWhile (notLabel)
         !segment.isEmpty
@@ -438,7 +427,10 @@ object PlayDocsValidation {
       }
     }
 
-    docsJarRepo.close()
+    repos.foreach {
+      case jarRepo: JarRepository => jarRepo.close()
+      case _ => ()
+    }
 
     if (failed) {
       throw new RuntimeException("Documentation validation failed")
@@ -451,7 +443,7 @@ object PlayDocsValidation {
 
     val grouped = report.externalLinks
       .groupBy { _.link }
-      .filterNot { e => e._1.startsWith("http://localhost:") || e._1.contains("example.com") }
+      .filterNot { e => e._1.startsWith("http://localhost:") || e._1.contains("example.com") || e._1.startsWith("http://127.0.0.1") }
       .toSeq.sortBy { _._1 }
 
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(50))

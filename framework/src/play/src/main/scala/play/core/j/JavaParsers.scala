@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.j
 
@@ -7,7 +7,6 @@ import java.io.File
 import java.util.concurrent.Executor
 
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.BodyParsers.TakeUpTo
 
 import scala.collection.JavaConverters._
 import play.api.mvc._

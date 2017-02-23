@@ -1,8 +1,11 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.streams.impl
 
 import org.reactivestreams._
 import play.api.libs.iteratee._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.Future
 
 /**
  * Adapts a Publisher to an Enumerator.

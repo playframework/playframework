@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
-import javax.inject.Singleton;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
@@ -19,7 +18,8 @@ public class JPAModule extends Module {
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
             bind(JPAApi.class).toProvider(DefaultJPAApi.JPAApiProvider.class),
-            bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class)
+            bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class),
+            bind(JPAEntityManagerContext.class).toSelf()
         );
     }
 

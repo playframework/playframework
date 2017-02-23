@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -286,7 +286,7 @@ public class PromiseTest extends ExecutionTest {
             filtered.get(t);
             fail("Expected filtered promise to throw NoSuchElementException on get");
         } catch (NoSuchElementException e){
-            assertThat(e).hasMessage("Future.filter predicate is not satisfied");
+            assertThat(e).hasMessage("Promise.filter predicate is not satisfied");
         }
     }
 
@@ -299,7 +299,7 @@ public class PromiseTest extends ExecutionTest {
                 filtered.get(t);
                 fail("Expected filtered promise to throw NoSuchElementException on get");
             } catch (NoSuchElementException e){
-                assertThat(e).hasMessage("Future.filter predicate is not satisfied");
+                assertThat(e).hasMessage("Promise.filter predicate is not satisfied");
             }
         });
     }
@@ -443,7 +443,7 @@ public class PromiseTest extends ExecutionTest {
 
         // And we should get an exception !
         exception.expect(IllegalStateException.class);
-        exception.expectMessage("Promise already completed.");
+        exception.expectMessage("RedeemablePromise already completed.");
         d.get(t);
     }
 

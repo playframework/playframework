@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl
@@ -9,6 +9,7 @@ import org.specs2.mutable._
 
 import java.security.{ SecureRandom, KeyPairGenerator }
 import org.joda.time.Instant
+import play.core.server.ssl.CertificateGenerator
 import sun.security.x509.AlgorithmId
 
 object AlgorithmsSpec extends Specification {

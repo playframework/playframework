@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
-import akka.stream.scaladsl.Sink
+import java.util.zip.Deflater
+
+import akka.stream.scaladsl.{ Flow, Sink }
 import akka.util.ByteString
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.test._
-import play.api.test.TestServer
-import play.api.libs.iteratee._
 import play.it._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
@@ -20,21 +21,37 @@ object AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with Akka
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
+  sequential
+
   "Play request body handling" should {
 
     def withServer[T](action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => action
-        }
-      ))) {
+      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => action }.build())) {
         block(port)
       }
     }
 
+    "handle gzip bodies" in withServer(Action { rh =>
+      Results.Ok(rh.body.asText.getOrElse(""))
+    }) { port =>
+      val bodyString = "Hello World"
+
+      // Compress the bytes
+      var output = new Array[Byte](100)
+      val compresser = new Deflater()
+      compresser.setInput(bodyString.getBytes("UTF-8"))
+      compresser.finish()
+      val compressedDataLength = compresser.deflate(output)
+
+      val client = new BasicHttpClient(port, false)
+      val response = client.sendRaw(output, Map("Content-Type" -> "text/plain", "Content-Length" -> compressedDataLength.toString, "Content-Encoding" -> "deflate"))
+      response.status must_== 200
+      response.body.left.get must_== bodyString
+    }.skipUntilAkkaHttpFixed
+
     "handle large bodies" in withServer(EssentialAction { rh =>
-      Accumulator(Sink.ignore.mapMaterializedValue(_ => Future.successful(Results.Ok)))
+      Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
@@ -48,9 +65,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
-      Streams.iterateeToAccumulator(
-        Traversable.takeUpTo[ByteString](20 * 1024) &>> Iteratee.ignore[ByteString].map(_ => Results.Ok)
-      )
+      Accumulator(Sink.ignore).through(Flow[ByteString].take(10)).map(_ => Results.Ok)
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       // Trickle feed is important, otherwise it won't switch to ignoring the body.

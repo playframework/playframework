@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 
@@ -113,8 +113,6 @@ object PlayImport {
     val updateSecret = TaskKey[File]("playUpdateSecret", "Update the application conf to generate an application secret", KeyRanks.BTask)
 
     val assetsPrefix = SettingKey[String]("assetsPrefix")
-    @deprecated("Aggregating assets is always disabled. See sbt-web support for asset dependencies.", "2.4")
-    val playAggregateAssets = SettingKey[Boolean]("playAggregateAssets", "Determines whether assets from project dependencies are included.")
     val playPackageAssets = TaskKey[File]("playPackageAssets")
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")

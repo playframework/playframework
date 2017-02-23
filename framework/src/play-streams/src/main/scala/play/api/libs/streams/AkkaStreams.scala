@@ -1,11 +1,14 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.streams
 
-import akka.stream.scaladsl.FlexiMerge.{ MergeLogic, ReadAny }
 import akka.stream.scaladsl._
-import akka.stream.{ Attributes, UniformFanInShape }
-import play.api.libs.iteratee._
+import akka.stream.stage._
+import akka.stream._
+import akka.Done
 
-import scala.util.{ Failure, Success }
+import scala.concurrent.Future
 
 /**
  * Utilities for
@@ -29,10 +32,10 @@ object AkkaStreams {
    * flow.
    */
   def bypassWith[In, FlowIn, Out](splitter: Flow[In, Either[FlowIn, Out], _],
-    mergeStrategy: FlexiMerge[Out, UniformFanInShape[Out, Out]] = OnlyFirstCanFinishMerge[Out](2)): Flow[FlowIn, Out, _] => Flow[In, Out, _] = { flow =>
+    mergeStrategy: Graph[UniformFanInShape[Out, Out], _] = onlyFirstCanFinishMerge[Out](2)): Flow[FlowIn, Out, _] => Flow[In, Out, _] = { flow =>
 
-    splitter via Flow[Either[FlowIn, Out], Out]() { implicit builder =>
-      import FlowGraph.Implicits._
+    val bypasser = Flow.fromGraph(GraphDSL.create[FlowShape[Either[FlowIn, Out], Out]]() { implicit builder =>
+      import GraphDSL.Implicits._
 
       // Eager cancel must be true so that if the flow cancels, that will be propagated upstream.
       // However, that means the bypasser must block cancel, since when this flow finishes, the merge
@@ -46,74 +49,60 @@ object AkkaStreams {
       } ~> flow ~> merge.in(0)
 
       // Bypass flow, need to ignore downstream finish
-      broadcast.out(1) ~> blockCancel[Either[FlowIn, Out]](() => ()) ~> Flow[Either[FlowIn, Out]].collect {
+      broadcast.out(1) ~> ignoreAfterCancellation[Either[FlowIn, Out]] ~> Flow[Either[FlowIn, Out]].collect {
         case Right(out) => out
       } ~> merge.in(1)
 
-      broadcast.in -> merge.out
-    }
-  }
-
-  /**
-   * Can be replaced if https://github.com/akka/akka/issues/18175 ever gets implemented.
-   */
-  case class EagerFinishMerge[T](inputPorts: Int) extends FlexiMerge[T, UniformFanInShape[T, T]](new UniformFanInShape[T, T](inputPorts), Attributes.name("EagerFinishMerge")) {
-    def createMergeLogic(s: UniformFanInShape[T, T]): MergeLogic[T] =
-      new MergeLogic[T] {
-        def initialState: State[T] = State[T](ReadAny(s.inSeq)) {
-          case (ctx, port, in) =>
-            ctx.emit(in)
-            SameState
-        }
-        override def initialCompletionHandling: CompletionHandling = eagerClose
-      }
-  }
-
-  /**
-   * A merge that only allows the first inlet to finish downstream.
-   */
-  case class OnlyFirstCanFinishMerge[T](inputPorts: Int) extends FlexiMerge[T, UniformFanInShape[T, T]](new UniformFanInShape[T, T](inputPorts), Attributes.name("EagerFinishMerge")) {
-    def createMergeLogic(s: UniformFanInShape[T, T]): MergeLogic[T] =
-      new MergeLogic[T] {
-        def initialState: State[T] = State[T](ReadAny(s.inSeq)) {
-          case (ctx, port, in) =>
-            ctx.emit(in)
-            SameState
-        }
-        override def initialCompletionHandling: CompletionHandling = CompletionHandling(
-          onUpstreamFinish = { (ctx, port) =>
-            if (port == s.in(0)) {
-              ctx.finish()
-            }
-            SameState
-          }, onUpstreamFailure = { (ctx, port, error) =>
-            if (port == s.in(0)) {
-              ctx.fail(error)
-            }
-            SameState
-          }
-        )
-      }
-  }
-
-  /**
-   * Because https://github.com/akka/akka/issues/18189
-   */
-  private[play] def blockCancel[T](onCancel: () => Unit): Flow[T, T, Unit] = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    val (enum, channel) = Concurrent.broadcast[T]
-    val sink = Sink.foreach[T](channel.push).mapMaterializedValue(_.onComplete {
-      case Success(_) => channel.end()
-      case Failure(t) => channel.end(t)
+      FlowShape(broadcast.in, merge.out)
     })
-    // This enumerator ignores cancel by flatmapping the iteratee to an Iteratee.ignore
-    val cancelIgnoring = new Enumerator[T] {
-      def apply[A](i: Iteratee[T, A]) =
-        enum(i.flatMap { a =>
-          onCancel()
-          Iteratee.ignore[T].map(_ => a)
-        })
+
+    splitter via bypasser
+  }
+
+  def onlyFirstCanFinishMerge[T](inputPorts: Int) = GraphDSL.create[UniformFanInShape[T, T]]() { implicit builder =>
+    import GraphDSL.Implicits._
+
+    val merge = builder.add(Merge[T](inputPorts, eagerComplete = true))
+
+    val blockFinishes = (1 until inputPorts).map { i =>
+      val blockFinish = builder.add(ignoreAfterFinish[T])
+      blockFinish.out ~> merge.in(i)
+      blockFinish.in
     }
-    Flow.wrap(sink, Source(Streams.enumeratorToPublisher(cancelIgnoring)))(Keep.none)
+
+    val inlets = Seq(merge.in(0)) ++ blockFinishes
+
+    UniformFanInShape(merge.out, inlets: _*)
+  }
+
+  /**
+   * A flow that will ignore upstream finishes.
+   */
+  def ignoreAfterFinish[T]: Flow[T, T, _] = Flow[T].transform(() => new PushPullStage[T, T] {
+    override def onPush(elem: T, ctx: Context[T]) = ctx.push(elem)
+    override def onUpstreamFinish(ctx: Context[T]) = ctx.absorbTermination()
+    override def onUpstreamFailure(cause: Throwable, ctx: Context[T]) = ctx.absorbTermination()
+    override def onPull(ctx: Context[T]) = {
+      if (!ctx.isFinishing) {
+        ctx.pull()
+      } else {
+        null
+      }
+    }
+  })
+
+  /**
+   * A flow that will ignore downstream cancellation, and instead will continue receiving and ignoring the stream.
+   */
+  def ignoreAfterCancellation[T]: Flow[T, T, Future[Done]] = {
+    Flow.fromGraph(GraphDSL.create(Sink.ignore) { implicit builder =>
+      ignore =>
+        import GraphDSL.Implicits._
+        // This pattern is an effective way to absorb cancellation, Sink.ignore will keep the broadcast always flowing
+        // even after sink.inlet cancels.
+        val broadcast = builder.add(Broadcast[T](2, eagerCancel = false))
+        broadcast.out(0) ~> ignore.in
+        FlowShape(broadcast.in, broadcast.out(1))
+    })
   }
 }

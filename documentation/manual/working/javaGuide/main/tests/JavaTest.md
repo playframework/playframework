@@ -1,13 +1,13 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
-Writing tests for your application can be an involved process. Play supports JUnit and provides helpers and application stubs to make testing your application as easy as possible.
+Writing tests for your application can be an involved process. Play supports [JUnit](http://junit.org/) and provides helpers and application stubs to make testing your application as easy as possible.
 
 ## Overview
 
 The location for tests is in the "test" folder. There are two sample test files created in the test folder which can be used as templates.
 
-You can run tests from the Activator console.
+You can run tests from the SBT console.
 
 * To run all tests, run `test`.
 * To run only one test class, run `testOnly` followed by the name of the class i.e. `testOnly my.namespace.MyTest`.
@@ -15,11 +15,11 @@ You can run tests from the Activator console.
 * To run tests continually, run a command with a tilde in front, i.e. `~testQuick`.
 * To access test helpers such as `FakeApplication` in console, run `test:console`.
 
-Testing in Play is based on [sbt](http://www.scala-sbt.org/), and a full description is available in the [testing documentation](http://www.scala-sbt.org/release/docs/Detailed-Topics/Testing.html).
+Testing in Play is based on [sbt](http://www.scala-sbt.org/), and a full description is available in the [testing documentation](http://www.scala-sbt.org/release/docs/Testing.html).
 
 ## Using JUnit
 
-The default way to test a Play application is with [JUnit](http://www.junit.org/).
+The default way to test a Play application is with [JUnit](http://junit.org/).
 
 @[test-simple](code/javaguide/tests/SimpleTest.java)
 
@@ -39,7 +39,7 @@ The default way to test a Play application is with [JUnit](http://www.junit.org/
 
 Some developers prefer to write their assertions in a more fluent style than JUnit asserts. Popular libraries for other assertion styles are included for convenience.
 
-Hamcrest matchers:
+[Hamcrest](http://hamcrest.org/JavaHamcrest/) matchers:
 
 @[test-hamcrest](code/javaguide/tests/HamcrestTest.java)
 
@@ -75,17 +75,7 @@ In this way, the `UserService.isAdmin` method can be tested by mocking the `User
 
 @[test-model-test](code/javaguide/tests/ModelTest.java)
 
-> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation.  Play also rewrites field accesses to use the generated getters/setters.  Ebean relies on calls to the setters to do dirty checking.  In order to use these patterns in JUnit tests, you will need to enable Play's field access rewriting in test by adding the following to `build.sbt`:
-
-> ```scala
-> compile in Test <<= PostCompile(Test)
-> ```
->
-> You may also need the following import at the top of your `build.sbt`:
->
-> ```scala
-> import play.Play._
-> ```
+> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation. If this is your case, check how [[Play enhancer sbt plugin|PlayEnhancer]] works.
 
 ## Unit testing controllers
 
@@ -93,7 +83,7 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 @[test-controller-test](code/javaguide/tests/ApplicationTest.java)
 
-You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use `FakeRequest` which is a mock for request data:
+You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use [`FakeRequest`](api/java/play/test/FakeRequest.html) which is a mock for request data:
 
 @[test-controller-routes](code/javaguide/tests/ApplicationTest.java)
 

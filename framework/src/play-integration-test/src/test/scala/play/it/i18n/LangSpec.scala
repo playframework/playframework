@@ -1,43 +1,46 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.i18n
 
-import play.api.i18n.Lang
+import play.api.i18n.{ Lang, Langs }
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
 class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
-      implicit val app = FakeApplication(additionalConfiguration = Map("play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
-      val esEs = Lang("es", "ES")
+      val esEs = Lang("es-ES")
       val es = Lang("es")
-      val deDe = Lang("de", "DE")
+      val deDe = Lang("de-DE")
       val de = Lang("de")
-      val enUs = Lang("en", "US")
+      val enUs = Lang("en-US")
+
+      implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code)).build()
+      val langs = app.injector.instanceOf[Langs]
 
       "with exact match" in {
-        Lang.preferred(Seq(esEs)) must_== esEs
+        langs.preferred(Seq(esEs)) must_== esEs
       }
 
       "with just language match" in {
-        Lang.preferred(Seq(de)) must_== de
+        langs.preferred(Seq(de)) must_== de
       }
 
       "with just language match country specific" in {
-        Lang.preferred(Seq(es)) must_== esEs
+        langs.preferred(Seq(es)) must_== esEs
       }
 
       "with language and country not match just language" in {
-        Lang.preferred(Seq(deDe)) must_== enUs
+        langs.preferred(Seq(deDe)) must_== enUs
       }
 
       "with case insensitive match" in {
-        Lang.preferred(Seq(Lang("ES", "es"))) must_== esEs
+        langs.preferred(Seq(Lang("ES-es"))) must_== esEs
       }
 
       "in order" in {
-        Lang.preferred(Seq(esEs, enUs)) must_== esEs
+        langs.preferred(Seq(esEs, enUs)) must_== esEs
       }
     }
 
@@ -46,6 +49,8 @@ class LangSpec extends PlaySpecification {
       Lang.get("EN-us") must_== Lang.get("en-US")
       Lang.get("ES-419") must_== Lang.get("es-419")
       Lang.get("en-us").hashCode must_== Lang.get("en-US").hashCode
+      Lang("zh-hans").code must_== "zh-Hans"
+      Lang("ZH-hant").code must_== "zh-Hant"
       Lang("en-us").code must_== "en-US"
       Lang("EN-us").code must_== "en-US"
       Lang("EN").code must_== "en"
@@ -59,9 +64,7 @@ class LangSpec extends PlaySpecification {
     "forbid instantiation of language code" in {
 
       "with wrong format" in {
-        Lang.get("en-UUS") must_== None
-        Lang.get("e-US") must_== None
-        Lang.get("engl-US") must_== None
+        Lang.get("e_US") must_== None
         Lang.get("en_US") must_== None
       }
 
@@ -77,37 +80,75 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        implicit val app = FakeApplication(additionalConfiguration = Map("application.langs" -> "crh-UA,ber,ast-ES"))
-
-        val crhUA = Lang("crh", "UA")
+        val crhUA = Lang("crh-UA")
         val crh = Lang("crh")
         val ber = Lang("ber")
-        val berDZ = Lang("ber", "DZ")
-        val astES = Lang("ast", "ES")
+        val berDZ = Lang("ber-DZ")
+        val astES = Lang("ast-ES")
         val ast = Lang("ast")
 
+        implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code)).build()
+        val langs = app.injector.instanceOf[Langs]
+
         "with exact match" in {
-          Lang.preferred(Seq(crhUA)) must_== crhUA
+          langs.preferred(Seq(crhUA)) must_== crhUA
         }
 
         "with just language match" in {
-          Lang.preferred(Seq(ber)) must_== ber
+          langs.preferred(Seq(ber)) must_== ber
         }
 
         "with just language match country specific" in {
-          Lang.preferred(Seq(ast)) must_== astES
+          langs.preferred(Seq(ast)) must_== astES
         }
 
         "with language and country not match just language" in {
-          Lang.preferred(Seq(berDZ)) must_== crhUA
+          langs.preferred(Seq(berDZ)) must_== crhUA
         }
 
         "with case insensitive match" in {
-          Lang.preferred(Seq(Lang("AST", "es"))) must_== astES
+          langs.preferred(Seq(Lang("AST-es"))) must_== astES
         }
 
         "in order" in {
-          Lang.preferred(Seq(astES, crhUA)) must_== astES
+          langs.preferred(Seq(astES, crhUA)) must_== astES
+        }
+
+      }
+    }
+
+    "allow script codes" in {
+      "Lang instance" in {
+        Lang("zh-Hans").code must_== "zh-Hans"
+        Lang("sr-Latn").code must_== "sr-Latn"
+      }
+
+      "preferred language" in {
+        val enUS = Lang("en-US")
+        val az = Lang("az")
+        val azCyrl = Lang("az-Cyrl")
+        val azLatn = Lang("az-Latn")
+        val zh = Lang("zh")
+        val zhHans = Lang("zh-Hans")
+        val zhHant = Lang("zh-Hant")
+
+        implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code)).build()
+        val langs = app.injector.instanceOf[Langs]
+
+        "with exact match" in {
+          langs.preferred(Seq(zhHans)) must_== zhHans
+        }
+
+        "with just language match script specific" in {
+          langs.preferred(Seq(az)) must_== azCyrl
+        }
+
+        "with case insensitive match" in {
+          langs.preferred(Seq(Lang("AZ-cyrl"))) must_== azCyrl
+        }
+
+        "in order" in {
+          langs.preferred(Seq(azCyrl, zhHans, enUS)) must_== azCyrl
         }
 
       }

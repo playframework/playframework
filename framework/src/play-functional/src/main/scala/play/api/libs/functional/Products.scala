@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.functional
 
@@ -10,6 +10,15 @@ case class ~[A, B](_1: A, _2: B)
 trait FunctionalCanBuild[M[_]] {
 
   def apply[A, B](ma: M[A], mb: M[B]): M[A ~ B]
+
+}
+
+object FunctionalCanBuild {
+
+implicit def functionalCanBuildApplicative[M[_]](implicit app: Applicative[M]): FunctionalCanBuild[M] =
+  new FunctionalCanBuild[M] {
+    def apply[A, B](a: M[A], b: M[B]): M[A ~ B] = app.apply(app.map[A, B => A ~ B](a, a => ((b: B) => new ~(a, b))), b)
+  }
 
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routes.compiler
 
@@ -174,7 +174,11 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   // https://github.com/scala/scala/pull/1466
   def javaIdent: Parser[String] = """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
 
+  def tickedIdent: Parser[String] = """`[^`]+`""".r
+
   def identifier: Parser[String] = namedError(javaIdent, "Identifier expected")
+
+  def tickedIdentifier: Parser[String] = namedError(tickedIdent, "Identifier expected")
 
   def end: util.matching.Regex = """\s*""".r
 
@@ -272,7 +276,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case a ~ _ ~ b => a + b
   }
 
-  def parameter: Parser[Parameter] = (identifier <~ ignoreWhiteSpace) ~ opt(parameterType) ~ (ignoreWhiteSpace ~> opt(parameterDefaultValue | parameterFixedValue)) ^^ {
+  def parameter: Parser[Parameter] = ((identifier | tickedIdentifier) <~ ignoreWhiteSpace) ~ opt(parameterType) ~ (ignoreWhiteSpace ~> opt(parameterDefaultValue | parameterFixedValue)) ^^ {
     case name ~ t ~ d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
   }
 

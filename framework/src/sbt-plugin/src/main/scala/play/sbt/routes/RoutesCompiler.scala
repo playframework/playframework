@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt.routes
 
@@ -119,7 +119,7 @@ object RoutesCompiler extends AutoPlugin {
     },
 
     namespaceReverseRouter := false,
-    routesGenerator := StaticRoutesGenerator,
+    routesGenerator := InjectedRoutesGenerator, // changed from StaticRoutesGenerator in 2.5.0
     sourcePositionMappers += routesPositionMapper
   )
 

@@ -1,23 +1,51 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
-import java.nio.file.{ Files, Paths }
+import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.{ Files, Path, Paths }
+import java.util.concurrent.atomic.AtomicInteger
 
-import org.joda.time.{ DateTimeZone, DateTime }
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.specs2.mutable._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
-import play.api.{ Configuration, Environment, Play }
 import play.api.http.HeaderNames._
 import play.api.http.Status._
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.{ Configuration, Environment, Play }
 import play.core.test._
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object ResultsSpec extends Specification {
 
   import play.api.mvc.Results._
 
-  sequential
+  val fileCounter = new AtomicInteger(1)
+  def freshFileName: String = s"test${fileCounter.getAndIncrement}.tmp"
+
+  def withFile[T](block: (File, String) => T): T = {
+    val fileName = freshFileName
+    val file = new File(fileName)
+    try {
+      file.createNewFile()
+      block(file, fileName)
+    } finally file.delete()
+  }
+
+  def withPath[T](block: (Path, String) => T): T = {
+    val fileName = freshFileName
+    val file = Paths.get(fileName)
+    try {
+      Files.createFile(file)
+      block(file, fileName)
+    } finally Files.delete(file)
+  }
 
   "Result" should {
 
@@ -77,7 +105,7 @@ object ResultsSpec extends Specification {
       setCookies("session").maxAge must beNone
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
-      setCookies("logged").maxAge must beSome(0)
+      setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     }
 
     "provide convenience method for setting cookie header" in withApplication {
@@ -132,84 +160,102 @@ object ResultsSpec extends Specification {
       cookies must containTheSameElementsAs(Seq("foo", "bar"))
     }
 
-    "support sending a file with Ok status" in {
-      val file = new java.io.File("test.tmp")
-      file.createNewFile()
+    "support sending a file with Ok status" in withFile { (file, fileName) =>
       val rh = Ok.sendFile(file).header
-      file.delete()
 
       (rh.status aka "status" must_== OK) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file with Unauthorized status" in {
-      val file = new java.io.File("test.tmp")
-      file.createNewFile()
+    "support sending a file with Unauthorized status" in withFile { (file, fileName) =>
       val rh = Unauthorized.sendFile(file).header
-      file.delete()
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file inline with Unauthorized status" in {
-      val file = new java.io.File("test.tmp")
-      file.createNewFile()
-      val rh = Unauthorized.sendFile(file, inline = true).header
-      file.delete()
+    "support sending a file attached with Unauthorized status" in withFile { (file, fileName) =>
+      val rh = Unauthorized.sendFile(file, inline = false).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file with PaymentRequired status" in {
-      val file = new java.io.File("test.tmp")
-      file.createNewFile()
+    "support sending a file with PaymentRequired status" in withFile { (file, fileName) =>
       val rh = PaymentRequired.sendFile(file).header
-      file.delete()
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a file inline with PaymentRequired status" in {
-      val file = new java.io.File("test.tmp")
-      file.createNewFile()
-      val rh = PaymentRequired.sendFile(file, inline = true).header
-      file.delete()
+    "support sending a file attached with PaymentRequired status" in withFile { (file, fileName) =>
+      val rh = PaymentRequired.sendFile(file, inline = false).header
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a path with Ok status" in {
-      val file = Paths.get("test.tmp")
-      Files.createFile(file)
-      val rh = Ok.sendPath(file).header
-      Files.delete(file)
+    "support sending a file with filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, fileName = _ => "测 试.tmp").header
 
       (rh.status aka "status" must_== OK) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="测 试.tmp"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp"""))
     }
 
-    "support sending a path with Unauthorized status" in {
-      val file = Paths.get("test.tmp")
-      Files.createFile(file)
+    "support sending a path with Ok status" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file).header
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
+    }
+
+    "support sending a path with Unauthorized status" in withPath { (file, fileName) =>
       val rh = Unauthorized.sendPath(file).header
-      Files.delete(file)
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="$fileName"; filename*=utf-8''$fileName"""))
     }
 
-    "support sending a path inline with Unauthorized status" in {
-      val file = Paths.get("test.tmp")
-      Files.createFile(file)
-      val rh = Unauthorized.sendPath(file, inline = true).header
-      Files.delete(file)
+    "support sending a path attached with Unauthorized status" in withPath { (file, fileName) =>
+      val rh = Unauthorized.sendPath(file, inline = false).header
 
       (rh.status aka "status" must_== UNAUTHORIZED) and
-        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""inline; filename="test.tmp""""))
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""attachment; filename="$fileName"; filename*=utf-8''$fileName"""))
+    }
+
+    "support sending a path with filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, fileName = _ => "测 试.tmp").header
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome(s"""inline; filename="测 试.tmp"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp"""))
+    }
+
+    "allow checking content length" in withPath { (file, fileName) =>
+      val content = "test"
+      Files.write(file, content.getBytes(StandardCharsets.ISO_8859_1))
+      val rh = Ok.sendPath(file)
+
+      rh.body.contentLength must beSome(content.length)
+    }
+
+    "sendFile should honor onClose" in withFile { (file, fileName) =>
+      implicit val system = ActorSystem()
+      implicit val mat = ActorMaterializer()
+      try {
+        var fileSent = false
+        val res = Results.Ok.sendFile(file, onClose = () => {
+          fileSent = true
+        })
+
+        // Actually we need to wait until the Stream completes
+        Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
+        // and then we need to wait until the onClose completes
+        Thread.sleep(500)
+
+        fileSent must be_==(true)
+      } finally {
+        Await.ready(system.terminate(), 60.seconds)
+      }
     }
 
     "support redirects for reverse routed calls" in {
@@ -218,6 +264,20 @@ object ResultsSpec extends Specification {
 
     "support redirects for reverse routed calls with custom statuses" in {
       Results.Redirect(Call("GET", "/path"), TEMPORARY_REDIRECT).header must_== Status(TEMPORARY_REDIRECT).withHeaders(LOCATION -> "/path").header
+    }
+
+    "redirect with a fragment" in {
+      val url = "http://host:port/path?k1=v1&k2=v2"
+      val fragment = "my-fragment"
+      val expectedLocation = url + "#" + fragment
+      Results.Redirect(Call("GET", url, fragment)).header.headers.get(LOCATION) must_== Option(expectedLocation)
+    }
+
+    "redirect with a fragment and status" in {
+      val url = "http://host:port/path?k1=v1&k2=v2"
+      val fragment = "my-fragment"
+      val expectedLocation = url + "#" + fragment
+      Results.Redirect(Call("GET", url, fragment), 301).header.headers.get(LOCATION) must_== Option(expectedLocation)
     }
   }
 }

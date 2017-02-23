@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package test
 
 import play.api.test._
@@ -17,53 +20,53 @@ object RouterSpec extends PlaySpecification {
   }
 
   "bind boolean parameters" in {
-    "from the query string" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/take-bool?b=true"))
+    "from the query string" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
       contentAsString(result) must equalTo ("true")
-      val Some(result2) = route(FakeRequest(GET, "/take-bool?b=false"))
+      val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
       contentAsString(result2) must equalTo ("false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
-      contentAsString(route(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
     }
-    "from the path" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/take-bool-2/true"))
+    "from the path" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool-2/true"))
       contentAsString(result) must equalTo ("true")
-      val Some(result2) = route(FakeRequest(GET, "/take-bool-2/false"))
+      val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool-2/false"))
       contentAsString(result2) must equalTo ("false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
-      contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
     }
   }
 
   "bind int parameters from the query string as a list" in {
 
-    "from a list of numbers" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
+    "from a list of numbers" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
       contentAsString(result) must equalTo("1,2,3")
     }
-    "from a list of numbers and letters" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
+    "from a list of numbers and letters" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
       status(result) must equalTo(BAD_REQUEST)
     }
-    "when there is no parameter at all" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/take-list"))
+    "when there is no parameter at all" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list"))
       contentAsString(result) must equalTo("")
     }
-    "using the Java API" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
+    "using the Java API" in new WithApplication() { 
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
       contentAsString(result) must equalTo("1,2,3")
     }
   }
 
-  "URL encoding and decoding works correctly" in new WithApplication() {
+  "URL encoding and decoding works correctly" in new WithApplication() { 
     def checkDecoding(
                        dynamicEncoded: String, staticEncoded: String, queryEncoded: String,
                        dynamicDecoded: String, staticDecoded: String, queryDecoded: String) = {
       val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
       val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
-      val Some(result) = route(FakeRequest(GET, path))
+      val Some(result) = route(implicitApp, FakeRequest(GET, path))
       val actual = contentAsString(result)
       actual must equalTo(expected)
     }
@@ -99,16 +102,16 @@ object RouterSpec extends PlaySpecification {
     checkEncoding("123", "456", "789", "123", "456", "789")
   }
 
-  "allow reverse routing of routes includes" in new WithApplication() {
+  "allow reverse routing of routes includes" in new WithApplication() { 
     // Force the router to bootstrap the prefix
-    app.injector.instanceOf[play.api.routing.Router]
+    implicitApp.injector.instanceOf[play.api.routing.Router]
     controllers.module.routes.ModuleController.index().url must_== "/module/index"
   }
 
   "document the router" in new WithApplication() {
     // The purpose of this test is to alert anyone that changes the format of the router documentation that
     // it is being used by Swagger. So if you do change it, please let Tony Tam know at tony at wordnik dot com.
-    val someRoute = app.injector.instanceOf[play.api.routing.Router].documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/"))
+    val someRoute = implicitApp.injector.instanceOf[play.api.routing.Router].documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/"))
     someRoute must beSome[(String, String, String)]
     val route = someRoute.get
     route._2 must_== "/with/$param<[^/]+>"

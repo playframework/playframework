@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing with Guice
 
 If you're using Guice for [[dependency injection|JavaDependencyInjection]] then you can directly configure how components and applications are created for tests. This includes adding extra bindings or overriding existing bindings.

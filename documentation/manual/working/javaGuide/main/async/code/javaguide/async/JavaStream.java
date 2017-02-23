@@ -1,7 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async;
+
+import akka.actor.Status;
+import akka.util.ByteString;
+import akka.stream.javadsl.Source;
+import akka.stream.OverflowStrategy;
+import akka.NotUsed;
 
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
@@ -9,7 +15,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import play.mvc.Result;
-import play.mvc.Results.Chunks;
 import play.test.WithApplication;
 
 import java.io.*;
@@ -85,23 +90,18 @@ public class JavaStream extends WithApplication {
         //#chunked
         public Result index() {
             // Prepare a chunked text stream
-            Chunks<String> chunks = StringChunks.whenReady(
-                    JavaStream::registerOutChannelSomewhere
-            );
-
+            Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy.dropNew())
+                .mapMaterializedValue(sourceActor -> {
+                    sourceActor.tell(ByteString.fromString("kiki"), null);
+                    sourceActor.tell(ByteString.fromString("foo"), null);
+                    sourceActor.tell(ByteString.fromString("bar"), null);
+                    sourceActor.tell(new Status.Success(NotUsed.getInstance()), null);
+                    return null;
+                });
             // Serves this stream with 200 OK
-            return ok(chunks);
+            return ok().chunked(source);
         }
         //#chunked
     }
-
-    //#register-out-channel
-    public static void registerOutChannelSomewhere(Chunks.Out<String> out) {
-        out.write("kiki");
-        out.write("foo");
-        out.write("bar");
-        out.close();
-    }
-    //#register-out-channel
 
 }

@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core
 
 import java.util.concurrent.ForkJoinPool
 import play.api.{ Application, Play }
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 /**
  * Provides access to Play's internal ExecutionContext.
  */
 private[play] object Execution {
 
-  def internalContext: ExecutionContext = {
+  def internalContext: ExecutionContextExecutor = {
     val appOrNull: Application = Play._currentApp
     appOrNull match {
       case null => common

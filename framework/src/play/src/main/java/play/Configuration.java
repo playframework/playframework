@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -35,6 +37,9 @@ public class Configuration {
 
     /**
      * Load a new configuration from an environment.
+     *
+     * @param env the environment used to initialize the created config
+     * @return the created config
      */
     public static Configuration load(Environment env) {
         return new Configuration(play.api.Configuration.load(env.underlying()));
@@ -42,6 +47,8 @@ public class Configuration {
 
     /**
      * A new empty configuration.
+     *
+     * @return a new empty configuration
      */
     public static Configuration empty() {
         return new Configuration(ConfigFactory.empty());
@@ -49,6 +56,8 @@ public class Configuration {
 
     /**
      * A new reference configuration.
+     *
+     * @return the configuration
      */
     public static Configuration reference() {
         return new Configuration(ConfigFactory.defaultReference());
@@ -60,6 +69,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a Typesafe Config object.
+     *
+     * @param conf the typesafe config
      */
     public Configuration(Config conf) {
         this(new play.api.Configuration(conf));
@@ -67,6 +78,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a map.
+     *
+     * @param conf the configuration map
      */
     public Configuration(Map<String, Object> conf) {
         this(ConfigFactory.parseMap(conf));
@@ -74,6 +87,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration by parsing a string in HOCON format.
+     *
+     * @param s the HOCON-formatted string
      */
     public Configuration(String s) {
         this(ConfigFactory.parseString(s));
@@ -81,6 +96,8 @@ public class Configuration {
 
     /**
      * Creates a new configuration from a Scala-based configuration.
+     *
+     * @param conf the scala-based configuration
      */
     @Inject
     public Configuration(play.api.Configuration conf) {
@@ -110,7 +127,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public String getString(String key) {
-        return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
+        return Scala.orNull(conf.getString(key, scala.Option.empty()));
     }
 
     /**
@@ -121,7 +138,7 @@ public class Configuration {
      * @return a configuration value or the defaultString
      */
     public String getString(String key, String defaultString) {
-        return Scala.orElse(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()), defaultString);
+        return Scala.orElse(conf.getString(key, scala.Option.empty()), defaultString);
     }
 
     /**
@@ -330,7 +347,7 @@ public class Configuration {
 
     /**
      * Returns the config as a set of full paths to config values.  This is
-     * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
+     * different to {@link #asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
      * objects, and keys are recursively expanded to be pull path keys.
      *
      * @return The config as an entry set
@@ -401,11 +418,7 @@ public class Configuration {
      */
     public List<Configuration> getConfigList(String key) {
         if (conf.getConfigList(key).isDefined()) {
-          List<Configuration> out = new ArrayList<Configuration>();
-          for (play.api.Configuration c : conf.getConfigList(key).get()) {
-            out.add(new Configuration(c));
-          }
-          return out;
+            return conf.getConfigList(key).get().stream().map(Configuration::new).collect(Collectors.toList());
         }
 
         return null;
@@ -588,11 +601,7 @@ public class Configuration {
      */
     public List<Map<String, Object>> getObjectList(String key) {
         if (conf.getObjectList(key).isDefined()) {
-          List<Map<String, Object>> out = new ArrayList<Map<String, Object>>();
-          for (ConfigObject c : conf.getObjectList(key).get()) {
-            out.add(c.unwrapped());
-          }
-          return out;
+            return conf.getObjectList(key).get().stream().map((Function<ConfigObject, Map<String, Object>>) ConfigObject::unwrapped).collect(Collectors.toList());
         }
         return null;
     }
@@ -663,6 +672,9 @@ public class Configuration {
 
     /**
      * Extend this configuration with fallback configuration.
+     *
+     * @param fallback the configuration to fall back on if no value is found for a key
+     * @return a new configuration that falls back on the provided one
      */
     public Configuration withFallback(Configuration fallback) {
         return new Configuration(underlying().withFallback(fallback.underlying()));

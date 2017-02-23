@@ -1,13 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs;
 
 import java.io.*;
-import java.util.*;
-
-import org.yaml.snakeyaml.*;
 import org.yaml.snakeyaml.constructor.*;
+import play.Application;
+import play.api.Play;
 
 /**
  * Yaml utilities.
@@ -18,9 +17,11 @@ public class Yaml {
      * Load a Yaml file from the classpath.
      */
     public static Object load(String resourceName) {
+        final Application application = Play.current().injector().instanceOf(Application.class);
+
         return load(
-            play.Play.application().resourceAsStream(resourceName),
-            play.Play.application().classloader()
+            application.resourceAsStream(resourceName),
+            application.classloader()
         );
     }
     

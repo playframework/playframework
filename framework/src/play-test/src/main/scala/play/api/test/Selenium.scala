@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
-import play.api._
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._

@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Routing DSL
 
 Play provides a DSL for routers directly in code.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 The DSL uses a path pattern syntax similar to Play's compiled routes files, extracting parameters out, and invoking actions implemented using lambdas.
 
-The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import tha static methods from [`Controller`](api/java/play/mvc/Controller.html), which includes factory methods for creating results, accessing the request, response and session.  So typically you will want at least the following imports:
+The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import the static methods from [`Controller`](api/java/play/mvc/Controller.html), which includes factory methods for creating results, accessing the request, response and session.  So typically you will want at least the following imports:
 
 @[imports](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
@@ -32,3 +32,34 @@ Supported types include `Integer`, `Long`, `Float`, `Double`, `Boolean`, and any
 Asynchronous actions are of course also supported, using the `routeAsync` method:
 
 @[async](code/javaguide/advanced/routing/JavaRoutingDsl.java)
+
+## Binding Routing DSL
+
+Configuring an application to use a Routing DSL can be achieved in many ways, depending on use case:
+
+### Embedding play
+An example of embedding a play server with Routing DSL can be found in [[Embedding Play|JavaEmbeddingPlay]] section.
+
+### Providing a DI router
+
+A router can be provided to the application similarly as detailed in [[Application Entry point|ScalaCompileTimeDependencyInjection#Application-entry-point]] and [[Providing a router|ScalaCompileTimeDependencyInjection#Providing-a-router]], using e.g. a java builder class:
+
+@[](code/router/RoutingDslBuilder.java)
+
+and in the application loader:
+
+@[load](code/AppLoader.scala)
+
+### Providing a DI router with Guice
+
+A router via Guice could be provided with the following snippet:
+
+@[load-guice2](code/GuiceRouterProvider.java)
+
+and in the application loader:
+
+@[load-guice1](code/GuiceAppLoader.java)
+
+### Overriding binding
+
+A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|JavaTestingWithGuice#Override-bindings]] 

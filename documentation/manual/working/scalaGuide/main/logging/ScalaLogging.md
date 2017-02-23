@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](http://logback.qos.ch/) as the logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](http://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
@@ -61,7 +61,7 @@ java.lang.ArithmeticException: / by zero
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
 #### Creating your own loggers
-Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexibile configuration, filtering of log output, and pinpointing the source of log messages.
+Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.apply` factory method with a name argument:
 

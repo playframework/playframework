@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Guidelines for writing Play documentation
 
 The Play documentation is written in Markdown format, with code samples extracted from compiled, run and tested source files.
@@ -104,25 +104,10 @@ Other code may or may not be testable.  It may make sense to test Javascript cod
 
 ## Testing the docs
 
-To build the docs, you'll first need to build and publish Play locally. You can do this by running `./build publishLocal` from within the `framework` directory of the playframework repository.
+To build the docs, you'll first need to build and publish Play locally. You can do this by running `sbt publishLocal` from within the `framework` directory of the playframework repository.
 
-To ensure that the docs render correctly, run `./build run` from within the `documentation` directory.  This will start a small Play server that does nothing but serve the documentation.
+To ensure that the docs render correctly, run `sbt run` from within the `documentation` directory.  This will start a small Play server that does nothing but serve the documentation.
 
-To ensure that the code samples compile, run and tests pass, run `./build test`.
+To ensure that the code samples compile, run and tests pass, run `sbt test`.
 
-To validate that the documentation is structurely sound, run `./build validateDocs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.
-
-## Code samples from external Play modules
-
-To avoid circular dependencies, any documentation that documents a Play module that is not a core part of Play can't include its code samples along with the rest of the Play documentation.  To address this, the documentation for that module can place an entry into the `externalPlayModules` map in `project/Build.scala`, including all the extra settings (namely library dependencies) required to build the code snippets for that module.  For example:
-
-```scala
-val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
-  "some-module" -> Seq(
-    libraryDependencies += "com.example" %% "some-play-module" % "1.2.3" % "test"
-  ),
-  ...
-)
-```
-
-Now place all code snippets that use that module in `code-some-module`.  Now to run any SBT commands, ensuring that that module is included, run `./build -Dexternal.modules=some-module test`, or to run the tests for all modules, run `./build -Dexternal-modules=all test`.
+To validate that the documentation is structurally sound, run `sbt validateDocs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.

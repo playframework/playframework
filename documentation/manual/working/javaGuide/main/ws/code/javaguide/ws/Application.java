@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.ws;
 
@@ -8,7 +8,7 @@ import javax.inject.Inject;
 
 import play.mvc.*;
 import play.libs.ws.*;
-import play.libs.F.Promise;
+import java.util.concurrent.CompletionStage;
 
 public class Application extends Controller {
 

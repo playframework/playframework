@@ -1,6 +1,10 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 

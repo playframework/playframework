@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling and serving XML requests
 
 ## Handling an XML request
@@ -15,9 +15,9 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 > **Note:** This way, a 400 HTTP response will be automatically returned for non-XML requests.
 
-You can test it with **cURL** on the command line:
+You can test it with **`curl`** on the command line:
 
-```
+```bash
 curl 
   --header "Content-type: application/xml" 
   --request POST 

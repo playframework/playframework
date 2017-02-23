@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import play.sbt.PlayScala
@@ -55,7 +55,7 @@ object ApplicationBuild extends Build {
         bufferLogger +: currentFunction(key)
       }
     },
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.10.5"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8"),
     checkLogContainsTask,
     compileIgnoreErrorsTask
   )

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.parsers
 
@@ -9,7 +9,7 @@ import akka.stream.stage.{ TerminationDirective, SyncDirective, Context, PushPul
 import akka.util.ByteString
 import play.api.Play
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.streams.{ Streams, Accumulator }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.MultipartFormData._
 import play.api.http.Status._
@@ -28,12 +28,12 @@ object Multipart {
   private final val maxHeaderBuffer = 4096
 
   /**
-   * Parses the stream into a stream of [[Part]] to be handled by `partHandler`.
+   * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Int)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]): BodyParser[A] = BodyParser { request =>
+  def partParser[A](maxMemoryBufferSize: Int)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType
@@ -46,17 +46,18 @@ object Multipart {
       val multipartFlow = Flow[ByteString]
         .transform(() => new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer))
         .splitWhen(_.isLeft)
-        .map { source =>
-          source.prefixAndTail(1)
-            .map {
-              case (Seq(Left(part: FilePart[_])), body) =>
-                part.copy[Source[ByteString, _]](ref = body.collect {
-                  case Right(bytes) => bytes
-                })
-              case (Seq(Left(other)), _) =>
-                other.asInstanceOf[Part[Nothing]]
-            }
-        }.flatten(FlattenStrategy.concat)
+        .prefixAndTail(1)
+        .map {
+          case (Seq(Left(part: FilePart[_])), body) =>
+            part.copy[Source[ByteString, _]](ref = body.collect {
+              case Right(bytes) => bytes
+            })
+          case (Seq(Left(other)), ignored) =>
+            // If we don't run the source, it takes Akka streams 5 seconds to wake up and realise the source is empty
+            // before it progresses onto the next element
+            ignored.runWith(Sink.cancelled)
+            other.asInstanceOf[Part[Nothing]]
+        }.concatSubstreams
 
       partHandler.through(multipartFlow)
 
@@ -110,7 +111,7 @@ object Multipart {
       }
 
       multipartAccumulator.through(handleFileParts)
-    }(request)
+    }.apply(request)
   }
 
   type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
@@ -118,7 +119,7 @@ object Multipart {
   def handleFilePartAsTemporaryFile: FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-      Accumulator(Streams.outputStreamToSink(() => new java.io.FileOutputStream(tempFile.file))).map { _ =>
+      Accumulator(FileIO.toFile(tempFile.file)).map { _ =>
         FilePart(partName, filename, contentType, tempFile)
       }
   }
@@ -195,7 +196,7 @@ object Multipart {
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
 
-      val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
+      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
 
       for {
         values <- headers.get("content-disposition").map(
@@ -210,7 +211,7 @@ object Multipart {
   }
 
   private def createBadResult[A](msg: String, status: Int = BAD_REQUEST): RequestHeader => Future[Either[Result, A]] = { request =>
-    Play.maybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
+    Play.privateMaybeApplication.fold(Future.successful(Left(Results.Status(status): Result)))(
       _.errorHandler.onClientError(request, status, msg).map(Left(_)))
   }
 

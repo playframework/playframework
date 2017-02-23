@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.junit.runner._

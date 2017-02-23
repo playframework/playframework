@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -88,13 +88,17 @@ public class Result {
 
     /**
      * Get the status.
+     *
+     * @return the status
      */
     public int status() {
         return header.status();
     }
 
     /**
-     * Get the reason phrase.
+     * Get the reason phrase, if it was set.
+     *
+     * @return the reason phrase (e.g. "NOT FOUND")
      */
     public Optional<String> reasonPhrase() {
         return OptionConverters.toJava(header.reasonPhrase());
@@ -102,6 +106,8 @@ public class Result {
 
     /**
      * Get the response header
+     *
+     * @return the header
      */
     protected ResponseHeader header() {
         return header;
@@ -109,6 +115,8 @@ public class Result {
 
     /**
      * Get the body of this result.
+     *
+     * @return the body
      */
     public HttpEntity body() {
         return body;
@@ -116,6 +124,8 @@ public class Result {
 
     /**
      * Extracts the Location header of this Result value if this Result is a Redirect.
+     *
+     * @return the location (if it was set)
      */
     public Optional<String> redirectLocation() {
         return header(LOCATION);
@@ -123,6 +133,8 @@ public class Result {
 
     /**
      * Extracts an Header value of this Result value.
+     *
+     * @return the header (if it was set)
      */
     public Optional<String> header(String header) {
         return OptionConverters.<String>toJava(this.header.headers().get(header));
@@ -132,6 +144,8 @@ public class Result {
      * Extracts all Headers of this Result value.
      *
      * The returned map is not modifiable.
+     *
+     * @return the immutable map of headers
      */
     public Map<String, String> headers() {
         return Collections.unmodifiableMap(JavaConversions.mapAsJavaMap(this.header.headers()));
@@ -139,6 +153,8 @@ public class Result {
 
     /**
      * Extracts the Content-Type of this Result value.
+     *
+     * @return the content type (if it was set)
      */
     public Optional<String> contentType() {
         return body.contentType().map(h -> {
@@ -152,11 +168,15 @@ public class Result {
 
     /**
      * Extracts the Charset of this Result value.
+     *
+     * @return the charset (if it was set)
      */
     public Optional<String> charset() {
         return body.contentType().flatMap(h -> {
-            if (h.contains("; charset=")) {
-                return Optional.of(h.substring(h.indexOf("; charset=") + 10, h.length()).trim());
+            String[] parts = h.split("(?i);\\s*charset=", 2);
+            if (parts.length > 1) {
+                String charset = parts[1];
+                return Optional.of(charset.trim());
             } else {
                 return Optional.empty();
             }
@@ -165,6 +185,8 @@ public class Result {
 
     /**
      * Extracts the Flash values of this Result value.
+     *
+     * @return the flash (if it was set)
      */
     public Flash flash() {
         return JavaResultExtractor.getFlash(header);
@@ -172,6 +194,8 @@ public class Result {
 
     /**
      * Extracts the Session of this Result value.
+     *
+     * @return the session (if it was set)
      */
     public Session session() {
         return JavaResultExtractor.getSession(header);
@@ -179,6 +203,8 @@ public class Result {
 
     /**
      * Extracts a Cookie value from this Result value
+     *
+     * @return the cookie (if it was set)
      */
     public Cookie cookie(String name) {
         return JavaResultExtractor.getCookies(header).get(name);
@@ -186,13 +212,21 @@ public class Result {
 
     /**
      * Extracts the Cookies (an iterator) from this result value.
+     *
+     * @return the cookies (if they were set)
      */
     public Cookies cookies() {
         return JavaResultExtractor.getCookies(header);
     }
 
+    public Result withCookies(Cookie... cookies) {
+        return new Result(JavaResultExtractor.withCookies(header, cookies), body);
+    }
+
     /**
      * Return a copy of this result with the given header.
+     *
+     * @return the transformed copy
      */
     public Result withHeader(String name, String value) {
         return new Result(JavaResultExtractor.withHeader(header, name, value), body);
@@ -200,13 +234,17 @@ public class Result {
 
     /**
      * Return a copy of this result with the given headers.
+     *
+     * @return the transformed copy
      */
     public Result withHeaders(String... nameValues) {
         return new Result(JavaResultExtractor.withHeader(header, nameValues), body);
     }
 
     /**
-     * Change the Content-Type header for this result.
+     * Return a copy of the result with a different Content-Type header.
+     *
+     * @return the transformed copy
      */
     public Result as(String contentType) {
         return new Result(header, body.as(contentType));
@@ -214,6 +252,8 @@ public class Result {
 
     /**
      * Convert this result to a Scala result.
+     *
+     * @return the Scala result.
      */
     public play.api.mvc.Result asScala() {
         return new play.api.mvc.Result(header, body.asScala());

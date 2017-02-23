@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.ssl
 
@@ -22,6 +22,8 @@ object FakeKeyStore {
   private val logger = Logger(FakeKeyStore.getClass)
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+  val SignatureAlgorithmOID = AlgorithmId.sha256WithRSAEncryption_oid
+  val SignatureAlgorithmName = "SHA256withRSA"
 
   def shouldGenerate(keyStoreFile: File): Boolean = {
     import scala.collection.JavaConverters._
@@ -38,18 +40,14 @@ object FakeKeyStore {
     } finally {
       PlayIO.closeQuietly(in)
     }
-    store.aliases().asScala.foreach {
-      alias =>
-        Option(store.getCertificate(alias)).map {
-          c =>
-            val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
-            if (key.getModulus.bitLength < 2048) {
-              return true
-            }
-        }
+    store.aliases().asScala.exists { alias =>
+      Option(store.getCertificate(alias)).exists(c => certificateTooWeak(c))
     }
+  }
 
-    false
+  def certificateTooWeak(c: java.security.cert.Certificate): Boolean = {
+    val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
+    key.getModulus.bitLength < 2048 || c.asInstanceOf[X509CertImpl].getSigAlgName != SignatureAlgorithmName
   }
 
   def keyManagerFactory(appPath: File): KeyManagerFactory = {
@@ -115,19 +113,19 @@ object FakeKeyStore {
 
     // Key and algorithm
     certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic))
-    val algorithm = new AlgorithmId(AlgorithmId.sha1WithRSAEncryption_oid)
+    val algorithm = new AlgorithmId(SignatureAlgorithmOID)
     certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm))
 
     // Create a new certificate and sign it
     val cert = new X509CertImpl(certInfo)
-    cert.sign(keyPair.getPrivate, "SHA1withRSA")
+    cert.sign(keyPair.getPrivate, SignatureAlgorithmName)
 
-    // Since the SHA1withRSA provider may have a different algorithm ID to what we think it should be,
+    // Since the signature provider may have a different algorithm ID to what we think it should be,
     // we need to reset the algorithm ID, and resign the certificate
     val actualAlgorithm = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
     certInfo.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, actualAlgorithm)
     val newCert = new X509CertImpl(certInfo)
-    newCert.sign(keyPair.getPrivate, "SHA1withRSA")
+    newCert.sign(keyPair.getPrivate, SignatureAlgorithmName)
     newCert
   }
 }

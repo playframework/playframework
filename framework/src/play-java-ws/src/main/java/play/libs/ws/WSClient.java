@@ -1,7 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.ws;
+
+import java.io.IOException;
 
 /**
  * This is the WS Client interface.
@@ -20,6 +22,7 @@ public interface WSClient extends java.io.Closeable {
      * return an asynchronous {@code Promise<WSResponse>}.
      *
      * @param url the URL to request
+     * @return the request
      */
     WSRequest url(String url);
 
@@ -28,5 +31,5 @@ public interface WSClient extends java.io.Closeable {
      *
      * Use this for manually instantiated clients.
      */
-    void close();
+    void close() throws IOException;
 }

@@ -1,26 +1,26 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.routing
 
 import java.util.Optional
+import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
-import play.api.inject.Injector
 import play.api.mvc._
 import play.core.j
-import play.core.j.{ JavaHandlerComponents, JavaHandler, JavaActionAnnotations }
-import play.mvc.Http.RequestBody
+import play.core.j.{JavaActionAnnotations, JavaHandler, JavaHandlerComponents}
+import play.mvc.Http.{Context, RequestBody}
 
-import scala.compat.java8.{OptionConverters, FutureConverters}
+import scala.compat.java8.{FutureConverters, OptionConverters}
 import scala.util.control.NonFatal
 
 /**
  * An object that, when invoked with a thunk, produces a `Handler` that wraps
  * that thunk. Constructed by a `HandlerInvokerFactory`.
  */
-trait HandlerInvoker[T] {
+trait HandlerInvoker[-T] {
   /**
    * Create a `Handler` that wraps the given thunk. The thunk won't be called
    * until the `Handler` is applied. The returned Handler will be used by
@@ -32,7 +32,7 @@ trait HandlerInvoker[T] {
 /**
  * An invoker that wraps another invoker, ensuring the request is tagged appropriately.
  */
-private class TaggingInvoker[A](underlyingInvoker: HandlerInvoker[A], handlerDef: HandlerDef) extends HandlerInvoker[A] {
+private class TaggingInvoker[-A](underlyingInvoker: HandlerInvoker[A], handlerDef: HandlerDef) extends HandlerInvoker[A] {
   import HandlerInvokerFactory._
   val cachedHandlerTags = handlerTags(handlerDef)
   def call(call: => A): Handler = {
@@ -57,7 +57,7 @@ private class TaggingInvoker[A](underlyingInvoker: HandlerInvoker[A], handlerDef
  * for an implicit `HandlerInvokerFactory` and uses that to create a `HandlerInvoker`.
  */
 @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as a Handler for requests")
-trait HandlerInvokerFactory[T] {
+trait HandlerInvokerFactory[-T] {
   /**
    * Create an invoker for the given thunk that is never called.
    * @param fakeCall A simulated call to the controller method. Needed to
@@ -69,10 +69,9 @@ trait HandlerInvokerFactory[T] {
 
 object HandlerInvokerFactory {
 
-  import play.libs.F.{ Promise => JPromise }
-  import play.mvc.{ Result => JResult, LegacyWebSocket, WebSocket => JWebSocket }
-  import play.core.j.JavaWebSocket
   import com.fasterxml.jackson.databind.JsonNode
+  import play.core.j.JavaWebSocket
+  import play.mvc.{LegacyWebSocket, Result => JResult, WebSocket => JWebSocket}
 
   private[routing] def handlerTags(handlerDef: HandlerDef): Map[String, String] = Map(
     play.api.routing.Router.Tags.RoutePattern -> handlerDef.path,
@@ -131,15 +130,15 @@ object HandlerInvokerFactory {
         def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
           val annotations = cachedAnnotations
           val parser = {
-            val javaParser = components.injector.instanceOf(cachedAnnotations.parser)
+            val javaParser = components.getBodyParser(cachedAnnotations.parser)
             javaBodyParserToScala(javaParser)
           }
-          def invocation: JPromise[JResult] = resultCall(call)
+          def invocation: CompletionStage[JResult] = resultCall(call)
           def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
         }
       }
     }
-    def resultCall(call: => A): JPromise[JResult]
+    def resultCall(call: => A): CompletionStage[JResult]
   }
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
@@ -155,10 +154,10 @@ object HandlerInvokerFactory {
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {
-    def resultCall(call: => JResult) = JPromise.pure(call)
+    def resultCall(call: => JResult) = CompletableFuture.completedFuture(call)
   }
-  implicit def wrapJavaPromise: HandlerInvokerFactory[JPromise[JResult]] = new JavaActionInvokerFactory[JPromise[JResult]] {
-    def resultCall(call: => JPromise[JResult]) = call
+  implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] = new JavaActionInvokerFactory[CompletionStage[JResult]] {
+    def resultCall(call: => CompletionStage[JResult]) = call
   }
 
   /**
@@ -184,25 +183,38 @@ object HandlerInvokerFactory {
     def webSocketCall(call: => LegacyWebSocket[JsonNode]) = JavaWebSocket.ofJson(call)
   }
 
-  implicit def javaBytesPromiseWebSocket: HandlerInvokerFactory[JPromise[LegacyWebSocket[Array[Byte]]]] = new JavaWebSocketInvokerFactory[JPromise[LegacyWebSocket[Array[Byte]]], Array[Byte]] {
-    def webSocketCall(call: => JPromise[LegacyWebSocket[Array[Byte]]]) = JavaWebSocket.promiseOfBytes(call)
+  implicit def javaBytesPromiseWebSocket: HandlerInvokerFactory[CompletionStage[LegacyWebSocket[Array[Byte]]]] = new JavaWebSocketInvokerFactory[CompletionStage[LegacyWebSocket[Array[Byte]]], Array[Byte]] {
+    def webSocketCall(call: => CompletionStage[LegacyWebSocket[Array[Byte]]]) = JavaWebSocket.promiseOfBytes(call)
   }
 
-  implicit def javaStringPromiseWebSocket: HandlerInvokerFactory[JPromise[LegacyWebSocket[String]]] = new JavaWebSocketInvokerFactory[JPromise[LegacyWebSocket[String]], String] {
-    def webSocketCall(call: => JPromise[LegacyWebSocket[String]]) = JavaWebSocket.promiseOfString(call)
+  implicit def javaStringPromiseWebSocket: HandlerInvokerFactory[CompletionStage[LegacyWebSocket[String]]] = new JavaWebSocketInvokerFactory[CompletionStage[LegacyWebSocket[String]], String] {
+    def webSocketCall(call: => CompletionStage[LegacyWebSocket[String]]) = JavaWebSocket.promiseOfString(call)
   }
 
-  implicit def javaJsonPromiseWebSocket: HandlerInvokerFactory[JPromise[LegacyWebSocket[JsonNode]]] = new JavaWebSocketInvokerFactory[JPromise[LegacyWebSocket[JsonNode]], JsonNode] {
-    def webSocketCall(call: => JPromise[LegacyWebSocket[JsonNode]]) = JavaWebSocket.promiseOfJson(call)
+  implicit def javaJsonPromiseWebSocket: HandlerInvokerFactory[CompletionStage[LegacyWebSocket[JsonNode]]] = new JavaWebSocketInvokerFactory[CompletionStage[LegacyWebSocket[JsonNode]], JsonNode] {
+    def webSocketCall(call: => CompletionStage[LegacyWebSocket[JsonNode]]) = JavaWebSocket.promiseOfJson(call)
   }
 
   implicit def javaWebSocket: HandlerInvokerFactory[JWebSocket] = new HandlerInvokerFactory[JWebSocket] {
-    import play.http.websocket.{ Message => JMessage }
     import play.api.http.websocket._
     import play.api.libs.iteratee.Execution.Implicits.trampoline
+    import play.http.websocket.{Message => JMessage}
+
     def createInvoker(fakeCall: => JWebSocket, handlerDef: HandlerDef) = new HandlerInvoker[JWebSocket] {
       def call(call: => JWebSocket) = WebSocket.acceptOrResult[Message, Message] { request =>
-        FutureConverters.toScala(call(new j.RequestHeaderImpl(request))).map { resultOrFlow =>
+
+        val javaContext = JavaWebSocket.createJavaContext(request)
+
+        val callWithContext = {
+          try {
+            Context.current.set(javaContext)
+            FutureConverters.toScala(call(new j.RequestHeaderImpl(request)))
+          } finally {
+            Context.current.remove()
+          }
+        }
+
+        callWithContext.map { resultOrFlow =>
           if (resultOrFlow.left.isPresent) {
             Left(resultOrFlow.left.get.asScala())
           } else {

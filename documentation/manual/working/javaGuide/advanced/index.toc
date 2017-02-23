@@ -1,5 +1,4 @@
-dependencyinjection:Dependency injection
-http:HTTP architecture
+JavaAdvanced:Section contents
 routing:Advanced routing
 extending:Extending Play
 embedding:Embedding Play

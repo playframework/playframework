@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling and serving XML requests
 
 ## Handling an XML request
@@ -15,7 +15,7 @@ It’s way better (and simpler) to specify our own `BodyParser` to ask Play to p
 
 > **Note:** When using an XML body parser, the `request.body` value is directly a valid `NodeSeq`. 
 
-You can test it with [cURL](http://curl.haxx.se/) from a command line:
+You can test it with [cURL](https://curl.haxx.se/) from a command line:
 
 ```
 curl 

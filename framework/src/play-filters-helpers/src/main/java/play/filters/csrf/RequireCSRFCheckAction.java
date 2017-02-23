@@ -1,49 +1,53 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf;
 
+import java.util.Map;
+import java.util.concurrent.CompletionStage;
+
+import javax.inject.Inject;
+
+import play.api.libs.Crypto;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.inject.Injector;
-import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
 import scala.Option;
 
-import javax.inject.Inject;
-import java.util.Map;
-
 public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     private final CSRFConfig config;
     private final CSRF.TokenProvider tokenProvider;
+    private final Crypto crypto;
     private final Injector injector;
 
     @Inject
-    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Injector injector) {
+    public RequireCSRFCheckAction(CSRFConfig config, CSRF.TokenProvider tokenProvider, Crypto crypto, Injector injector) {
         this.config = config;
         this.tokenProvider = tokenProvider;
+        this.crypto = crypto;
         this.injector = injector;
     }
 
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public F.Promise<Result> call(Http.Context ctx) {
-        RequestHeader request = ctx._requestHeader();
+    public CompletionStage<Result> call(Http.Context ctx) {
+        RequestHeader request = CSRFAction.tagRequestFromHeader(ctx._requestHeader(), config, crypto);
         // Check for bypass
-        if (CSRFAction.checkCsrfBypass(request, config)) {
+        if (!CSRFAction.requiresCsrfCheck(request, config)) {
             return delegate.call(ctx);
         } else {
             // Get token from cookie/session
-            Option<String> headerToken = CSRFAction.getTokenFromHeader(request, config);
+            Option<String> headerToken = CSRFAction.getTokenToValidate(request, config, crypto);
             if (headerToken.isDefined()) {
                 String tokenToCheck = null;
 
                 // Get token from query string
-                Option<String> queryStringToken = CSRFAction.getTokenFromQueryString(request, config);
+                Option<String> queryStringToken = CSRFAction.getHeaderToken(request, config);
                 if (queryStringToken.isDefined()) {
                     tokenToCheck = queryStringToken.get();
                 } else {
@@ -78,7 +82,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         }
     }
 
-    private F.Promise<Result> handleTokenError(Http.Context ctx, RequestHeader request, String msg) {
+    private CompletionStage<Result> handleTokenError(Http.Context ctx, RequestHeader request, String msg) {
 
         if (CSRF.getToken(request).isEmpty()) {
             if (config.cookieName().isDefined()) {
@@ -91,6 +95,6 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         }
 
         CSRFErrorHandler handler = injector.instanceOf(configuration.error());
-        return handler.handle(new Http.RequestImpl(request), msg);
+        return handler.handle(new play.core.j.RequestHeaderImpl(request), msg);
     }
 }

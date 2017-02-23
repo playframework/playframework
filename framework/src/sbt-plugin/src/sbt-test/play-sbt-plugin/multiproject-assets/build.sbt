@@ -1,3 +1,7 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 import java.net.URLClassLoader
 import com.typesafe.sbt.packager.Keys.executableScriptName
 
@@ -11,7 +15,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
 TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")

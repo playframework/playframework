@@ -1,26 +1,24 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.ws
 
 import java.io.Closeable
-
 import java.io.File
 import java.net.URI
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.xml.Elem
-
-import akka.stream.Materializer
-import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json.JsValue
 import play.api.libs.iteratee._
+import play.core.formatters.Multipart
+import play.api.mvc.MultipartFormData
+import java.io.IOException
 
 /**
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
@@ -43,7 +41,7 @@ trait WSClient extends Closeable {
   def url(url: String): WSRequest
 
   /** Closes this client, and releases underlying resources. */
-  def close(): Unit
+  @throws[IOException] def close(): Unit
 }
 
 /**
@@ -55,20 +53,44 @@ trait WSRequestMagnet {
   def apply(): WSRequest
 }
 
+trait WSRequestExecutor {
+  def execute(request: WSRequest): Future[WSResponse]
+}
+
+trait WSRequestFilter {
+  def apply(next: WSRequestExecutor): WSRequestExecutor
+}
+
 /**
  * Asynchronous API to to query web services, as an http client.
  *
  * Usage example:
  * {{{
- * WS.url("http://example.com/feed").get()
- * WS.url("http://example.com/item").post("content")
+ * class MyService @Inject() (ws: WSClient) {
+ *   ws.url("http://example.com/feed").get()
+ *   ws.url("http://example.com/item").post("content")
+ * }
  * }}}
  *
  * When greater flexibility is needed, you can also create clients explicitly and pass them into WS:
  *
  * {{{
- * implicit val client = new NingWSClient(builder.build())
- * WS.url("http://example.com/feed").get()
+ * import play.api.libs.ws._
+ * import play.api.libs.ws.ahc._
+ * import akka.stream.Materializer
+ * import play.api.ApplicationLifecycle
+ * import javax.inject.Inject
+ * import scala.concurrent.Future
+ *
+ * class MyService @Inject() (lifecycle: ApplicationLifecycle)(implicit mat: Materializer) {
+ *   private val client = new AhcWSClient(new AhcConfigBuilder().build())
+ *   client.url("http://example.com/feed").get()
+ *   lifecycle.addStopHook(() =>
+ *     // Make sure you close the client after use, otherwise you'll leak threads and connections
+ *     client.close()
+ *     Future.successful(())
+ *   }
+ * }
  * }}}
  *
  * Or call the client directly:
@@ -76,24 +98,23 @@ trait WSRequestMagnet {
  * {{{
  * import com.typesafe.config.ConfigFactory
  * import play.api.libs.ws._
- * import play.api.libs.ws.ning._
+ * import play.api.libs.ws.ahc._
  *
  * val configuration = play.api.Configuration(ConfigFactory.parseString(
  * """
- *   |ws.ssl.trustManager = ...
+ *   |play.ws.ssl.trustManager = ...
  * """.stripMargin))
- * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
- * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
- * val secureClient: WSClient = new NingWSClient(builder.build())
+ * val parser = new DefaultWSConfigParser(configuration, app.classloader)
+ * val builder = new AhcConfigBuilder(parser.parse())
+ * val secureClient: WSClient = new AhcWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
+ * secureClient.close() // must explicitly manage lifecycle
  * }}}
- *
- * Note that the resolution of URL is done through the magnet pattern defined in
- * `WSRequestMagnet`.
  *
  * The value returned is a {@code Future[WSResponse]}, and you should use Play's asynchronous mechanisms to
  * use this response.
  */
+@deprecated("Inject WSClient into your component", "2.5.0")
 object WS {
 
   private val wsapiCache = Application.instanceCache[WSAPI]
@@ -106,10 +127,10 @@ object WS {
    * implicit application must be in scope.  Most of the time you will want the current app:
    *
    * {{{
-   * import play.api.Play.current
-   * val client = WS.client
+   * val client = WS.client(app)
    * }}}
    */
+  @deprecated("Inject WSClient into your component", "2.5.0")
   def client(implicit app: Application): WSClient = wsapi.client
 
   /**
@@ -117,13 +138,13 @@ object WS {
    * use to construct a request.
    *
    * {{{
-   *   import play.api.Play.current
-   *   WS.url("http://localhost/").get()
+   *   WS.url("http://localhost/")(app).get()
    * }}}
    *
    * @param url the URL to request
    * @param app the implicit application to use.
    */
+  @deprecated("Inject WSClient into your component", "2.5.0")
   def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest = wsapi(app).url(url)
 
   /**
@@ -155,7 +176,7 @@ object WS {
    * Prepares a new request using an implicit client.  The client must be in scope and configured, i.e.
    *
    * {{{
-   * implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+   * implicit val sslClient = new play.api.libs.ws.ahc.AhcWSClient(sslBuilder.build())
    * WS.clientUrl("http://example.com/feed")
    * }}}
    *
@@ -166,7 +187,7 @@ object WS {
 }
 
 /**
- * The base WS API trait.  Plugins should extend this.
+ * The base WS API trait.
  */
 trait WSAPI {
 
@@ -253,9 +274,7 @@ case class InMemoryBody(bytes: ByteString) extends WSBody
  *
  * @param bytes A flow of the bytes of the body
  */
-case class StreamedBody(bytes: Source[ByteString, Unit]) extends WSBody {
-  throw new NotImplementedError("A streaming request body is not yet implemented")
-}
+case class StreamedBody(bytes: Source[ByteString, _]) extends WSBody
 
 /**
  * A file body
@@ -381,6 +400,11 @@ trait WSRequest {
   def withRequestTimeout(timeout: Duration): WSRequest
 
   /**
+   * Adds a filter to the request that can transform the request for subsequent filters.
+   */
+  def withRequestFilter(filter: WSRequestFilter): WSRequest
+
+  /**
    * Sets the virtual host to use in this request
    */
   def withVirtualHost(vh: String): WSRequest
@@ -410,6 +434,15 @@ trait WSRequest {
   }
 
   /**
+   * Helper method for multipart body
+   */
+  private[libs] def withMultipartBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): WSRequest = {
+    val boundary = Multipart.randomBoundary()
+    val contentType = s"multipart/form-data; boundary=$boundary"
+    withBody(StreamedBody(Multipart.transform(body, boundary))).withHeaders("Content-Type" -> contentType)
+  }
+
+  /**
    * Sets the method for this request
    */
   def withMethod(method: String): WSRequest
@@ -423,7 +456,7 @@ trait WSRequest {
    * performs a get
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  @deprecated("""Use WS.withMethod("GET").stream()""", "2.5.0")
   def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     getStream().flatMap {
       case (response, enumerator) =>
@@ -434,7 +467,7 @@ trait WSRequest {
   /**
    * performs a get
    */
-  @deprecated("2.5.0", """Use WS.withMethod("GET").stream()""")
+  @deprecated("""Use WS.withMethod("GET").stream()""", "2.5.0")
   def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
     withMethod("GET").streamWithEnumerator()
   }
@@ -452,10 +485,17 @@ trait WSRequest {
   def patch(body: File): Future[WSResponse] = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
+   * Perform a PATCH on the request asynchronously.
+   */
+  def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("PATCH").withMultipartBody(body).execute()
+  }
+
+  /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("PATCH").stream()""")
+  @deprecated("""Use WS.withMethod("PATCH").stream()""", "2.5.0")
   def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PATCH").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -476,10 +516,17 @@ trait WSRequest {
   def post(body: File): Future[WSResponse] = withMethod("POST").withBody(FileBody(body)).execute()
 
   /**
+   * Perform a POST on the request asynchronously.
+   */
+  def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("POST").withMultipartBody(body).execute()
+  }
+
+  /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("POST").stream()""")
+  @deprecated("""Use WS.withMethod("POST").stream()""", "2.5.0")
   def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("POST").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -500,10 +547,17 @@ trait WSRequest {
   def put(body: File): Future[WSResponse] = withMethod("PUT").withBody(FileBody(body)).execute()
 
   /**
+   * Perform a PUT on the request asynchronously.
+   */
+  def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    withMethod("PUT").withMultipartBody(body).execute()
+  }
+
+  /**
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  @deprecated("2.5.0", """Use WS.withMethod("PUT").stream()""")
+  @deprecated("""Use WS.withMethod("PUT").stream()""", "2.5.0")
   def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PUT").withBody(body).streamWithEnumerator().flatMap {
       case (response, enumerator) =>
@@ -543,7 +597,7 @@ trait WSRequest {
    * @note This method used to be named `stream`, but it was renamed because the method's signature was
    *       changed and the JVM doesn't allow overloading on the return type.
    */
-  @deprecated("2.5.0", "Use `WS.stream()` instead.")
+  @deprecated("Use `WS.stream()` instead.", "2.5.0")
   def streamWithEnumerator(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 
@@ -565,8 +619,6 @@ object WSAuthScheme {
   case object SPNEGO extends WSAuthScheme
 
   case object KERBEROS extends WSAuthScheme
-
-  case object NONE extends WSAuthScheme
 
 }
 
@@ -632,6 +684,7 @@ trait WSProxyServer {
 
   def ntlmDomain: Option[String]
 
+  /** The realm's charset. */
   def encoding: Option[String]
 
   def nonProxyHosts: Option[Seq[String]]
@@ -658,6 +711,7 @@ case class DefaultWSProxyServer(
 
   ntlmDomain: Option[String] = None,
 
+  /** The realm's charset. */
   encoding: Option[String] = None,
 
   nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer

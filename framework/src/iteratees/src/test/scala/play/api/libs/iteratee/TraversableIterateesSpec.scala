@@ -1,11 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
 import org.specs2.mutable._
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.Duration
 
 object TraversableIterateesSpec extends Specification
     with IterateeSpecification with ExecutionSpecification {

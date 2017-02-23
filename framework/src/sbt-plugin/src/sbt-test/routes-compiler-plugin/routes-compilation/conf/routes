@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+# Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 #
 
 GET         /                       controllers.Application.index
@@ -68,3 +68,7 @@ GET         /routestest             controllers.Application.routetest(yield)
 GET         /routesdefault          controllers.Application.routedefault(type ?= "x")
 
 GET         /public/*file           controllers.Assets.versioned(path="/public", file: Asset)
+
+# This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
+# generates a non interpolated string containing $routes. As does this comment.
+GET         /intwarn/:routes        controllers.Application.interpolatorWarning(routes)

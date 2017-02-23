@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.evolutions;
 
@@ -8,6 +8,8 @@ import scala.collection.Seq;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Reads evolutions.
  */
@@ -15,13 +17,12 @@ public abstract class EvolutionsReader implements play.api.db.evolutions.Evoluti
     public final Seq<play.api.db.evolutions.Evolution> evolutions(String db) {
         Collection<Evolution> evolutions = getEvolutions(db);
         if (evolutions != null) {
-            List<play.api.db.evolutions.Evolution> scalaEvolutions = new ArrayList<play.api.db.evolutions.Evolution>(evolutions.size());
-            for (Evolution e: evolutions) {
-                scalaEvolutions.add(new play.api.db.evolutions.Evolution(e.getRevision(), e.getSqlUp(), e.getSqlDown()));
-            }
+            List<play.api.db.evolutions.Evolution> scalaEvolutions = evolutions.stream()
+                    .map(e -> new play.api.db.evolutions.Evolution(e.getRevision(), e.getSqlUp(), e.getSqlDown()))
+                    .collect(toList());
             return Scala.asScala(scalaEvolutions);
         } else {
-            return Scala.asScala(Collections.<play.api.db.evolutions.Evolution>emptyList());
+            return Scala.asScala(Collections.emptyList());
         }
     }
 

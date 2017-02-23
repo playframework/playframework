@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.streams;
 
 import akka.actor.ActorSystem;
@@ -32,7 +35,7 @@ public class AccumulatorTest {
         return (any) -> { throw new RuntimeException("error"); };
     }
     private <T> Source<T, ?> errorSource() {
-        return Source.from(s -> s.onSubscribe(new Subscription() {
+        return Source.fromPublisher(s -> s.onSubscribe(new Subscription() {
             public void request(long n) {
                 s.onError(new RuntimeException("error"));
             }
@@ -107,6 +110,6 @@ public class AccumulatorTest {
 
     @After
     public void tearDown() {
-        system.shutdown();
+        system.terminate();
     }
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routes.compiler
 
 import scala.collection.immutable.ListMap
+import scala.util.matching.Regex
 
 /**
  * Helper methods used in the templates
@@ -79,16 +80,23 @@ package object templates {
     methodPart + paramPart
   }
 
+  def paramNameOnQueryString(paramName: String) = {
+    if (paramName.matches("^`[^`]+`$"))
+      paramName.substring(1, paramName.length - 1)
+    else
+      paramName
+  }
   /**
    * A route binding
    */
   def routeBinding(route: Route): String = {
     route.call.parameters.filterNot(_.isEmpty).map { params =>
       val ps = params.map { p =>
+        val paramName: String = paramNameOnQueryString(p.name)
         p.fixed.map { v =>
-          """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
+          """Param[""" + p.typeName + """]("""" + paramName + """", Right(""" + v + """))"""
         }.getOrElse {
-          """params.""" + (if (route.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
+          """params.""" + (if (route.path.has(paramName)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + paramName + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
         }
       }
       if (ps.size < 22) ps.mkString(", ") else ps
@@ -117,7 +125,7 @@ package object templates {
   /**
    * The code to statically get the Play injector
    */
-  val Injector = "play.api.Play.maybeApplication.map(_.injector).getOrElse(play.api.inject.NewInstanceInjector)"
+  val Injector = "play.api.Play.routesCompilerMaybeApplication.map(_.injector).getOrElse(play.api.inject.NewInstanceInjector)"
 
   val scalaReservedWords = List(
     "abstract", "case", "catch", "class",
@@ -147,6 +155,20 @@ package object templates {
    * Calculate the parameters for the reverse route call for the given routes.
    */
   def reverseParameters(routes: Seq[Route]) = routes.head.call.parameters.getOrElse(Nil).zipWithIndex.filterNot {
+    case (p, i) =>
+      val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
+      fixeds.size == 1 && fixeds(0) != None
+  }
+
+  /**
+   * Calculate the parameters for the javascript reverse route call for the given routes.
+   */
+  def reverseParametersJavascript(routes: Seq[Route]) = routes.head.call.parameters.getOrElse(Nil).zipWithIndex.map {
+    case (p, i) =>
+      val re: Regex = """[^\p{javaJavaIdentifierPart}]""".r
+      val paramEscapedName: String = re.replaceAllIn(p.name, "_")
+      (p.copy(name = paramEscapedName + i), i)
+  } filterNot {
     case (p, i) =>
       val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
       fixeds.size == 1 && fixeds(0) != None
@@ -232,10 +254,11 @@ package object templates {
       case StaticPart(part) => "\"" + part + "\""
       case DynamicPart(name, _, encode) =>
         route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+          val paramName: String = paramNameOnQueryString(param.name)
           if (encode && encodeable(param.typeName))
-            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", dynamicString(""" + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """))"""
+            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", dynamicString(""" + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """))"""
           else
-            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
+            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
         }.getOrElse {
           throw new Error("missing key " + name)
         }
@@ -253,7 +276,7 @@ package object templates {
     } else {
       """ + queryString(List(%s))""".format(
         queryParams.map { p =>
-          ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
+          ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + paramNameOnQueryString(p.name) + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) =>
             """if(""" + safeKeyword(localNames.getOrElse(name, name)) + """ == """ + default + """) None else Some(""" + u + """)"""
@@ -275,7 +298,7 @@ package object templates {
     Option(route.call.parameters.getOrElse(Nil).filter { p =>
       localNames.contains(p.name) && p.fixed.isDefined
     }.map { p =>
-      p.name + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+      localNames(p.name) + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
     }).filterNot(_.isEmpty).map(_.mkString(" && "))
   }
 
@@ -291,7 +314,7 @@ package object templates {
    */
   def javascriptCollectNonDeadRoutes(routes: Seq[Route]) = {
     routes.map { route =>
-      val localNames = reverseLocalNames(route, reverseParameters(routes))
+      val localNames = reverseLocalNames(route, reverseParametersJavascript(routes))
       val constraints = javascriptParameterConstraints(route, localNames)
       (route, localNames, constraints)
     }.foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
@@ -309,10 +332,11 @@ package object templates {
       case StaticPart(part) => " + \"" + part + "\""
       case DynamicPart(name, _, encode) => {
         route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+          val paramName: String = paramNameOnQueryString(param.name)
           if (encode && encodeable(param.typeName))
-            " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", encodeURIComponent(""" + localNames.get(param.name).getOrElse(param.name) + """))"""
+            " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", encodeURIComponent(""" + localNames.get(param.name).getOrElse(param.name) + """))"""
           else
-            " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+            " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
         }.getOrElse {
           throw new Error("missing key " + name)
         }
@@ -331,7 +355,8 @@ package object templates {
     } else {
       """ + _qS([%s])""".format(
         queryParams.map { p =>
-          ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+          val paramName: String = paramNameOnQueryString(p.name)
+          ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? null : " + u + ")"
           case (u, Parameter(name, typeName, None, None)) => u
@@ -361,6 +386,28 @@ package object templates {
     } else {
       s"$controllerRef.$methodCall"
     }
+  }
+
+  /**
+   * Encode the given String constant as a triple quoted String.
+   *
+   * This will split the String at any $ characters, and use concatenation to concatenate a single $ String followed
+   * be the remainder, this is to avoid "possible missing interpolator" false positive warnings.
+   *
+   * That is to say:
+   *
+   * {{{
+   * /foo/$id<[^/]+>
+   * }}}
+   *
+   * Will be encoded as:
+   *
+   * {{{
+   *   """/foo/""" + "$" + """id<[^/]+>"""
+   * }}}
+   */
+  def encodeStringConstant(constant: String) = {
+    constant.split('$').mkString(tq, s"""$tq + "$$" + $tq""", tq)
   }
 
   private def encodeable(paramType: String): Boolean = paramType == "String"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.cors
 
@@ -8,11 +8,11 @@ import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 
 import scala.concurrent.Future
 
-import play.api.{ PlayConfig, Logger, Configuration, Play }
+import play.api.{ PlayConfig, Logger, Configuration }
 import play.api.mvc.{ ActionBuilder, Request, Result }
 
 /**
- * An [[ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
  * @see [[CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
@@ -22,12 +22,12 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
   override protected val logger = Logger.apply(classOf[CORSActionBuilder])
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-    filterRequest(() => block(request), request)
+    filterRequest(rh => block(Request(rh, request.body)), request)
   }
 }
 
 /**
- * An [[ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
  * It can be configured to...
  *

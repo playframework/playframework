@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms
 
+import play.api.Application
 import play.api.test.{WithApplication, PlaySpecification}
 import play.data.Form
 import javaguide.forms.html.{UserForm, User}
@@ -12,12 +13,13 @@ object JavaFormHelpers extends PlaySpecification {
 
   "java form helpers" should {
     {
-      val form = Form.form(classOf[User])
-      val u = new UserForm
-      u.setName("foo")
-      u.setEmails(util.Arrays.asList("a@a", "b@b"))
-      val userForm = Form.form(classOf[UserForm]).fill(u)
-      def segment(name: String) = {
+      def segment(name: String)(implicit app: Application) = {
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
+        val u = new UserForm
+        u.setName("foo")
+        u.setEmails(util.Arrays.asList("a@a", "b@b"))
+        val userForm = formFactory.form(classOf[UserForm]).fill(u)
         val body = html.helpers(form, userForm).body
         body.lines.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
       }
@@ -49,7 +51,8 @@ object JavaFormHelpers extends PlaySpecification {
 
     {
       "allow rendering input fields" in new WithApplication() {
-        val form = Form.form(classOf[User])
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
         val body = html.fullform(form).body
         body must contain("""type="text"""")
         body must contain("""type="password"""")
@@ -58,7 +61,8 @@ object JavaFormHelpers extends PlaySpecification {
       }
 
       "allow custom field constructors" in new WithApplication() {
-        val form = Form.form(classOf[User])
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
         val body = html.withFieldConstructor(form).body
         body must contain("foobar")
       }

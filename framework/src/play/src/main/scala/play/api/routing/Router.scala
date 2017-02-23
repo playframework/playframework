@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.routing
 
 import play.api.{ PlayConfig, Configuration, Environment }
 import play.api.mvc.{ RequestHeader, Handler }
+import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
 /**
@@ -37,6 +38,8 @@ trait Router {
   def handlerFor(request: RequestHeader): Option[Handler] = {
     routes.lift(request)
   }
+
+  def asJava: play.routing.Router = new JavaRouterAdapter(this)
 }
 
 /**
@@ -107,7 +110,7 @@ object Router {
  * A simple router that implements the withPrefix and documentation methods for you.
  */
 trait SimpleRouter extends Router { self =>
-  def documentation = Nil
+  def documentation: Seq[(String, String, String)] = Seq.empty
   def withPrefix(prefix: String): Router = {
     if (prefix == "/") {
       self

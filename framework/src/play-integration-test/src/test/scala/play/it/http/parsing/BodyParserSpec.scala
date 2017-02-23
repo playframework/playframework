@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.parsing
 
@@ -32,7 +32,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
         }
       }
     } finally {
-      system.shutdown()
+      system.terminate()
     }
   }
 

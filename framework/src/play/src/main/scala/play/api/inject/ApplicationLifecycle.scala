@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 
-import java.util.concurrent.Callable
+import java.util.concurrent.{Callable, CompletionStage, ConcurrentLinkedDeque}
+import javax.inject.{Inject, Singleton}
 
-import javax.inject.Singleton
 import play.api.Logger
-import play.libs.F
 
+import scala.annotation.tailrec
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 /**
@@ -54,7 +55,7 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: () => Future[Unit]): Unit
+  def addStopHook(hook: () => Future[_]): Unit
 
   /**
    * Add a stop hook to be called when the application stops.
@@ -62,9 +63,8 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: Callable[F.Promise[Void]]): Unit = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    addStopHook(() => hook.call().wrapped().map(_ => ()))
+  def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit = {
+    addStopHook(() => FutureConverters.toScala(hook.call().asInstanceOf[CompletionStage[_]]))
   }
 }
 
@@ -72,30 +72,32 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle extends ApplicationLifecycle {
-  private val mutex = new Object()
-  @volatile private var hooks = List.empty[() => Future[Unit]]
+class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+  private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
-  def addStopHook(hook: () => Future[Unit]) = mutex.synchronized {
-    hooks = hook :: hooks
-  }
+  def addStopHook(hook: () => Future[_]) = hooks.push(hook)
 
   /**
    * Call to shutdown the application.
    *
    * @return A future that will be redeemed once all hooks have executed.
    */
-  def stop(): Future[Unit] = {
+  def stop(): Future[_] = {
 
     // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-    hooks.foldLeft(Future.successful(())) { (future, hook) =>
-      future.flatMap { _ =>
+    @tailrec
+    def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
+      val hook = hooks.poll()
+      if (hook != null) clearHooks(previous.flatMap { _ =>
         hook().recover {
           case e => Logger.error("Error executing stop hook", e)
         }
-      }
+      })
+      else previous
     }
+
+    clearHooks()
   }
 }

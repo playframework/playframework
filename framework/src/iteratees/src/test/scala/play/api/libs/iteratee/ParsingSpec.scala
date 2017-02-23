@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import Parsing._
 
 import org.specs2.mutable._

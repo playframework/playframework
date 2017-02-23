@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.forkrun
 
@@ -7,7 +7,7 @@ import akka.actor._
 import java.io.File
 import sbt.client.actors.{ SbtClientProxy, SbtConnectionProxy }
 import sbt.client.{ SbtConnector, TaskKey }
-import sbt.protocol.{ ScopedKey, TaskResult, TaskFailure }
+import sbt.protocol.{ ScopedKey, TaskResult }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Success, Failure }

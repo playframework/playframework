@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package utils
 
 import java.nio.file.{Paths, Files}
@@ -12,7 +15,9 @@ object JavaScriptRouterGenerator extends App {
     Application.index,
     Application.post,
     Application.withParam,
-    Application.takeBool
+    Application.takeBool,
+    Application.takeListTickedParam,
+    Application.takeTickedParams
   ).body
 
   // Add module exports for node

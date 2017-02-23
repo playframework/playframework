@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.functional
 
@@ -8,6 +8,13 @@ trait Monoid[A] {
   def append(a1: A, a2: A): A
   def identity: A
 
+}
+
+object Monoid {
+  implicit def endomorphismMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
+    override def append(f1: A => A, f2: A => A) = f2 compose f1
+    override def identity = Predef.identity
+  }
 }
 
 class MonoidOps[A](m1: A)(implicit m: Monoid[A]) {

@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.upload.fileupload {
 
+  import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.mvc._
   import play.api.test._
   import org.junit.runner.RunWith
@@ -12,6 +13,25 @@ package scalaguide.upload.fileupload {
   import controllers._
   import play.api.libs.Files.TemporaryFile
   import play.api.mvc.MultipartFormData.FilePart
+
+  import java.io.File
+  import java.nio.file.attribute.PosixFilePermission._
+  import java.nio.file.attribute.PosixFilePermissions
+  import java.nio.file.{Files, Path}
+  import java.util
+  import javax.inject._
+
+  import akka.stream.IOResult
+  import akka.stream.scaladsl._
+  import akka.util.ByteString
+  import play.api._
+  import play.api.libs.streams._
+  import play.api.mvc.MultipartFormData.FilePart
+  import play.api.mvc._
+  import play.core.parsers.Multipart.FileInfo
+
+  import scala.concurrent.Future
+
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFileUploadSpec extends PlaySpecification with Controller {
@@ -67,7 +87,7 @@ package scalaguide.upload.fileupload {
     }
 
     def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      running(FakeApplication()) {
+      running(GuiceApplicationBuilder().build()) {
 
         val result = action(request)
 
@@ -99,6 +119,32 @@ package scalaguide.upload.fileupload {
       def index = Action { request =>
         Ok("Upload failed")
       }
+
+      //#upload-file-customparser
+      type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
+
+      def handleFilePartAsFile: FilePartHandler[File] = {
+        case FileInfo(partName, filename, contentType) =>
+          val perms = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
+          val attr = PosixFilePermissions.asFileAttribute(perms)
+          val path = Files.createTempFile("multipartBody", "tempFile", attr)
+          val file = path.toFile
+          val fileSink = FileIO.toFile(file)
+          val accumulator = Accumulator(fileSink)
+          accumulator.map { case IOResult(count, status) =>
+            FilePart(partName, filename, contentType, file)
+          }(play.api.libs.concurrent.Execution.defaultContext)
+      }
+
+      def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>
+        val fileOption = request.body.file("name").map {
+          case FilePart(key, filename, contentType, file) =>
+            file.toPath
+        }
+
+        Ok(s"File uploaded: $fileOption")
+      }
+      //#upload-file-customparser
 
     }
   }

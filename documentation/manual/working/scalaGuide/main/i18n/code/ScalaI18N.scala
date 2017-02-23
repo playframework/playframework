@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.i18n.scalai18n {
 import org.junit.runner.RunWith
@@ -14,8 +14,9 @@ import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages, MessagesApi}
 class ScalaI18nSpec extends PlaySpecification with Controller {
 
 //#i18n-support
+  import javax.inject.Inject
   import play.api.i18n.I18nSupport
-  class MyController(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+  class MyController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
     // ...
 //#i18n-support
 

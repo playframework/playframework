@@ -1,10 +1,10 @@
-// Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 
 buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-val sbtNativePackagerVersion = "1.0.3"
+val sbtNativePackagerVersion = "1.1.5"
 val sbtTwirlVersion = sys.props.getOrElse("twirl.version", "1.1.1")
 
 buildInfoKeys := Seq[BuildInfoKey](
@@ -16,9 +16,9 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.0.2"))
+addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.1.1"))
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.7")
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.8")
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
 
 libraryDependencies ++= Seq(

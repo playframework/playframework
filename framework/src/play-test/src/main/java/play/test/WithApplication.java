@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
@@ -34,13 +34,15 @@ public class WithApplication {
     }
 
     /**
-     * Old method - use the new {@link #provideApplication() provideApplication} method instead.
      *
      * Override this method to setup the fake application to use.
      *
+     * @deprecated use the new {@link #provideApplication() provideApplication} method instead.
+     *
      * @return The fake application to use
      */
-    protected FakeApplication provideFakeApplication() {
+    @Deprecated
+    protected Application provideFakeApplication() {
         return Helpers.fakeApplication();
     }
 

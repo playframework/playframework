@@ -1,9 +1,7 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.validation
-
-import play.api.data._
 
 /**
  * A form constraint.
@@ -178,7 +176,7 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
   /**
    * Combines these validation errors with another validation failure.
    *
-   * @param another validation failure
+   * @param other validation failure
    * @return a new merged `Invalid`
    */
   def ++(other: Invalid): Invalid = Invalid(this.errors ++ other.errors)

@@ -1,15 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.akka;
 
 import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import com.google.inject.Binder;
-import com.google.inject.Module;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.binder.AnnotatedBindingBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import play.libs.Akka;

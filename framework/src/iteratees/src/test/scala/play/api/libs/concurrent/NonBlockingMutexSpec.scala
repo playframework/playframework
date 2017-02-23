@@ -1,17 +1,14 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.concurrent
 
 import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
-import java.io.OutputStream
-import java.util.concurrent.{ CountDownLatch, Executors, TimeUnit }
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ ExecutionContext, Promise, Future, Await }
 import scala.concurrent.duration.{ Duration, SECONDS }
-import scala.util.{ Failure, Success, Try }
 
 object NonBlockingMutexSpec extends Specification {
 

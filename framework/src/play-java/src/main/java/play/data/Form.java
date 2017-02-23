@@ -1,28 +1,33 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.data;
 
 import javax.validation.*;
 import javax.validation.metadata.*;
+import javax.validation.groups.Default;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import play.i18n.Messages;
+import play.i18n.MessagesApi;
 import play.mvc.Http;
 
-import static java.util.stream.Collectors.toList;
 import static play.libs.F.*;
 
-import play.libs.F.Tuple;
 import play.data.validation.*;
+import play.data.format.Formatters;
 
 import org.springframework.beans.*;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.*;
 import org.springframework.context.support.*;
@@ -35,44 +40,73 @@ import com.google.common.collect.ImmutableList;
 public class Form<T> {
 
     // -- Form utilities
-    
+
+    private static play.api.inject.Injector injector() {
+        return play.api.Play.current().injector();
+    }
+
     /**
      * Instantiates a dynamic form.
+     *
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
+    @Deprecated
     public static DynamicForm form() {
-        return new DynamicForm();
-    }
-    
-    /**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<>(clazz);
-    }
-    
-    /**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<>(name, clazz);
-    }
-    
-    /**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<>(name, clazz, group);
+        return new DynamicForm(injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     /**
      * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
      */
+    @Deprecated
+    public static <T> Form<T> form(Class<T> clazz) {
+        return new Form<>(clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
+    }
+
+    /**
+     * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
+     */
+    @Deprecated
+    public static <T> Form<T> form(String name, Class<T> clazz) {
+        return new Form<>(name, clazz, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
+    }
+
+    /**
+     * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
+     */
+    @Deprecated
+    public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
+        return new Form<>(name, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
+    }
+
+    @Deprecated
+    public static <T> Form<T> form(String name, Class<T> clazz, Class<?>... groups) {
+        return new Form<>(name, clazz, groups, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
+    }
+
+    /**
+     * Instantiates a new form that wraps the specified class.
+     *
+     * @deprecated inject a {@link FormFactory} instead, since 2.5.0
+     */
+    @Deprecated
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<>(null, clazz, group);
+        return new Form<>(null, clazz, group, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
+    }
+
+    @Deprecated
+    public static <T> Form<T> form(Class<T> clazz, Class<?>... groups) {
+        return new Form<>(null, clazz, groups, injector().instanceOf(MessagesApi.class), injector().instanceOf(Formatters.class), injector().instanceOf(javax.validation.Validator.class));
     }
 
     // ---
-    
+
     /**
      * Defines a form element's display name.
      */
@@ -90,9 +124,16 @@ public class Form<T> {
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
     private final Optional<T> value;
-    private final Class<?> groups;
+    private final Class<?>[] groups;
+    final MessagesApi messagesApi;
+    final Formatters formatters;
+    final javax.validation.Validator validator;
 
-    private T blankInstance() {
+    public Class<T> getBackedType() {
+        return backedType;
+    }
+
+    protected T blankInstance() {
         try {
             return backedType.newInstance();
         } catch(Exception e) {
@@ -105,22 +146,28 @@ public class Form<T> {
      *
      * @param clazz wrapped class
      */
-    public Form(Class<T> clazz) {
-        this(null, clazz);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(null, clazz, messagesApi, formatters, validator);
     }
 
-    @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(),  null);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator);
     }
 
-    @SuppressWarnings("unchecked")
-    public Form(String name, Class<T> clazz, Class<?> groups) {
-        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value) {
-        this(rootName, clazz, data, errors, value, null);
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+    }
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    }
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
 
     /**
@@ -130,32 +177,37 @@ public class Form<T> {
      * @param data the current form data (used to display the form)
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
         this.errors = errors;
         this.value = value;
         this.groups = groups;
+        this.messagesApi = messagesApi;
+        this.formatters = formatters;
+        this.validator = validator;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
 
         Map<String,String[]> urlFormEncoded = new HashMap<>();
-        if(request.body().asFormUrlEncoded() != null) {
+        if (request.body().asFormUrlEncoded() != null) {
             urlFormEncoded = request.body().asFormUrlEncoded();
         }
 
         Map<String,String[]> multipartFormData = new HashMap<>();
-        if(request.body().asMultipartFormData() != null) {
+        if (request.body().asMultipartFormData() != null) {
             multipartFormData = request.body().asMultipartFormData().asFormUrlEncoded();
         }
 
         Map<String,String> jsonData = new HashMap<>();
-        if(request.body().asJson() != null) {
+        if (request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(request.body().asJson())
                     )
@@ -167,53 +219,27 @@ public class Form<T> {
 
         Map<String,String> data = new HashMap<>();
 
-        for(String key: urlFormEncoded.keySet()) {
-            String[] values = urlFormEncoded.get(key);
-            if(key.endsWith("[]")) {
-                String k = key.substring(0, key.length() - 2);
-                for(int i=0; i<values.length; i++) {
-                    data.put(k + "[" + i + "]", values[i]);
-                }
-            } else {
-                if(values.length > 0) {
-                    data.put(key, values[0]);
-                }
-            }
-        }
+        fillDataWith(data, urlFormEncoded);
+        fillDataWith(data, multipartFormData);
 
-        for(String key: multipartFormData.keySet()) {
-            String[] values = multipartFormData.get(key);
-            if(key.endsWith("[]")) {
-                String k = key.substring(0, key.length() - 2);
-                for(int i=0; i<values.length; i++) {
-                    data.put(k + "[" + i + "]", values[i]);
-                }
-            } else {
-                if(values.length > 0) {
-                    data.put(key, values[0]);
-                }
-            }
-        }
+        jsonData.forEach(data::put);
 
-        for(String key: jsonData.keySet()) {
-            data.put(key, jsonData.get(key));
-        }
-
-        for(String key: queryString.keySet()) {
-            String[] values = queryString.get(key);
-            if(key.endsWith("[]")) {
-                String k = key.substring(0, key.length() - 2);
-                for(int i=0; i<values.length; i++) {
-                    data.put(k + "[" + i + "]", values[i]);
-                }
-            } else {
-                if(values.length > 0) {
-                    data.put(key, values[0]);
-                }
-            }
-        }
+        fillDataWith(data, queryString);
 
         return data;
+    }
+
+    private void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
+        urlFormEncoded.forEach((key, values) -> {
+            if (key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for (int i = 0; i < values.length; i++) {
+                    data.put(k + "[" + i + "]", values[i]);
+                }
+            } else if (values.length > 0) {
+                data.put(key, values[0]);
+            }
+        });
     }
 
     /**
@@ -241,19 +267,7 @@ public class Form<T> {
      */
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
-        for(String key: requestData.keySet()) {
-            String[] values = requestData.get(key);
-            if(key.endsWith("[]")) {
-                String k = key.substring(0, key.length() - 2);
-                for(int i=0; i<values.length; i++) {
-                    data.put(k + "[" + i + "]", values[i]);
-                }
-            } else {
-                if(values.length > 0) {
-                    data.put(key, values[0]);
-                }
-            }
-        }
+        fillDataWith(data, requestData);
         return bind(data, allowedFields);
     }
 
@@ -266,7 +280,7 @@ public class Form<T> {
     public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(data)
                     )
@@ -289,13 +303,11 @@ public class Form<T> {
         arguments.add(new DefaultMessageSourceResolvable(codes, field));
         // Using a TreeMap for alphabetical ordering of attribute names
         Map<String, Object> attributesToExpose = new TreeMap<>();
-        for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
-            String attributeName = entry.getKey();
-            Object attributeValue = entry.getValue();
+        descriptor.getAttributes().forEach((attributeName, attributeValue) -> {
             if (!internalAnnotationAttributes.contains(attributeName)) {
                 attributesToExpose.put(attributeName, attributeValue);
             }
-        }
+        });
         arguments.addAll(attributesToExpose.values());
         return arguments.toArray(new Object[arguments.size()]);
     }
@@ -347,11 +359,12 @@ public class Form<T> {
         if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
         dataBinder.setValidator(validator);
-        dataBinder.setConversionService(play.data.format.Formatters.conversion);
+        dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
-        dataBinder.bind(new MutablePropertyValues(objectData));
+        final Map<String, String> objectDataFinal = objectData;
+        withRequestLocale(() -> { dataBinder.bind(new MutablePropertyValues(objectDataFinal)); return null; });
         Set<ConstraintViolation<Object>> validationErrors;
         if (groups != null) {
             validationErrors = validator.validate(dataBinder.getTarget(), groups);
@@ -370,8 +383,7 @@ public class Form<T> {
                             violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
                             getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
                             getMessageForConstraintViolation(violation));
-                }
-                catch (NotReadablePropertyException ex) {
+                } catch (NotReadablePropertyException ex) {
                     throw new IllegalStateException("JSR-303 validated property '" + field +
                             "' does not have a corresponding accessor for data binding - " +
                             "check your DataBinder's configuration (bean property versus direct field access)", ex);
@@ -393,10 +405,14 @@ public class Form<T> {
                 ValidationError validationError;
                 if (error.isBindingFailure()) {
                     ImmutableList.Builder<String> builder = ImmutableList.builder();
+                    Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
                     for (String code: error.getCodes()) {
-                        builder.add( code.replace("typeMismatch", "error.invalid") );
+                        code = code.replace("typeMismatch", "error.invalid");
+                        if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                            builder.add( code );
+                        }
                     }
-                    validationError = new ValidationError(key, builder.build(),
+                    validationError = new ValidationError(key, builder.build().reverse(),
                             convertErrorArguments(error.getArguments()));
                 } else {
                     validationError = new ValidationError(key, error.getDefaultMessage(),
@@ -405,18 +421,15 @@ public class Form<T> {
                 errors.get(key).add(validationError);
             }
 
-            List<ValidationError> globalErrors = new ArrayList<>();
-
-            for (ObjectError error: result.getGlobalErrors()) {
-                globalErrors.add(new ValidationError("", error.getDefaultMessage(),
-                        convertErrorArguments(error.getArguments())));
-            }
+            List<ValidationError> globalErrors = result.getGlobalErrors().stream()
+                    .map(error -> new ValidationError("", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
+                    .collect(Collectors.toList());
 
             if (!globalErrors.isEmpty()) {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
+            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -445,9 +458,9 @@ public class Form<T> {
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
+                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
     }
 
@@ -458,12 +471,9 @@ public class Form<T> {
      * @return The converted arguments.
      */
     private List<Object> convertErrorArguments(Object[] arguments) {
-        List<Object> converted = new ArrayList<>(arguments.length);
-        for(Object arg: arguments) {
-            if(!(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable)) {
-                converted.add(arg);
-            }
-        }
+        List<Object> converted = Arrays.stream(arguments)
+                .filter(arg -> !(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable))
+                .collect(Collectors.toList());
         return Collections.unmodifiableList(converted);
     }
 
@@ -479,7 +489,7 @@ public class Form<T> {
     }
 
     /**
-     * Retrieves the actual form value.
+     * Retrieves the actual form value - even when the form contains validation errors.
      */
     public Optional<T> value() {
         return value;
@@ -493,7 +503,7 @@ public class Form<T> {
      */
     @SuppressWarnings("unchecked")
     public Form<T> fill(T value) {
-        if(value == null) {
+        if (value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
         return new Form(
@@ -502,7 +512,10 @@ public class Form<T> {
                 new HashMap<>(),
                 new HashMap<String,ValidationError>(),
                 Optional.ofNullable(value),
-                groups
+                groups,
+                messagesApi,
+                formatters,
+                validator
         );
     }
 
@@ -527,7 +540,7 @@ public class Form<T> {
      */
     public List<ValidationError> globalErrors() {
         List<ValidationError> e = errors.get("");
-        if(e == null) {
+        if (e == null) {
             e = new ArrayList<>();
         }
         return e;
@@ -540,11 +553,10 @@ public class Form<T> {
      */
     public ValidationError globalError() {
         List<ValidationError> errors = globalErrors();
-        if(errors.isEmpty()) {
+        if (errors.isEmpty()) {
             return null;
-        } else {
-            return errors.get(0);
         }
+        return errors.get(0);
     }
 
     /**
@@ -561,18 +573,17 @@ public class Form<T> {
      */
     public ValidationError error(String key) {
         List<ValidationError> err = errors.get(key);
-        if(err == null || err.isEmpty()) {
+        if (err == null || err.isEmpty()) {
             return null;
-        } else {
-            return err.get(0);
         }
+        return err.get(0);
     }
 
     /**
      * Returns the form errors serialized as Json.
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
-        return errorsAsJson(Http.Context.Implicit.lang());
+        return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
     }
 
     /**
@@ -580,21 +591,41 @@ public class Form<T> {
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
-        for (String key : errors.keySet()) {
-            List<ValidationError> errs = errors.get(key);
+        errors.forEach((key, errs) -> {
             if (errs != null && !errs.isEmpty()) {
-                List<String> messages = new ArrayList<String>();
+                List<String> messages = new ArrayList<>();
                 for (ValidationError error : errs) {
-                    messages.add(play.i18n.Messages.get(lang, error.messages(), error.arguments()));
+                    if (messagesApi != null && lang != null) {
+                        messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
+                    } else {
+                        messages.add(error.message());
+                    }
                 }
                 allMessages.put(key, messages);
             }
-        }
+        });
         return play.libs.Json.toJson(allMessages);
     }
 
+    private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
+        if (arguments != null) {
+            return arguments.stream().map(arg -> {
+                    if (arg instanceof String) {
+                        return messagesApi != null ? messagesApi.get(lang, (String)arg) : (String)arg;
+                    }
+                    if (arg instanceof List) {
+                        return ((List<?>) arg).stream().map(key -> messagesApi != null ? messagesApi.get(lang, (String)key) : (String)key).collect(Collectors.toList());
+                    }
+                    return arg;
+                }).collect(Collectors.toList());
+        } else {
+            return null;
+       }
+    }
+
     /**
-     * Gets the concrete value if the submission was a success.
+     * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors this method will throw an exception.
+     * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
      *
      * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
      */
@@ -611,7 +642,7 @@ public class Form<T> {
      * @param error the <code>ValidationError</code> to add.
      */
     public void reject(ValidationError error) {
-        if(!errors.containsKey(error.key())) {
+        if (!errors.containsKey(error.key())) {
            errors.put(error.key(), new ArrayList<>());
         }
         errors.get(error.key()).add(error);
@@ -633,7 +664,7 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     */
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<>());
     }
@@ -652,7 +683,7 @@ public class Form<T> {
      * Add a global error to this form.
      *
      * @param error the error message.
-     */    
+     */
     public void reject(String error) {
         reject("", error, new ArrayList<>());
     }
@@ -684,20 +715,25 @@ public class Form<T> {
 
         // Value
         String fieldValue = null;
-        if(data.containsKey(key)) {
+        if (data.containsKey(key)) {
             fieldValue = data.get(key);
         } else {
-            if(value.isPresent()) {
+            if (value.isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = key;
-                if(rootName != null && key.startsWith(rootName + ".")) {
+                if (rootName != null && key.startsWith(rootName + ".")) {
                     objectKey = key.substring(rootName.length() + 1);
                 }
-                if(beanWrapper.isReadableProperty(objectKey)) {
+                if (beanWrapper.isReadableProperty(objectKey)) {
                     Object oValue = beanWrapper.getPropertyValue(objectKey);
-                    if(oValue != null) {
-                        fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKey), oValue);
+                    if (oValue != null) {
+                        if(formatters != null) {
+                            final String objectKeyFinal = objectKey;
+                            fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                        } else {
+                            fieldValue = oValue.toString();
+                        }
                     }
                 }
             }
@@ -705,7 +741,7 @@ public class Form<T> {
 
         // Error
         List<ValidationError> fieldErrors = errors.get(key);
-        if(fieldErrors == null) {
+        if (fieldErrors == null) {
             fieldErrors = new ArrayList<>();
         }
 
@@ -714,13 +750,13 @@ public class Form<T> {
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
         beanWrapper.setAutoGrowNestedPaths(true);
         try {
-            for(Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
+            for (Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
                 Class<?> annotationType = a.annotationType();
-                if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
+                if (annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
                     play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
-                    if(d.name().startsWith("format.")) {
+                    if (d.name().startsWith("format.")) {
                         List<Object> attributes = new ArrayList<>();
-                        for(String attr: d.attributes()) {
+                        for (String attr: d.attributes()) {
                             Object attrValue = null;
                             try {
                                 attrValue = a.getClass().getDeclaredMethod(attr).invoke(a);
@@ -741,7 +777,7 @@ public class Form<T> {
         List<Tuple<String,List<Object>>> constraints = new ArrayList<>();
         Class<?> classType = backedType;
         String leafKey = key;
-        if(rootName != null && leafKey.startsWith(rootName + ".")) {
+        if (rootName != null && leafKey.startsWith(rootName + ".")) {
             leafKey = leafKey.substring(rootName.length() + 1);
         }
         int p = leafKey.lastIndexOf('.');
@@ -749,12 +785,27 @@ public class Form<T> {
             classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
             leafKey = leafKey.substring(p + 1);
         }
-        if (classType != null) {
-            BeanDescriptor beanDescriptor = play.data.validation.Validation.getValidator().getConstraintsForClass(classType);
+        if (classType != null && this.validator != null) {
+            BeanDescriptor beanDescriptor = this.validator.getConstraintsForClass(classType);
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
-                if(property != null) {
-                    constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
+                if (property != null) {
+                    Annotation[] orderedAnnotations = null;
+                    for (Class<?> c = classType; c != null; c = c.getSuperclass()) { // we also check the fields of all superclasses
+                        java.lang.reflect.Field field = null;
+                        try {
+                            field = c.getDeclaredField(leafKey);
+                        } catch (NoSuchFieldException | SecurityException e) {
+                            continue;
+                        }
+                        // getDeclaredAnnotations also looks for private fields; also it provides the annotations in a guaranteed order
+                        orderedAnnotations = field.getDeclaredAnnotations();
+                        break;
+                    }
+                    constraints = Constraints.displayableConstraint(
+                            property.findConstraints().unorderedAndMatchingGroups(groups != null ? groups : new Class[]{Default.class}).getConstraintDescriptors(),
+                            orderedAnnotations
+                        );
                 }
             }
         }
@@ -764,6 +815,25 @@ public class Form<T> {
 
     public String toString() {
         return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
+    }
+
+    /**
+     * Set the locale of the current request (if there is one) into Spring's LocaleContextHolder.
+     *
+     * @param code The code to execute while the locale is set
+     * @return the result of the code block
+     */
+    private static <T> T withRequestLocale(Supplier<T> code) {
+        try {
+            LocaleContextHolder.setLocale(Http.Context.current().lang().toLocale());
+        } catch(Exception e) {
+            // Just continue (Maybe there is no context or some internal error in LocaleContextHolder). System default locale will be used.
+        }
+        try {
+            return code.get();
+        } finally {
+            LocaleContextHolder.resetLocaleContext(); // Clean up ThreadLocal
+        }
     }
 
     /**
@@ -815,7 +885,7 @@ public class Form<T> {
         }
 
         public String valueOr(String or) {
-            if(value == null) {
+            if (value == null) {
                 return or;
             }
             return value;
@@ -841,7 +911,7 @@ public class Form<T> {
 
         /**
          * Returns the expected format for this field.
-         * 
+         *
          * @return The expected format for this field.
          */
         public Tuple<String,List<Object>> format() {
@@ -853,33 +923,35 @@ public class Form<T> {
          */
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
-            if(form.value().isPresent()) {
-                BeanWrapper beanWrapper = new BeanWrapperImpl(form.value().get());
+            if(form == null) {
+                return new ArrayList<>(0);
+            }
+            return form.value().map((Function<Object, List<Integer>>) value -> {
+                BeanWrapper beanWrapper = new BeanWrapperImpl(value);
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = name;
-                if(form.name() != null && name.startsWith(form.name() + ".")) {
+                if (form.name() != null && name.startsWith(form.name() + ".")) {
                     objectKey = name.substring(form.name().length() + 1);
                 }
 
                 List<Integer> result = new ArrayList<>();
-                if(beanWrapper.isReadableProperty(objectKey)) {
-                    Object value = beanWrapper.getPropertyValue(objectKey);
-                    if(value instanceof Collection) {
-                        for(int i=0; i<((Collection)value).size(); i++) {
+                if (beanWrapper.isReadableProperty(objectKey)) {
+                    Object value1 = beanWrapper.getPropertyValue(objectKey);
+                    if (value1 instanceof Collection) {
+                        for (int i = 0; i<((Collection) value1).size(); i++) {
                             result.add(i);
                         }
                     }
                 }
 
                 return result;
-
-            } else {
-                Set<Integer> result = new HashSet<>();
+            }).orElseGet(() -> {
+                Set<Integer> result = new TreeSet<>();
                 Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
 
-                for(String key: form.data().keySet()) {
+                for (String key: form.data().keySet()) {
                     java.util.regex.Matcher matcher = pattern.matcher(key);
-                    if(matcher.matches()) {
+                    if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
                     }
                 }
@@ -887,7 +959,7 @@ public class Form<T> {
                 List<Integer> sortedResult = new ArrayList<>(result);
                 Collections.sort(sortedResult);
                 return sortedResult;
-            }
+            });
         }
 
         /**
@@ -895,7 +967,7 @@ public class Form<T> {
          */
         public Field sub(String key) {
             String subKey;
-            if(key.startsWith("[")) {
+            if (key.startsWith("[")) {
                 subKey = name + key;
             } else {
                 subKey = name + "." + key;

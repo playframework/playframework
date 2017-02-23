@@ -1,24 +1,24 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path }
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
 import akka.util.ByteString
-import org.joda.time.{ DateTime, DateTimeZone }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import org.reactivestreams.Publisher
-import play.api.i18n.{ MessagesApi, Lang }
-import play.api.libs.iteratee._
-import play.api.http._
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.http.HeaderNames._
+import play.api.http._
+import play.api.i18n.{ Lang, MessagesApi }
+import play.api.libs.concurrent.Execution
+import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
-
-import play.core.Execution.Implicits._
-import play.api.libs.concurrent.Execution.defaultContext
 import play.core.utils.CaseInsensitiveOrdered
+import play.utils.UriEncoding
+
 import scala.collection.immutable.TreeMap
 
 /**
@@ -34,6 +34,12 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
     this(status, collection.JavaConversions.mapAsScalaMap(_headers).toMap, reasonPhrase)
 
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
+
+  // validate headers so we know this response header is well formed
+  for ((name, value) <- headers) {
+    if (name eq null) throw new NullPointerException("Response header names cannot be null!")
+    if (value eq null) throw new NullPointerException(s"Response header '$name' has null value!")
+  }
 
   def copy(status: Int = status, headers: Map[String, String] = headers, reasonPhrase: Option[String] = reasonPhrase): ResponseHeader =
     new ResponseHeader(status, headers, reasonPhrase)
@@ -83,8 +89,8 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
 
   /**
    * Add a header with a DateTime formatted using the default http date format
-   * @param headers
-   * @return
+   * @param headers the headers with a DateTime to add to this result.
+   * @return the new result.
    */
   def withDateHeaders(headers: (String, DateTime)*): Result = {
     copy(header = header.copy(headers = header.headers ++ headers.map {
@@ -106,7 +112,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    */
   def withCookies(cookies: Cookie*): Result = {
     if (cookies.isEmpty) this else {
-      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies))
     }
   }
 
@@ -122,7 +128,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""), cookies.map(_.toCookie)))
   }
 
   /**
@@ -251,7 +257,7 @@ case class Result(header: ResponseHeader, body: HttpEntity) {
    * Returns true if the status code is not 3xx and the application is in Dev mode.
    */
   private def shouldWarnIfNotRedirect(flash: Flash): Boolean = {
-    play.api.Play.maybeApplication.exists(app =>
+    play.api.Play.privateMaybeApplication.exists(app =>
       (app.mode == play.api.Mode.Dev) && (!flash.isEmpty) && (header.status < 300 || header.status > 399))
   }
 
@@ -372,12 +378,18 @@ trait Results {
       )
     }
 
-    private def streamFile(publisher: Publisher[Array[Byte]], name: String, length: Long, inline: Boolean): Result = {
+    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean): Result = {
       Result(
         ResponseHeader(status,
-          Map(CONTENT_DISPOSITION -> s"""${if (inline) "inline" else "attachment"}; filename="$name"""")),
+          Map(
+            CONTENT_DISPOSITION -> {
+              val dispositionType = if (inline) "inline" else "attachment"
+              s"""$dispositionType; filename="$name"; filename*=utf-8''${UriEncoding.encodePathSegment(name, StandardCharsets.UTF_8)}"""
+            }
+          )
+        ),
         HttpEntity.Streamed(
-          Source(publisher).map(ByteString.apply),
+          file,
           Some(length),
           play.api.libs.MimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
@@ -391,10 +403,8 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromFile(content) &>
-        Enumeratee.onIterateeDone(onClose)(defaultContext))
-      streamFile(publisher, fileName(content), content.length, inline)
+    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
+      sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
     }
 
     /**
@@ -404,10 +414,11 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromPath(content) &>
-        Enumeratee.onIterateeDone(onClose)(defaultContext))
-      streamFile(publisher, fileName(content), Files.size(content), inline)
+    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
+      val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
+        onClose()
+      }(Execution.defaultContext))
+      streamFile(io, fileName(content), Files.size(content), inline)
     }
 
     /**
@@ -417,12 +428,10 @@ trait Results {
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      */
-    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader,
-      inline: Boolean = true): Result = {
+    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
-      val publisher = Streams.enumeratorToPublisher(Enumerator.fromStream(stream))
-      streamFile(publisher, fileName, stream.available(), inline)
+      streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
     }
 
     /**
@@ -456,7 +465,7 @@ trait Results {
      */
     @deprecated("Use chunked with an Akka streams Source instead", "2.5.0")
     def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
-      chunked(Source(Streams.enumeratorToPublisher(content)))
+      chunked(Source.fromPublisher(Streams.enumeratorToPublisher(content)))
     }
 
     /**
@@ -468,7 +477,7 @@ trait Results {
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(
         header = header,
-        body = HttpEntity.Streamed(Source(Streams.enumeratorToPublisher(content)).map(writeable.transform),
+        body = HttpEntity.Streamed(Source.fromPublisher(Streams.enumeratorToPublisher(content)).map(writeable.transform),
           None, writeable.contentType)
       )
     }
@@ -538,6 +547,13 @@ trait Results {
    * @param url the URL to redirect to
    */
   def TemporaryRedirect(url: String): Result = Redirect(url, TEMPORARY_REDIRECT)
+
+  /**
+   * Generates a ‘308 PERMANENT_REDIRECT’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def PermanentRedirect(url: String): Result = Redirect(url, PERMANENT_REDIRECT)
 
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
@@ -658,7 +674,7 @@ trait Results {
    *
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    */
-  def Redirect(call: Call): Result = Redirect(call.url)
+  def Redirect(call: Call): Result = Redirect(call.path)
 
   /**
    * Generates a redirect simple result.
@@ -666,6 +682,6 @@ trait Results {
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
+  def Redirect(call: Call, status: Int): Result = Redirect(call.path, Map.empty, status)
 
 }

@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.j
 
-import play.libs.F
+import java.util.concurrent.CompletionStage
+
 import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
 import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }
 import play.mvc.Http.RequestBody
 
-import scala.compat.java8.OptionConverters
+import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.Future
 import collection.JavaConverters._
 
@@ -115,11 +116,11 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
+  def invokeWithContextOpt(request: RequestHeader, f: JRequest => CompletionStage[JResult]): Option[Future[Result]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
-      Option(f(javaContext.request())).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
+      Option(f(javaContext.request())).map(cs => FutureConverters.toScala(cs).map(createResult(javaContext, _))(trampoline))
     } finally {
       JContext.current.remove()
     }
@@ -136,9 +137,9 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => CompletionStage[JResult]): Future[Result] = {
     withContext(request) { javaContext =>
-      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
+      FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
     }
   }
 
@@ -192,6 +193,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
 
+  override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
+
   def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
@@ -218,6 +221,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   def contentType() = OptionConverters.toJava(header.contentType)
 
   def charset() = OptionConverters.toJava(header.charset)
+
+  def tags = header.tags.asJava
+
+  def withTag(name: String, value: String) = header.withTag(name, value)
 
   override def toString = header.toString
 

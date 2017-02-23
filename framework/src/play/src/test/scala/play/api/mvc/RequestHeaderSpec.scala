@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -26,6 +26,14 @@ class RequestHeaderSpec extends Specification {
         val rh = DummyRequestHeader("GET", "https://example.com:8080/test", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com:8080"
       }
+      "absolute uri with port and invalid characters" in {
+        val rh = DummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        rh.host must_== "example.com:8080"
+      }
+      "relative uri with invalid characters" in {
+        val rh = DummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        rh.host must_== "playframework.com"
+      }
     }
 
     "parse accept languages" in {
@@ -39,21 +47,21 @@ class RequestHeaderSpec extends Specification {
       }
 
       "parse a single accept language and country" in {
-        accept("en-US") must contain(exactly(Lang("en", "US")))
+        accept("en-US") must contain(exactly(Lang("en-US")))
       }
 
       "parse multiple accept languages" in {
-        accept("en-US, es") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
+        accept("en-US, es") must contain(exactly(Lang("en-US"), Lang("es")).inOrder)
       }
 
       "sort accept languages by quality" in {
-        accept("en-US;q=0.8, es;q=0.7") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
-        accept("en-US;q=0.7, es;q=0.8") must contain(exactly(Lang("es"), Lang("en", "US")).inOrder)
+        accept("en-US;q=0.8, es;q=0.7") must contain(exactly(Lang("en-US"), Lang("es")).inOrder)
+        accept("en-US;q=0.7, es;q=0.8") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
 
       "default accept language quality to 1" in {
-        accept("en-US, es;q=0.7") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
-        accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en", "US")).inOrder)
+        accept("en-US, es;q=0.7") must contain(exactly(Lang("en-US"), Lang("es")).inOrder)
+        accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
 
     }
@@ -67,15 +75,15 @@ class RequestHeaderSpec extends Specification {
       requestMethod: String = "GET",
       requestUri: String = "/",
       headers: Headers = Headers()) extends RequestHeader {
-    private[this] val parsedUri = new URI(requestUri)
     def id = 1
     def tags = Map()
     def uri = requestUri
-    def path = parsedUri.getPath
+    def path = new URI(requestUri).getPath // this just won't work for invalid URIs
     def method = requestMethod
     def version = ""
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
+    override def clientCertificateChain = None
   }
 }

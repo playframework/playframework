@@ -1,24 +1,23 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.j
 
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
+
 import akka.actor.Status
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
+import akka.stream.scaladsl.{ Source, Flow, Sink }
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.mvc.Http.{ Context => JContext }
 import play.mvc.{ WebSocket => JWebSocket, LegacyWebSocket }
-import play.libs.F.{ Promise => JPromise }
 import scala.collection.JavaConverters._
+import scala.compat.java8.FutureConverters
 
-import scala.concurrent.Future
 import com.fasterxml.jackson.databind.JsonNode
-import play.api.libs.concurrent.Akka
 
-import play.api.Play.current
 import play.core.Execution.Implicits.internalContext
 
 /**
@@ -26,13 +25,13 @@ import play.core.Execution.Implicits.internalContext
  */
 object JavaWebSocket extends JavaHelpers {
 
-  def webSocketWrapper[A](retrieveWebSocket: => Future[LegacyWebSocket[A]])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = WebSocket { request =>
+  def webSocketWrapper[A](retrieveWebSocket: => CompletionStage[LegacyWebSocket[A]])(implicit transformer: MessageFlowTransformer[A, A]): WebSocket = WebSocket { request =>
 
     val javaContext = createJavaContext(request)
 
     val javaWebSocket = try {
       JContext.current.set(javaContext)
-      retrieveWebSocket
+      FutureConverters.toScala(retrieveWebSocket)
     } finally {
       JContext.current.remove()
     }
@@ -44,8 +43,8 @@ object JavaWebSocket extends JavaHelpers {
         Left(createResult(javaContext, result))
 
       } getOrElse {
-
-        implicit val system = Akka.system
+        val current = play.api.Play.privateMaybeApplication.get
+        implicit val system = current.actorSystem
         implicit val mat = current.materializer
 
         Right(
@@ -75,7 +74,7 @@ object JavaWebSocket extends JavaHelpers {
               jws.onReady(socketIn, socketOut)
             }
 
-            transformer.transform(Flow.wrap(sink, source)(Keep.none))
+            transformer.transform(Flow.fromSinkAndSource(sink, source))
           }
         )
       }
@@ -85,18 +84,18 @@ object JavaWebSocket extends JavaHelpers {
   // -- Bytes
 
   def ofBytes(retrieveWebSocket: => LegacyWebSocket[Array[Byte]]): WebSocket =
-    webSocketWrapper[Array[Byte]](Future.successful(retrieveWebSocket))
+    webSocketWrapper[Array[Byte]](CompletableFuture.completedFuture(retrieveWebSocket))
 
-  def promiseOfBytes(retrieveWebSocket: => JPromise[LegacyWebSocket[Array[Byte]]]): WebSocket =
-    webSocketWrapper[Array[Byte]](retrieveWebSocket.wrapped())
+  def promiseOfBytes(retrieveWebSocket: => CompletionStage[LegacyWebSocket[Array[Byte]]]): WebSocket =
+    webSocketWrapper[Array[Byte]](retrieveWebSocket)
 
   // -- String
 
   def ofString(retrieveWebSocket: => LegacyWebSocket[String]): WebSocket =
-    webSocketWrapper[String](Future.successful(retrieveWebSocket))
+    webSocketWrapper[String](CompletableFuture.completedFuture(retrieveWebSocket))
 
-  def promiseOfString(retrieveWebSocket: => JPromise[LegacyWebSocket[String]]): WebSocket =
-    webSocketWrapper[String](retrieveWebSocket.wrapped())
+  def promiseOfString(retrieveWebSocket: => CompletionStage[LegacyWebSocket[String]]): WebSocket =
+    webSocketWrapper[String](retrieveWebSocket)
 
   // -- Json (JsonNode)
 
@@ -105,8 +104,8 @@ object JavaWebSocket extends JavaHelpers {
   )
 
   def ofJson(retrieveWebSocket: => LegacyWebSocket[JsonNode]): WebSocket =
-    webSocketWrapper[JsonNode](Future.successful(retrieveWebSocket))
+    webSocketWrapper[JsonNode](CompletableFuture.completedFuture(retrieveWebSocket))
 
-  def promiseOfJson(retrieveWebSocket: => JPromise[LegacyWebSocket[JsonNode]]): WebSocket =
-    webSocketWrapper[JsonNode](retrieveWebSocket.wrapped())
+  def promiseOfJson(retrieveWebSocket: => CompletionStage[LegacyWebSocket[JsonNode]]): WebSocket =
+    webSocketWrapper[JsonNode](retrieveWebSocket)
 }

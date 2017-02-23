@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 import scala.collection.JavaConverters._
 
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package views.html.helper {
 
@@ -17,22 +17,22 @@ package views.html.helper {
           case Some(false) => false
           case _ => true
         }) {
-          field.constraints.map(c => messages(c._1, c._2: _*)) ++
-            field.format.map(f => messages(f._1, f._2: _*))
+          field.constraints.map(c => messages(c._1, c._2.map(a => translateMsgArg(a)): _*)) ++
+            field.format.map(f => messages(f._1, f._2.map(a => translateMsgArg(a)): _*))
         } else Nil)
       }
     }
 
     def errors: Seq[String] = {
       (args.get('_error) match {
-        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(messages(message, args: _*)))
+        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(messages(message, args.map(a => translateMsgArg(a)): _*)))
         case _ => None
       }).getOrElse {
         (if (args.get('_showErrors) match {
           case Some(false) => false
           case _ => true
         }) {
-          field.errors.map(e => messages(e.message, e.args: _*))
+          field.errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
         } else Nil)
       }
     }
@@ -51,9 +51,15 @@ package views.html.helper {
       args.get('_name).getOrElse(messages(field.label))
     }
 
+    private def translateMsgArg(msgArg: Any) = msgArg match {
+      case key: String => messages(key)
+      case keys: Seq[String] => keys.map(key => messages(key))
+      case _ => msgArg
+    }
+
   }
 
-  trait FieldConstructor extends NotNull {
+  trait FieldConstructor {
     def apply(elts: FieldElements): Html
   }
 

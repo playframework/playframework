@@ -1,0 +1,14 @@
+# #user
+GET     /user/:user            controllers.BinderApplication.user(user: scalaguide.binder.models.User)
+# #user
+
+# #ageRange
+GET     /ageRange              controllers.BinderApplication.age(age: scalaguide.binder.models.AgeRange)
+# #ageRange
+
+# #javascript-router-routes
+GET     /javascriptRoutes      controllers.Application.javascriptRoutes
+# #javascript-router-routes
+
+GET     /users/list            controllers.Users.list
+GET     /users/:id             controllers.Users.get(id: Long)

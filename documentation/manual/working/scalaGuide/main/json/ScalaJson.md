@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # JSON basics
 
 Modern web applications often need to parse and generate data in the JSON (JavaScript Object Notation) format. Play supports this via its [JSON library](api/scala/play/api/libs/json/package.html).
@@ -28,7 +28,15 @@ JSON is a lightweight data-interchange format and looks like this:
 
 ## The Play JSON library
 
-The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Types of interest are:
+The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Some of the features of this package are:
+
+ - [[Automatic conversion|ScalaJsonAutomated]] to and from case classes with minimal boilerplate. If you want to get up and running quickly with minimal code, this is probably the place to start.
+ - [[Custom validation|ScalaJsonCombinators#Validation-with-Reads]] while parsing.
+ - [[Automatic parsing|ScalaBodyParsers#The-default-body-parser]] of JSON in request bodies, with auto-generated errors if content isn't parseable or incorrect Content-type headers are supplied.
+ - Can be used outside of a Play application as a standalone library. Just add `libraryDependencies += "com.typesafe.play" %% "play-json" % playVersion` to your `build.sbt` file.
+ - Highly customizable.
+
+The package provides the following types:
 
 ### [`JsValue`](api/scala/play/api/libs/json/JsValue.html)
 

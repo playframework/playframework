@@ -1,2 +1,0 @@
-JavaHttpFilters:HTTP filters
-JavaHttpRequestHandlers:HTTP request handlers

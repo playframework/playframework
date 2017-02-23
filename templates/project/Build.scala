@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.sbt.activator
 
 import sbt._
@@ -21,8 +24,13 @@ object TemplatesBuild extends Build {
 
 object Templates {
 
-  val templates = SettingKey[Seq[File]]("activatorTemplates")
+  case class TemplateSources(name: String, mainDir: File, includeDirs: Seq[File], params: Map[String, String]) {
+    val sourceDirs: Seq[File] = mainDir +: includeDirs
+  }
+
+  val templates = SettingKey[Seq[TemplateSources]]("activatorTemplates")
   val templateParameters = SettingKey[Map[String, String]]("templateParameters")
+  val ignoreTemplateFiles = SettingKey[Seq[String]]("ignoreTemplateFiles")
   val gitHash = TaskKey[String]("gitHash")
   val nonce = TaskKey[Long]("nonce")
 
@@ -39,27 +47,39 @@ object Templates {
   val templateSettings: Seq[Setting[_]] = s3Settings ++ Seq(
     templates := Nil,
     templateParameters := Map.empty,
+    ignoreTemplateFiles := Seq.empty,
     syncTemplateDir := target.value / "templates",
 
-    watchSources := templates.value.flatMap(_.***.get),
+    watchSources := templates.value.flatMap(_.sourceDirs.flatMap(_.***.get)),
 
+    // Calls `prepareTemplates` then copies all the files from
+    // target/prepared-templates/$template to target/templates/$template.
     syncTemplates := {
-      val templates: Seq[File] = prepareTemplates.value
-      val templateDir: File = syncTemplateDir.value
-      val mappings = templates.flatMap { template =>
-        (template.***.filter(!_.isDirectory) x relativeTo(template)).map(f => (f._1, templateDir / template.getName / f._2))
+      val preparedTemplates: Seq[File] = prepareTemplates.value
+      val syncTemplateDirValue: File = syncTemplateDir.value
+      val mappings: Seq[(File, File)] = preparedTemplates.flatMap { template =>
+        (template.***.filter(!_.isDirectory) x relativeTo(template)).map { f =>
+          (f._1, syncTemplateDirValue / template.getName / f._2)
+        }
       }
 
+      // Sync files, caching sync data in file "prepared-templates".
       Sync(streams.value.cacheDirectory / "prepared-templates")(mappings)
 
-      templates.map { template =>
-        templateDir / template.getName
+      preparedTemplates.map { template =>
+        syncTemplateDirValue / template.getName
       }.toSeq
     },
 
+    // Syncs templates from each template dir to target/prepared-templates/$template.
+    // Replaces all the template parameters (%SCALA_VERSION%, etc) in the copied
+    // files.
+    //
+    // Returns list of target/prepared-templates/$template directories.
     prepareTemplates := {
-      val templateDirs: Seq[File] = templates.value
+      val templateSourcesList: Seq[TemplateSources] = templates.value
       val params: Map[String, String] = templateParameters.value
+      val ignore: Set[String] = ignoreTemplateFiles.value.to[Set]
       val outDir: File = target.value / "prepared-templates"
 
       streams.value.log.info("Preparing templates for Play " + params("PLAY_VERSION") + " with Scala " + params("SCALA_VERSION"))
@@ -69,16 +89,40 @@ object Templates {
       // directories in Git, but they're not needed in the templates.
       def fileFilter(f: File) = { !f.isDirectory && (f.getName != ".gitkeep") }
 
-      val mappings = templateDirs.flatMap { template =>
-        (template.***.filter(fileFilter(_)) x relativeTo(template)).map(f => (f._1, outDir / template.getName / f._2))
+      val mappings: Seq[(File, File)] = templateSourcesList.flatMap {
+        case templateSources: TemplateSources =>
+          val relativeMappings: Seq[(File,String)] = templateSources.sourceDirs.flatMap(dir => dir.***.filter(fileFilter(_)) x relativeTo(dir))
+          // Rebase the files onto the target directory, also filtering out ignored files
+          relativeMappings.collect {
+            case (orig, targ) if !ignore.contains(orig.getName) =>
+              (orig, outDir / templateSources.name / targ)
+          }
       }
 
+      // Sync files, caching sync data in file "prepared-templates".
       Sync(streams.value.cacheDirectory / "prepared-templates")(mappings)
 
+      // Replace parameters like %SCALA_VERSION% in each of the template files.
       mappings.foreach {
         case (original, file) =>
+          // Build a map of parameters to replace
+          val templateParams: Map[String, String] = {
+            // Find the template name by looking in the path of the target file
+            @scala.annotation.tailrec
+            def topDir(f: java.io.File): File = {
+              val parent: java.io.File = f.getParentFile
+              if (f.getParent == null) f else topDir(parent)
+            }
+            val rebasedFile = (file relativeTo outDir).getOrElse(sys.error(s"Can't rebase prepared template $file to dir $outDir"))
+            val templateName: String = topDir(rebasedFile).getName
+            val templateSources: TemplateSources = templateSourcesList.find(_.name == templateName).getOrElse(sys.error(s"Couldn't find template named $templateName"))
+            templateSources.params
+          }
+          val allParams: Map[String, String] = params ++ templateParams
+
+          // Read the file and replace the parameters
           val contents = IO.read(original)
-          val newContents = params.foldLeft(contents) { (str, param) =>
+          val newContents = allParams.foldLeft(contents) { (str, param) =>
             str.replace("%" + param._1 + "%", param._2)
           }
           if (newContents != contents) {
@@ -87,22 +131,21 @@ object Templates {
         case _ =>
       }
 
-      templateDirs.map { template =>
-        outDir / template.getName
+      templateSourcesList.map { templateSources =>
+        outDir / templateSources.name
       }.toSeq
     },
 
     testTemplates := {
       val preparedTemplates = syncTemplates.value
       val testDir = target.value / "template-tests"
-      val build = (baseDirectory.value.getParentFile / "framework" / "build").getCanonicalPath
       preparedTemplates.foreach { template =>
         val templateDir = testDir / template.getName
         IO.delete(templateDir)
         IO.copyDirectory(template, templateDir)
         streams.value.log.info("Testing template: " + template.getName)
         @volatile var out = List.empty[String]
-        val rc = Process(build + " test", templateDir).!(StdOutLogger { s => out = s :: out })
+        val rc = Process("sbt test", templateDir).!(StdOutLogger { s => out = s :: out })
         if (rc != 0) {
           out.reverse.foreach(println)
           streams.value.log.error("Template " + template.getName + " failed to build")
@@ -141,14 +184,14 @@ object Templates {
     },
     S3.host in S3.delete := "downloads.typesafe.com.s3.amazonaws.com",
     S3.keys in S3.delete := {
-      val templateDirs = templates.value
+      val templateSourcesList = templates.value
       val templateDir = s"play/templates/${gitHash.value}/${nonce.value}/"
-      templateDirs.map { template =>
-        s"$templateDir${template.getName}.zip"
+      templateSourcesList.map { templateSources =>
+        s"$templateDir${templateSources.name}.zip"
       }
     },
 
-    publishTemplatesTo := "api.typesafe.com",
+    publishTemplatesTo := "www.lightbend.com",
     doPublishTemplates := {
       val host = publishTemplatesTo.value
       val creds = Credentials.forHost(credentials.value, host).getOrElse {
@@ -278,8 +321,8 @@ object Templates {
     val (templateDirs, command) = args
     val extracted = Project.extract(state)
 
-    def createSetCommand(dirs: Seq[File]): String = {
-      dirs.map("file(\"" + _.getAbsolutePath + "\")")
+    def createSetCommand(dirs: Seq[TemplateSources]): String = {
+      dirs.map("file(\"" + _.mainDir.getAbsolutePath + "\")")
         .mkString("set play.sbt.activator.Templates.templates := Seq(", ",", ")")
     }
 
@@ -290,15 +333,15 @@ object Templates {
     else setCommand :: command :: setBack ::: state
   }
 
-  private def templatesParser(state: State): Parser[(Seq[File], String)] = {
+  private def templatesParser(state: State): Parser[(Seq[TemplateSources], String)] = {
     import Parser._
     import Parsers._
-    val templates = Project.extract(state).get(Templates.templates)
+    val templateSourcesList: Seq[TemplateSources] = Project.extract(state).get(Templates.templates)
     val templateParser = Parsers.OpOrID
-      .examples(templates.map(_.getName): _*)
+      .examples(templateSourcesList.map(_.name): _*)
       .flatMap { name =>
-        templates.find(_.getName == name) match {
-          case Some(templateDir) => success(templateDir)
+        templateSourcesList.find(_.name == name) match {
+          case Some(templateSources) => success(templateSources)
           case None => failure("No template with name " + name)
         }
       }

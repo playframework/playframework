@@ -1,10 +1,16 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 name := "dist-sample"
 
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
+
+routesGenerator := InjectedRoutesGenerator
 
 val checkStartScript = InputKey[Unit]("checkStartScript")
 

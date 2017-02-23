@@ -1,29 +1,28 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
+import java.io._
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.Singleton
 import play.api.http._
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.libs.Crypto
 import play.api.libs.Files.{ DefaultTemporaryFileCreator, TemporaryFileCreator }
+import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.crypto._
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
-import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
-import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
-import play.api.libs.concurrent.ActorSystemProvider
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
-import java.io._
-
-import annotation.implicitNotFound
-
-import reflect.ClassTag
+import scala.annotation.implicitNotFound
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 /**
  * A Play application.
@@ -39,7 +38,7 @@ import scala.concurrent.Future
  * This will create an application using the current classloader.
  *
  */
-@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, just add import play.api.Play.current")
+@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection.")
 trait Application {
 
   /**
@@ -57,39 +56,14 @@ trait Application {
    */
   def mode: Mode.Mode
 
-  def global: GlobalSettings = injector.instanceOf[GlobalSettings]
+  private[play] def isDev = (mode == Mode.Dev)
+  private[play] def isTest = (mode == Mode.Test)
+  private[play] def isProd = (mode == Mode.Prod)
+
+  @deprecated("Use dependency injection", "2.5.0")
+  def global: GlobalSettings.Deprecated = injector.instanceOf[GlobalSettings.Deprecated]
+
   def configuration: Configuration
-  def plugins: Seq[Plugin.Deprecated]
-
-  /**
-   * Retrieves a plugin of type `T`.
-   *
-   * For example, retrieving the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin(classOf[DBPlugin])
-   * }}}
-   *
-   * @tparam T the plugin type
-   * @param  pluginClass the plugin’s class
-   * @return the plugin instance, wrapped in an option, used by this application
-   * @throws Error if no plugins of type `T` are loaded by this application
-   */
-  def plugin[T](pluginClass: Class[T]): Option[T] =
-    plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).map(_.asInstanceOf[T])
-
-  /**
-   * Retrieves a plugin of type `T`.
-   *
-   * For example, to retrieve the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(sys.error("problem with the plugin"))
-   * }}}
-   *
-   * @tparam T the plugin type
-   * @return The plugin instance used by this application.
-   * @throws Error if no plugins of type T are loaded by this application.
-   */
-  def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
   /**
    * The default ActorSystem used by the application.
@@ -204,7 +178,7 @@ trait Application {
   /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
-  def stop(): Future[Unit]
+  def stop(): Future[_]
 
   /**
    * Get the injector for this application.
@@ -251,8 +225,7 @@ class DefaultApplication @Inject() (environment: Environment,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
-    override val materializer: Materializer,
-    override val plugins: Plugins) extends Application {
+    override val materializer: Materializer) extends Application {
 
   def path = environment.rootPath
 
@@ -274,7 +247,7 @@ trait BuiltInComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration + tempFileCreator
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + global + crypto
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
@@ -284,13 +257,20 @@ trait BuiltInComponents {
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer, Plugins.empty)
+    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
-  lazy val crypto: Crypto = new Crypto(cryptoConfig)
+
+  lazy val cookieSigner: CookieSigner = new CookieSignerProvider(cryptoConfig).get
+  lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
+  lazy val aesCrypter: AESCrypter = new AESCrypterProvider(cryptoConfig).get
+  lazy val crypto: Crypto = new Crypto(cookieSigner, csrfTokenSigner, aesCrypter)
+
+  @deprecated("Use dependency injection", "2.5.x")
+  lazy val global: GlobalSettings.Deprecated = play.api.GlobalSettings(configuration, environment)
 
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle)
 }

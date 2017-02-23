@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -57,7 +57,7 @@ object Security {
   /**
    * Key of the username attribute stored in session.
    */
-  lazy val username: String = Play.maybeApplication.flatMap(_.configuration.getString("session.username")) getOrElse ("username")
+  lazy val username: String = Play.privateMaybeApplication.flatMap(_.configuration.getString("session.username")) getOrElse ("username")
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.

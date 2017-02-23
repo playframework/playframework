@@ -1,25 +1,29 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
-import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
 
-import java.io.File;
 import java.lang.reflect.*;
+import java.util.concurrent.CompletionStage;
 
 /**
  * GlobalSettings is instantiated by the framework when an application starts, to let you perform specific tasks
  * at start-up or shut-down.
  * <p>
  * How to use it: create a <code>Global.java</code> class in your Java application and override the methods you want.
+ *
+ * @deprecated This class is deprecated in 2.5.0.  Please use dependency injection in preference to GlobalSettings.
  */
+@Deprecated
 public class GlobalSettings {
 
     /**
      * Executed before any plugin - you can set-up your database schema here, for instance.
+     *
+     * @param app the bootstrapping application
      */
     public void beforeStart(Application app) {
     }
@@ -27,12 +31,16 @@ public class GlobalSettings {
     /**
      * Executed after all plugins, including the database set-up with Evolutions and the EBean wrapper.
      * This is a good place to execute some of your application code to create entries, for instance.
+     *
+     * @param app the bootstrapped application
      */
     public void onStart(Application app) {
     }
 
     /**
      * Executed when the application stops.
+     *
+     * @param app the application that is shutting down
      */
     public void onStop(Application app) {
     }
@@ -45,10 +53,11 @@ public class GlobalSettings {
      *
      * By overriding this method one can provide an alternative error page.
      *
+     * @param request header of the HTTP request being processed
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public F.Promise<Result> onError(RequestHeader request, Throwable t) {
+    public CompletionStage<Result> onError(RequestHeader request, Throwable t) {
         return null;
     }
 
@@ -63,7 +72,7 @@ public class GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
-            public F.Promise<Result> call(Context ctx) {
+            public CompletionStage<Result> call(Context ctx) {
                 return delegate.call(ctx);
             }
         };
@@ -95,7 +104,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<Result> onHandlerNotFound(RequestHeader request) {
+    public CompletionStage<Result> onHandlerNotFound(RequestHeader request) {
         return null;
     }
 
@@ -108,34 +117,18 @@ public class GlobalSettings {
      * By overriding this method one can provide an alternative 400 page.
      *
      * @param request the HTTP request
+     * @param error an arbitrary string describing the error
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<Result> onBadRequest(RequestHeader request, String error) {
+    public CompletionStage<Result> onBadRequest(RequestHeader request, String error) {
         return null;
-    }
-
-    /**
-     * @deprecated This method does not do anything.
-     * Instead, specify configuration in your config file
-     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-     */
-    @Deprecated
-    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
-        return null;
-    }
-
-    /**
-     * @deprecated This method does not do anything.
-     * Instead, specify configuration in your config file
-     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
-     */
-    @Deprecated
-    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
-        return onLoadConfig(config, path, classloader);
     }
 
     /**
      * Get the filters that should be used to handle each request.
+     *
+     * @param <T> the filter type
+     * @return an instance of the filter type
      */
     public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {
         return new Class[0];

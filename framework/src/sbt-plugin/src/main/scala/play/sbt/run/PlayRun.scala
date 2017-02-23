@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt.run
 
@@ -47,7 +47,7 @@ object PlayRun {
    * Do not change its signature without first consulting the Activator team.  Do not change its signature in a minor
    * release.
    */
-  def playRunTask(runHooks: TaskKey[Seq[play.PlayRunHook]],
+  def playRunTask(runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
     reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
     assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
@@ -205,9 +205,10 @@ object PlayRun {
 
     val filter = Set("--no-exit-sbt")
     val filtered = args.filterNot(filter)
+    val devSettings = Seq.empty[(String, String)] // there are no dev settings in a prod website
 
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress))
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(stage, state).get._2.toEither match {

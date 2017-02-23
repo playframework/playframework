@@ -15,4 +15,4 @@
 @(module: String, core: String, productionFolderPrefix: String = "-min", folder: String= "javascripts")
 
 
- <script type="text/javascript" chunks-main="@{if(play.api.Mode.Prod == play.api.Play.maybeApplication.map(_.mode).getOrElse(play.api.Mode.Dev)) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>
+ <script type="text/javascript" data-main="@{if(play.api.Mode.Prod == play.api.Play.maybeApplication.map(_.mode).getOrElse(play.api.Mode.Dev)) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>

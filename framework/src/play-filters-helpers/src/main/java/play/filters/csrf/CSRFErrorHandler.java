@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf;
 
-import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Results;
 import play.mvc.Result;
+import scala.compat.java8.FutureConverters;
 
 import javax.inject.Inject;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This interface handles the CSRF error.
@@ -22,7 +23,7 @@ public interface CSRFErrorHandler {
      * @param msg message is passed by framework.
      * @return Client gets this result.
      */
-    F.Promise<Result> handle(Http.RequestHeader req, String msg);
+    CompletionStage<Result> handle(Http.RequestHeader req, String msg);
 
     class DefaultCSRFErrorHandler extends Results implements CSRFErrorHandler {
 
@@ -34,8 +35,9 @@ public interface CSRFErrorHandler {
         }
 
         @Override
-        public F.Promise<Result> handle(Http.RequestHeader req, String msg) {
-            return F.Promise.wrap(errorHandler.handle(req._underlyingHeader(), msg)).map(play.api.mvc.Result::asJava);
+        public CompletionStage<Result> handle(Http.RequestHeader req, String msg) {
+            return FutureConverters.toJava(errorHandler.handle(req._underlyingHeader(), msg))
+                    .thenApply(play.api.mvc.Result::asJava);
         }
 
     }

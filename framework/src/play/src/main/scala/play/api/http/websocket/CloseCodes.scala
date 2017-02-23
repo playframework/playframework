@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.http.websocket
 
 /**
@@ -8,6 +11,7 @@ object CloseCodes {
   val GoingAway = 1001
   val ProtocolError = 1002
   val Unacceptable = 1003
+  val NoStatus = 1005
   val ConnectionAbort = 1006
   val InconsistentData = 1007
   val PolicyViolated = 1008

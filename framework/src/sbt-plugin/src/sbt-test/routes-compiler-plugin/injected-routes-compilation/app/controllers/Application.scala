@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
@@ -28,6 +28,12 @@ class Application extends Controller {
   def takeList(x: List[Int]) = Action {
     Ok(x.mkString(","))
   }
+  def takeListTickedParam(`b[]`: List[Int]) = Action {
+    Ok(`b[]`.mkString(","))
+  }
+  def takeTickedParams(`b[]`: List[Int], `b%%`: String) = Action {
+    Ok(`b[]`mkString(",") + " " + `b%%`)
+  }
   def takeJavaList(x: java.util.List[Integer]) = Action {
     Ok(x.mkString(","))
   }
@@ -45,5 +51,8 @@ class Application extends Controller {
   }
   def hello = Action {
     Ok("Hello world!")
+  }
+  def interpolatorWarning(parameter: String) = Action {
+    Ok(parameter)
   }
 }

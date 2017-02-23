@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
-import akka.stream.{ ClosedShape, Graph, Materializer }
+import akka.actor.Cancellable
+import akka.stream._
 import akka.stream.scaladsl.Source
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.mvc.Http.RequestBody
 
 import scala.language.reflectiveCalls
@@ -23,7 +25,7 @@ import org.openqa.selenium.htmlunit._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.Future
 import akka.util.{ ByteString, Timeout }
 
@@ -34,6 +36,16 @@ trait PlayRunners extends HttpVerbs {
 
   val HTMLUNIT = classOf[HtmlUnitDriver]
   val FIREFOX = classOf[FirefoxDriver]
+
+  /**
+    * The base builder used in the running method.
+    */
+  lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
+
+  def running[T]()(block: Application => T): T = {
+    val app = baseApplicationBuilder.build()
+    running(app)(block(app))
+  }
 
   /**
    * Executes a block of code in a running application.
@@ -47,6 +59,11 @@ trait PlayRunners extends HttpVerbs {
         Play.stop(app)
       }
     }
+  }
+
+  def running[T](builder: GuiceApplicationBuilder => GuiceApplicationBuilder)(block: Application => T): T = {
+    val app = builder(baseApplicationBuilder).build()
+    running(app)(block(app))
   }
 
   /**
@@ -199,13 +216,13 @@ trait EssentialActionCaller {
    */
   def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T], mat: Materializer): Future[Result] = {
     import play.api.http.HeaderNames._
-    val newContentType = rh.headers.get(CONTENT_TYPE).fold(w.contentType)(_ => None)
-    val rhWithCt = newContentType.map { ct =>
-      rh.copy(headers = rh.headers.replace(CONTENT_TYPE -> ct))
-    }.getOrElse(rh)
+    val bytes = w.transform(body)
 
-    val requestBody = Source.single(w.transform(body))
-    action(rhWithCt).run(requestBody)
+    val contentType = rh.headers.get(CONTENT_TYPE).orElse(w.contentType).map(CONTENT_TYPE -> _)
+    val contentLength = rh.headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
+    val newHeaders = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
+
+    action(rh.copy(headers = newHeaders)).run(Source.single(bytes))
   }
 }
 
@@ -236,7 +253,10 @@ trait RouteInvokers extends EssentialActionCaller {
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   *
+   * @deprecated Use the version that takes an application, since 2.5.0
    */
+  @deprecated("Use the version that takes an application", "2.5.0")
   def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, rh, body)
 
   /**
@@ -250,7 +270,10 @@ trait RouteInvokers extends EssentialActionCaller {
    * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   *
+   * @deprecated Use the version that takes an application, since 2.5.0
    */
+  @deprecated("Use the version that takes an application", "2.5.0")
   def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, req)
 }
 
@@ -374,8 +397,19 @@ object Helpers extends PlayRunners
  * a default one that simply throws an exception if used.
  */
 private[play] object NoMaterializer extends Materializer {
-  def withNamePrefix(name: String) = throw new UnsupportedOperationException("NoMaterializer cannot be named")
-  implicit def executionContext = throw new UnsupportedOperationException("NoMaterializer does not have an execution context")
-  def materialize[Mat](runnable: Graph[ClosedShape, Mat]) =
-    throw new UnsupportedOperationException("No materializer was provided, probably when attempting to extract a response body, but that body is a streamed body and so requires a materializer to extract it.")
+  override def withNamePrefix(name: String): Materializer =
+    throw new UnsupportedOperationException("NoMaterializer cannot be named")
+  override def materialize[Mat](runnable: Graph[ClosedShape, Mat]): Mat =
+    throw new UnsupportedOperationException("NoMaterializer cannot materialize")
+  override def materialize[Mat](runnable: Graph[ClosedShape, Mat], initialAttributes: Attributes): Mat =
+    throw new UnsupportedOperationException("NoMaterializer cannot materialize")
+
+  override def executionContext: ExecutionContextExecutor =
+    throw new UnsupportedOperationException("NoMaterializer does not provide an ExecutionContext")
+
+  def scheduleOnce(delay: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule a single event")
+
+  def schedulePeriodically(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule a repeated event")
 }

@@ -1,13 +1,19 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.it.http.parsing
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.Application
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText, number }
-import play.api.http.Writeable
+import play.api.http.{ MimeTypes, Writeable }
 import play.api.libs.json.Json
 import play.api.mvc.{ BodyParser, BodyParsers, Result, Results }
 import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
+import scala.collection.JavaConverters._
 
 import scala.concurrent.Future
 
@@ -48,6 +54,30 @@ class FormBodyParserSpec extends PlaySpecification {
       }
     }
 
+  }
+
+  "The Java form body parser" should {
+    def javaParserTest(bodyString: String, bodyData: Map[String, Seq[String]], bodyCharset: Option[String] = None)(implicit app: Application): Unit = {
+      val parser = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
+      val mat = app.injector.instanceOf[Materializer]
+      val bs = akka.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
+      val contentType = bodyCharset.fold(MimeTypes.FORM)(charset => s"${MimeTypes.FORM};charset=$charset")
+      val req = new play.mvc.Http.RequestBuilder().header(CONTENT_TYPE, contentType).build()
+      val result = parser(req).run(bs, mat).toCompletableFuture.get
+      result.right.get.asScala.mapValues(_.toSeq) must_== bodyData
+    }
+
+    "parse bodies in UTF-8" in new WithApplication() {
+      val bodyString = "name=%C3%96sten&age=42"
+      val bodyData = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
+      javaParserTest(bodyString, bodyData)
+    }
+
+    "parse bodies in ISO-8859-1" in new WithApplication() {
+      val bodyString = "name=%D6sten&age=42"
+      val bodyData = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
+      javaParserTest(bodyString, bodyData, Some("ISO-8859-1"))
+    }
   }
 
 }

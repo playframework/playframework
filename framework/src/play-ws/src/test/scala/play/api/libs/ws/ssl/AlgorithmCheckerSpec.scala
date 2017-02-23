@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ *  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  *
  */
 package play.api.libs.ws.ssl
@@ -11,6 +11,7 @@ import java.util.Collections._
 import org.joda.time.{ DateTime, Days, Instant }
 import org.specs2.mutable._
 import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
+import play.core.server.ssl.CertificateGenerator
 
 object AlgorithmCheckerSpec extends Specification {
 

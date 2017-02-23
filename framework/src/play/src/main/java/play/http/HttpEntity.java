@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.http;
 
 import akka.japi.pf.PFBuilder;
@@ -7,7 +10,6 @@ import akka.util.ByteString;
 import play.api.http.HttpChunk;
 import play.twirl.api.Content;
 import play.twirl.api.Xml;
-import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 
 import java.util.Optional;
@@ -53,9 +55,7 @@ public abstract class HttpEntity {
      * not be usable after this method is invoked.
      */
     public CompletionStage<ByteString> consumeData(Materializer mat) {
-        return FutureConverters.toJava(
-                dataStream().runFold(ByteString.empty(), ByteString::concat, mat)
-        );
+        return dataStream().runFold(ByteString.empty(), ByteString::concat, mat);
     }
 
     public abstract play.api.http.HttpEntity asScala();

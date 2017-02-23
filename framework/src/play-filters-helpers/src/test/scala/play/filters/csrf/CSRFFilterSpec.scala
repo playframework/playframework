@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf
 
+import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.http.HttpFilters
-import play.libs.F.Promise
+import play.filters.csrf.CSRFConfig
 import play.mvc.Http
 
 import scala.concurrent.Future
@@ -15,8 +16,7 @@ import play.api.mvc._
 import play.api.libs.json.Json
 import play.api.test._
 import scala.util.Random
-import play.api.libs.Crypto
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Mode, Configuration, Environment }
 import play.api.ApplicationLoader.Context
 import play.core.DefaultWebCommands
@@ -53,12 +53,18 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").head())(_.status must_== OK)
     }
 
-    // extra conditions for not doing a check
-    "not check non form bodies" in {
-      buildCsrfCheckRequest(false)(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
+    // extra conditions for doing a check
+    "check non form bodies" in {
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
+    }
+    "check all methods" in {
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
     }
     "not check safe methods" in {
-      buildCsrfCheckRequest(false)(_.put(Map("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest(false)(_.withCookies("foo" -> "bar").options())(_.status must_== OK)
+    }
+    "not check requests with no cookies" in {
+      buildCsrfCheckRequest(false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
     }
 
     // other
@@ -73,20 +79,20 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound))
       } {
-        val token = Crypto.generateSignedToken
+        val token = crypto.generateSignedToken
         import play.api.Play.current
         await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
       }
     }
 
-    val notBufferedFakeApp = FakeApplication(
-      additionalConfiguration = Map(
+    val notBufferedFakeApp = GuiceApplicationBuilder()
+      .configure(
         "play.crypto.secret" -> "foobar",
         "play.filters.csrf.body.bufferSize" -> "200",
         "play.http.filters" -> classOf[CsrfFilters].getName
-      ),
-      withRoutes = {
+      )
+      .routes {
         case _ => Action { req =>
           (for {
             body <- req.body.asFormUrlEncoded
@@ -99,10 +105,10 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
           }).getOrElse(Results.NotFound)
         }
       }
-    )
+      .build()
 
     "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
-      val token = Crypto.generateSignedToken
+      val token = crypto.generateSignedToken
       val response = await(WS.url("http://localhost:" + port).withSession(TokenName -> token)
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
@@ -123,10 +129,10 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     "work with a Java error handler" in {
       def csrfCheckRequest = buildCsrfCheckRequestWithJavaHandler()
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
-      def generate = Crypto.generateSignedToken
+      def generate = crypto.generateSignedToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
       def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
-      def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
+      def compareTokens(a: String, b: String) = crypto.compareSignedTokens(a, b) must beTrue
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
     }
@@ -210,7 +216,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) = Promise.pure(play.mvc.Results.unauthorized())
+  def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
 }
 
 class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {

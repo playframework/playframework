@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.iteratee
 
 import java.io.{ ByteArrayOutputStream, StringWriter }
@@ -11,6 +14,8 @@ import scala.annotation.tailrec
  *
  * These methods can handle cases where characters straddle a chunk boundary, and redistribute the data.
  * An erroneous encoding or an incompatible decoding causes a [[Step.Error]].
+ *
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 object CharEncoding {
 
@@ -93,7 +98,8 @@ object CharEncoding {
   }
 
   /**
-   * @throws UnsupportedCharsetException
+   * @throws scala.Exception [[$javadoc/java/nio/charset/UnsupportedCharsetException.html UnsupportedCharsetException]] if no
+   *                  charset could be found with the provided name
    */
   def decode(charset: String): Enumeratee[Array[Byte], String] = decode(Charset.forName(charset))
 
@@ -143,7 +149,8 @@ object CharEncoding {
   }
 
   /**
-   * @throws UnsupportedCharsetException
+   * @throws scala.Exception [[$javadoc/java/nio/charset/UnsupportedCharsetException.html UnsupportedCharsetException]] if no
+   *                  charset could be found with the provided name
    */
   def encode(charset: String): Enumeratee[String, Array[Byte]] = encode(Charset.forName(charset))
 

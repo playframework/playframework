@@ -1,22 +1,21 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.concurrent
 
 import java.lang.reflect.Method
 
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.google.inject.util.Types
-import com.google.inject.{ Binder, Key, AbstractModule }
+import com.google.inject.{ Binder, AbstractModule }
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.typesafe.config.Config
-import java.util.concurrent.{Executor, TimeoutException}
+import java.util.concurrent.TimeoutException
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ Binding, Injector, ApplicationLifecycle, bind }
 import play.core.ClosableLazy
 import akka.actor._
-import scala.concurrent.{ExecutionContextExecutor, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
@@ -25,17 +24,18 @@ import scala.reflect.ClassTag
  */
 object Akka {
 
-  private val actorSystemCache = Application.instanceCache[ActorSystem]
-
   /**
-   * Retrieve the application Akka Actor system.
+   * Retrieve the application Akka Actor system, using an implicit application.
+   *
+   * @deprecated Please use a dependency injected ActorSystem, since 2.5.0
    *
    * Example:
    * {{{
    * val newActor = Akka.system.actorOf[Props[MyActor]]
    * }}}
    */
-  def system(implicit app: Application): ActorSystem = actorSystemCache(app)
+  @deprecated("Please use a dependency injected ActorSystem", "2.5.0")
+  def system(implicit app: Application): ActorSystem = app.actorSystem
 
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
@@ -279,7 +279,7 @@ class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Prov
 
 object ActorSystemProvider {
 
-  type StopHook = () => Future[Unit]
+  type StopHook = () => Future[_]
 
   private val logger = Logger(classOf[ActorSystemProvider])
 
@@ -302,12 +302,12 @@ object ActorSystemProvider {
 
     val stopHook = { () =>
       logger.debug(s"Shutdown application default Akka system: $name")
-      system.shutdown()
+      system.terminate()
 
       config.get[Duration]("play.akka.shutdown-timeout") match {
         case timeout: FiniteDuration =>
           try {
-            system.awaitTermination(timeout)
+            Await.result(system.whenTerminated, timeout)
           } catch {
             case te: TimeoutException =>
               // oh well.  We tried to be nice.
@@ -315,7 +315,7 @@ object ActorSystemProvider {
           }
         case _ =>
           // wait until it is shutdown
-          system.awaitTermination()
+          Await.result(system.whenTerminated, Duration.Inf)
       }
 
       Future.successful(())
@@ -328,8 +328,8 @@ object ActorSystemProvider {
    * A lazy wrapper around `start`. Useful when the `ActorSystem` may
    * not be needed.
    */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[Unit]] = {
-    new ClosableLazy[ActorSystem, Future[Unit]] {
+  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
+    new ClosableLazy[ActorSystem, Future[_]] {
       protected def create() = start(classLoader, configuration)
       protected def closeNotNeeded = Future.successful(())
     }

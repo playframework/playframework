@@ -1,9 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.j
 
+import java.util.concurrent.Executor
+
 import play.mvc.Http
+import scala.compat.java8.FutureConverters
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 object HttpExecutionContext {
@@ -13,6 +16,19 @@ object HttpExecutionContext {
    */
   def fromThread(delegate: ExecutionContext): ExecutionContextExecutor =
     new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.current.get(), delegate)
+
+  /**
+   * Create an HttpExecutionContext with values from the current thread.
+   *
+   * This method is necessary to prevent ambiguous method compile errors since ExecutionContextExecutor
+   */
+  def fromThread(delegate: ExecutionContextExecutor): ExecutionContextExecutor = fromThread(delegate: ExecutionContext)
+
+  /**
+   * Create an HttpExecutionContext with values from the current thread.
+   */
+  def fromThread(delegate: Executor): ExecutionContextExecutor =
+    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.current.get(), FutureConverters.fromExecutor(delegate))
 
   /**
    * Create an ExecutionContext that will, when prepared, be created with values from that thread.

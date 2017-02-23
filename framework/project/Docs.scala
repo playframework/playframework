@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
 import sbt.Keys._
@@ -81,6 +81,7 @@ object Docs {
       }
     )
 
+  // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
   def apiDocsTask = Def.task {
 
     val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
@@ -99,6 +100,9 @@ object Docs {
       val javaCache = new File(targetDir, "javaapidocs.cache")
 
       val label = "Play " + version
+      // Use the apiMappings value from the "doc" command
+      val apiMappings = Keys.apiMappings.value
+      val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
 
       val options = Seq(
         // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
@@ -106,7 +110,8 @@ object Docs {
         // into the FILE_SOURCE variable below, which is definitely not what we want.
         // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
         "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath,
-        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala",
+        s"-doc-external-doc:${externalDocsScalacOption}")
 
       val compilers = Keys.compilers.value
       val useCache = apiDocsUseCache.value
@@ -125,18 +130,72 @@ object Docs {
         "-windowtitle", label,
         "-notimestamp",
         "-subpackages", "play",
+        "-Xmaxwarns", "1000",
+        "-Xdoclint:none", // We would like to relax this, but for now too much stuff breaks.
         "-exclude", "play.api:play.core"
       )
 
       val javadoc = {
         if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-        else DocNoCache.javadoc(label, compilers.javac)
+        else DocNoCache.javadoc(label, compilers)
       }
       javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
     }
 
+    // Known Java libraries in non-standard locations...
+    // All the external Javadoc URLs that must be fixed.
+    val externalJavadocLinks = Set(
+      javaApiUrl,
+      javaxInjectUrl,
+      ehCacheUrl,
+      guiceUrl,
+      ahcUrl
+    ) ++ Dependencies.slf4j.map(moduleIDToJavadoc)
+
+    import scala.util.matching.Regex
+    import scala.util.matching.Regex.Match
+
+    def javadocLinkRegex(javadocURL: String): Regex = ("""\"(\Q""" + javadocURL + """\E)#([^"]*)\"""").r
+
+    def hasJavadocLink(f: File): Boolean = externalJavadocLinks exists { javadocURL: String =>
+      (javadocLinkRegex(javadocURL) findFirstIn IO.read(f)).nonEmpty
+    }
+
+    val fixJavaLinks: Match => String = m =>
+      m.group(1) + "?" + m.group(2).replace(".", "/") + ".html"
+
+    // Maps to Javadoc references in Scaladoc, and fixes the link so that it uses query parameters in
+    // Javadoc style to link directly to the referenced class.
+    // http://stackoverflow.com/questions/16934488/how-to-link-classes-from-jdk-into-scaladoc-generated-doc/
+    (apiTarget ** "*.html").get.filter(hasJavadocLink).foreach { f =>
+      val newContent: String = externalJavadocLinks.foldLeft(IO.read(f)) {
+        case (oldContent: String, javadocURL: String) =>
+          javadocLinkRegex(javadocURL).replaceAllIn(oldContent, fixJavaLinks)
+      }
+      IO.write(f, newContent)
+    }
     apiTarget
   }
+
+  // Converts an artifact into a Javadoc URL.
+  def artifactToJavadoc(organization: String, name: String, apiVersion:String, jarBaseFile: String) = {
+    val slashedOrg = organization.replace('.', '/')
+    raw"""https://oss.sonatype.org/service/local/repositories/public/archive/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
+  }
+
+  // Converts an SBT module into a Javadoc URL.
+  def moduleIDToJavadoc(id: ModuleID): String = {
+    artifactToJavadoc(id.organization, id.name, id.revision, s"${id.name}-${id.revision}")
+  }
+
+  val javaApiUrl = "http://docs.oracle.com/javase/8/docs/api/index.html"
+  val javaxInjectUrl = "https://javax-inject.github.io/javax-inject/api/index.html"
+  // ehcache has 2.6.11 as version, but latest is only 2.6.9 on the site!
+  val ehCacheUrl = raw"http://www.ehcache.org/apidocs/2.6.9/index.html"
+  // nonstandard guice location
+  val guiceUrl = raw"http://google.github.io/guice/api-docs/${Dependencies.guiceVersion}/javadoc/index.html"
+  // non standard ahc location
+  val ahcUrl = raw"http://static.javadoc.io/org.asynchttpclient/async-http-client/${Dependencies.asyncHttpClientVersion}/index.html"
 
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)
@@ -218,7 +277,7 @@ object Docs {
     def scaladoc(label: String, compile: compiler.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String, compile: compiler.Javadoc): GenerateDoc =
-      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compile.doc))
+    def javadoc(label: String, compilers: Compiler.Compilers): GenerateDoc =
+      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javac.doc))
   }
 }

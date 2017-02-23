@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.gzip
 
@@ -7,7 +7,6 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
 import org.apache.commons.io.IOUtils
-import scala.concurrent.duration._
 
 import concurrent.Await
 import play.api.libs.iteratee.{ Iteratee, Enumeratee, Enumerator }

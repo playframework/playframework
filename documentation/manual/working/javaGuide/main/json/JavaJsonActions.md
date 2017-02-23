@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling and serving JSON
 
-In Java, Play uses the [Jackson](http://jackson.codehaus.org/) JSON library to convert objects to and from JSON. Play's actions work with the `JsonNode` type and the framework provides utility methods for conversion in the `play.libs.Json` API.
+In Java, Play uses the [Jackson](https://github.com/FasterXML/jackson#documentation) JSON library to convert objects to and from JSON. Play's actions work with the `JsonNode` type and the framework provides utility methods for conversion in the `play.libs.Json` API.
 
 ## Mapping Java objects to JSON
 
@@ -31,7 +31,7 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 > **Note:** This way, a 400 HTTP response will be automatically returned for non JSON requests with Content-type set to application/json.
 
-You can test it with **cURL** from a command line:
+You can test it with **`curl`** from a command line:
 
 ```bash
 curl
@@ -74,6 +74,23 @@ You can also return a Java object and have it automatically serialized to JSON b
 
 Because Play uses Jackson, you can use your own `ObjectMapper` to create `JsonNode`s. The [documentation for jackson-databind](https://github.com/FasterXML/jackson-databind/blob/master/README.md) explains how you can further customize JSON conversion process.
 
-If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you can add something like this in your `GlobalSettings#onStart`:
+If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you first need to disable the default `ObjectMapper` in your `application.conf`:
+ 
+```
+play.modules.disabled += "play.core.ObjectMapperModule"
+```
 
-@[custom-object-mapper](code/javaguide/json/JavaJsonActions.java)
+Then you can create a custom `ObjectMapper`:
+
+@[custom-java-object-mapper](code/javaguide/json/JavaJsonCustomObjectMapper.java)
+
+and bind it via Guice:
+
+@[custom-java-object-mapper2](code/javaguide/json/JavaJsonCustomObjectMapperModule.java)
+
+Afterwards enable the Module:
+
+```
+play.modules.enabled += "path.to.JavaJsonCustomObjectMapperModule"
+```
+

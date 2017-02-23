@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf
 
 import javax.inject.{ Provider, Inject }
 import akka.stream.Materializer
+import play.api.libs.Crypto
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc._
 import play.filters.csrf.CSRF._
 
@@ -21,27 +23,38 @@ import play.filters.csrf.CSRF._
  */
 class CSRFFilter(
     config: => CSRFConfig,
-    val tokenProvider: TokenProvider = SignedTokenProvider,
+    tokenSigner: => CSRFTokenSigner,
+    val tokenProvider: TokenProvider = new SignedTokenProvider(Crypto.crypto),
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialFilter {
 
   @Inject
-  def this(config: Provider[CSRFConfig], tokenProvider: TokenProvider, errorHandler: ErrorHandler, mat: Materializer) = {
-    this(config.get, tokenProvider, errorHandler)(mat)
+  def this(config: Provider[CSRFConfig], tokenSignerProvider: Provider[CSRFTokenSigner], tokenProvider: TokenProvider, errorHandler: ErrorHandler)(mat: Materializer) = {
+    this(config.get, tokenSignerProvider.get, tokenProvider, errorHandler)(mat)
+  }
+
+  // Java constructor for manually constructing the filter
+  def this(config: CSRFConfig, tokenSigner: play.libs.crypto.CSRFTokenSigner, tokenProvider: TokenProvider, errorHandler: CSRFErrorHandler)(mat: Materializer) = {
+    this(config, tokenSigner.asScala, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler))(mat)
   }
 
   /**
    * Default constructor, useful from Java
+   *
+   * @deprecated in 2.5.0. This constructor uses global state.
    */
-  def this()(implicit mat: Materializer) = this(CSRFConfig.global, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
+  @Deprecated
+  def this()(implicit mat: Materializer) = this(CSRFConfig.global, Crypto.crypto, new ConfigTokenProvider(CSRFConfig.global, Crypto.crypto), DefaultErrorHandler)
 
-  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenProvider, errorHandler)
+  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenSigner, tokenProvider, errorHandler)
 }
 
 object CSRFFilter {
+  @deprecated("Use dependency injection", "2.5.0")
   def apply(
     config: => CSRFConfig = CSRFConfig.global,
-    tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global),
+    tokenSigner: => CSRFTokenSigner = Crypto.crypto,
+    tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global, Crypto.crypto),
     errorHandler: ErrorHandler = DefaultErrorHandler)(implicit mat: Materializer): CSRFFilter = {
-    new CSRFFilter(config, tokenProvider, errorHandler)
+    new CSRFFilter(config, tokenSigner, tokenProvider, errorHandler)
   }
 }

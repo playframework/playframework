@@ -1,8 +1,12 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += specs2 % Test
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.10.5")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"

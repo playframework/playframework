@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.utils
 
@@ -9,7 +9,7 @@ import java.net.URL
 import play.api.Logger
 
 /**
- * IO utilites for internal use by Play projects.
+ * IO utilities for internal use by Play projects.
  *
  * This is intentionally not public API.
  */

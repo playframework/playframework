@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -10,9 +10,34 @@ import play.core.test._
 object HttpSpec extends Specification {
   "HTTP" title
 
-  val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+  val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
 
   "Headers" should {
+    "return its headers as a sequence of name-value pairs" in {
+      // Wrap sequence in a new Headers object so we can compare with Headers.equals
+      new Headers(headers.headers) must_== headers
+    }
+
+    "return none for get(name) if no header present" in {
+      headers.get("z") must beNone
+    }
+
+    "return first value for get(name) when headers are present" in {
+      headers.get("a") must beSome("a1")
+      headers.get("b") must beSome("b1")
+      headers.get("c") must beSome("c1")
+    }
+
+    "throw exception for apply(name) if no header present" in {
+      headers.apply("z") must throwA[Exception]
+    }
+
+    "return first value for apply(name) when headers are present" in {
+      headers.apply("a") must_== "a1"
+      headers.apply("b") must_== "b1"
+      headers.apply("c") must_== "c1"
+    }
+
     "return the header value associated with a by case insensitive" in {
       headers.get("a") must beSome("a1") and
         (headers.get("A") must beSome("a1"))
@@ -28,11 +53,11 @@ object HttpSpec extends Specification {
     }
 
     "should return all keys" in {
-      headers.keys must be_==(Set("a", "b"))
+      headers.keys must be_==(Set("a", "b", "c"))
     }
 
     "should return a simple map" in {
-      headers.toSimpleMap must be_==(Map("a" -> "a1", "b" -> "b1"))
+      headers.toSimpleMap must be_==(Map("a" -> "a1", "b" -> "b1", "c" -> "c1"))
     }
 
     "return the value from a map by case insensitive" in {
@@ -59,19 +84,19 @@ object HttpSpec extends Specification {
     }
 
     "equal other Headers by case insensitive" in {
-      val other = Headers("A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+      val other = Headers("A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "C" -> "c1")
       (headers must_== other) and
         (headers.## must_== other.##)
     }
 
     "equal other Headers with same relative order" in {
-      val other = Headers("A" -> "a1", "b" -> "b1", "a" -> "a2", "b" -> "b2", "B" -> "b3")
+      val other = Headers("A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
       (headers must_== other) and
         (headers.## must_== other.##)
     }
 
     "not equal other Headers with different relative order" in {
-      headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+      headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "C1")
     }
   }
 

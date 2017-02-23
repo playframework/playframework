@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -36,7 +36,7 @@ trait RequestTaggingHandler extends Handler {
  * An `EssentialAction` is a `Handler`, which means it is one of the objects
  * that Play uses to handle requests.
  */
-trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler { self =>
 
   /**
    * Returns itself, for better support in the routes file.
@@ -44,6 +44,12 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
    * @return itself
    */
   def apply() = this
+
+  def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    def apply(rh: play.mvc.Http.RequestHeader) = self(rh._underlyingHeader).map(_.asJava).asJava
+    override def apply(rh: RequestHeader) = self(rh)
+  }
 
 }
 
@@ -101,7 +107,7 @@ trait Action[A] extends EssentialAction {
     case Right(a) =>
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
-      Play.maybeApplication.map { app =>
+      Play.privateMaybeApplication.map { app =>
         play.utils.Threads.withContextClassLoader(app.classloader) {
           apply(request)
         }
@@ -146,7 +152,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * @param ec The context to execute the supplied function with.
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
-   * @see [[play.api.libs.iteratee.Iteratee#map]]
+   * @see [[play.api.libs.streams.Accumulator.map]]
    */
   def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
@@ -166,7 +172,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    *        The context prepared on the calling thread.
    * @return the transformed body parser
    * @see [[map]]
-   * @see [[play.api.libs.iteratee.Iteratee#mapM]]
+   * @see [[play.api.libs.streams.Accumulator.mapFuture]]
    */
   def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
@@ -263,7 +269,7 @@ object BodyParser {
    * }
    * }}}
    */
-  @deprecated("Use Akka streams instead", "2.5.0")
+  @deprecated("Use apply instead", "2.5.0")
   def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
     iteratee("(no name)")(f)
   }
@@ -278,7 +284,7 @@ object BodyParser {
    * }
    * }}}
    */
-  @deprecated("Use Akka streams instead", "2.5.0")
+  @deprecated("Use apply instead", "2.5.0")
   def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
     override def toString = "BodyParser(" + debugName + ")"

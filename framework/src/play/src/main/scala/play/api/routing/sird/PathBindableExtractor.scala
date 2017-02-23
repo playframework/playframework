@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.routing.sird
 
 import play.api.mvc.PathBindable
 
 /**
- * An extractor that extracts from a String using a [[PathBindable]].
+ * An extractor that extracts from a String using a [[play.api.mvc.PathBindable]].
  */
 class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
   self =>
@@ -45,7 +45,7 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
 }
 
 /**
- * Extractors that bind types from paths using [[PathBindable]].
+ * Extractors that bind types from paths using [[play.api.mvc.PathBindable]].
  */
 trait PathBindableExtractors {
   /**

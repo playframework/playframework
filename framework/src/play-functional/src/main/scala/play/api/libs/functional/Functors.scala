@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.functional
 
@@ -10,6 +10,14 @@ sealed trait Variant[M[_]]
 trait Functor[M[_]] extends Variant[M] {
 
   def fmap[A, B](m: M[A], f: A => B): M[B]
+
+}
+
+object Functor {
+
+  implicit val functorOption: Functor[Option] = new Functor[Option] {
+    def fmap[A, B](a: Option[A], f: A => B): Option[B] = a.map(f)
+  }
 
 }
 

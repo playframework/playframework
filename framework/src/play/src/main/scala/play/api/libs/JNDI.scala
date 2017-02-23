@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs
 
@@ -24,14 +24,14 @@ object JNDI {
     val env = new java.util.Hashtable[String, String]
 
     env.put(INITIAL_CONTEXT_FACTORY, {
-      Play.maybeApplication.flatMap(_.configuration.getString(INITIAL_CONTEXT_FACTORY)).getOrElse {
+      Play.privateMaybeApplication.flatMap(_.configuration.getString(INITIAL_CONTEXT_FACTORY)).getOrElse {
         System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
         IN_MEMORY_JNDI
       }
     })
 
     env.put(PROVIDER_URL, {
-      Play.maybeApplication.flatMap(_.configuration.getString(PROVIDER_URL)).getOrElse {
+      Play.privateMaybeApplication.flatMap(_.configuration.getString(PROVIDER_URL)).getOrElse {
         System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
         IN_MEMORY_URL
       }

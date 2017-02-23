@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+# Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
 #
 
 # Default messages
@@ -11,12 +11,16 @@ constraint.max=Maximum value: {0}
 constraint.minLength=Minimum length: {0}
 constraint.maxLength=Maximum length: {0}
 constraint.email=Email
+constraint.pattern=Required pattern: {0}
 
 # --- Formats
 format.date=Date (''{0}'')
 format.numeric=Numeric
 format.real=Real
 format.uuid=UUID
+
+# --- Patterns for Formats
+formats.date=yyyy-MM-dd
 
 # --- Errors
 error.invalid=Invalid value

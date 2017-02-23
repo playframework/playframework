@@ -1,13 +1,16 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package javaguide.tests;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.*;
 
 import org.junit.*;
 
 import play.mvc.*;
 import play.test.*;
-import play.libs.F.*;
 import play.libs.ws.*;
 
 import static play.test.Helpers.*;
@@ -25,8 +28,8 @@ public class FunctionalTest extends WithApplication {
     @Test
     public void testBadRoute() {
         RequestBuilder request = new RequestBuilder()
-            .method(GET)
-            .uri("/xx/Kiwi");
+                .method(GET)
+                .uri("/xx/Kiwi");
 
         Result result = route(request);
         assertEquals(NOT_FOUND, result.status());
@@ -47,11 +50,23 @@ public class FunctionalTest extends WithApplication {
         return Helpers.testServer(port, fakeApplication(config));
     }
 
-    //#test-server
+    private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("application");
+
+     //#test-server
     @Test
-    public void testInServer() {
-        running(testServer(3333), () -> {
-            assertEquals(OK, WS.url("http://localhost:3333").get().get(timeout).getStatus());
+    public void testInServer() throws Exception {
+        int testServerPort = play.api.test.Helpers.testServerPort();
+        TestServer server = testServer(testServerPort);
+        running(server, () -> {
+            try {
+                try (WSClient ws = WS.newClient(testServerPort)) {
+                    CompletionStage<WSResponse> completionStage = ws.url("/").get();
+                    WSResponse response = completionStage.toCompletableFuture().get();
+                    assertEquals(OK, response.getStatus());
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         });
     }
     //#test-server

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.iteratee
 
@@ -800,14 +800,6 @@ object Error {
 
 /**
  * An Exception that represents an Iteratee that ended up in an Error state with the given
- * error message. This exception will eventually be removed and replaced with
- * `IterateeException` (notice the extra `c`).
- */
-@deprecated("Use IterateeException instead (notice the extra 'c')", "2.4.0")
-class IterateeExeption(msg: String) extends Exception(msg)
-
-/**
- * An Exception that represents an Iteratee that ended up in an Error state with the given
  * error message.
  */
-class IterateeException(msg: String) extends IterateeExeption(msg)
+class IterateeException(msg: String) extends Exception(msg)

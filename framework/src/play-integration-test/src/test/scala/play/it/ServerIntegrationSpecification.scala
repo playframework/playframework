@@ -1,8 +1,11 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.it
 
 import org.specs2.execute._
 import org.specs2.mutable.Specification
-import org.specs2.specification.{ AroundEach, Around }
+import org.specs2.specification.AroundEach
 import play.api.Application
 import play.core.server.{ NettyServer, ServerProvider }
 import play.core.server.akkahttp.AkkaHttpServer
@@ -25,18 +28,10 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Retry up to 3 times.
    */
   def around[R: AsResult](r: => R) = {
-    AsResult(EventuallyResults.eventually(3, 20.milliseconds)(r))
+    AsResult(EventuallyResults.eventually(1, 20.milliseconds)(r))
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
-    /**
-     * Don't complain if a test fails, but given an error if it passes so we know to
-     * remove the pending tag.
-     */
-    def pendingUntilAkkaHttpFixed: Result = parent match {
-      case _: NettyIntegrationSpecification => ResultExecution.execute(AsResult(t))
-      case _: AkkaHttpIntegrationSpecification => new PendingUntilFixed(t).pendingUntilFixed
-    }
     /**
      * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
@@ -52,7 +47,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    */
   def TestServer(
     port: Int,
-    application: Application = play.api.FakeApplication(),
+    application: Application = play.api.PlayCoreTestApplication(),
     sslPort: Option[Int] = None): play.api.test.TestServer = {
     play.api.test.TestServer(port, application, sslPort, Some(integrationServerProvider))
   }

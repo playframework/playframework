@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
+
+import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
 
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
-import play.api.test.FakeApplication
 import play.it._
 
 object NettyFormFieldOrderSpec extends FormFieldOrderSpec with NettyIntegrationSpecification
@@ -21,11 +22,11 @@ trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecifi
     val urlEncoded = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 
-    val fakeApp = FakeApplication(withRoutes = {
+    val fakeApp = GuiceApplicationBuilder().routes {
       case ("POST", "/") => Action {
         request: Request[AnyContent] =>
           // Check precondition. This needs to be an x-www-form-urlencoded request body
-          request.headers.get("Content-Type") must beSome(contentType)
+          request.contentType must beSome(contentType)
           // The following just ingests the request body and converts it to a sequnce of strings of the form name=value
           val pairs: Seq[String] = {
             request.body.asFormUrlEncoded map {
@@ -41,7 +42,7 @@ trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecifi
           // Return the re-encoded body as the result body for comparison below
           Results.Ok(reencoded)
       }
-    })
+    }.build()
 
     "preserve form field order" in new WithServer(fakeApp) {
 

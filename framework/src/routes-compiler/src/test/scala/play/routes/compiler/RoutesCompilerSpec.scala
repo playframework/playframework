@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routes.compiler
 
@@ -50,6 +50,11 @@ object RoutesCompilerSpec extends Specification with FileMatchers {
 
     "check if routes with type projection are compiled" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("complexTypes.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
+    }
+
+    "check if routes with complex names are compiled" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("complexNames.routes").toURI)
       RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
     }
   }

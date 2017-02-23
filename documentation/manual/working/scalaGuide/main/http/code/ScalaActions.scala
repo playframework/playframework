@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.http.scalaactions {
 
@@ -17,7 +17,7 @@ object ScalaActionsSpec extends Specification with Controller {
   "A scala action" should {
     "allow writing a simple echo action" in {
       //#echo-action
-      val echo = Action { request =>
+      def echo = Action { request =>
         Ok("Got request [" + request + "]")
       }
       //#echo-action
@@ -157,7 +157,7 @@ object ScalaActionsSpec extends Specification with Controller {
   }
 
   def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
-    running(FakeApplication()) {
+    running() { _ =>
       val result = action(request)
       status(result) must_== expectedResponse
       assertions(result)

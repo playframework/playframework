@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
@@ -7,9 +7,9 @@ import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Application, ApplicationLoader, Environment, Mode }
-import play.core.server.{ NettyServer, ServerProvider }
+import play.core.server.ServerProvider
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
@@ -33,7 +33,12 @@ abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new 
  *
  * @param app The fake application
  */
-abstract class WithApplication(val app: Application = FakeApplication()) extends Around with Scope {
+abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build()) extends Around with Scope {
+
+  def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
+    this(builder(GuiceApplicationBuilder()).build())
+  }
+
   implicit def implicitApp = app
   implicit def implicitMaterializer = app.materializer
   override def around[T: AsResult](t: => T): Result = {
@@ -50,7 +55,7 @@ abstract class WithApplication(val app: Application = FakeApplication()) extends
  * server to use. Defaults to providing a Netty server.
  */
 abstract class WithServer(
-    val app: Application = FakeApplication(),
+    val app: Application = GuiceApplicationBuilder().build(),
     val port: Int = Helpers.testServerPort,
     val serverProvider: Option[ServerProvider] = None) extends Around with Scope {
   implicit def implicitMaterializer = app.materializer
@@ -73,7 +78,7 @@ abstract class WithServer(
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
-    val app: Application = FakeApplication(),
+    val app: Application = GuiceApplicationBuilder().build(),
     val port: Int = Helpers.testServerPort) extends Around with Scope {
 
   def this(

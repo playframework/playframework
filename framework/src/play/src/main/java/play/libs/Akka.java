@@ -1,20 +1,17 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs;
 
 import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-
 import akka.actor.Props;
-import play.api.*;
-import play.api.inject.Binding;
+import play.api.Play;
 import play.api.libs.concurrent.ActorRefProvider;
 import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
-import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.function.Function;
 
@@ -25,7 +22,10 @@ public class Akka {
 
     /**
      * Retrieve the application Akka Actor system.
+     *
+     * @deprecated Please use "@Inject ActorSystem actorSystem", since 2.5.0
      */
+    @Deprecated
     public static ActorSystem system() {
         return play.api.libs.concurrent.Akka.system(Play.current());
     }

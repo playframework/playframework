@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.data.models
 
@@ -11,6 +11,7 @@ class Task {
 
   type Min = play.data.validation.Constraints.Min @field
   type Required = play.data.validation.Constraints.Required @field
+  type I18NConstraint = play.data.validation.TestConstraints.I18Constraint @field
   type DateTime = play.data.format.Formats.DateTime @field
 
   @Min(10)
@@ -28,6 +29,13 @@ class Task {
   @Required
   @DateTime(pattern = "dd/MM/yyyy")
   var dueDate: Date = _
+
+  @BeanProperty
+  var endDate: Date = _
+
+  @BeanProperty
+  @I18NConstraint(value = "patterns.zip")
+  var zip: String = _
 
 }
 

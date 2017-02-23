@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
 import play.api._
-import play.core.ApplicationProvider
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._
 import scala.util.control.NonFatal
 
@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  */
 case class TestServer(
     port: Int,
-    application: Application = FakeApplication(),
+    application: Application = GuiceApplicationBuilder().build(),
     sslPort: Option[Int] = None,
     serverProvider: Option[ServerProvider] = None) {
 

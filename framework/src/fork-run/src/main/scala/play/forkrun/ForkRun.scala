@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.forkrun
 
@@ -8,13 +8,13 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.{ Config, ConfigFactory }
 import java.io.File
-import java.lang.{ Runtime, Thread }
+import java.lang.Runtime
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.TimeoutException
 import play.forkrun.protocol.{ ForkConfig, Serializers }
 import play.runsupport.Reloader.{ CompileResult, PlayDevServer }
-import play.runsupport.{ Colors, LoggerProxy, RunHook, FileWatchService, Reloader }
+import play.runsupport.{ Colors, RunHook, FileWatchService, Reloader }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{ Success, Failure, Properties }
@@ -115,7 +115,8 @@ object ForkRun {
 
   // reparse args to support https urls
   def serverUrl(args: Seq[String], defaultHttpPort: Int, defaultHttpAddress: String, address: InetSocketAddress): String = {
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress)
+    val devSettings: Seq[(String, String)] = Seq.empty
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val host = if (httpAddress == "0.0.0.0") "localhost" else httpAddress
     if (httpPort.isDefined) s"http://$host:${httpPort.get}"
     else if (httpsPort.isDefined) s"https://$host:${httpsPort.get}"

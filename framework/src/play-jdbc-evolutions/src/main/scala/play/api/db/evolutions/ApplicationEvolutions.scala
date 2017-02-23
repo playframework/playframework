@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db.evolutions
 
@@ -47,20 +47,21 @@ class ApplicationEvolutions @Inject() (
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
       withLock(database, dbConfig) {
-        val scripts = evolutions.scripts(db, reader)
-        val hasDown = scripts.exists(_.isInstanceOf[DownScript])
-
+        val schema = dbConfig.schema
         val autocommit = dbConfig.autocommit
+
+        val scripts = evolutions.scripts(db, reader, schema)
+        val hasDown = scripts.exists(_.isInstanceOf[DownScript])
 
         if (scripts.nonEmpty) {
 
           import Evolutions.toHumanReadableScript
 
           environment.mode match {
-            case Mode.Test => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Dev if dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
+            case Mode.Dev if dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+            case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+            case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit, schema)
             case Mode.Prod if hasDown =>
               logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
               logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
@@ -87,8 +88,8 @@ class ApplicationEvolutions @Inject() (
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()
-      createLockTableIfNecessary(url, c, s)
-      lock(url, c, s)
+      createLockTableIfNecessary(url, c, s, dbConfig)
+      lock(url, c, s, dbConfig)
       try {
         block
       } finally {
@@ -99,7 +100,7 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def createLockTableIfNecessary(url: String, c: Connection, s: Statement): Unit = {
+  private def createLockTableIfNecessary(url: String, c: Connection, s: Statement, dbConfig: EvolutionsDatasourceConfig): Unit = {
     import ApplicationEvolutions._
     val (selectScript, createScript, insertScript) = url match {
       case OracleJdbcUrl() =>
@@ -110,24 +111,24 @@ class ApplicationEvolutions @Inject() (
         (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockSql, InsertIntoPlayEvolutionsLockSql)
     }
     try {
-      val r = s.executeQuery(selectScript)
+      val r = s.executeQuery(applySchema(selectScript, dbConfig.schema))
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
-        s.execute(createScript)
-        s.executeUpdate(insertScript)
+        s.execute(applySchema(createScript, dbConfig.schema))
+        s.executeUpdate(applySchema(insertScript, dbConfig.schema))
     }
   }
 
-  private def lock(url: String, c: Connection, s: Statement, attempts: Int = 5): Unit = {
+  private def lock(url: String, c: Connection, s: Statement, dbConfig: EvolutionsDatasourceConfig, attempts: Int = 5): Unit = {
     import ApplicationEvolutions._
     val lockScripts = url match {
       case MysqlJdbcUrl(_) => lockPlayEvolutionsLockMysqlSqls
       case _ => lockPlayEvolutionsLockSqls
     }
     try {
-      for (script <- lockScripts) s.executeQuery(script)
+      for (script <- lockScripts) s.executeQuery(applySchema(script, dbConfig.schema))
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
@@ -135,7 +136,7 @@ class ApplicationEvolutions @Inject() (
           logger.warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
           c.rollback()
           Thread.sleep(1000)
-          lock(url, c, s, attempts - 1)
+          lock(url, c, s, dbConfig, attempts - 1)
         }
     }
   }
@@ -147,37 +148,43 @@ class ApplicationEvolutions @Inject() (
   }
 
   start() // on construction
+
+  // SQL helpers
+
+  private def applySchema(sql: String, schema: String): String = {
+    sql.replaceAll("\\$\\{schema}", Option(schema).filter(_.trim.nonEmpty).map(_.trim + ".").getOrElse(""))
+  }
 }
 
 private object ApplicationEvolutions {
 
   val SelectPlayEvolutionsLockSql =
     """
-      select lock from play_evolutions_lock
+      select lock from ${schema}play_evolutions_lock
     """
 
   val SelectPlayEvolutionsLockMysqlSql =
     """
-      select `lock` from play_evolutions_lock
+      select `lock` from ${schema}play_evolutions_lock
     """
 
   val CreatePlayEvolutionsLockSql =
     """
-      create table play_evolutions_lock (
+      create table ${schema}play_evolutions_lock (
         lock int not null primary key
       )
     """
 
   val CreatePlayEvolutionsLockMysqlSql =
     """
-      create table play_evolutions_lock (
+      create table ${schema}play_evolutions_lock (
         `lock` int not null primary key
       )
     """
 
   val CreatePlayEvolutionsLockOracleSql =
     """
-      CREATE TABLE play_evolutions_lock (
+      CREATE TABLE ${schema}play_evolutions_lock (
         lock Number(10,0) Not Null Enable,
         CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
       )
@@ -185,18 +192,18 @@ private object ApplicationEvolutions {
 
   val InsertIntoPlayEvolutionsLockSql =
     """
-      insert into play_evolutions_lock (lock) values (1)
+      insert into ${schema}play_evolutions_lock (lock) values (1)
     """
 
   val InsertIntoPlayEvolutionsLockMysqlSql =
     """
-      insert into play_evolutions_lock (`lock`) values (1)
+      insert into ${schema}play_evolutions_lock (`lock`) values (1)
     """
 
   val lockPlayEvolutionsLockSqls =
     List(
       """
-        select lock from play_evolutions_lock where lock = 1 for update nowait
+        select lock from ${schema}play_evolutions_lock where lock = 1 for update nowait
       """
     )
 
@@ -206,7 +213,7 @@ private object ApplicationEvolutions {
         set innodb_lock_wait_timeout = 1
       """,
       """
-        select `lock` from play_evolutions_lock where `lock` = 1 for update
+        select `lock` from ${schema}play_evolutions_lock where `lock` = 1 for update
       """
     )
 }
@@ -216,6 +223,7 @@ private object ApplicationEvolutions {
  */
 trait EvolutionsDatasourceConfig {
   def enabled: Boolean
+  def schema: String
   def autocommit: Boolean
   def useLocks: Boolean
   def autoApply: Boolean
@@ -234,6 +242,7 @@ trait EvolutionsConfig {
  */
 case class DefaultEvolutionsDatasourceConfig(
   enabled: Boolean,
+  schema: String,
   autocommit: Boolean,
   useLocks: Boolean,
   autoApply: Boolean,
@@ -286,12 +295,13 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
 
     // Load defaults
     val enabled = config.get[Boolean]("enabled")
+    val schema = config.get[String]("schema")
     val autocommit = getDeprecated[Boolean](config, "play.evolutions", "autocommit", "evolutions.autocommit")
     val useLocks = getDeprecated[Boolean](config, "play.evolutions", "useLocks", "evolutions.use.locks")
     val autoApply = config.get[Boolean]("autoApply")
     val autoApplyDowns = config.get[Boolean]("autoApplyDowns")
 
-    val defaultConfig = new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply,
+    val defaultConfig = new DefaultEvolutionsDatasourceConfig(enabled, schema, autocommit, useLocks, autoApply,
       autoApplyDowns)
 
     // Load config specific to datasources
@@ -302,11 +312,12 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
     val datasourceConfig = datasourceConfigMap.map {
       case (datasource, dsConfig) =>
         val enabled = dsConfig.get[Boolean]("enabled")
+        val schema = dsConfig.get[String]("schema")
         val autocommit = dsConfig.get[Boolean]("autocommit")
         val useLocks = dsConfig.get[Boolean]("useLocks")
         val autoApply = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApply", s"applyEvolutions.$datasource")
         val autoApplyDowns = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApplyDowns", s"applyDownEvolutions.$datasource")
-        datasource -> new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply, autoApplyDowns)
+        datasource -> new DefaultEvolutionsDatasourceConfig(enabled, schema, autocommit, useLocks, autoApply, autoApplyDowns)
     }.toMap
 
     new DefaultEvolutionsConfig(defaultConfig, datasourceConfig)
@@ -341,12 +352,13 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
 
     lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_.head).getOrElse("/")
 
-    request.path match {
+    // Regex removes all parent directories from request path
+    request.path.replaceFirst("^((?!/@evolutions).)*(/@evolutions.*$)", "$2") match {
 
       case applyEvolutions(db) => {
         Some {
-          val scripts = evolutions.scripts(db, reader)
-          evolutions.evolve(db, scripts, config.forDatasource(db).autocommit)
+          val scripts = evolutions.scripts(db, reader, config.forDatasource(db).schema)
+          evolutions.evolve(db, scripts, config.forDatasource(db).autocommit, config.forDatasource(db).schema)
           buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }
@@ -354,7 +366,7 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
 
       case resolveEvolutions(db, rev) => {
         Some {
-          evolutions.resolve(db, rev.toInt)
+          evolutions.resolve(db, rev.toInt, config.forDatasource(db).schema)
           buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }
@@ -380,7 +392,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
   def content = script
 
   private val javascript = """
-        document.location = '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
+        window.location = window.location.href.split(/[?#]/)[0].replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
     """.format(db).trim
 
   def htmlDescription = {

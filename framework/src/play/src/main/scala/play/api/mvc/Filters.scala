@@ -1,17 +1,20 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api._
-import play.api.libs.iteratee._
 import play.api.libs.streams.Accumulator
 import scala.concurrent.{ Promise, Future }
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
+
+  def asJava: play.mvc.EssentialFilter = new play.mvc.EssentialFilter {
+    override def apply(next: play.mvc.EssentialAction) = EssentialFilter.this(next).asJava
+  }
 }
 
 /**
@@ -60,8 +63,8 @@ trait Filter extends EssentialFilter {
         })(rh)
 
         result.onComplete({ resultTry =>
-          // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter. 
-          // Therefore, as a fallback, we try to redeem the bodyIteratee Promise here with an iteratee that consumes 
+          // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter.
+          // Therefore, as a fallback, we try to redeem the bodyAccumulator Promise here with an iteratee that consumes
           // the request body.
           bodyAccumulator.tryComplete(resultTry.map(simpleResult => Accumulator.done(simpleResult)))
         })
@@ -73,9 +76,9 @@ trait Filter extends EssentialFilter {
             result
           }.recoverWith {
             case t: Throwable =>
-              // If the iteratee finishes with an error, fail the promised result that was returned to the 
-              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a) 
-              // promisedResult was already completed successfully in the mapM method above but b) calculating 
+              // If the iteratee finishes with an error, fail the promised result that was returned to the
+              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
+              // promisedResult was already completed successfully in the mapM method above but b) calculating
               // the result in that method caused an error, so we ended up in this recover block anyway.
               promisedResult.tryFailure(t)
               result
@@ -104,6 +107,7 @@ object Filters {
   }
 }
 
+@deprecated("Use dependency injection", "2.5.0")
 class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
   override def doFilter(a: EssentialAction): EssentialAction = {
     Filters(super.doFilter(a), filters: _*)

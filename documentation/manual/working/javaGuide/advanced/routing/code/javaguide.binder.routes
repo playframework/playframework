@@ -1,0 +1,14 @@
+# #user
+GET     /user/:user            controllers.BinderApplication.user(user: javaguide.binder.models.User)
+# #user
+
+# #ageRange
+GET     /ageRange              controllers.BinderApplication.age(age: javaguide.binder.models.AgeRange)
+# #ageRange
+
+GET     /users/list            controllers.Users.list
+GET     /users/:id             controllers.Users.get(id: Long)
+
+# #javascript-router-routes
+GET     /javascriptRoutes      controllers.Application.javascriptRoutes
+# #javascript-router-routes

@@ -1,8 +1,12 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 name := "assets-module-sample"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
 

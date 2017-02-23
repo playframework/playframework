@@ -1,9 +1,7 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
-
-import org.reflections.util.FilterBuilder
 
 /**
  * Provides a cache for reflections, so that classloader scanning over the same classloader for the same package

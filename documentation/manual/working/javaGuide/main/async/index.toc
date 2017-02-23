@@ -1,4 +1,4 @@
 JavaAsync:Handling asynchronous results
 JavaStream:Streaming HTTP responses
-JavaComet:Comet sockets
+JavaComet:Comet
 JavaWebSockets:WebSockets

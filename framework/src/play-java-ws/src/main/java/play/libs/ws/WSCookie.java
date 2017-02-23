@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.ws;
-
 
 /**
  * A WS Cookie.
@@ -11,6 +10,10 @@ public interface WSCookie {
 
     /**
      * Returns the underlying "native" object for the cookie.
+     *
+     * This is probably an <code>org.asynchttpclient.cookie.Cookie</code>.
+     *
+     * @return the "native" object
      */
     public Object getUnderlying();
 

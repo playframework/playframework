@@ -1,13 +1,14 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/java/play/Logger.html) class and uses [Logback](http://logback.qos.ch/) as the logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/java/play/Logger.html) class and uses [Logback](http://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
 #### Logger
+
 Your application can define loggers to send log message requests. Each logger has a name which will appear in log messages and is used for configuration.  
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
@@ -15,6 +16,7 @@ Loggers follow a hierarchical inheritance structure based on their naming. A log
 Play applications are provided a default logger named "application" or you can create your own loggers. The Play libraries use a logger named "play", and some third party libraries will have loggers with their own names.
 
 #### Log levels
+
 Log levels are used to classify the severity of log messages. When you write a log request statement you will specify the severity and this will appear in generated log messages.
 
 This is the set of available log levels, in decreasing order of severity.
@@ -29,18 +31,21 @@ This is the set of available log levels, in decreasing order of severity.
 In addition to classifying messages, log levels are used to configure severity thresholds on loggers and appenders. For example, a logger set to level `INFO` will log any request of level `INFO` or higher (`INFO`, `WARN`, `ERROR`) but will ignore requests of lower severities (`DEBUG`, `TRACE`). Using `OFF` will ignore all log requests.
 
 #### Appenders
+
 The logging API allows logging requests to print to one or many output destinations called "appenders." Appenders are specified in configuration and options exist for the console, files, databases, and other outputs.
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> Note: For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> **Note:** For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
+
 First import the `Logger` class:
 
 @[logging-import](code/javaguide/logging/JavaLogging.java)
 
-#### The default Logger
+### The default Logger
+
 The `Logger` class serves as the default logger using the name "application." You can use it to write log request statements:
 
 @[logging-default-logger](code/javaguide/logging/JavaLogging.java)
@@ -60,8 +65,9 @@ java.lang.ArithmeticException: / by zero
 
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
-#### Creating your own loggers
-Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexibile configuration, filtering of log output, and pinpointing the source of log messages.
+### Creating your own loggers
+
+Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.of` factory method with a name argument:
 
@@ -71,18 +77,16 @@ A common strategy for logging application events is to use a distinct logger per
 
 @[logging-create-logger-class](code/javaguide/logging/JavaLogging.java)
 
-#### Logging patterns
+### Logging patterns
+
 Effective use of loggers can help you achieve many goals with the same tool:
 
 @[logging-pattern-mix](code/javaguide/logging/Application.java)
 
 This example uses [[action composition|JavaActionsComposition]] to define an `AccessLoggingAction` that will log request data to a logger named "access." The `Application` controller uses this action and it also uses its own logger (named after its class) for application events. In configuration you could then route these loggers to different appenders, such as an access log and an application log.
 
-The above design works well if you want to log request data for only specific actions. To log all requests, it's better to [[intercept requests|JavaInterceptors]] in global settings:
-
-@[logging-pattern-filter](code/javaguide/logging/Global.java)
-
-Note that the [[Global class|JavaGlobal]] is also a sensible place to use the default logger for events like application start and stop.
+The above design works well if you want to log request data for only specific actions. To log all requests, it's better to use a [[filter|JavaHttpFilters]] or extend [`play.http.DefaultHttpRequestHandler`](api/java/play/http/DefaultHttpRequestHandler.html).
 
 ## Configuration
-See [[configuring logging|SettingsLogger]] for details on configuration. 
+
+See [[configuring logging|SettingsLogger]] for details on configuration.

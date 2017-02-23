@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.cache
 
@@ -34,9 +34,9 @@ class CachedSpec extends PlaySpecification {
       header(EXPIRES, result2) must_== header(EXPIRES, result1)
     }
 
-    "cache values using named injected CachedApi" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
-    )) {
+    "cache values using named injected CachedApi" in new WithApplication(
+      _.configure("play.cache.bindCaches" -> Seq("custom"))
+    ) {
       val controller = app.injector.instanceOf[NamedCachedController]
       val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
@@ -280,9 +280,9 @@ class CachedSpec extends PlaySpecification {
   }
 
   "EhCacheModule" should {
-    "support binding multiple different caches" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
-    )) {
+    "support binding multiple different caches" in new WithApplication(
+      _.configure("play.cache.bindCaches" -> Seq("custom"))
+    ) {
       val component = app.injector.instanceOf[SomeComponent]
       val defaultCache = app.injector.instanceOf[CacheApi]
       component.set("foo", "bar")

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.mvc;
 
 import akka.util.ByteString;
@@ -5,7 +8,6 @@ import play.api.http.Status$;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.streams.Accumulator;
-import scala.compat.java8.FutureConverters;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -26,7 +28,8 @@ public class BodyParsers {
      * @param errorMessage The error message to pass to the error handler if the content type is not valid.
      * @param validate The validation function.
      * @param parser The parser to use if the content type is valid.
-     * @return An accumulator to parse tho body.
+     * @param <A> The type to be parsed by the parser
+     * @return An accumulator to parse the body.
      */
     public static <A> Accumulator<ByteString, F.Either<Result, A>> validateContentType(HttpErrorHandler errorHandler,
                Http.RequestHeader request, String errorMessage, Function<String, Boolean> validate,
@@ -34,9 +37,8 @@ public class BodyParsers {
         if (request.contentType().map(validate).orElse(false)) {
             return parser.apply(request);
         } else {
-            CompletionStage<Result> result = FutureConverters.toJava(
-                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage).wrapped()
-            );
+            CompletionStage<Result> result =
+                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
             return Accumulator.done(result.thenApply(F.Either::Left));
         }
     }

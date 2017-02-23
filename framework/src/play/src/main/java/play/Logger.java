@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -59,6 +59,8 @@ public class Logger {
 
     /**
      * Get the underlying application SLF4J logger.
+     *
+     * @return the underlying logger
      */
     public static org.slf4j.Logger underlying() {
         return logger.underlying();
@@ -66,6 +68,8 @@ public class Logger {
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the TRACE level?
+     *
+     * @return <code>true</code> if the logger instance enabled for the TRACE level?
      */
     public static boolean isTraceEnabled() {
         return logger.isTraceEnabled();
@@ -73,6 +77,8 @@ public class Logger {
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the DEBUG level?
+     *
+     * @return <code>true</code> if the logger instance enabled for the DEBUG level?
      */
     public static boolean isDebugEnabled() {
         return logger.isDebugEnabled();
@@ -80,6 +86,8 @@ public class Logger {
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the INFO level?
+     *
+     * @return <code>true</code> if the logger instance enabled for the INFO level?
      */
     public static boolean isInfoEnabled() {
         return logger.isInfoEnabled();
@@ -87,6 +95,8 @@ public class Logger {
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the WARN level?
+     *
+     * @return <code>true</code> if the logger instance enabled for the WARN level?
      */
     public static boolean isWarnEnabled() {
         return logger.isWarnEnabled();
@@ -94,6 +104,8 @@ public class Logger {
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the ERROR level?
+     *
+     * @return <code>true</code> if the logger instance enabled for the ERROR level?
      */
     public static boolean isErrorEnabled() {
         return logger.isWarnEnabled();
@@ -257,6 +269,8 @@ public class Logger {
 
         /**
          * Get the underlying SLF4J logger.
+         *
+         * @return the SLF4J loger
          */
         public org.slf4j.Logger underlying() {
             return logger.underlyingLogger();
@@ -264,6 +278,8 @@ public class Logger {
 
         /**
          * Returns <code>true</code> if the logger instance has TRACE level logging enabled.
+         *
+         * @return <code>true</code> if the logger instance has TRACE level logging enabled.
          */
         public boolean isTraceEnabled() {
             return logger.isTraceEnabled();
@@ -271,6 +287,8 @@ public class Logger {
 
         /**
          * Returns <code>true</code> if the logger instance has DEBUG level logging enabled.
+         *
+         * @return <code>true</code> if the logger instance has DEBUG level logging enabled.
          */
         public boolean isDebugEnabled() {
             return logger.isDebugEnabled();
@@ -278,6 +296,8 @@ public class Logger {
 
         /**
          * Returns <code>true</code> if the logger instance has INFO level logging enabled.
+         *
+         * @return <code>true</code> if the logger instance has INFO level logging enabled.
          */
         public boolean isInfoEnabled() {
             return logger.isInfoEnabled();
@@ -285,6 +305,8 @@ public class Logger {
 
         /**
          * Returns <code>true</code> if the logger instance has WARN level logging enabled.
+         *
+         * @return <code>true</code> if the logger instance has WARN level logging enabled.
          */
         public boolean isWarnEnabled() {
             return logger.isWarnEnabled();
@@ -292,6 +314,8 @@ public class Logger {
 
         /**
          * Returns <code>true</code> if the logger instance has ERROR level logging enabled.
+         *
+         * @return <code>true</code> if the logger instance has ERROR level logging enabled.
          */
         public boolean isErrorEnabled() {
             return logger.isWarnEnabled();

@@ -1,18 +1,22 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.core.server.akkahttp
+
+import java.net.InetSocketAddress
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import java.net.InetSocketAddress
 import play.api.Logger
-import play.api.http.{ HttpEntity => PlayHttpEntity, HttpChunk }
 import play.api.http.HeaderNames._
-import play.api.libs.iteratee._
+import play.api.http.{ HttpChunk, HttpErrorHandler, HttpEntity => PlayHttpEntity, Status }
 import play.api.mvc._
-import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
+import play.core.server.common.{ ConnectionInfo, ForwardedHeaderHandler, ServerResultUtils }
 import scala.collection.immutable
+import scala.concurrent.Future
 
 /**
  * Conversions between Akka's and Play's HTTP model objects.
@@ -22,14 +26,14 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   private val logger = Logger(getClass)
 
   /**
-   * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Eumerator`
+   * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
    * for its body.
    */
   def convertRequest(
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Source[ByteString, Any]) = {
+    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -56,39 +60,41 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       // We could get NettyServer to send a similar tag, but for the moment
       // let's not, just in case it slows NettyServer down a bit.
       override val tags = Map("HTTP_SERVER" -> "akka-http")
-      override def uri = request.uri.toString
+      // Note: Akka HTTP doesn't provide a direct way to get the raw URI
+      // This will only work properly if
+      override def uri = request.header[`Raw-Request-URI`].map(_.value) getOrElse {
+        logger.warn("Can't get raw request URI. Please set akka.http.server.raw-request-uri-header = true")
+        request.uri.toString
+      }
       override def path = request.uri.path.toString
       override def method = request.method.name
       override def version = request.protocol.value
-      override def queryString = request.uri.query.toMultiMap
+      override def queryString = request.uri.query().toMultiMap
       override val headers = convertRequestHeaders(request)
-      override def remoteAddress: String = ServerRequestUtils.findRemoteAddress(
-        forwardedHeaderHandler,
-        headers,
-        remoteAddressArg
-      )
-      override def secure: Boolean = ServerRequestUtils.findSecureProtocol(
-        forwardedHeaderHandler,
-        headers,
-        secureProtocol
-      )
+      private lazy val remoteConnection: ConnectionInfo = {
+        forwardedHeaderHandler.remoteConnection(remoteAddressArg.getAddress, secureProtocol, headers)
+      }
+      override def remoteAddress = remoteConnection.address.getHostAddress
+      override def secure = remoteConnection.secure
+      override def clientCertificateChain = None // TODO - Akka does not yet expose the SSLEngine used for the request
     }
   }
 
   /**
-   * Convert the request headers of an Akka `HttpRequest` to a Play
-   * `Headers` object.
+   * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
   private def convertRequestHeaders(request: HttpRequest): Headers = {
     val entityHeaders: Seq[(String, String)] = request.entity match {
-      case HttpEntity.Strict(contentType, _) =>
-        Seq((CONTENT_TYPE, contentType.value))
+      case HttpEntity.Strict(contentType, data) =>
+        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> data.length.toString)
       case HttpEntity.Default(contentType, contentLength, _) =>
-        Seq((CONTENT_TYPE, contentType.value), (CONTENT_LENGTH, contentLength.toString))
+        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> contentLength.toString)
       case HttpEntity.Chunked(contentType, _) =>
-        Seq((CONTENT_TYPE, contentType.value))
+        Seq(CONTENT_TYPE -> contentType.value, TRANSFER_ENCODING -> play.api.http.HttpProtocol.CHUNKED)
     }
-    val normalHeaders: Seq[(String, String)] = request.headers.map((rh: HttpHeader) => (rh.name, rh.value))
+    val normalHeaders: Seq[(String, String)] = request.headers
+      .filter(_.isNot(`Raw-Request-URI`.lowercaseName))
+      .map(rh => rh.name -> rh.value)
     new Headers(entityHeaders ++ normalHeaders)
   }
 
@@ -96,21 +102,20 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: Materializer): Source[ByteString, Any] = {
+    request: HttpRequest)(implicit fm: Materializer): Option[Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
-        Source.empty
+        None
       case HttpEntity.Strict(_, data) =>
-        Source.single(data)
+        Some(Source.single(data))
       case HttpEntity.Default(_, 0, _) =>
-        Source.empty
+        None
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        pubr
+        Some(pubr)
       case HttpEntity.Chunked(contentType, chunks) =>
-        // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        chunks.map(_.data())
+        Some(chunks.takeWhile(!_.isLastChunk).map(_.data()))
     }
   }
 
@@ -120,19 +125,35 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
   def convertResult(
     requestHeaders: RequestHeader,
     unvalidated: Result,
-    protocol: HttpProtocol)(implicit mat: Materializer): HttpResponse = {
+    protocol: HttpProtocol,
+    errorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[HttpResponse] = {
 
-    val result = ServerResultUtils.validateResult(requestHeaders, unvalidated)
-    val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
-    val entity = convertResultBody(requestHeaders, convertedHeaders, result, protocol)
-    val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, result)
-    val closeHeader = connectionHeader.header.map(Connection(_))
-    HttpResponse(
-      status = result.header.status,
-      headers = convertedHeaders.misc ++ closeHeader,
-      entity = entity,
-      protocol = protocol
-    )
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    ServerResultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
+      // Convert result
+      ServerResultUtils.validateResult(requestHeaders, unvalidated, errorHandler).map { validated: Result =>
+        val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
+        val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
+        val connectionHeader = ServerResultUtils.determineConnectionHeader(requestHeaders, validated)
+        val closeHeader = connectionHeader.header.map(Connection(_))
+        val response = HttpResponse(
+          status = validated.header.status,
+          headers = convertedHeaders.misc ++ closeHeader,
+          entity = entity,
+          protocol = protocol
+        )
+        response
+      }
+    } {
+      // Fallback response in case an exception is thrown during normal error handling
+      HttpResponse(
+        status = Status.INTERNAL_SERVER_ERROR,
+        headers = immutable.Seq(Connection("close")),
+        entity = HttpEntity.Empty,
+        protocol = protocol
+      )
+    }
   }
 
   def convertResultBody(
@@ -141,14 +162,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     result: Result,
     protocol: HttpProtocol): ResponseEntity = {
 
-    import Execution.Implicits.trampoline
-
-    def dataSource(enum: Enumerator[Array[Byte]]): Source[ByteString, Unit] = {
-      val dataEnum: Enumerator[ByteString] = enum.map(ByteString(_)) >>> Enumerator.eof
-      AkkaStreamsConversion.enumeratorToSource(dataEnum)
-    }
-
-    val contentType = result.body.contentType.fold(ContentTypes.NoContentType) { ct =>
+    val contentType = result.body.contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
       HttpHeader.parse(CONTENT_TYPE, ct) match {
         case HttpHeader.ParsingResult.Ok(`Content-Type`(akkaCt), _) => akkaCt
         case _ => ContentTypes.NoContentType

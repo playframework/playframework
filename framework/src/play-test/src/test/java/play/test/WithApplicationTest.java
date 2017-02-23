@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
@@ -15,7 +15,7 @@ public class WithApplicationTest extends WithApplication {
     @Test
     public void withApplicationShouldProvideAnApplication() {
         assertNotNull(app);
-        assertNotNull(Play.application());
+        assertTrue(play.api.Play.maybeApplication().nonEmpty());
     }
 
     @Test

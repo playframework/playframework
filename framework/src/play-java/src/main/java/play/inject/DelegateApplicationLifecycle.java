@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject;
-
-
-import play.libs.F;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 
 @Singleton
 public class DelegateApplicationLifecycle implements ApplicationLifecycle {
@@ -20,7 +18,7 @@ public class DelegateApplicationLifecycle implements ApplicationLifecycle {
     }
 
     @Override
-    public void addStopHook(final Callable<F.Promise<Void>> hook) {
+    public void addStopHook(final Callable<? extends CompletionStage<?>> hook) {
         delegate.addStopHook(hook);
     }
 }

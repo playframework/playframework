@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
 # Session and Flash scopes
 
 ## How it is different in Play
@@ -13,7 +13,7 @@ Of course, cookie values are signed with a secret key so the client can’t modi
 
 The Play Session is not intended to be used as a cache. If you need to cache some data related to a specific Session, you can use the Play built-in cache mechanism and store a unique ID in the user Session to keep them related to a specific user.
 
-> By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.). You can also set the maximum age of the session cookie by configuring the key `session.maxAge` (in milliseconds) in `application.conf`.
+> By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.).  You can also set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` (in milliseconds) in `application.conf`, but note that this does not prevent an attacker from keeping and reusing the cookie past the expiration date.
 
 ## Storing data in the Session
 

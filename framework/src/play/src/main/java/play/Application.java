@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -19,16 +19,22 @@ public interface Application {
 
     /**
      * Get the underlying Scala application.
+     *
+     * @return the application
      */
     play.api.Application getWrappedApplication();
 
     /**
      * Get the application configuration.
+     *
+     * @return the configuration
      */
     Configuration configuration();
 
     /**
      * Get the injector for this application.
+     *
+     * @return the injector
      */
     Injector injector();
 
@@ -81,23 +87,11 @@ public interface Application {
     }
 
     /**
-     * Get the {@link play.Plugin} instance for the given class.
-     *
-     * @param pluginClass the Class of the plugin
-     * @return an instance of the plugin (if found, otherwise null)
-     */
-    default <T> T plugin(Class<T> pluginClass) {
-        return Scala.orNull(getWrappedApplication().plugin(pluginClass));
-    }
-
-    /**
      * Check whether the application is in {@link Mode#DEV} mode.
      *
      * @return true if the application is in DEV mode
      */
-    default boolean isDev() {
-        return play.api.Play.isDev(getWrappedApplication());
-    }
+    default boolean isDev() { return getWrappedApplication().isDev(); }
 
     /**
      * Check whether the application is in {@link Mode#PROD} mode.
@@ -105,7 +99,7 @@ public interface Application {
      * @return true if the application is in PROD mode
      */
     default boolean isProd() {
-        return play.api.Play.isProd(getWrappedApplication());
+        return getWrappedApplication().isProd();
     }
 
     /**
@@ -114,7 +108,7 @@ public interface Application {
      * @return true if the application is in TEST mode
      */
     default boolean isTest() {
-        return play.api.Play.isTest(getWrappedApplication());
+        return getWrappedApplication().isTest();
     }
 
 }

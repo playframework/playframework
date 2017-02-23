@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.headers
 
@@ -7,7 +7,6 @@ import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.inject.Module
 import play.api.mvc._
-import scala.concurrent.Future
 import play.api.{ Environment, PlayConfig, Configuration }
 
 /**
@@ -69,10 +68,28 @@ object SecurityHeadersFilter {
  * @param contentSecurityPolicy "Content-Security-Policy"
  */
 case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),
-  xssProtection: Option[String] = Some("1; mode=block"),
-  contentTypeOptions: Option[String] = Some("nosniff"),
-  permittedCrossDomainPolicies: Option[String] = Some("master-only"),
-  contentSecurityPolicy: Option[String] = Some("default-src 'self'"))
+    xssProtection: Option[String] = Some("1; mode=block"),
+    contentTypeOptions: Option[String] = Some("nosniff"),
+    permittedCrossDomainPolicies: Option[String] = Some("master-only"),
+    contentSecurityPolicy: Option[String] = Some("default-src 'self'")) {
+  def this() {
+    this(frameOptions = Some("DENY"))
+  }
+
+  import scala.compat.java8.OptionConverters._
+  import java.{ util => ju }
+
+  def withFrameOptions(frameOptions: ju.Optional[String]): SecurityHeadersConfig =
+    copy(frameOptions = frameOptions.asScala)
+  def withXssProtection(xssProtection: ju.Optional[String]): SecurityHeadersConfig =
+    copy(xssProtection = xssProtection.asScala)
+  def withContentTypeOptions(contentTypeOptions: ju.Optional[String]): SecurityHeadersConfig =
+    copy(contentTypeOptions = contentTypeOptions.asScala)
+  def withPermittedCrossDomainPolicies(permittedCrossDomainPolicies: ju.Optional[String]): SecurityHeadersConfig =
+    copy(permittedCrossDomainPolicies = permittedCrossDomainPolicies.asScala)
+  def withContentSecurityPolicy(contentSecurityPolicy: ju.Optional[String]): SecurityHeadersConfig =
+    copy(contentSecurityPolicy = contentSecurityPolicy.asScala)
+}
 
 /**
  * Parses out a SecurityHeadersConfig from play.api.Configuration (usually this means application.conf).

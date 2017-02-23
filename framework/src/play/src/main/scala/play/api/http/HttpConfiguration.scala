@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -89,9 +89,12 @@ case class ParserConfiguration(
  * Configuration for action composition.
  *
  * @param controllerAnnotationsFirst If annotations put on controllers should be executed before the ones put on actions.
+ * @param executeActionCreatorActionFirst If the action returned by the action creator should be
+ *                                         executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
-  controllerAnnotationsFirst: Boolean = false)
+  controllerAnnotationsFirst: Boolean = false,
+  executeActionCreatorActionFirst: Boolean = false)
 
 object HttpConfiguration {
 
@@ -118,7 +121,8 @@ object HttpConfiguration {
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
       ),
       actionComposition = ActionCompositionConfiguration(
-        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst")
+        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
+        executeActionCreatorActionFirst = config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")
@@ -142,5 +146,5 @@ object HttpConfiguration {
   /**
    * Don't use this - only exists for transition from global state
    */
-  private[play] def current = Play.maybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+  private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
 }

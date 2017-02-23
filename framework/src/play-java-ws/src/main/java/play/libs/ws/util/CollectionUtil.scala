@@ -1,6 +1,9 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.ws.util
 
-import java.{util =>ju}
+import java.{ util =>ju }
 import scala.collection.convert.WrapAsJava._
 
 /** Utility class for converting a Scala `Map` with a nested collection type into its idiomatic Java counterpart. 

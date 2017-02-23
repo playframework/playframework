@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.auth
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc.Security.{ AuthenticatedRequest, AuthenticatedBuilder }
 import play.api.mvc._
@@ -59,6 +60,7 @@ object SecuritySpec extends PlaySpecification {
   object FakeConnection extends Connection("fake")
   case class Connection(name: String)
 
-  def withApplication[T](block: => T) =
-    running(FakeApplication(additionalConfiguration = Map("play.crypto.secret" -> "foobar")))(block)
+  def withApplication[T](block: => T) = {
+    running(_.configure("play.crypto.secret" -> "foobar"))(_ => block)
+  }
 }

@@ -1,40 +1,47 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.ws.ning;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
+import akka.stream.Materializer;
+
+import java.io.IOException;
+
+import org.asynchttpclient.AsyncHttpClientConfig;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
+import play.libs.ws.ahc.AhcWSClient;
 
 /**
- * A WS client backed by a Ning AsyncHttpClient.
+ * A WS client backed by an AsyncHttpClient.
  *
- * If you need to debug Ning, set logger.com.ning.http.client=DEBUG in your application.conf file.
+ * If you need to debug AHC, set org.asynchttpclient=DEBUG in your logging framework.
+ *
+ * @deprecated Use AhcWSClient instead
  */
+@Deprecated
 public class NingWSClient implements WSClient {
 
-    private final AsyncHttpClient asyncHttpClient;
+    private final AhcWSClient ahc;
 
-    public NingWSClient(AsyncHttpClientConfig config) {
-        this.asyncHttpClient = new AsyncHttpClient(config);
+    public NingWSClient(AsyncHttpClientConfig config, Materializer materializer) {
+        this.ahc = new AhcWSClient(config, materializer);
     }
 
     @Override
     public Object getUnderlying() {
-        return asyncHttpClient;
+        return ahc.getUnderlying();
     }
 
     @Override
     public WSRequest url(String url) {
-        return new NingWSRequest(this, url);
+        return ahc.url(url);
     }
 
     @Override
-    public void close() {
-        asyncHttpClient.close();
+    public void close() throws IOException {
+        ahc.close();
     }
 }

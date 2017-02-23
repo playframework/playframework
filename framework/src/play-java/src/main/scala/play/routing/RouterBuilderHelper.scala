@@ -1,25 +1,27 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routing
 
+import java.util.concurrent.CompletionStage
+
 import play.api.Play
 import play.api.http.{ JavaHttpErrorHandlerDelegate, HttpConfiguration }
-import play.api.mvc.{ BodyParser, Results, Action }
-import play.core.j.{ JavaParsers, JavaHelpers }
+import play.api.mvc.{ Results, Action }
+import play.core.j.JavaHelpers
 import play.core.routing.HandlerInvokerFactory
-import play.libs.F
-import play.mvc.Http.{ RequestBody, Context }
+import play.mvc.Http.Context
 import play.mvc.Result
 import play.utils.UriEncoding
 import scala.collection.JavaConversions._
 
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
 private[routing] object RouterBuilderHelper {
-  def build(router: RoutingDsl): play.api.routing.Router = {
+  def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.toList
 
     // Create the router
@@ -63,19 +65,20 @@ private[routing] object RouterBuilderHelper {
               case Right(params) =>
 
                 // Convert to a Scala action
-                val parser = HandlerInvokerFactory.javaBodyParserToScala(
+                val parser = HandlerInvokerFactory.javaBodyParserToScala {
                   // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
                   // it to instantiate the default body parser, we have to instantiate it ourselves.
-                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(Play.current.errorHandler),
-                    Play.current.injector.instanceOf[HttpConfiguration])
-                )
+                  val app = Play.privateMaybeApplication.get // throw exception if no current app
+                  new play.mvc.BodyParser.Default(new JavaHttpErrorHandlerDelegate(app.errorHandler),
+                    app.injector.instanceOf[HttpConfiguration])
+                }
                 Action.async(parser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request)
                   try {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {
                       case result: Result => Future.successful(result.asScala)
-                      case promise: F.Promise[Result] => promise.wrapped.map(_.asScala)
+                      case promise: CompletionStage[Result] => FutureConverters.toScala(promise).map(_.asScala)
                     }
                   } finally {
                     Context.current.remove()
@@ -87,6 +90,6 @@ private[routing] object RouterBuilderHelper {
           } else None
         } else None
       ))
-    })
+    }).asJava
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.stream.Materializer
 import akka.util.ByteString
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 
 import play.api.test.Helpers._
@@ -24,14 +25,11 @@ object FakesSpec extends PlaySpecification {
   "FakeApplication" should {
 
     "allow adding routes inline" in {
-      val app = new FakeApplication(
-        withRoutes = {
-          case ("GET", "/inline") => Action {
-            Results.Ok("inline route")
-          }
+      running(_.routes {
+        case ("GET", "/inline") => Action {
+          Results.Ok("inline route")
         }
-      )
-      running(app) {
+      }) { app =>
         route(app, FakeRequest("GET", "/inline")) must beSome.which { result =>
           status(result) must equalTo(OK)
           contentAsString(result) must equalTo("inline route")
@@ -44,13 +42,11 @@ object FakesSpec extends PlaySpecification {
   }
 
   "FakeRequest" should {
-    def app = new FakeApplication(
-      withRoutes = {
-        case (PUT, "/process") => Action { req =>
-          Results.Ok(req.headers.get(CONTENT_TYPE) getOrElse "")
-        }
+    def app = GuiceApplicationBuilder().routes {
+      case (PUT, "/process") => Action { req =>
+        Results.Ok(req.headers.get(CONTENT_TYPE) getOrElse "")
       }
-    )
+    }.build()
 
     "Define Content-Type header based on body" in new WithApplication(app) {
       val xml =

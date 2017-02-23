@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.format
 
@@ -21,6 +21,28 @@ object FormatSpec extends Specification {
       val format2 = Formats.dateFormat("HH:mm", TimeZone.getTimeZone("GMT+0000"))
       format2.bind("date", data).right.map(_.getTime) should beRight(0L)
       format2.unbind("date", new Date(0L)) should equalTo(data)
+    }
+  }
+
+  "java.time Types" should {
+    import java.time.LocalDateTime
+    "support LocalDateTime formatting with a pattern" in {
+      val pattern = "yyyy/MM/dd HH:mm:ss"
+      val data = Map("localDateTime" -> "2016/06/06 00:30:30")
+
+      val format = Formats.localDateTimeFormat(pattern)
+      val bind: Either[Seq[FormError], LocalDateTime] = format.bind("localDateTime", data)
+      bind.right.map(dt => {
+        (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
+      }) should beRight((2016, 6, 6, 0, 30, 30))
+    }
+
+    "support LocalDateTime formatting with default pattern" in {
+      val data = Map("localDateTime" -> "2016-10-10 11:11:11")
+      val format = Formats.localDateTimeFormat
+      format.bind("localDateTime", data).right.map { dt =>
+        (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
+      } should beRight((2016, 10, 10, 11, 11, 11))
     }
   }
 

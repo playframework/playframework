@@ -1,14 +1,13 @@
+/*
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.streams
 
-import java.io.{ OutputStream, FileInputStream, File, InputStream }
-
-import akka.stream.{ Attributes, ActorAttributes, Materializer }
-import akka.stream.io.{ OutputStreamSink, InputStreamSource }
-import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
-import akka.util.ByteString
+import akka.stream.Materializer
+import akka.stream.scaladsl._
 import org.reactivestreams._
 import play.api.libs.iteratee._
-import play.api.libs.streams.impl.SubscriberIteratee
+import play.api.libs.streams.impl.{ SubscriberPublisherProcessor, SubscriberIteratee }
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
@@ -16,16 +15,6 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
  * and from Reactive Streams' Publishers and Subscribers.
  */
 object Streams {
-
-  /**
-   * The default dispatcher used for blocking IO in Play.
-   */
-  val BlockingIoDisptacher = "play.akka.blockingIoDispatcher"
-
-  /**
-   * The attributes used for any Akka streams that work with blocking IO.
-   */
-  val BlockingIoAttributes: Attributes = ActorAttributes.dispatcher(BlockingIoDisptacher)
 
   /**
    * Adapt a Future into a Publisher. For a successful Future the
@@ -47,7 +36,7 @@ object Streams {
   /**
    * Adapt a Promise into a Processor, creating an Processor that
    * consumes a single element and publishes it. The Subscriber end
-   * of the the Processor is created with `promiseToSubscriber`. The
+   * of the Processor is created with `promiseToSubscriber`. The
    * Publisher end of the Processor is created with `futureToPublisher`.
    */
   def promiseToProcessor[T](prom: Promise[T]): Processor[T, T] = {
@@ -117,7 +106,7 @@ object Streams {
   def iterateeDoneToPublisher[T, U](iter: Iteratee[T, U]): Publisher[U] = {
     iterateeFoldToPublisher[T, U, U](iter, {
       case Step.Done(x, _) => Future.successful(x)
-      case notDone: Step[T, U] => Future.failed(new Exception("Can only get value from Done iteratee: $notDone"))
+      case notDone: Step[T, U] => Future.failed(new Exception(s"Can only get value from Done iteratee: $notDone"))
     })(Execution.trampoline)
   }
 
@@ -170,6 +159,32 @@ object Streams {
     new impl.PublisherEnumerator(pubr)
 
   /**
+   * Adapt an Enumeratee to a Processor.
+   */
+  def enumerateeToProcessor[A, B](enumeratee: Enumeratee[A, B]): Processor[A, B] = {
+    val (iter, enum) = Concurrent.joined[A]
+    val (subr, _) = iterateeToSubscriber(iter)
+    val pubr = enumeratorToPublisher(enum &> enumeratee)
+    new SubscriberPublisherProcessor(subr, pubr)
+  }
+
+  /**
+   * Adapt a Processor to an Enumeratee.
+   */
+  def processorToEnumeratee[A, B](processor: Processor[A, B]): Enumeratee[A, B] = {
+    val iter = subscriberToIteratee(processor)
+    val enum = publisherToEnumerator(processor)
+    new Enumeratee[A, B] {
+      override def applyOn[U](inner: Iteratee[B, U]): Iteratee[A, Iteratee[B, U]] = {
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        iter.map { _ =>
+          Iteratee.flatten(enum(inner))
+        }
+      }
+    }
+  }
+
+  /**
    * Join a Subscriber and Publisher together to make a Processor.
    * The Processor delegates its Subscriber methods to the Subscriber
    * and its Publisher methods to the Publisher. The Processor
@@ -188,7 +203,7 @@ object Streams {
   def iterateeToAccumulator[T, U](iter: Iteratee[T, U]): Accumulator[T, U] = {
     val (subr, resultIter) = iterateeToSubscriber(iter)
     val result = resultIter.run
-    val sink = Sink(subr).mapMaterializedValue(_ => result)
+    val sink = Sink.fromSubscriber(subr).mapMaterializedValue(_ => result)
     Accumulator(sink)
   }
 
@@ -198,58 +213,19 @@ object Streams {
    * This is done by creating an Akka streams Subscriber based Source, and
    * adapting that to an Iteratee, before running the Akka streams source.
    *
-   * This method for adaptation requires a FlowMaterializer to materialize
+   * This method for adaptation requires a Materializer to materialize
    * the subscriber, however it does not materialize the subscriber until the
    * iteratees fold method has been invoked.
    */
   def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: Materializer): Iteratee[T, U] = {
     new Iteratee[T, U] {
       def fold[B](folder: (Step[T, U]) => Future[B])(implicit ec: ExecutionContext) = {
-        Source.subscriber.toMat(accumulator.toSink) { (subscriber, result) =>
+        Source.asSubscriber.toMat(accumulator.toSink) { (subscriber, result) =>
           import play.api.libs.iteratee.Execution.Implicits.trampoline
           subscriberToIteratee(subscriber).mapM(_ => result)(trampoline)
         }.run().fold(folder)
       }
     }
-  }
-
-  /**
-   * Convert the given input stream to a Akka streams source.
-   */
-  def inputStreamToSource(is: InputStream, chunkSize: Int): Source[ByteString, _] =
-    inputStreamToSource(() => is, chunkSize)
-
-  /**
-   * Convert the given input stream callback to a Akka streams source.
-   */
-  def inputStreamToSource(is: () => InputStream, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
-    InputStreamSource(is, chunkSize)
-      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
-  }
-
-  /**
-   * Convert the given File to a Akka streams source.
-   */
-  def fileToSource(file: File, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
-    inputStreamToSource(() => new FileInputStream(file), chunkSize)
-  }
-
-  /**
-   * Convert the resource from the given classloader to a Akka streams source.
-   */
-  def resourceToSource(classLoader: ClassLoader, name: String, chunkSize: Int = InputStreamSource.DefaultChunkSize): Source[ByteString, _] = {
-    inputStreamToSource(() => classLoader.getResourceAsStream(name), chunkSize)
-  }
-
-  /**
-   * Convert the given OutputStream to a sink that is materialized to a future of the number of bytes written to the
-   * OutputStream when the stream is finished.
-   *
-   * The OutputStream will be closed when the Sink is finished.
-   */
-  def outputStreamToSink(os: () => OutputStream): Sink[ByteString, Future[Long]] = {
-    OutputStreamSink(os)
-      .withAttributes(ActorAttributes.dispatcher(BlockingIoDisptacher))
   }
 
 }

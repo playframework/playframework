@@ -1,8 +1,12 @@
+//
+// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 name := "system-property"
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
 
 // because the "test" directory clashes with the scripted test file
 scalaSource in Test <<= baseDirectory(_ / "tests")

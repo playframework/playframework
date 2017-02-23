@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.utils
 
@@ -124,8 +124,8 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    allowed set...
 */
     "percent-encode any characters that aren't specifically allowed in a path segment" in {
-      encodingFor("\000", "US-ASCII") must_== PercentEncoded("%00")
-      encodingFor("\037", "US-ASCII") must_== PercentEncoded("%1F")
+      encodingFor("\u0000", "US-ASCII") must_== PercentEncoded("%00")
+      encodingFor("\u001F", "US-ASCII") must_== PercentEncoded("%1F")
       encodingFor(" ", "US-ASCII") must_== PercentEncoded("%20")
       encodingFor("\"", "US-ASCII") must_== PercentEncoded("%22")
       encodingFor("%", "US-ASCII") must_== PercentEncoded("%25")
@@ -137,8 +137,8 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       encodingFor("{", "US-ASCII") must_== PercentEncoded("%7B")
       encodingFor("|", "US-ASCII") must_== PercentEncoded("%7C")
       encodingFor("}", "US-ASCII") must_== PercentEncoded("%7D")
-      encodingFor("\177", "ISO-8859-1") must_== PercentEncoded("%7F")
-      encodingFor("\377", "ISO-8859-1") must_== PercentEncoded("%FF")
+      encodingFor("\u007F", "ISO-8859-1") must_== PercentEncoded("%7F")
+      encodingFor("\u00FF", "ISO-8859-1") must_== PercentEncoded("%FF")
     }
 
     "percent-encode UTF-8 strings by encoding each octet not allowed in a path segment" in {
@@ -165,10 +165,10 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    encodings.    
 */
     "percent-encode to triplets with upper-case hex" in {
-      encodingFor("\000", "ISO-8859-1") must_== PercentEncoded("%00")
-      encodingFor("\231", "ISO-8859-1") must_== PercentEncoded("%99")
-      encodingFor("\252", "ISO-8859-1") must_== PercentEncoded("%AA")
-      encodingFor("\377", "ISO-8859-1") must_== PercentEncoded("%FF")
+      encodingFor("\u0000", "ISO-8859-1") must_== PercentEncoded("%00")
+      encodingFor("\u0099", "ISO-8859-1") must_== PercentEncoded("%99")
+      encodingFor("\u00AA", "ISO-8859-1") must_== PercentEncoded("%AA")
+      encodingFor("\u00FF", "ISO-8859-1") must_== PercentEncoded("%FF")
     }
 
     // Misc tests
@@ -198,14 +198,14 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
     }
 
     "decode characters percent-encoded with upper and lowercase hex digits" in {
-      decodePathSegment("%aa", "ISO-8859-1") must_== "\252"
-      decodePathSegment("%aA", "ISO-8859-1") must_== "\252"
-      decodePathSegment("%Aa", "ISO-8859-1") must_== "\252"
-      decodePathSegment("%AA", "ISO-8859-1") must_== "\252"
-      decodePathSegment("%ff", "ISO-8859-1") must_== "\377"
-      decodePathSegment("%fF", "ISO-8859-1") must_== "\377"
-      decodePathSegment("%Ff", "ISO-8859-1") must_== "\377"
-      decodePathSegment("%FF", "ISO-8859-1") must_== "\377"
+      decodePathSegment("%aa", "ISO-8859-1") must_== "\u00AA"
+      decodePathSegment("%aA", "ISO-8859-1") must_== "\u00AA"
+      decodePathSegment("%Aa", "ISO-8859-1") must_== "\u00AA"
+      decodePathSegment("%AA", "ISO-8859-1") must_== "\u00AA"
+      decodePathSegment("%ff", "ISO-8859-1") must_== "\u00FF"
+      decodePathSegment("%fF", "ISO-8859-1") must_== "\u00FF"
+      decodePathSegment("%Ff", "ISO-8859-1") must_== "\u00FF"
+      decodePathSegment("%FF", "ISO-8859-1") must_== "\u00FF"
     }
 
     "decode percent-encoded characters that don't really need to be encoded" in {

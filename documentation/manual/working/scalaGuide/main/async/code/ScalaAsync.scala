@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.async.scalaasync
 
-import scala.concurrent.Future
-import play.api.mvc._
+import javax.inject.Inject
 
+import scala.concurrent._
+import akka.actor._
+import play.api._
+import play.api.mvc._
 import play.api.test._
 
 object ScalaAsyncSpec extends PlaySpecification {
@@ -75,23 +78,30 @@ object ScalaAsyncSamples extends Controller {
   }
 
   def timeout(t: Long) = {
-    def intensiveComputation() = {
-      Thread.sleep(t)
-      10
-    }
+    val actorSystem = akka.actor.ActorSystem()
+
     //#timeout
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
     import scala.concurrent.duration._
+    import play.api.libs.concurrent.Timeout
 
     def index = Action.async {
-      val futureInt = scala.concurrent.Future { intensiveComputation() }
-      val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 1.second)
-      Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
-        case i: Int => Ok("Got result: " + i)
-        case t: String => InternalServerError(t)
+      Timeout.timeout(actorSystem, 1.seconds) {
+        intensiveComputation().map { i =>
+          Ok("Got result: " + i)
+        }
+      }.recover {
+        case e: TimeoutException =>
+          InternalServerError("timeout")
       }
     }
     //#timeout
+
+    def intensiveComputation() = Future {
+      Thread.sleep(t)
+      10
+    }
+
     index
   }
 }

@@ -1,20 +1,25 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf
 
 import java.net.{ URLDecoder, URLEncoder }
 import java.util.Locale
+import javax.inject.Inject
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
-import akka.stream.stage.{ DetachedContext, DetachedStage, PushStage, Context }
+import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
+import akka.stream.stage.{ DetachedContext, DetachedStage }
 import akka.util.ByteString
+import play.api.http.HeaderNames._
+import play.api.libs.Crypto
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.api.http.HeaderNames._
 import play.core.parsers.Multipart
+import play.filters.cors.CORSFilter
 import play.filters.csrf.CSRF._
+
 import scala.concurrent.Future
 
 /**
@@ -27,7 +32,8 @@ import scala.concurrent.Future
  */
 class CSRFAction(next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
-    tokenProvider: TokenProvider = SignedTokenProvider,
+    tokenSigner: CSRFTokenSigner = Crypto.crypto,
+    tokenProvider: TokenProvider = new SignedTokenProvider(Crypto.crypto),
     errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._
@@ -36,7 +42,8 @@ class CSRFAction(next: EssentialAction,
   private def checkFailed(req: RequestHeader, msg: String): Accumulator[ByteString, Result] =
     Accumulator.done(clearTokenIfInvalid(req, config, errorHandler, msg))
 
-  def apply(request: RequestHeader) = {
+  def apply(untaggedRequest: RequestHeader) = {
+    val request = tagRequestFromHeader(untaggedRequest, config, tokenSigner)
 
     // this function exists purely to aid readability
     def continue = next(request)
@@ -44,15 +51,15 @@ class CSRFAction(next: EssentialAction,
     // Only filter unsafe methods and content types
     if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
 
-      if (checkCsrfBypass(request, config)) {
+      if (!requiresCsrfCheck(request, config)) {
         continue
       } else {
 
         // Only proceed with checks if there is an incoming token in the header, otherwise there's no point
-        getTokenFromHeader(request, config).map { headerToken =>
+        getTokenToValidate(request, config, tokenSigner).map { headerToken =>
 
           // First check if there's a token in the query string or header, if we find one, don't bother handling the body
-          getTokenFromQueryString(request, config).map { queryStringToken =>
+          getHeaderToken(request, config).map { queryStringToken =>
 
             if (tokenProvider.compareTokens(headerToken, queryStringToken)) {
               filterLogger.trace("[CSRF] Valid token found in query string")
@@ -87,13 +94,13 @@ class CSRFAction(next: EssentialAction,
 
         }
       }
-    } else if (getTokenFromHeader(request, config).isEmpty && config.createIfNotFound(request)) {
+    } else if (getTokenToValidate(request, config, tokenSigner).isEmpty && config.createIfNotFound(request)) {
 
       // No token in header and we have to create one if not found, so create a new token
       val newToken = tokenProvider.generateToken
 
       // The request
-      val requestWithNewToken = request.copy(tags = request.tags + (Token.RequestTag -> newToken))
+      val requestWithNewToken = tagRequest(request, Token(config.tokenName, newToken))
 
       // Once done, add it to the result
       next(requestWithNewToken).map(result =>
@@ -135,6 +142,9 @@ class CSRFAction(next: EssentialAction,
         }
       }))
         .splitWhen(_ => false)
+        .prefixAndTail(0)
+        .map(_._2)
+        .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
         action(request).run(validatedBodySource)
@@ -335,18 +345,12 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
     } else {
       // CSRF check
       if (checkBody(buffer)) {
-        if (ctx.isHoldingDownstream) {
-          // If we have demand, push the buffer downstream.
-          // This seems like it shouldn't work, since you shouldn't be allowed to pull when finishing.  But it does.
-          // See https://github.com/akka/akka/issues/18285.
-          ctx.pushAndPull(buffer)
-        } else {
-          // Otherwise, absorb the termination, and hold the buffer, and enter the continue state.
-          next = buffer
-          buffer = null
-          continue = true
-          ctx.absorbTermination()
-        }
+        // Absorb the termination, hold the buffer, and enter the continue state.
+        // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
+        next = buffer
+        buffer = null
+        continue = true
+        ctx.absorbTermination()
       } else {
         ctx.fail(CSRFAction.NoTokenInBody)
       }
@@ -361,43 +365,66 @@ object CSRFAction {
   /**
    * Get the header token, that is, the token that should be validated.
    */
-  private[csrf] def getTokenFromHeader(request: RequestHeader, config: CSRFConfig) = {
+  private[csrf] def getTokenToValidate(request: RequestHeader, config: CSRFConfig, tokenSigner: CSRFTokenSigner) = {
+    val tagToken = request.tags.get(Token.RequestTag)
     val cookieToken = config.cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
     val sessionToken = request.session.get(config.tokenName)
-    cookieToken orElse sessionToken
+    cookieToken orElse sessionToken orElse tagToken filter { token =>
+      // return None if the token is invalid
+      !config.signTokens || tokenSigner.extractSignedToken(token).isDefined
+    }
   }
 
-  private[csrf] def getTokenFromQueryString(request: RequestHeader, config: CSRFConfig) = {
+  /**
+   * Tag incoming requests with the token in the header
+   */
+  private[csrf] def tagRequestFromHeader(request: RequestHeader, config: CSRFConfig, tokenSigner: CSRFTokenSigner): RequestHeader = {
+    getTokenToValidate(request, config, tokenSigner).fold(request) { tokenValue =>
+      val token = Token(config.tokenName, tokenValue)
+      val newReq = tagRequest(request, token)
+      if (config.signTokens) {
+        // Extract the signed token, and then resign it. This makes the token random per request, preventing the BREACH
+        // vulnerability
+        val newTokenValue = tokenSigner.extractSignedToken(token.value).map(tokenSigner.signToken)
+        newTokenValue.fold(newReq)(newReq.withTag(Token.ReSignedRequestTag, _))
+      } else {
+        newReq
+      }
+    }
+  }
+
+  private[csrf] def tagRequestFromHeader[A](request: Request[A], config: CSRFConfig, tokenSigner: CSRFTokenSigner): Request[A] = {
+    Request(tagRequestFromHeader(request: RequestHeader, config, tokenSigner), request.body)
+  }
+
+  private[csrf] def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
+    request.copy(tags = request.tags ++ Map(
+      Token.NameRequestTag -> token.name,
+      Token.RequestTag -> token.value
+    ))
+  }
+
+  private[csrf] def tagRequest[A](request: Request[A], token: Token): Request[A] = {
+    Request(tagRequest(request: RequestHeader, token), request.body)
+  }
+
+  private[csrf] def getHeaderToken(request: RequestHeader, config: CSRFConfig) = {
     val queryStringToken = request.getQueryString(config.tokenName)
     val headerToken = request.headers.get(config.headerName)
 
     queryStringToken orElse headerToken
   }
 
-  private[csrf] def checkCsrfBypass(request: RequestHeader, config: CSRFConfig): Boolean = {
-    if (config.headerBypass) {
-      if (request.headers.get(config.headerName).exists(_ == CSRFConfig.HeaderNoCheck)) {
-
-        // Since injecting arbitrary header values is not possible with a CSRF attack, the presence of this header
-        // indicates that this is not a CSRF attack
-        filterLogger.trace("[CSRF] Bypassing check because " + config.headerName + ": " + CSRFConfig.HeaderNoCheck + " header found")
-        true
-
-      } else if (request.headers.get("X-Requested-With").isDefined) {
-
-        // AJAX requests are not CSRF attacks either because they are restricted to same origin policy
-        filterLogger.trace("[CSRF] Bypassing check because X-Requested-With header found")
-        true
-      } else {
-        false
-      }
-    } else {
+  private[csrf] def requiresCsrfCheck(request: RequestHeader, config: CSRFConfig): Boolean = {
+    if (config.bypassCorsTrustedOrigins && request.tags.contains(CORSFilter.RequestTag)) {
+      filterLogger.trace("[CSRF] Bypassing check because CORSFilter request tag found")
       false
+    } else {
+      config.shouldProtect(request)
     }
   }
 
   private[csrf] def addTokenToResponse(config: CSRFConfig, newToken: String, request: RequestHeader, result: Result) = {
-
     if (isCached(result)) {
       filterLogger.trace("[CSRF] Not adding token to cached response")
       result
@@ -444,21 +471,21 @@ object CSRFAction {
  *
  * Apply this to all actions that require a CSRF check.
  */
-object CSRFCheck {
+case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner) {
 
-  private class CSRFCheckAction[A](config: CSRFConfig, tokenProvider: TokenProvider, errorHandler: ErrorHandler,
-      wrapped: Action[A]) extends Action[A] {
+  private class CSRFCheckAction[A](tokenProvider: TokenProvider, errorHandler: ErrorHandler, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
-    def apply(request: Request[A]) = {
+    def apply(untaggedRequest: Request[A]) = {
+      val request = CSRFAction.tagRequestFromHeader(untaggedRequest, config, tokenSigner)
 
       // Maybe bypass
-      if (CSRFAction.checkCsrfBypass(request, config) || !config.checkContentType(request.contentType)) {
+      if (!CSRFAction.requiresCsrfCheck(request, config) || !config.checkContentType(request.contentType)) {
         wrapped(request)
       } else {
         // Get token from header
-        CSRFAction.getTokenFromHeader(request, config).flatMap { headerToken =>
+        CSRFAction.getTokenToValidate(request, config, tokenSigner).flatMap { headerToken =>
           // Get token from query string
-          CSRFAction.getTokenFromQueryString(request, config)
+          CSRFAction.getHeaderToken(request, config)
             // Or from body if not found
             .orElse({
               val form = request.body match {
@@ -484,8 +511,21 @@ object CSRFCheck {
   /**
    * Wrap an action in a CSRF check.
    */
-  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRF.DefaultErrorHandler, config: CSRFConfig = CSRFConfig.global): Action[A] =
-    new CSRFCheckAction(config, new TokenProviderProvider(config).get, errorHandler, action)
+  def apply[A](action: Action[A], errorHandler: ErrorHandler): Action[A] =
+    new CSRFCheckAction(new TokenProviderProvider(config, tokenSigner).get, errorHandler, action)
+
+  /**
+   * Wrap an action in a CSRF check.
+   */
+  def apply[A](action: Action[A]): Action[A] =
+    new CSRFCheckAction(new TokenProviderProvider(config, tokenSigner).get, CSRF.DefaultErrorHandler, action)
+}
+
+object CSRFCheck {
+  @deprecated("Use CSRFCheck class with dependency injection instead", "2.5.0")
+  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRF.DefaultErrorHandler, config: CSRFConfig = CSRFConfig.global, tokenSigner: CSRFTokenSigner = Crypto.crypto): Action[A] = {
+    CSRFCheck(config, tokenSigner)(action, errorHandler)
+  }
 }
 
 /**
@@ -493,19 +533,19 @@ object CSRFCheck {
  *
  * Apply this to all actions that render a form that contains a CSRF token.
  */
-object CSRFAddToken {
+case class CSRFAddToken @Inject() (config: CSRFConfig, crypto: CSRFTokenSigner) {
 
   private class CSRFAddTokenAction[A](config: CSRFConfig, tokenProvider: TokenProvider, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
-    def apply(request: Request[A]) = {
-      if (CSRFAction.getTokenFromHeader(request, config).isEmpty) {
+    def apply(untaggedRequest: Request[A]) = {
+      val request = CSRFAction.tagRequestFromHeader(untaggedRequest, config, crypto)
+
+      if (CSRFAction.getTokenToValidate(request, config, crypto).isEmpty) {
         // No token in header and we have to create one if not found, so create a new token
         val newToken = tokenProvider.generateToken
 
         // The request
-        val requestWithNewToken = new WrappedRequest(request) {
-          override val tags = request.tags + (Token.RequestTag -> newToken)
-        }
+        val requestWithNewToken = CSRFAction.tagRequest(request, Token(config.tokenName, newToken))
 
         // Once done, add it to the result
         import play.api.libs.iteratee.Execution.Implicits.trampoline
@@ -520,6 +560,11 @@ object CSRFAddToken {
   /**
    * Wrap an action in an action that ensures there is a CSRF token.
    */
-  def apply[A](action: Action[A], config: CSRFConfig = CSRFConfig.global): Action[A] =
-    new CSRFAddTokenAction(config, new TokenProviderProvider(config).get, action)
+  def apply[A](action: Action[A]): Action[A] =
+    new CSRFAddTokenAction(config, new TokenProviderProvider(config, crypto).get, action)
+}
+object CSRFAddToken {
+  @deprecated("Use CSRFAddToken class with dependency injection instead", "2.5.0")
+  def apply[A](action: Action[A], config: CSRFConfig = CSRFConfig.global, tokenSigner: CSRFTokenSigner = Crypto.crypto): Action[A] =
+    CSRFAddToken(config, tokenSigner)(action)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
@@ -83,7 +83,7 @@ object ProdServerStartSpec extends Specification {
 
   "ProdServerStartSpec.start" should {
 
-    "read settings, create custom ServerProvider, create a pid file, start the the server and register shutdown hooks" in withTempDir { tempDir =>
+    "read settings, create custom ServerProvider, create a pid file, start the server and register shutdown hooks" in withTempDir { tempDir =>
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map("play.server.provider" -> classOf[FakeServerProvider].getName),
@@ -127,6 +127,35 @@ object ProdServerStartSpec extends Specification {
         fakeServer.stopCallCount must_== 0
         fakeServer.config.port must_== None
         fakeServer.config.sslPort must_== Some(443)
+        fakeServer.config.address must_== "localhost"
+      } finally {
+        process.shutdown()
+      }
+      pidFile.exists must beFalse
+      fakeServer.stopCallCount must_== 1
+    }
+
+    "read configuration for disabled https port" in withTempDir { tempDir =>
+      val process = new FakeServerProcess(
+        args = Seq(tempDir.getAbsolutePath),
+        propertyMap = Map(
+          "play.server.provider" -> classOf[FakeServerProvider].getName,
+          "play.server.http.port" -> "80",
+          "play.server.https.port" -> "disabled",
+          "play.server.http.address" -> "localhost"
+        ),
+        pid = Some("123")
+      )
+      val pidFile = new File(tempDir, "RUNNING_PID")
+      pidFile.exists must beFalse
+      val server = ProdServerStart.start(process)
+      def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
+      try {
+        server.getClass must_== classOf[FakeServer]
+        pidFile.exists must beTrue
+        fakeServer.stopCallCount must_== 0
+        fakeServer.config.port must_== Some(80)
+        fakeServer.config.sslPort must_== None
         fakeServer.config.address must_== "localhost"
       } finally {
         process.shutdown()

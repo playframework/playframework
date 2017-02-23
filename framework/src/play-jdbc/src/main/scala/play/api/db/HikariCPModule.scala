@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db
 
@@ -56,14 +56,15 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 
       val hikariConfig = new HikariCPConfig(dbConfig, config).toHikariConfig
       val datasource = new HikariDataSource(hikariConfig)
+      val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, configuration)
 
       // Bind in JNDI
       dbConfig.jndiName.foreach { jndiName =>
-        JNDI.initialContext.rebind(jndiName, datasource)
+        JNDI.initialContext.rebind(jndiName, wrappedDataSource)
         logger.info(s"datasource [$name] bound to JNDI as $jndiName")
       }
 
-      datasource
+      wrappedDataSource
     } match {
       case Success(datasource) => datasource
       case Failure(ex) => throw config.reportError(name, ex.getMessage, Some(ex))
@@ -77,7 +78,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
    */
   override def close(dataSource: DataSource) = {
     Logger.info("Shutting down connection pool.")
-    dataSource match {
+    ConnectionPool.unwrap(dataSource) match {
       case ds: HikariDataSource => ds.close()
       case _ => sys.error("Unable to close data source: not a HikariDataSource")
     }

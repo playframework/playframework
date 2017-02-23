@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
@@ -45,7 +45,7 @@ class Default @Inject() () extends Controller {
   }
 
   /**
-   * Returns a 302 Redirect response.
+   * Returns a 303 SeeOther response.
    *
    * Example:
    * {{{

@@ -1,25 +1,16 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.oauth;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 
-import oauth.signpost.AbstractOAuthConsumer;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthProvider;
 import oauth.signpost.exception.OAuthException;
-import oauth.signpost.http.HttpRequest;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
-
-import com.ning.http.client.oauth.OAuthSignatureCalculator;
+import org.asynchttpclient.oauth.OAuthSignatureCalculator;
 import play.libs.ws.WSSignatureCalculator;
 
 public class OAuth {
@@ -44,7 +35,7 @@ public class OAuth {
     public OAuthProvider getProvider() {
         return provider;
     }
-    
+
     /**
      * Request the request token and secret.
      *
@@ -83,6 +74,7 @@ public class OAuth {
      * The URL where the user needs to be redirected to grant authorization to your application.
      *
      * @param token request token
+     * @return the url
      */
     public String redirectUrl(String token) {
         return oauth.signpost.OAuth.addQueryParameters(
@@ -145,9 +137,9 @@ public class OAuth {
         private OAuthSignatureCalculator calculator;
 
         public OAuthCalculator(ConsumerKey consumerKey, RequestToken token) {
-            com.ning.http.client.oauth.ConsumerKey ningConsumerKey = new com.ning.http.client.oauth.ConsumerKey(consumerKey.key, consumerKey.secret);
-            com.ning.http.client.oauth.RequestToken ningRequestToken = new com.ning.http.client.oauth.RequestToken(token.token, token.secret);
-            calculator = new OAuthSignatureCalculator(ningConsumerKey, ningRequestToken);
+            org.asynchttpclient.oauth.ConsumerKey ahcConsumerKey = new org.asynchttpclient.oauth.ConsumerKey(consumerKey.key, consumerKey.secret);
+            org.asynchttpclient.oauth.RequestToken ahcRequestToken = new org.asynchttpclient.oauth.RequestToken(token.token, token.secret);
+            calculator = new OAuthSignatureCalculator(ahcConsumerKey, ahcRequestToken);
         }
 
         public OAuthSignatureCalculator getCalculator() {

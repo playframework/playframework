@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.gzip
 
+import java.util.function.BiFunction
 import java.util.zip.GZIPOutputStream
 import javax.inject.{ Provider, Inject, Singleton }
 
-import akka.stream.Materializer
+import akka.stream.{ OverflowStrategy, FlowShape, Materializer }
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
@@ -14,10 +15,12 @@ import play.api.inject.Module
 import play.api.libs.streams.GzipFlow
 import play.api.{ Environment, PlayConfig, Configuration }
 import play.api.mvc._
+import play.core.j
 import scala.concurrent.Future
 import play.api.mvc.RequestHeader.acceptHeader
 import play.api.http.{ HttpChunk, HttpEntity, Status }
 import play.api.libs.concurrent.Execution.Implicits._
+import scala.compat.java8.FunctionConverters._
 
 /**
  * A gzip filter.
@@ -40,7 +43,6 @@ import play.api.libs.concurrent.Execution.Implicits._
 class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
 
   import play.api.http.HeaderNames._
-  import play.api.http.HttpProtocol._
 
   def this(bufferSize: Int = 8192, chunkedThreshold: Int = 102400,
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true)(implicit mat: Materializer) =
@@ -63,26 +65,31 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
       result.body match {
 
         case HttpEntity.Strict(data, contentType) =>
-          Future.successful(Result(header, compressStrictEntity(data, contentType)))
+          Future.successful(result.copy(header = header, body = compressStrictEntity(data, contentType)))
 
         case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType) if contentLength <= config.chunkedThreshold =>
           // It's below the chunked threshold, so buffer then compress and send
           entity.consumeData.map { data =>
-            Result(header, compressStrictEntity(data, contentType))
+            result.copy(header = header, body = compressStrictEntity(data, contentType))
           }
 
         case HttpEntity.Streamed(data, _, contentType) =>
           // It's above the chunked threshold, compress through the gzip flow, and send as chunked
           val gzipped = data via GzipFlow.gzip(config.bufferSize) map (d => HttpChunk.Chunk(d))
-          Future.successful(Result(header, HttpEntity.Chunked(gzipped, contentType)))
+          Future.successful(result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType)))
 
         case HttpEntity.Chunked(chunks, contentType) =>
-          val gzipFlow = Flow() { implicit builder =>
-            import FlowGraph.Implicits._
+          val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
+            import GraphDSL.Implicits._
 
             val extractChunks = Flow[HttpChunk] collect { case HttpChunk.Chunk(data) => data }
             val createChunks = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
-            val filterLastChunk = Flow[HttpChunk].filter(_.isInstanceOf[HttpChunk.LastChunk])
+            val filterLastChunk = Flow[HttpChunk]
+              .filter(_.isInstanceOf[HttpChunk.LastChunk])
+              // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip
+              // flow is finished. But the broadcast won't start broadcasting until both flows start demanding. So we
+              // put a buffer of one in to ensure the filter last chunk flow demands from the broadcast.
+              .buffer(1, OverflowStrategy.backpressure)
 
             val broadcast = builder.add(Broadcast[HttpChunk](2))
             val concat = builder.add(Concat[HttpChunk]())
@@ -93,10 +100,12 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
             broadcast.out(0) ~> extractChunks ~> GzipFlow.gzip(config.bufferSize) ~> createChunks ~> concat.in(0)
             broadcast.out(1) ~> filterLastChunk ~> concat.in(1)
 
-            (broadcast.in, concat.out)
-          }
+            new FlowShape(broadcast.in, concat.out)
+          })
 
-          Future.successful(Result(header, HttpEntity.Chunked(chunks via gzipFlow, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(chunks via gzipFlow, contentType))
+          )
       }
     } else {
       Future.successful(result)
@@ -173,9 +182,22 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
 case class GzipFilterConfig(bufferSize: Int = 8192,
     chunkedThreshold: Int = 102400,
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true) {
+
+  // alternate constructor and builder methods for Java
+  def this() = this(shouldGzip = (_, _) => true)
+
+  def withShouldGzip(shouldGzip: (RequestHeader, Result) => Boolean): GzipFilterConfig = copy(shouldGzip = shouldGzip)
+
+  def withShouldGzip(shouldGzip: BiFunction[play.mvc.Http.RequestHeader, play.mvc.Result, Boolean]): GzipFilterConfig =
+    withShouldGzip((req, res) => shouldGzip.asScala(new j.RequestHeaderImpl(req), res.asJava))
+
+  def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
+
+  def withBufferSize(size: Int): GzipFilterConfig = copy(bufferSize = size)
 }
 
 object GzipFilterConfig {
+
   def fromConfiguration(conf: Configuration) = {
     val config = PlayConfig(conf).get[PlayConfig]("play.filters.gzip")
 

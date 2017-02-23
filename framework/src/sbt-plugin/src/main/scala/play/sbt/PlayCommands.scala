@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 
@@ -74,7 +74,7 @@ object PlayCommands {
   val h2Command = Command.command("h2-browser") { state: State =>
     try {
       val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-      val h2ServerClass = commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
+      val h2ServerClass = commonLoader.loadClass("org.h2.tools.Server")
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
       case e: Exception => e.printStackTrace
