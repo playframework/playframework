@@ -11,16 +11,26 @@ import play.data.DynamicForm;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
+import play.data.validation.Constraints.SelfValidatingAdvanced;
+import play.data.validation.Constraints.SelfValidatingBasic;
+import play.data.validation.Constraints.ValidatableAdvanced;
+import play.data.validation.Constraints.ValidatableBasic;
 import play.data.validation.ValidationError;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.forms.groups.LoginCheck;
+import javaguide.forms.groups.PartialUserForm;
+import javaguide.forms.groups.SignUpCheck;
+import javaguide.forms.groupsequence.OrderedChecks;
 import javaguide.forms.u1.User;
 
 import java.time.LocalTime;
 import java.util.*;
+
+import javax.validation.groups.Default;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
@@ -121,17 +131,24 @@ public class JavaForms extends WithApplication {
                 .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
-        assertThat(contentAsString(result), containsString("This e-mail is already registered."));
+        assertThat(contentAsString(result), containsString("Access denied"));
+        assertThat(contentAsString(result), containsString("Form could not be submitted"));
     }
 
-    public static class UserForm {
-        public static class User {
-            public static String byEmail(String email) {
-                return email;
-            }
-        }
+    //#list-validate
+    //###insert: import play.data.validation.Constraints.SelfValidatingAdvanced;
+    //###insert: import play.data.validation.Constraints.ValidatableAdvanced;
+    //###insert: import play.data.validation.ValidationError;
+    //###insert: import java.util.List;
 
+    @SelfValidatingAdvanced
+    public static class SignUpForm implements ValidatableAdvanced {
+
+        // fields, getters, setters, etc.
+
+        //###skip: 19
         private String email;
+        protected String password;
 
         public void setEmail(String email) {
             this.email = email;
@@ -141,16 +158,27 @@ public class JavaForms extends WithApplication {
             return email;
         }
 
-        //#list-validate
-        public List<ValidationError> validate() {
-            List<ValidationError> errors = new ArrayList<ValidationError>();
-            if (User.byEmail(email) != null) {
-                errors.add(new ValidationError("email", "This e-mail is already registered."));
-            }
-            return errors.isEmpty() ? null : errors;
+        public void setPassword(String password) {
+            this.password = password;
         }
-        //#list-validate
+
+        public String getPassword() {
+            return password;
+        }
+
+        @Override
+        public List<ValidationError> validateInstance() {
+            final List<ValidationError> errors = new ArrayList<>();
+            if (authenticate(email, password) == null) {
+                // Add an error which will be displayed for the email field:
+                errors.add(new ValidationError("email", "Access denied"));
+                // Also add a global error:
+                errors.add(new ValidationError("", "Form could not be submitted"));
+            }
+            return errors;
+        }
     }
+    //#list-validate
 
     public class ListValidationController extends MockJavaAction {
 
@@ -159,12 +187,80 @@ public class JavaForms extends WithApplication {
         }
 
         public Result index() {
-            Form<UserForm> userForm = formFactory().form(UserForm.class).bindFromRequest();
+            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest();
 
             if (userForm.hasErrors()) {
                 return badRequest(javaguide.forms.html.view.render(userForm));
             } else {
-                UserForm user = userForm.get();
+                SignUpForm user = userForm.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void objectValidation() {
+        Result result = call(new ObjectValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e")), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("Invalid credentials"));
+    }
+
+    //#object-validate
+    //###insert: import play.data.validation.Constraints.SelfValidatingBasic;
+    //###insert: import play.data.validation.Constraints.ValidatableBasic;
+    //###insert: import play.data.validation.ValidationError;
+
+    @SelfValidatingBasic
+    public static class LoginForm implements ValidatableBasic {
+
+        // fields, getters, setters, etc.
+
+        //###skip: 19
+        private String email;
+        private String password;
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        @Override
+        public ValidationError validateInstance() {
+            if (authenticate(email, password) == null) {
+                // Error will be displayed for the email field:
+                return new ValidationError("email", "Invalid credentials");
+            }
+            return null;
+        }
+    }
+    //#object-validate
+
+    public class ObjectValidationController extends MockJavaAction {
+
+        ObjectValidationController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest();
+
+            if (adminForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(adminForm));
+            } else {
+                LoginForm user = adminForm.get();
                 return ok("Got user " + user);
             }
         }
@@ -270,6 +366,166 @@ public class JavaForms extends WithApplication {
 
         public void setTime(LocalTime time) {
             this.time = time;
+        }
+    }
+
+    public void validationErrorExamples() {
+        final String arg1 = "";
+        final String arg2 = "";
+        final String email = "";
+
+        //#validation-error-examples
+        // Global error without internationalization:
+        new ValidationError("", "Errors occured. Please check your input!");
+        // Global error; "validationFailed" should be defined in `conf/messages` - taking two arguments:
+        new ValidationError("", "validationFailed", Arrays.asList(arg1, arg2));
+        // Error for the email field; "emailUsedAlready" should be defined in `conf/messages` - taking the email as argument:
+        new ValidationError("email", "emailUsedAlready", Arrays.asList(email));
+        //#validation-error-examples
+    }
+
+    @Test
+    public void partialFormSignupValidation() {
+        Result result = call(new PartialFormSignupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormSignupController extends MockJavaAction {
+
+        PartialFormSignupController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-signup
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest();
+            //#partial-validate-signup
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormLoginValidation() {
+        Result result = call(new PartialFormLoginController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormLoginController extends MockJavaAction {
+
+        PartialFormLoginController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-login
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest();
+            //#partial-validate-login
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormDefaultValidation() {
+        Result result = call(new PartialFormDefaultController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormDefaultController extends MockJavaAction {
+
+        PartialFormDefaultController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-default
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest();
+            //#partial-validate-default
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormNoGroupValidation() {
+        Result result = call(new PartialFormNoGroupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormNoGroupController extends MockJavaAction {
+
+        PartialFormNoGroupController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-nogroup
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest();
+            //#partial-validate-nogroup
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void OrderedGroupSequenceValidation() {
+        Result result = call(new OrderedGroupSequenceController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class OrderedGroupSequenceController extends MockJavaAction {
+
+        OrderedGroupSequenceController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#ordered-group-sequence-validate
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest();
+            //#ordered-group-sequence-validate
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
         }
     }
 

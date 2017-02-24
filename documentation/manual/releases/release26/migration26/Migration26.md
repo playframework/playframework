@@ -133,6 +133,48 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
+The `validate` method implemented inside a form class (usually used for cross field validation) has been deprecated and it's support will be removed in future Play versions. You should use class-level constraints instead now. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+Existing `validate` methods can easily be migrated by renaming them to `validateInstance`. Depending on the return type of such a validate method your forms then also have to
+implement a certain interface and have to be annotated with an according annotation (all defined in `play.data.validation.Constraints`):
+
+| **Return type**                                                                    | **Interface to implement** | **Annotation to use**
+| -----------------------------------------------------------------------------------|----------------------------|-------------------------
+| `String`                                                                           | `ValidatableSimple`        | `SelfValidatingSimple`
+| `ValidationError`                                                                  | `ValidatableBasic`         | `SelfValidatingBasic`
+| `List<ValidationError>`                                                            | `ValidatableAdvanced`      | `SelfValidatingAdvanced`
+| `Map<String,List<ValidationError>>`<br>(not supported anymore; use `List` instead) | `ValidatableAdvanced`      | `SelfValidatingAdvanced`
+
+For example an existing form like:
+
+```java
+public class MyForm {
+    //...
+    public String validate() {
+        //...
+    }
+}
+```
+
+Has to be changed to:
+
+```java
+import play.data.validation.Constraints.SelfValidatingSimple;
+import play.data.validation.Constraints.ValidatableSimple;
+
+@SelfValidatingSimple
+public class MyForm implements ValidatableSimple {
+    //...
+    @Override
+    public String validateInstance() {
+        //...
+    }
+}
+```
+
+> **Be aware**: The now deprecated `validate` method was called only after all other constraints were successful before. By default class-level constraints however are called simultaneously with any other constraint annotations - no matter if they passed or failed. To (also) define an order between the constraints you can now use [[constraint groups|JavaForms#defining-the-order-of-constraint-groups]].
+
+> **Be aware**: Returning an empty string (when the return type is `String`) or an empty list (when the return type is `List<ValidationError>`) from `validateInstance` now also counts as successful validation. The deprecated `validate` method counts these two returns as failed validation.
+
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].
