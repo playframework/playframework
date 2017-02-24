@@ -57,7 +57,7 @@ class DefaultCookieSigner(secretConfiguration: SecretConfiguration) extends Cook
    *
    * @param message The message to sign.
    * @param key The private key to sign with.
-   * @return A encoded signature.
+   * @return An encoded signature.
    */
   def sign(message: String, key: Array[Byte]): String = {
     mac match {
@@ -76,7 +76,7 @@ class DefaultCookieSigner(secretConfiguration: SecretConfiguration) extends Cook
    * Signs the given String using the application’s secret key.
    *
    * @param message The message to sign.
-   * @return A encoded signature.
+   * @return An encoded signature.
    */
   def sign(message: String): String = {
     sign(message, secretConfiguration.secret.getBytes(StandardCharsets.UTF_8))
