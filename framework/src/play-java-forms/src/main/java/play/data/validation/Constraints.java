@@ -16,6 +16,8 @@ import java.lang.reflect.Constructor;
 import javax.validation.*;
 import javax.validation.metadata.*;
 
+import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -484,6 +486,8 @@ public class Constraints {
         return new PatternValidator(regex);
     }
 
+    // --- validate fields with custom validator
+    
      /**
      * Defines a custom validator.
      */
@@ -547,4 +551,100 @@ public class Constraints {
 
     }
 
+    // --- class level helpers
+
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = SelfValidatingBasicValidator.class)
+    public static @interface SelfValidatingBasic {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    public static interface ValidatableBasic {
+        public ValidationError validateInstance();
+    }
+
+    public static class SelfValidatingBasicValidator implements ConstraintValidator<SelfValidatingBasic, ValidatableBasic> {
+
+        @Override
+        public void initialize(final SelfValidatingBasic constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final ValidatableBasic value, final ConstraintValidatorContext constraintValidatorContext) {
+            final ValidationError result = value.validateInstance();
+            if(result == null) {
+                return true;
+            }
+            constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);
+            return false;
+        }
+    }
+
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = SelfValidatingAdvancedValidator.class)
+    public static @interface SelfValidatingAdvanced {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    public static interface ValidatableAdvanced {
+        public List<ValidationError> validateInstance();
+    }
+
+    public static class SelfValidatingAdvancedValidator implements ConstraintValidator<SelfValidatingAdvanced, ValidatableAdvanced> {
+
+        @Override
+        public void initialize(final SelfValidatingAdvanced constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final ValidatableAdvanced value, final ConstraintValidatorContext constraintValidatorContext) {
+            final List<ValidationError> result = value.validateInstance();
+            if(result == null || result.isEmpty()) {
+                return true;
+            }
+            constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);
+            return false;
+        }
+    }
+
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = SelfValidatingSimpleValidator.class)
+    public static @interface SelfValidatingSimple {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    public static interface ValidatableSimple {
+        public String validateInstance();
+    }
+
+    public static class SelfValidatingSimpleValidator implements ConstraintValidator<SelfValidatingSimple, ValidatableSimple> {
+
+        @Override
+        public void initialize(final SelfValidatingSimple constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final ValidatableSimple value, final ConstraintValidatorContext constraintValidatorContext) {
+            final String result = value.validateInstance();
+            if(result == null || result.trim().isEmpty()) {
+                return true;
+            }
+            constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);
+
+            // Just FYI: Because in this case the payload is just a string we could also just have used this instead:
+            //constraintValidatorContext.disableDefaultConstraintViolation();
+            //constraintValidatorContext.buildConstraintViolationWithTemplate(result).addConstraintViolation();
+
+            return false;
+        }
+    }
 }
