@@ -79,7 +79,7 @@ object Lang {
   implicit val jsonTagWrites: Writes[Lang] =
     Writes[Lang] { lang => JsString(lang.locale.toLanguageTag) }
 
-  val jsonObjReads: Reads[Lang] = Reads[Lang] { json =>
+  val jsonOReads: Reads[Lang] = Reads[Lang] { json =>
     for {
       l <- (json \ "language").validate[String]
       c <- (json \ "country").validate[String]
