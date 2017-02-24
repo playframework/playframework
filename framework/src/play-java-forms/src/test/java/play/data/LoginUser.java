@@ -4,19 +4,19 @@
 package play.data;
 
 import play.data.validation.Constraints.Email;
-import play.data.validation.Constraints.Max;
 import play.data.validation.Constraints.MaxLength;
-import play.data.validation.Constraints.Min;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
 import play.data.validation.Constraints.ValidateWith;
 
-public class LoginUser extends UserBase {
+import play.data.validation.Constraints.SelfValidatingSimple;
+import play.data.validation.Constraints.ValidatableSimple;
 
-    @Min(50)
-    @Max(95)
-    @Pattern("*")
+@SelfValidatingSimple
+public class LoginUser extends UserBase implements ValidatableSimple {
+
+    @Pattern("[0-9]")
     @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)
     @Required
     @MinLength(255)
@@ -28,12 +28,10 @@ public class LoginUser extends UserBase {
     @Required
     @MaxLength(255)
     @Email
-    @Max(100)
     @play.data.format.Formats.NonEmpty // not a constraint annotation
     @MinLength(255)
-    @Pattern("*")
+    @Pattern("[0-9]")
     @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)
-    @Min(2)
     private String name;
 
     public String getEmail() {
@@ -50,6 +48,14 @@ public class LoginUser extends UserBase {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String validateInstance() {
+        if (this.email != null && !this.email.equals("bill.gates@microsoft.com")) {
+            return "Invalid email provided!";
+        }
+        return ""; // null or empty string are handled equal
     }
 
 }
