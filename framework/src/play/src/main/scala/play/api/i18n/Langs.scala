@@ -66,25 +66,154 @@ case class Lang(locale: Locale) {
  * Utilities related to Lang values.
  */
 object Lang {
-  import play.api.libs.json.{ Json, JsString, OWrites, Reads, Writes }
+  import play.api.libs.json.{
+    JsError,
+    Json,
+    JsString,
+    JsObject,
+    JsResult,
+    JsSuccess,
+    JsValue,
+    OWrites,
+    Reads,
+    Writes
+  }
 
-  val jsonOWrites: OWrites[Lang] = OWrites[Lang] { lang =>
-    Json.obj(
-      "language" -> lang.language,
-      "country" -> lang.country,
-      "variant" -> lang.variant
-    )
+  val jsonOWrites: OWrites[Lang] = {
+    import scala.collection.convert.ImplicitConversionsToScala
+
+    OWrites[Lang] { lang =>
+      val fields = Map.newBuilder[String, JsValue]
+
+      fields += "language" -> Json.toJson(lang.language)
+
+      Option(lang.country).filter(_.nonEmpty).foreach { country =>
+        fields += "country" -> Json.toJson(country)
+      }
+
+      Option(lang.variant).filter(_.nonEmpty).foreach { variant =>
+        fields += "variant" -> Json.toJson(variant)
+      }
+
+      Option(lang.locale.getScript).filter(_.nonEmpty).foreach { script =>
+        fields += "script" -> Json.toJson(script)
+      }
+
+      val attrs = lang.locale.getUnicodeLocaleAttributes.asScala
+      if (attrs.nonEmpty) {
+        fields += "attributes" -> Json.toJson(attrs.toSet)
+      }
+
+      val keywords = lang.locale.getUnicodeLocaleKeys.asScala
+      if (keywords.nonEmpty) {
+        fields += "keywords" -> Json.toJson({
+          val ks = Map.newBuilder[String, String]
+
+          keywords.foreach { key =>
+            Option(lang.locale.getUnicodeLocaleType(key)).foreach { typ =>
+              ks += (key -> typ)
+            }
+          }
+
+          ks.result()
+        })
+      }
+
+      val extension = lang.locale.getExtensionKeys.asScala
+      if (extension.nonEmpty) {
+        fields += "extension" -> Json.toJson({
+          val ext = Map.newBuilder[String, String]
+
+          extension.foreach { key =>
+            Option(lang.locale.getExtension(key)).foreach { v =>
+              ext += (key.toString -> v)
+            }
+          }
+
+          ext.result()
+        })
+      }
+
+      JsObject(fields.result())
+    }
   }
 
   implicit val jsonTagWrites: Writes[Lang] =
-    Writes[Lang] { lang => JsString(lang.locale.toLanguageTag) }
+    Writes[Lang] { lang => JsString(lang.code) }
 
-  val jsonOReads: Reads[Lang] = Reads[Lang] { json =>
-    for {
-      l <- (json \ "language").validate[String]
-      c <- (json \ "country").validate[String]
-      v <- (json \ "variant").validate[String]
-    } yield Lang(new Locale(l, c, v))
+  val jsonOReads: Reads[Lang] = {
+    // TODO: Remove when provided by Play JSON
+    import scala.collection.mutable.Builder
+
+    @annotation.tailrec
+    def mapObj[K, V](key: String => JsResult[K], in: List[(String, JsValue)], out: Builder[(K, V), Map[K, V]])(implicit vr: Reads[V]): JsResult[Map[K, V]] = in match {
+      case (k, v) :: entries => key(k).flatMap(
+        vk => v.validate[V].map(vk -> _)) match {
+          case JsError(details) => JsError(details)
+
+          case JsSuccess((vk, value), _) =>
+            mapObj[K, V](key, entries, out += (vk -> value))
+        }
+
+      case _ => JsSuccess(out.result())
+    }
+
+    def mapReads[K, V](k: String => JsResult[K])(implicit vr: Reads[V]): Reads[Map[K, V]] = Reads[Map[K, V]] {
+      case JsObject(m) => mapObj[K, V](k, m.toList, Map.newBuilder[K, V])
+      case _ => JsError("error.expected.jsobject")
+    }
+
+    implicit def defaultMapReads[V](implicit vr: Reads[V]): Reads[Map[String, V]] = mapReads[String, V](JsSuccess(_))
+
+    Reads[Lang] { json =>
+      // TODO: Remove when provided by Play JSON
+      def base: JsResult[Locale] = (for {
+        l <- (json \ "language").validate[String]
+        c <- (json \ "country").validateOpt[String]
+        v <- (json \ "variant").validateOpt[String]
+      } yield (l, c, v)).flatMap {
+        case (l, Some(country), Some(variant)) =>
+          JsSuccess(new Locale(l, country, variant))
+
+        case (l, Some(country), _) =>
+          JsSuccess(new Locale(l, country))
+
+        case (l, _, Some(_)) =>
+          JsError("error.invalid.locale")
+
+        case (l, _, _) => JsSuccess(new Locale(l))
+      }
+
+      base.flatMap { baseLocale =>
+        for {
+          ats <- (json \ "attributes").validateOpt[Set[String]]
+          kws <- (json \ "keywords").validateOpt[Map[String, String]]
+          spt <- (json \ "script").validateOpt[String]
+          ext <- (json \ "extension").validateOpt(mapReads[Char, String] { s =>
+            if (s.size == 1) JsSuccess(s.charAt(0))
+            else JsError("error.invalid.character")
+          })
+        } yield {
+          val builder = new Locale.Builder()
+
+          builder.setLocale(baseLocale)
+
+          ats.foreach(_.foreach { builder.addUnicodeLocaleAttribute(_) })
+
+          kws.foreach(_.foreach {
+            case (key, typ) => builder.setUnicodeLocaleKeyword(key, typ)
+          })
+
+          ext.foreach(_.foreach {
+            case (key, value) => builder.setExtension(key, value)
+          })
+
+          spt.foreach { builder.setScript(_) }
+
+          Lang(builder.build())
+        }
+      }
+    }
   }
 
   implicit val jsonTagReads: Reads[Lang] = Reads[Lang] {
