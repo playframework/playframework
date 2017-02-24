@@ -5,8 +5,8 @@ package play.sbt
 
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+import play.sbt.PlayAkkaHttpServer.allRequirements
 import play.sbt.PlayImport.PlayKeys
-import play.sbt.PlayNettyServer.allRequirements
 import play.sbt.routes.RoutesCompiler
 import play.twirl.sbt.SbtTwirl
 import sbt.Keys._

@@ -5,6 +5,7 @@ package play.api.http
 
 import javax.inject.Inject
 
+import play.api.inject.{ Binding, BindingKey, Injector }
 import play.api.{ Configuration, Environment }
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
@@ -35,8 +36,8 @@ class DefaultHttpFilters(val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {
 
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration) = {
-    Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, JavaHttpFiltersDelegate, NoHttpFilters](environment, configuration, "play.http.filters", "Filters")
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, JavaHttpFiltersDelegate, DefaultFilters](environment, configuration, "play.http.filters", "Filters")
   }
 
   def apply(filters: EssentialFilter*): HttpFilters = {
@@ -45,6 +46,21 @@ object HttpFilters {
       def filters = f
     }
   }
+}
+
+class DefaultFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
+
+  private val defaultBindings: Seq[BindingKey[EssentialFilter]] = {
+    for (filterClassName <- configuration.get[Seq[String]]("play.filters.defaults")) yield {
+      val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
+      BindingKey(filterClass)
+    }
+  }
+
+  /**
+   * Return the filters that should filter every request
+   */
+  override lazy val filters: Seq[EssentialFilter] = defaultBindings.map(injector.instanceOf(_))
 }
 
 /**
