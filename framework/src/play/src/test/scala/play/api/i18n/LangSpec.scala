@@ -13,25 +13,24 @@ class LangSpec extends org.specs2.mutable.Specification {
   "Lang" should {
     val frLang = Lang(Locale.FRANCE)
 
-    "be written as JSON object (default)" in {
-      Json.toJson(frLang) must_== Json.obj(
+    "be written as JSON object" in {
+      Json.toJson(frLang)(Lang.jsonOWrites) must_== Json.obj(
         "language" -> "fr", "country" -> "FR", "variant" -> ""
       )
     }
 
-    "be written as JSON string (short format)" in {
-      Json.toJson(frLang)(Lang.jsonLocaleWrites) must_== JsString("fr-FR")
+    "be written as JSON string (tag)" in {
+      Json.toJson(frLang) must_== JsString("fr-FR")
     }
 
-    "be read from JSON object (default)" in {
+    "be read from JSON object" in {
       Json.fromJson[Lang](Json.obj(
         "language" -> "fr", "country" -> "FR", "variant" -> ""
-      )) must_== JsSuccess(frLang)
+      ))(Lang.jsonOReads) must_== JsSuccess(frLang)
     }
 
-    "be read from JSON string (short format)" in {
-      Json.fromJson[Lang](JsString("fr-FR"))(
-        Lang.jsonLocaleReads) must_== JsSuccess(frLang)
+    "be read from JSON string (tag)" in {
+      Json.fromJson[Lang](JsString("fr-FR")) must_== JsSuccess(frLang)
     }
   }
 }
