@@ -42,8 +42,15 @@ class LangSpec extends org.specs2.mutable.Specification {
 
     Fragments.foreach(locales zip objs) {
       case (locale, obj) =>
-        s"be ${locale.toLanguageTag} and written as JSON object" in {
-          Json.toJson(Lang(locale))(Lang.jsonOWrites) must_== obj
+        s"be ${locale.toLanguageTag}" >> {
+          "and written as JSON object" in {
+            Json.toJson(Lang(locale))(Lang.jsonOWrites) must_== obj
+          }
+
+          "be read as JSON object" in {
+            Json.fromJson[Lang](obj)(Lang.jsonOReads) mustEqual (
+              JsSuccess(Lang(locale)))
+          }
         }
     }
 
@@ -59,14 +66,5 @@ class LangSpec extends org.specs2.mutable.Specification {
           }
         }
     }
-
-    /*
-    s"be ${locale.toLanguageTag} and read from JSON object" in {
-      Json.fromJson[Lang](Json.obj(
-        "language" -> "fr", "country" -> "FR", "variant" -> ""
-      ))(Lang.jsonOReads) must_== JsSuccess(frLang)
-    }
-
-     */
   }
 }
