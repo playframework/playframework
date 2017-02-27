@@ -7,6 +7,7 @@ import play.api.i18n.{ I18nComponents, I18nModule }
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
 import play.core.j.{ DefaultJavaContextComponents, JavaHelpers }
 
 /**
@@ -126,6 +127,10 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
+
+  lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
+    defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
+  )
 
   override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
     csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
