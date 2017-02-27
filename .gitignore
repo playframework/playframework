@@ -5,6 +5,7 @@ target
 .classpath
 .project
 .settings
+.vscode
 RUNNING_PID
 generated.keystore
 generated.truststore
