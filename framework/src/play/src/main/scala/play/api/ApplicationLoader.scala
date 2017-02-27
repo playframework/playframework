@@ -133,6 +133,6 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   )
 
   override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
-    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes + controllerComponents
+    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
 
