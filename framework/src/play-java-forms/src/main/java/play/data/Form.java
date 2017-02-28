@@ -560,7 +560,7 @@ public class Form<T> {
         if(key == null) {
             return Collections.emptyList();
         }
-        return errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList());
+        return Collections.unmodifiableList(errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList()));
     }
 
     /**
