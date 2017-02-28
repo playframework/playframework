@@ -455,7 +455,7 @@ public class Form<T> {
      * @return the actual form data.
      */
     public Map<String,String> data() {
-        return data;
+        return Collections.unmodifiableMap(data);
     }
 
     public String name() {
