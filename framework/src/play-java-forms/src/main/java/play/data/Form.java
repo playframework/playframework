@@ -138,7 +138,7 @@ public class Form<T> {
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
-        this.data = data;
+        this.data = data != null ? data : new HashMap<>();
         this.errors = errors != null ? errors : new ArrayList<>();
         this.value = value;
         this.groups = groups;
@@ -850,9 +850,9 @@ public class Form<T> {
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.form = form;
             this.name = name;
-            this.constraints = constraints;
+            this.constraints = constraints != null ? constraints : new ArrayList<>();
             this.format = format;
-            this.errors = errors;
+            this.errors = errors != null ? errors : new ArrayList<>();
             this.value = value;
         }
 
