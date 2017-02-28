@@ -49,4 +49,9 @@ trait AsyncCacheApi {
    * @return result as a future of Option[T]
    */
   def get[T: ClassTag](key: String): Future[Option[T]]
+
+  /**
+   * Removes all values from the cache
+   */
+  def removeAll(): Future[Done]
 }

@@ -41,6 +41,24 @@ class CacheApiSpec extends PlaySpecification {
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
     }
+
+    "remove values from cache" in new WithApplication() {
+      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("foo", "bar")
+      Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
+      cacheApi.remove("foo")
+      Await.result(cacheApi.get("foo"), 1.second) must beNone
+    }
+
+    "remove all values from cache" in new WithApplication() {
+      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("foo", "bar")
+      Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
+      cacheApi.removeAll()
+      Await.result(cacheApi.get("foo"), 1.second) must beNone
+    }
   }
 }
 

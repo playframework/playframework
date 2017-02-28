@@ -50,6 +50,10 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
         return toJava(asyncCacheApi.remove(key)).thenApply($ -> null);
     }
 
+    public CompletionStage<Done> removeAll() {
+        return toJava(asyncCacheApi.removeAll()).thenApply($ -> null);
+    }
+
     private Duration intToDuration(int seconds) {
       return seconds == 0 ? Duration.Inf() : Duration.apply(seconds, TimeUnit.SECONDS);
     }
