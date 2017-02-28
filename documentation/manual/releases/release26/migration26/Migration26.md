@@ -131,7 +131,7 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 ## Java Form Changes
 
-The `.errors()` method of a `play.data.Form` instance now returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
+The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
 ## JPA Migration Notes
 

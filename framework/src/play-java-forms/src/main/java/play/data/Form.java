@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -512,7 +513,7 @@ public class Form<T> {
      * @return All global errors.
      */
     public List<ValidationError> globalErrors() {
-        return errors.stream().filter(error -> error.key().isEmpty()).collect(Collectors.toList());
+        return Collections.unmodifiableList(errors.stream().filter(error -> error.key().isEmpty()).collect(Collectors.toList()));
     }
 
     /**
@@ -532,9 +533,23 @@ public class Form<T> {
      * Returns all errors.
      *
      * @return All errors associated with this form.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #allErrors()} instead.
      */
-    public List<ValidationError> errors() {
-        return errors;
+    @Deprecated
+    public Map<String,List<ValidationError>> errors() {
+        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.toMap(e -> e.key(), e -> Collections.unmodifiableList(Arrays.asList(e)), (v1, v2) ->
+            Collections.unmodifiableList(Stream.of(v1, v2).flatMap(Collection::stream).collect(Collectors.toList()))
+        )));
+    }
+
+    /**
+     * Returns all errors.
+     *
+     * @return All errors associated with this form.
+     */
+    public List<ValidationError> allErrors() {
+        return Collections.unmodifiableList(errors);
     }
 
     /**
@@ -543,7 +558,7 @@ public class Form<T> {
      */
     public List<ValidationError> errors(String key) {
         if(key == null) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         return errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList());
     }
@@ -621,9 +636,10 @@ public class Form<T> {
      * @param error the <code>ValidationError</code> to add.
      */
     public void reject(ValidationError error) {
-        if (error != null) {
-            errors.add(error);
+        if (error == null) {
+            throw new NullPointerException("Can't reject null-values");
         }
+        errors.add(error);
     }
 
     /**
