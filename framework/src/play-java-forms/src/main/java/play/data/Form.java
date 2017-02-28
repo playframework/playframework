@@ -753,7 +753,7 @@ public class Form<T> {
                             }
                             attributes.add(attrValue);
                         }
-                        format = Tuple(d.name(), attributes);
+                        format = Tuple(d.name(), Collections.unmodifiableList(attributes));
                     }
                 }
             }
@@ -887,7 +887,7 @@ public class Form<T> {
          * @return The errors associated with this field.
          */
         public List<ValidationError> errors() {
-            return errors;
+            return Collections.unmodifiableList(errors);
         }
 
         /**
@@ -896,7 +896,7 @@ public class Form<T> {
          * @return The constraints associated with this field.
          */
         public List<Tuple<String,List<Object>>> constraints() {
-            return constraints;
+            return Collections.unmodifiableList(constraints);
         }
 
         /**
@@ -914,9 +914,9 @@ public class Form<T> {
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
             if(form == null) {
-                return new ArrayList<>(0);
+                return Collections.emptyList();
             }
-            return form.value().map((Function<Object, List<Integer>>) value -> {
+            return Collections.unmodifiableList(form.value().map((Function<Object, List<Integer>>) value -> {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value);
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = name;
@@ -949,7 +949,7 @@ public class Form<T> {
                 List<Integer> sortedResult = new ArrayList<>(result);
                 Collections.sort(sortedResult);
                 return sortedResult;
-            });
+            }));
         }
 
         /**
