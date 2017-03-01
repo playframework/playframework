@@ -4,6 +4,7 @@
 package play.routing;
 
 import org.junit.Test;
+import play.Application;
 import play.mvc.PathBindable;
 import play.mvc.Result;
 
@@ -20,6 +21,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
  * This class is in the integration tests so that we have the right helper classes to build a request with to test it.
  */
 public abstract class AbstractRoutingDslTest {
+
+    abstract Application application();
 
     abstract RoutingDsl routingDsl();
 
@@ -298,7 +301,7 @@ public abstract class AbstractRoutingDslTest {
     }
 
     private String makeRequest(Router router, String method, String path) {
-        Result result = routeAndCall(router, fakeRequest(method, path));
+        Result result = routeAndCall(application(), router, fakeRequest(method, path));
         if (result == null) {
             return null;
         } else {

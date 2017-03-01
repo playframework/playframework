@@ -4,21 +4,33 @@
 package play.routing;
 
 import org.junit.BeforeClass;
+import play.Application;
+import play.DefaultApplication;
 import play.api.ApplicationLoader;
+import play.inject.DelegateInjector;
+import play.inject.Injector;
 
 public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
     private static TestComponents components;
+    private static Application application;
 
     @BeforeClass
     public static void startApp() {
         play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).underlying();
         components = new TestComponents(context);
+        Injector injector = new DelegateInjector(components.injector());
+        application = new DefaultApplication(components.application(), injector);
     }
 
     @Override
     RoutingDsl routingDsl() {
         return components.routingDsl();
+    }
+
+    @Override
+    Application application() {
+        return application;
     }
 
     private static class TestComponents extends RoutingDslComponentsFromContext {

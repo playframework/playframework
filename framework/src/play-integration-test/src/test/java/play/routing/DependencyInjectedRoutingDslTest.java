@@ -20,6 +20,11 @@ public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
     }
 
     @Override
+    Application application() {
+        return app;
+    }
+
+    @Override
     RoutingDsl routingDsl() {
         return app.injector().instanceOf(RoutingDsl.class);
     }

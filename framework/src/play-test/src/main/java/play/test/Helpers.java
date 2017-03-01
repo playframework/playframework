@@ -58,14 +58,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     // --
     @SuppressWarnings(value = "unchecked")
-    private static Result invokeHandler(play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
+    private static Result invokeHandler(play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
         if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
-            final play.api.inject.Injector injector = play.api.Play.current().injector();
+            final play.api.inject.Injector injector = app.injector();
             final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
             return invokeHandler(
+                    app,
                     ((JavaHandler) handler).withComponents(handlerComponents),
                     requestBuilder, timeout
             );
@@ -300,10 +301,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 .decodeString(result.charset().orElse("utf-8"));
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, requestBuilder, timeout);
+    }
+
+
+    public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
         try {
-            return routeAndCall((Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
+            return routeAndCall(app, (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
         } catch (RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -311,12 +323,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     public static Result routeAndCall(Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder, timeout);
+    }
+
+    public static Result routeAndCall(Application app, Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             return routes.route(request).map(handler ->
-                    invokeHandler(handler, request, timeout)
+                invokeHandler(app.getWrappedApplication(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -325,15 +347,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Router, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder) {
-        return routeAndCall(router, requestBuilder, DEFAULT_TIMEOUT);
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder);
     }
 
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder) {
+        return routeAndCall(app, router, requestBuilder, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return routeAndCall(application, router, requestBuilder, timeout);
+    }
+
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
             return router.route(request).map(handler ->
-                    invokeHandler(handler, request, timeout)
+                    invokeHandler(app.getWrappedApplication(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -342,40 +384,62 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     public static Result route(Call call) {
         return route(fakeRequest(call));
-    }
-
-    public static Result route(Call call, long timeout) {
-        return route(fakeRequest(call), timeout);
     }
 
     public static Result route(Application app, Call call) {
         return route(app, fakeRequest(call));
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call, long)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
+    public static Result route(Call call, long timeout) {
+        return route(fakeRequest(call), timeout);
+    }
+
     public static Result route(Application app, Call call, long timeout) {
         return route(app, fakeRequest(call), timeout);
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
     public static Result route(RequestBuilder requestBuilder) {
         return route(requestBuilder, DEFAULT_TIMEOUT);
-    }
-
-    public static Result route(RequestBuilder requestBuilder, long timeout) {
-        final play.Application application = play.api.Play.current().injector().instanceOf(play.Application.class);
-
-        return route(application, requestBuilder, timeout);
     }
 
     public static Result route(Application app, RequestBuilder requestBuilder) {
         return route(app, requestBuilder, DEFAULT_TIMEOUT);
     }
 
+    /**
+     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     */
+    @Deprecated
+    public static Result route(RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return route(application, requestBuilder, timeout);
+    }
+
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
         final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
-                app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.body());
+                app.getWrappedApplication(),
+                requestBuilder.build()._underlyingRequest(),
+                requestBuilder.body()
+        );
         return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
