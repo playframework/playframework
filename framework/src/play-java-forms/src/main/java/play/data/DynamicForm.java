@@ -102,7 +102,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.data(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -142,7 +142,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.data(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
     
     /**

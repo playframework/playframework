@@ -212,9 +212,9 @@ class FormSpec extends Specification {
 
     "support email validation" in {
       val userEmail = formFactory.form(classOf[UserEmail])
-      userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not(beEmpty)
+      userEmail.bind(Map("email" -> "john@example.com").asJava).allErrors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).allErrors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).allErrors().asScala must not(beEmpty)
     }
 
     "support custom validators" in {
