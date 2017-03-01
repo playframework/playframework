@@ -92,7 +92,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     @Override
     public Map<String, String> data() {
-        return rawData;
+        return Collections.unmodifiableMap(rawData);
     }
 
     /**
