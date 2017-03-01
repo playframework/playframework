@@ -263,10 +263,10 @@ public class HttpFormsTest {
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(2);
-            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
-            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
-            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().messages().size()).isEqualTo(2);
+            assertThat(myForm.getError("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.getError("dueDate").get().messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().message()).isEqualTo("error.invalid.java.util.Date");
 
             // Prepare Request and Context
             data = new HashMap<>();
@@ -281,11 +281,11 @@ public class HttpFormsTest {
             myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(3);
-            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
-            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
-            assertThat(myForm.error("dueDate").messages().get(2)).isEqualTo("error.invalid.dueDate");
-            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.dueDate");
+            assertThat(myForm.getError("dueDate").get().messages().size()).isEqualTo(3);
+            assertThat(myForm.getError("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.getError("dueDate").get().messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().messages().get(2)).isEqualTo("error.invalid.dueDate");
+            assertThat(myForm.getError("dueDate").get().message()).isEqualTo("error.invalid.dueDate");
         });
     }
 
@@ -340,10 +340,10 @@ public class HttpFormsTest {
             myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            assertThat(myForm.error("zip").messages().size()).isEqualTo(1);
-            assertThat(myForm.error("zip").message()).isEqualTo("error.i18nconstraint");
-            assertThat(myForm.error("anotherZip").messages().size()).isEqualTo(1);
-            assertThat(myForm.error("anotherZip").message()).isEqualTo("error.anotheri18nconstraint");
+            assertThat(myForm.getError("zip").get().messages().size()).isEqualTo(1);
+            assertThat(myForm.getError("zip").get().message()).isEqualTo("error.i18nconstraint");
+            assertThat(myForm.getError("anotherZip").get().messages().size()).isEqualTo(1);
+            assertThat(myForm.getError("anotherZip").get().message()).isEqualTo("error.anotheri18nconstraint");
         });
     }
 

@@ -519,13 +519,21 @@ public class Form<T> {
      * Retrieves the first global error (an error without any key), if it exists.
      *
      * @return An error or <code>null</code>.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getGlobalError()} instead.
      */
+    @Deprecated
     public ValidationError globalError() {
-        List<ValidationError> errors = globalErrors();
-        if (errors.isEmpty()) {
-            return null;
-        }
-        return errors.get(0);
+        return this.getGlobalError().orElse(null);
+    }
+
+    /**
+     * Retrieves the first global error (an error without any key), if it exists.
+     *
+     * @return An error.
+     */
+    public Optional<ValidationError> getGlobalError() {
+        return globalErrors().stream().findFirst();
     }
 
     /**
@@ -563,9 +571,20 @@ public class Form<T> {
     /**
      * @param key    the field name associated with the error.
      * @return an error by key, or null.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
      */
+    @Deprecated
     public ValidationError error(String key) {
-        return errors(key).stream().findFirst().orElse(null);
+        return this.getError(key).orElse(null);
+    }
+
+    /**
+     * @param key    the field name associated with the error.
+     * @return an error by key
+     */
+    public Optional<ValidationError> getError(String key) {
+        return errors(key).stream().findFirst();
     }
 
     /**

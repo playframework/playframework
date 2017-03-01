@@ -150,9 +150,19 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     /**
      * Retrieve an error by key.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
      */
+    @Deprecated
     public ValidationError error(String key) {
         return super.error(asDynamicKey(key));
+    }
+
+    /**
+     * Retrieve an error by key.
+     */
+    public Optional<ValidationError> getError(String key) {
+        return super.getError(asDynamicKey(key));
     }
 
     /**
