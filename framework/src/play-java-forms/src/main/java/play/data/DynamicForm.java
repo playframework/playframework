@@ -66,7 +66,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
     
     /**
-     * Gets the concrete value if the submission was a success.
+     * Gets the concrete value only if the submission was a success.
+     * If the form is invalid because of validation errors this method will return null.
+     * If you want to retrieve the value even when the form is invalid use {@link #value(String)} instead.
+     * 
      * @param key the string key.
      * @return the value, or null if there is no match.
      */
@@ -76,6 +79,15 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         } catch(Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Gets the concrete value
+     * @param key the string key.
+     * @return the value
+     */
+    public Optional<Object> value(String key) {
+        return super.value().map(v -> v.getData().get(asNormalKey(key)));
     }
 
     @Override
@@ -88,7 +100,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param value    the map of values to fill in the form.
      * @return the modified form.
      */
-    public DynamicForm fill(Map value) {
+    public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
         return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
@@ -209,22 +221,21 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
-    @SuppressWarnings("rawtypes")
     public static class Dynamic {
 
-        private Map data = new HashMap();
+        private Map<String, Object> data = new HashMap<>();
 
         public Dynamic() {
         }
 
-        public Dynamic(Map data) {
+        public Dynamic(Map<String, Object> data) {
             this.data = data;
         }
 
         /**
          * @return the data.
          */
-        public Map getData() {
+        public Map<String, Object> getData() {
             return data;
         }
 
@@ -232,7 +243,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
          * Sets the new data.
          * @param data    the map of data.
          */
-        public void setData(Map data) {
+        public void setData(Map<String, Object> data) {
             this.data = data;
         }
 

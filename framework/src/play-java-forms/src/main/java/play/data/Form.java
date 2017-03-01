@@ -634,7 +634,7 @@ public class Form<T> {
     /**
      * Gets the concrete value only if the submission was a success.
      * If the form is invalid because of validation errors this method will throw an exception.
-     * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
+     * If you want to retrieve the value even when the form is invalid use {@link #value()} instead.
      *
      * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
      * @return the concrete value.
