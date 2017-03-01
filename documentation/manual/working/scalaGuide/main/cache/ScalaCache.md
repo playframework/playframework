@@ -114,6 +114,6 @@ play.modules.disabled += "play.api.cache.EhCacheModule"
 
 You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
 
-To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.
+Note that the `removeAll()` method may not be supported in your custom implementation. If not, we suggest throwing `UnsupportedOperationException` and avoid using that method in your code.
 
-Note that `removeAll()` function may not be supported by your custom implementation, if not, you can throw a `UnsupportedOperationException`.
+To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.

@@ -178,18 +178,14 @@ class EhCacheApi @Inject() (cache: Ehcache)(implicit context: ExecutionContext) 
     }
   }
 
-  def remove(key: String): Future[Done] = {
-    Future.successful {
+  def remove(key: String): Future[Done] = Future.successful {
       cache.remove(key)
       Done
-    }
   }
 
-  def removeAll(): Future[Done] = {
-    Future.successful {
+  def removeAll(): Future[Done] = Future {
       cache.removeAll()
       Done
-    }
   }
 }
 
