@@ -876,7 +876,10 @@ public class Form<T> {
          * Returns the field name.
          *
          * @return The field name.
+         * 
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getName()} instead.
          */
+        @Deprecated
         public String name() {
             return name;
         }
@@ -892,11 +895,18 @@ public class Form<T> {
          * Returns the field value, if defined.
          *
          * @return The field value, if defined.
+         * 
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
          */
+        @Deprecated
         public String value() {
             return value;
         }
 
+        /**
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
+         */
+        @Deprecated
         public String valueOr(String or) {
             if (value == null) {
                 return or;

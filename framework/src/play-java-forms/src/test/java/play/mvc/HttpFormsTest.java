@@ -84,7 +84,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasGlobalErrors()).isFalse();
             Money money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-            assertThat(copyFormWithoutRawData(myForm, app).field("amount").value()).isEqualTo("1 234 567,89");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1 234 567,89");
             // Parse french input with english formatter
             ctx.changeLang("en");
             myForm = formFactory.form(Money.class).bindFromRequest();
@@ -92,7 +92,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasGlobalErrors()).isFalse();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
-            assertThat(copyFormWithoutRawData(myForm, app).field("amount").value()).isEqualTo("123,456,789");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("123,456,789");
 
             // Prepare Request and Context with english number
             data = new HashMap<>();
@@ -107,7 +107,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasGlobalErrors()).isFalse();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
-            assertThat(copyFormWithoutRawData(myForm, app).field("amount").value()).isEqualTo("1 234 567");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1 234 567");
             // Parse english input with english formatter
             ctx.changeLang("en");
             myForm = formFactory.form(Money.class).bindFromRequest();
@@ -115,7 +115,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasGlobalErrors()).isFalse();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-            assertThat(copyFormWithoutRawData(myForm, app).field("amount").value()).isEqualTo("1,234,567.89");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1,234,567.89");
 
             // Clean up (Actually not really necassary because formatters are not global anyway ;-)
             formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
@@ -160,7 +160,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             Birthday birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("date").value()).isEqualTo("03/10/1986");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("03/10/1986");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1986, 10, 3));
 
             // Prepare Request and Context
@@ -175,7 +175,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("date").value()).isEqualTo("16.02.2001");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("16.02.2001");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2001, 2, 16));
 
             // Prepare Request and Context
@@ -190,7 +190,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("date").value()).isEqualTo("08-31-1950");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("08-31-1950");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1950, 8, 31));
         });
     }
@@ -211,7 +211,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             Birthday birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value()).isEqualTo("1982-05-07");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("1982-05-07");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1982, 5, 7));
 
             // Prepare Request and Context
@@ -226,7 +226,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value()).isEqualTo("10_04_2005");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("10_04_2005");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2005, 10, 4));
 
             // Prepare Request and Context
@@ -241,7 +241,7 @@ public class HttpFormsTest {
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
             birthday = myForm.get();
-            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value()).isEqualTo("03/12/1962");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("03/12/1962");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1962, 12, 3));
         });
     }

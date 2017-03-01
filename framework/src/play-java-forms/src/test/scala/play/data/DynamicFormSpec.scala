@@ -73,12 +73,12 @@ class DynamicFormSpec extends Specification {
 
     "allow access to the equivalent of the raw data when filled" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
-      form("foo").value() must_== "bar"
+      form("foo").getValue().get() must_== "bar"
     }
 
     "don't throw NullPointerException when all components of form are null" in {
       val form = new DynamicForm(null, null, null).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
-      form("foo").value() must_== "bar"
+      form("foo").getValue().get() must_== "bar"
     }
 
     "convert jField to scala Field when all components of jField are null" in {

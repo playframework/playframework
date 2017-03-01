@@ -156,7 +156,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         // javadoc cannot find the static inner class.
         Field field = super.field(asDynamicKey(key));
         return new Field(this, key, field.constraints(), field.format(), field.errors(),
-            field.value() == null ? get(key) : field.value()
+            field.getValue().orElse((String)value(key).orElse(null))
         );
     }
 
