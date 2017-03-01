@@ -430,7 +430,7 @@ public class Form<T> {
                 } else if (globalError instanceof List) {
                     errors.addAll((List<ValidationError>) globalError);
                 } else if (globalError instanceof Map) {
-                    errors.addAll(((Map<String,List<ValidationError>>)globalError).values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()));
+                    ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
                 }
                 return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
