@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -538,9 +537,7 @@ public class Form<T> {
      */
     @Deprecated
     public Map<String,List<ValidationError>> errors() {
-        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.toMap(e -> e.key(), e -> Collections.unmodifiableList(Arrays.asList(e)), (v1, v2) ->
-            Collections.unmodifiableList(Stream.of(v1, v2).flatMap(Collection::stream).collect(Collectors.toList()))
-        )));
+        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.groupingBy(error -> error.key())));
     }
 
     /**
