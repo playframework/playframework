@@ -409,7 +409,7 @@ public class Form<T> {
                 errors.addAll(globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -425,15 +425,15 @@ public class Form<T> {
             if (globalError != null) {
                 final List<ValidationError> errors = new ArrayList<>();
                 if (globalError instanceof String) {
-                    errors.add(new ValidationError("", (String)globalError, new ArrayList()));
+                    errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
                 } else if (globalError instanceof List) {
                     errors.addAll((List<ValidationError>) globalError);
                 } else if (globalError instanceof Map) {
                     ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
                 }
-                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+                return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form<>(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
     }
 
@@ -474,12 +474,11 @@ public class Form<T> {
      * @param value existing value of type <code>T</code> used to fill this form
      * @return a copy of this form filled with the new data
      */
-    @SuppressWarnings("unchecked")
     public Form<T> fill(T value) {
         if (value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(
+        return new Form<>(
                 rootName,
                 backedType,
                 new HashMap<>(),
@@ -951,7 +950,6 @@ public class Form<T> {
         /**
          * @return the indexes available for this field (for repeated fields and List)
          */
-        @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
             if(form == null) {
                 return Collections.emptyList();
@@ -968,7 +966,7 @@ public class Form<T> {
                 if (beanWrapper.isReadableProperty(objectKey)) {
                     Object value1 = beanWrapper.getPropertyValue(objectKey);
                     if (value1 instanceof Collection) {
-                        for (int i = 0; i<((Collection) value1).size(); i++) {
+                        for (int i = 0; i<((Collection<?>) value1).size(); i++) {
                             result.add(i);
                         }
                     }
