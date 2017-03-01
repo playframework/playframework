@@ -882,6 +882,13 @@ public class Form<T> {
         }
 
         /**
+        * @return The field name.
+        */
+        public Optional<String> getName() {
+            return Optional.ofNullable(name);
+        }
+
+        /**
          * Returns the field value, if defined.
          *
          * @return The field value, if defined.
@@ -895,6 +902,13 @@ public class Form<T> {
                 return or;
             }
             return value;
+        }
+
+        /**
+        * @return The field value, if defined.
+        */
+        public Optional<String> getValue() {
+            return Optional.ofNullable(value);
         }
 
         /**
