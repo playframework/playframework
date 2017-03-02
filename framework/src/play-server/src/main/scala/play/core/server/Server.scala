@@ -155,7 +155,7 @@ object Server {
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
     )
-    val application = new BuiltInComponentsFromContext(context) {
+    val application = new BuiltInComponentsFromContext(context) with NoDefaultFiltersComponents {
       def router = Router.from(routes)
     }.application
     withApplication(application, config)(block)
@@ -179,7 +179,7 @@ object Server {
       Environment.simple(path = config.rootDir, mode = config.mode),
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
-    )) { self: BuiltInComponents =>
+    )) with NoDefaultFiltersComponents { self: BuiltInComponents =>
       def router = Router.from(routes(self))
     }.application
     withApplication(application, config)(block)
@@ -235,7 +235,7 @@ private[play] object JavaServerHelper {
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
     )
-    val application = new BuiltInComponentsFromContext(context) {
+    val application = new BuiltInComponentsFromContext(context) with NoDefaultFiltersComponents {
       override def router: Router = block.apply(this)
     }.application
     Play.start(application)

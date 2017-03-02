@@ -29,7 +29,7 @@ trait AssetsSpec extends PlaySpecification
 
     def withServer[T](block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
-        new BuiltInComponentsFromContext(context) with AssetsComponents {
+        new BuiltInComponentsFromContext(context) with AssetsComponents with NoDefaultFiltersComponents {
           override def router: Router = Router.from {
             case req => assets.versioned("/testassets", req.path)
           }
@@ -224,7 +224,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "if the directory is a jar entry" in {
         Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) with AssetsComponents {
+          new BuiltInComponentsFromContext(context) with AssetsComponents with NoDefaultFiltersComponents {
             override def router: Router = Router.from {
               case req => assets.versioned("/scala", req.path)
             }

@@ -14,7 +14,7 @@ import play.api.mvc._
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird._
-import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
+import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment, NoDefaultFiltersComponents }
 import play.filters.gzip.GzipFilter
 
 /**
@@ -323,7 +323,7 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents with NoDefaultFiltersComponents {
       implicit lazy val Action = defaultActionBuilder
       def router = SimpleRouter(
         PartialFunction.empty

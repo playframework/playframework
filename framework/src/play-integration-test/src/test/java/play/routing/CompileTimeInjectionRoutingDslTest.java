@@ -7,8 +7,10 @@ import org.junit.BeforeClass;
 import play.Application;
 import play.DefaultApplication;
 import play.api.ApplicationLoader;
+import play.api.http.HttpFilters;
 import play.inject.DelegateInjector;
 import play.inject.Injector;
+import play.libs.Scala;
 
 public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
@@ -42,6 +44,11 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
         @Override
         public play.api.routing.Router router() {
             return routingDsl().build().asScala();
+        }
+
+        @Override
+        public HttpFilters defaultFilters() {
+            return Scala::emptySeq;
         }
     }
 }

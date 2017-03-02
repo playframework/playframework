@@ -14,7 +14,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
-import play.api.{ ApplicationLoader, BuiltInComponents, BuiltInComponentsFromContext, Environment }
+import play.api._
 import play.core.server.Server
 import play.it._
 
@@ -38,7 +38,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
-    )) {
+    )) with NoDefaultFiltersComponents {
       lazy val router = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(

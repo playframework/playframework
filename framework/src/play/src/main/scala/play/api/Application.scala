@@ -254,7 +254,7 @@ trait BuiltInComponents extends I18nComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
+  def injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
 
   lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer, tempFileCreator)
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
@@ -262,10 +262,19 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
-  lazy val httpFilters: Seq[EssentialFilter] = Nil
+
+  /** Default filters, provided by mixing in play.filters.DefaultFilterComponents or NoDefaultFiltersComponents. */
+  def defaultFilters: HttpFilters
+
+  /** A user defined list of filters that is appended to the default filters */
+  def httpFilters: Seq[EssentialFilter] = Nil
+
+  /** A list of the default filters plus user filters */
+  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(defaultFilters, httpFilters: _*)
+
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, defaultHttpFilters.filters: _*)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
@@ -284,4 +293,13 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+}
+
+/**
+ * A component to mix in when no default filters should be mixed in to BuiltInComponents.
+ */
+trait NoDefaultFiltersComponents {
+  val defaultFilters: HttpFilters = new HttpFilters {
+    override def filters = Nil
+  }
 }
