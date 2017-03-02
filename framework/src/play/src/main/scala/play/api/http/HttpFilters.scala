@@ -5,6 +5,7 @@ package play.api.http
 
 import javax.inject.Inject
 
+import com.typesafe.config.ConfigException
 import play.api.inject.{ Binding, BindingKey, Injector }
 import play.api.{ Configuration, Environment }
 import play.api.mvc.EssentialFilter
@@ -51,9 +52,16 @@ object HttpFilters {
 class DefaultFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
 
   private val defaultBindings: Seq[BindingKey[EssentialFilter]] = {
-    for (filterClassName <- configuration.get[Seq[String]]("play.filters.defaults")) yield {
-      val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
-      BindingKey(filterClass)
+    try {
+      for (filterClassName <- configuration.get[Seq[String]]("play.filters.defaults")) yield {
+        val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
+        BindingKey(filterClass)
+      }
+    } catch {
+      case e: ConfigException.Null =>
+        Nil
+      case e: ConfigException.Missing =>
+        Nil
     }
   }
 
