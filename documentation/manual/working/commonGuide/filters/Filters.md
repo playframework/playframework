@@ -20,7 +20,11 @@ In Play itself, `play.filters.defaults` is an empty list.  However, the `PlayFil
 
 This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
 
-If you define your own list of filters (for example, by adding a `Filters` class to the root), then the default list is overridden.  You must inject `DefaultFilters` and compose the filters if you want to append to the defaults.
+If you define your own list of filters (for example, by adding a `Filters` class to the root), then the default list is overridden.  You must inject `DefaultFilters` and compose the filters if you want to append to the defaults, or append to the defaults list:
+
+```
+play.filters.defaults+=MyFilter
+```
 
 ### Disabling Default Filters
 
