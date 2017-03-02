@@ -602,10 +602,10 @@ If you define your own list of filters (for example, by adding a `Filters` class
 
 ### Disabling Default Filters
 
-The simplest way to disable the default filters is to set the filters to `play.api.http.NoHttpFilters` specifically:
+The simplest way to disable the default filters is to set the list of filters manually in `application.conf`:
 
 ```
-play.http.filters=play.api.http.NoHttpFilters
+play.filters.defaults=[]
 ```
 
 This may be useful if you have functional tests that you do not want to go through the default filters.
