@@ -55,8 +55,7 @@ class AkkaHttpServer(
 
   def mode = config.mode
 
-  // Remember that some user config may not be available in development mode due to
-  // its unusual ClassLoader.
+  // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
   implicit val system = actorSystem
   implicit val mat = materializer
 
