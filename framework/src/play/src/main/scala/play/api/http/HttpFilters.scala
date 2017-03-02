@@ -33,7 +33,7 @@ trait HttpFilters {
  *     extends DefaultHttpFilters(defaultFilters, csrfFilter, corsFilter)
  * }}}
  */
-class DefaultHttpFilters(defaultFilters: DefaultFilters, userFilters: EssentialFilter*) extends HttpFilters {
+class DefaultHttpFilters @Inject() (defaultFilters: DefaultFilters, userFilters: EssentialFilter*) extends HttpFilters {
 
   val filters: Seq[EssentialFilter] = {
     Option(defaultFilters).map(_.filters).getOrElse(Nil) ++ userFilters
