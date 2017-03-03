@@ -211,9 +211,7 @@ object CSRF {
     /** Generate a token */
     def generateToken: String
     /** Compare two tokens */
-    def compareTokens(tokenA: String, tokenB: String): Boolean = {
-      java.security.MessageDigest.isEqual(tokenA.getBytes("utf-8"), tokenB.getBytes("utf-8"))
-    }
+    def compareTokens(tokenA: String, tokenB: String): Boolean
   }
 
   class TokenProviderProvider @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner) extends Provider[TokenProvider] {
@@ -226,14 +224,19 @@ object CSRF {
   class ConfigTokenProvider(config: => CSRFConfig, tokenSigner: CSRFTokenSigner) extends TokenProvider {
     lazy val underlying = new TokenProviderProvider(config, tokenSigner).get
     def generateToken = underlying.generateToken
+    override def compareTokens(tokenA: String, tokenB: String) = underlying.compareTokens(tokenA, tokenB)
   }
 
   class SignedTokenProvider(tokenSigner: CSRFTokenSigner) extends TokenProvider {
     def generateToken = tokenSigner.generateSignedToken
+    def compareTokens(tokenA: String, tokenB: String) = tokenSigner.compareSignedTokens(tokenA, tokenB)
   }
 
   class UnsignedTokenProvider(tokenSigner: CSRFTokenSigner) extends TokenProvider {
     def generateToken = tokenSigner.generateToken
+    override def compareTokens(tokenA: String, tokenB: String) = {
+      java.security.MessageDigest.isEqual(tokenA.getBytes("utf-8"), tokenB.getBytes("utf-8"))
+    }
   }
 
   /**
