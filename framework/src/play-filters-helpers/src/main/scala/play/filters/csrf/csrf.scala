@@ -86,7 +86,8 @@ object CSRFConfig {
   private def defaultCreateIfNotFound(request: RequestHeader) = {
     // If the request isn't accepting HTML, then it won't be rendering a form, so there's no point in generating a
     // CSRF token for it.
-    (request.method == "GET" || request.method == "HEAD") && (request.accepts("text/html") || request.accepts("application/xml+xhtml"))
+    import play.api.http.MimeTypes._
+    (request.method == "GET" || request.method == "HEAD") && (request.accepts(HTML) || request.accepts(XHTML))
   }
 
   private[play] val HeaderNoCheck = "nocheck"

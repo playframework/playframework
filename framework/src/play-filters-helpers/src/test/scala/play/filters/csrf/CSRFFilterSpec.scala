@@ -46,6 +46,9 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
+    "add a token to GET requests that accept XHTML" in {
+      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/xhtml+xml").get())(_.status must_== OK)
+    }
     "not add a token to HEAD requests that don't accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").head())(_.status must_== NOT_FOUND)
     }

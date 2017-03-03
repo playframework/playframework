@@ -2285,7 +2285,7 @@ public class Http {
     }
 
     /** Common HTTP MIME types */
-    public static interface MimeTypes {
+    public interface MimeTypes {
 
         /**
          * Content-Type of text.
@@ -2306,6 +2306,11 @@ public class Http {
          * Content-Type of xml.
          */
         String XML = "application/xml";
+
+        /**
+         * Content-Type of xhtml.
+         */
+        String XHTML = "application/xhtml+xml";
 
         /**
          * Content-Type of css.
