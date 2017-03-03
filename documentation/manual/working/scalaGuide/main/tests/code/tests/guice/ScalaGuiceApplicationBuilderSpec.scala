@@ -31,6 +31,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule) // ###skip
         .loadConfig(Configuration.reference) // ###skip
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
         .build
       // #set-environment
@@ -46,6 +47,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule) // ###skip
         .loadConfig(Configuration.reference) // ###skip
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(new File("path/to/app"))
         .in(Mode.Test)
         .in(classLoader)
@@ -86,6 +88,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     "add bindings" in {
       // #add-bindings
       val injector = new GuiceApplicationBuilder()
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .bindings(new ComponentModule)
         .bindings(bind[Component].to[DefaultComponent])
         .injector
@@ -97,6 +100,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     "override bindings" in {
       // #override-bindings
       val application = new GuiceApplicationBuilder()
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .configure("play.http.router" -> classOf[Routes].getName) // ###skip
         .bindings(new ComponentModule) // ###skip
         .overrides(bind[Component].to[MockComponent])
@@ -112,6 +116,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     "load modules" in {
       // #load-modules
       val injector = new GuiceApplicationBuilder()
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .load(
           new play.api.inject.BuiltinModule,
           new play.api.i18n.I18nModule,
@@ -125,6 +130,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     "disable modules" in {
       // #disable-modules
       val injector = new GuiceApplicationBuilder()
+        .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .bindings(new ComponentModule) // ###skip
         .disable[ComponentModule]
         .injector

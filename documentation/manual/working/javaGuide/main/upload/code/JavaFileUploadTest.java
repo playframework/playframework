@@ -11,7 +11,6 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.routing.Router;
-import play.routing.RoutingDsl;
 import play.test.Helpers;
 import play.test.WithApplication;
 
@@ -21,7 +20,6 @@ import java.nio.file.Files;
 import java.util.Collections;
 
 import static org.junit.Assert.assertThat;
-import static play.mvc.Results.ok;
 
 public class JavaFileUploadTest extends WithApplication {
 
@@ -39,7 +37,7 @@ public class JavaFileUploadTest extends WithApplication {
         Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromFile(file));
 
         //###replace:     Http.RequestBuilder request = new Http.RequestBuilder().uri(routes.MyController.upload().url())
-        Http.RequestBuilder request = new Http.RequestBuilder().uri("/upload")
+        Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
                 .method("POST")
                 .header(Http.HeaderNames.CONTENT_TYPE, "multipart/form-data")
                 .bodyMultipart(

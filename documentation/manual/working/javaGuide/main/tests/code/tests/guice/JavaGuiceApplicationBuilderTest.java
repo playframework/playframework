@@ -54,6 +54,7 @@ public class JavaGuiceApplicationBuilderTest {
         Application application = new GuiceApplicationBuilder()
             .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
+            .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
             .build();
         // #set-environment
@@ -70,6 +71,7 @@ public class JavaGuiceApplicationBuilderTest {
         Application application = new GuiceApplicationBuilder()
             .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
+            .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new File("path/to/app"))
             .in(Mode.TEST)
             .in(classLoader)
@@ -126,13 +128,14 @@ public class JavaGuiceApplicationBuilderTest {
         // #override-bindings
         Application application = new GuiceApplicationBuilder()
             .configure("play.http.router", Routes.class.getName()) // ###skip
+            .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .bindings(new ComponentModule()) // ###skip
             .overrides(bind(Component.class).to(MockComponent.class))
             .build();
         // #override-bindings
 
         running(application, () -> {
-            Result result = route(fakeRequest(GET, "/"));
+            Result result = route(application, fakeRequest(GET, "/"));
             assertThat(contentAsString(result), equalTo("mock"));
         });
     }
@@ -141,6 +144,7 @@ public class JavaGuiceApplicationBuilderTest {
     public void loadModules() {
         // #load-modules
         Application application = new GuiceApplicationBuilder()
+            .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .load(
                 Guiceable.modules(
                     new play.api.inject.BuiltinModule(),
@@ -160,6 +164,7 @@ public class JavaGuiceApplicationBuilderTest {
     public void disableModules() {
         // #disable-modules
         Application application = new GuiceApplicationBuilder()
+            .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .bindings(new ComponentModule()) // ###skip
             .disable(ComponentModule.class)
             .build();

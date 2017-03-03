@@ -41,20 +41,12 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 
 ## Applying a global CSRF filter
 
-Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To enable the global filter, add the Play filters helpers dependency to your project in `build.sbt`:
+> **Note:** As of Play 2.6.x, the CSRF filter is included in Play's list of default filters that are applied automatically to projects.  See [[the Filters page|Filters]] for more information.
 
-```scala
-libraryDependencies += filters
-```
-
-Now add them to your `Filters` class as described in [[HTTP filters|ScalaHttpFilters]]:
-
-@[http-filters](code/ScalaCsrf.scala)
-
-The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.http.filters = "filters.MyFilters"
+play.filters.defaults += play.filters.csrf.CsrfFilter
 ```
 
 ### Using an implicit request
