@@ -57,6 +57,11 @@ public class HttpFormsTest {
         return app.injector().instanceOf(JavaContextComponents.class);
     }
 
+    private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
+        return new Form<T>(formToCopy.name(), formToCopy.getBackedType(), null, formToCopy.allErrors(), formToCopy.value(),
+            (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(Validator.class));
+    }
+
     @Test
     public void testLangDataBinder() {
         withApplication((app) -> {
@@ -77,19 +82,17 @@ public class HttpFormsTest {
             Form<Money> myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             Money money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-            assertThat(myForm.field("amount").value()).isEqualTo("1 234 567,89");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1 234 567,89");
             // Parse french input with english formatter
             ctx.changeLang("en");
             myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
-            assertThat(myForm.field("amount").value()).isEqualTo("123,456,789");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("123,456,789");
 
             // Prepare Request and Context with english number
             data = new HashMap<>();
@@ -102,19 +105,17 @@ public class HttpFormsTest {
             myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
-            assertThat(myForm.field("amount").value()).isEqualTo("1 234 567");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1 234 567");
             // Parse english input with english formatter
             ctx.changeLang("en");
             myForm = formFactory.form(Money.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             money = myForm.get();
             assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-            assertThat(myForm.field("amount").value()).isEqualTo("1,234,567.89");
+            assertThat(copyFormWithoutRawData(myForm, app).field("amount").getValue().get()).isEqualTo("1,234,567.89");
 
             // Clean up (Actually not really necassary because formatters are not global anyway ;-)
             formatters.conversion.removeConvertible(BigDecimal.class, String.class); // removes print conversion
@@ -135,10 +136,8 @@ public class HttpFormsTest {
 
             List<Object> args = new ArrayList<>();
             args.add("error.customarg");
-            List<ValidationError> error = new ArrayList<>();
-            error.add(new ValidationError("key", "error.custom", args));
-            Map<String,List<ValidationError>> errors = new HashMap<>();
-            errors.put("foo", error);
+            List<ValidationError> errors = new ArrayList<>();
+            errors.add(new ValidationError("foo", "error.custom", args));
             Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
@@ -160,9 +159,8 @@ public class HttpFormsTest {
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             Birthday birthday = myForm.get();
-            assertThat(myForm.field("date").value()).isEqualTo("03/10/1986");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("03/10/1986");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1986, 10, 3));
 
             // Prepare Request and Context
@@ -176,9 +174,8 @@ public class HttpFormsTest {
             myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             birthday = myForm.get();
-            assertThat(myForm.field("date").value()).isEqualTo("16.02.2001");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("16.02.2001");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2001, 2, 16));
 
             // Prepare Request and Context
@@ -192,9 +189,8 @@ public class HttpFormsTest {
             myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             birthday = myForm.get();
-            assertThat(myForm.field("date").value()).isEqualTo("08-31-1950");
+            assertThat(copyFormWithoutRawData(myForm, app).field("date").getValue().get()).isEqualTo("08-31-1950");
             assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1950, 8, 31));
         });
     }
@@ -214,9 +210,8 @@ public class HttpFormsTest {
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             Birthday birthday = myForm.get();
-            assertThat(myForm.field("alternativeDate").value()).isEqualTo("1982-05-07");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("1982-05-07");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1982, 5, 7));
 
             // Prepare Request and Context
@@ -230,9 +225,8 @@ public class HttpFormsTest {
             myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             birthday = myForm.get();
-            assertThat(myForm.field("alternativeDate").value()).isEqualTo("10_04_2005");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("10_04_2005");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(2005, 10, 4));
 
             // Prepare Request and Context
@@ -246,9 +240,8 @@ public class HttpFormsTest {
             myForm = formFactory.form(Birthday.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
             birthday = myForm.get();
-            assertThat(myForm.field("alternativeDate").value()).isEqualTo("03/12/1962");
+            assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").getValue().get()).isEqualTo("03/12/1962");
             assertThat(birthday.getAlternativeDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()).isEqualTo(LocalDate.of(1962, 12, 3));
         });
     }
@@ -270,11 +263,10 @@ public class HttpFormsTest {
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
-            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(2);
-            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
-            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
-            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().messages().size()).isEqualTo(2);
+            assertThat(myForm.getError("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.getError("dueDate").get().messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().message()).isEqualTo("error.invalid.java.util.Date");
 
             // Prepare Request and Context
             data = new HashMap<>();
@@ -289,12 +281,11 @@ public class HttpFormsTest {
             myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
-            assertThat(myForm.error("dueDate").messages().size()).isEqualTo(3);
-            assertThat(myForm.error("dueDate").messages().get(0)).isEqualTo("error.invalid");
-            assertThat(myForm.error("dueDate").messages().get(1)).isEqualTo("error.invalid.java.util.Date");
-            assertThat(myForm.error("dueDate").messages().get(2)).isEqualTo("error.invalid.dueDate");
-            assertThat(myForm.error("dueDate").message()).isEqualTo("error.invalid.dueDate");
+            assertThat(myForm.getError("dueDate").get().messages().size()).isEqualTo(3);
+            assertThat(myForm.getError("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
+            assertThat(myForm.getError("dueDate").get().messages().get(1)).isEqualTo("error.invalid.java.util.Date");
+            assertThat(myForm.getError("dueDate").get().messages().get(2)).isEqualTo("error.invalid.dueDate");
+            assertThat(myForm.getError("dueDate").get().message()).isEqualTo("error.invalid.dueDate");
         });
     }
 
@@ -317,7 +308,6 @@ public class HttpFormsTest {
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
 
             // Prepare Request and Context
             data = new HashMap<>();
@@ -334,7 +324,6 @@ public class HttpFormsTest {
             myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isFalse();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
 
             // Prepare Request and Context
             data = new HashMap<>();
@@ -351,11 +340,10 @@ public class HttpFormsTest {
             myForm = formFactory.form(Task.class).bindFromRequest();
             assertThat(myForm.hasErrors()).isTrue();
             assertThat(myForm.hasGlobalErrors()).isFalse();
-            myForm.data().clear();
-            assertThat(myForm.error("zip").messages().size()).isEqualTo(1);
-            assertThat(myForm.error("zip").message()).isEqualTo("error.i18nconstraint");
-            assertThat(myForm.error("anotherZip").messages().size()).isEqualTo(1);
-            assertThat(myForm.error("anotherZip").message()).isEqualTo("error.anotheri18nconstraint");
+            assertThat(myForm.getError("zip").get().messages().size()).isEqualTo(1);
+            assertThat(myForm.getError("zip").get().message()).isEqualTo("error.i18nconstraint");
+            assertThat(myForm.getError("anotherZip").get().messages().size()).isEqualTo(1);
+            assertThat(myForm.getError("anotherZip").get().message()).isEqualTo("error.anotheri18nconstraint");
         });
     }
 

@@ -7,6 +7,7 @@ package play.core.j
 object PlayFormsMagicForJava {
 
   import scala.collection.JavaConverters._
+  import scala.compat.java8.OptionConverters
   import scala.language.implicitConversions
 
   /**
@@ -15,7 +16,7 @@ object PlayFormsMagicForJava {
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
     new play.api.data.Field(
       null,
-      jField.name,
+      jField.getName.orElse(null),
       Option(jField.constraints).map(c => c.asScala.map { jT =>
         jT._1 -> jT._2.asScala
       }).getOrElse(Nil),
@@ -26,7 +27,7 @@ object PlayFormsMagicForJava {
           jE.messages.asScala,
           jE.arguments.asScala)
       }).getOrElse(Nil),
-      Option(jField.value)) {
+      OptionConverters.toScala(jField.getValue)) {
 
       override def apply(key: String) = {
         javaFieldtoScalaField(jField.sub(key))

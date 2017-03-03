@@ -221,8 +221,8 @@ public class JavaForms extends WithApplication {
         //#fill
         userForm = userForm.fill(new User("bob@gmail.com", "secret"));
         //#fill
-        assertThat(userForm.field("email").value(), equalTo("bob@gmail.com"));
-        assertThat(userForm.field("password").value(), equalTo("secret"));
+        assertThat(userForm.field("email").getValue().get(), equalTo("bob@gmail.com"));
+        assertThat(userForm.field("password").getValue().get(), equalTo("secret"));
     }
 
     @Test
@@ -258,7 +258,7 @@ public class JavaForms extends WithApplication {
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
-        assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));
+        assertThat(form.fill(obj).field("time").getValue().get(), equalTo("23:45"));
     }
 
     public static class WithLocalTime {

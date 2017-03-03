@@ -29,6 +29,7 @@ class DynamicFormSpec extends Specification {
     "bind values from a request" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.get("foo") must_== "bar"
+      form.value("foo").get must_== "bar"
     }
 
     "allow access to raw data values from request" in {
@@ -65,18 +66,19 @@ class DynamicFormSpec extends Specification {
     }
 
     "allow access to the property when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asJava)
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form.get("foo") must_== "bar"
+      form.value("foo").get must_== "bar"
     }
 
     "allow access to the equivalent of the raw data when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asJava)
-      form("foo").value() must_== "bar"
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
+      form("foo").getValue().get() must_== "bar"
     }
 
     "don't throw NullPointerException when all components of form are null" in {
-      val form = new DynamicForm(null, null, null).fill(Map("foo" -> "bar").asJava)
-      form("foo").value() must_== "bar"
+      val form = new DynamicForm(null, null, null).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
+      form("foo").getValue().get() must_== "bar"
     }
 
     "convert jField to scala Field when all components of jField are null" in {

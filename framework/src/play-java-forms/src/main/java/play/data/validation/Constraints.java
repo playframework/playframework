@@ -89,7 +89,7 @@ public class Constraints {
      */
     public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
         final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
-        return Tuple(displayAnnotation.name(), Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList()));
+        return Tuple(displayAnnotation.name(), Collections.unmodifiableList(Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList())));
     }
 
     // --- Required
