@@ -604,6 +604,13 @@ If you define your own list of filters (for example, by adding a `Filters` class
 play.filters.defaults+=MyFilter
 ```
 
+If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `DefaultFilters` with your own list in code:
+
+```scala
+class Filters @Inject()(defaultFilters: DefaultFilters, corsFilter: CORSFilter)
+  extends DefaultHttpFilters(defaultFilters, corsFilter)
+```
+
 ### Disabling Default Filters
 
 The simplest way to disable the default filters is to set the list of filters manually in `application.conf`:
@@ -647,7 +654,7 @@ class MyComponents(context: ApplicationLoader.Context)
    with play.filters.DefaultFiltersComponents
    with AssetsComponents {
 
-  lazy val httpFilters = Seq(myUserFilter)
+  override lazy val httpFilters = Seq(myUserFilter)
 
   lazy val homeController = new HomeController(controllerComponents)
   lazy val router = new Routes(httpErrorHandler, homeController, assets)
@@ -682,7 +689,7 @@ class MyComponents(context: ApplicationLoader.Context)
    with NoDefaultFiltersComponents
    with AssetsComponents {
 
-  lazy val httpFilters = Seq(myUserFilter)
+  override lazy val httpFilters = Seq(myUserFilter)
 
   lazy val homeController = new HomeController(controllerComponents)
   lazy val router = new Routes(httpErrorHandler, homeController, assets)
