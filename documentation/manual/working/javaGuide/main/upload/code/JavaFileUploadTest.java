@@ -36,7 +36,7 @@ public class JavaFileUploadTest extends WithApplication {
         File file = getFile();
         Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromFile(file));
 
-        //###replace:     Http.RequestBuilder request = new Http.RequestBuilder().uri(routes.MyController.upload().url())
+        //###replace:     Http.RequestBuilder request = Helpers.fakeRequest().uri(routes.MyController.upload().url())
         Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
                 .method("POST")
                 .header(Http.HeaderNames.CONTENT_TYPE, "multipart/form-data")
