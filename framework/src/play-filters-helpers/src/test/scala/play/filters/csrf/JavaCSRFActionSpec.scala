@@ -82,9 +82,9 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
     )) { implicit app =>
       { case _ => javaAction[JavaCSRFActionSpec.MyAction]("getToken", myAction.getToken) }
     } { ws =>
-      lazy val token = crypto.generateSignedToken
+      lazy val token = signedTokenProvider.generateToken
       val returned = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
-      crypto.compareSignedTokens(token, returned) must beTrue
+      signedTokenProvider.compareTokens(token, returned) must beTrue
     }
   }
 
