@@ -10,9 +10,10 @@ import akka.util.ByteString
 import play.api.test.Helpers._
 import play.api.mvc.Results._
 import play.twirl.api.Content
-import scala.concurrent.Future
 
+import scala.concurrent.Future
 import org.specs2.mutable._
+import play.api.mvc.AnyContentAsEmpty
 
 class HelpersSpec extends Specification {
 
@@ -92,6 +93,20 @@ class HelpersSpec extends Specification {
       (contentAsJson(jsonContent) \ "play").as[List[String]] must_== List("java", "scala")
     }
 
+  }
+
+  "Fakes" in {
+    "FakeRequest" should {
+      "parse query strings" in {
+        val request = FakeRequest("GET", "/uri?q1=1&q2=2", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString.get("q1") must beSome.which(_.contains("1"))
+        request.queryString.get("q2") must beSome.which(_.contains("2"))
+      }
+      "return an empty map when there is no query string parameters" in {
+        val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString must beEmpty
+      }
+    }
   }
 
 }
