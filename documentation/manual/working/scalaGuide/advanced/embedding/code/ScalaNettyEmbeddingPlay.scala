@@ -4,6 +4,7 @@
 package scalaguide.advanced.embedding
 
 import org.specs2.mutable.Specification
+import play.api.NoDefaultFiltersComponents
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -68,7 +69,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.api.http.DefaultHttpErrorHandler
       import scala.concurrent.Future
 
-      val components = new NettyServerComponents with BuiltInComponents {
+      val components = new NettyServerComponents with BuiltInComponents with NoDefaultFiltersComponents {
 
         lazy val router = Router.from {
           case GET(p"/hello/$to") => Action {

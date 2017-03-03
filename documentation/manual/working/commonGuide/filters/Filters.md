@@ -49,6 +49,12 @@ If you want to remove all filter classes, you can disable it through the `disabl
 lazy val root = project.in(file(".")).enablePlugins(PlayScala).disablePlugins(PlayFilters)
 ```
 
+If you are writing functional tests involving `GuiceApplicationBuilder` and the AllowedHostsFilter is interfering with tests and causing `400` status errors, then you can disable it in a test by calling `configure`:
+
+```scala
+GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters")
+```
+
 ## Compile Time Default Filters
 
 If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  

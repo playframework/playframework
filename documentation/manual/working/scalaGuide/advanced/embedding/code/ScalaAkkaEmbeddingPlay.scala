@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import org.specs2.mutable.Specification
+import play.api.NoDefaultFiltersComponents
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -66,7 +67,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
       import scala.concurrent.Future
 
-      val components = new AkkaHttpServerComponents with BuiltInComponents {
+      val components = new AkkaHttpServerComponents with BuiltInComponents with NoDefaultFiltersComponents {
 
         lazy val router = Router.from {
           case GET(p"/hello/$to") => Action {
