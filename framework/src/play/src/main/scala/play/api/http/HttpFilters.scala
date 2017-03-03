@@ -29,8 +29,8 @@ trait HttpFilters {
  * filters sequence. For example:
  *
  * {{{
- *   class Filters @Inject()(defaultFilters: DefaultFilters, csrfFilter: CSRFFilter, corsFilter: CORSFilter)
- *     extends DefaultHttpFilters(defaultFilters, csrfFilter, corsFilter)
+ *   class Filters @Inject()(defaultFilters: DefaultFilters, corsFilter: CORSFilter)
+ *     extends DefaultHttpFilters(defaultFilters, corsFilter)
  * }}}
  */
 class DefaultHttpFilters @Inject() (defaultFilters: HttpFilters, userFilters: EssentialFilter*) extends HttpFilters {
