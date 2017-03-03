@@ -121,7 +121,7 @@ object ApplicationLoader {
 /**
  * Helper that provides all the built in components dependencies from the application loader context
  */
-abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents with I18nComponents {
   lazy val environment = context.environment
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
