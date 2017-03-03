@@ -265,7 +265,10 @@ trait BuiltInComponents extends I18nComponents {
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
 
-  /** Default filters, provided by mixing in play.filters.DefaultFilterComponents or NoDefaultFiltersComponents. */
+  /**
+   * Default filters, provided by mixing in play.filters.DefaultFilterComponents
+   * or NoDefaultFiltersComponents.
+   */
   def defaultFilters: HttpFilters
 
   /** A user defined list of filters that is appended to the default filters */

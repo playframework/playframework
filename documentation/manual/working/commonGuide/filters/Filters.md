@@ -41,3 +41,72 @@ If you want to remove all filter classes, you can disable it through the `disabl
 ```
 lazy val root = project.in(file(".")).enablePlugins(PlayScala).disablePlugins(PlayFilters)
 ```
+
+## Compile Time Default Filters
+
+If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
+
+This means that the `BuiltInComponents` trait now contains a `defaultFilters` method which is left abstract: 
+
+```scala
+trait BuiltInComponents {
+  /** Default filters, to be mixed in later */
+  def defaultFilters: HttpFilters
+
+  /** A user defined list of filters that is appended to the default filters */
+  def httpFilters: Seq[EssentialFilter] = Nil
+
+  /** A list of the default filters plus user filters */
+  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(defaultFilters, httpFilters: _*)
+}
+```
+
+and the way to resolve the `defaultFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
+
+```scala
+class MyComponents(context: ApplicationLoader.Context)
+   extends BuiltInComponentsFromContext(context)
+   with play.filters.DefaultFiltersComponents
+   with AssetsComponents {
+
+  lazy val httpFilters = Seq(myUserFilter)
+
+  lazy val homeController = new HomeController(controllerComponents)
+  lazy val router = new Routes(httpErrorHandler, homeController, assets)
+}
+```
+
+The `DefaultFiltersComponents` trait is configured with CSRF, SecurityHeaders and AllowedHosts out of the box:
+
+```scala
+package play.filters
+
+trait DefaultFiltersComponents
+    extends CSRFComponents
+    with SecurityHeadersComponents
+    with AllowedHostsComponents {
+
+  lazy val defaultFilters: HttpFilters = {
+    new HttpFilters {
+      val filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+    }
+  }
+}
+```
+
+### Disabling Compile Time Default Filters
+
+To disable the default filters, mixin `play.api.NoDefaultFiltersComponents` instead of `DefaultFiltersComponents`:
+
+```scala
+class MyComponents(context: ApplicationLoader.Context)
+   extends BuiltInComponentsFromContext(context)
+   with NoDefaultFiltersComponents
+   with AssetsComponents {
+
+  lazy val httpFilters = Seq(myUserFilter)
+
+  lazy val homeController = new HomeController(controllerComponents)
+  lazy val router = new Routes(httpErrorHandler, homeController, assets)
+}
+```

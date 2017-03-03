@@ -10,7 +10,11 @@ import play.filters.hosts.AllowedHostsComponents
  * A compile time default filters components.
  *
  * {{{
+ * class MyComponents(context: ApplicationLoader.Context)
+ *   extends BuiltInComponentsFromContext(context)
+ *   with play.filters.DefaultFiltersComponents {
  *
+ * }
  * }}}
  */
 trait DefaultFiltersComponents

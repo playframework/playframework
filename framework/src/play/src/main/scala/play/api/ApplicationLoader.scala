@@ -121,7 +121,7 @@ object ApplicationLoader {
 /**
  * Helper that provides all the built in components dependencies from the application loader context
  */
-abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents with I18nComponents {
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
   lazy val environment = context.environment
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
@@ -131,7 +131,7 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
     defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
   )
-
+cd   .
   override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
     csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
