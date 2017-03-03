@@ -83,7 +83,7 @@ public class Constraints {
     /**
      * Defines a field as required.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
     @play.data.Form.Display(name="constraint.required")
@@ -136,7 +136,7 @@ public class Constraints {
     /**
      * Defines a minumum value for a numeric field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
     @play.data.Form.Display(name="constraint.min", attributes={"value"})
@@ -191,7 +191,7 @@ public class Constraints {
     /**
      * Defines a maximum value for a numeric field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxValidator.class)
     @play.data.Form.Display(name="constraint.max", attributes={"value"})
@@ -246,7 +246,7 @@ public class Constraints {
     /**
      * Defines a minumum length for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinLengthValidator.class)
     @play.data.Form.Display(name="constraint.minLength", attributes={"value"})
@@ -301,7 +301,7 @@ public class Constraints {
     /**
      * Defines a maxmimum length for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxLengthValidator.class)
     @play.data.Form.Display(name="constraint.maxLength", attributes={"value"})
@@ -356,7 +356,7 @@ public class Constraints {
     /**
      * Defines a email constraint for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = EmailValidator.class)
     @play.data.Form.Display(name="constraint.email", attributes={})
@@ -406,7 +406,7 @@ public class Constraints {
     /**
      * Defines a pattern constraint for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = PatternValidator.class)
     @play.data.Form.Display(name="constraint.pattern", attributes={"value"})
@@ -459,7 +459,7 @@ public class Constraints {
      /**
      * Defines a custom validator.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidateWithValidator.class)
     @play.data.Form.Display(name="constraint.validatewith", attributes={})
