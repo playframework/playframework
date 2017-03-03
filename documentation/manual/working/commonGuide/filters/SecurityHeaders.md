@@ -10,7 +10,7 @@ Play provides a security headers filter that can be used to configure some defau
 To enable the security headers filter manually, add the security headers filter to your filters in `application.conf`:
 
 ```
-play.filters.defaults += "play.filters.headers.SecurityHeadersFilter"
+play.filters.enabled += "play.filters.headers.SecurityHeadersFilter"
 ```
 
 ## Configuring the security headers
@@ -27,7 +27,9 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 
 Any of the headers can be disabled by setting a configuration value of `null`, for example:
 
-    play.filters.headers.frameOptions = null
+```
+play.filters.headers.frameOptions = null
+```
 
 For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
 

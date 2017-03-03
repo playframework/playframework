@@ -11,15 +11,15 @@ import play.api.{ Configuration, Environment }
 /**
  * Unit tests for default filter spec functionality
  */
-class DefaultFiltersSpec extends Specification {
+class EnabledFiltersSpec extends Specification {
 
-  "DefaultFilters" should {
+  "EnabledFilters" should {
 
     "work when defined" in {
       val env: Environment = Environment.simple()
-      val conf: Configuration = Configuration.from(Map("play.filters.defaults.0" -> "play.api.http.MyTestFilter"))
+      val conf: Configuration = Configuration.from(Map("play.filters.enabled.0" -> "play.api.http.MyTestFilter"))
       val injector: Injector = NewInstanceInjector
-      val defaultFilters = new DefaultFilters(env, conf, injector)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(1)
       defaultFilters.filters.head must beAnInstanceOf[MyTestFilter]
@@ -27,9 +27,9 @@ class DefaultFiltersSpec extends Specification {
 
     "work when set to null explicitly" in {
       val env: Environment = Environment.simple()
-      val conf: Configuration = Configuration.from(Map("play.filters.defaults" -> null))
+      val conf: Configuration = Configuration.from(Map("play.filters.enabled" -> null))
       val injector: Injector = NewInstanceInjector
-      val defaultFilters = new DefaultFilters(env, conf, injector)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(0)
     }
@@ -38,18 +38,18 @@ class DefaultFiltersSpec extends Specification {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(Map())
       val injector: Injector = NewInstanceInjector
-      val defaultFilters = new DefaultFilters(env, conf, injector)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(0)
     }
 
     "throw illegal state exception when using class that does not exist" in {
       val env: Environment = Environment.simple()
-      val conf: Configuration = Configuration.from(Map("play.filters.defaults.0" -> "NoSuchFilter"))
+      val conf: Configuration = Configuration.from(Map("play.filters.enabled.0" -> "NoSuchFilter"))
       val injector: Injector = NewInstanceInjector
 
       {
-        new DefaultFilters(env, conf, injector)
+        new EnabledFilters(env, conf, injector)
       } must throwAn[IllegalStateException]
     }
   }
@@ -60,7 +60,7 @@ class DefaultFiltersSpec extends Specification {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(Map())
       val injector: Injector = NewInstanceInjector
-      val defaultFilters = new DefaultFilters(env, conf, injector)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       val filter = new MyTestFilter()
       val filters = new DefaultHttpFilters(defaultFilters, filter)
@@ -69,9 +69,9 @@ class DefaultFiltersSpec extends Specification {
 
     "work with defaultFilters only in constructor" in {
       val env: Environment = Environment.simple()
-      val conf: Configuration = Configuration.from(Map("play.filters.defaults.0" -> "play.api.http.MyTestFilter"))
+      val conf: Configuration = Configuration.from(Map("play.filters.enabled.0" -> "play.api.http.MyTestFilter"))
       val injector: Injector = NewInstanceInjector
-      val defaultFilters = new DefaultFilters(env, conf, injector)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       val defaultHttpFilters = new DefaultHttpFilters(defaultFilters) // added to the default filter
       defaultHttpFilters.filters must haveLength(1)

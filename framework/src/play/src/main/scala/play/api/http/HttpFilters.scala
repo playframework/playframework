@@ -26,10 +26,10 @@ trait HttpFilters {
 
 /**
  * A default implementation of HttpFilters that accepts filters as a varargs constructor and exposes them as a
- * filters sequence. For example:
+ * filters sequence.  You should combine this with the list of enabled filters. For example:
  *
  * {{{
- *   class Filters @Inject()(defaultFilters: DefaultFilters, corsFilter: CORSFilter)
+ *   class Filters @Inject()(defaultFilters: EnabledFilters, corsFilter: CORSFilter)
  *     extends DefaultHttpFilters(defaultFilters, corsFilter)
  * }}}
  */
@@ -40,19 +40,19 @@ class DefaultHttpFilters @Inject() (defaultFilters: HttpFilters, userFilters: Es
   }
 
   /**
-   * @deprecated this constructor does not take an injected [[play.api.http.DefaultFilters]] instance
+   * @deprecated this constructor does not take an injected [[play.api.http.EnabledFilters]] instance
    * @param filters the list of user defined filters
    */
-  @deprecated("Use DefaultHttpFilters @Inject()(defaultFilters: DefaultFilters, myFilter: MyFilter)", "2.6.0")
+  @deprecated("Use DefaultHttpFilters @Inject()(defaultFilters: EnabledFilters, myFilter: MyFilter)", "2.6.0")
   def this(filters: EssentialFilter*) = {
-    this(null: DefaultFilters, filters: _*)
+    this(null: EnabledFilters, filters: _*)
   }
 }
 
 object HttpFilters {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, JavaHttpFiltersDelegate, DefaultFilters](environment, configuration, "play.http.filters", "Filters")
+    Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, JavaHttpFiltersDelegate, EnabledFilters](environment, configuration, "play.http.filters", "Filters")
   }
 
   def apply(filters: EssentialFilter*): HttpFilters = {
@@ -67,12 +67,12 @@ object HttpFilters {
  * This class pulls in a list of filters through configuration property, binding them to a list of classes.
  *
  * @param env the environment (classloader is used from here)
- * @param configuration the configuration ("play.filters.defaults" used from here)
+ * @param configuration the configuration
  * @param injector finds an instance of filter by the class name
  */
-class DefaultFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
+class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
 
-  private val configListKey = "play.filters.defaults"
+  private val configListKey = "play.filters.enabled"
 
   private val defaultBindings: Seq[BindingKey[EssentialFilter]] = {
     try {

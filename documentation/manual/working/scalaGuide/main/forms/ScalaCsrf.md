@@ -46,7 +46,7 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.filters.defaults += play.filters.csrf.CsrfFilter
+play.filters.enabled += play.filters.csrf.CsrfFilter
 ```
 
 ### Using an implicit request

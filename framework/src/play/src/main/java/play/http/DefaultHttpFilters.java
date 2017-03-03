@@ -4,18 +4,24 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import play.api.http.DefaultFilters;
+import play.api.http.EnabledFilters;
 import play.mvc.EssentialFilter;
 
 /**
- * Helper class which has a varargs constructor taking the filters. Reduces boilerplate for defining HttpFilters.
+ * Helper class for defining HttpFilters.
  */
 public class DefaultHttpFilters implements HttpFilters {
 
   private final EssentialFilter[] filters;
 
-  public DefaultHttpFilters(DefaultFilters defaultFilters, play.api.mvc.EssentialFilter... filters) {
-    EssentialFilter[] defaults = Optional.ofNullable(defaultFilters).map(f -> f.asJava().filters()).orElseGet(() -> new EssentialFilter[0]);
+  /**
+   * Creates a list of filters from the two inputs filter lists.
+   *
+   * @param enabledFilters the list of filters from `play.filters.enabled`
+   * @param filters The user defined list of filters.
+   */
+  public DefaultHttpFilters(EnabledFilters enabledFilters, play.api.mvc.EssentialFilter... filters) {
+    EssentialFilter[] defaults = Optional.ofNullable(enabledFilters).map(f -> f.asJava().filters()).orElseGet(() -> new EssentialFilter[0]);
 
     EssentialFilter[] userFilters = Arrays.stream(filters).map(f -> f.asJava()).toArray(EssentialFilter[]::new);
 
@@ -23,7 +29,7 @@ public class DefaultHttpFilters implements HttpFilters {
   }
 
   /**
-   * @deprecated Use the version that uses DefaultFilters
+   * @deprecated Use the version that uses EnabledFilters
    * @param filters the list of essential filters
    */
   @Deprecated

@@ -588,9 +588,9 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 ## Default Filters
 
-Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.DefaultFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.defaults` configuration property.
+Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.DefaultFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.defaults` is an empty list.  However, the `PlayFilters` is automatically loaded in SBT as an AutoPlugin, and will append the following values to the `play.filters.defaults` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the `PlayFilters` is automatically loaded in SBT as an AutoPlugin, and will append the following values to the `play.filters.enabled` property:
 
 * `play.filters.csrf.CSRFFilter`
 * `play.filters.headers.SecurityHeadersFilter`
@@ -601,7 +601,7 @@ This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]),
 If you define your own list of filters (for example, by adding a `Filters` class to the root), then the default list is overridden.  You must inject `DefaultFilters` and compose the filters if you want to append to the defaults, or append to the defaults list:
 
 ```
-play.filters.defaults+=MyFilter
+play.filters.enabled+=MyFilter
 ```
 
 If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `DefaultFilters` with your own list in code:
@@ -611,12 +611,18 @@ class Filters @Inject()(defaultFilters: DefaultFilters, corsFilter: CORSFilter)
   extends DefaultHttpFilters(defaultFilters, corsFilter)
 ```
 
+### Testing Default Filters
+
+Because there are several filters enabled, functional tests may need to change slightly to ensure that all the tests pass and requests are valid.  For example, a request that does not have a `Host` HTTP header set to `localhost` will not pass the AllowedHostsFilter and will return a 400 Forbidden response instead.
+
+If you are using `FakeRequest` or `Helpers.fakeRequest`
+
 ### Disabling Default Filters
 
 The simplest way to disable the default filters is to set the list of filters manually in `application.conf`:
 
 ```
-play.filters.defaults=[]
+play.filters.enabled=[]
 ```
 
 This may be useful if you have functional tests that you do not want to go through the default filters.

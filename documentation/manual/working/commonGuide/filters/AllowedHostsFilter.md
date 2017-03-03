@@ -14,7 +14,7 @@ Note that if you are running a functional test against a Play application which 
 To enable the filter manually, add the allowed hosts filter to your filters in `application.conf`:
 
 ```
-play.filters.defaults += play.filters.hosts.AllowedHostsFilter
+play.filters.enabled += play.filters.hosts.AllowedHostsFilter
 ```
 
 ## Configuring allowed hosts
