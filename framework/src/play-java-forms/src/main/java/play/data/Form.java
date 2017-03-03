@@ -12,11 +12,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
+import com.google.common.collect.ImmutableMap;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
@@ -53,8 +55,9 @@ public class Form<T> {
 
     private final String rootName;
     private final Class<T> backedType;
-    private final Map<String,String> data;
-    private final Map<String,List<ValidationError>> errors;
+    private final ImmutableMap<String,String> data;
+    // this field is effectively final when no deprecated methods are called
+    private ImmutableMap<String,ImmutableList<ValidationError>> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
     final MessagesApi messagesApi;
@@ -94,7 +97,7 @@ public class Form<T> {
     }
 
     public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+        this(rootName, clazz, ImmutableMap.of(), ImmutableMap.<String,ImmutableList<ValidationError>>of(), Optional.empty(), groups, messagesApi, formatters, validator);
     }
 
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
@@ -121,6 +124,21 @@ public class Form<T> {
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
+        this.data = ImmutableMap.copyOf(data);
+        this.errors = toImmutableMap(errors);
+        this.value = value;
+        this.groups = groups;
+        this.messagesApi = messagesApi;
+        this.formatters = formatters;
+        this.validator = validator;
+    }
+
+    /**
+     * This is a private constructor that accepts ImmutableMap data and errors and thus avoids copying.
+     */
+    private Form(String rootName, Class<T> clazz, ImmutableMap<String,String> data, ImmutableMap<String,ImmutableList<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this.rootName = rootName;
+        this.backedType = clazz;
         this.data = data;
         this.errors = errors;
         this.value = value;
@@ -130,7 +148,16 @@ public class Form<T> {
         this.validator = validator;
     }
 
-    protected Map<String,String> requestData(Http.Request request) {
+    private <K,V> ImmutableMap<K, ImmutableList<V>> toImmutableMap(Map<K, List<V>> map) {
+        ImmutableMap.Builder<K, ImmutableList<V>> builder = ImmutableMap.builder();
+        for (Map.Entry<K, List<V>> entry : map.entrySet()) {
+            builder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
+        }
+        return builder.build();
+    }
+
+
+    protected ImmutableMap<String,String> requestData(Http.Request request) {
 
         Map<String,String[]> urlFormEncoded = new HashMap<>();
         if (request.body().asFormUrlEncoded() != null) {
@@ -155,7 +182,7 @@ public class Form<T> {
 
         Map<String,String[]> queryString = request.queryString();
 
-        Map<String,String> data = new HashMap<>();
+        ImmutableMap.Builder<String,String> data = ImmutableMap.builder();
 
         fillDataWith(data, urlFormEncoded);
         fillDataWith(data, multipartFormData);
@@ -164,10 +191,10 @@ public class Form<T> {
 
         fillDataWith(data, queryString);
 
-        return data;
+        return data.build();
     }
 
-    private void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
+    private void fillDataWith(ImmutableMap.Builder<String, String> data, Map<String, String[]> urlFormEncoded) {
         urlFormEncoded.forEach((key, values) -> {
             if (key.endsWith("[]")) {
                 String k = key.substring(0, key.length() - 2);
@@ -209,9 +236,9 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        Map<String,String> data = new HashMap<>();
+        ImmutableMap.Builder<String,String> data = ImmutableMap.builder();
         fillDataWith(data, requestData);
-        return bind(data, allowedFields);
+        return bind(data.build(), allowedFields);
     }
 
     /**
@@ -290,19 +317,23 @@ public class Form<T> {
      */
     @SuppressWarnings("unchecked")
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
+        final ImmutableMap<String, String> data2 = ImmutableMap.copyOf(data);
+
 
         DataBinder dataBinder;
-        Map<String, String> objectData = data;
+        final ImmutableMap<String, String> objectData;
         if (rootName == null) {
             dataBinder = new DataBinder(blankInstance());
+            objectData = data2;
         } else {
             dataBinder = new DataBinder(blankInstance(), rootName);
-            objectData = new HashMap<>();
-            for (String key: data.keySet()) {
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+            for (String key: data2.keySet()) {
                 if (key.startsWith(rootName + ".")) {
-                    objectData.put(key.substring(rootName.length() + 1), data.get(key));
+                    builder.put(key.substring(rootName.length() + 1), data2.get(key));
                 }
             }
+            objectData = builder.build();
         }
         if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
@@ -311,7 +342,7 @@ public class Form<T> {
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
-        final Map<String, String> objectDataFinal = objectData;
+        final ImmutableMap<String, String> objectDataFinal = objectData;
         Set<ConstraintViolation<Object>> validationErrors = withRequestLocale(() -> {
             dataBinder.bind(new MutablePropertyValues(objectDataFinal));
             if (groups != null) {
@@ -341,44 +372,55 @@ public class Form<T> {
         }
 
         if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            Map<String,List<ValidationError>> errors = new HashMap<>();
-            for (FieldError error: result.getFieldErrors()) {
+
+
+            Function<FieldError, String> getKey = (error) -> {
                 String key = error.getObjectName() + "." + error.getField();
                 if (key.startsWith("target.") && rootName == null) {
                     key = key.substring(7);
                 }
-                if (!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<>());
-                }
+                return key;
+            };
 
-                ValidationError validationError;
-                if (error.isBindingFailure()) {
-                    ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
-                    for (String code: error.getCodes()) {
-                        code = code.replace("typeMismatch", "error.invalid");
-                        if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
-                            builder.add( code );
+            Map<String, List<FieldError>> errorByField = result.getFieldErrors().stream()
+                    .collect(Collectors.groupingBy(getKey));
+            ImmutableMap.Builder<String, ImmutableList<ValidationError>> errorBuilder = ImmutableMap.builder();
+
+            for (Map.Entry<String, List<FieldError>> fieldErrors : errorByField.entrySet()) {
+                String key = fieldErrors.getKey();
+
+                ImmutableList.Builder<ValidationError> errBuilder = ImmutableList.builder();
+                for (FieldError error : fieldErrors.getValue()) {
+
+                    if (error.isBindingFailure()) {
+                        ImmutableList.Builder<String> builder = ImmutableList.builder();
+                        Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
+                        for (String code : error.getCodes()) {
+                            code = code.replace("typeMismatch", "error.invalid");
+                            if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                                builder.add(code);
+                            }
                         }
+                        errBuilder.add(new ValidationError(key, builder.build().reverse(),
+                                convertErrorArguments(error.getArguments())));
+                    } else {
+                        errBuilder.add(new ValidationError(key, error.getDefaultMessage(),
+                                convertErrorArguments(error.getArguments())));
                     }
-                    validationError = new ValidationError(key, builder.build().reverse(),
-                            convertErrorArguments(error.getArguments()));
-                } else {
-                    validationError = new ValidationError(key, error.getDefaultMessage(),
-                            convertErrorArguments(error.getArguments()));
                 }
-                errors.get(key).add(validationError);
+                errorBuilder.put(key, errBuilder.build());
             }
 
-            List<ValidationError> globalErrors = result.getGlobalErrors().stream()
+            ImmutableList<ValidationError> globalErrors = result.getGlobalErrors().stream()
                     .map(error -> new ValidationError("", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
-                    .collect(Collectors.toList());
+                    .collect(toImmutableList());
 
             if (!globalErrors.isEmpty()) {
-                errors.put("", globalErrors);
+                errorBuilder.put("", globalErrors);
             }
+            ImmutableMap<String, ImmutableList<ValidationError>> errors = errorBuilder.build();
 
-            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, data2, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -392,25 +434,33 @@ public class Form<T> {
                 }
             }
             if (globalError != null) {
-                Map<String,List<ValidationError>> errors = new HashMap<>();
+
+                ImmutableMap<String,ImmutableList<ValidationError>> errors = ImmutableMap.of();
                 if (globalError instanceof String) {
-                    errors.put("", new ArrayList<>());
-                    errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
+                    ValidationError validationError = new ValidationError("", (String) globalError, ImmutableList.of());
+                    errors = ImmutableMap.of("", ImmutableList.of(validationError));
                 } else if (globalError instanceof List) {
-                    for (ValidationError error : (List<ValidationError>) globalError) {
-                      List<ValidationError> errorsForKey = errors.get(error.key());
-                      if (errorsForKey == null) {
-                        errors.put(error.key(), errorsForKey = new ArrayList<>());
-                      }
-                      errorsForKey.add(error);
-                    }
+                    Map<String, List<ValidationError>> validationErrs = ((List<ValidationError>) globalError).stream()
+                            .collect(Collectors.groupingBy(ValidationError::key));
+                    errors = toImmutableMap(validationErrs);
                 } else if (globalError instanceof Map) {
-                    errors = (Map<String,List<ValidationError>>)globalError;
+                    errors = toImmutableMap((Map<String,List<ValidationError>>)globalError);
                 }
-                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+
+                return new Form(rootName, backedType, data2, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
             }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form(rootName, backedType, data2, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
+    }
+
+    /** collect a stream into an immutable list */
+    private static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> toImmutableList() {
+        return Collector.of(
+                ImmutableList.Builder<T>::new,
+                ImmutableList.Builder<T>::add,
+                (l, r) -> l.addAll(r.build()),
+                ImmutableList.Builder<T>::build
+        );
     }
 
     /**
@@ -450,16 +500,15 @@ public class Form<T> {
      * @param value existing value of type <code>T</code> used to fill this form
      * @return a copy of this form filled with the new data
      */
-    @SuppressWarnings("unchecked")
     public Form<T> fill(T value) {
         if (value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(
+        return new Form<>(
                 rootName,
                 backedType,
-                new HashMap<>(),
-                new HashMap<String,ValidationError>(),
+                ImmutableMap.of(),
+                ImmutableMap.<String, ImmutableList<ValidationError>>of(),
                 Optional.ofNullable(value),
                 groups,
                 messagesApi,
@@ -514,7 +563,9 @@ public class Form<T> {
      * @return All errors associated with this form.
      */
     public Map<String,List<ValidationError>> errors() {
-        return errors;
+        @SuppressWarnings("unchecked") // cast is safe, because map is immutable
+        Map<String, List<ValidationError>> res = (Map) this.errors;
+        return res;
     }
 
     /**
@@ -591,15 +642,105 @@ public class Form<T> {
     }
 
     /**
+     * Adds an error to this form
+     * @param error Error to add
+     * @return a copy of this form with the added error
+     */
+    public Form<T> withError(ValidationError error) {
+        ImmutableMap<String, ImmutableList<ValidationError>> newErrors = extendErrors(error);
+        Optional<T> newValue = Optional.empty();
+        return new Form<>(rootName, backedType, data, newErrors, newValue, groups, messagesApi, formatters, validator);
+    }
+
+    /**
+     * adds a single error to the list of errors
+     */
+    protected ImmutableMap<String, ImmutableList<ValidationError>> extendErrors(ValidationError error) {
+        ImmutableMap.Builder<String, ImmutableList<ValidationError>> builder = ImmutableMap.builder();
+        if (!errors.containsKey(error.key())) {
+            builder.put(error.key(), ImmutableList.of(error));
+        }
+        for (Map.Entry<String, ImmutableList<ValidationError>> entry : errors.entrySet()) {
+            if (entry.getKey().equals(error.key())) {
+                builder.put(entry.getKey(), ImmutableList.<ValidationError>builder().addAll(entry.getValue()).add(error).build());
+
+            } else {
+                builder.put(entry);
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * Convenient overloaded method adding an error to this form
+     * @param key Key of the field having the error
+     * @param message Error message
+     * @param args Error message arguments
+     * @return a copy of this form with the added error
+     */
+    public Form<T> withError(String key, String message, List<Object> args) {
+        return withError(new ValidationError(key, message, args));
+    }
+
+    /**
+     * Convenient overloaded method adding an error to this form
+     * @param key Key of the field having the error
+     * @param message Error message
+     * @param args Error message arguments
+     * @return a copy of this form with the added error
+     */
+    public Form<T> withError(String key, String message, Object... args) {
+        return withError(new ValidationError(key, message,  ImmutableList.copyOf(args)));
+    }
+
+    /**
+     * Adds a global error to this form
+     * @param message Error message
+     * @param args Error message arguments
+     * @return a copy of this form with the added global error
+     */
+    public Form<T> withGlobalError(String message, List<Object> args) {
+        return withError(new ValidationError("", message, args));
+    }
+
+    /**
+     * Adds a global error to this form
+     * @param message Error message
+     * @param args Error message arguments
+     * @return a copy of this form with the added global error
+     */
+    public Form<T> withGlobalError(String message, Object... args) {
+        return withError(new ValidationError("", message, ImmutableList.copyOf(args)));
+    }
+
+    /**
+     * Discards this form’s errors
+     * @return a copy of this form without errors
+     */
+    public Form<T> discardingErrors() {
+        ImmutableMap<String, ImmutableList<ValidationError>> newErrors = ImmutableMap.of();
+        return new Form<>(rootName, backedType, data, newErrors, Optional.empty(), groups, messagesApi, formatters, validator);
+    }
+
+    /**
+     * Discards this form’s data
+     * @return a copy of this form without its data
+     */
+    public Form<T> withClearedData() {
+        ImmutableMap<String, String> newData = ImmutableMap.of();
+        return new Form<>(rootName, backedType, newData, errors, value, groups, messagesApi, formatters, validator);
+    }
+
+
+    /**
      * Adds an error to this form.
      *
      * @param error the <code>ValidationError</code> to add.
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
      */
+    @Deprecated
     public void reject(ValidationError error) {
-        if (!errors.containsKey(error.key())) {
-           errors.put(error.key(), new ArrayList<>());
-        }
-        errors.get(error.key()).add(error);
+        errors = extendErrors(error);
     }
 
     /**
@@ -608,7 +749,9 @@ public class Form<T> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
      */
+    @Deprecated
     public void reject(String key, String error, List<Object> args) {
         reject(new ValidationError(key, error, args));
     }
@@ -618,9 +761,11 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
      */
+    @Deprecated
     public void reject(String key, String error) {
-        reject(key, error, new ArrayList<>());
+        reject(key, error, ImmutableList.of());
     }
 
     /**
@@ -628,7 +773,9 @@ public class Form<T> {
      *
      * @param error the error message
      * @param args the error arguments
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withError instead.
      */
+    @Deprecated
     public void reject(String error, List<Object> args) {
         reject(new ValidationError("", error, args));
     }
@@ -637,16 +784,20 @@ public class Form<T> {
      * Adds a global error to this form.
      *
      * @param error the error message.
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use withGlobalError instead.
      */
+    @Deprecated
     public void reject(String error) {
-        reject("", error, new ArrayList<>());
+        reject("", error, ImmutableList.of());
     }
 
     /**
      * Discards errors of this form
+     * @deprecated this operation changes the state of this otherwise immutable Form. Use discardingErrors instead.
      */
+    @Deprecated
     public void discardErrors() {
-        errors.clear();
+        errors = ImmutableMap.of();
     }
 
     /**
@@ -694,13 +845,13 @@ public class Form<T> {
         }
 
         // Error
-        List<ValidationError> fieldErrors = errors.get(key);
+        ImmutableList<ValidationError> fieldErrors = errors.get(key);
         if (fieldErrors == null) {
-            fieldErrors = new ArrayList<>();
+            fieldErrors = ImmutableList.of();
         }
 
         // Format
-        Tuple<String,List<Object>> format = null;
+        Tuple<String,ImmutableList<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
         beanWrapper.setAutoGrowNestedPaths(true);
         try {
@@ -709,7 +860,7 @@ public class Form<T> {
                 if (annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
                     play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
                     if (d.name().startsWith("format.")) {
-                        List<Object> attributes = new ArrayList<>();
+                        ImmutableList.Builder<Object> attributes = ImmutableList.builder();
                         for (String attr: d.attributes()) {
                             Object attrValue = null;
                             try {
@@ -719,7 +870,7 @@ public class Form<T> {
                             }
                             attributes.add(attrValue);
                         }
-                        format = Tuple(d.name(), attributes);
+                        format = Tuple(d.name(), attributes.build());
                     }
                 }
             }
@@ -728,7 +879,7 @@ public class Form<T> {
         }
 
         // Constraints
-        List<Tuple<String,List<Object>>> constraints = new ArrayList<>();
+        ImmutableList<Tuple<String,ImmutableList<Object>>> constraints = ImmutableList.of();
         Class<?> classType = backedType;
         String leafKey = key;
         if (rootName != null && leafKey.startsWith(rootName + ".")) {
@@ -746,7 +897,7 @@ public class Form<T> {
                 if (property != null) {
                     Annotation[] orderedAnnotations = null;
                     for (Class<?> c = classType; c != null; c = c.getSuperclass()) { // we also check the fields of all superclasses
-                        java.lang.reflect.Field field = null;
+                        java.lang.reflect.Field field;
                         try {
                             field = c.getDeclaredField(leafKey);
                         } catch (NoSuchFieldException | SecurityException e) {
@@ -756,7 +907,7 @@ public class Form<T> {
                         orderedAnnotations = field.getDeclaredAnnotations();
                         break;
                     }
-                    constraints = Constraints.displayableConstraint(
+                    constraints = Constraints.displayableConstraintImmutable(
                             property.findConstraints().unorderedAndMatchingGroups(groups != null ? groups : new Class[]{Default.class}).getConstraintDescriptors(),
                             orderedAnnotations
                         );
@@ -764,7 +915,7 @@ public class Form<T> {
             }
         }
 
-        return new Field(this, key, constraints, format, fieldErrors, fieldValue);
+        return Field.create(this, key, constraints, format, fieldErrors, fieldValue);
     }
 
     public String toString() {
@@ -798,9 +949,9 @@ public class Form<T> {
 
         private final Form<?> form;
         private final String name;
-        private final List<Tuple<String,List<Object>>> constraints;
-        private final Tuple<String,List<Object>> format;
-        private final List<ValidationError> errors;
+        private final ImmutableList<Tuple<String,ImmutableList<Object>>> constraints;
+        private final Tuple<String,ImmutableList<Object>> format;
+        private final ImmutableList<ValidationError> errors;
         private final String value;
 
         /**
@@ -816,10 +967,45 @@ public class Form<T> {
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.form = form;
             this.name = name;
+            this.constraints = immutableConstraints(constraints);
+            this.format = format == null ? null : new Tuple<>(format._1, ImmutableList.copyOf(format._2));
+            this.errors = errors == null ? null : ImmutableList.copyOf(errors);
+            this.value = value;
+        }
+
+        private ImmutableList<Tuple<String, ImmutableList<Object>>> immutableConstraints(List<Tuple<String,List<Object>>> list) {
+            if (list == null) {
+                return null;
+            }
+            ImmutableList.Builder<Tuple<String, ImmutableList<Object>>> builder = ImmutableList.builder();
+            for (Tuple<String, List<Object>> t : list) {
+                builder.add(new Tuple<>(t._1, ImmutableList.copyOf(t._2)));
+            }
+            return builder.build();
+        }
+
+
+        /**
+         * Creates a form field.
+         *
+         * @param form        the form.
+         * @param name the field name
+         * @param constraints the constraints associated with the field
+         * @param format the format expected for this field
+         * @param errors the errors associated with this field
+         * @param value the field value, if any
+         */
+        private Field(Form<?> form, String name, ImmutableList<Tuple<String,ImmutableList<Object>>> constraints, Tuple<String,ImmutableList<Object>> format, ImmutableList<ValidationError> errors, String value) {
+            this.form = form;
+            this.name = name;
             this.constraints = constraints;
             this.format = format;
             this.errors = errors;
             this.value = value;
+        }
+
+        public static Field create(Form<?> form, String name, ImmutableList<Tuple<String,ImmutableList<Object>>> constraints, Tuple<String,ImmutableList<Object>> format, ImmutableList<ValidationError> errors, String value) {
+            return new Field(form, name, constraints, format, errors, value);
         }
 
         /**
@@ -862,6 +1048,8 @@ public class Form<T> {
          * @return The constraints associated with this field.
          */
         public List<Tuple<String,List<Object>>> constraints() {
+            @SuppressWarnings("unchecked") // safe because tuple and list are immutable
+            ImmutableList<Tuple<String, List<Object>>> constraints = (ImmutableList) this.constraints;
             return constraints;
         }
 
@@ -871,6 +1059,8 @@ public class Form<T> {
          * @return The expected format for this field.
          */
         public Tuple<String,List<Object>> format() {
+            @SuppressWarnings("unchecked") // safe because tuple is immutable
+            Tuple<String, List<Object>> format = (Tuple) this.format;
             return format;
         }
 
@@ -935,6 +1125,15 @@ public class Form<T> {
 
         public String toString() {
             return "Form.Field(" + name + ")";
+        }
+
+        /**
+         * @param newName the new key of the field
+         * @param newValue the new value of the field
+         * @return a field with an updated value
+         */
+        protected Field withNameValue(String newName, String newValue) {
+            return new Field(form, newName, constraints, format, errors, newValue);
         }
 
     }
