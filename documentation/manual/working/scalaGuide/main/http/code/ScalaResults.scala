@@ -1,32 +1,33 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
+
+import play.api.mvc._
+import play.api.test._
+import play.api.test.Helpers._
+import play.api.http.HeaderNames
+import scala.concurrent.Future
+import org.scalatestplus.play._
+
+  
 package scalaguide.http.scalaresults {
 
-  import play.api.mvc._
-  import play.api.test._
-  import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
-  import play.api.http.HeaderNames
-  import scala.concurrent.Future
-  import org.specs2.execute.AsResult
 
-  @RunWith(classOf[JUnitRunner])
-  class ScalaResultsSpec extends PlaySpecification with Controller {
+  class ScalaResultsSpec extends PlaySpec with Controller {
 
     "A scala result" should {
       "default result Content-Type" in {
         //#content-type_text
         val textResult = Ok("Hello World!")
         //#content-type_text
-        testContentType(textResult, "text/plain")
+        testContentType(textResult, "text/plain; charset=utf-8")
       }
 
       "default xml result Content-Type" in {
         //#content-type_xml
         val xmlResult = Ok(<message>Hello World!</message>)
         //#content-type_xml
-        testContentType(xmlResult, "application/xml")
+        testContentType(xmlResult, "application/xml; charset=utf-8")
       }
 
       "set result Content-Type as html" in {
@@ -38,7 +39,7 @@ package scalaguide.http.scalaresults {
         //#content-type_defined_html
         val htmlResult2 = Ok(<h1>Hello World!</h1>).as(HTML)
         //#content-type_defined_html
-        testContentType(htmlResult2, "text/html")
+        testContentType(htmlResult2, "text/html; charset=utf-8")
 
       }
 
@@ -72,34 +73,27 @@ package scalaguide.http.scalaresults {
 
       "Changing the charset for text based HTTP responses" in {
         val index = new scalaguide.http.scalaresults.full.Application().index
-        assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
+        val resultFut: Future[Result] = index.apply(FakeRequest())
+        val bodyText: String = contentAsString(resultFut)
+        bodyText mustBe "<h1>Hello World!</h1>"
+        val result = scala.concurrent.Await.result(resultFut, scala.concurrent.duration.Duration.Inf)
+        result.body.contentType mustBe Some("text/html; charset=iso-8859-1")
       }
 
-       "HTML method works" in {
+      "HTML method works" in {
         val result = scalaguide.http.scalaresults.full.CodeShow.HTML(Codec.javaSupported("iso-8859-1"))
-        result must contain("iso-8859-1")
+        result mustBe "text/html; charset=iso-8859-1"
       }
     }
 
     def testContentType(results: Result, contentType: String) = {
-      results.body.contentType must beSome.which { _ must contain(contentType) }
+      results.body.contentType mustBe Some(contentType)
     }
 
     def testHeader(results: Result, key: String, value: String) = {
-      results.header.headers.get(key).get must contain(value)
+      results.header.headers.get(key).get == value
     }
 
-    def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
-      assertAction(action, expectedResponse, request) { result => success }
-    }
-
-    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
-      running() { app =>
-        val result = action(request)
-        status(result) must_== expectedResponse
-        assertions(result)
-      }
-    }
   }
 
   package scalaguide.http.scalaresults.full {
