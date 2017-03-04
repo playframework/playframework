@@ -4,10 +4,9 @@
 import play.api.ApplicationLoader.Context;
 import play.api.*;
 import play.api.http.HttpFilters;
-import play.api.mvc.EssentialFilter;
 import play.api.routing.Router;
+import play.libs.Scala;
 import play.routing.RoutingDslComponentsFromContext;
-import scala.collection.Seq;
 
 import static play.mvc.Results.*;
 
@@ -34,7 +33,7 @@ class MyComponents extends RoutingDslComponentsFromContext {
 
   @Override
   public HttpFilters defaultFilters() {
-    return () -> null;
+    return Scala::emptySeq;
   }
 }
 //#load

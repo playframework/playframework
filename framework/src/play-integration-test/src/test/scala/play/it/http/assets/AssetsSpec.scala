@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream
 
 import play.api.routing.Router
 import play.core.server.{ Server, ServerConfig }
+import play.filters.DefaultFiltersComponents
 import play.it._
 
 class NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
@@ -29,7 +30,7 @@ trait AssetsSpec extends PlaySpecification
 
     def withServer[T](block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
-        new BuiltInComponentsFromContext(context) with AssetsComponents with NoDefaultFiltersComponents {
+        new BuiltInComponentsFromContext(context) with AssetsComponents with DefaultFiltersComponents {
           override def router: Router = Router.from {
             case req => assets.versioned("/testassets", req.path)
           }
@@ -224,7 +225,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "if the directory is a jar entry" in {
         Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) with AssetsComponents with NoDefaultFiltersComponents {
+          new BuiltInComponentsFromContext(context) with AssetsComponents with DefaultFiltersComponents {
             override def router: Router = Router.from {
               case req => assets.versioned("/scala", req.path)
             }

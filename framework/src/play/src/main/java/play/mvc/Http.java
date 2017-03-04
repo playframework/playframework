@@ -1026,8 +1026,9 @@ public class Http {
          * @param value The value of the attribute to add.
          * @param <T> The type of the attribute to add.
          */
-        <T> void attr(TypedKey<T> key, T value) {
+        public <T> RequestBuilder attr(TypedKey<T> key, T value) {
             req = req.withAttrs(req.attrs().updated(key.underlying(), value));
+            return this;
         }
 
         /**
@@ -1035,7 +1036,7 @@ public class Http {
          *
          * @param newAttrs The attribute entries to add.
          */
-        RequestBuilder attrs(TypedMap newAttrs) {
+        public RequestBuilder attrs(TypedMap newAttrs) {
             req = req.withAttrs(newAttrs.underlying());
             return this;
         }
@@ -1043,7 +1044,7 @@ public class Http {
         /**
          * Get the request attributes.
          */
-        TypedMap attrs() {
+        public TypedMap attrs() {
             return new TypedMap(req.attrs());
         }
 

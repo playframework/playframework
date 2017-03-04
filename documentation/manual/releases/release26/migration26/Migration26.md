@@ -588,9 +588,9 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 ## Default Filters
 
-Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.DefaultFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
+Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.EnabledFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.enabled` is an empty list.  However, the `PlayFilters` is automatically loaded in SBT as an AutoPlugin, and will append the following values to the `play.filters.enabled` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
 * `play.filters.csrf.CSRFFilter`
 * `play.filters.headers.SecurityHeadersFilter`
@@ -598,24 +598,80 @@ In Play itself, `play.filters.enabled` is an empty list.  However, the `PlayFilt
 
 This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
 
-If you define your own list of filters (for example, by adding a `Filters` class to the root), then the default list is overridden.  You must inject `DefaultFilters` and compose the filters if you want to append to the defaults, or append to the defaults list:
+To append to the defaults list, use the `+=`:
 
 ```
 play.filters.enabled+=MyFilter
 ```
 
-If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `DefaultFilters` with your own list in code:
+If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `EnabledFilters` with your own list in code:
 
 ```scala
-class Filters @Inject()(defaultFilters: DefaultFilters, corsFilter: CORSFilter)
-  extends DefaultHttpFilters(defaultFilters, corsFilter)
+class Filters @Inject()(enabledFilters: EnabledFilters, corsFilter: CORSFilter)
+  extends DefaultHttpFilters(enabledFilters, corsFilter)
 ```
 
 ### Testing Default Filters
 
 Because there are several filters enabled, functional tests may need to change slightly to ensure that all the tests pass and requests are valid.  For example, a request that does not have a `Host` HTTP header set to `localhost` will not pass the AllowedHostsFilter and will return a 400 Forbidden response instead.
 
-If you are using `FakeRequest` or `Helpers.fakeRequest`
+#### Testing with AllowedHostsFilter
+
+Because the AllowedHostsFilter filter is added automatically, functional tests need to have the Host HTTP header added.
+
+If you are using `FakeRequest` or `Helpers.fakeRequest`, then the `Host` HTTP header is added for you automatically.  If you are using `play.mvc.Http.RequestBuilder`, then you may need to add your own line to add the header manually:
+
+```java
+RequestBuilder request = new RequestBuilder()
+        .method(GET)
+        .header(HeaderNames.HOST, "localhost")
+        .uri("/xx/Kiwi");
+```
+
+#### Testing with CSRFFilter
+
+Because the CSRFFilter filter is added automatically, tests that render a Twirl template that includes `CSRF.formField`, i.e.
+
+```
+@(userForm: Form[UserData])(implicit request: RequestHeader, m: Messages)
+
+<h1>user form</h1>
+
+@request.flash.get("success").getOrElse("")
+
+@helper.form(action = routes.UserController.userPost()) {
+  @helper.CSRF.formField
+  @helper.inputText(userForm("name"))
+  @helper.inputText(userForm("age"))
+  <input type="submit" value="submit"/>
+}
+```
+
+must contain a CSRF token in the request.  In the Scala API, this is done by importing `play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
+
+```scala
+import play.api.test.CSRFTokenHelper._
+
+class UserControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+  "UserController GET" should {
+
+    "render the index page from the application" in {
+      val controller = app.injector.instanceOf[UserController]
+      val request = FakeRequest().withCSRFToken
+      val result = controller.userGet().apply(request)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("text/html")
+    }
+  }
+}
+```
+
+In the Java API, this is done by calling `CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
+
+```
+requestBuilder = CSRFTokenHelper.addCSRFToken(requestBuilder);
+```
 
 ### Disabling Default Filters
 
@@ -633,7 +689,13 @@ If you want to remove all filter classes, you can disable it through the `disabl
 lazy val root = project.in(file(".")).enablePlugins(PlayScala).disablePlugins(PlayFilters)
 ```
 
-If you are writing functional tests involving `GuiceApplicationBuilder` and the AllowedHostsFilter is interfering with tests and causing `400` status errors, then you can disable it in a test by calling `configure`:
+or by replacing `EnabledFilters`:
+
+```
+play.http.filters=play.api.http.NoHttpFilters
+```
+
+If you are writing functional tests involving `GuiceApplicationBuilder` and the AllowedHostsFilter is interfering with tests and causing `400` status errors, then you can disable it using `configure`:
 
 ```scala
 GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters")
@@ -643,27 +705,27 @@ GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttp
 
 If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
 
-This means that the `BuiltInComponents` trait now contains a `defaultFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains a `EnabledFilters` method which is left abstract: 
 
 ```scala
 trait BuiltInComponents {
   /** Default filters, to be mixed in later */
-  def defaultFilters: HttpFilters
+  def EnabledFilters: HttpFilters
 
   /** A user defined list of filters that is appended to the default filters */
   def httpFilters: Seq[EssentialFilter] = Nil
 
   /** A list of the default filters plus user filters */
-  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(defaultFilters, httpFilters: _*)
+  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(EnabledFilters, httpFilters: _*)
 }
 ```
 
-and the way to resolve the `defaultFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
+and the way to resolve the `EnabledFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
 
 ```scala
 class MyComponents(context: ApplicationLoader.Context)
    extends BuiltInComponentsFromContext(context)
-   with play.filters.DefaultFiltersComponents
+   with play.filters.EnabledFiltersComponents
    with AssetsComponents {
 
   override lazy val httpFilters = Seq(myUserFilter)
@@ -673,17 +735,17 @@ class MyComponents(context: ApplicationLoader.Context)
 }
 ```
 
-The `DefaultFiltersComponents` trait is configured with CSRF, SecurityHeaders and AllowedHosts out of the box:
+The `EnabledFiltersComponents` trait is configured with CSRF, SecurityHeaders and AllowedHosts out of the box:
 
 ```scala
 package play.filters
 
-trait DefaultFiltersComponents
+trait EnabledFiltersComponents
     extends CSRFComponents
     with SecurityHeadersComponents
     with AllowedHostsComponents {
 
-  lazy val defaultFilters: HttpFilters = {
+  lazy val EnabledFilters: HttpFilters = {
     new HttpFilters {
       val filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
     }
@@ -693,12 +755,12 @@ trait DefaultFiltersComponents
 
 ### Disabling Compile Time Default Filters
 
-To disable the default filters, mixin `play.api.NoDefaultFiltersComponents` instead of `DefaultFiltersComponents`:
+To disable the default filters, mixin `play.api.NoEnabledFiltersComponents` instead of `EnabledFiltersComponents`:
 
 ```scala
 class MyComponents(context: ApplicationLoader.Context)
    extends BuiltInComponentsFromContext(context)
-   with NoDefaultFiltersComponents
+   with NoEnabledFiltersComponents
    with AssetsComponents {
 
   override lazy val httpFilters = Seq(myUserFilter)

@@ -38,7 +38,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
-    )) with NoDefaultFiltersComponents {
+    )) with DefaultFiltersComponents {
       lazy val router = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
