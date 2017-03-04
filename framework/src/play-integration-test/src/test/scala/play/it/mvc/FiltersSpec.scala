@@ -17,6 +17,7 @@ import play.api.test._
 import play.api._
 import play.core.server.Server
 import play.it._
+import play.filters.DefaultFiltersComponents
 
 import scala.concurrent.ExecutionContext.{ global => ec }
 import scala.concurrent._
