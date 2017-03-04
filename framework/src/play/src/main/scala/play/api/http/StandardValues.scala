@@ -147,9 +147,15 @@ trait MimeTypes {
 }
 
 /**
- * Defines all standard HTTP Status.
+ * Defines all standard HTTP status codes, with additional helpers for determining the type of status.
  */
-object Status extends Status
+object Status extends Status {
+  def isInformational(status: Int): Boolean = status / 100 == 1
+  def isSuccessful(status: Int): Boolean = status / 100 == 2
+  def isRedirect(status: Int): Boolean = status / 100 == 3
+  def isClientError(status: Int): Boolean = status / 100 == 4
+  def isServerError(status: Int): Boolean = status / 100 == 5
+}
 
 /**
  * Defines all standard HTTP status codes.
@@ -200,7 +206,7 @@ trait Status {
   val FAILED_DEPENDENCY = 424
   val UPGRADE_REQUIRED = 426
   val TOO_MANY_REQUESTS = 429
-  @deprecated("Use TOO_MANY_REQUESTS instead", "3.0.0")
+  @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
   val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
   val INTERNAL_SERVER_ERROR = 500
