@@ -269,15 +269,12 @@ trait BuiltInComponents extends I18nComponents {
    * Default filters, provided by mixing in play.filters.DefaultFilterComponents
    * or NoDefaultFiltersComponents.
    */
-  def defaultFilters: HttpFilters
+  def defaultFilters: Seq[EssentialFilter]
 
   /** A user defined list of filters that is appended to the default filters */
   def httpFilters: Seq[EssentialFilter] = Nil
 
-  /** A list of the default filters plus user filters */
-  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(defaultFilters, httpFilters: _*)
-
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, defaultHttpFilters.filters: _*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, defaultFilters ++ httpFilters: _*)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
@@ -302,7 +299,5 @@ trait BuiltInComponents extends I18nComponents {
  * A component to mix in when no default filters should be mixed in to BuiltInComponents.
  */
 trait NoDefaultFiltersComponents {
-  val defaultFilters: HttpFilters = new HttpFilters {
-    override def filters = Nil
-  }
+  val defaultFilters: Seq[EssentialFilter] = Nil
 }

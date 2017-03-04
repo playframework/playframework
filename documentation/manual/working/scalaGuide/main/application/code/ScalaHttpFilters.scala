@@ -41,14 +41,14 @@ import simple.LoggingFilter
 // #filters
 import javax.inject.Inject
 import play.api.http.DefaultHttpFilters
-import play.api.http.DefaultFilters
+import play.api.http.EnabledFilters
 import play.filters.gzip.GzipFilter
 
 class Filters @Inject() (
-  defaultFilters: DefaultFilters,
+  defaultFilters: EnabledFilters,
   gzip: GzipFilter,
   log: LoggingFilter
-) extends DefaultHttpFilters(defaultFilters, gzip, log)
+) extends DefaultHttpFilters(defaultFilters.filters :+ gzip :+ log: _*)
 //#filters
 
 object router {

@@ -26,28 +26,16 @@ trait HttpFilters {
 
 /**
  * A default implementation of HttpFilters that accepts filters as a varargs constructor and exposes them as a
- * filters sequence.  You should combine this with the list of enabled filters. For example:
+ * filters sequence. This is available for runtime DI users who don't want to do things in configuration using play.filters.enabled, because they need more fine grained control over the injected components.
+ *
+ * For example:
  *
  * {{{
  *   class Filters @Inject()(defaultFilters: EnabledFilters, corsFilter: CORSFilter)
- *     extends DefaultHttpFilters(defaultFilters, corsFilter)
+ *     extends DefaultHttpFilters(defaultFilters.filters :+ corsFilter: _*)
  * }}}
  */
-class DefaultHttpFilters @Inject() (defaultFilters: HttpFilters, userFilters: EssentialFilter*) extends HttpFilters {
-
-  val filters: Seq[EssentialFilter] = {
-    Option(defaultFilters).map(_.filters).getOrElse(Nil) ++ userFilters
-  }
-
-  /**
-   * @deprecated this constructor does not take an injected [[play.api.http.EnabledFilters]] instance
-   * @param filters the list of user defined filters
-   */
-  @deprecated("Use DefaultHttpFilters @Inject()(defaultFilters: EnabledFilters, myFilter: MyFilter)", "2.6.0")
-  def this(filters: EssentialFilter*) = {
-    this(null: EnabledFilters, filters: _*)
-  }
-}
+class DefaultHttpFilters @Inject() (val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {
 
@@ -72,11 +60,15 @@ object HttpFilters {
  */
 class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
 
-  private val configListKey = "play.filters.enabled"
+  private val enabledKey = "play.filters.enabled"
+  private val disabledKey = "play.filters.disabled"
 
   private val defaultBindings: Seq[BindingKey[EssentialFilter]] = {
     try {
-      for (filterClassName <- configuration.get[Seq[String]](configListKey)) yield {
+      val disabledSet = configuration.get[Seq[String]](disabledKey).toSet
+      val enabledList = configuration.get[Seq[String]](enabledKey).filterNot(disabledSet.contains)
+
+      for (filterClassName <- enabledList) yield {
         try {
           val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
           BindingKey(filterClass)
@@ -84,7 +76,7 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
           case e: ClassNotFoundException =>
             // Give an explicit warning here so that the user has an idea what configuration property
             // caused the class not found exception...
-            throw new IllegalStateException(s"The ${configListKey} configuration property cannot load class ${filterClassName}")
+            throw new IllegalStateException(s"The ${enabledKey} configuration property cannot load class ${filterClassName}")
         }
       }
     } catch {
@@ -104,7 +96,9 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
 /**
  * A filters provider that provides no filters.
  */
-class NoHttpFilters @Inject() () extends DefaultHttpFilters
+class NoHttpFilters extends HttpFilters {
+  val filters: Seq[EssentialFilter] = Nil
+}
 
 object NoHttpFilters extends NoHttpFilters
 

@@ -1,6 +1,5 @@
 package play.filters
 
-import play.api.http.HttpFilters
 import play.api.mvc.EssentialFilter
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersComponents
@@ -22,10 +21,5 @@ trait DefaultFiltersComponents
     with SecurityHeadersComponents
     with AllowedHostsComponents {
 
-  lazy val defaultFilters: HttpFilters = {
-    new HttpFilters {
-      val filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
-    }
-  }
-
+  lazy val defaultFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }

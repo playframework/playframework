@@ -604,11 +604,11 @@ To append to the defaults list, use the `+=`:
 play.filters.enabled+=MyFilter
 ```
 
-If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `EnabledFilters` with your own list in code:
+If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `EnabledFilters` with your own list in code, so if you have previously defined projects, they still work as usual:
 
 ```scala
 class Filters @Inject()(enabledFilters: EnabledFilters, corsFilter: CORSFilter)
-  extends DefaultHttpFilters(enabledFilters, corsFilter)
+  extends DefaultHttpFilters(enabledFilters.filters :+ corsFilter: _*)
 ```
 
 ### Testing Default Filters

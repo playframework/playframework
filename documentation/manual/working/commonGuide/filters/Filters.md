@@ -26,12 +26,14 @@ To append to the defaults list, use the `+=`:
 play.filters.enabled+=MyFilter
 ```
 
-If you have defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `EnabledFilters` with your own list in code:
+If you have previously defined your own filters by extending `play.api.http.DefaultHttpFilters`, then you can also combine `EnabledFilters` with your own filters in code:
 
 ```scala
 class Filters @Inject()(enabledFilters: EnabledFilters, corsFilter: CORSFilter)
-  extends DefaultHttpFilters(enabledFilters, corsFilter)
+  extends DefaultHttpFilters(enabledFilters.filters :+ corsFilter: _*)
 ```
+
+Otherwise, if you have a `Filters` class in the root or have `play.http.filters` defined explicitly, it will take precedence over the `EnabledFilters` functionality described below.
 
 ### Testing Default Filters
 
@@ -97,13 +99,19 @@ requestBuilder = CSRFTokenHelper.addCSRFToken(requestBuilder);
 
 ### Disabling Default Filters
 
-The simplest way to disable the default filters is to set the list of filters manually in `application.conf`:
+The simplest way to disable a filter is to add it to the `play.filters.disabled` list in `application.conf`:
+
+```
+play.filters.disabled+=play.filters.hosts.AllowedHostsFilter
+```
+
+This may be useful if you have functional tests that you do not want to go through the default filters.
+
+To remove the default filters, you can set the entire list manually:
 
 ```
 play.filters.enabled=[]
 ```
-
-This may be useful if you have functional tests that you do not want to go through the default filters.
 
 If you want to remove all filter classes, you can disable it through the `disablePlugins` mechanism:
 
@@ -111,7 +119,7 @@ If you want to remove all filter classes, you can disable it through the `disabl
 lazy val root = project.in(file(".")).enablePlugins(PlayScala).disablePlugins(PlayFilters)
 ```
 
-If you are writing functional tests involving `GuiceApplicationBuilder` and the AllowedHostsFilter is interfering with tests and causing `400` status errors, then you can disable it in a test by calling `configure`:
+If you are writing functional tests involving `GuiceApplicationBuilder`, then you can disable all filters in a test by calling `configure`:
 
 ```scala
 GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters")

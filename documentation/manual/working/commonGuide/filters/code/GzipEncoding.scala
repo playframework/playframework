@@ -8,7 +8,6 @@ import play.api.test._
 
 class GzipEncoding extends PlaySpecification {
 
-  //#filters
   import javax.inject.Inject
 
   import play.api.http.DefaultHttpFilters
@@ -16,7 +15,6 @@ class GzipEncoding extends PlaySpecification {
 
   class Filters @Inject() (gzipFilter: GzipFilter)
       extends DefaultHttpFilters(gzipFilter)
-  //#filters
 
   "gzip filter" should {
 
