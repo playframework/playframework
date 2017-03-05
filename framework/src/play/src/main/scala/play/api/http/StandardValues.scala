@@ -24,6 +24,11 @@ trait ContentTypes {
   def HTML(implicit codec: Codec) = withCharset(MimeTypes.HTML)
 
   /**
+   * Content-Type of xhtml.
+   */
+  def XHTML(implicit codec: Codec) = withCharset(MimeTypes.XHTML)
+
+  /**
    * Content-Type of xml.
    */
   def XML(implicit codec: Codec) = withCharset(MimeTypes.XML)
@@ -113,6 +118,11 @@ trait MimeTypes {
    * Content-Type of xml.
    */
   val XML = "application/xml"
+
+  /**
+   * Content-Type of xml.
+   */
+  val XHTML = "application/xhtml+xml"
 
   /**
    * Content-Type of css.
