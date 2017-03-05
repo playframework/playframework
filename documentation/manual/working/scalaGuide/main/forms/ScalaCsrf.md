@@ -158,3 +158,25 @@ The full range of CSRF configuration options can be found in the filters [refere
 ## Using CSRF with compile time dependency injection
 
 You can use all the above features if your application is using compile time dependency injection. The wiring is helped by the trait [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) that you can mix in your application components cake. For more details about compile time dependency injection, please refer to the [[associated documentation page|ScalaCompileTimeDependencyInjection]].
+
+## Testing CSRF 
+
+When rendering, you may need to add the CSRF token to a template.  You can do this with `import play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
+
+```scala
+import play.api.test.CSRFTokenHelper._
+
+class UserControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+  "UserController GET" should {
+
+    "render the index page from the application" in {
+      val controller = app.injector.instanceOf[UserController]
+      val request = FakeRequest().withCSRFToken
+      val result = controller.userGet().apply(request)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("text/html")
+    }
+  }
+}
+```

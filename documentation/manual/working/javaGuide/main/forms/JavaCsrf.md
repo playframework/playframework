@@ -107,3 +107,12 @@ The full range of CSRF configuration options can be found in the filters [refere
 * `play.filters.csrf.cookie.secure` - If `play.filters.csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `play.http.session.secure`.
 * `play.filters.csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
 * `play.filters.csrf.token.sign` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
+
+## Testing CSRF
+
+
+In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
+
+```
+RequestBuilder requestBuilder = CSRFTokenHelper.addCSRFToken(requestBuilder);
+```
