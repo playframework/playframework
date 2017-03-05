@@ -705,51 +705,45 @@ GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttp
 
 If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
 
-This means that the `BuiltInComponents` trait now contains a `EnabledFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains a `defaultFilters` method which is left abstract: 
 
 ```scala
 trait BuiltInComponents {
-  /** Default filters, to be mixed in later */
-  def EnabledFilters: HttpFilters
+  /**
+   * Default filters, provided by mixing in play.filters.DefaultFilterComponents
+   * or NoDefaultFiltersComponents.
+   */
+  def defaultFilters: Seq[EssentialFilter]
 
   /** A user defined list of filters that is appended to the default filters */
   def httpFilters: Seq[EssentialFilter] = Nil
-
-  /** A list of the default filters plus user filters */
-  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(EnabledFilters, httpFilters: _*)
 }
 ```
 
-and the way to resolve the `EnabledFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
+The default list of filters is defined in `play.filters.DefaultFilterComponents`:
+
+```scala
+trait DefaultFiltersComponents
+     extends CSRFComponents
+     with SecurityHeadersComponents
+     with AllowedHostsComponents {
+ 
+   lazy val defaultFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+}
+```
+
+and the way to resolve the `defaultFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
 
 ```scala
 class MyComponents(context: ApplicationLoader.Context)
    extends BuiltInComponentsFromContext(context)
-   with play.filters.EnabledFiltersComponents
+   with play.filters.DefaultFilterComponents
    with AssetsComponents {
 
   override lazy val httpFilters = Seq(myUserFilter)
 
   lazy val homeController = new HomeController(controllerComponents)
   lazy val router = new Routes(httpErrorHandler, homeController, assets)
-}
-```
-
-The `EnabledFiltersComponents` trait is configured with CSRF, SecurityHeaders and AllowedHosts out of the box:
-
-```scala
-package play.filters
-
-trait EnabledFiltersComponents
-    extends CSRFComponents
-    with SecurityHeadersComponents
-    with AllowedHostsComponents {
-
-  lazy val EnabledFilters: HttpFilters = {
-    new HttpFilters {
-      val filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
-    }
-  }
 }
 ```
 
