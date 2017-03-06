@@ -324,7 +324,7 @@ object NettyServer {
    * Create a Netty server from the given router and server config.
    */
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): NettyServer = {
-    new NettyServerComponents with BuiltInComponents with NoDefaultFiltersComponents {
+    new NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig = config
       lazy val router = Router.from(routes)
     }.server

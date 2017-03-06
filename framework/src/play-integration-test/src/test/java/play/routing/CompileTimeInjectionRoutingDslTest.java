@@ -49,7 +49,7 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
         }
 
         @Override
-        public Seq<EssentialFilter> defaultFilters() {
+        public Seq<EssentialFilter> httpFilters() {
             return Scala.emptySeq();
         }
     }

@@ -73,7 +73,7 @@ import org.specs2.time.NoTimeConversions
 import play.api.routing.Router
 import play.api.{BuiltInComponents, BuiltInComponentsFromContext}
 import play.api.routing.sird._
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 
 class ScalaTestingWebServiceClients extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -105,7 +105,7 @@ class ScalaTestingWebServiceClients extends Specification {
       import play.core.server.Server
 
       Server.withApplicationFromContext() { context =>
-        new BuiltInComponentsFromContext(context) with DefaultFiltersComponents {
+        new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
               this.defaultActionBuilder { req =>
@@ -130,7 +130,7 @@ class ScalaTestingWebServiceClients extends Specification {
 
       def withGitHubClient[T](block: GitHubClient => T): T = {
         Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) with DefaultFiltersComponents{
+          new BuiltInComponentsFromContext(context) with HttpFiltersComponents{
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
                 this.defaultActionBuilder { req =>

@@ -11,15 +11,15 @@ import play.filters.hosts.AllowedHostsComponents
  * {{{
  * class MyComponents(context: ApplicationLoader.Context)
  *   extends BuiltInComponentsFromContext(context)
- *   with play.filters.DefaultFiltersComponents {
+ *   with play.filters.HttpFiltersComponents {
  *
  * }
  * }}}
  */
-trait DefaultFiltersComponents
+trait HttpFiltersComponents
     extends CSRFComponents
     with SecurityHeadersComponents
     with AllowedHostsComponents {
 
-  lazy val defaultFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+  def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }

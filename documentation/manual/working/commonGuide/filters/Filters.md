@@ -125,69 +125,68 @@ If you are writing functional tests involving `GuiceApplicationBuilder`, then yo
 GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters")
 ```
 
-### Compile Time Default Filters
+## Compile Time Default Filters
 
 If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
 
-This means that the `BuiltInComponents` trait now contains a `defaultFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract: 
 
 ```scala
 trait BuiltInComponents {
-  /** Default filters, to be mixed in later */
-  def defaultFilters: HttpFilters
 
   /** A user defined list of filters that is appended to the default filters */
-  def httpFilters: Seq[EssentialFilter] = Nil
-
-  /** A list of the default filters plus user filters */
-  lazy val defaultHttpFilters: HttpFilters = new DefaultHttpFilters(defaultFilters, httpFilters: _*)
+  def httpFilters: Seq[EssentialFilter]
 }
 ```
 
-and the way to resolve the `defaultFilters` is to mix in `play.filters.DefaultFilterComponents` into `BuiltInComponentsFromContext`:
+The default list of filters is defined in `play.filters.HttpFiltersComponents`:
+
+```scala
+trait HttpFiltersComponents
+     extends CSRFComponents
+     with SecurityHeadersComponents
+     with AllowedHostsComponents {
+ 
+   def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+}
+```
+
+
+In most cases you will want to mixin HttpFiltersComponents and append your own filters:
 
 ```scala
 class MyComponents(context: ApplicationLoader.Context)
-   extends BuiltInComponentsFromContext(context)
-   with play.filters.DefaultFiltersComponents
-   with AssetsComponents {
+  extends BuiltInComponentsFromContext(context)
+  with play.filters.HttpFiltersComponents {
 
-  override lazy val httpFilters = Seq(myUserFilter)
-
-  lazy val homeController = new HomeController(controllerComponents)
-  lazy val router = new Routes(httpErrorHandler, homeController, assets)
-}
-```
-
-The `DefaultFiltersComponents` trait is configured with CSRF, SecurityHeaders and AllowedHosts out of the box:
-
-```scala
-package play.filters
-
-trait DefaultFiltersComponents
-    extends CSRFComponents
-    with SecurityHeadersComponents
-    with AllowedHostsComponents {
-
-  lazy val defaultFilters: HttpFilters = {
-    new HttpFilters {
-      val filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
-    }
+  lazy val loggingFilter = new LoggingFilter()
+  override def httpFilters = {
+    super.httpFilters :+ loggingFilter
   }
 }
 ```
 
-#### Disabling Compile Time Default Filters
+If you want to filter elements out of the list, you can do the following:
 
-To disable the default filters, mixin `play.api.NoDefaultFiltersComponents` instead of `DefaultFiltersComponents`:
+```scala
+class MyComponents(context: ApplicationLoader.Context)
+  extends BuiltInComponentsFromContext(context)
+  with play.filters.HttpFiltersComponents {
+  override def httpFilters = {
+    super.httpFilters.filterNot(_.getClass.getName == "play.filters.crsf.CSRFFilter")
+  }
+}
+```
+
+### Disabling Compile Time Default Filters
+
+To disable the default filters, mixin `play.api.NoHttpFiltersComponents`:
 
 ```scala
 class MyComponents(context: ApplicationLoader.Context)
    extends BuiltInComponentsFromContext(context)
-   with NoDefaultFiltersComponents
+   with NoHttpFiltersComponents
    with AssetsComponents {
-
-  override lazy val httpFilters = Seq(myUserFilter)
 
   lazy val homeController = new HomeController(controllerComponents)
   lazy val router = new Routes(httpErrorHandler, homeController, assets)

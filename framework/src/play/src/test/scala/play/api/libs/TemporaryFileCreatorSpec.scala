@@ -89,7 +89,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
       val appLoader = new ApplicationLoader {
         def load(context: Context) = {
-          new BuiltInComponentsFromContext(context) with NoDefaultFiltersComponents {
+          new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
             lazy val router = Router.empty
           }.application
         }

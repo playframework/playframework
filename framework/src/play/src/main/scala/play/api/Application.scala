@@ -266,15 +266,38 @@ trait BuiltInComponents extends I18nComponents {
     Some(router))
 
   /**
-   * Default filters, provided by mixing in play.filters.DefaultFilterComponents
-   * or NoDefaultFiltersComponents.
+   * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
+   * or play.api.NoHttpFiltersComponents.
+   *
+   * In most cases you will want to mixin HttpFiltersComponents and append your own filters:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *
+   *   lazy val loggingFilter = new LoggingFilter()
+   *   override def httpFilters = {
+   *     super.httpFilters :+ loggingFilter
+   *   }
+   * }
+   * }}}
+   *
+   * If you want to filter elements out of the list, you can do the following:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *   override def httpFilters = {
+   *     super.httpFilters.filterNot(_.getClass.getName == "play.filters.crsf.CSRFFilter")
+   *   }
+   * }
+   * }}}
    */
-  def defaultFilters: Seq[EssentialFilter]
+  def httpFilters: Seq[EssentialFilter]
 
-  /** A user defined list of filters that is appended to the default filters */
-  def httpFilters: Seq[EssentialFilter] = Nil
-
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, defaultFilters ++ httpFilters: _*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
@@ -298,6 +321,6 @@ trait BuiltInComponents extends I18nComponents {
 /**
  * A component to mix in when no default filters should be mixed in to BuiltInComponents.
  */
-trait NoDefaultFiltersComponents {
-  val defaultFilters: Seq[EssentialFilter] = Nil
+trait NoHttpFiltersComponents {
+  val httpFilters: Seq[EssentialFilter] = Nil
 }

@@ -32,7 +32,7 @@ class MyComponents extends RoutingDslComponentsFromContext {
   }
 
   @Override
-  public Seq<play.api.mvc.EssentialFilter> defaultFilters() {
+  public Seq<play.api.mvc.EssentialFilter> httpFilters() {
     return Scala.emptySeq();
   }
 }

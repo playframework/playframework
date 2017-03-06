@@ -63,12 +63,12 @@ object router {
 
 import play.api._
 import play.filters.gzip._
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 import router.Routes
 
 class MyComponents(context: ApplicationLoader.Context)
     extends BuiltInComponentsFromContext(context)
-    with DefaultFiltersComponents
+    with HttpFiltersComponents
     with GzipFilterComponents {
 
   // implicit executionContext and materializer are defined in BuiltInComponents

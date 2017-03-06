@@ -46,7 +46,7 @@ package basic {
 import play.api._
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 
 class MyApplicationLoader extends ApplicationLoader {
   def load(context: Context) = {
@@ -56,7 +56,7 @@ class MyApplicationLoader extends ApplicationLoader {
 
 class MyComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
-  with DefaultFiltersComponents {
+  with HttpFiltersComponents {
   lazy val router = Router.empty
 }
 //#basic
@@ -79,7 +79,7 @@ package messages {
 import play.api._
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 
 //#messages
 import play.api.i18n._
@@ -87,7 +87,7 @@ import play.api.i18n._
 class MyComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
     with I18nComponents
-    with DefaultFiltersComponents {
+    with HttpFiltersComponents {
   lazy val router = Router.empty
 
   lazy val myComponent = new MyComponent(messagesApi)
@@ -112,7 +112,7 @@ object router {
 //#routers
 import play.api._
 import play.api.ApplicationLoader.Context
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 import router.Routes
 
 class MyApplicationLoader extends ApplicationLoader {
@@ -123,7 +123,7 @@ class MyApplicationLoader extends ApplicationLoader {
 
 class MyComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
-    with DefaultFiltersComponents
+    with HttpFiltersComponents
     with controllers.AssetsComponents {
   lazy val barRoutes = new bar.Routes(httpErrorHandler)
   lazy val applicationController = new controllers.Application()

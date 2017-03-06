@@ -17,7 +17,7 @@ import play.api.test._
 import play.api._
 import play.core.server.Server
 import play.it._
-import play.filters.DefaultFiltersComponents
+import play.filters.HttpFiltersComponents
 
 import scala.concurrent.ExecutionContext.{ global => ec }
 import scala.concurrent._
@@ -39,7 +39,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
-    )) with DefaultFiltersComponents {
+    )) with HttpFiltersComponents {
       lazy val router = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
