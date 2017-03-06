@@ -259,16 +259,6 @@ class FormSpec extends Specification {
         Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
       }.map(_.toString)
 
-      def fillNoBind(values: (String, String)*) = {
-        val map = values.zipWithIndex.flatMap {
-          case ((a, b), i) => Seq("foo[" + i + "].a" -> a, "foo[" + i + "].b" -> b)
-        }.toMap
-        // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
-        // used come from the form, not the input data
-        new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-          List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validator())
-      }
-
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
         render(
           form.fill(new JavaForm(List(new JavaSubForm("somea", "someb")).asJava))
@@ -295,6 +285,55 @@ class FormSpec extends Specification {
         ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
             "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
       }
+    }
+
+    "work with the @repeatWithIndex helper" in {
+      val form = formFactory.form(classOf[JavaForm])
+
+      import play.core.j.PlayFormsMagicForJava._
+
+      def render(form: Form[_], min: Int = 1) = views.html.helper.repeatWithIndex.apply(form("foo"), min) { (f, i) =>
+        val a = f("a")
+        val b = f("b")
+        Html(s"${a.name}=${a.value.getOrElse("")}${i},${b.name}=${b.value.getOrElse("")}${i}")
+      }.map(_.toString)
+
+      "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
+        render(
+          form.fill(new JavaForm(List(new JavaSubForm("somea", "someb")).asJava))
+        ) must exactly("foo[0].a=somea0,foo[0].b=someb0")
+      }
+
+      "render the right number of fields if there's multiple sub fields at a given index when filled from a form" in {
+        render(
+          fillNoBind("somea" -> "someb")
+        ) must exactly("foo[0].a=somea0,foo[0].b=someb0")
+      }
+
+      "get the order of the fields correct when filled from a value" in {
+        render(
+          form.fill(new JavaForm(List(new JavaSubForm("a", "b"), new JavaSubForm("c", "d"),
+            new JavaSubForm("e", "f"), new JavaSubForm("g", "h")).asJava))
+        ) must exactly("foo[0].a=a0,foo[0].b=b0", "foo[1].a=c1,foo[1].b=d1",
+            "foo[2].a=e2,foo[2].b=f2", "foo[3].a=g3,foo[3].b=h3").inOrder
+      }
+
+      "get the order of the fields correct when filled from a form" in {
+        render(
+          fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
+        ) must exactly("foo[0].a=a0,foo[0].b=b0", "foo[1].a=c1,foo[1].b=d1",
+            "foo[2].a=e2,foo[2].b=f2", "foo[3].a=g3,foo[3].b=h3").inOrder
+      }
+    }
+
+    def fillNoBind(values: (String, String)*) = {
+      val map = values.zipWithIndex.flatMap {
+        case ((a, b), i) => Seq("foo[" + i + "].a" -> a, "foo[" + i + "].b" -> b)
+      }.toMap
+      // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
+      // used come from the form, not the input data
+      new Form[JavaForm](null, classOf[JavaForm], map.asJava,
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validator())
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
