@@ -241,6 +241,10 @@ If you are using Play to generate your form HTML, you can generate as many input
 
 The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
 
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[form-field-repeat-with-index](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
+
 ### Optional values
 
 A form mapping can also define optional values using [`Forms.optional`](api/scala/play/api/data/Forms$.html):

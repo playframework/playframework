@@ -41,3 +41,13 @@
 }
 @* #repeat *@
 </span>
+
+<span class="repeat-with-index">
+@* #repeat-with-index *@
+@helper.repeatWithIndex(userForm("emails"), min = 1) { (emailField, index) =>
+
+    @helper.inputText(emailField, '_label -> ("email #" + index))
+
+}
+@* #repeat-with-index *@
+</span>
