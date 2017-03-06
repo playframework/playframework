@@ -39,6 +39,11 @@ public class Time {
             return 60 * 60 * 24 * 30;
         }
         int toAdd = -1;
+
+        /*
+         * The `matcher.matches()` statements are required since matcher is stateful.
+         * More information: https://docs.oracle.com/javase/8/docs/api/java/util/regex/Matcher.html#matches--
+         */
         if (days.matcher(duration).matches()) {
             Matcher matcher = days.matcher(duration);
             matcher.matches();
@@ -778,13 +783,11 @@ public class Time {
                 c = s.charAt(i);
                 if (c >= '0' && c <= '9') {
                     ValueSet vs = getValue(v, s, i);
-                    int v1 = vs.value;
-                    end = v1;
+                    end = vs.value;
                     i = vs.pos;
                 }
                 if (i < s.length() && ((c = s.charAt(i)) == '/')) {
                     i++;
-                    c = s.charAt(i);
                     int v2 = Integer.parseInt(String.valueOf(c));
                     i++;
                     if (i >= s.length()) {
@@ -931,14 +934,16 @@ public class Time {
         }
 
         protected int skipWhiteSpace(int i, String s) {
-            for (; i < s.length() && (s.charAt(i) == ' ' || s.charAt(i) == '\t'); i++) {
+            while (i < s.length() && (s.charAt(i) == ' ' || s.charAt(i) == '\t')) {
+                i++;
             }
 
             return i;
         }
 
         protected int findNextWhiteSpace(int i, String s) {
-            for (; i < s.length() && (s.charAt(i) != ' ' || s.charAt(i) != '\t'); i++) {
+            while (i < s.length() && (s.charAt(i) != ' ' || s.charAt(i) != '\t')) {
+                i++;
             }
 
             return i;
