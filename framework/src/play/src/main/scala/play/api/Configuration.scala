@@ -117,12 +117,12 @@ object Configuration {
   /**
    * Returns an empty Configuration object.
    */
-  def empty = Configuration(ConfigFactory.empty())
+  def empty: Configuration = Configuration(ConfigFactory.empty())
 
   /**
    * Returns the reference configuration object.
    */
-  def reference = Configuration(ConfigFactory.defaultReference())
+  def reference: Configuration = Configuration(ConfigFactory.defaultReference())
 
   /**
    * Create a new Configuration from the data passed as a Map.
@@ -1082,6 +1082,10 @@ object ConfigLoader {
     }
   }
 
+  /**
+   * Loads a Map from a Config. Each key in the Config is a key in the map, each value in the
+   * config is loaded by the `valueLoader` to be type `A`.
+   */
   implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] = new ConfigLoader[Map[String, A]] {
     def load(config: Config, path: String): Map[String, A] = {
       val obj = config.getObject(path)
@@ -1089,6 +1093,18 @@ object ConfigLoader {
       obj.keySet().asScala.map { key =>
         key -> valueLoader.load(conf, key)
       }.toMap
+    }
+  }
+
+  /**
+   * Loads an Either by trying to load the left value, then the right value.
+   */
+  implicit def eitherLoader[A, B](implicit leftLoader: ConfigLoader[A], rightLoader: ConfigLoader[B]): ConfigLoader[Either[A, B]] = new ConfigLoader[Either[A, B]] {
+    def load(config: Config, path: String): Either[A, B] = {
+      try Left(leftLoader.load(config, path)) catch {
+        case _: ConfigException.WrongType =>
+          Right(rightLoader.load(config, path))
+      }
     }
   }
 }

@@ -3,25 +3,34 @@
  */
 package play.db;
 
-import java.sql.Connection;
-import java.util.Map;
-import javax.sql.DataSource;
-
 import com.typesafe.config.Config;
-
 import com.typesafe.config.ConfigFactory;
-import scala.runtime.AbstractFunction1;
-import scala.runtime.BoxedUnit;
+import play.libs.concurrent.HttpExecution;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.ExecutionContext;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Default delegating implementation of the database API.
  */
 public class DefaultDatabase implements Database {
 
-    private final play.api.db.Database db;
+    private final play.api.db.Database sdb;
+    private final ExecutionContext ec;
 
+    @Deprecated
     public DefaultDatabase(play.api.db.Database database) {
-        this.db = database;
+        this(database, HttpExecution.defaultContext());
+    }
+
+    public DefaultDatabase(play.api.db.Database database, ExecutionContext executionContext) {
+        this.sdb = database;
+        this.ec = executionContext;
     }
 
     /**
@@ -30,10 +39,20 @@ public class DefaultDatabase implements Database {
      * @param name name for the db's underlying datasource
      * @param configuration the database's configuration
      */
-    public DefaultDatabase(String name, Config configuration) {
+    @Deprecated
+    public DefaultDatabase(String name, Config configuration) { this(name, configuration, HttpExecution.defaultContext()); }
+
+    /**
+     * Create a default BoneCP-backed database.
+     *
+     * @param name name for the db's underlying datasource
+     * @param configuration the database's configuration
+     * @param executionContext the executor for asynchronous operations
+     */
+    public DefaultDatabase(String name, Config configuration, ExecutionContext executionContext) {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(
                 configuration.withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype"))
-        )));
+        )), executionContext);
     }
 
     /**
@@ -42,115 +61,170 @@ public class DefaultDatabase implements Database {
      * @param name name for the db's underlying datasource
      * @param config the db's configuration
      */
+    @Deprecated
     public DefaultDatabase(String name, Map<String, ? extends Object> config) {
+        this(name, config, HttpExecution.defaultContext());
+    }
+
+    /**
+     * Create a default BoneCP-backed database.
+     *
+     * @param name name for the db's underlying datasource
+     * @param config the db's configuration
+     * @param executionContext the executor for asynchronous operations
+     */
+    public DefaultDatabase(String name, Map<String, ? extends Object> config, ExecutionContext executionContext) {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(
                 ConfigFactory.parseMap(config)
                         .withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype"))
-        )));
+        )), executionContext);
     }
 
     @Override
     public String getName() {
-        return db.name();
+        return sdb.name();
     }
 
     @Override
     public DataSource getDataSource() {
-        return db.dataSource();
+        return sdb.dataSource();
     }
 
     @Override
     public String getUrl() {
-        return db.url();
+        return sdb.url();
+    }
+
+    @Override
+    public CompletionStage<Connection> getConnectionAsync() {
+        return FutureConverters.toJava(sdb.getConnectionAsync());
     }
 
     @Override
     public Connection getConnection() {
-        return db.getConnection();
+        return sdb.getConnection();
+    }
+
+    @Override
+    public CompletionStage<Connection> getConnectionAsync(boolean autocommit) {
+        return FutureConverters.toJava(sdb.getConnectionAsync(autocommit));
     }
 
     @Override
     public Connection getConnection(boolean autocommit) {
-        return db.getConnection(autocommit);
+        return sdb.getConnection(autocommit);
     }
 
     @Override
     public void withConnection(ConnectionRunnable block) {
-        db.withConnection(connectionFunction(block));
+        sdb.withConnection((Connection c) -> {
+            try {
+                block.run(c);
+                return null;
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
     }
 
     @Override
     public <A> A withConnection(ConnectionCallable<A> block) {
-        return db.withConnection(connectionFunction(block));
+        return sdb.withConnection((Connection c) -> {
+            try {
+                return block.call(c);
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
+    }
+
+    @Override
+    public <A> CompletionStage<A> withConnectionAsync(AsyncConnectionCallable<A> block) {
+        return FutureConverters.toJava(sdb.withConnectionAsync((Connection c) -> {
+            try {
+                return FutureConverters.toScala(block.call(c));
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        }, ec));
     }
 
     @Override
     public void withConnection(boolean autocommit, ConnectionRunnable block) {
-        db.withConnection(autocommit, connectionFunction(block));
+        sdb.withConnection(autocommit, (Connection c) -> {
+            try {
+                block.run(c);
+                return null;
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
     }
 
     @Override
     public <A> A withConnection(boolean autocommit, ConnectionCallable<A> block) {
-        return db.withConnection(autocommit, connectionFunction(block));
+        return sdb.withConnection(autocommit, (Connection c) -> {
+            try {
+                return block.call(c);
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
+    }
+
+    @Override
+    public <A> CompletionStage<A> withConnectionAsync(boolean autocommit, AsyncConnectionCallable<A> block) {
+        return FutureConverters.toJava(sdb.withConnectionAsync(autocommit, (Connection c) -> {
+            try {
+                return FutureConverters.toScala(block.call(c));
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        }, ec));
     }
 
     @Override
     public void withTransaction(ConnectionRunnable block) {
-        db.withTransaction(connectionFunction(block));
+        sdb.withTransaction((Connection c) -> {
+            try {
+                block.run(c);
+                return null;
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
+
     }
 
     @Override
     public <A> A withTransaction(ConnectionCallable<A> block) {
-        return db.withTransaction(connectionFunction(block));
+        return sdb.withTransaction((Connection c) -> {
+            try {
+                return block.call(c);
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        });
+    }
+
+    @Override
+    public <A> CompletionStage<A> withTransactionAsync(AsyncConnectionCallable<A> block) {
+        return FutureConverters.toJava(sdb.withTransactionAsync((Connection c) -> {
+            try {
+                return FutureConverters.toScala(block.call(c));
+            } catch (SQLException e) {
+                throw new RuntimeException("Rethrowing checked exception", e);
+            }
+        }, ec));
     }
 
     @Override
     public void shutdown() {
-        db.shutdown();
+        sdb.shutdown();
     }
 
     @Override
-    public play.api.db.Database toScala() {
-        return db;
+    public play.api.db.Database asScala() {
+        return sdb;
     }
-
-
-    /**
-     * Create a Scala function wrapper for ConnectionRunnable.
-     *
-     * @param block a Java functional interface instance to wrap
-     * @return a scala function that wraps the given block
-     */
-    AbstractFunction1<Connection, BoxedUnit> connectionFunction(final ConnectionRunnable block) {
-        return new AbstractFunction1<Connection, BoxedUnit>() {
-            public BoxedUnit apply(Connection connection) {
-                try {
-                    block.run(connection);
-                    return BoxedUnit.UNIT;
-                } catch (java.sql.SQLException e) {
-                    throw new RuntimeException("Connection runnable failed", e);
-                }
-            }
-        };
-    }
-
-    /**
-     * Create a Scala function wrapper for ConnectionCallable.
-     *
-     * @param block a Java functional interface instance to wrap
-     * @param <A> the provided block's return type
-     * @return a scala function wrapping the given block
-     */
-    <A> AbstractFunction1<Connection, A> connectionFunction(final ConnectionCallable<A> block) {
-        return new AbstractFunction1<Connection, A>() {
-            public A apply(Connection connection) {
-                try {
-                    return block.call(connection);
-                } catch (java.sql.SQLException e) {
-                    throw new RuntimeException("Connection callable failed", e);
-                }
-            }
-        };
-    }
-
 }

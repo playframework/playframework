@@ -3,7 +3,13 @@
  */
 package play.db;
 
+import scala.Function1;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.ExecutionContext;
+import scala.concurrent.Future;
+
 import java.sql.Connection;
+import java.util.concurrent.CompletionStage;
 import javax.sql.DataSource;
 
 /**
@@ -28,6 +34,16 @@ public interface Database {
     public String getUrl();
 
     /**
+     * Asynchronously get a JDBC connection from the underlying data source. Autocommit is
+     * enabled by default.
+     * <p>
+     * Don't forget to release the connection at some point by calling close().
+     *
+     * @return a future JDBC connection
+     */
+    public CompletionStage<Connection> getConnectionAsync();
+
+    /**
      * Get a JDBC connection from the underlying data source. Autocommit is
      * enabled by default.
      * <p>
@@ -36,6 +52,16 @@ public interface Database {
      * @return a JDBC connection
      */
     public Connection getConnection();
+
+    /**
+     * Asynchronously get a JDBC connection from the underlying data source.
+     * <p>
+     * Don't forget to release the connection at some point by calling close().
+     *
+     * @param autocommit determines whether to autocommit the connection
+     * @return a future JDBC connection
+     */
+    public CompletionStage<Connection> getConnectionAsync(boolean autocommit);
 
     /**
      * Get a JDBC connection from the underlying data source.
@@ -66,6 +92,17 @@ public interface Database {
     public <A> A withConnection(ConnectionCallable<A> block);
 
     /**
+     * Asynchronously execute a block of code with a JDBC connection. The
+     * connection and all created statements are automatically released when
+     * the called block's future is completed.
+     *
+     * @param <A> the return value's type
+     * @param block code to execute
+     * @return the result of the code block
+     */
+    public <A> CompletionStage<A> withConnectionAsync(AsyncConnectionCallable<A> block);
+
+    /**
      * Execute a block of code, providing a JDBC connection. The connection and
      * all created statements are automatically released.
      *
@@ -84,6 +121,18 @@ public interface Database {
      * @return the result of the code block
      */
     public <A> A withConnection(boolean autocommit, ConnectionCallable<A> block);
+
+    /**
+     * Asynchronously execute a block of code with a JDBC connection. The
+     * connection and all created statements are automatically released when
+     * the called block's future is completed.
+     *
+     * @param <A> the return value's type
+     * @param autocommit determines whether to autocommit the connection
+     * @param block      code to execute
+     * @return the result of the code block
+     */
+    public <A> CompletionStage<A> withConnectionAsync(boolean autocommit, AsyncConnectionCallable<A> block);
 
     /**
      * Execute a block of code in the scope of a JDBC transaction. The
@@ -106,6 +155,17 @@ public interface Database {
     public <A> A withTransaction(ConnectionCallable<A> block);
 
     /**
+     * Asynchronously execute a block of code with a JDBC connection. The
+     * connection and all created statements are automatically released when
+     * the called block's future is completed.
+     *
+     * @param <A> the return value's type
+     * @param block code to execute
+     * @return the result of the code block
+     */
+    public <A> CompletionStage<A> withTransactionAsync(AsyncConnectionCallable<A> block);
+
+    /**
      * Shutdown this database, closing the underlying data source.
      */
     public void shutdown();
@@ -113,66 +173,6 @@ public interface Database {
     /**
      * Converts the given database to a Scala database
      * @return the database for scala API.
-     * @deprecated As of release 2.6.0. Use {@link #asScala()}
      */
-    @Deprecated
-    public default play.api.db.Database toScala() {
-        return asScala();
-    }
-
-    /**
-     * Converts the given database to a Scala database
-     * @return the database for scala API.
-     */
-    public default play.api.db.Database asScala() {
-        return new play.api.db.Database() {
-            @Override
-            public String name() {
-                return Database.this.getName();
-            }
-
-            @Override
-            public Connection getConnection() {
-                return Database.this.getConnection();
-            }
-
-            @Override
-            public void shutdown() {
-                Database.this.shutdown();
-            }
-
-            @Override
-            public <A> A withConnection(boolean autocommit,
-                                        final scala.Function1<Connection, A> block) {
-                return Database.this.withConnection(autocommit, block::apply);
-            }
-
-            @Override
-            public <A> A withConnection(
-                    final scala.Function1<Connection, A> block) {
-                return Database.this.withConnection(block::apply);
-            }
-
-            @Override
-            public String url() {
-                return Database.this.getUrl();
-            }
-
-            @Override
-            public DataSource dataSource() {
-                return Database.this.getDataSource();
-            }
-
-            @Override
-            public Connection getConnection(boolean autocommit) {
-                return Database.this.getConnection(autocommit);
-            }
-
-            public <A> A withTransaction(
-                    final scala.Function1<Connection, A> block) {
-                return Database.this.withTransaction(block::apply);
-            }
-
-        };
-    }
+    public play.api.db.Database asScala();
 }

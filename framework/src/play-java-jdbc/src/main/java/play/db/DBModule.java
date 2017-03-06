@@ -14,6 +14,7 @@ import scala.collection.Seq;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 import java.util.Set;
 
 /**
@@ -28,7 +29,7 @@ public final class DBModule extends Module {
 
         ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
 
-        list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
+        list.add(bind(AsyncConnectionPool.class).toProvider(JavaAsyncConnectionPoolProvider.class));
         list.add(bind(DBApi.class).to(DefaultDBApi.class));
 
         try {
@@ -64,6 +65,24 @@ public final class DBModule extends Module {
 
         public Database get() {
             return dbApi.getDatabase(name);
+        }
+    }
+
+    /**
+     * Provide a Java {@link AsyncConnectionPool} from a Scala one.
+     */
+    @Singleton
+    public static class JavaAsyncConnectionPoolProvider implements Provider<AsyncConnectionPool> {
+        private final play.api.db.AsyncConnectionPool sacp;
+
+        @Inject
+        public JavaAsyncConnectionPoolProvider(play.api.db.AsyncConnectionPool sacp) {
+            this.sacp = sacp;
+        }
+
+        @Override
+        public AsyncConnectionPool get() {
+            return sacp.asJava();
         }
     }
 

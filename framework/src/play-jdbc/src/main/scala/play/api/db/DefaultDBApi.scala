@@ -13,7 +13,7 @@ import play.api.{ Environment, Configuration, Logger }
  */
 class DefaultDBApi(
     configuration: Map[String, Config],
-    defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(Environment.simple()),
+    defaultConnectionPool: AsyncConnectionPool = new HikariCPConnectionPool(Environment.simple()),
     environment: Environment = Environment.simple(),
     injector: Injector = NewInstanceInjector) extends DBApi {
 
@@ -22,7 +22,7 @@ class DefaultDBApi(
   lazy val databases: Seq[Database] = {
     configuration.map {
       case (name, config) =>
-        val pool = ConnectionPool.fromConfig(config.getString("pool"), injector, environment, defaultConnectionPool)
+        val pool = AsyncConnectionPool.fromConfig(config.getString("pool"), injector, environment, defaultConnectionPool)
         new PooledDatabase(name, config, environment, pool)
     }.toSeq
   }

@@ -5,22 +5,21 @@ package play.api.db
 
 import java.sql.{ Connection, Statement }
 import javax.inject.{ Inject, Singleton }
-import javax.sql.DataSource
-
-import com.typesafe.config.Config
-import play.api._
-import play.api.inject._
-import play.api.libs.JNDI
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
+import com.typesafe.config.Config
+import play.api._
+import play.api.db.internal.SqlLogging
+import play.api.inject._
+import play.api.libs.JNDI
 
 import scala.concurrent.duration.FiniteDuration
 
 /**
  * BoneCP runtime inject module.
  */
-class BoneCPModule extends SimpleModule(bind[ConnectionPool].to[BoneConnectionPool])
+class BoneCPModule extends SimpleModule(bind[AsyncConnectionPool].to[BoneConnectionPool])
 
 /**
  * BoneCP components (for compile-time injection).
@@ -28,21 +27,21 @@ class BoneCPModule extends SimpleModule(bind[ConnectionPool].to[BoneConnectionPo
 trait BoneCPComponents {
   def environment: Environment
 
-  lazy val connectionPool: ConnectionPool = new BoneConnectionPool(environment)
+  lazy val connectionPool: AsyncConnectionPool = new BoneConnectionPool(environment)
 }
 
 /**
  * BoneCP implementation of connection pool interface.
  */
 @Singleton
-class BoneConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
+class BoneConnectionPool @Inject() (environment: Environment) extends AsyncConnectionPool {
 
   import BoneConnectionPool._
 
   /**
    * Create a data source with the given configuration.
    */
-  def create(name: String, dbConfig: DatabaseConfig, conf: Config): DataSource = {
+  override def createAsync(name: String, dbConfig: DatabaseConfig, conf: Config): AsyncDataSource = {
 
     val config = Configuration(conf)
 
@@ -118,7 +117,9 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     config.getDeprecated[Option[String]]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
     config.getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
 
-    val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, conf)
+    val wrappedDataSource = if (SqlLogging.isSqlLoggingConfigured(conf)) {
+      SqlLogging.wrapDataSourceForLogging(datasource)
+    } else datasource
 
     // Bind in JNDI
     dbConfig.jndiName foreach { jndiName =>
@@ -126,19 +127,8 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
       logger.info(s"""datasource [$name] bound to JNDI as $jndiName""")
     }
 
-    wrappedDataSource
+    AsyncDataSource.wrap(wrappedDataSource, datasource)
   }
-
-  /**
-   * Close the given data source.
-   */
-  def close(ds: DataSource): Unit = {
-    ConnectionPool.unwrap(ds) match {
-      case bcp: BoneCPDataSource => bcp.close()
-      case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
-    }
-  }
-
 }
 
 object BoneConnectionPool {

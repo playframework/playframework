@@ -54,7 +54,9 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
     )) {
       import com.jolbox.bonecp.BoneCPDataSource
       val db = app.injector.instanceOf[DBApi]
-      val bonecpDataSource: BoneCPDataSource = db.database("default").dataSource.asInstanceOf[BoneCPDataSource]
+      val database = db.database("default")
+      val asyncDataSource = database.dataSource.asInstanceOf[AsyncDataSource.Wrapper]
+      val bonecpDataSource: BoneCPDataSource = asyncDataSource.dataSource.asInstanceOf[BoneCPDataSource]
       val bonecpConfig = bonecpDataSource.getConfig
       bonecpConfig.getMaxConnectionsPerPartition must be_==(50)
     }
@@ -86,7 +88,9 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       "db.default.logSql" -> "true"
     )) {
       val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must contain("LogSqlDataSource")
+      val database = db.database("default")
+      val asyncDataSource = database.dataSource.asInstanceOf[AsyncDataSource.Wrapper]
+      asyncDataSource.dataSource.getClass.getName must contain("LogSqlDataSource")
     }
   }
 

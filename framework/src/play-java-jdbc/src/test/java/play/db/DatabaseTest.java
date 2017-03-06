@@ -3,26 +3,47 @@
  */
 package play.db;
 
+import com.google.common.collect.ImmutableMap;
+import com.jolbox.bonecp.BoneCPDataSource;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.jdbcdslog.LogSqlDataSource;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import play.api.libs.JNDI;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import javax.sql.DataSource;
-
-import com.google.common.collect.ImmutableMap;
-import com.jolbox.bonecp.BoneCPDataSource;
-
-import org.jdbcdslog.LogSqlDataSource;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-import org.junit.Test;
-
-import play.api.libs.JNDI;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class DatabaseTest {
+
+    private static Matcher<DataSource> wrapsDataSource(final Class<?> iface) {
+        return new BaseMatcher<DataSource>() {
+            @Override
+            public boolean matches(Object item) {
+                try {
+                    DataSource ds = (DataSource) item;
+                    return iface.isInstance(ds) || ds.isWrapperFor(iface);
+                } catch (SQLException e) {
+                    throw new RuntimeException("Unexpected exception matching item", e);
+                }
+            }
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("wrapsDataSource(");
+                description.appendText(iface.getName());
+                description.appendText(")");
+            }
+        };
+    }
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -193,8 +214,8 @@ public class DatabaseTest {
     public void useLogSqlDataSourceWhenLogSqlIsTrue() throws Exception {
         Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
-        assertThat(db.getDataSource(), instanceOf(LogSqlDataSource.class));
-        assertThat(JNDI.initialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
+        assertThat(db.getDataSource(), wrapsDataSource(LogSqlDataSource.class));
+        assertThat((DataSource) JNDI.initialContext().lookup("DefaultDS"), wrapsDataSource(LogSqlDataSource.class));
         db.shutdown();
     }
 }

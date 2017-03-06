@@ -4,13 +4,18 @@
 package play.api.db
 
 import java.sql.{ Connection, Driver, DriverManager }
+import java.util.concurrent.{ BlockingQueue, LinkedBlockingQueue, TimeUnit }
 import javax.sql.DataSource
 
+import com.typesafe.config.Config
+import play.api.{ Configuration, Environment }
+import play.core.Execution
 import play.utils.{ ProxyDriver, Reflect }
 
-import com.typesafe.config.Config
-import scala.util.control.{ NonFatal, ControlThrowable }
-import play.api.{ Environment, Configuration }
+import scala.annotation.tailrec
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.control.{ ControlThrowable, NonFatal }
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Creation helpers for manually instantiating databases.
@@ -98,9 +103,7 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   // abstract methods to be implemented
 
-  def createDataSource(): DataSource
-
-  def closeDataSource(dataSource: DataSource): Unit
+  protected def createAsyncDataSource(): AsyncDataSource
 
   // driver registration
 
@@ -118,9 +121,9 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   // lazy data source creation
 
-  lazy val dataSource: DataSource = {
+  override lazy val dataSource: AsyncDataSource = {
     driver // trigger driver registration
-    createDataSource()
+    createAsyncDataSource()
   }
 
   lazy val url: String = {
@@ -132,23 +135,47 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
     }
   }
 
-  // connection methods
+  // c methods
 
-  def getConnection(): Connection = {
+  override def getConnectionAsync(): Future[Connection] = {
+    getConnectionAsync(autocommit = true)
+  }
+
+  override def getConnection(): Connection = {
     getConnection(autocommit = true)
   }
 
-  def getConnection(autocommit: Boolean): Connection = {
+  override def getConnectionAsync(autocommit: Boolean): Future[Connection] = {
+    dataSource.getConnectionAsync.map { connection =>
+      connection.setAutoCommit(autocommit)
+      connection
+    }(Execution.trampoline)
+  }
+
+  override def getConnection(autocommit: Boolean): Connection = {
     val connection = dataSource.getConnection
     connection.setAutoCommit(autocommit)
     connection
   }
 
-  def withConnection[A](block: Connection => A): A = {
+  override def withConnectionAsync[A](block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A] = {
+    withConnectionAsync(autocommit = true)(block)
+  }
+
+  override def withConnection[A](block: Connection => A): A = {
     withConnection(autocommit = true)(block)
   }
 
-  def withConnection[A](autocommit: Boolean)(block: Connection => A): A = {
+  override def withConnectionAsync[A](autocommit: Boolean)(block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A] = {
+    getConnectionAsync(autocommit).flatMap { connection =>
+      block(connection).transform { result: Try[A] =>
+        connection.close()
+        result
+      }(Execution.trampoline)
+    }
+  }
+
+  override def withConnection[A](autocommit: Boolean)(block: Connection => A): A = {
     val connection = getConnection(autocommit)
     try {
       block(connection)
@@ -157,7 +184,23 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
     }
   }
 
-  def withTransaction[A](block: Connection => A): A = {
+  override def withTransactionAsync[A](block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A] = {
+    getConnectionAsync(autocommit = false).flatMap { connection =>
+      block(connection).transform {
+        case f @ Failure(_: ControlThrowable) =>
+          connection.commit()
+          f
+        case f @ Failure(_) =>
+          connection.rollback()
+          f
+        case s @ Success(_) =>
+          connection.commit()
+          s
+      }(Execution.trampoline)
+    }
+  }
+
+  override def withTransaction[A](block: Connection => A): A = {
     withConnection(autocommit = false) { connection =>
       try {
         val r = block(connection)
@@ -174,33 +217,23 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
     }
   }
 
-  // shutdown
-
-  def shutdown(): Unit = {
-    closeDataSource(dataSource)
-    deregisterDriver()
-  }
-
-  def deregisterDriver(): Unit = {
+  override def shutdown(): Unit = {
+    dataSource.close()
     driver.foreach(DriverManager.deregisterDriver)
   }
 
 }
 
 /**
- * Default implementation of the database API using a connection pool.
+ * Default implementation of the database API using a c pool.
  */
-class PooledDatabase(name: String, configuration: Config, environment: Environment, pool: ConnectionPool)
+class PooledDatabase(name: String, configuration: Config, environment: Environment, pool: AsyncConnectionPool)
     extends DefaultDatabase(name, configuration, environment) {
 
   def this(name: String, configuration: Configuration) = this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 
-  def createDataSource(): DataSource = {
-    pool.create(name, databaseConfig, configuration)
-  }
-
-  def closeDataSource(dataSource: DataSource): Unit = {
-    pool.close(dataSource)
+  override protected def createAsyncDataSource(): AsyncDataSource = {
+    pool.createAsync(name, databaseConfig, configuration)
   }
 
 }
