@@ -4,11 +4,9 @@
 package javaguide.forms.customconstraint;
 
 //#interface
-import play.data.validation.ValidationError;
-
 import play.db.Database;
 
-public interface ValidatableBasicWithDB {
-    public ValidationError validateInstance(final Database db);
+public interface ValidatableWithDB<T> {
+    public T validateInstance(final Database db);
 }
 //#interface

@@ -134,15 +134,14 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
 The `validate` method implemented inside a form class (usually used for cross field validation) has been deprecated and it's support will be removed in future Play versions. You should use class-level constraints instead now. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
-Existing `validate` methods can easily be migrated by renaming them to `validateInstance`. Depending on the return type of such a validate method your forms then also have to
-implement a certain interface and have to be annotated with an according annotation (all defined in `play.data.validation.Constraints`):
+Existing `validate` methods can be migrated by renaming them to `validateInstance`, annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, your forms also have to implement the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
 
-| **Return type**                                                                    | **Interface to implement** | **Annotation to use**
-| -----------------------------------------------------------------------------------|----------------------------|-------------------------
-| `String`                                                                           | `ValidatableSimple`        | `SelfValidatingSimple`
-| `ValidationError`                                                                  | `ValidatableBasic`         | `SelfValidatingBasic`
-| `List<ValidationError>`                                                            | `ValidatableAdvanced`      | `SelfValidatingAdvanced`
-| `Map<String,List<ValidationError>>`<br>(not supported anymore; use `List` instead) | `ValidatableAdvanced`      | `SelfValidatingAdvanced`
+| **Return type**                                                                    | **Interface to implement**
+| -----------------------------------------------------------------------------------|-------------------------------------
+| `String`                                                                           | `Validatable<String>`
+| `ValidationError`                                                                  | `Validatable<ValidationError>`
+| `List<ValidationError>`                                                            | `Validatable<List<ValidationError>>`
+| `Map<String,List<ValidationError>>`<br>(not supported anymore; use `List` instead) | `Validatable<List<ValidationError>>`
 
 For example an existing form like:
 
@@ -158,11 +157,11 @@ public class MyForm {
 Has to be changed to:
 
 ```java
-import play.data.validation.Constraints.SelfValidatingSimple;
-import play.data.validation.Constraints.ValidatableSimple;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
-@SelfValidatingSimple
-public class MyForm implements ValidatableSimple {
+@Validate
+public class MyForm implements Validatable<String> {
     //...
     @Override
     public String validateInstance() {

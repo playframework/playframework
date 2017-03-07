@@ -16,8 +16,8 @@ import javax.validation.Payload;
 
 @Target({TYPE, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = SelfValidatingBasicWithDBValidator.class)
-public @interface SelfValidatingBasicWithDB {
+@Constraint(validatedBy = ValidateWithDBValidator.class)
+public @interface ValidateWithDB {
     String message() default "error.invalid";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

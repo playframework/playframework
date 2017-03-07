@@ -5,13 +5,13 @@ package play.data;
 
 import java.util.*;
 
-import play.data.validation.Constraints.SelfValidatingAdvanced;
-import play.data.validation.Constraints.ValidatableAdvanced;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
 import play.data.validation.ValidationError;
 
-@SelfValidatingAdvanced
-public class AnotherUser implements ValidatableAdvanced {
+@Validate
+public class AnotherUser implements Validatable<List<ValidationError>> {
 
     private String name;
     private final List<String> emails = new ArrayList<>();

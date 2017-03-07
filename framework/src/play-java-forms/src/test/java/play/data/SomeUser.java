@@ -9,13 +9,13 @@ import play.data.validation.Constraints.Email;
 import play.data.validation.Constraints.MaxLength;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Required;
-import play.data.validation.Constraints.SelfValidatingBasic;
-import play.data.validation.Constraints.ValidatableBasic;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
 import play.data.validation.ValidationError;
 
-@SelfValidatingBasic
-public class SomeUser implements ValidatableBasic {
+@Validate
+public class SomeUser implements Validatable<ValidationError> {
 
     @Required(groups = {Default.class, LoginCheck.class})
     @Email(groups = {LoginCheck.class})

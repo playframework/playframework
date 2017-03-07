@@ -8,8 +8,8 @@ import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
 import play.db.Database;
 
-@SelfValidatingBasicWithDB
-public class DBAccessForm implements ValidatableBasicWithDB {
+@ValidateWithDB
+public class DBAccessForm implements ValidatableWithDB<ValidationError> {
 
     @Constraints.Required
     @Constraints.Email

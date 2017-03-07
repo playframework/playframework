@@ -7,11 +7,11 @@ import static javaguide.forms.JavaForms.authenticate;
 
 //#user
 import play.data.validation.Constraints;
-import play.data.validation.Constraints.SelfValidatingSimple;
-import play.data.validation.Constraints.ValidatableSimple;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
-@SelfValidatingSimple
-public class User implements ValidatableSimple {
+@Validate
+public class User implements Validatable<String> {
 
     @Constraints.Required
     protected String email;

@@ -11,10 +11,8 @@ import play.data.DynamicForm;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
-import play.data.validation.Constraints.SelfValidatingAdvanced;
-import play.data.validation.Constraints.SelfValidatingBasic;
-import play.data.validation.Constraints.ValidatableAdvanced;
-import play.data.validation.Constraints.ValidatableBasic;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
@@ -136,13 +134,13 @@ public class JavaForms extends WithApplication {
     }
 
     //#list-validate
-    //###insert: import play.data.validation.Constraints.SelfValidatingAdvanced;
-    //###insert: import play.data.validation.Constraints.ValidatableAdvanced;
+    //###insert: import play.data.validation.Constraints.Validate;
+    //###insert: import play.data.validation.Constraints.Validatable;
     //###insert: import play.data.validation.ValidationError;
     //###insert: import java.util.List;
 
-    @SelfValidatingAdvanced
-    public static class SignUpForm implements ValidatableAdvanced {
+    @Validate
+    public static class SignUpForm implements Validatable<List<ValidationError>> {
 
         // fields, getters, setters, etc.
 
@@ -208,12 +206,12 @@ public class JavaForms extends WithApplication {
     }
 
     //#object-validate
-    //###insert: import play.data.validation.Constraints.SelfValidatingBasic;
-    //###insert: import play.data.validation.Constraints.ValidatableBasic;
+    //###insert: import play.data.validation.Constraints.Validate;
+    //###insert: import play.data.validation.Constraints.Validatable;
     //###insert: import play.data.validation.ValidationError;
 
-    @SelfValidatingBasic
-    public static class LoginForm implements ValidatableBasic {
+    @Validate
+    public static class LoginForm implements Validatable<ValidationError> {
 
         // fields, getters, setters, etc.
 

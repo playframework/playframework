@@ -10,11 +10,11 @@ import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
 import play.data.validation.Constraints.ValidateWith;
 
-import play.data.validation.Constraints.SelfValidatingSimple;
-import play.data.validation.Constraints.ValidatableSimple;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
-@SelfValidatingSimple
-public class LoginUser extends UserBase implements ValidatableSimple {
+@Validate
+public class LoginUser extends UserBase implements Validatable<String> {
 
     @Pattern("[0-9]")
     @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)

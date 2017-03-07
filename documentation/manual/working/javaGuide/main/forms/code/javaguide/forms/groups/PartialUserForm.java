@@ -5,13 +5,13 @@ package javaguide.forms.groups;
 
 //#user
 import play.data.validation.Constraints;
-import play.data.validation.Constraints.SelfValidatingBasic;
-import play.data.validation.Constraints.ValidatableBasic;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
 import javax.validation.groups.Default;
 
-@SelfValidatingBasic(groups = {SignUpCheck.class})
-public class PartialUserForm implements ValidatableBasic {
+@Validate(groups = {SignUpCheck.class})
+public class PartialUserForm implements Validatable<ValidationError> {
 
     @Constraints.Required(groups = {Default.class, SignUpCheck.class, LoginCheck.class})
     @Constraints.Email(groups = {Default.class, SignUpCheck.class})
