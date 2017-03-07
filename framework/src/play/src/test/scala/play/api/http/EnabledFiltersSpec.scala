@@ -6,7 +6,7 @@ package play.api.http
 import org.specs2.mutable.Specification
 import play.api.inject.{ Injector, NewInstanceInjector }
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration, Environment, PlayException }
 
 /**
  * Unit tests for default filter spec functionality
@@ -46,7 +46,7 @@ class EnabledFiltersSpec extends Specification {
       defaultFilters.filters must haveLength(0)
     }
 
-    "throw illegal state exception when using class that does not exist" in {
+    "throw config exception when using class that does not exist" in {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(Map(
         "play.filters.enabled.0" -> "NoSuchFilter",
@@ -56,7 +56,7 @@ class EnabledFiltersSpec extends Specification {
 
       {
         new EnabledFilters(env, conf, injector)
-      } must throwAn[IllegalStateException]
+      } must throwAn[PlayException.ExceptionSource]
     }
 
     "work with disabled filter" in {

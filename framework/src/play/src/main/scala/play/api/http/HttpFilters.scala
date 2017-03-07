@@ -74,9 +74,7 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
           BindingKey(filterClass)
         } catch {
           case e: ClassNotFoundException =>
-            // Give an explicit warning here so that the user has an idea what configuration property
-            // caused the class not found exception...
-            throw new IllegalStateException(s"The ${enabledKey} configuration property cannot load class ${filterClassName}")
+            throw configuration.reportError(enabledKey, s"Cannot load class $filterClassName", Some(e))
         }
       }
     } catch {

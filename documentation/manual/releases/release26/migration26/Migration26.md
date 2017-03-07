@@ -749,7 +749,7 @@ class MyComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
   with play.filters.HttpFiltersComponents {
   override def httpFilters = {
-    super.httpFilters.filterNot(_.getClass.getName == "play.filters.crsf.CSRFFilter")
+    super.httpFilters.filterNot(_.getClass == classOf[CSRFFilter])
   }
 }
 ```
