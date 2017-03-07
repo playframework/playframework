@@ -72,7 +72,7 @@ public interface Application {
      *
      * @param relativePath relative path of the file to fetch
      * @return a file instance - it is not guaranteed that the file exists
-     * @deprecated Please use {@link Environment#getFile} instead
+     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#getFile} instead.
      */
     @Deprecated
     default File getFile(String relativePath) {
@@ -84,7 +84,7 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return URL to the resource (may be null)
-     * @deprecated Please use {@link Environment#resource(String)} instead
+     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#resource(String)} instead.
      */
     @Deprecated
     default URL resource(String relativePath) {
@@ -96,7 +96,7 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return InputStream to the resource (may be null)
-     * @deprecated Please use {@link Environment#resourceAsStream(String)} instead
+     * @deprecated Deprecated as in 2.6.0. Use{@link Environment#resourceAsStream(String)} instead.
      */
     @Deprecated
     default InputStream resourceAsStream(String relativePath) {
