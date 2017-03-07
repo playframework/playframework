@@ -68,7 +68,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   }(block)
 
   def withServer[T](routes: (String, String) => Handler)(block: WSClient => T): T = {
-    val app = GuiceApplicationBuilder().appRoutes(a => {
+    val app = GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters").appRoutes(a => {
       case (method, path) => routes(method, path)
     }).build()
     running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))

@@ -131,7 +131,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @return the request builder.
      */
     public static RequestBuilder fakeRequest(String method, String uri) {
-        return new RequestBuilder().method(method).uri(uri);
+        return new RequestBuilder().host("localhost").method(method).uri(uri);
     }
 
     /**

@@ -344,7 +344,7 @@ object AkkaHttpServer {
   }
 
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
-    new AkkaHttpServerComponents with BuiltInComponents {
+    new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = config
       lazy val router: Router = Router.from(routes)
     }.server

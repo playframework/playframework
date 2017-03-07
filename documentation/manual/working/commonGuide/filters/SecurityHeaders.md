@@ -5,22 +5,12 @@ Play provides a security headers filter that can be used to configure some defau
 
 ## Enabling the security headers filter
 
-To enable the security headers filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
+> **Note:** As of Play 2.6.x, the Security Headers filter is included in Play's list of default filters that are applied automatically to projects.  See [[the Filters page|Filters]] for more information.
 
-@[content](code/filters.sbt)
-
-Now add the security headers filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
-
-Scala
-: @[filters](code/SecurityHeaders.scala)
-
-Java
-: @[filters](code/detailedtopics/configuration/headers/Filters.java)
-
-The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+To enable the security headers filter manually, add the security headers filter to your filters in `application.conf`:
 
 ```
-play.http.filters = "filters.MyFilters"
+play.filters.enabled += "play.filters.headers.SecurityHeadersFilter"
 ```
 
 ## Configuring the security headers
@@ -37,7 +27,9 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 
 Any of the headers can be disabled by setting a configuration value of `null`, for example:
 
-    play.filters.headers.frameOptions = null
+```
+play.filters.headers.frameOptions = null
+```
 
 For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
 

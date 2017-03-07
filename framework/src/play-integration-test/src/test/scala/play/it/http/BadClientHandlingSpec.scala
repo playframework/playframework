@@ -3,14 +3,14 @@
  */
 package play.it.http
 
-import javax.inject.Inject
-
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api._
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.mvc._
-import play.api.routing.{ SimpleRouterImpl, Router }
+import play.api.routing.Router
 import play.api.test._
+import play.filters.HttpFiltersComponents
 import play.it._
+
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -24,7 +24,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
     def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
 
-      val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) {
+      val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with HttpFiltersComponents {
         def router = Router.from {
           case _ => defaultActionBuilder(Results.Ok)
         }

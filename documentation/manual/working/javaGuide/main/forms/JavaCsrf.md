@@ -41,20 +41,12 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 
 ## Applying a global CSRF filter
 
-Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To enable the global filter, add the Play filters helpers dependency to your project in `build.sbt`:
+> **Note:** As of Play 2.6.x, the CSRF filter is included in Play's list of default filters that are applied automatically to projects.  See [[the Filters page|Filters]] for more information.
 
-```scala
-libraryDependencies += filters
-```
-
-Now add them to your `Filters` class:
-
-@[filters](code/javaguide/forms/csrf/Filters.java)
-
-The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.http.filters = "filters.MyFilters"
+play.filters.enabled += play.filters.csrf.CsrfFilter
 ```
 
 ### Getting the current token
@@ -115,3 +107,12 @@ The full range of CSRF configuration options can be found in the filters [refere
 * `play.filters.csrf.cookie.secure` - If `play.filters.csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `play.http.session.secure`.
 * `play.filters.csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
 * `play.filters.csrf.token.sign` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
+
+## Testing CSRF
+
+
+In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
+
+```
+RequestBuilder requestBuilder = CSRFTokenHelper.addCSRFToken(requestBuilder);
+```

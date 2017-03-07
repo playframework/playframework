@@ -7,7 +7,7 @@ import java.net.URI
 import java.security.cert.X509Certificate
 
 import akka.util.ByteString
-import play.api.http.HttpConfiguration
+import play.api.http.{ HeaderNames, HttpConfiguration }
 import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
 import play.api.libs.typedmap.TypedMap
@@ -172,18 +172,18 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
    * Constructs a new GET / fake request.
    */
   def apply(): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = "GET", uri = "/", headers = FakeHeaders(), body = AnyContentAsEmpty)
+    apply(method = "GET", uri = "/", headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
   /**
    * Constructs a new request.
    */
   def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = method, uri = path, headers = FakeHeaders(), body = AnyContentAsEmpty)
+    apply(method = method, uri = path, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
   def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = call.method, uri = call.url, headers = FakeHeaders(), body = AnyContentAsEmpty)
+    apply(method = call.method, uri = call.url, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
   /**

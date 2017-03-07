@@ -262,10 +262,42 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
-  lazy val httpFilters: Seq[EssentialFilter] = Nil
+
+  /**
+   * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
+   * or play.api.NoHttpFiltersComponents.
+   *
+   * In most cases you will want to mixin HttpFiltersComponents and append your own filters:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *
+   *   lazy val loggingFilter = new LoggingFilter()
+   *   override def httpFilters = {
+   *     super.httpFilters :+ loggingFilter
+   *   }
+   * }
+   * }}}
+   *
+   * If you want to filter elements out of the list, you can do the following:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *   override def httpFilters = {
+   *     super.httpFilters.filterNot(_.getClass == classOf[CSRFFilter])
+   *   }
+   * }
+   * }}}
+   */
+  def httpFilters: Seq[EssentialFilter]
+
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
@@ -284,4 +316,11 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+}
+
+/**
+ * A component to mix in when no default filters should be mixed in to BuiltInComponents.
+ */
+trait NoHttpFiltersComponents {
+  val httpFilters: Seq[EssentialFilter] = Nil
 }

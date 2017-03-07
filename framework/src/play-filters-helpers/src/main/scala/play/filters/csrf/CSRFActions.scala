@@ -20,6 +20,8 @@ import play.api.mvc._
 import play.core.parsers.Multipart
 import play.filters.cors.CORSFilter
 import play.filters.csrf.CSRF._
+import play.libs.typedmap.{ TypedEntry, TypedKey }
+import play.mvc.Http.RequestBuilder
 
 import scala.concurrent.Future
 
@@ -365,7 +367,7 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
 
 private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
 
-private[csrf] class CSRFActionHelper(
+class CSRFActionHelper(
     sessionConfiguration: SessionConfiguration,
     csrfConfig: CSRFConfig,
     tokenSigner: CSRFTokenSigner
@@ -374,7 +376,7 @@ private[csrf] class CSRFActionHelper(
   /**
    * Get the header token, that is, the token that should be validated.
    */
-  private[csrf] def getTokenToValidate(request: RequestHeader) = {
+  def getTokenToValidate(request: RequestHeader) = {
     val attrToken = CSRF.getToken(request).map(_.value)
     val cookieToken = csrfConfig.cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
     val sessionToken = request.session.get(csrfConfig.tokenName)
@@ -387,7 +389,7 @@ private[csrf] class CSRFActionHelper(
   /**
    * Tag incoming requests with the token in the header
    */
-  private[csrf] def tagRequestFromHeader(request: RequestHeader): RequestHeader = {
+  def tagRequestFromHeader(request: RequestHeader): RequestHeader = {
     getTokenToValidate(request).fold(request) { tokenValue =>
       val token = Token(csrfConfig.tokenName, tokenValue)
       val newReq = tagRequest(request, token)
@@ -404,26 +406,30 @@ private[csrf] class CSRFActionHelper(
     }
   }
 
-  private[csrf] def tagRequestFromHeader[A](request: Request[A]): Request[A] = {
+  def tagRequestFromHeader[A](request: Request[A]): Request[A] = {
     Request(tagRequestFromHeader(request: RequestHeader), request.body)
   }
 
-  private[csrf] def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
+  def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
     request.withAttrs(request.attrs + (Token.InfoAttr -> TokenInfo(token)))
   }
 
-  private[csrf] def tagRequest[A](request: Request[A], token: Token): Request[A] = {
+  def tagRequest[A](request: Request[A], token: Token): Request[A] = {
     Request(tagRequest(request: RequestHeader, token), request.body)
   }
 
-  private[csrf] def getHeaderToken(request: RequestHeader) = {
+  def tagRequest(requestBuilder: RequestBuilder, token: Token): RequestBuilder = {
+    requestBuilder.attr(new TypedKey(Token.InfoAttr), TokenInfo(token))
+  }
+
+  def getHeaderToken(request: RequestHeader) = {
     val queryStringToken = request.getQueryString(csrfConfig.tokenName)
     val headerToken = request.headers.get(csrfConfig.headerName)
 
     queryStringToken orElse headerToken
   }
 
-  private[csrf] def requiresCsrfCheck(request: RequestHeader): Boolean = {
+  def requiresCsrfCheck(request: RequestHeader): Boolean = {
     if (csrfConfig.bypassCorsTrustedOrigins && request.tags.contains(CORSFilter.RequestTag)) {
       filterLogger.trace("[CSRF] Bypassing check because CORSFilter request tag found")
       false
@@ -432,7 +438,7 @@ private[csrf] class CSRFActionHelper(
     }
   }
 
-  private[csrf] def addTokenToResponse(newToken: String, request: RequestHeader, result: Result) = {
+  def addTokenToResponse(newToken: String, request: RequestHeader, result: Result) = {
     if (isCached(result)) {
       filterLogger.trace("[CSRF] Not adding token to cached response")
       result
@@ -453,10 +459,10 @@ private[csrf] class CSRFActionHelper(
 
   }
 
-  private[csrf] def isCached(result: Result): Boolean =
+  def isCached(result: Result): Boolean =
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 
-  private[csrf] def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
+  def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
     errorHandler.handle(request, msg) map { result =>
