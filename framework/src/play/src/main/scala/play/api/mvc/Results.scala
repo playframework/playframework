@@ -611,7 +611,7 @@ trait Results {
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
 
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  @deprecated("Use TooManyRequests instead", "3.0.0")
+  @deprecated("Use TooManyRequests instead", "2.6.0")
   val TooManyRequest = TooManyRequests
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
