@@ -42,7 +42,7 @@ checkStartScript := {
   }
 }
 
-def retry[B](max: Int = 10, sleep: Long = 500, current: Int = 1)(block: => B): B = {
+def retry[B](max: Int = 20, sleep: Long = 500, current: Int = 1)(block: => B): B = {
   try {
     block
   } catch {
