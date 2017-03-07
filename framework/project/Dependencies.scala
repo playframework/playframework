@@ -262,7 +262,9 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-core" % "0.10.3")
+    // this version is compatible with httpclient 4.5.x
+    // "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.52.0",
+    ("org.fluentlenium" % "fluentlenium-core" % "0.10.9")
       .exclude("org.jboss.netty", "netty")
   )
 
@@ -277,8 +279,8 @@ object Dependencies {
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2" excludeAll(
       ExclusionRule(organization = "org.apache.httpcomponents")
       ),
-    "org.apache.httpcomponents" % "httpclient" % "4.5.2",
-    "org.apache.httpcomponents" % "httpcore" % "4.4.4"
+    "org.apache.httpcomponents" % "httpclient" % "4.5.3",
+    "org.apache.httpcomponents" % "httpcore" % "4.4.6"
   ) ++ (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
 
