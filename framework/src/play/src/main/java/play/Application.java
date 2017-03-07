@@ -13,7 +13,7 @@ import play.libs.Scala;
 
 /**
  * A Play application.
- *
+ * <p>
  * Application creation is handled by the framework engine.
  */
 public interface Application {
@@ -72,7 +72,9 @@ public interface Application {
      *
      * @param relativePath relative path of the file to fetch
      * @return a file instance - it is not guaranteed that the file exists
+     * @deprecated Please use {@link Environment#getFile} instead
      */
+    @Deprecated
     default File getFile(String relativePath) {
         return getWrappedApplication().getFile(relativePath);
     }
@@ -82,7 +84,9 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return URL to the resource (may be null)
+     * @deprecated Please use {@link Environment#resource(String)} instead
      */
+    @Deprecated
     default URL resource(String relativePath) {
         return Scala.orNull(getWrappedApplication().resource(relativePath));
     }
@@ -92,7 +96,9 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return InputStream to the resource (may be null)
+     * @deprecated Please use {@link Environment#resourceAsStream(String)} instead
      */
+    @Deprecated
     default InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(getWrappedApplication().resourceAsStream(relativePath));
     }
@@ -102,7 +108,9 @@ public interface Application {
      *
      * @return true if the application is in DEV mode
      */
-    default boolean isDev() { return getWrappedApplication().isDev(); }
+    default boolean isDev() {
+        return getWrappedApplication().isDev();
+    }
 
     /**
      * Check whether the application is in {@link Mode#PROD} mode.
