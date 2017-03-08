@@ -10,6 +10,8 @@ import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
 
+  sequential
+
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding = app.injector.instanceOf[CookieHeaderEncoding]
   def sessionBaker(implicit app: Application): CookieBaker[Session] = app.injector.instanceOf[SessionCookieBaker]
   def flashBaker(implicit app: Application): CookieBaker[Flash] = app.injector.instanceOf[FlashCookieBaker]
@@ -49,15 +51,6 @@ class ScalaResultsSpec extends PlaySpecification {
     setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     val playSession = sessionBaker.decodeFromCookie(setCookies.get(sessionBaker.COOKIE_NAME))
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
-  }
-
-  "ignore session cookies that have been tampered with" in withApplication() { implicit app =>
-    val data = Map("user" -> "alice")
-    val encodedSession = sessionBaker.encode(data)
-    // Change a value in the session
-    val maliciousSession = encodedSession.replaceFirst("user=alice", "user=mallory")
-    val decodedSession = sessionBaker.decode(maliciousSession)
-    decodedSession must beEmpty
   }
 
   "support a custom application context" in {

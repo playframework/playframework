@@ -817,6 +817,22 @@ class MyComponents(context: ApplicationLoader.Context)
 }
 ```
 
+## JWT Support
+
+Play's session cookie encoding has been switched to use JSON Web Token (JWT) under the hood.  JWT comes with a number of advantages, notably automatic signing with HMAC-SHA-256, and support for automatic "not before" and "expires after" date checks which ensure the session cookie cannot be reused outside of a given time window.
+
+More information is available under [[Configuring the Session Cookie|SettingsSession]] page. 
+
+### Legacy Support
+
+Play's `DefaultSessionCookieBaker` has fallback support for reading session cookies in the old url encoded format, so migrations will not be affected.
+
+To use the previous behavior, bind `SessionCookieBaker` to `LegacySessionCookieBaker` in your module:
+
+```scala
+bind[SessionCookieBaker].to[LegacySessionCookieBaker]
+```
+
 ## Updated libraries
 
 ### Netty 4.1

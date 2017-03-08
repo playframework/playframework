@@ -90,12 +90,12 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
 }
 
 class DefaultFlashCookieBaker @Inject() (val config: FlashConfiguration, val sessionConfig: SessionConfiguration, val cookieSigner: CookieSigner)
-    extends FlashCookieBaker {
+    extends FlashCookieBaker with SignedCookieDataCodec {
   def this() = this(FlashConfiguration(), SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
 @deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
-object Flash extends FlashCookieBaker {
+object Flash extends FlashCookieBaker with SignedCookieDataCodec {
   def config = HttpConfiguration.current.flash
   def sessionConfig = HttpConfiguration.current.session
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)

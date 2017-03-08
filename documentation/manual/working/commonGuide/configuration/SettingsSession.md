@@ -1,0 +1,21 @@
+# Configuring the session cookie
+
+Play stores the session using a session cookie in the browser.  When you are programming, you will typically access the session through the [[Scala API|ScalaSessionFlash]] or [[Java API|JavaSessionFlash]], but there are useful configuration settings.
+
+Session cookies are stored in [Java Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format.  The encoding is transparent to Play, but there some useful properties of JWT which can be leveraged for session cookies, and can be configured through `application.conf`.
+
+### Not Before Support
+
+When a session cookie is created, the "issued at" `iat` and "not before" `nbf` claims in JWT will be set to the time of cookie creation, which prevents a cookie from being accepted before the current time.
+
+### Session Timeout / Expiration
+
+By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, you set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` in `application.conf`, and this will also set `play.http.session.jwt.expiresAfter` to the same value.  The `maxAge` property will remove the cookie from the browser, and the JWT `exp` claim will be set in the cookie, and will make it invalid after the given duration. 
+
+## Session Configuration
+
+The default session configuration is as follows:
+
+@[session-configuration](/confs/play/reference.conf)
+
+

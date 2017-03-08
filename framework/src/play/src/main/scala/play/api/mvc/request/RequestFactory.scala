@@ -90,7 +90,7 @@ class DefaultRequestFactory @Inject() (
 
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
-    new DefaultSessionCookieBaker(config.session, new CookieSignerProvider(SecretConfiguration()).get),
+    new DefaultSessionCookieBaker(config.session, SecretConfiguration()),
     new DefaultFlashCookieBaker(config.flash, config.session, new CookieSignerProvider(SecretConfiguration()).get)
   )
 

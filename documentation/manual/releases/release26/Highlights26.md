@@ -122,3 +122,7 @@ play.filters.disabled+=MyFilter
 ```
 
 Please see [[the Filters page|Filters]] for more details.
+
+## JWT Cookies
+
+Play now uses JSON Web Token web format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration and more flexibility in signing cookies.

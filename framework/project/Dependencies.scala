@@ -44,6 +44,8 @@ object Dependencies {
   val acolyteVersion = "1.0.43-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
+  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
+
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
     "com.zaxxer" % "HikariCP" % "2.6.1",
@@ -126,6 +128,7 @@ object Dependencies {
       playJson,
 
       guava,
+      jjwt,
 
       "org.apache.commons" % "commons-lang3" % "3.5",
 

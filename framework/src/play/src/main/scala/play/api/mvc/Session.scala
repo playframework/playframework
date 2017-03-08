@@ -6,7 +6,7 @@ package play.api.mvc
 import javax.inject.Inject
 
 import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfiguration }
-import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
+import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider, DefaultCookieSigner }
 import play.mvc.Http
 
 import scala.collection.JavaConverters._
@@ -89,14 +89,36 @@ trait SessionCookieBaker extends CookieBaker[Session] {
   def serialize(session: Session) = session.data
 }
 
-class DefaultSessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner) extends SessionCookieBaker {
+/**
+ * A session cookie that reads in both signed and JWT cookies, and writes out JWT cookies.
+ */
+class DefaultSessionCookieBaker @Inject() (
+  val config: SessionConfiguration,
+  val secretConfiguration: SecretConfiguration)
+    extends SessionCookieBaker with FallbackCookieDataCodec {
+
+  override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config)
+  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, new DefaultCookieSigner(secretConfiguration))
+
+  def this() = this(SessionConfiguration(), SecretConfiguration())
+}
+
+/**
+ * A session cookie baker that signs the session cookie in the Play 2.5.x style.
+ *
+ * @param config session configuration
+ * @param cookieSigner the cookie signer, typically HMAC-SHA1
+ */
+class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner) extends SessionCookieBaker with SignedCookieDataCodec {
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
 @deprecated("Inject [[play.api.mvc.SessionCookieBaker]] instead", "2.6.0")
-object Session extends SessionCookieBaker {
+object Session extends SessionCookieBaker with FallbackCookieDataCodec {
   def config = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
   override def path = HttpConfiguration.current.context
-  override def cookieSigner = play.api.libs.Crypto.cookieSigner
+
+  override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config)
+  override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned = isSigned, cookieSigner = play.api.libs.Crypto.cookieSigner)
 }

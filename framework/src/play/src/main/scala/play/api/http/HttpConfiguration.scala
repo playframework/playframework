@@ -11,7 +11,7 @@ import play.api.mvc.Cookie.SameSite
 import play.api.{ http, _ }
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 /**
  * HTTP related configuration of a Play application
@@ -86,6 +86,7 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param domain     The domain to set for the session cookie, if defined
  * @param path       The path for which this cookie is valid
  * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
 case class SessionConfiguration(
   cookieName: String = "PLAY_SESSION",
@@ -94,7 +95,8 @@ case class SessionConfiguration(
   httpOnly: Boolean = true,
   domain: Option[String] = None,
   path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax)
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -192,7 +194,13 @@ object HttpConfiguration {
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
         sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
-        path = sessionPath
+        path = sessionPath,
+        jwt = JWTConfiguration(
+          signatureAlgorithm = config.get[String]("play.http.session.jwt.signatureAlgorithm"),
+          expiresAfter = config.get[Option[FiniteDuration]]("play.http.session.jwt.expiresAfter"),
+          clockSkew = config.get[FiniteDuration]("play.http.session.jwt.clockSkew"),
+          dataClaim = config.get[String]("play.http.session.jwt.dataClaim")
+        )
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
@@ -292,5 +300,31 @@ object HttpConfiguration {
   @Singleton
   class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
     lazy val get: SecretConfiguration = conf.secret
+  }
+}
+
+/**
+ * The JSON Web Token configuration
+ *
+ * @param signatureAlgorithm The signature algorithm used to sign the JWT
+ * @param expiresAfter The period of time after which the JWT expires, if any.
+ * @param clockSkew The amount of clock skew to permit for expiration / not before checks
+ * @param dataClaim The claim key corresponding to the data map passed in by the user
+ */
+case class JWTConfiguration(
+  signatureAlgorithm: String = "HS256",
+  expiresAfter: Option[FiniteDuration] = None,
+  clockSkew: FiniteDuration = 30.seconds,
+  dataClaim: String = "data"
+)
+
+object JWTConfigurationParser {
+  def apply(config: Configuration, parent: String): JWTConfiguration = {
+    JWTConfiguration(
+      signatureAlgorithm = config.get[String](s"${parent}.signatureAlgorithm"),
+      expiresAfter = config.get[Option[FiniteDuration]](s"${parent}.expiresAfter"),
+      clockSkew = config.get[FiniteDuration](s"${parent}.clockSkew"),
+      dataClaim = config.get[String](s"${parent}.dataClaim")
+    )
   }
 }
