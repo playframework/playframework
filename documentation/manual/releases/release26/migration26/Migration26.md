@@ -61,13 +61,13 @@ Play Iteratees has been moved to a separate library hosted at https://github.com
 libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1"
 ```
 
-The project also has a sub project that integrates Iteratees with [Reactive Streams](http://www.reactive-streams.org/). You may need to add the following dependency as well: 
+The project also has a sub project that integrates Iteratees with [Reactive Streams](http://www.reactive-streams.org/). You may need to add the following dependency as well:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
 ```
 
-> **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary. 
+> **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary.
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
@@ -115,8 +115,8 @@ Then in routes you can do:
 
 ```
 # prefix must match `play.assets.urlPrefix`
-/assets/*file           controllers.Assets.at(file)
-/versionedAssets/*file  controllers.Assets.versioned(file)
+/assets/*file           assets.Assets.at(file)
+/versionedAssets/*file  assets.Assets.versioned(file)
 ```
 
 You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
@@ -704,9 +704,9 @@ GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttp
 
 ## Compile Time Default Filters
 
-If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
+If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.
 
-This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract:
 
 ```scala
 trait BuiltInComponents {
@@ -723,7 +723,7 @@ trait HttpFiltersComponents
      extends CSRFComponents
      with SecurityHeadersComponents
      with AllowedHostsComponents {
- 
+
    def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }
 ```

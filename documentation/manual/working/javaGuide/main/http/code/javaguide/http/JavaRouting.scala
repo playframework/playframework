@@ -119,7 +119,3 @@ package routing.defaultvalue.controllers {
     }
   }
 }
-
-package routing.defaultcontroller.controllers {
-  class Default extends _root_.controllers.Default
-}

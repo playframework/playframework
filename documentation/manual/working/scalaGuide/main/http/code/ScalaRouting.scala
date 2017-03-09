@@ -72,10 +72,6 @@ package defaultvalue.controllers {
   }
 }
 
-package defaultcontroller.controllers {
-  class Default extends _root_.controllers.Default
-}
-
 // #reverse-controller
 // ###replace: package controllers
 package reverse.controllers {

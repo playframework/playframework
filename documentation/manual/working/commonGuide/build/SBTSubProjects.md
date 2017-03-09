@@ -181,7 +181,7 @@ GET /index                  controllers.HomeController.index()
 
 ->  /admin admin.Routes
 
-GET     /assets/*file       controllers.Assets.at(path="/public", file)
+GET     /assets/*file       assets.Assets.at(path="/public", file)
 ```
 
 `modules/admin/conf/admin.routes`:
@@ -203,10 +203,11 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 // Assets.java
 package controllers.admin;
 import play.api.mvc.*;
+import play.controllers.assets.*;
 
 public class Assets {
   public static Action<AnyContent> at(String path, String file) {
-    return controllers.Assets.at(path, file);
+    return Assets.at(path, file);
   }
 }
 ```

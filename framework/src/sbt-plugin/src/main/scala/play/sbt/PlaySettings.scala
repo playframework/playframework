@@ -135,7 +135,10 @@ object PlaySettings {
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
-    RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
+    RoutesKeys.routesImport ++= Seq(
+      "_root_.play.controllers._",
+      "_root_.play.controllers.assets.Assets.Asset"
+    ),
 
     sources in (Compile, RoutesKeys.routes) ++= {
       val dirs = (unmanagedResourceDirectories in Compile).value

@@ -3,7 +3,7 @@
  */
 package play.it.http.assets
 
-import controllers.{ Assets, AssetsComponents }
+import play.controllers.assets.{ Assets, AssetsComponents }
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.test._

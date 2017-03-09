@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import controllers.Assets.Asset
+import play.controllers.assets.Assets.Asset
 
 import java.net.URLEncoder
 import java.util.{ Optional, UUID }

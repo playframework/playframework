@@ -54,7 +54,7 @@ class Routes(
   override val errorHandler: play.api.http.HttpErrorHandler,
   Application_0: controllers.Application,
   bar_Routes_0: bar.Routes,
-  Assets_1: controllers.Assets,
+  Assets_1: play.controllers.assets.Assets,
   val prefix: String
 ) extends GeneratedRouter {
 
@@ -62,7 +62,7 @@ class Routes(
     errorHandler: play.api.http.HttpErrorHandler,
     Application_0: controllers.Application,
     bar_Routes_0: bar.Routes,
-    Assets_1: controllers.Assets
+    Assets_1: play.controllers.assets.Assets
   ) = this(Application_0, bar_Routes_0, Assets_1, "/")
   ...
 }

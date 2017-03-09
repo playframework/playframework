@@ -90,7 +90,7 @@ GET /assets/javascripts/jquery.js
 The router will invoke the `Assets.at` action with the following parameters:
 
 ```
-controllers.Assets.at("/public", "javascripts/jquery.js")
+assets.Assets.at("/public", "javascripts/jquery.js")
 ```
 
 To route to a single static file, both the path and file have to be specified:
@@ -154,7 +154,7 @@ There are two ways obtain the real path of a fingerprinted asset. The first way 
 If you plan to use the reverse router with static state, the following routes file entry declares that all assets are to be versioned:
 
 ```scala
-GET  /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
+GET  /assets/*file  assets.Assets.versioned(path="/public", file: Asset)
 ```
 
 > **Note:** Make sure you indicate that `file` is an asset by writing `file: Asset`.

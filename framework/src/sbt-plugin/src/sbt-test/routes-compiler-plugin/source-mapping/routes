@@ -5,4 +5,5 @@ GET  /              controllers.Application.index
 GET  /foo           controllers.Application.foo
 
 # A valid route
-GET  /assets/*file  controllers.Assets.at(path = "/public", file)
+GET  /assets/*file  play.controllers.assets.Assets.at(path = "/public", file)
+[
