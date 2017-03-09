@@ -103,8 +103,8 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      configuredErrorHandler.onClientError(req, NOT_FOUND)
+    def handleWithStatus(status: Int) = Action.async(BodyParsers.parse.empty)(req =>
+      configuredErrorHandler.onClientError(req, status)
     )
 
     val (routedRequest, handler) = onRouteRequest(request) map {
@@ -116,13 +116,16 @@ trait GlobalSettings {
       // add an explicit mapping in Routes
       val missingHandler: Handler = request.method match {
         case HttpVerbs.HEAD =>
-          val headAction = onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
-            case Some(action: EssentialAction) => action
-            case None => notFoundHandler
+          onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
+            case Some(handler: Handler) => handler match {
+              case action: EssentialAction => new HeadAction(action)
+              case ws: WebSocket[_, _] => handleWithStatus(BAD_REQUEST)
+              case _ => handleWithStatus(NOT_FOUND)
+            }
+            case None => handleWithStatus(NOT_FOUND)
           }
-          new HeadAction(headAction)
         case _ =>
-          notFoundHandler
+          handleWithStatus(NOT_FOUND)
       }
       (request, missingHandler)
     }

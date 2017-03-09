@@ -3,20 +3,15 @@ package play.core.server.akkahttp
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{ `Content-Length`, `Content-Type` }
-import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
-import akka.util.{ ByteString, Timeout }
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
 import akka.http.ServerSettings
-import org.reactivestreams._
 import play.api._
 import play.api.http._
 import play.api.libs.iteratee._
-import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.core.ApplicationProvider
 import play.core.server._
@@ -56,14 +51,15 @@ class AkkaHttpServer(
       .map(ms => Duration.apply(ms, TimeUnit.MILLISECONDS)).getOrElse(initialSettings.timeouts.idleTimeout)
     // TODO - Akka doesn't seem to support idle timeout yet - StreamTcpManager ignores the idle timeout value in Connect/Bind
     // TODO - support separate play.server.https.idleTimeout when ssl is supported
-    val serverSettings = initialSettings //.copy(timeouts = initialSettings.timeouts.copy(idleTimeout = idleTimeout))
+    // Play already handle HEAD requests transparently
+    val serverSettings = initialSettings.copy(transparentHeadRequests = false) //.copy(timeouts = initialSettings.timeouts.copy(idleTimeout = idleTimeout))
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
       Http().bind(interface = config.address, port = config.port.get, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
-      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _))
+      connection.handleWithAsyncHandler(req => handleRequest(connection.remoteAddress, req))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
