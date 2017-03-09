@@ -248,6 +248,15 @@ class FormSpec extends Specification {
 
     }
 
+    "support type arguments constraints" in {
+      val listForm = formFactory.form(classOf[ListForm]).bindFromRequest(FormSpec.dummyRequest(Map("values[0]" -> Array("4"), "values[1]" -> Array("-3"), "values[2]" -> Array("6"))))
+
+      listForm.hasErrors must beEqualTo(true)
+      listForm.allErrors().size() must beEqualTo(1)
+      listForm.errors("values[1]").get(0).messages().size() must beEqualTo(1)
+      listForm.errors("values[1]").get(0).messages().get(0) must beEqualTo("error.min")
+    }
+
     "work with the @repeat helper" in {
       val form = formFactory.form(classOf[JavaForm])
 
