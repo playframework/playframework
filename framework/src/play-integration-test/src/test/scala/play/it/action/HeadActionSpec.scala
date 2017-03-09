@@ -22,8 +22,10 @@ import play.it.tools.HttpBinApplication._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.asynchttpclient.netty.NettyResponse
 
-object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
-object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+import scala.concurrent.Future
+
+class NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
+class AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
 
 trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTimeout with ServerIntegrationSpecification {
 
@@ -33,6 +35,14 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
   sequential
 
   "HEAD requests" should {
+
+    val webSocketResponse: Routes = {
+      case GET(p"/ws") => WebSocket.acceptOrResult[String, String] { request =>
+        // Just reject the connection. We just want to test if we can
+        // successfully handle a HEAD request to a WebSocket endpoint.
+        Future.successful(Left(Results.Forbidden))
+      }
+    }
 
     val chunkedResponse: Routes = {
       case GET(p"/chunked") =>
@@ -49,6 +59,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
         .orElse(delete) // DELETE /delete
         .orElse(stream) // GET /stream/0
         .orElse(chunkedResponse) // GET /chunked
+        .orElse(webSocketResponse) // GET /ws
 
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
@@ -65,6 +76,11 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
         implicit val mat = Play.current.materializer
         WsTestClient.withClient(block)
       }
+    }
+
+    "return 400 for websocket endpoints" in withServer { client =>
+      val result = await(client.url("/ws").head())
+      result.status must_== BAD_REQUEST
     }
 
     "return 200 in response to a URL with a GET handler" in withServer { client =>

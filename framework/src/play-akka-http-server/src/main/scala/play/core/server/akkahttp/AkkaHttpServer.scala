@@ -68,13 +68,14 @@ class AkkaHttpServer(
       Duration.apply(timeoutMS, TimeUnit.MILLISECONDS)
     }.getOrElse(initialSettings.timeouts.idleTimeout)
     val serverSettings = initialSettings.withTimeouts(initialSettings.timeouts.withIdleTimeout(idleTimeout))
+      .withTransparentHeadRequests(false) // since play already handle this for both Akka and Netty servers
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
       Http().bind(interface = config.address, port = port, connectionContext = connectionContext, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
-      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, connectionContext.isSecure))
+      connection.handleWithAsyncHandler(req => handleRequest(connection.remoteAddress, req, connectionContext.isSecure))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()

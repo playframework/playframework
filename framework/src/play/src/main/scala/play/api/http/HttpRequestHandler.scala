@@ -111,8 +111,8 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
 
   def handlerForRequest(request: RequestHeader) = {
 
-    def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      errorHandler.onClientError(req, NOT_FOUND)
+    def handleWithStatus(status: Int) = Action.async(BodyParsers.parse.empty)(req =>
+      errorHandler.onClientError(req, status)
     )
 
     val (routedRequest, handler) = routeRequest(request) map {
@@ -125,14 +125,15 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
       request.method match {
         case HttpVerbs.HEAD =>
           routeRequest(request.copy(method = HttpVerbs.GET)) match {
-            case Some(action: EssentialAction) => action match {
-              case handler: RequestTaggingHandler => (handler.tagRequest(request), action)
-              case _ => (request, action)
+            case Some(handler: Handler) => handler match {
+              case taggingHandler: RequestTaggingHandler => (taggingHandler.tagRequest(request), handler)
+              case ws: WebSocket => (request, handleWithStatus(BAD_REQUEST))
+              case _ => (request, handler)
             }
-            case None => (request, notFoundHandler)
+            case None => (request, handleWithStatus(NOT_FOUND))
           }
         case _ =>
-          (request, notFoundHandler)
+          (request, handleWithStatus(NOT_FOUND))
       }
     }
 
