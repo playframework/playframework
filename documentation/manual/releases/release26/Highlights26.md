@@ -125,6 +125,4 @@ Please see [[the Filters page|Filters]] for more details.
 
 ## JWT Cookies
 
-Play now uses JSON Web Token (JWT) format for session cookies.  This moves session cookies from using HMAC-SHA-1 as a signing mechanism to HMAC-SHA-256,
-
-Play now uses JSON Web Token web format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration (making replay attacks harder) and more flexibility in signing cookies.
+Play now uses JSON Web Token (JWT) format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration (making replay attacks harder) and more flexibility in signing cookies.
