@@ -71,7 +71,7 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
-## Writeable[JsValue] changes
+## `Writeable[JsValue]` changes
 
 Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
 
@@ -112,11 +112,13 @@ play.assets {
 ```
 
 Then in routes you can do:
+
 ```
 # prefix must match `play.assets.urlPrefix`
 /assets/*file           controllers.Assets.at(file)
 /versionedAssets/*file  controllers.Assets.versioned(file)
 ```
+
 You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
 
 Then in your template you can use `AssetsFinder#path` to find the final path of the asset:
@@ -149,12 +151,11 @@ See [[Cache APIs Migration|CacheMigration26]]
 
 ### Removed Crypto API
 
-The Crypto API has removed the deprecated class `play.api.libs.Crypto` and `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
+The Crypto API has removed the deprecated classes `play.api.libs.Crypto`, `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
 
 ### Removed Yaml API
 
-We removed `play.libs.Yaml` since there was no use of it inside of play anymore.
-If you still need support for the Play YAML integration you need to add `snakeyaml` in you `build.sbt`:
+We removed `play.libs.Yaml` since there was no use of it inside of play anymore. If you still need support for the Play YAML integration you need to add `snakeyaml` in you `build.sbt`:
 
 ```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
@@ -201,8 +202,7 @@ Libraries that provide Play DI support should define the `play.application.loade
 
 ### Removed libraries
 
-In order to make the default play distribution a bit smaller we removed some libraries.
-The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
+In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
 
 #### Joda-Time removal
 
@@ -237,8 +237,7 @@ libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 
 #### XercesImpl removal
 
-For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it.
-If your project relies on the external package you can simply add it to your `build.sbt`:
+For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it. If your project relies on the external package you can simply add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
@@ -246,8 +245,7 @@ libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 
 #### H2 removal
 
-Prior versions of Play prepackaged the H2 database. But to make the core of Play smaller we removed it.
-If you make use of h2 you can add it to your `build.sbt`:
+Prior versions of Play prepackaged the H2 database. But to make the core of Play smaller we removed it. If you make use of H2 you can add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "com.h2database" % "h2" % "1.4.193"
@@ -263,8 +261,7 @@ The [[H2 Browser|Developing-with-the-H2-Database#H2-Browser]] will still work af
 
 #### snakeyaml removal
 
-Play removed `play.libs.Yaml` and therefore the dependency on `snakeyaml` was dropped.
-If you still use it add it to your `build.sbt`:
+Play removed `play.libs.Yaml` and therefore the dependency on `snakeyaml` was dropped. If you still use it add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
@@ -272,7 +269,7 @@ libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 
 ### Tomcat-servlet-api removal
 
-Play removed the `tomcat-servlet-api` since it was of no use.
+Play removed the `tomcat-servlet-api` since it was of no use. If you still use it add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
@@ -280,7 +277,7 @@ libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 
 ### Akka Migration
 
-The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Please dependency inject an `ActorSystem` instance for access to the actor system.
+The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access the actor system.
 
 For Scala:
 
@@ -306,7 +303,7 @@ public class MyComponent {
 
 ### Request attributes
 
-All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing strings.
+All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing Strings.
 
 #### Request tags deprecation
 
@@ -381,15 +378,15 @@ object Attrs {
 
 #### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
-Internally request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
+Request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
 Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the `Cookie` HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
 If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
-#### play.api.mvc.Security.username (Scala API), session.username config key and dependent actions helpers are deprecated
+#### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
-`Security.username` just retrieves the `session.username` key from configuration, which defined the session key used to get the username. It was removed since it required statics to work, and it's fairly easy to implement the same or similar behavior yourself.
+`play.api.mvc.Security.username` (Scala API), `session.username` config key and dependent actions helpers are deprecated. `Security.username` just retrieves the `session.username` key from configuration, which defined the session key used to get the username. It was removed since it required statics to work, and it's fairly easy to implement the same or similar behavior yourself.
 
 You can read the username session key from configuration yourself using `configuration.get[String]("session.username")`.
 
@@ -636,7 +633,7 @@ RequestBuilder request = new RequestBuilder()
 
 Because the CSRFFilter filter is added automatically, tests that render a Twirl template that includes `CSRF.formField`, i.e.
 
-```
+```scala
 @(userForm: Form[UserData])(implicit request: RequestHeader, m: Messages)
 
 <h1>user form</h1>
@@ -731,7 +728,6 @@ trait HttpFiltersComponents
 }
 ```
 
-
 In most cases you will want to mixin HttpFiltersComponents and append your own filters:
 
 ```scala
@@ -774,6 +770,12 @@ class MyComponents(context: ApplicationLoader.Context)
 ```
 
 ## Updated libraries
+
+### Netty 4.1
+
+Netty was upgraded to [version 4.1](http://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [[Akka Server|AkkaHttpServer]].
+
+And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](http://netty.io/wiki/new-and-noteworthy-in-4.1.html).
 
 ### FluentLenium
 
