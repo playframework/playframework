@@ -195,12 +195,7 @@ object HttpConfiguration {
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
         sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
         path = sessionPath,
-        jwt = JWTConfiguration(
-          signatureAlgorithm = config.get[String]("play.http.session.jwt.signatureAlgorithm"),
-          expiresAfter = config.get[Option[FiniteDuration]]("play.http.session.jwt.expiresAfter"),
-          clockSkew = config.get[FiniteDuration]("play.http.session.jwt.clockSkew"),
-          dataClaim = config.get[String]("play.http.session.jwt.dataClaim")
-        )
+        jwt = JWTConfigurationParser(config, "play.http.session.jwt")
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),

@@ -535,11 +535,6 @@ trait SignedCookieDataCodec extends CookieDataCodec {
 }
 
 /**
- * A simple implementation of a signed cookie data codec
- */
-case class DefaultSignedCookieDataCodec @Inject() (isSigned: Boolean, cookieSigner: CookieSigner) extends SignedCookieDataCodec
-
-/**
  * JWT cookie encoding and decoding functionality
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
@@ -547,10 +542,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
   def secretConfiguration: SecretConfiguration
 
-  def config: SessionConfiguration
-
-  private lazy val jwt: JWTConfiguration = config.jwt
-  import jwt._
+  def jwtConfiguration: JWTConfiguration
 
   /**
    * Encodes the data as a `String`.
@@ -560,7 +552,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
     val now = jwtClock.now()
 
     // https://tools.ietf.org/html/rfc7519#section-4.1.4
-    expiresAfter.map { duration =>
+    jwtConfiguration.expiresAfter.map { duration =>
       val expirationDate = new Date(now.getTime + duration.toMillis)
       builder.setExpiration(expirationDate)
     }
@@ -569,10 +561,10 @@ trait JWTCookieDataCodec extends CookieDataCodec {
     uniqueId().map(builder.setId) // https://tools.ietf.org/html/rfc7519#section-4.1.7
 
     // Set private claim for all the user data
-    builder.claim(dataClaim, Jwts.claims(Scala.asJava(data)))
+    builder.claim(jwtConfiguration.dataClaim, Jwts.claims(Scala.asJava(data)))
 
     // Sign and compact into a string...
-    val sigAlg = SignatureAlgorithm.valueOf(signatureAlgorithm)
+    val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
     builder.signWith(sigAlg, base64EncodedSecret).compact()
   }
 
@@ -587,17 +579,17 @@ trait JWTCookieDataCodec extends CookieDataCodec {
       val jws: Jws[Claims] = Jwts.parser()
         .setClock(jwtClock)
         .setSigningKey(base64EncodedSecret)
-        .setAllowedClockSkewSeconds(clockSkew.toSeconds)
+        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
         .parseClaimsJws(encodedString)
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
-      if (headerAlgorithm != signatureAlgorithm) {
+      if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
         logger.debug(s"decode: invalid header algorithm $headerAlgorithm in JWT")
         return Map.empty
       }
 
       val dataClass = classOf[java.util.Map[String, String]]
-      val data = jws.getBody.get(dataClaim, dataClass)
+      val data = jws.getBody.get(jwtConfiguration.dataClaim, dataClass)
       data.asScala.map{ case (k, v) => (k, v.toString) }(breakOut)
     } catch {
       case e: Exception =>
@@ -610,7 +602,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
   protected def clock: java.time.Clock = java.time.Clock.systemUTC()
 
   /** The unique id of the JWT, if any. */
-  protected def uniqueId(): Option[String] = Some(JWTIDGenerator.generateId())
+  protected def uniqueId(): Option[String] = Some(JWTCookieDataCodec.JWTIDGenerator.generateId())
 
   protected def base64EncodedSecret: String = {
     Base64.getEncoder.encodeToString(
@@ -624,16 +616,13 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
 }
 
-case class DefaultJWTCookieDataCodec @Inject() (
-  secretConfiguration: SecretConfiguration,
-  config: SessionConfiguration
-) extends JWTCookieDataCodec
-
-/** Utility object to generate random nonces for JWT from SecureRandom */
-object JWTIDGenerator {
-  private val sr = new java.security.SecureRandom()
-  def generateId(): String = {
-    new java.math.BigInteger(130, sr).toString(32)
+object JWTCookieDataCodec {
+  /** Utility object to generate random nonces for JWT from SecureRandom */
+  private[play] object JWTIDGenerator {
+    private val sr = new java.security.SecureRandom()
+    def generateId(): String = {
+      new java.math.BigInteger(130, sr).toString(32)
+    }
   }
 }
 

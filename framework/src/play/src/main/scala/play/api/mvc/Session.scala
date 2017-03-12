@@ -5,7 +5,7 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfiguration }
+import play.api.http.{ HttpConfiguration, JWTConfiguration, SecretConfiguration, SessionConfiguration }
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider, DefaultCookieSigner }
 import play.mvc.Http
 
@@ -94,13 +94,28 @@ trait SessionCookieBaker extends CookieBaker[Session] {
  */
 class DefaultSessionCookieBaker @Inject() (
   val config: SessionConfiguration,
-  val secretConfiguration: SecretConfiguration)
+  val secretConfiguration: SecretConfiguration,
+  cookieSigner: CookieSigner)
     extends SessionCookieBaker with FallbackCookieDataCodec {
+  import DefaultSessionCookieBaker._
 
-  override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config)
-  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, new DefaultCookieSigner(secretConfiguration))
+  override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
+  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, cookieSigner)
 
-  def this() = this(SessionConfiguration(), SecretConfiguration())
+  def this() = this(SessionConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
+}
+
+object DefaultSessionCookieBaker {
+
+  private[play] case class DefaultSignedCookieDataCodec(
+    isSigned: Boolean,
+    cookieSigner: CookieSigner)
+      extends SignedCookieDataCodec
+
+  private[play] case class DefaultJWTCookieDataCodec(
+    secretConfiguration: SecretConfiguration,
+    jwtConfiguration: JWTConfiguration)
+      extends JWTCookieDataCodec
 }
 
 /**
@@ -119,6 +134,8 @@ object Session extends SessionCookieBaker with FallbackCookieDataCodec {
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
   override def path = HttpConfiguration.current.context
 
-  override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config)
-  override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned = isSigned, cookieSigner = play.api.libs.Crypto.cookieSigner)
+  import DefaultSessionCookieBaker._
+
+  override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
+  override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)
 }
