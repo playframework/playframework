@@ -5,7 +5,7 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ FlashConfiguration, HttpConfiguration, SecretConfiguration, SessionConfiguration }
+import play.api.http.{ FlashConfiguration, HttpConfiguration, SecretConfiguration }
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
@@ -71,7 +71,6 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
 trait FlashCookieBaker extends CookieBaker[Flash] {
 
   def config: FlashConfiguration
-  def sessionConfig: SessionConfiguration
 
   def COOKIE_NAME = config.cookieName
 
@@ -80,7 +79,7 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
   override def path = config.path
   override def secure = config.secure
   override def httpOnly = config.httpOnly
-  override def domain = sessionConfig.domain
+  override def domain = config.domain
   override def sameSite = config.sameSite
 
   def deserialize(data: Map[String, String]) = new Flash(data)
@@ -89,15 +88,21 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
 
 }
 
-class DefaultFlashCookieBaker @Inject() (val config: FlashConfiguration, val sessionConfig: SessionConfiguration, val cookieSigner: CookieSigner)
-    extends FlashCookieBaker with SignedCookieDataCodec {
-  def this() = this(FlashConfiguration(), SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
+class DefaultFlashCookieBaker @Inject() (
+  val config: FlashConfiguration,
+  val secretConfiguration: SecretConfiguration,
+  val cookieSigner: CookieSigner)
+    extends FlashCookieBaker with FallbackCookieDataCodec {
+
+  def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
+
+  override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
+  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, cookieSigner)
 }
 
 @deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
 object Flash extends FlashCookieBaker with SignedCookieDataCodec {
   def config = HttpConfiguration.current.flash
-  def sessionConfig = HttpConfiguration.current.session
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
   override def path = HttpConfiguration.current.context
   override def cookieSigner = play.api.libs.Crypto.cookieSigner

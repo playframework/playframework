@@ -97,25 +97,11 @@ class DefaultSessionCookieBaker @Inject() (
   val secretConfiguration: SecretConfiguration,
   cookieSigner: CookieSigner)
     extends SessionCookieBaker with FallbackCookieDataCodec {
-  import DefaultSessionCookieBaker._
 
   override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
   override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, cookieSigner)
 
   def this() = this(SessionConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
-}
-
-object DefaultSessionCookieBaker {
-
-  private[play] case class DefaultSignedCookieDataCodec(
-    isSigned: Boolean,
-    cookieSigner: CookieSigner)
-      extends SignedCookieDataCodec
-
-  private[play] case class DefaultJWTCookieDataCodec(
-    secretConfiguration: SecretConfiguration,
-    jwtConfiguration: JWTConfiguration)
-      extends JWTCookieDataCodec
 }
 
 /**
@@ -133,8 +119,6 @@ object Session extends SessionCookieBaker with FallbackCookieDataCodec {
   def config = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
   override def path = HttpConfiguration.current.context
-
-  import DefaultSessionCookieBaker._
 
   override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
   override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)

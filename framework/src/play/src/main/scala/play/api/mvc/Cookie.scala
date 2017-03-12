@@ -10,6 +10,7 @@ import java.util.{ Base64, Date, Locale }
 import javax.inject.Inject
 
 import io.jsonwebtoken._
+import org.slf4j.MarkerFactory
 import play.api._
 import play.api.http._
 import play.api.libs.crypto.CookieSigner
@@ -538,6 +539,9 @@ trait SignedCookieDataCodec extends CookieDataCodec {
  * JWT cookie encoding and decoding functionality
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
+
+  implicit val jwtContext = MarkerContext(MarkerFactory.getMarker("JWT"))
+
   private val logger = play.api.Logger(getClass)
 
   def secretConfiguration: SecretConfiguration
@@ -584,7 +588,8 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
-        logger.debug(s"decode: invalid header algorithm $headerAlgorithm in JWT")
+        val id = jws.getBody.getId
+        logger.warn(s"decode: invalid header algorithm $headerAlgorithm in JWT $id")
         return Map.empty
       }
 
@@ -592,7 +597,21 @@ trait JWTCookieDataCodec extends CookieDataCodec {
       val data = jws.getBody.get(jwtConfiguration.dataClaim, dataClass)
       data.asScala.map{ case (k, v) => (k, v.toString) }(breakOut)
     } catch {
+      // We want to warn specifically about premature and expired JWT,
+      // because they depend on clock skew and can cause silent user error
+      // if production servers get out of sync
+      case e: PrematureJwtException =>
+        val id = e.getClaims.getId
+        logger.error(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")
+        Map.empty
+
+      case e: ExpiredJwtException =>
+        val id = e.getClaims.getId
+        logger.error(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")
+        Map.empty
+
       case e: Exception =>
+        // Don't flag user error
         logger.debug(s"decode: could not decode JWT: ${e.getMessage}")
         Map.empty
     }
@@ -657,3 +676,13 @@ trait FallbackCookieDataCodec extends CookieDataCodec {
     }
   }
 }
+
+case class DefaultSignedCookieDataCodec(
+  isSigned: Boolean,
+  cookieSigner: CookieSigner
+) extends SignedCookieDataCodec
+
+case class DefaultJWTCookieDataCodec @Inject() (
+  secretConfiguration: SecretConfiguration,
+  jwtConfiguration: JWTConfiguration
+) extends JWTCookieDataCodec

@@ -105,15 +105,19 @@ case class SessionConfiguration(
  * @param cookieName The name of the cookie used to store the session
  * @param secure     Whether the flash cookie should set the secure flag or not
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
+ * @param domain     The domain to set for the session cookie, if defined
  * @param path       The path for which this cookie is valid
  * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
 case class FlashConfiguration(
   cookieName: String = "PLAY_FLASH",
   secure: Boolean = false,
   httpOnly: Boolean = true,
+  domain: Option[String] = None,
   path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax)
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -201,8 +205,10 @@ object HttpConfiguration {
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
         secure = config.get[Boolean]("play.http.flash.secure"),
         httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
+        domain = config.get[Option[String]]("play.http.flash.domain"),
         sameSite = config.get[Option[SameSite]]("play.http.flash.sameSite"),
-        path = flashPath
+        path = flashPath,
+        jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
         config.get[String]("play.http.fileMimeTypes")

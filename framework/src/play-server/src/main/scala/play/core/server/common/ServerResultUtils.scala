@@ -23,7 +23,7 @@ private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration
 
   val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(httpConfiguration.cookies)
   val sessionBaker: SessionCookieBaker = new DefaultSessionCookieBaker(httpConfiguration.session, httpConfiguration.secret, cookieSigner)
-  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.session, cookieSigner)
+  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.secret, cookieSigner)
 
   private val logger = Logger(getClass)
 
