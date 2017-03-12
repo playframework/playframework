@@ -598,6 +598,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘418 IM_A_TEAPOT’ result. */
+  val ImATeapot = new Status(IM_A_TEAPOT)
+
   /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
   val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
 

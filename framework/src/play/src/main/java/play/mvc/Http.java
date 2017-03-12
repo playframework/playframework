@@ -2270,6 +2270,7 @@ public class Http {
         int UNSUPPORTED_MEDIA_TYPE = 415;
         int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
         int EXPECTATION_FAILED = 417;
+        int IM_A_TEAPOT = 418;
         int UNPROCESSABLE_ENTITY = 422;
         int LOCKED = 423;
         int FAILED_DEPENDENCY = 424;

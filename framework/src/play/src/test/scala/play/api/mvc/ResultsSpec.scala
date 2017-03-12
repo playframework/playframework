@@ -294,5 +294,17 @@ class ResultsSpec extends Specification {
       val expectedLocation = url + "#" + fragment
       Results.Redirect(Call("GET", url, fragment), 301).header.headers.get(LOCATION) must_== Option(expectedLocation)
     }
+
+    "brew coffee with a teapot, short and stout" in {
+      val Result(ResponseHeader(status, _, _), body) = ImATeapot("no coffee here").as("short/stout")
+      status must be_==(418)
+      body.contentType must beSome("short/stout")
+    }
+
+    "brew coffee with a teapot, long and sweet" in {
+      val Result(ResponseHeader(status, _, _), body) = ImATeapot("still no coffee here").as("long/sweet")
+      status must be_==(418)
+      body.contentType must beSome("long/sweet")
+    }
   }
 }
