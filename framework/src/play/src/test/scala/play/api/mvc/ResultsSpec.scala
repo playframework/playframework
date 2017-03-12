@@ -296,13 +296,13 @@ class ResultsSpec extends Specification {
     }
 
     "brew coffee with a teapot, short and stout" in {
-      val Result(ResponseHeader(status, _, _), body) = ImATeapot("no coffee here").as("short/stout")
+      val Result(ResponseHeader(status, _, _), body, _, _, _) = ImATeapot("no coffee here").as("short/stout")
       status must be_==(418)
       body.contentType must beSome("short/stout")
     }
 
     "brew coffee with a teapot, long and sweet" in {
-      val Result(ResponseHeader(status, _, _), body) = ImATeapot("still no coffee here").as("long/sweet")
+      val Result(ResponseHeader(status, _, _), body, _, _, _) = ImATeapot("still no coffee here").as("long/sweet")
       status must be_==(418)
       body.contentType must beSome("long/sweet")
     }
