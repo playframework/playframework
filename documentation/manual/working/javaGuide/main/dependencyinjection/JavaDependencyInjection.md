@@ -59,7 +59,20 @@ To enable the injected routes generator specifically, add the following to your 
 
 @[content](code/injected.sbt)
 
-When using the injected routes generator, prefixing the action with an `@` symbol takes on a special meaning, it means instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
+There are two ways of defining routes when this routes generator is used:
+
+1. Defining actions without using the `@` symbol
+
+    For those routes, all controllers and their related components are **effectively singletons** due to router being a singleton, but keep in mind that if you inject a controller into a non-singleton component then its lifecycle will be determined by that parent component (not a general pattern but possible).
+
+    The major difference between this approach and static controllers is that all dependencies are determined at runtime.
+
+2. Prefixing actions with the `@` symbol
+
+    This means instead of the controller being injected directly, a `Provider` of the controller will be injected. Doing this means:
+
+    1. A new controller instance and its corresponding components will be used to handle each incoming request, unless it's explicitly declared singleton.
+    2. This allows for breaking cyclic dependencies, e.g. injecting `Application` into controllers.
 
 ### Static routes generator
 

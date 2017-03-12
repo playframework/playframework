@@ -26,7 +26,9 @@ If you need to use static controllers, you can switch to the static routes gener
 routesGenerator := StaticRoutesGenerator
 ```
 
-The code samples in Play's documentation assume that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+The code samples in Play's documentation assume that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator by declaring each of your action methods as `static`.
+
+For difference between the routes generator and advanced usage, see [[dependency injecting controllers|JavaDependencyInjection#dependency-injecting-controllers]].
 
 ## The routes file syntax
 
