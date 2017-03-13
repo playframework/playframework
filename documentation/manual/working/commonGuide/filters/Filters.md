@@ -7,7 +7,7 @@ Play provides several standard filters that can modify the HTTP behavior of your
 - [[Configuring security headers|SecurityHeaders]]
 - [[Configuring CORS|CorsFilter]]
 - [[Configuring allowed hosts|AllowedHostsFilter]]
-- [[Configuring redirect plain filter|RedirectPlainFilter]]
+- [[Configuring Redirect HTTPS filter|RedirectHTTPSFilter]]
 
 ## Default Filters
 
