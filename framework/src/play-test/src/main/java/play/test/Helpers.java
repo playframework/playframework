@@ -228,7 +228,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @param result  The result to extract the content from.
      * @param mat     The materializer to use to extract the body from the result stream.
-     * @param timeout the timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a ByteString.
      */
     public static ByteString contentAsBytes(Result result, Materializer mat, long timeout) {
@@ -293,7 +293,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @param result  The result to extract the content from.
      * @param mat     The materializer to use to extract the body from the result stream.
-     * @param timeout the timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a String.
      */
     public static String contentAsString(Result result, Materializer mat, long timeout) {
@@ -416,7 +416,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * @param call the call to route
-     * @param timeout the timeout the time out
+     * @param timeout the time out
      * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
