@@ -56,7 +56,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request("https").withConnection(secure)).get
 
-      header("Strict-Transport-Security", result) must_== Some("max-age=31536000; includeSubDomains")
+      header(STRICT_TRANSPORT_SECURITY, result) must_== Some("max-age=31536000; includeSubDomains")
     }
   }
 
