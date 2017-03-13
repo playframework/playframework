@@ -7,13 +7,11 @@ package play.it.action
 import akka.stream.scaladsl.Source
 import play.shaded.ahc.io.netty.handler.codec.http.HttpHeaders
 import org.specs2.mutable.Specification
-import play.api.Play
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.libs.ws.{ WSClient, WSResponse }
 import play.api.mvc._
 import play.api.routing.Router.Routes
-import play.api.routing.Router.Tags._
 import play.api.routing.sird._
 import play.api.test._
 import play.core.server.Server
@@ -24,17 +22,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.shaded.ahc.org.asynchttpclient.netty.NettyResponse
 import play.api.libs.typedmap.TypedKey
 
+import scala.concurrent.Future
+
 class NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
 class AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
 
 trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTimeout with ServerIntegrationSpecification {
 
-  private def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
-    case (v, p) if v == verb && p == path => handler
-  }
   sequential
 
   "HEAD requests" should {
+
+    def webSocketResponse(implicit Action: DefaultActionBuilder): Routes = {
+      case GET(p"/ws") => WebSocket.acceptOrResult[String, String] { request =>
+        Future.successful(Left(Results.Forbidden))
+      }
+    }
 
     def chunkedResponse(implicit Action: DefaultActionBuilder): Routes = {
       case GET(p"/chunked") =>
@@ -51,6 +54,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
         .orElse(delete) // DELETE /delete
         .orElse(stream) // GET /stream/0
         .orElse(chunkedResponse) // GET /chunked
+        .orElse(webSocketResponse) // GET /ws
 
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
@@ -65,6 +69,11 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
       } { implicit port =>
         WsTestClient.withClient(block)
       }
+    }
+
+    "return 400 in response to a HEAD in a WebSocket handler" in withServer { client =>
+      val result = await(client.url("/ws").head())
+      result.status must_== BAD_REQUEST
     }
 
     "return 200 in response to a URL with a GET handler" in withServer { client =>
