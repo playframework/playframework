@@ -99,7 +99,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Calls a Callable which invokes a Controller or some other method with a Context.
      *
-     * @param requestBuilder the request builder    the request builder to invoke in this context.
+     * @param requestBuilder the request builder to invoke in this context.
      * @param contextComponents the context components to run.
      * @param callable the callable block to run.
      * @param <V> the return type.
