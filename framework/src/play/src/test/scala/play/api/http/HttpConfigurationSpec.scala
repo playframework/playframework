@@ -39,6 +39,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.flash.cookieName" -> "PLAY_FLASH",
         "play.http.flash.secure" -> "true",
         "play.http.flash.httpOnly" -> "true",
+        "play.http.session.domain" -> "playframework.com",
         "play.http.flash.path" -> "/flash",
         "play.http.flash.sameSite" -> "lax",
         "play.http.fileMimeTypes" -> "foo=text/foo",

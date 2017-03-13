@@ -5,8 +5,8 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ HttpConfiguration, JWTConfiguration, SecretConfiguration, SessionConfiguration }
-import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider, DefaultCookieSigner }
+import play.api.http.{HttpConfiguration, SecretConfiguration, SessionConfiguration}
+import play.api.libs.crypto.{CookieSigner, CookieSignerProvider}
 import play.mvc.Http
 
 import scala.collection.JavaConverters._
@@ -21,7 +21,7 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   /**
    * Optionally returns the session value associated with a key.
    */
-  def get(key: String) = data.get(key)
+  def get(key: String): Option[String] = data.get(key)
 
   /**
    * Returns `true` if this session is empty.
@@ -60,7 +60,7 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   /**
    * Retrieves the session value which is associated with the given key.
    */
-  def apply(key: String) = data(key)
+  def apply(key: String): String = data(key)
 
   lazy val asJava: Http.Session = new Http.Session(data.asJava)
 }
@@ -72,21 +72,21 @@ trait SessionCookieBaker extends CookieBaker[Session] {
 
   def config: SessionConfiguration
 
-  def COOKIE_NAME = config.cookieName
+  def COOKIE_NAME: String = config.cookieName
 
   lazy val emptyCookie = new Session
 
   override val isSigned = true
-  override def secure = config.secure
-  override def maxAge = config.maxAge.map(_.toSeconds.toInt)
-  override def httpOnly = config.httpOnly
-  override def path = config.path
-  override def domain = config.domain
+  override def secure: Boolean = config.secure
+  override def maxAge: Option[Int] = config.maxAge.map(_.toSeconds.toInt)
+  override def httpOnly: Boolean = config.httpOnly
+  override def path: String = config.path
+  override def domain: Option[String] = config.domain
   override def sameSite = config.sameSite
 
   def deserialize(data: Map[String, String]) = new Session(data)
 
-  def serialize(session: Session) = session.data
+  def serialize(session: Session): Map[String, String] = session.data
 }
 
 /**
@@ -116,9 +116,9 @@ class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val 
 
 @deprecated("Inject [[play.api.mvc.SessionCookieBaker]] instead", "2.6.0")
 object Session extends SessionCookieBaker with FallbackCookieDataCodec {
-  def config = HttpConfiguration.current.session
+  def config: SessionConfiguration = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
-  override def path = HttpConfiguration.current.context
+  override def path: String = HttpConfiguration.current.context
 
   override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
   override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)

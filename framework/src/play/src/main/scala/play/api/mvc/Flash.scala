@@ -21,7 +21,7 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   /**
    * Optionally returns the flash value associated with a key.
    */
-  def get(key: String) = data.get(key)
+  def get(key: String): Option[String] = data.get(key)
 
   /**
    * Returns `true` if this flash scope is empty.
@@ -39,7 +39,7 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @param kv the key-value pair to add
    * @return the modified flash scope
    */
-  def +(kv: (String, String)) = {
+  def +(kv: (String, String)): Flash = {
     require(kv._2 != null, "Cookie values cannot be null")
     copy(data + kv)
   }
@@ -55,12 +55,12 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @param key the key to remove
    * @return the modified flash scope
    */
-  def -(key: String) = copy(data - key)
+  def -(key: String): Flash = copy(data - key)
 
   /**
    * Retrieves the flash value that is associated with the given key.
    */
-  def apply(key: String) = data(key)
+  def apply(key: String): String = data(key)
 
   lazy val asJava: Http.Flash = new Http.Flash(data.asJava)
 }
@@ -72,19 +72,19 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
 
   def config: FlashConfiguration
 
-  def COOKIE_NAME = config.cookieName
+  def COOKIE_NAME: String = config.cookieName
 
   lazy val emptyCookie = new Flash
 
-  override def path = config.path
-  override def secure = config.secure
-  override def httpOnly = config.httpOnly
-  override def domain = config.domain
+  override def path: String = config.path
+  override def secure: Boolean = config.secure
+  override def httpOnly: Boolean = config.httpOnly
+  override def domain: Option[String] = config.domain
   override def sameSite = config.sameSite
 
-  def deserialize(data: Map[String, String]) = new Flash(data)
+  def deserialize(data: Map[String, String]): Flash = new Flash(data)
 
-  def serialize(flash: Flash) = flash.data
+  def serialize(flash: Flash): Map[String, String] = flash.data
 
 }
 
@@ -102,8 +102,8 @@ class DefaultFlashCookieBaker @Inject() (
 
 @deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
 object Flash extends FlashCookieBaker with SignedCookieDataCodec {
-  def config = HttpConfiguration.current.flash
+  def config: FlashConfiguration = HttpConfiguration.current.flash
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
-  override def path = HttpConfiguration.current.context
-  override def cookieSigner = play.api.libs.Crypto.cookieSigner
+  override def path: String = HttpConfiguration.current.context
+  override def cookieSigner: CookieSigner = play.api.libs.Crypto.cookieSigner
 }
