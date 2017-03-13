@@ -169,10 +169,9 @@ class CookiesSpec extends Specification {
 
   class TestJWTCookieDataCodec extends JWTCookieDataCodec {
     val secretConfiguration = SecretConfiguration()
-    val config = SessionConfiguration()
+    val jwtConfiguration = JWTConfiguration()
     override protected def uniqueId(): Option[String] = None
     override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
-
   }
 
   "trait JWTCookieData" should {
@@ -200,11 +199,11 @@ class CookiesSpec extends Specification {
 
     "return empty map given an expired JWT outside of clock skew" in {
       val oldCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(expiresAfter = Some(5.seconds)))
+        override val jwtConfiguration = JWTConfiguration(expiresAfter = Some(5.seconds))
       }
 
       val newCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(clockSkew = 60.seconds))
+        override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
       }
 
@@ -214,12 +213,12 @@ class CookiesSpec extends Specification {
 
     "return value given an expired JWT inside of clock skew" in {
       val oldCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(expiresAfter = Some(10.seconds)))
+        override val jwtConfiguration = JWTConfiguration(expiresAfter = Some(10.seconds))
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
       }
 
       val newCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(clockSkew = 60.seconds))
+        override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
 
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(60000), ZoneId.of("UTC"))
       }
@@ -232,7 +231,7 @@ class CookiesSpec extends Specification {
       val oldCodec = new TestJWTCookieDataCodec
 
       val newCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(clockSkew = 60.seconds))
+        override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
       }
 
@@ -242,12 +241,12 @@ class CookiesSpec extends Specification {
 
     "return value given a not before JWT inside of clock skew" in {
       val oldCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(clockSkew = 60.seconds))
+        override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
       }
 
       val newCodec = new TestJWTCookieDataCodec {
-        override val config = SessionConfiguration(jwt = JWTConfiguration(clockSkew = 60.seconds))
+        override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
         override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(60000), ZoneId.of("UTC"))
       }
 

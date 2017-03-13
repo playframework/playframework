@@ -540,7 +540,7 @@ trait SignedCookieDataCodec extends CookieDataCodec {
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
 
-  implicit val jwtContext = MarkerContext(MarkerFactory.getMarker("JWT"))
+  private implicit val jwtContext = MarkerContext(MarkerFactory.getMarker("JWT"))
 
   private val logger = play.api.Logger(getClass)
 
