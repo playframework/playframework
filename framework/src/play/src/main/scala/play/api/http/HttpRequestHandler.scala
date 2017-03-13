@@ -109,6 +109,11 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   }
 
   override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
+
+    def handleWithStatus(status: Int) = ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
+      errorHandler.onClientError(req, status)
+    )
+
     /**
      * Call the router to get the handler, but with a couple of types of fallback.
      * First, if a HEAD request isn't explicitly routed try routing it as a GET
@@ -116,19 +121,31 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
      * error.
      */
     def routeWithFallback(request: RequestHeader): Handler = {
-      routeRequest(request) match {
-        case Some(handler) => handler
-        // We automatically permit HEAD requests against any GETs without the need to
-        // add an explicit mapping in Routes. Since we couldn't route the HEAD request,
-        // try to get a Handler for the equivalent GET request instead. Note: the handler
-        // returned will still be passed a HEAD request when it is actually evaluated.
-        case None if request.method == HttpVerbs.HEAD =>
-          routeWithFallback(request.withMethod(HttpVerbs.GET))
-        case None =>
-          // An Action for a 404 error
-          ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
-            errorHandler.onClientError(req, NOT_FOUND)
-          )
+      routeRequest(request).getOrElse {
+        request.method match {
+          // We automatically permit HEAD requests against any GETs without the need to
+          // add an explicit mapping in Routes. Since we couldn't route the HEAD request,
+          // try to get a Handler for the equivalent GET request instead. Notes:
+          // 1. The handler returned will still be passed a HEAD request when it is
+          //    actually evaluated.
+          // 2. When the endpoint is to a WebSocket connection, the handler returned
+          //    will result in a Bad Request. That is because, while we can translate
+          //    GET requests to HEAD, we can't do that for WebSockets, since there is
+          //    no way (or reason) to Upgrade the connection. For more information see
+          //    https://tools.ietf.org/html/rfc6455#section-1.3
+          case HttpVerbs.HEAD => {
+            routeRequest(request.withMethod(HttpVerbs.GET)) match {
+              case Some(handler: Handler) => handler match {
+                case ws: WebSocket => handleWithStatus(BAD_REQUEST)
+                case _ => handler
+              }
+              case None => handleWithStatus(NOT_FOUND)
+            }
+          }
+          case _ =>
+            // An Action for a 404 error
+            handleWithStatus(NOT_FOUND)
+        }
       }
     }
 
