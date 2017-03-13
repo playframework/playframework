@@ -5,8 +5,8 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{HttpConfiguration, SecretConfiguration, SessionConfiguration}
-import play.api.libs.crypto.{CookieSigner, CookieSignerProvider}
+import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfiguration }
+import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
 import scala.collection.JavaConverters._
