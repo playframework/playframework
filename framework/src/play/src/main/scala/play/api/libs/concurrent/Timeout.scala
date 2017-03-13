@@ -33,8 +33,8 @@ import scala.concurrent.duration.FiniteDuration
  * }
  * }}}
  *
- * You should check for timeout by using [[scala.concurrent.Future.recover()]] or [[scala.concurrent.Future.recoverWith()]]
- * and checking for [[TimeoutException]]:
+ * You should check for timeout by using `scala.concurrent.Future.recover` or `scala.concurrent.Future.recoverWith`
+ * and checking for [[scala.concurrent.TimeoutException]]:
  *
  * {{{
  * val future = myService.calculateWithTimeout(100 millis).recover {

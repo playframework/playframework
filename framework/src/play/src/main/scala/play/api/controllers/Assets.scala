@@ -50,12 +50,12 @@ package controllers {
   }
 
   /**
-   * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[PathBindable]]
+   * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[play.api.mvc.PathBindable PathBindable]]
    * for assets does additional "magic" using statics so routes like {@code routes.Assets.versioned("foo.js") } will
    * find the minified and digested version of that asset.
    *
    * It is also possible to avoid this provider and simply inject [[AssetsFinder]]. Then you can call
-   * [[AssetsFinder.path]] to get the final path of an asset according to the path and url prefix in configuration.
+   * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
    */
   @Singleton
   class AssetsMetadataProvider @Inject() (

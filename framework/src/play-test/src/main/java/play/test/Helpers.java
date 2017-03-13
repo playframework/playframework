@@ -99,7 +99,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Calls a Callable which invokes a Controller or some other method with a Context.
      *
-     * @param requestBuilder    the request builder to invoke in this context.
+     * @param requestBuilder the request builder    the request builder to invoke in this context.
      * @param contextComponents the context components to run.
      * @param callable the callable block to run.
      * @param <V> the return type.
@@ -228,7 +228,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @param result  The result to extract the content from.
      * @param mat     The materializer to use to extract the body from the result stream.
-     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @param timeout the timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a ByteString.
      */
     public static ByteString contentAsBytes(Result result, Materializer mat, long timeout) {
@@ -293,7 +293,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      *
      * @param result  The result to extract the content from.
      * @param mat     The materializer to use to extract the body from the result stream.
-     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @param timeout the timeout The amount of time, in milliseconds, to wait for the body to be produced.
      * @return The content of the result as a String.
      */
     public static String contentAsString(Result result, Materializer mat, long timeout) {
@@ -302,8 +302,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
      * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     @SuppressWarnings(value = "unchecked")
@@ -324,8 +327,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
      * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result routeAndCall(Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
@@ -348,8 +355,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param router the router
+     * @param requestBuilder the request builder
      * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Router, RequestBuilder)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder) {
@@ -362,8 +372,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
      * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
+     * @return
      */
     @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
@@ -385,8 +399,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     *
+     * @param call the call to route
      * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result route(Call call) {
@@ -398,8 +415,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param call the call to route
+     * @param timeout the timeout the time out
      * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call, long)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result route(Call call, long timeout) {
@@ -411,8 +431,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param requestBuilder the request builder the request builder
      * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result route(RequestBuilder requestBuilder) {
@@ -424,8 +446,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
      * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
+     * @return the result
      */
     @Deprecated
     public static Result route(RequestBuilder requestBuilder, long timeout) {

@@ -51,6 +51,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     /**
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value if the form submission was successful
+     * @param messagesApi    the messagesApi component.
+     * @param formatters     the formatters component.
+     * @param validator      the validator component.
      * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
      */
     @Deprecated
