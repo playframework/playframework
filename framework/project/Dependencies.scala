@@ -114,6 +114,9 @@ object Dependencies {
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
   )
 
+  val scryptoVersion = "1.2.0-RC3"
+  val scrypto = "org.consensusresearch" %% "scrypto" % scryptoVersion
+
   def runtime(scalaVersion: String) =
     slf4j ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
@@ -125,6 +128,7 @@ object Dependencies {
       playJson,
 
       guava,
+      scrypto,
 
       "org.apache.commons" % "commons-lang3" % "3.5",
 

@@ -11,7 +11,7 @@ import play.api.http.SecretConfiguration
 class CSRFTokenSignerSpec extends Specification {
 
   val key = "0123456789abcdef"
-  val secretConfiguration = SecretConfiguration(key, None)
+  val secretConfiguration = SecretConfiguration(key)
   val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
   val signer = new DefaultCookieSigner(secretConfiguration)
   val tokenSigner = new DefaultCSRFTokenSigner(signer, clock)
@@ -28,14 +28,14 @@ class CSRFTokenSignerSpec extends Specification {
       val token: String = "0FFFFFFFFFFFFFFFFFFFFF24"
       token.length must be_==(24)
       val signedToken = tokenSigner.signToken(token)
-      signedToken must beEqualTo("77adb3c3dfe5ee567556b259549a4ddfa6797c05-0-0FFFFFFFFFFFFFFFFFFFFF24")
+      signedToken must beEqualTo("169b4bd49930f3a91232fe14e38952bfe3840022c387b12e25aad7e8603d2ba356a99732a2151c25178d3bcf68fb99acd63f2e47717bbf2ee564e1f8cda3fc82-0-0FFFFFFFFFFFFFFFFFFFFF24")
     }
   }
 
   "tokenSigner.compareSignedTokens" should {
     "be successful" in {
-      val token1: String = "b3ba23c672b5e115b0c44335544dbf42934f70f5-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
-      val token2: String = "b3ba23c672b5e115b0c44335544dbf42934f70f5-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
+      val token1: String = "cddd64086f143c0c0d4f5a934533efe01744a183b2a30cc6f26bac1635023674f935e292838383a0b0ccc777e3874ba910756c67f6fc48654a169226b370bf26-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
+      val token2: String = "cddd64086f143c0c0d4f5a934533efe01744a183b2a30cc6f26bac1635023674f935e292838383a0b0ccc777e3874ba910756c67f6fc48654a169226b370bf26-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
       val actual = tokenSigner.compareSignedTokens(token1, token2)
       actual must beTrue
     }

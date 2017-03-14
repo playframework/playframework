@@ -97,6 +97,9 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
    * @return The verified raw token, or None if the token isn't valid.
    */
   def extractSignedToken(token: String): Option[String] = {
+    val Array(signature, nonce, raw) = token.split("-", 3)
+    println(signer.sign(nonce + "-" + raw))
+
     token.split("-", 3) match {
       case Array(signature, nonce, raw) if isEqual(signature, signer.sign(nonce + "-" + raw)) => Some(raw)
       case _ => None

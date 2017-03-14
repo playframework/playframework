@@ -8,6 +8,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.{ Inject, Provider, Singleton }
 
+import ove.crypto.digest.Blake2b
 import play.api.http.SecretConfiguration
 import play.api.libs.Codecs
 
@@ -21,9 +22,6 @@ trait CookieSigner {
   /**
    * Signs (MAC) the given String using the given secret key.
    *
-   * By default this uses the platform default JCE provider.  This can be overridden by defining
-   * `play.http.secret.provider` in `application.conf`.
-   *
    * @param message The message to sign.
    * @param key     The private key to sign with.
    * @return A hexadecimal encoded signature.
@@ -32,9 +30,6 @@ trait CookieSigner {
 
   /**
    * Signs (MAC) the given String using the application’s secret key.
-   *
-   * By default this uses the platform default JCE provider.  This can be overridden by defining
-   * `play.http.secret.provider` in `application.conf`.
    *
    * @param message The message to sign.
    * @return A hexadecimal encoded signature.
@@ -48,36 +43,40 @@ class CookieSignerProvider @Inject() (secretConfiguration: SecretConfiguration) 
 }
 
 /**
- * Uses an HMAC-SHA1 for signing cookies.
+ * The default cookie signer.
+ *
+ * This is configured for <a href="https://blake2.net/">BLAKE2b in keyed mode</a> out of the
+ * box if secretConfiguration.mac is "blake2b" or None, but will use JCA algorithm with a Mac otherwise.
  */
-class DefaultCookieSigner @Inject() (secretConfiguration: SecretConfiguration) extends CookieSigner {
+class DefaultCookieSigner(secretConfiguration: SecretConfiguration) extends CookieSigner {
 
-  private lazy val HmacSHA1 = "HmacSHA1"
+  def mac: String = secretConfiguration.mac.getOrElse("blake2b")
 
   /**
-   * Signs the given String with HMAC-SHA1 using the given key.
-   *
-   * By default this uses the platform default JSSE provider.  This can be overridden by defining
-   * `play.http.secret.provider` in `application.conf`.
+   * Signs the given String using the given key and the provided algorithm.
    *
    * @param message The message to sign.
    * @param key The private key to sign with.
-   * @return A hexadecimal encoded signature.
+   * @return An encoded signature.
    */
   def sign(message: String, key: Array[Byte]): String = {
-    val mac = secretConfiguration.provider.fold(Mac.getInstance(HmacSHA1))(p => Mac.getInstance(HmacSHA1, p))
-    mac.init(new SecretKeySpec(key, HmacSHA1))
-    Codecs.toHexString(mac.doFinal(message.getBytes(StandardCharsets.UTF_8)))
+    mac match {
+      case "blake2b" =>
+        val mac = Blake2b.Mac.newInstance(key)
+        Codecs.toHexString(mac.digest(message.getBytes(StandardCharsets.UTF_8)))
+
+      case algorithm =>
+        val mac = secretConfiguration.provider.fold(Mac.getInstance(algorithm))(p => Mac.getInstance(algorithm, p))
+        mac.init(new SecretKeySpec(key, algorithm))
+        Codecs.toHexString(mac.doFinal(message.getBytes(StandardCharsets.UTF_8)))
+    }
   }
 
   /**
-   * Signs the given String with HMAC-SHA1 using the application’s secret key.
-   *
-   * By default this uses the platform default JSSE provider.  This can be overridden by defining
-   * `play.http.secret.provider` in `application.conf`.
+   * Signs the given String using the application’s secret key.
    *
    * @param message The message to sign.
-   * @return A hexadecimal encoded signature.
+   * @return An encoded signature.
    */
   def sign(message: String): String = {
     sign(message, secretConfiguration.secret.getBytes(StandardCharsets.UTF_8))

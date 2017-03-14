@@ -10,7 +10,7 @@ import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
-import play.libs.crypto.HMACSHA1CookieSigner;
+import play.libs.crypto.DelegateCookieSigner;
 import play.mvc.FileMimeTypes;
 import scala.collection.Seq;
 
@@ -21,7 +21,7 @@ public class BuiltInModule extends play.api.inject.Module {
           bind(ApplicationLifecycle.class).to(DelegateApplicationLifecycle.class),
           bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
           bind(CSRFTokenSigner.class).to(DefaultCSRFTokenSigner.class),
-          bind(CookieSigner.class).to(HMACSHA1CookieSigner.class),
+          bind(CookieSigner.class).to(DelegateCookieSigner.class),
           bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
           bind(FileMimeTypes.class).toSelf()
         );
