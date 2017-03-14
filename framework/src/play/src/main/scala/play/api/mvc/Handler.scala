@@ -52,7 +52,7 @@ final object Handler {
    * handling. The next handler could be a terminal `Handler` like an
    * [[EssentialAction]], but it could also be another `Stage`. This means
    * it's possible to chains of `Stage`s that should each be executed in turn.
-   * To automatically execute all `Stage`s you can call [[play.api.mvc.Handler.applyStages()]].
+   * To automatically execute all `Stage`s you can call [[play.api.mvc.Handler.applyStages]].
    */
   trait Stage extends Handler {
     def apply(requestHeader: RequestHeader): (RequestHeader, Handler)

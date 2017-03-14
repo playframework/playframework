@@ -19,7 +19,7 @@ trait RoutingDslComponents {
 /**
  * RoutingDsl components from the built in components.
  *
- * @see [[BuiltInComponentsFromContext]]
- * @see [[RoutingDslComponents]]
+ * @see [[play.api.BuiltInComponentsFromContext]]
+ * @see [[play.routing.RoutingDslComponents]]
  */
 abstract class RoutingDslComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context) with RoutingDslComponents

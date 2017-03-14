@@ -102,6 +102,14 @@ public class Form<T> {
     }
 
     /**
+     * @param rootName the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
      * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
      */
     @Deprecated
@@ -114,6 +122,15 @@ public class Form<T> {
     }
 
     /**
+     * @param rootName the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param group the class with the group.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
      * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
      */
     @Deprecated
@@ -147,6 +164,15 @@ public class Form<T> {
     }
 
     /**
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
      * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
      */
     @Deprecated
@@ -903,7 +929,9 @@ public class Form<T> {
         }
 
         /**
+         * @param or the value to return if value is null.
          * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
+         * @return The field value, if defined.
          */
         @Deprecated
         public String valueOr(String or) {
