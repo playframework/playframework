@@ -39,7 +39,7 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @param kv the key-value pair to add
    * @return the modified session
    */
-  def +(kv: (String, String)) = {
+  def +(kv: (String, String)): Session = {
     require(kv._2 != null, "Cookie values cannot be null")
     copy(data + kv)
   }
@@ -55,7 +55,7 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @param key the key to remove
    * @return the modified session
    */
-  def -(key: String) = copy(data - key)
+  def -(key: String): Session = copy(data - key)
 
   /**
    * Retrieves the session value which is associated with the given key.

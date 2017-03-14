@@ -179,11 +179,11 @@ class CookiesSpec extends Specification {
 
     "encode map to string" in {
       val jwtValue = codec.encode(Map("hello" -> "world"))
-      jwtValue must beEqualTo("eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM")
+      jwtValue must beEqualTo("eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk")
     }
 
     "decode string to map" in {
-      val jwtValue = "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
+      val jwtValue = "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
       codec.decode(jwtValue) must contain("hello" -> "world")
     }
 
@@ -195,6 +195,17 @@ class CookiesSpec extends Specification {
     "return empty map given a bad string" in {
       val jwtValue = ".eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
       codec.decode(jwtValue) must beEmpty
+    }
+
+    "return empty map given a JWT with a bad signatureAlgorithm" in {
+      val goodCodec = new TestJWTCookieDataCodec {
+        override val jwtConfiguration = JWTConfiguration(signatureAlgorithm = "HS256")
+        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
+      }
+
+      // alg: "none"
+      val badJwt = "eyJhbGciOiJub25lIn0.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.Xv7-BTFyhGvi_NavNvQpvcPf1clHijcei-1EFlSLfLQ"
+      goodCodec.decode(badJwt) must beEmpty
     }
 
     "return empty map given an expired JWT outside of clock skew" in {
@@ -276,13 +287,12 @@ class CookiesSpec extends Specification {
     }
 
     "encode to JWT" in {
-      val jwtEncoding = "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
+      val jwtEncoding = "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
       sessionCookieBaker.encode(Map("hello" -> "world")) must beEqualTo(jwtEncoding)
     }
   }
 
   "LegacySessionCookieBaker" should {
-
     val legacyCookieBaker = new LegacySessionCookieBaker()
 
     "encode to a signed string" in {

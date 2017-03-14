@@ -5,12 +5,10 @@ package play.api.mvc
 
 import java.net.{ URLDecoder, URLEncoder }
 import java.nio.charset.StandardCharsets
-import java.time.Instant
 import java.util.{ Base64, Date, Locale }
 import javax.inject.Inject
 
-import io.jsonwebtoken._
-import org.slf4j.MarkerFactory
+import io.jsonwebtoken.Jwts
 import play.api._
 import play.api.http._
 import play.api.libs.crypto.CookieSigner
@@ -21,7 +19,6 @@ import play.mvc.Http.{ Cookie => JCookie }
 import scala.collection.immutable.ListMap
 import scala.util.Try
 import scala.util.control.NonFatal
-import scala.concurrent.duration._
 
 /**
  * An HTTP cookie.
@@ -540,36 +537,20 @@ trait SignedCookieDataCodec extends CookieDataCodec {
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
 
-  private implicit val jwtContext = MarkerContext(MarkerFactory.getMarker("JWT"))
-
   private val logger = play.api.Logger(getClass)
 
   def secretConfiguration: SecretConfiguration
 
   def jwtConfiguration: JWTConfiguration
 
+  private lazy val formatter = new JWTCookieDataCodec.JWTFormatter(secretConfiguration, jwtConfiguration, clock)
+
   /**
    * Encodes the data as a `String`.
    */
   override def encode(data: Map[String, String]): String = {
-    val builder = Jwts.builder()
-    val now = jwtClock.now()
-
-    // https://tools.ietf.org/html/rfc7519#section-4.1.4
-    jwtConfiguration.expiresAfter.map { duration =>
-      val expirationDate = new Date(now.getTime + duration.toMillis)
-      builder.setExpiration(expirationDate)
-    }
-    builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
-    builder.setIssuedAt(now) // https://tools.ietf.org/html/rfc7519#section-4.1.6
-    uniqueId().map(builder.setId) // https://tools.ietf.org/html/rfc7519#section-4.1.7
-
-    // Set private claim for all the user data
-    builder.claim(jwtConfiguration.dataClaim, Jwts.claims(Scala.asJava(data)))
-
-    // Sign and compact into a string...
-    val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
-    builder.signWith(sigAlg, base64EncodedSecret).compact()
+    val dataMap = Map(jwtConfiguration.dataClaim -> Jwts.claims(Scala.asJava(data)))
+    formatter.format(dataMap)
   }
 
   /**
@@ -578,25 +559,21 @@ trait JWTCookieDataCodec extends CookieDataCodec {
   override def decode(encodedString: String): Map[String, String] = {
     import scala.collection.JavaConverters._
     import scala.collection.breakOut
+    import io.jsonwebtoken._
 
     try {
-      val jws: Jws[Claims] = Jwts.parser()
-        .setClock(jwtClock)
-        .setSigningKey(base64EncodedSecret)
-        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
-        .parseClaimsJws(encodedString)
+      // Get all the claims
+      val claimMap = formatter.parse(encodedString)
 
-      val headerAlgorithm = jws.getHeader.getAlgorithm
-      if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
-        val id = jws.getBody.getId
-        logger.warn(s"decode: invalid header algorithm $headerAlgorithm in JWT $id")
-        return Map.empty
-      }
-
-      val dataClass = classOf[java.util.Map[String, String]]
-      val data = jws.getBody.get(jwtConfiguration.dataClaim, dataClass)
+      // Pull out the JWT data claim and only return that.
+      val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
       data.asScala.map{ case (k, v) => (k, v.toString) }(breakOut)
     } catch {
+      case e: IllegalStateException =>
+        // Used in the case where the header algorithm does not match.
+        logger.error(e.getMessage)
+        Map.empty
+
       // We want to warn specifically about premature and expired JWT,
       // because they depend on clock skew and can cause silent user error
       // if production servers get out of sync
@@ -617,25 +594,95 @@ trait JWTCookieDataCodec extends CookieDataCodec {
     }
   }
 
-  /** The clock used for checking expires / not before code */
-  protected def clock: java.time.Clock = java.time.Clock.systemUTC()
-
   /** The unique id of the JWT, if any. */
   protected def uniqueId(): Option[String] = Some(JWTCookieDataCodec.JWTIDGenerator.generateId())
 
-  protected def base64EncodedSecret: String = {
-    Base64.getEncoder.encodeToString(
-      secretConfiguration.secret.getBytes(StandardCharsets.UTF_8)
-    )
-  }
-
-  protected val jwtClock = new io.jsonwebtoken.Clock {
-    override def now(): Date = java.util.Date.from(clock.instant())
-  }
-
+  /** The clock used for checking expires / not before code */
+  protected def clock: java.time.Clock = java.time.Clock.systemUTC()
 }
 
 object JWTCookieDataCodec {
+
+  /**
+   * Maps to and from JWT claims.  This class is more basic than the JWT
+   * cookie signing, because it exposes all claims, not just the "data" ones.
+   *
+   * @param secretConfiguration the secret used for signing JWT
+   * @param jwtConfiguration the configuration for JWT
+   * @param clock the system clock
+   */
+  private[play] class JWTFormatter(
+      secretConfiguration: SecretConfiguration,
+      jwtConfiguration: JWTConfiguration,
+      clock: java.time.Clock) {
+    import io.jsonwebtoken._
+    import scala.collection.JavaConverters._
+
+    private val jwtClock = new io.jsonwebtoken.Clock {
+      override def now(): Date = java.util.Date.from(clock.instant())
+    }
+
+    private val base64EncodedSecret: String = {
+      Base64.getEncoder.encodeToString(
+        secretConfiguration.secret.getBytes(StandardCharsets.UTF_8)
+      )
+    }
+
+    /**
+     * Parses encoded JWT against configuration, returns all JWT claims.
+     *
+     * @param encodedString the signed and encoded JWT.
+     * @return the map of claims
+     */
+    def parse(encodedString: String): Map[String, AnyRef] = {
+      val jws: Jws[Claims] = Jwts.parser()
+        .setClock(jwtClock)
+        .setSigningKey(base64EncodedSecret)
+        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+        .parseClaimsJws(encodedString)
+
+      val headerAlgorithm = jws.getHeader.getAlgorithm
+      if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
+        val id = jws.getBody.getId
+        val msg = s"decode: invalid header algorithm $headerAlgorithm in JWT $id"
+        throw new IllegalStateException(msg)
+      }
+      val claims: Claims = jws.getBody
+      claims.asScala.toMap
+    }
+
+    /**
+     * Formats the input claims to a JWT string, and adds extra date related claims.
+     *
+     * @param claims all the claims to be added to JWT.
+     * @return the signed, encoded JWT with extra date related claims
+     */
+    def format(claims: Map[String, AnyRef]): String = {
+      val builder = Jwts.builder()
+      val now = jwtClock.now()
+
+      // Add the claims one at a time because it saves problems with mutable maps
+      // under the implementation...
+      claims.foreach {
+        case (k, v) =>
+          builder.claim(k, v)
+      }
+
+      // https://tools.ietf.org/html/rfc7519#section-4.1.4
+      jwtConfiguration.expiresAfter.map { duration =>
+        val expirationDate = new Date(now.getTime + duration.toMillis)
+        builder.setExpiration(expirationDate)
+      }
+
+      builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
+      builder.setIssuedAt(now) // https://tools.ietf.org/html/rfc7519#section-4.1.6
+
+      // Sign and compact into a string...
+      val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
+      builder.signWith(sigAlg, base64EncodedSecret).compact()
+    }
+  }
+
   /** Utility object to generate random nonces for JWT from SecureRandom */
   private[play] object JWTIDGenerator {
     private val sr = new java.security.SecureRandom()
