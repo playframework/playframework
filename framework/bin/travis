@@ -15,16 +15,11 @@
 # we can run the tasks serially.
 set -ev
 
-declare -a TASKS=(test testSbtPlugins testDocumentation)
-
-#framework/bin/checkCodeStyle
+declare -a TASKS=(checkCodeStyle test testSbtPlugins testDocumentation)
 
 for TASK in "${TASKS[@]}"
 do
-  for VERSION in "2.11.8" "2.12.1"
-  do
-    # We have multi-threaded tests and see concurrent modification when starting logback,
-    # so always run tests sequentially.
-    framework/bin/$TASK +++$VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
-  done
+  # We have multi-threaded tests and see concurrent modification when starting logback,
+  # so always run tests sequentially.
+  framework/bin/$TASK ++$TRAVIS_SCALA_VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
 done

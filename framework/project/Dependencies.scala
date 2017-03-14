@@ -162,7 +162,7 @@ object Dependencies {
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
     moduleId.extra(
       "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
-      "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
+      "scalaVersion" -> CrossVersion.TransitionScalaVersion
     )
   }
 
