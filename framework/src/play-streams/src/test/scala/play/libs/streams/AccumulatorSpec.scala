@@ -21,7 +21,9 @@ import akka.japi.function.{ Function => JFn, Function2 => JFn2 }
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {
-  import scala.collection.JavaConverters.asJavaIterable
+  // JavaConversions is required because JavaConverters.asJavaIterable only exists in 2.12
+  // and we cross compile for 2.11
+  import scala.collection.JavaConversions.asJavaIterable
 
   def withMaterializer[T](block: Materializer => T) = {
     val system = ActorSystem("test")

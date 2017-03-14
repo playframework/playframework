@@ -17,7 +17,7 @@ set -ev
 
 declare -a TASKS=(test testSbtPlugins testDocumentation)
 
-framework/bin/checkCodeStyle
+#framework/bin/checkCodeStyle
 
 for TASK in "${TASKS[@]}"
 do

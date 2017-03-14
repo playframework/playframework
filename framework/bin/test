@@ -17,12 +17,12 @@ fi
 cd $FRAMEWORK
 
 echo "[info]"
-echo "[info] ---- BUILDING PLAY"
+echo "[info] ---- BUILDING PLAY $CROSSBUILD"
 echo "[info]"
 build "$@" quickPublish "${CROSSBUILD} publishLocal"
 
 echo "[info]"
-echo "[info] ---- RUNNING TESTS"
+echo "[info] ---- RUNNING TESTS $CROSSBUILD"
 echo "[info]"
 
 build "$@" "${CROSSBUILD} test"
