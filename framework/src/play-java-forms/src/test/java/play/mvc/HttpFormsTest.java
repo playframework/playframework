@@ -11,7 +11,7 @@ import play.Environment;
 import play.core.j.JavaContextComponents;
 import play.data.*;
 import play.data.format.Formatters;
-import play.data.models.Task;
+import play.data.Task;
 import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -273,7 +273,7 @@ public class HttpFormsTest {
             data.put("id", "1234567891");
             data.put("name", "peter");
             data.put("dueDate", "2009/11e/11");
-            Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
+            Cookie frCookie = new Cookie("PLAY_LANG", "fr", 0, "/", null, false, false);
             rb = new RequestBuilder().cookie(frCookie).uri("http://localhost/test").bodyForm(data);
             ctx = new Context(rb, contextComponents(app));
             Context.current.set(ctx);
