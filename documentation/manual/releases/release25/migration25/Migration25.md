@@ -303,7 +303,7 @@ play.filters.csrf {
 
 ### Getting the CSRF token
 
-Previously, a CSRF token could be retrieved from the HTTP request in any action. Now you must have either a CSRF filter or a CSRF action for `CRSF.getToken` to work. If you're not using a filter, you can use the `CSRFAddToken` action in Scala or `AddCSRFToken` Java annotation to ensure a token is in the session.
+Previously, a CSRF token could be retrieved from the HTTP request in any action. Now you must have either a CSRF filter or a CSRF action for `CSRF.getToken` to work. If you're not using a filter, you can use the `CSRFAddToken` action in Scala or `AddCSRFToken` Java annotation to ensure a token is in the session.
 
 Also, a minor bug was fixed in this release in which the CSRF token would be empty (throwing an exception in the template helper) if its signature was invalid. Now it will be regenerated on the same request so a token is still available from the template helpers and `CSRF.getToken`.
 
