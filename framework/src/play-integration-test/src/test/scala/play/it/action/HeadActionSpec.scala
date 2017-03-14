@@ -23,7 +23,7 @@ object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpe
 trait HeadActionSpec extends PlaySpecification
     with WsTestClient with Results with HeaderNames with ServerIntegrationSpecification {
 
-  def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
+  def route(verb: String, path: String)(handler: Handler): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
   }
 
@@ -33,6 +33,13 @@ trait HeadActionSpec extends PlaySpecification
     val manualContentSize = route("GET", "/manualContentSize") {
       Action { request =>
         Ok("The Itsy Bitsy Spider Went Up the Water Spout").withHeaders(CONTENT_LENGTH -> "5")
+      }
+    }
+
+    val webSocketResponse = route("GET", "/ws") {
+      WebSocket.tryAccept[String] { req =>
+        val forbidden: Result = Results.Forbidden
+        scala.concurrent.Future.successful(Left(forbidden))
       }
     }
 
@@ -53,6 +60,7 @@ trait HeadActionSpec extends PlaySpecification
           .orElse(stream) // GET /stream/0
           .orElse(manualContentSize) // GET /manualContentSize
           .orElse(chunkedResponse) // GET /chunked
+          .orElse(webSocketResponse) // GET /ws
       running(TestServer(port, FakeApplication(withRoutes = routes)))(block)
     }
 
@@ -61,6 +69,11 @@ trait HeadActionSpec extends PlaySpecification
         withRoutes = {
           case _ => action
         })))(block)
+    }
+
+    "return 400 for websocket endpoints" in withServer {
+      val result = await(wsUrl("/ws").head())
+      result.status must_== BAD_REQUEST
     }
 
     "return 200 in response to a URL with a GET handler" in withServer {
