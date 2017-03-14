@@ -152,7 +152,7 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "play-java-forms")
     .settings(
       libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps,
-      compileOrder in Test := CompileOrder.JavaThenScala
+      compileOrder in Test := CompileOrder.JavaThenScala // work around SI-9853 - can be removed when dropping Scala 2.11 support
     ).dependsOn(
       PlayJavaProject % "compile;test->test"
     )
