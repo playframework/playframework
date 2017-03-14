@@ -9,6 +9,7 @@ import java.security.{ PrivilegedAction, AccessController }
 import java.util.jar.JarFile
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
+import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
 import play.twirl.compiler.MaybeGeneratedSource
 import sbt._
