@@ -32,5 +32,16 @@ play.filters.https.strictTransportSecurity="max-age=31536000; includeSubDomains"
 The filter redirects using HTTP code 308, which is a permanent redirect that does not change the HTTP method according to [RFC 7238](https://tools.ietf.org/html/rfc7238).  This will work with the vast majority of browsers, but you can change the redirect code if working with older browsers:
 
 ```
-play.filters.https.redirectCode = 301
+play.filters.https.redirectStatusCode = 301
 ``` 
+
+## Custom HTTPS Port
+
+If the HTTPS server is on a custom port, then the redirect URL needs to be aware of it.  If the port is specified:
+
+```
+play.filters.https.port = 9443
+```
+
+then the URL in the `Location` header will include the port specifically, e.g. https://playframework.com:9443/some/url
+
