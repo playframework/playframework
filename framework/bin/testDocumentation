@@ -4,6 +4,16 @@
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
+CROSSBUILD=""
+# If first argument starts with +, it's a crossbuild argument, eg "+" or "+++2.11.8"
+# It needs to be part of the same argument as the SBT task that we run, so gets handled
+# specially
+if echo $1 | grep -q '^+'
+then
+    CROSSBUILD=$1
+    shift
+fi
+
 echo "[info]"
 echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
