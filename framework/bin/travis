@@ -21,5 +21,6 @@ for TASK in "${TASKS[@]}"
 do
   # We have multi-threaded tests and see concurrent modification when starting logback,
   # so always run tests sequentially.
-  framework/bin/$TASK ++$TRAVIS_SCALA_VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
+  # Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
+  framework/bin/$TASK +++$TRAVIS_SCALA_VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
 done
