@@ -3,7 +3,7 @@
  */
 package play.filters.https
 
-import javax.inject.{Inject, Provider}
+import javax.inject.{ Inject, Provider }
 
 import play.api.Configuration
 import play.api.http.HeaderNames._
