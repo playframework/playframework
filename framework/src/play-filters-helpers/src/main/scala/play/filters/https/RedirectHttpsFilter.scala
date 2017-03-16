@@ -5,7 +5,7 @@ package play.filters.https
 
 import javax.inject.{ Inject, Provider }
 
-import play.api.Configuration
+import play.api.{ Configuration, Environment, Mode }
 import play.api.http.HeaderNames._
 import play.api.http.Status
 import play.api.http.Status._
@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext
  * For documentation on configuring this filter, please see the Play documentation at
  * https://www.playframework.com/documentation/latest/RedirectHttpsFilter
  */
-class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
+class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration, environment: Environment)
     extends EssentialFilter {
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
@@ -32,7 +32,12 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
     if (req.secure) {
       next(req).map { result =>
         config.strictTransportSecurity.map { sts =>
-          result.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
+          environment.mode match {
+            case Mode.Prod =>
+              result.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
+            case other =>
+              result
+          }
         }.getOrElse(result)
       }
     } else {
@@ -52,7 +57,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
 }
 
 case class RedirectHttpsConfiguration(
-  strictTransportSecurity: Option[String] = None,
+  strictTransportSecurity: Option[String] = Some("max-age=31536000; includeSubDomains"),
   redirectStatusCode: Int = PERMANENT_REDIRECT,
   sslPort: Option[Int] = None // should match up to ServerConfig.sslPort
 )
