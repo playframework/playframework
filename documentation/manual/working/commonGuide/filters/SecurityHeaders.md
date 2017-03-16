@@ -40,5 +40,5 @@ Security headers may be overridden in specific actions using `withHeaders` on th
 @[allowActionSpecificHeaders](code/SecurityHeaders.scala)
 
 Any security headers not mentioned in `withHeaders` will use the usual configured values
-(if present) or the defaults.  Action-specific security headers are ignored unless 
+(if present) or the defaults.  Action-specific security headers are ignored unless
 `play.filters.headers.allowActionSpecificHeaders` is set to `true` in the configuration.
