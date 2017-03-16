@@ -128,9 +128,9 @@ GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttp
 
 ## Compile Time Default Filters
 
-If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
+If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.
 
-This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract:
 
 ```scala
 trait BuiltInComponents {
@@ -147,7 +147,7 @@ trait HttpFiltersComponents
      extends CSRFComponents
      with SecurityHeadersComponents
      with AllowedHostsComponents {
- 
+
    def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }
 ```
