@@ -24,10 +24,11 @@ import scala.concurrent.ExecutionContext
  * For documentation on configuring this filter, please see the Play documentation at
  * https://www.playframework.com/documentation/latest/RedirectHttpsFilter
  */
-class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)(implicit ec: ExecutionContext)
+class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
     extends EssentialFilter {
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
+    import play.core.Execution.Implicits.trampoline
     if (req.secure) {
       next(req).map { filter =>
         config.strictTransportSecurity.map { sts =>
