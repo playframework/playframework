@@ -65,6 +65,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
     }
 
     "work with singleton apply method using configuration" in new WithApplication() {
@@ -79,6 +80,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
     }
 
     "frame options" should {
@@ -200,6 +202,30 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
           val result = route(app, FakeRequest()).get
 
           header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
+        }
+    }
+
+    "referrer policy" should {
+
+      "work with custom" in withApplication(
+        Ok("hello"),
+        """
+          |play.filters.headers.referrerPolicy="some referrer policy"
+        """.stripMargin) { app =>
+          val result = route(app, FakeRequest()).get
+
+          header(REFERRER_POLICY, result) must beSome("some referrer policy")
+        }
+
+      "work with none" in withApplication(
+        Ok("hello"),
+        """
+          |play.filters.headers.referrerPolicy=null
+        """.stripMargin) { app =>
+
+          val result = route(app, FakeRequest()).get
+
+          header(REFERRER_POLICY, result) must beNone
         }
     }
 
