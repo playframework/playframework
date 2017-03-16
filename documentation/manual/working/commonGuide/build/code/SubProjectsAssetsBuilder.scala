@@ -16,6 +16,6 @@ class Assets @Inject() (errorHandler: HttpErrorHandler, assetsMetadata: AssetsMe
 
 import play.api.mvc._
 
-class HomeController extends Controller {
+class HomeController @Inject()(components: ControllerComponents) extends AbstractController(components) {
   def index = Action(Ok)
 }

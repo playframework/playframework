@@ -38,7 +38,8 @@ class ScalaFormsSpec extends Specification with Controller {
   "A scala forms" should {
 
     "generate from map" in new WithApplication {
-      val userForm = controllers.Application.userForm
+      val controller = app.injector.instanceOf[controllers.Application]
+      val userForm = controller.userForm
 
       //#userForm-generate-map
       val anyData = Map("name" -> "bob", "age" -> "21")
@@ -49,9 +50,10 @@ class ScalaFormsSpec extends Specification with Controller {
     }
 
     "generate from request" in new WithApplication {
-
       import play.api.libs.json.Json
-      val userForm = controllers.Application.userForm
+
+      val controller = app.injector.instanceOf[controllers.Application]
+      val userForm = controller.userForm
 
       val anyData = Json.parse( """{"name":"bob","age":"21"}""")
       implicit val request = FakeRequest().withBody(anyData)
@@ -64,29 +66,22 @@ class ScalaFormsSpec extends Specification with Controller {
 
     "get user info from form" in new WithApplication  {
 
-      controllers.Application.userFormName === "bob"
-
-      controllers.Application.userFormVerifyName === "bob"
-
-      controllers.Application.userFormConstraintsName === "bob"
-
-      controllers.Application.userFormConstraints2Name === "bob"
-
-      controllers.Application.userFormConstraintsAdhocName === "bob"
-
-      controllers.Application.userFormNestedCity === "Shanghai"
-
-      controllers.Application.userFormRepeatedEmails === List("benewu@gmail.com", "bob@gmail.com")
-
-      controllers.Application.userFormOptionalEmail === None
-
-      controllers.Application.userFormStaticId === 23
-
-      controllers.Application.userFormTupleName === "bob"
+      val controller = app.injector.instanceOf[controllers.Application]
+      controller.userFormName === "bob"
+      controller.userFormVerifyName === "bob"
+      controller.userFormConstraintsName === "bob"
+      controller.userFormConstraints2Name === "bob"
+      controller.userFormConstraintsAdhocName === "bob"
+      controller.userFormNestedCity === "Shanghai"
+      controller.userFormRepeatedEmails === List("benewu@gmail.com", "bob@gmail.com")
+      controller.userFormOptionalEmail === None
+      controller.userFormStaticId === 23
+      controller.userFormTupleName === "bob"
     }
 
     "handling form with errors" in new WithApplication {
-      val userFormConstraints2 = controllers.Application.userFormConstraints2
+      val controller = app.injector.instanceOf[controllers.Application]
+      val userFormConstraints2 = controller.userFormConstraints2
 
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
 
@@ -97,7 +92,8 @@ class ScalaFormsSpec extends Specification with Controller {
     }
 
     "handling binding failure" in new WithApplication {
-      val userForm = controllers.Application.userFormConstraints
+      val controller = app.injector.instanceOf[controllers.Application]
+      val userForm = controller.userFormConstraints
 
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
 
@@ -106,7 +102,8 @@ class ScalaFormsSpec extends Specification with Controller {
     }
 
     "display global errors user template" in new WithApplication {
-      val userForm = controllers.Application.userFormConstraintsAdHoc
+      val controller = app.injector.instanceOf[controllers.Application]
+      val userForm = controller.userFormConstraintsAdHoc
       
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
       
@@ -132,7 +129,8 @@ class ScalaFormsSpec extends Specification with Controller {
     }
 
     "fill selects with options and set their defaults" in new WithApplication {
-      val boundForm = controllers.Application.filledAddressSelectForm
+      val controller = app.injector.instanceOf[controllers.Application]
+      val boundForm = controller.filledAddressSelectForm
       val html = views.html.select(boundForm)
       html.body must contain("option value=\"London\" selected")
     }
@@ -141,13 +139,11 @@ class ScalaFormsSpec extends Specification with Controller {
 }
 
 package models {
+  case class User(name: String, age: Int)
 
-case class User(name: String, age: Int)
-
-object User {
-  def create(user: User): Int = 42
-}
-
+  object User {
+    def create(user: User): Int = 42
+  }
 }
 
 // We are sneaky and want these classes available without exposing our test package structure.
@@ -208,11 +204,7 @@ package controllers {
 import views.html._
 import views.html.contact._
 
-class Application extends Controller with I18nSupport {
-
-  val messagesApi: MessagesApi = {
-    play.api.i18n.Messages.Implicits.applicationMessagesApi(play.api.Play.current)
-  }
+class Application @Inject()(components: ControllerComponents) extends AbstractController(components) with I18nSupport {
 
   //#userForm-define
   val userForm = Form(
@@ -442,7 +434,6 @@ class Application extends Controller with I18nSupport {
   )
   //#userForm-default
 
-
   case class UserStaticData(id: Long, name: String, email: Option[String])
 
   //#userForm-static-value
@@ -560,8 +551,6 @@ class Application extends Controller with I18nSupport {
   }
 
 }
-
-object Application extends Application
 
 
 //#messages-controller

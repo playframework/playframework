@@ -3,8 +3,10 @@
  */
 package javaguide.forms.controllers
 
+import javax.inject.Inject
+
 import play.api.mvc._
 
-class Application extends Controller {
+class Application @Inject()(components: ControllerComponents) extends AbstractController(components) {
   def submit = Action(Ok)
 }
