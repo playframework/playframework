@@ -30,13 +30,13 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.core.Execution.Implicits.trampoline
     if (req.secure) {
-      next(req).map { filter =>
+      next(req).map { result =>
         config.strictTransportSecurity.map { sts =>
-          filter.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
-        }.getOrElse(filter)
+          result.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
+        }.getOrElse(result)
       }
     } else {
-      Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), config.redirectCode))
+      Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), config.redirectStatusCode))
     }
   }
 
@@ -53,7 +53,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
 
 case class RedirectHttpsConfiguration(
   strictTransportSecurity: Option[String] = None,
-  redirectCode: Int = PERMANENT_REDIRECT,
+  redirectStatusCode: Int = PERMANENT_REDIRECT,
   sslPort: Option[Int] = None // should match up to ServerConfig.sslPort
 )
 
