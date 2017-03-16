@@ -10,7 +10,6 @@ import play.*;
 
 import play.inject.guice.GuiceApplicationBuilder;
 import play.routing.Router;
-import play.api.test.PlayRunners$;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaContextComponents;
@@ -34,6 +33,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static play.mvc.Http.*;
+import static play.libs.Scala.asScala;
 
 /**
  * Helper functions to run tests.
@@ -493,14 +493,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param block       the block to run after the Play app is started.
      */
     public static void running(Application application, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(application);
-                block.run();
-            } finally {
-                stop(application);
-            }
-        }
+        Helpers$.MODULE$.running(application.getWrappedApplication(), asScala(() -> { block.run(); return null; }));
     }
 
 
@@ -567,14 +560,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param block  the block of code to run after the server starts.
      */
     public static void running(TestServer server, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(server);
-                block.run();
-            } finally {
-                stop(server);
-            }
-        }
+        Helpers$.MODULE$.running(server, asScala(() -> { block.run(); return null; }));
     }
 
     /**
@@ -596,7 +582,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param block     the block of code to execute.
      */
     public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
+        Helpers$.MODULE$.runSynchronized(server.application(), asScala(() -> {
             TestBrowser browser = null;
             TestServer startedServer = null;
             try {
@@ -612,7 +598,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                     stop(startedServer);
                 }
             }
-        }
+            return null;
+        }));
     }
 
     /**

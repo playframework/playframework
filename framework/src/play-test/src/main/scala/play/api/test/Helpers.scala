@@ -38,6 +38,21 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
+   * Returns `true` if this application needs to run sequentially, rather than in parallel with other applications.
+   * Typically that means the application and/or test relies on some global state, so this defaults to the
+   * globalApplicationEnabled setting. This method is provided so the behavior can be customized if needed.
+   */
+  protected def shouldRunSequentially(app: Application): Boolean = app.globalApplicationEnabled
+
+  private[play] def runSynchronized[T](app: Application)(block: => T): T = {
+    if (shouldRunSequentially(app)) {
+      PlayRunners.mutex.synchronized(block)
+    } else {
+      block
+    }
+  }
+
+  /**
    * The base builder used in the running method.
    */
   lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
@@ -51,7 +66,7 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    PlayRunners.mutex.synchronized {
+    runSynchronized(app) {
       try {
         Play.start(app)
         block
@@ -70,7 +85,7 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running server.
    */
   def running[T](testServer: TestServer)(block: => T): T = {
-    PlayRunners.mutex.synchronized {
+    runSynchronized(testServer.application) {
       try {
         testServer.start()
         block
@@ -92,7 +107,7 @@ trait PlayRunners extends HttpVerbs {
    */
   def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
-    PlayRunners.mutex.synchronized {
+    runSynchronized(testServer.application) {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
