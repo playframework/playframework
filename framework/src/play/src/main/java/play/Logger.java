@@ -128,7 +128,7 @@ public class Logger {
     /**
      * Log a message with the TRACE level.
      *
-     * @param msgSupplier <code>Supplier<String</code> that contains message to log
+     * @param msgSupplier <code>Supplier</code> that contains message to log
      */
     public static void trace(Supplier<String> msgSupplier) {
         logger.trace(msgSupplier);
@@ -176,7 +176,7 @@ public class Logger {
     /**
      * Log a message with the DEBUG level.
      *
-     * @param msgSupplier <code>Supplier<String</code> that contains message to log
+     * @param msgSupplier <code>Supplier</code> that contains message to log
      */
     public static void debug(Supplier<String> msgSupplier) {
         logger.debug(msgSupplier);
@@ -224,7 +224,7 @@ public class Logger {
     /**
      * Log a message with the INFO level.
      *
-     * @param msgSupplier <code>Supplier<String</code> that contains message to log
+     * @param msgSupplier <code>Supplier</code> that contains message to log
      */
     public static void info(Supplier<String> msgSupplier) {
         logger.info(msgSupplier);
@@ -272,7 +272,7 @@ public class Logger {
     /**
      * Log a message with the WARN level.
      *
-     * @param msgSupplier <code>Supplier<String</code> that contains message to log
+     * @param msgSupplier <code>Supplier</code> that contains message to log
      */
     public static void warn(Supplier<String> msgSupplier) {
         logger.warn(msgSupplier);
@@ -320,7 +320,7 @@ public class Logger {
     /**
      * Log a message with the ERROR level.
      *
-     * @param msgSupplier <code>Supplier<String</code> that contains message to log
+     * @param msgSupplier <code>Supplier</code> that contains message to log
      */
     public static void error(Supplier<String> msgSupplier) {
         logger.error(msgSupplier);
@@ -510,7 +510,7 @@ public class Logger {
         /**
          * Log a message with the TRACE level.
          *
-         * @param msgSupplier <code>Supplier<String</code> that contains message to log
+         * @param msgSupplier <code>Supplier</code> that contains message to log
          */
         public void trace(Supplier<String> msgSupplier) {
             if (isTraceEnabled()) {
@@ -596,7 +596,7 @@ public class Logger {
         /**
          * Log a message with the DEBUG level.
          *
-         * @param msgSupplier <code>Supplier<String</code> that contains message to log
+         * @param msgSupplier <code>Supplier</code> that contains message to log
          */
         public void debug(Supplier<String> msgSupplier) {
             if (isDebugEnabled()) {
@@ -680,7 +680,7 @@ public class Logger {
         /**
          * Log a message with the INFO level.
          *
-         * @param msgSupplier <code>Supplier<String</code> that contains message to log
+         * @param msgSupplier <code>Supplier</code> that contains message to log
          */
         public void info(Supplier<String> msgSupplier) {
             if (isInfoEnabled()) {
@@ -764,7 +764,7 @@ public class Logger {
         /**
          * Log a message with the WARN level.
          *
-         * @param msgSupplier <code>Supplier<String</code> that contains message to log
+         * @param msgSupplier <code>Supplier</code> that contains message to log
          */
         public void warn(Supplier<String> msgSupplier) {
             if (isWarnEnabled()) {
@@ -848,7 +848,7 @@ public class Logger {
         /**
          * Log a message with the ERROR level.
          *
-         * @param msgSupplier <code>Supplier<String</code> that contains message to log
+         * @param msgSupplier <code>Supplier</code> that contains message to log
          */
         public void error(Supplier<String> msgSupplier) {
             if (isErrorEnabled()) {
