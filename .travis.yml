@@ -6,6 +6,9 @@ sudo: true
 group: beta
 jdk:
   - oraclejdk8
+scala:
+  - 2.11.8
+  - 2.12.1
 script:
   - framework/bin/travis
 cache:

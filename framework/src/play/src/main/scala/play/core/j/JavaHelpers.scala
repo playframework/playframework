@@ -5,6 +5,7 @@ package play.core.j
 
 import java.net.{ InetAddress, URI, URLDecoder }
 import java.security.cert.X509Certificate
+import java.util.Optional
 import java.util.concurrent.CompletionStage
 
 import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration }
@@ -28,7 +29,9 @@ import scala.concurrent.Future
 trait JavaHelpers {
 
   def cookieToScalaCookie(c: play.mvc.Http.Cookie): Cookie = {
-    Cookie(c.name, c.value, Option(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+    import scala.compat.java8.OptionConverters
+    val optionalMaxAge = OptionConverters.toScala(Optional.ofNullable(c.maxAge))
+    Cookie(c.name, c.value, optionalMaxAge.map(_.toInt), c.path, Option(c.domain), c.secure, c.httpOnly)
   }
 
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
