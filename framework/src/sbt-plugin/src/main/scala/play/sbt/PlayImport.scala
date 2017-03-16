@@ -6,7 +6,7 @@ package play.sbt
 import sbt.Keys._
 import sbt._
 
-import play.runsupport.FileWatchService
+import play.dev.filewatch.FileWatchService
 
 /**
  * Declares the default imports for Play plugins.

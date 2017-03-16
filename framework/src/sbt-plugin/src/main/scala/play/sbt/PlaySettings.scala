@@ -10,7 +10,7 @@ import sbt._
 import sbt.Keys._
 
 import play.TemplateImports
-import play.runsupport.FileWatchService
+import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys

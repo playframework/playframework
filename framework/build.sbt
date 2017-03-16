@@ -14,11 +14,7 @@ import sbt._
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
     .dependsOn(PlayExceptionsProject)
 
-lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
-    .settings(libraryDependencies ++= runSupportDependencies(sbtVersion.value, scalaVersion.value))
-    .dependsOn(BuildLinkProject)
-
-// extra run-support project that is only compiled against sbt scala version
+// run-support project is only compiled against sbt scala version
 lazy val SbtRunSupportProject = PlaySbtProject("SBT-Run-Support", "run-support")
     .settings(
       target := target.value / "sbt-run-support",
@@ -294,7 +290,6 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAhcWsProject,
   PlayOpenIdProject,
   SbtRunSupportProject,
-  RunSupportProject,
   SbtPluginProject,
   PlaySpecs2Project,
   PlayTestProject,
