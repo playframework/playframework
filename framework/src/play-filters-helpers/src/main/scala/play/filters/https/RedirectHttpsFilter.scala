@@ -40,11 +40,11 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)(implici
   }
 
   protected def createHttpsRedirectUrl(req: RequestHeader): String = {
-    config.httpsPort match {
-      case -1 =>
+    config.sslPort match {
+      case None =>
         s"https://${req.domain}${req.uri}"
 
-      case port =>
+      case Some(port) =>
         s"https://${req.domain}:${port}${req.uri}"
     }
   }
@@ -53,7 +53,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)(implici
 case class RedirectHttpsConfiguration(
   strictTransportSecurity: Option[String] = None,
   redirectCode: Int = PERMANENT_REDIRECT,
-  httpsPort: Int = -1
+  sslPort: Option[Int] = None // should match up to ServerConfig.sslPort
 )
 
 class RedirectHttpsConfigurationProvider @Inject() (c: Configuration)
@@ -68,7 +68,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration)
     if (!Status.isRedirect(redirectStatusCode)) {
       throw c.reportError(statusCodePath, s"Status Code $redirectStatusCode is not a Redirect status code!")
     }
-    val port = c.get[Int](portPath)
+    val port = c.getOptional[Int](portPath)
 
     RedirectHttpsConfiguration(strictTransportSecurityMaxAge, redirectStatusCode, port)
   }
