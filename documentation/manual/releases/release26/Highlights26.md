@@ -48,7 +48,7 @@ Request tags have now been deprecated and you should migrate to use attributes i
 
 Twirl templates can now be created with a constructor annotation using `@this`.  The constructor annotation means that Twirl templates can be injected into templates directly and can manage their own dependencies, rather than the controller having to manage dependencies not only for itself, but also for the templates it has to render.
 
-As an example, suppose a template has a dependency on a component `TemplateRenderingComponent`, which is not used by the controller.  
+As an example, suppose a template has a dependency on a component `TemplateRenderingComponent`, which is not used by the controller.
 
 First, add the `@Inject` annotation to Twirl in `build.sbt`:
 
@@ -68,21 +68,21 @@ Then create a file `IndexTemplate.scala.html` using the `@this` syntax for the c
 And finally define the controller by injecting the template in the constructor:
 
 ```scala
-public MyController @Inject()(indexTemplate: views.html.IndexTemplate, 
-                              cc: ControllerComponents) 
+public MyController @Inject()(indexTemplate: views.html.IndexTemplate,
+                              cc: ControllerComponents)
   extends AbstractController(cc) {
-  
+
   def index = Action { implicit request =>
     Ok(indexTemplate())
   }
 }
 ```
 
-or 
+or
 
 ```java
 public class MyController extends Controller {
-  
+
   private final views.html.indexTemplate template;
 
   @Inject
@@ -98,3 +98,27 @@ public class MyController extends Controller {
 ```
 
 Once the template is defined with its dependencies, then the controller can have the template injected into the controller, but the controller does not see `TemplateRenderingComponent`.
+
+## Filters Enhancements
+
+Play now comes with a default set of enabled filters, defined through configuration.
+
+* `play.filters.csrf.CSRFFilter`
+* `play.filters.headers.SecurityHeadersFilter`
+* `play.filters.hosts.AllowedHostsFilter`
+
+This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
+
+In addition, filters can now be configured through `application.conf`.  To append to the defaults list, use the `+=`:
+
+```
+play.filters.enabled+=MyFilter
+```
+
+If you want to specifically disable a filter for testing, you can also do that from configuration:
+
+```
+play.filters.disabled+=MyFilter
+```
+
+Please see [[the Filters page|Filters]] for more details.
