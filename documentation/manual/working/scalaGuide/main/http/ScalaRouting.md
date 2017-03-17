@@ -28,7 +28,7 @@ routesGenerator := StaticRoutesGenerator
 
 The code samples in Play's documentation assumes that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator by declaring each of your controllers as an `object` rather than a `class`.
 
-For difference between the routes generator and advanced usage, see [[dependency injecting controllers|ScalaDependencyInjection#dependency-injecting-controllers]].
+For difference between the routes generator and advanced usage, see [[dependency injecting controllers|ScalaDependencyInjection#dependency-injecting-controllers]] for more details about the routes file syntax.
 
 ## The routes file syntax
 

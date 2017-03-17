@@ -55,9 +55,7 @@ There are two ways of defining routes when this routes generator is used:
 
 1. Defining actions without using the `@` symbol
 
-    For those routes, all controllers and their related components are **effectively singletons** due to router being a singleton, but keep in mind that if you inject a controller into a non-singleton component then its lifecycle will be determined by that parent component (not a general pattern but possible).
-
-    The major difference between this approach and static controllers is that all dependencies are determined at runtime.
+    For those routes, all controllers and their related components are **effectively singletons** due to router being a singleton with Play's default application loader, but keep in mind that if you inject a controller into a non-singleton component then its lifecycle will be determined by that parent component (not a general pattern but possible).
 
 2. Prefixing actions with the `@` symbol
 
