@@ -77,13 +77,6 @@ object PlayRun {
       () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
     )
 
-    val runSbtTask: String => AnyRef = (task: String) => {
-      val parser = Act.scopedKeyParser(state)
-      val Right(sk) = complete.DefaultParsers.result(parser, task)
-      val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
-      result.flatMap(_.toEither.right.toOption).orNull
-    }
-
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
       (javaOptions in Runtime).value,
@@ -103,7 +96,6 @@ object PlayRun {
       baseDirectory.value,
       devSettings.value,
       args,
-      runSbtTask,
       (mainClass in (Compile, Keys.run)).value.get
     )
 
