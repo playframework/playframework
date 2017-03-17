@@ -6,7 +6,6 @@ package play.filters.https
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import org.specs2.concurrent.ExecutionEnv
 import play.api.Mode.Mode
 import play.api._
 import play.api.http.HttpFilters
@@ -21,13 +20,14 @@ private[https] class TestFilters @Inject() (redirectPlainFilter: RedirectHttpsFi
   override def filters: Seq[EssentialFilter] = Seq(redirectPlainFilter)
 }
 
-class RedirectHttpsFilterSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
+class RedirectHttpsFilterSpec extends PlaySpecification {
 
   "RedirectHttpsConfigurationProvider" should {
 
     "throw configuration error on invalid redirect status code" in {
       val configuration = Configuration.from(Map("play.filters.https.redirectStatusCode" -> "200"))
-      val configProvider = new RedirectHttpsConfigurationProvider(configuration)
+      val environment = Environment.simple()
+      val configProvider = new RedirectHttpsConfigurationProvider(configuration, environment)
 
       {
         configProvider.get
