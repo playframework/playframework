@@ -73,6 +73,10 @@ class HikariCPConfigSpec extends Specification {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.isInitializationFailFast must beTrue
       }
 
+      "initializationFailTimeout to 1" in new Configs {
+        new HikariCPConfig(dbConfig, reference).toHikariConfig.getInitializationFailTimeout must beEqualTo(1)
+      }
+
       "isolateInternalQueries to false" in new Configs {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.isIsolateInternalQueries must beFalse
       }
@@ -131,6 +135,11 @@ class HikariCPConfigSpec extends Specification {
       "maximumPoolSize" in new Configs {
         val config = from("hikaricp.maximumPoolSize" -> "20")
         new HikariCPConfig(dbConfig, config).toHikariConfig.getMaximumPoolSize must beEqualTo(20)
+      }
+
+      "initializationFailTimeout" in new Configs {
+        val config = from("hikaricp.initializationFailTimeout" -> "10")
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getInitializationFailTimeout must beEqualTo(10)
       }
 
       "initializationFailFast" in new Configs {
