@@ -782,6 +782,10 @@ And if you are, for some reason, directly using Netty classes, you should [adapt
 The FluentLenium library was updated to version 3.1.1 and as a result the underlying Selenium version changed to [3.0.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/). If you were using Selenium's WebDriver API before, there shouldn't be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
 If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
+### HikariCP
+
+HikariCP was update and a new configuration was introduced: `initializationFailTimeout`. This new configuration should be used to replace `initializationFailFast` which is now deprecated. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this new configuration.
+
 ## Other Configuration changes
 
 There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
