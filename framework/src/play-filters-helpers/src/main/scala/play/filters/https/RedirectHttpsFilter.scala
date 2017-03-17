@@ -5,15 +5,11 @@ package play.filters.https
 
 import javax.inject.{ Inject, Provider }
 
-import play.api.Configuration
 import play.api.http.HeaderNames._
-import play.api.http.Status
 import play.api.http.Status._
 import play.api.inject.SimpleModule
-import play.api.libs.streams.Accumulator
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext
+import play.api.{ Configuration, Environment, Mode }
 
 /**
  * A filter that redirects HTTP requests to https requests.
@@ -28,12 +24,16 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
     extends EssentialFilter {
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
+    import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
     if (req.secure) {
       next(req).map { result =>
-        config.strictTransportSecurity.map { sts =>
-          result.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
-        }.getOrElse(result)
+        config.strictTransportSecurity match {
+          case Some(sts) if config.hstsEnabled =>
+            result.withHeaders(STRICT_TRANSPORT_SECURITY -> sts)
+          case other =>
+            result
+        }
       }
     } else {
       Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), config.redirectStatusCode))
@@ -52,12 +52,13 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
 }
 
 case class RedirectHttpsConfiguration(
-  strictTransportSecurity: Option[String] = None,
+  strictTransportSecurity: Option[String] = Some("max-age=31536000; includeSubDomains"),
   redirectStatusCode: Int = PERMANENT_REDIRECT,
-  sslPort: Option[Int] = None // should match up to ServerConfig.sslPort
+  sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
+  hstsEnabled: Boolean = false
 )
 
-class RedirectHttpsConfigurationProvider @Inject() (c: Configuration)
+class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
     extends Provider[RedirectHttpsConfiguration] {
   private val stsPath = "play.filters.https.strictTransportSecurity"
   private val statusCodePath = "play.filters.https.redirectStatusCode"
@@ -66,12 +67,12 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration)
   lazy val get: RedirectHttpsConfiguration = {
     val strictTransportSecurityMaxAge = c.get[Option[String]](stsPath)
     val redirectStatusCode = c.get[Int](statusCodePath)
-    if (!Status.isRedirect(redirectStatusCode)) {
+    if (!isRedirect(redirectStatusCode)) {
       throw c.reportError(statusCodePath, s"Status Code $redirectStatusCode is not a Redirect status code!")
     }
     val port = c.getOptional[Int](portPath)
 
-    RedirectHttpsConfiguration(strictTransportSecurityMaxAge, redirectStatusCode, port)
+    RedirectHttpsConfiguration(strictTransportSecurityMaxAge, redirectStatusCode, port, e.mode == Mode.Prod)
   }
 }
 
