@@ -8,6 +8,8 @@ import java.lang.annotation.*;
 
 /**
  * Mark an action to be cached on server side.
+ *
+ * @see CachedAction
  */
 @With(CachedAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
