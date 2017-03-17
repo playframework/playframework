@@ -11,7 +11,6 @@ import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
-import play.twirl.compiler.MaybeGeneratedSource
 import sbt._
 
 object Reloader {
@@ -19,6 +18,10 @@ object Reloader {
   sealed trait CompileResult
   case class CompileSuccess(sources: SourceMap, classpath: Classpath) extends CompileResult
   case class CompileFailure(exception: PlayException) extends CompileResult
+
+  trait GeneratedSourceMapping {
+    def getOriginalLine(generatedSource: File, line: Integer): Integer
+  }
 
   type SourceMap = Map[String, Source]
   case class Source(file: File, original: Option[File])
@@ -136,6 +139,7 @@ object Reloader {
     reloadCompile: () => CompileResult, reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
     monitoredFiles: Seq[File], fileWatchService: FileWatchService,
+    generatedSourceHandlers: Map[String, GeneratedSourceMapping],
     docsClasspath: Classpath, docsJar: Option[File],
     defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
@@ -209,7 +213,7 @@ object Reloader {
     lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, runSbtTask)
+    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers, runSbtTask)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -281,8 +285,7 @@ object Reloader {
 
 }
 
-import Reloader.{ CompileResult, CompileSuccess, CompileFailure }
-import Reloader.{ ClassLoaderCreator, SourceMap }
+import Reloader._
 
 class Reloader(
     reloadCompile: () => CompileResult,
@@ -292,6 +295,7 @@ class Reloader(
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
+    generatedSourceHandlers: Map[String, GeneratedSourceMapping],
     runSbtTask: String => AnyRef) extends BuildLink {
 
   // The current classloader for the application
@@ -390,8 +394,12 @@ class Reloader(
       sources.get(topType).map { source =>
         source.original match {
           case Some(origFile) if line != null =>
-            val origLine: java.lang.Integer = MaybeGeneratedSource.unapply(source.file).map(_.mapLine(line): java.lang.Integer).orNull
-            Array[java.lang.Object](origFile, origLine)
+            generatedSourceHandlers.get(origFile.getName.split('.').drop(1).mkString(".")) match {
+              case Some(handler) =>
+                Array[java.lang.Object](origFile, handler.getOriginalLine(source.file, line))
+              case _ =>
+                Array[java.lang.Object](origFile, line)
+            }
           case Some(origFile) =>
             Array[java.lang.Object](origFile, null)
           case None =>
