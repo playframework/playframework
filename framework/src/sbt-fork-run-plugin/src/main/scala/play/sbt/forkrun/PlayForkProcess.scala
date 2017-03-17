@@ -29,7 +29,7 @@ case class PlayForkOptions(
  */
 object PlayForkProcess {
   def apply(options: PlayForkOptions, args: Seq[String], log: Logger): Unit = {
-    val logProperties = Seq("-Dfork.run.log.level=" + options.logLevel.toString, "-Dfork.run.log.events=" + options.logSbtEvents)
+    val logProperties = Seq("-Dplay.run.log.level=" + options.logLevel.toString, "-Dplay.run.log.events=" + options.logSbtEvents)
     val jvmOptions = options.jvmOptions ++ logProperties
     val arguments = Seq(options.baseDirectory.getAbsolutePath, options.configKey) ++ args
     run(options.workingDirectory, jvmOptions, options.classpath, "play.forkrun.ForkRun", arguments, log, options.shutdownTimeout)

@@ -1,10 +1,11 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.forkrun
+package play.runsupport
 
 import java.io.{ PrintStream, PrintWriter, StringWriter }
-import play.runsupport.{ Colors, LoggerProxy }
+
+import scala.util.Properties
 
 object Logger {
   case class Level(value: Int, name: String, label: String) {
@@ -19,6 +20,10 @@ object Logger {
 
     val levels = Seq(Debug, Info, Warn, Error)
 
+    def apply(): Option[Level] = {
+      val logLevel = Properties.propOrElse("play.run.log.level", "info")
+      apply(logLevel)
+    }
     def apply(value: Int): Option[Level] = levels find (_.value == value)
     def apply(name: String): Option[Level] = levels find (_.name == name)
   }
@@ -32,6 +37,10 @@ object Logger {
   }
 
   val NewLine = sys.props("line.separator")
+
+  def apply(): Logger = {
+    new Logger(Level().getOrElse(Level.Info))
+  }
 
   def apply(level: Level): Logger = new Logger(level)
   def apply(level: String): Logger = new Logger(Level(level).getOrElse(Level.Info))

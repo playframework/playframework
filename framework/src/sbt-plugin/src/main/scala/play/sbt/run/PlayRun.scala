@@ -22,6 +22,8 @@ import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
+import scala.util.Properties
+
 /**
  * Provides mechanisms for running a Play application in SBT
  */
@@ -52,6 +54,7 @@ object PlayRun {
     reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
     assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
+    val log = Keys.sLog.value
     val args = Def.spaceDelimited().parsed
 
     val state = Keys.state.value
@@ -90,8 +93,8 @@ object PlayRun {
       devSettings.value,
       args,
       runSbtTask,
-      (mainClass in (Compile, Keys.run)).value.get
-    )
+      (mainClass in (Compile, Keys.run)).value.get,
+      log)
 
     interaction match {
       case nonBlocking: PlayNonBlockingInteractionMode =>

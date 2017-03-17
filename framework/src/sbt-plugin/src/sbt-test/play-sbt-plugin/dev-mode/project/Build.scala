@@ -11,17 +11,19 @@ import scala.util.Properties
 
 object DevModeBuild {
 
+  private val log = play.runsupport.Logger()
+
   def jdk7WatchService = Def.setting {
     if (Properties.isJavaAtLeast("1.7")) {
-      FileWatchService.jdk7(Keys.sLog.value)
+      FileWatchService.jdk7(log)
     } else {
       println("Not testing JDK7 watch service because we're not on JDK7")
-      FileWatchService.sbt(Keys.pollInterval.value)
+      FileWatchService.sbt(Keys.pollInterval.value, log)
     }
   }
 
   def jnotifyWatchService = Def.setting {
-    FileWatchService.jnotify(Keys.target.value)
+    FileWatchService.jnotify(Keys.target.value, log)
   }
 
   val MaxAttempts = 10
@@ -37,7 +39,7 @@ object DevModeBuild {
       val url = new java.net.URL("http://localhost:9000" + path)
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       conn.setConnectTimeout(ConnectTimeout)
-      conn.setReadTimeout(ReadTimeout)      
+      conn.setReadTimeout(ReadTimeout)
 
       if (status == conn.getResponseCode) {
         messages += s"Resource at $path returned $status as expected"

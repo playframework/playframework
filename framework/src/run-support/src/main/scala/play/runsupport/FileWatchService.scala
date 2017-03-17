@@ -77,23 +77,23 @@ object FileWatchService {
       // If Windows or Linux and JDK7, use JDK7 watch service
       case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => new JDK7FileWatchService(logger)
       // If Windows, Linux or OSX, use JNotify but fall back to SBT
-      case (Windows | Linux | OSX) => JNotifyFileWatchService(targetDirectory).recover {
+      case (Windows | Linux | OSX) => JNotifyFileWatchService(logger, targetDirectory).recover {
         case e =>
           logger.warn("Error loading JNotify watch service: " + e.getMessage)
           logger.trace(e)
-          new PollingFileWatchService(pollDelayMillis)
+          new PollingFileWatchService(logger, pollDelayMillis)
       }.get
-      case _ => new PollingFileWatchService(pollDelayMillis)
+      case _ => new PollingFileWatchService(logger, pollDelayMillis)
     }
 
     def watch(filesToWatch: Seq[File], onChange: () => Unit) = delegate.watch(filesToWatch, onChange)
   }
 
-  def jnotify(targetDirectory: File): FileWatchService = optional(JNotifyFileWatchService(targetDirectory))
+  def jnotify(targetDirectory: File, logger: LoggerProxy): FileWatchService = optional(JNotifyFileWatchService(logger, targetDirectory))
 
   def jdk7(logger: LoggerProxy): FileWatchService = new JDK7FileWatchService(logger)
 
-  def sbt(pollDelayMillis: Int): FileWatchService = new PollingFileWatchService(pollDelayMillis)
+  def sbt(pollDelayMillis: Int, logger: LoggerProxy): FileWatchService = new PollingFileWatchService(logger, pollDelayMillis)
 
   def optional(watchService: Try[FileWatchService]): FileWatchService = new OptionalFileWatchServiceDelegate(watchService)
 }
@@ -105,7 +105,7 @@ private[play] trait DefaultFileWatchService extends FileWatchService {
 /**
  * A polling Play watch service.  Polls in the background.
  */
-private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends FileWatchService {
+private[play] class PollingFileWatchService(logger: LoggerProxy, val pollDelayMillis: Int) extends FileWatchService {
 
   // Work around for https://github.com/sbt/sbt/issues/1973
   def distinctPathFinder(pathFinder: PathFinder) = PathFinder {
@@ -113,6 +113,8 @@ private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends Fi
   }
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+
+    logger.debug(s"watch: filesToWatch = ${filesToWatch}")
 
     @volatile var stopped = false
 
@@ -136,8 +138,10 @@ private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends Fi
   }
 }
 
-private[play] class JNotifyFileWatchService(delegate: JNotifyFileWatchService.JNotifyDelegate) extends FileWatchService {
+private[play] class JNotifyFileWatchService(logger: LoggerProxy, delegate: JNotifyFileWatchService.JNotifyDelegate) extends FileWatchService {
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+    logger.debug(s"watch: filesToWatch = ${filesToWatch}")
+
     val listener = delegate.newListener(onChange)
     val registeredIds = filesToWatch.map { file =>
       delegate.addWatch(file.getAbsolutePath, listener)
@@ -192,7 +196,7 @@ private object JNotifyFileWatchService {
   // Tri state - null means no attempt to load yet, None means failed load, Some means successful load
   @volatile var watchService: Option[Try[JNotifyFileWatchService]] = None
 
-  def apply(targetDirectory: File): Try[FileWatchService] = {
+  def apply(logger: LoggerProxy, targetDirectory: File): Try[FileWatchService] = {
 
     watchService match {
       case None =>
@@ -242,7 +246,7 @@ private object JNotifyFileWatchService {
           // Try it
           d.ensureLoaded()
 
-          new JNotifyFileWatchService(d)
+          new JNotifyFileWatchService(logger, d)
         }
         watchService = Some(ws)
         ws
@@ -257,6 +261,8 @@ private[play] class JDK7FileWatchService(logger: LoggerProxy) extends FileWatchS
   import StandardWatchEventKinds._
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+    logger.debug(s"watch: filesToWatch = ${filesToWatch}")
+
     val dirsToWatch = filesToWatch.filter { file =>
       if (file.isDirectory) {
         true
@@ -264,7 +270,7 @@ private[play] class JDK7FileWatchService(logger: LoggerProxy) extends FileWatchS
         // JDK7 WatchService can't watch files
         logger.warn("JDK7 WatchService only supports watching directories, but an attempt has been made to watch the file: " + file.getCanonicalPath)
         logger.warn("This file will not be watched. Either remove the file from playMonitoredFiles, or configure a different WatchService, eg:")
-        logger.warn("PlayKeys.fileWatchService := play.runsupport.FileWatchService.jnotify(target.value)")
+        logger.warn("PlayKeys.fileWatchService := play.runsupport.FileWatchService.jnotify(logger, target.value)")
         false
       } else false
     }

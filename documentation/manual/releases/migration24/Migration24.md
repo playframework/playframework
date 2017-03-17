@@ -78,7 +78,7 @@ The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
 
 Also the corresponding class has changed. To set the FileWatchService to poll every two seconds, use it like this:
 ```scala
-PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(2000)
+PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(Keys.sLog.value, 2000)
 ```
 
 ### Play Slick dependency
