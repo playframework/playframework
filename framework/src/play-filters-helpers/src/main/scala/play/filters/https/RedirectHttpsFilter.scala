@@ -83,7 +83,7 @@ class RedirectHttpsModule extends SimpleModule {
 /**
  * The Redirect to HTTPS filter components for compile time dependency injection.
  */
-trait RedirectHttpsFilterComponents {
+trait RedirectHttpsComponents {
   def configuration: Configuration
   def environment: Environment
 
