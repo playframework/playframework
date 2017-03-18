@@ -7,7 +7,6 @@ import java.util.concurrent.TimeoutException
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
-import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.Config
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
@@ -100,14 +99,6 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
     system
   }
 
-}
-
-/**
- * Provider for the default flow materializer
- */
-@Singleton
-class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
-  lazy val get: Materializer = ActorMaterializer()(actorSystem)
 }
 
 /**

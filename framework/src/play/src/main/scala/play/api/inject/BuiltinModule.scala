@@ -7,14 +7,13 @@ import java.util.concurrent.Executor
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
 import play.api.http.HttpConfiguration._
 import play.api.http._
 import play.api.libs.Files.TemporaryFileReaperConfiguration.TemporaryFileReaperConfigurationProvider
 import play.api.libs.Files._
-import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
+import play.api.libs.concurrent.{ ActorSystemProvider, AkkaMaterializerProvider, ExecutionContextProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
@@ -69,7 +68,6 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[Router].toProvider[RoutesProvider],
     bind[play.routing.Router].to[JavaRouterAdapter],
     bind[ActorSystem].toProvider[ActorSystemProvider],
-    bind[Materializer].toProvider[MaterializerProvider],
     bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
     bind[ExecutionContext].to[ExecutionContextExecutor],
     bind[Executor].to[ExecutionContextExecutor],
@@ -87,7 +85,8 @@ class BuiltinModule extends SimpleModule((env, conf) => {
       HttpErrorHandler.bindingsFromConfiguration,
       HttpFilters.bindingsFromConfiguration,
       HttpRequestHandler.bindingsFromConfiguration,
-      ActionCreator.bindingsFromConfiguration
+      ActionCreator.bindingsFromConfiguration,
+      AkkaMaterializerProvider.bindingsFromConfiguration
     )
 })
 
