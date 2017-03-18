@@ -79,3 +79,14 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
 class RedirectHttpsModule extends SimpleModule {
   bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider]
 }
+
+/**
+ * The Redirect to HTTPS filter components for compile time dependency injection.
+ */
+trait RedirectHttpsComponents {
+  def configuration: Configuration
+  def environment: Environment
+
+  lazy val redirectHttpsConfiguration: RedirectHttpsConfiguration = new RedirectHttpsConfigurationProvider(configuration, environment).get
+  lazy val redirectHttpsFilter: RedirectHttpsFilter = new RedirectHttpsFilter(redirectHttpsConfiguration)
+}
