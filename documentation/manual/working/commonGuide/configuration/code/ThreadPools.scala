@@ -206,7 +206,7 @@ class ThreadPoolsSpec extends PlaySpecification {
 
 // since specs provides defaultContext, implicitly importing it doesn't work
 //#global-thread-pool
-class Samples @Inject()(implicit ec: ExecutionContext) extends Controller {
+class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(components) {
   def someAsyncAction = Action.async {
     someCalculation().map { result =>
       Ok(s"The answer is $result")

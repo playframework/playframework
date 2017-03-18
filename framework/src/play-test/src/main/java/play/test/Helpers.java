@@ -315,7 +315,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return routeAndCall(app, requestBuilder, timeout);
     }
 
-
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
         try {
             return routeAndCall(app, (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
@@ -340,6 +347,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return routeAndCall(app, router, requestBuilder, timeout);
     }
 
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router type
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     public static Result routeAndCall(Application app, Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
@@ -367,6 +383,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return routeAndCall(app, router, requestBuilder);
     }
 
+    /**
+     * Route and call the request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @return the result
+     */
     public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder) {
         return routeAndCall(app, router, requestBuilder, DEFAULT_TIMEOUT);
     }
@@ -375,9 +399,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param router the router
      * @param requestBuilder the request builder
      * @param timeout the timeout
-     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
-     * @return
+     * @return the result
      */
     @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
@@ -385,6 +409,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return routeAndCall(application, router, requestBuilder, timeout);
     }
 
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
@@ -441,6 +474,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return route(requestBuilder, DEFAULT_TIMEOUT);
     }
 
+    /**
+     * Route a request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @return the result.
+     */
     public static Result route(Application app, RequestBuilder requestBuilder) {
         return route(app, requestBuilder, DEFAULT_TIMEOUT);
     }
@@ -458,6 +498,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return route(application, requestBuilder, timeout);
     }
 
+    /**
+     * Route the request considering the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @param timeout the amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
         final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(

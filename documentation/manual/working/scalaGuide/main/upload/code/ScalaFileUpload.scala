@@ -5,20 +5,16 @@ package scalaguide.upload.fileupload {
 
   import scala.concurrent.ExecutionContext
   import play.api.inject.guice.GuiceApplicationBuilder
-  import play.api.mvc._
   import play.api.test._
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
 
   import controllers._
-  import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
-  import play.api.mvc.MultipartFormData.FilePart
+  import play.api.libs.Files.SingletonTemporaryFileCreator
   import java.io.File
   import java.nio.file.attribute.PosixFilePermission._
   import java.nio.file.attribute.PosixFilePermissions
   import java.nio.file.{Files => JFiles, Path, Paths}
-  import java.util
-  import javax.inject._
 
   import akka.stream.IOResult
   import akka.stream.scaladsl._
@@ -29,22 +25,22 @@ package scalaguide.upload.fileupload {
   import play.api.mvc._
   import play.core.parsers.Multipart.FileInfo
 
-  import scala.concurrent.Future
-
-
   @RunWith(classOf[JUnitRunner])
   class ScalaFileUploadSpec extends PlaySpecification with Controller {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     "A scala file upload" should {
 
-      "upload file" in {
+      "upload file" in new WithApplication {
         val tmpFile = JFiles.createTempFile(null, null)
         writeFile(tmpFile, "hello")
 
         new File("/tmp/picture").mkdirs()
         val uploaded = new File("/tmp/picture/formuploaded")
         uploaded.delete()
+
+        val parse = app.injector.instanceOf[PlayBodyParsers]
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
 
         //#upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
@@ -54,7 +50,7 @@ package scalaguide.upload.fileupload {
             picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
             Ok("File uploaded")
           }.getOrElse {
-            Redirect(routes.Application.index).flashing(
+            Redirect(routes.ScalaFileUploadController.index).flashing(
               "error" -> "Missing file")
           }
         }
@@ -71,7 +67,7 @@ package scalaguide.upload.fileupload {
         success
       }
 
-      "upload file directly" in {
+      "upload file directly" in new WithApplication {
         val tmpFile = Paths.get("/tmp/picture/tmpuploaded")
         writeFile(tmpFile, "hello")
 
@@ -83,20 +79,18 @@ package scalaguide.upload.fileupload {
         val tf = temporaryFileCreator.create(tmpFile)
 
         val request = FakeRequest().withBody(tf)
-        testAction(new controllers.Application().upload, request)
+
+        val controllerComponents = app.injector.instanceOf[ControllerComponents]
+        testAction(new controllers.ScalaFileUploadController(controllerComponents).upload, request)
 
         uploaded.delete()
         success
       }
     }
 
-    def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      running(GuiceApplicationBuilder().build()) {
-
-        val result = action(request)
-
-        status(result) must_== expectedResponse
-      }
+    private def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(implicit app: Application) = {
+      val result = action(request)
+      status(result) must_== expectedResponse
     }
 
     def writeFile(file: File, content: String): Path = {
@@ -110,7 +104,7 @@ package scalaguide.upload.fileupload {
   }
   package controllers {
 
-    class Application(implicit ec: ExecutionContext) extends Controller {
+    class ScalaFileUploadController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>

@@ -102,7 +102,7 @@ public class JavaRoutingDsl extends WithApplication {
     }
 
     private String makeRequest(Router router, String method, String path) {
-        Result result = routeAndCall(router, fakeRequest(method, path));
+        Result result = routeAndCall(app, router, fakeRequest(method, path));
         if (result == null) {
             return null;
         } else {

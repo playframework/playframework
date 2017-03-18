@@ -23,6 +23,7 @@ class GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
         //#should-gzip
@@ -42,6 +43,7 @@ class GzipEncoding extends PlaySpecification {
       val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter = (new CustomFilters(mat)).filters()(0)
 

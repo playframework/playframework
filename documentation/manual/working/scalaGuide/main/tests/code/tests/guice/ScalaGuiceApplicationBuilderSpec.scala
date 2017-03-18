@@ -7,7 +7,6 @@ import java.io.File
 import java.net.URLClassLoader
 import play.api.{ Configuration, Environment, Mode }
 import play.api.test._
-import play.api.test.Helpers._
 
 // #builder-imports
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -33,7 +32,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .loadConfig(Configuration.reference) // ###skip
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
-        .build
+        .build()
       // #set-environment
 
       application.path must_== new File("path/to/app")
@@ -51,7 +50,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .in(new File("path/to/app"))
         .in(Mode.Test)
         .in(classLoader)
-        .build
+        .build()
       // #set-environment-values
 
       application.path must_== new File("path/to/app")
@@ -65,21 +64,21 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure(Configuration("a" -> 1))
         .configure(Map("b" -> 2, "c" -> "three"))
         .configure("d" -> 4, "e" -> "five")
-        .build
+        .build()
       // #add-configuration
 
-      application.configuration.getInt("a") must beSome(1)
-      application.configuration.getInt("b") must beSome(2)
-      application.configuration.getString("c") must beSome("three")
-      application.configuration.getInt("d") must beSome(4)
-      application.configuration.getString("e") must beSome("five")
+      application.configuration.get[Int]("a") must beEqualTo(1)
+      application.configuration.get[Int]("b") must beEqualTo(2)
+      application.configuration.get[String]("c") must beEqualTo("three")
+      application.configuration.get[Int]("d") must beEqualTo(4)
+      application.configuration.get[String]("e") must beEqualTo("five")
     }
 
     "override configuration" in {
       // #override-configuration
       val application = new GuiceApplicationBuilder()
         .loadConfig(env => Configuration.load(env))
-        .build
+        .build()
       // #override-configuration
 
       application.configuration.keys must not be empty
@@ -91,7 +90,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .bindings(new ComponentModule)
         .bindings(bind[Component].to[DefaultComponent])
-        .injector
+        .injector()
       // #add-bindings
 
       injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
@@ -104,7 +103,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure("play.http.router" -> classOf[Routes].getName) // ###skip
         .bindings(new ComponentModule) // ###skip
         .overrides(bind[Component].to[MockComponent])
-        .build
+        .build()
       // #override-bindings
 
       running(application) {
@@ -121,7 +120,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
           new play.api.inject.BuiltinModule,
           new play.api.i18n.I18nModule,
           bind[Component].to[DefaultComponent]
-        ).injector
+        ).injector()
       // #load-modules
 
       injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
@@ -133,7 +132,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .bindings(new ComponentModule) // ###skip
         .disable[ComponentModule]
-        .injector
+        .injector()
       // #disable-modules
 
       injector.instanceOf[Component] must throwA[com.google.inject.ConfigurationException]
@@ -145,7 +144,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure("key" -> "value")
         .bindings(new ComponentModule)
         .overrides(bind[Component].to[MockComponent])
-        .injector
+        .injector()
 
       val component = injector.instanceOf[Component]
       // #injector-builder

@@ -29,7 +29,6 @@ import client._
 
 //#full-test
 import play.core.server.Server
-import play.api.Play
 import play.api.routing.sird._
 import play.api.mvc._
 import play.api.libs.json._
@@ -39,7 +38,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 
 class GitHubClientSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
