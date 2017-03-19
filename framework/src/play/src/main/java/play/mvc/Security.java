@@ -20,7 +20,7 @@ public class Security {
     public static final TypedKey<String> USERNAME = TypedKey.create("username");
 
     /**
-     * Wraps the annotated action in an <code>AuthenticatedAction</code>.
+     * Wraps the annotated action in an {@link AuthenticatedAction}.
      */
     @With(AuthenticatedAction.class)
     @Target({ElementType.TYPE, ElementType.METHOD})

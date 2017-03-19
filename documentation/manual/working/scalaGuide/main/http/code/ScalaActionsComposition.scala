@@ -53,12 +53,14 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       val loggingAction = new LoggingAction(parser)
 
       //#basic-logging-index
-      def index = loggingAction {
-        Ok("Hello World")
+      class MyController @Inject()(loggingAction: LoggingAction) extends Controller {
+        def index = loggingAction {
+          Ok("Hello World")
+        }
       }
       //#basic-logging-index
 
-      testAction(index)
+      testAction(new MyController(loggingAction).index)
 
       //#basic-logging-parse
       def submit = loggingAction(parse.text) { request =>
@@ -67,7 +69,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#basic-logging-parse
 
       val request = FakeRequest().withTextBody("hello with the parse")
-      testAction(index, request)
+      testAction(new MyController(loggingAction).index, request)
     }
 
     "Wrapping existing actions" in {
@@ -82,8 +84,8 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
           action(request)
         }
 
-        lazy val parser = action.parser
-        lazy val executionContext = action.executionContext
+        override def parser = action.parser
+        override def executionContext = action.executionContext
       }
       //#actions-class-wrapping
 
