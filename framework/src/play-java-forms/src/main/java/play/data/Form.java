@@ -213,8 +213,6 @@ public class Form<T> {
             );
         }
 
-        Map<String,String[]> queryString = request.queryString();
-
         Map<String,String> data = new HashMap<>();
 
         fillDataWith(data, urlFormEncoded);
@@ -222,7 +220,9 @@ public class Form<T> {
 
         jsonData.forEach(data::put);
 
-        fillDataWith(data, queryString);
+        if(!request.method().equals("POST") && !request.method().equals("PUT") && !request.method().equals("PATCH")) {
+            fillDataWith(data, request.queryString());
+        }
 
         return data;
     }

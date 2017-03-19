@@ -53,6 +53,33 @@ class FormSpec extends Specification {
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
+    "query params ignored when using POST" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "POST", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
+    "query params ignored when using PUT" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PUT", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
+    "query params ignored when using PATCH" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PATCH", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
     "have an error due to badly formatted date" in new WithApplication() {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
@@ -498,9 +525,10 @@ class FormSpec extends Specification {
 
 object FormSpec {
 
-  def dummyRequest(data: Map[String, Array[String]]): Request = {
+  def dummyRequest(data: Map[String, Array[String]], method: String = "POST", query: String = ""): Request = {
     new RequestBuilder()
-      .uri("http://localhost/test")
+      .method(method)
+      .uri("http://localhost/test" + query)
       .bodyFormArrayValues(data.asJava)
       .build()
   }

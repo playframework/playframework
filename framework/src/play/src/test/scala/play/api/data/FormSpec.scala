@@ -11,6 +11,7 @@ import play.api.i18n._
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
+import play.core.test.FakeRequest
 
 class FormSpec extends Specification {
   "A form" should {
@@ -35,6 +36,30 @@ class FormSpec extends Specification {
       f9.errors must beEmpty
 
       ScalaForms.emailForm.fillAndValidate(("o'flynn@example.com", "O'Flynn")).errors must beEmpty
+    }
+
+    "query params ignored when using POST" in {
+      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PUT" in {
+      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PATCH" in {
+      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
     }
 
     "support mapping 22 fields" in {
@@ -396,6 +421,13 @@ object ScalaForms {
     tuple(
       "email" -> email,
       "name" -> of[String]
+    )
+  )
+
+  val updateForm = Form(
+    tuple(
+      "email" -> optional(text),
+      "name" -> optional(text)
     )
   )
 
