@@ -4,15 +4,18 @@
 package play.api.mvc
 
 import org.specs2.mutable._
+import play.api.mvc.Cookie.SameSite
 import play.core.test._
 
 class CookiesSpec extends Specification {
 
   sequential
 
+  val Cookies = new DefaultCookieHeaderEncoding()
+
   "object Cookies#fromCookieHeader" should {
 
-    "create new Cookies instance with cookies" in withApplication {
+    "create new Cookies instance with cookies" in {
       val originalCookie = Cookie(name = "cookie", value = "value")
 
       val headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
@@ -59,7 +62,7 @@ class CookiesSpec extends Specification {
       }
     }
 
-    "return none if no cookie" in withApplication {
+    "return none if no cookie" in {
       c.get("no-cookie") must beNone
     }
   }
@@ -69,12 +72,12 @@ class CookiesSpec extends Specification {
     def headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
     def c: Cookies = Cookies.fromCookieHeader(Some(headerString))
 
-    "apply for a cookie" in withApplication {
+    "apply for a cookie" in {
       val cookie = c("cookie")
       cookie.name must be_==("cookie")
     }
 
-    "throw error if no cookie" in withApplication {
+    "throw error if no cookie" in {
       {
         c("no-cookie")
       }.must(throwA[RuntimeException](message = "Cookie doesn't exist"))
@@ -85,19 +88,19 @@ class CookiesSpec extends Specification {
     val cookie1 = Cookie(name = "cookie1", value = "value2")
     val cookie2 = Cookie(name = "cookie2", value = "value2")
 
-    "be empty for no cookies" in withApplication {
+    "be empty for no cookies" in {
       val c = Cookies.fromCookieHeader(header = None)
       c must be empty
     }
 
-    "contain elements for some cookies" in withApplication {
+    "contain elements for some cookies" in {
       val headerString = Cookies.encodeCookieHeader(Seq(cookie1, cookie2))
       val c: Cookies = Cookies.fromCookieHeader(Some(headerString))
       c must contain(allOf(cookie1, cookie2))
     }
 
     // technically the same as above
-    "run a foreach for a cookie" in withApplication {
+    "run a foreach for a cookie" in {
       val headerString = Cookies.encodeCookieHeader(Seq(cookie1))
       val c: Cookies = Cookies.fromCookieHeader(Some(headerString))
 
@@ -113,6 +116,19 @@ class CookiesSpec extends Specification {
     "parse empty string without exception " in {
       val decoded = Cookies.decodeSetCookieHeader("")
       decoded must be empty
+    }
+
+    "handle __Host cookies properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Host-ID=123; Secure; Path=/")
+      decoded must contain(Cookie("__Host-ID", "123", secure = true, httpOnly = false, path = "/"))
+    }
+    "handle __Secure cookies properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure")
+      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false))
+    }
+    "handle SameSite cookies properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=strict")
+      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict)))
     }
   }
 

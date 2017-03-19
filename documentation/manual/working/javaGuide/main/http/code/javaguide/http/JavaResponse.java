@@ -16,6 +16,7 @@ import play.mvc.Result;
 import play.test.WithApplication;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -78,10 +79,7 @@ public class JavaResponse extends WithApplication {
     public void setCookie() {
         setContext(fakeRequest(), contextComponents());
         //#set-cookie
-        response().setCookie(new Cookie(
-            "theme", "blue",
-            null, null, null, false, false
-        ));
+        response().setCookie(Cookie.builder("theme", "blue").build());
         //#set-cookie
         Cookie cookie = response().cookies().iterator().next();
         assertThat(cookie.name(), equalTo("theme"));
@@ -93,15 +91,16 @@ public class JavaResponse extends WithApplication {
     public void detailedSetCookie() {
         setContext(fakeRequest(), contextComponents());
         //#detailed-set-cookie
-        response().setCookie(new Cookie(
-                "theme",        // name
-                "blue",         // value
-                3600,           // maximum age
-                "/some/path",   // path
-                ".example.com", // domain
-                false,          // secure
-                true            // http only
-        ));
+        response().setCookie(
+            Cookie.builder("theme", "blue")
+                .withMaxAge(3600)
+                .withPath("/some/path")
+                .withDomain(".example.com")
+                .withSecure(false)
+                .withHttpOnly(true)
+                .withSameSite(Cookie.SameSite.STRICT)
+                .build()
+        );
         //#detailed-set-cookie
         Cookie cookie = response().cookies().iterator().next();
         assertThat(cookie.name(), equalTo("theme"));
@@ -111,6 +110,8 @@ public class JavaResponse extends WithApplication {
         assertThat(cookie.domain(), equalTo(".example.com"));
         assertThat(cookie.secure(), equalTo(false));
         assertThat(cookie.httpOnly(), equalTo(true));
+        assertThat(cookie.sameSite(),
+            equalTo(Optional.of(Cookie.SameSite.STRICT)));
         removeContext();
     }
 

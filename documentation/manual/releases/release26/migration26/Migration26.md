@@ -61,13 +61,13 @@ Play Iteratees has been moved to a separate library hosted at https://github.com
 libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1"
 ```
 
-The project also has a sub project that integrates Iteratees with [Reactive Streams](http://www.reactive-streams.org/). You may need to add the following dependency as well: 
+The project also has a sub project that integrates Iteratees with [Reactive Streams](http://www.reactive-streams.org/). You may need to add the following dependency as well:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
 ```
 
-> **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary. 
+> **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary.
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
@@ -100,9 +100,49 @@ This trait makes `Action` and `parse` refer to injected instances rather than th
 
 `ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `BaseController` and injecting your own bundle of components (though Play does not require controllers to implement any particular trait).
 
+## Cookies
+
+For Java users, we now recommend using `Cookie.builder` to create new cookies, for example:
+
+```java
+Cookie cookie = Cookie.builder("color", "blue")
+  .withMaxAge(3600)
+  .withSecure(true)
+  .withHttpOnly(true)
+  .withSameSite(SameSite.STRICT)
+  .build();
+``
+
+This is more readable than a plain constructor call, and will be source-compatible if we add/remove cookie attributes in the future.
+
+### SameSite attribute, enabled for session and flash
+
+Cookies now can have an additional [`SameSite` attribute](http://httpwg.org/http-extensions/draft-ietf-httpbis-cookie-same-site.html), which can be used to prevent CSRF. There are three possible states:
+
+ - No `SameSite`, meaning cookies will be sent for all requests to that domain.
+ - `SameSite=Strict`, meaning the cookie will only be sent for same-site requests (coming from another page on the site) not cross-site requests
+ - `SameSite=Lax`, meaning the cookie will be sent for cross-site requests as top-level navigation, but otherwise only for same-site requests. This will do the correct thing for most sites, but won't prevent certain types of attacks, such as those executed by launching popup windows.
+
+In addition, we have moved the session and flash cookies to use `SameSite=Lax` by default. You can tweak this using configuration. For example:
+
+```
+play.http.session.sameSite = null // no same-site for session
+play.http.flash.sameSite = "strict" // strict same-site for flash
+```
+
+*Note that this feature is currently not supported by many browsers, so you shouldn't rely on it. Chrome and Opera are the only major browsers to support SameSite right now.*
+
+### __Host and __Secure prefixes
+
+We've also added support for the [__Host and __Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
+
+This will only affect you if you happen to be using these prefixes for cookie names. If you are, Play will warn when serializing and deserializing those cookies if the proper attributes are not set, then set them for you automatically. To remove the warning, either cease using those prefixes for your cookies, or be sure to set the attributes as follows:
+ - Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
+ - Cookies named with `__Secure-` should set the `Secure` attribute.
+
 ## Assets
 
-User-facing APIs are generally the same, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
+Existing user-facing APIs have not changed, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
 
 ```
 play.assets {
@@ -355,7 +395,7 @@ Scala after:
 
 ```scala
 object Attrs {
-  val UserName: TypedKey[String] = TypedKey[String]("userName")
+  val UserName: TypedKey[String] = TypedKey("userName")
 }
 // Getting an attribute from a Request or RequestHeader
 val userName: String = req.attrs(Attrs.UserName)
@@ -376,7 +416,7 @@ Scala after:
 
 ```scala
 object Attrs {
-  val UserName: TypedKey[User] = TypedKey[User]("user")
+  val UserName: TypedKey[User] = TypedKey("user")
 }
 ```
 
@@ -708,9 +748,9 @@ GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttp
 
 ## Compile Time Default Filters
 
-If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.  
+If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.
 
-This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract: 
+This means that the `BuiltInComponents` trait now contains an `httpFilters` method which is left abstract:
 
 ```scala
 trait BuiltInComponents {
@@ -727,7 +767,7 @@ trait HttpFiltersComponents
      extends CSRFComponents
      with SecurityHeadersComponents
      with AllowedHostsComponents {
- 
+
    def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }
 ```

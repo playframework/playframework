@@ -26,22 +26,11 @@ object JavaResultExtractor {
       private val cookies = Cookies.fromSetCookieHeader(responseHeader.headers.get(HeaderNames.SET_COOKIE))
 
       def get(name: String): JCookie = {
-        cookies.get(name).map(makeJavaCookie).orNull
-      }
-
-      private def makeJavaCookie(cookie: Cookie): JCookie = {
-        new JCookie(
-          cookie.name,
-          cookie.value,
-          cookie.maxAge.map(i => new Integer(i)).orNull,
-          cookie.path,
-          cookie.domain.orNull,
-          cookie.secure,
-          cookie.httpOnly)
+        cookies.get(name).map(_.asJava).orNull
       }
 
       def iterator: java.util.Iterator[JCookie] = {
-        cookies.toIterator.map(makeJavaCookie).asJava
+        cookies.toIterator.map(_.asJava).asJava
       }
     }
 
