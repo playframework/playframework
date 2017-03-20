@@ -7,7 +7,7 @@ The simplest way to start an embedded Play server is to use the [`NettyServer`](
 
 @[simple](code/ScalaEmbeddingPlay.scala)
 
-By default, this will start a server on port 9000 in prod mode.  You can configure the server by passing in a [`ServerConfig`](api/scala/play/core/server/ServerConfig.html):
+By default, this will start a server on port 19000 in prod mode.  You can configure the server by passing in a [`ServerConfig`](api/scala/play/core/server/ServerConfig.html):
 
 @[config](code/ScalaEmbeddingPlay.scala)
 
