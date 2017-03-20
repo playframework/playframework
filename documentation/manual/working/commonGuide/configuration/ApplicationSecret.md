@@ -17,7 +17,7 @@ Anyone that can get access to the secret will be able to generate any session th
 One way of configuring the application secret on a production server is to pass it as a system property to your start script.  For example:
 
 ```bash
-/path/to/yourapp/bin/yourapp -Dplay.http.secret.key="QCY?tAnfk?aZ?iwrNwnxIlR6CTf:G3gf:90Latabg@5241AB`R5W:1uDFN];Ik@n"
+/path/to/yourapp/bin/yourapp -Dplay.http.secret.key='QCY?tAnfk?aZ?iwrNwnxIlR6CTf:G3gf:90Latabg@5241AB`R5W:1uDFN];Ik@n'
 ```
 
 This approach is very simple, and we will use this approach in the Play documentation on running your app in production mode as a reminder that the application secret needs to be set.  In some environments however, placing secrets in command line arguments is not considered good practice.  There are two ways to address this.
