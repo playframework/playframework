@@ -9,9 +9,10 @@ import java.security.{ PrivilegedAction, AccessController }
 import java.util.jar.JarFile
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
-import play.dev.filewatch.FileWatchService
+import play.dev.filewatch.{ FileWatchService, SourceModificationWatch, WatchState }
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
-import sbt._
+
+import better.files.{ File => _, _ }
 
 object Reloader {
 
@@ -318,6 +319,11 @@ class Reloader(
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
+  def recursivelyListFiles(dir: File): Array[File] = {
+    val filesInDir = dir.listFiles
+    filesInDir ++ filesInDir.filter(_.isDirectory).flatMap(recursivelyListFiles)
+  }
+
   /**
    * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
    * trigger a reload of the app if something has changed.
@@ -355,7 +361,7 @@ class Reloader(
               // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
               // they won't trigger a reload.
               // Use the SBT watch service, passing true as the termination to force it to break after one check
-              val (_, newState) = SourceModificationWatch.watch(PathFinder.strict(classpath).***, 0, watchState)(true)
+              val (_, newState) = SourceModificationWatch.watch(() => classpath.iterator.flatMap(recursivelyListFiles(_)).map(_.toScala), 0, watchState)(true)
               // SBT has a quiet wait period, if that's set to true, sources were modified
               val triggered = newState.awaitingQuietPeriod
               watchState = newState

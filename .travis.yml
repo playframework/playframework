@@ -17,6 +17,7 @@ cache:
     - $HOME/.sbt/boot/
 before_cache:
   # Ensure changes to the cache aren't persisted
+  - rm -rf $HOME/.ivy2/local
   - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
   - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
   # Delete all ivydata files since ivy touches them on each build
