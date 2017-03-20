@@ -10,6 +10,7 @@ package play.api.mvc {
   import play.api.i18n.Lang
   import play.api.libs.Crypto
   import play.core.utils.CaseInsensitiveOrdered
+  import play.utils.string._
 
   import scala.annotation._
   import scala.collection.immutable.{ TreeMap, TreeSet }
@@ -83,10 +84,147 @@ package play.api.mvc {
 
     // -- Computed
 
+    private def param[T](name: String, f: String => T, default: T): T =
+      getQueryString(name).map(f).getOrElse(default)
+
     /**
      * Helper method to access a queryString parameter.
      */
     def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+
+    /**
+     * Get `Option[String]` param.
+     *
+     * @param name of the parameter to lookup.
+     * @return value or default.
+     */
+    def getStringParam(name: String): Option[String] =
+      param(name, s => s.toOption, None)
+
+    /**
+     * Get `String` param.
+     *
+     * @param name of the parameter to lookup.
+     * @param default the empty string
+     * @return value or default.
+     */
+    def getStringParam(name: String, default: String = ""): String =
+      param(name, s => s, default)
+
+    /**
+     * Get `Option[Short]` param.
+     *
+     * @param name of the parameter to lookup.
+     * @return Option value.
+     */
+    def getShortParam(name: String): Option[Short] =
+      param(name, (s: String) => s.toShortOption, None)
+
+    /**
+     * Get `Short` param.
+     *
+     * @param name of the parameter to lookup.
+     * @param default 0
+     * @return value or default.
+     */
+    def getShortParam(name: String, default: Short = 0): Short =
+      param(name, (s: String) => s.toShort, default)
+
+    /**
+     * Get `Option[Int]` param.
+     *
+     * @param name
+     * @return Option value.
+     */
+    def getIntParam(name: String): Option[Int] =
+      param(name, (s: String) => s.toIntOption, None)
+
+    /**
+     * Get `Int` param.
+     *
+     * @param name of the parameter to lookup.
+     * @param default 0
+     * @return value or default.
+     */
+    def getIntParam(name: String, default: Int = 0): Int =
+      param(name, (s: String) => s.toInt, default)
+
+    /**
+     * Get `Option[Long]` param.
+     *
+     * @param name of the parameter to lookup
+     * @return Option value.
+     */
+    def getLongParam(name: String): Option[Long] =
+      param(name, (s: String) => s.toLongOption, None)
+
+    /**
+     * Get `Long` param.
+     *
+     * @param name of the parameter to lookup.
+     * @param default 0L
+     * @return value or default.
+     */
+    def getLongParam(name: String, default: Long = 0L): Long =
+      param(name, (s: String) => s.toLong, default)
+
+    /**
+     * Get `Option[Float]` param.
+     *
+     * @param name of the parameter to lookup
+     * @return Option value.
+     */
+    def getFloatParam(name: String): Option[Float] =
+      param(name, (s: String) => s.toFloatOption, None)
+
+    /**
+     * Get `Float` param.
+     *
+     * @param name of the parameter to lookup
+     * @return Option value.
+     */
+    def getFloatParam(name: String, default: Float = 0F): Float =
+      param(name, (s: String) => s.toFloat, default)
+
+    /**
+     * Get `Option[Double]` param.
+     *
+     * @param name of the parameter to lookup
+     * @return Option value.
+     */
+    def getDoubleParam(name: String): Option[Double] =
+      param(name, (s: String) => s.toDoubleOption, None)
+
+    /**
+     * Get `Double` param.
+     *
+     * @param name of the parameter to lookup
+     * @return Option value.
+     */
+    def getDoubleParam(name: String, default: Double = 0): Double =
+      param(name, (s: String) => s.toDouble, default)
+
+
+    /**
+     * Get `Boolean` param.
+     *
+     * @param name of the parameter to lookup.
+     * @param default `false`
+     * @return value or default.
+     */
+    def getBooleanParam(name: String, default: Boolean = false): Boolean =
+      getQueryString(name).flatMap(_.toBooleanOption).getOrElse(default)
+
+    /**
+     * Get `Option[Boolean]` param.
+     *
+     * @param name of the parameter to lookup.
+     * @return Option value.
+     */
+    def getBooleanParam(name: String): Option[Boolean] =
+      getQueryString(name).flatMap(_.toBooleanOption)
+
+
 
     /**
      * The HTTP host (domain, optionally port)
