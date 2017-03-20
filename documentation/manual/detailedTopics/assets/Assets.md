@@ -72,6 +72,12 @@ controllers.Assets.at("/public", "javascripts/jquery.js")
 
 This action will look-up and serve the file and if it exists.
 
+
+To route to a single static file, both the path and file has to be specified:
+```
+GET  /favicon.ico        controllers.Assets.at(path="/public", file="favicon.ico")
+```
+
 ## Reverse routing for public assets
 
 As for any controller mapped in the routes file, a reverse controller is created in `controllers.routes.Assets`. You use this to reverse the URL needed to fetch a public resource. For example, from a template:
