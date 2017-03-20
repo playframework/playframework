@@ -784,7 +784,7 @@ If you were using the FluentLenium library you might have to change some syntax 
 
 ### HikariCP
 
-HikariCP was update and a new configuration was introduced: `initializationFailTimeout`. This new configuration should be used to replace `initializationFailFast` which is now deprecated. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this new configuration.
+HikariCP was updated and a new configuration was introduced: `initializationFailTimeout`. This new configuration should be used to replace `initializationFailFast` which is now deprecated. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this new configuration.
 
 ## Other Configuration changes
 
