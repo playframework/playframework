@@ -7,10 +7,10 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.4.17"
-  val akkaHttpVersion = "10.0.3"
-  val playJsonVersion = "2.6.0-M4"
+  val akkaHttpVersion = "10.0.5"
+  val playJsonVersion = "2.6.0-M5"
 
-  val specsVersion = "3.8.8"
+  val specsVersion = "3.8.9"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -27,18 +27,18 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.8.6")
+  ).map(_ % "2.8.7")
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.22")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.1"
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.25")
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.2"
 
   val guava = "com.google.guava" % "guava" % "21.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.193"
+  val h2database = "com.h2database" % "h2" % "1.4.194"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
   val acolyteVersion = "1.0.43-j7p"
@@ -64,16 +64,17 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.5.RELEASE"
+  val springFrameworkVersion = "4.3.7.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    ("org.reflections" % "reflections" % "0.9.10")
-      .exclude("com.google.code.findbugs", "annotations"),
+    ("org.reflections" % "reflections" % "0.9.11")
+      .exclude("com.google.code.findbugs", "annotations")
+      .classifier(""),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.8",
+    "net.jodah" % "typetools" % "0.4.9",
 
     logback % Test
   ) ++ specsBuild.map(_ % Test)
