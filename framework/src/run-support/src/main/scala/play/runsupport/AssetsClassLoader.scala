@@ -3,9 +3,8 @@
  */
 package play.runsupport
 
-import sbt._
 import java.io.File
-import Path._
+import sbt.Path._
 
 /**
  * A ClassLoader for serving assets.
