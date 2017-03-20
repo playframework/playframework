@@ -25,7 +25,7 @@ public class JavaLogging {
       final int result = riskyCalculation();
         
       // Log result if successful
-      Logger.debug("Result=" + result);
+      Logger.debug("Result={}", result);
     } catch (Throwable t) {
       // Log error with message and Throwable.
       Logger.error("Exception with riskyCalculation", t);
