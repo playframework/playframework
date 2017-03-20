@@ -143,7 +143,7 @@ class HikariCPConfigSpec extends Specification {
       }
 
       "initializationFailFast" in new Configs {
-        val config = from("hikaricp.initializationFailFast" -> "false")
+        val config = from("hikaricp.initializationFailFast" -> "false", "hikaricp.initializationFailTimeout" -> "-1")
         new HikariCPConfig(dbConfig, config).toHikariConfig.isInitializationFailFast must beFalse
       }
 
