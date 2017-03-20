@@ -61,4 +61,55 @@ $ target/universal/stage/bin/my-first-app -Dconfig.file=/full/path/to/conf/appli
 
 For a full description of usage invoke the start script with a `-h` option.
 
+To start the application detached you can use the screen command:
+
+```bash
+$ screen -dmS my-first-app target/universal/stage/bin/my-first-app -Dapplication.secret=abcdefghijk
+```
+You can reattach to the application and detaching again using `Ctrl+A+D`:
+
+```bash
+$ screen -r my-first-app
+```
+
+A simple script in /etc/init.d/ makes it possible start and stop the server and to start the application at boot time (referring to https://www.debian-administration.org/article/28/Making_scripts_run_at_boot_time_with_Debian):
+
+```bash
+#! /bin/sh
+# /etc/init.d/my-first-app
+
+cd /path/to/my-first-app/target/universal/stage/
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting my-first-app..."
+    screen -dmS my-first-app /path/to/my-first-app/target/universal/stage/bin/my-first-app
+    ;;
+  stop)
+    echo "Stopping my-first-app..."
+    kill $(cat /path/to/my-first-app/target/universal/stage/RUNNING_PID)
+    ;;
+  *)
+    echo "Usage: /etc/init.d/my-first-app {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
+```
+
+After that you can add and remove the start script to your system's boot (example for Debian):
+
+```bash
+# Start at boot time
+update-rc.d my-first-app defaults
+
+# Remove the application from startup
+update-rc.d -f my-first-app remove
+
+```
+
+
 > **Next:** [[Creating a standalone distribution|ProductionDist]]
