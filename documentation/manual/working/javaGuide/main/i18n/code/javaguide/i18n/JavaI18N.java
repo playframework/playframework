@@ -20,6 +20,7 @@ import static play.test.Helpers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import play.i18n.Lang;
 import play.i18n.Messages;
 
 
@@ -31,6 +32,15 @@ public class JavaI18N extends WithApplication {
             "play.i18n.langs", ImmutableList.of("en", "en-US", "fr"),
             "messages.path", "javaguide/i18n"
             ));
+    }
+
+    @Test
+    public void checkSpecifyLangHello() {
+        //#specify-lang-render
+        String title = Messages.get(Lang.forCode("fr"), "hello");
+        //#specify-lang-render
+
+        assertTrue(title.equals("bonjour"));
     }
 
     @Test
