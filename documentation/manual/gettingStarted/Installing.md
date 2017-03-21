@@ -20,7 +20,7 @@ Download the latest [Activator distribution](https://www.typesafe.com/get-starte
 For convenience, you should add the Activator installation directory to your system `PATH`. On UNIX systems, this means doing something like:
 
 ```bash
-export PATH=$PATH:/relativePath/to/activator
+export PATH=$PATH:/absolutePath/to/activator
 ```
 
 On Windows you’ll need to set it in the global environment variables. This means update the `PATH` in the environment variables and don't use a path with spaces.
@@ -29,7 +29,7 @@ On Windows you’ll need to set it in the global environment variables. This mea
 > 
 > Otherwise do a:
 > ```bash
-> chmod a+x activator
+> chmod a+x /path/to/activator
 > ```
 
 > If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
