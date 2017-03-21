@@ -52,8 +52,8 @@ object WebSocketHandler {
   private def aggregateFrames(bufferLimit: Int): GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] = {
     new GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] {
 
-      val in = Inlet[FrameEvent]("in")
-      val out = Outlet[Either[Message, RawMessage]]("out")
+      val in = Inlet[FrameEvent]("WebSocketHandler.aggregateFrames.in")
+      val out = Outlet[Either[Message, RawMessage]]("WebSocketHandler.aggregateFrames.out")
 
       override val shape = FlowShape.of(in, out)
 
@@ -161,8 +161,8 @@ object WebSocketHandler {
     AkkaStreams.bypassWith(Flow[Either[Message, RawMessage]].via(
       new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {
 
-        val in = Inlet[Either[Message, RawMessage]]("in")
-        val out = Outlet[Either[RawMessage, Message]]("out")
+        val in = Inlet[Either[Message, RawMessage]]("WebSocketHandler.handleProtocolFailures.in")
+        val out = Outlet[Either[RawMessage, Message]]("WebSocketHandler.handleProtocolFailures.out")
 
         override val shape = FlowShape.of(in, out)
 
