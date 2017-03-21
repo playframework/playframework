@@ -3,6 +3,8 @@
 
 ## Play Framework - The High Velocity Web Framework
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/playframework/playframework?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
 ### Learn More
