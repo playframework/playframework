@@ -7,7 +7,7 @@ object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
   val specsVersion = "2.3.12"
-  val specsBuild = Seq(
+  val specsBuild = Seq(a
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
     "org.specs2" %% "specs2-mock" % specsVersion,
