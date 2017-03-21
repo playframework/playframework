@@ -4,7 +4,7 @@
 package anorm
 
 import java.util.{ Date, UUID }
-import java.sql.{ Connection, PreparedStatement }
+import java.sql.{ Connection, PreparedStatement, ResultSet }
 
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
@@ -101,18 +101,6 @@ private[anorm] case class MetaData(ms: List[MetaDataItem]) {
 object Useful {
 
   case class Var[T](var content: T)
-
-  @deprecated(
-    message = "Use [[scala.collection.immutable.Stream.dropWhile]] directly",
-    since = "2.3.0")
-  def drop[A](these: Var[Stream[A]], n: Int): Stream[A] = {
-    var count = n
-    while (!these.content.isEmpty && count > 0) {
-      these.content = these.content.tail
-      count -= 1
-    }
-    these.content
-  }
 
   def unfold1[T, R](init: T)(f: T => Option[(R, T)]): (Stream[R], T) = f(init) match {
     case None => (Stream.Empty, init)
@@ -271,9 +259,6 @@ sealed trait Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
-  @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
-  def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
-
   /**
    * Executes this SQL statement as query, returns result as Row stream.
    */
@@ -289,25 +274,12 @@ sealed trait Sql {
    * Executes this statement as query and convert result as `T`, using parser.
    */
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    Sql.as[T](parser, resultSet())
+    as(parser, resultSet())
 
-  @deprecated(
-    message = "Use [[as]] with rowParser.*",
-    since = "2.3.0")
-  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser.*)
-
-  @deprecated(
-    message = "Use [[as]] with rowParser.single",
-    since = "2.3.0")
-  def single[T](rowParser: RowParser[T])(implicit connection: Connection): T = as(rowParser.single)
-
-  @deprecated(
-    message = "Use [[as]] with rowParser.singleOpt",
-    since = "2.3.0")
-  def singleOpt[T](rowParser: RowParser[T])(implicit connection: Connection): Option[T] = as(rowParser.singleOpt)
-
-  @deprecated(message = "Use [[as]]", since = "2.3.0")
-  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = as(parser)
+  private def as[T](parser: ResultSetParser[T], rs: ResultSet)(implicit connection: Connection): T = parser(Sql.resultSetToStream(rs)) match {
+    case Success(a) => a
+    case Error(e) => sys.error(e.toString)
+  }
 
   /**
    * Executes this SQL statement.
@@ -347,7 +319,7 @@ sealed trait Sql {
    * }}}
    */
   def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
-    Sql.as(generatedKeysParser,
+    as(generatedKeysParser,
       execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
 
   /**
@@ -436,13 +408,7 @@ class SqlQuery @deprecated("Do not use the SqlQuery constructor directly because
 }
 
 object Sql { // TODO: Rename to SQL
-
-  private[anorm] def sql(inSql: String): SqlQuery = {
-    val (sql, paramsNames) = SqlStatementParser.parse(inSql)
-    SqlQuery(sql, paramsNames)
-  }
-
-  import java.sql.{ ResultSet, ResultSetMetaData }
+  import java.sql.ResultSetMetaData
 
   private[anorm] def metaData(rs: ResultSet) = {
     val meta = rs.getMetaData()
@@ -461,23 +427,6 @@ object Sql { // TODO: Rename to SQL
         nullable = meta.isNullable(i) == ResultSetMetaData.columnNullable,
         clazz = meta.getColumnClassName(i))))
   }
-
-  // TODO: Moves to Sql trait
-  @deprecated(
-    message = "Use [[anorm.SqlQueryResult.as]] directly",
-    since = "2.3.0")
-  private def as[T](parser: ResultSetParser[T], rs: ResultSet): T =
-    parser(resultSetToStream(rs)) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString)
-    }
-
-  // TODO: Moves to Sql trait
-  @deprecated(
-    message = "Use [[anorm.SqlQueryResult.as]] directly",
-    since = "2.3.0")
-  private def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
-    as(parser, rs)
 
   private[anorm] def resultSetToStream(rs: ResultSet): Stream[Row] = {
     val rsMetaData = metaData(rs)
