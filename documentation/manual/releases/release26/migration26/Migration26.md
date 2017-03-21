@@ -145,7 +145,11 @@ See [[I18N API Migration|MessagesMigration26]].
 
 ## Cache APIs Migration Notes
 
-See [[Cache APIs Migration|CacheMigration26]]
+See [[Cache APIs Migration|CacheMigration26]].
+
+## Java Configuration API Migration Notes
+
+See [[Java Configuration Migration|JavaConfigMigration26]].
 
 ## Removed APIs
 
