@@ -216,6 +216,21 @@ trait PlayRun extends PlayInternalKeys {
     SbtWeb.deduplicateMappings(allMappings, Seq(_.headOption))
   }
 
+  /**
+   * Adds the result of the given task to the full classpath of the given config
+   */
+  def addToClasspath(config: Configuration, task: TaskKey[File]): Setting[_] = {
+    fullClasspath in config ++= {
+      val assetDirs = {
+        if (playAggregateAssets.value)
+          (task ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
+        else
+          Seq(task.value)
+      }
+      assetDirs.map(dir => Attributed.blank(dir.getParentFile))
+    }
+  }
+
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
     val extracted = Project.extract(state)

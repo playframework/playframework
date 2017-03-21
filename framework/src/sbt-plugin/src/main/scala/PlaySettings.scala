@@ -256,15 +256,8 @@ trait PlaySettings {
 
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
-    fullClasspath in Test ++= {
-      val testAssetDirs = {
-        if (playAggregateAssets.value)
-          ((assets in TestAssets) ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
-        else
-          Seq((assets in TestAssets).value)
-      }
-      testAssetDirs.map(dir => Attributed.blank(dir.getParentFile))
-    },
+    addToClasspath(Test, assets in TestAssets),
+    addToClasspath(IntegrationTest, assets in TestAssets),
 
     // Settings
 
