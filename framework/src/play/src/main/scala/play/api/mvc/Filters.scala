@@ -7,6 +7,10 @@ import play.api._
 import play.api.libs.iteratee._
 import scala.concurrent.{ Promise, Future }
 
+trait EssentialFilter {
+  def apply(next: EssentialAction): EssentialAction
+}
+
 /**
  * Implement this interface if you want to add a Filter to your application
  * {{{
@@ -18,10 +22,6 @@ import scala.concurrent.{ Promise, Future }
  * }
  * }}}
  */
-trait EssentialFilter {
-  def apply(next: EssentialAction): EssentialAction
-}
-
 trait Filter extends EssentialFilter {
 
   self =>
