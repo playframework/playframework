@@ -121,6 +121,7 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
 
     // Infrequently used
     hikariConfig.setInitializationFailFast(config.get[Boolean]("initializationFailFast"))
+    hikariConfig.setInitializationFailTimeout(config.get[Long]("initializationFailTimeout"))
     hikariConfig.setIsolateInternalQueries(config.get[Boolean]("isolateInternalQueries"))
     hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))
     hikariConfig.setReadOnly(config.get[Boolean]("readOnly"))
