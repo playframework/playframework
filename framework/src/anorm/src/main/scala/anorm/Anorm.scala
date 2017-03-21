@@ -20,9 +20,17 @@ case class ColumnNotFound(column: String, possibilities: List[String])
     possibilities.map { p => p.dropWhile(c => c == '.') }.mkString(", ")
 }
 
+object ColumnNotFound {
+  def apply(column: String, row: Row): ColumnNotFound =
+    ColumnNotFound(column, row.metaData.availableColumns)
+}
+
 case class TypeDoesNotMatch(message: String) extends SqlRequestError
-case class UnexpectedNullableFound(on: String) extends SqlRequestError
-case class SqlMappingError(msg: String) extends SqlRequestError
+case class UnexpectedNullableFound(message: String) extends SqlRequestError
+case class SqlMappingError(reason: String) extends SqlRequestError {
+  lazy val message = s"SqlMappingError($reason)"
+  override lazy val toString = message
+}
 
 @deprecated(
   message = "Do not use directly, but consider [[Id]] or [[NotAssigned]].",
