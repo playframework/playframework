@@ -1,0 +1,17 @@
+@**
+ * Generate an HTML input hidden.
+ *
+ * Example:
+ * {{{
+ * @inputHidden(field = myForm("id"))
+ * }}}
+ *
+ * @param field The form field.
+ * @param args Set of extra attributes.
+ * @param handler The field constructor.
+ *@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
+
+@id = @{ args.toMap.get('id).map(_.toString).getOrElse(field.id) }
+
+<input type="hidden" id="@id" name="@field.name" value="@field.value" />
