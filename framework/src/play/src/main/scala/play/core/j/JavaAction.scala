@@ -42,7 +42,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 /*
  * An action that's handling Java requests
  */
-trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+abstract class JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
   def invocation: JPromise[JResult]
   val annotations: JavaActionAnnotations
