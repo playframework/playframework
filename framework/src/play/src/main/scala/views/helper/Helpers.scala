@@ -125,6 +125,7 @@ package views.html.helper {
 
   object options {
 
+    def apply(options: Seq[(String, String)]) = options
     def apply(options: (String, String)*) = options.toSeq
     def apply(options: Map[String, String]) = options.toSeq
     def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
