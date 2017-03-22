@@ -3,17 +3,26 @@
  */
 package play.libs;
 
-import java.util.*;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.xpath.*;
-import javax.xml.*;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import static java.util.Collections.*;
-import static java.util.Objects.requireNonNull;
 
 /**
  * XPath for parsing
@@ -58,13 +67,9 @@ public class XPath {
         void bindNamespaceUri(String prefix, String namespaceURI) {
             final String p = requireNonNull(prefix, "Null prefix");
             final String uri = requireNonNull(namespaceURI, "Null namespaceURI");
-            if (! XMLConstants.DEFAULT_NS_PREFIX.equals(p)) {
+            if (!XMLConstants.DEFAULT_NS_PREFIX.equals(p)) {
                 prefixMap.put(p, uri);
-                Set<String> prefixSet = namespaceMap.get(uri);
-                if (prefixSet == null) {
-                    prefixSet = new LinkedHashSet<>();
-                    this.namespaceMap.put(uri, prefixSet);
-                }
+                Set<String> prefixSet = namespaceMap.computeIfAbsent(uri, k -> new LinkedHashSet<>());
                 prefixSet.add(p);
             }
         }

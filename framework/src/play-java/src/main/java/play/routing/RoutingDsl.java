@@ -21,7 +21,11 @@ import scala.reflect.ClassTag$;
 import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterators;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -331,7 +335,7 @@ public class RoutingDsl {
     }
 
     private static final Pattern paramExtractor =
-            Pattern.compile("([:\\*\\$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
+            Pattern.compile("([:*$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
 
     /**
      * A matcher for routes.

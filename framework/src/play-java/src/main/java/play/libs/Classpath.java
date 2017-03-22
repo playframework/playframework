@@ -3,11 +3,17 @@
  */
 package play.libs;
 
-import play.*;
 
-import org.reflections.*;
-import org.reflections.util.*;
-import org.reflections.scanners.*;
+import play.Application;
+import play.Environment;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.scanners.TypeElementsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import java.util.Set;
 
