@@ -14,37 +14,12 @@ import scala.concurrent.ExecutionContext
 /**
  * Useful mixins for controller classes (no global state)
  */
-trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering
+trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering with RequestMethods
 
 /**
- * Defines utility methods to generate `Action` and `Results` types.
- *
- * For example:
- * {{{
- * class HomeController @Inject()() extends Controller {
- *
- *   def hello(name:String) = Action { request =>
- *     Ok("Hello " + name)
- *   }
- *
- * }
- * }}}
- *
- * This controller provides some deprecated global state. To inject this state you can AbstractController instead.
+ * Useful mixin for methods that do implicit transformations of a request
  */
-trait Controller extends BodyParsers with BaseController {
-
-  /**
-   * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.
-   *
-   * For example:
-   * {{{
-   * def index(name:String) = TODO
-   * }}}
-   */
-  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
-    NotImplemented[Html](views.html.defaultpages.todo())
-  }
+trait RequestMethods {
 
   /**
    * Retrieves the session implicitly from the request.
@@ -90,6 +65,38 @@ trait Controller extends BodyParsers with BaseController {
   implicit def request2lang(implicit request: RequestHeader): Lang = {
     play.api.Play.privateMaybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
       .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
+  }
+
+}
+
+/**
+ * Defines utility methods to generate `Action` and `Results` types.
+ *
+ * For example:
+ * {{{
+ * class HomeController @Inject()() extends Controller {
+ *
+ *   def hello(name:String) = Action { request =>
+ *     Ok("Hello " + name)
+ *   }
+ *
+ * }
+ * }}}
+ *
+ * This controller provides some deprecated global state. To inject this state you can AbstractController instead.
+ */
+trait Controller extends BodyParsers with BaseController {
+
+  /**
+   * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.
+   *
+   * For example:
+   * {{{
+   * def index(name:String) = TODO
+   * }}}
+   */
+  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
+    NotImplemented[Html](views.html.defaultpages.todo())
   }
 
 }
