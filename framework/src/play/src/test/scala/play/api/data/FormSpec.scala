@@ -62,6 +62,38 @@ class FormSpec extends Specification {
       f1.get must equalTo((Some("michael@jackson.com"), None))
     }
 
+    "query params NOT ignored when using GET" in {
+      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using DELETE" in {
+      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using HEAD" in {
+      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using OPTIONS" in {
+      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
     "support mapping 22 fields" in {
       val form = Form(
         tuple(
