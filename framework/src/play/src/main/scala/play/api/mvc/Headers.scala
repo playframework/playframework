@@ -6,6 +6,7 @@ package play.api.mvc
 import java.util.Locale
 
 import play.core.utils.CaseInsensitiveOrdered
+import play.mvc.Http.HeaderNames
 
 import scala.collection.immutable.{ TreeMap, TreeSet }
 
@@ -17,6 +18,11 @@ import scala.collection.immutable.{ TreeMap, TreeSet }
  * it lazily.
  */
 class Headers(protected var _headers: Seq[(String, String)]) {
+
+  // TODO expose the actual Long content length? esp.since available in Akka HTTP backend easily
+  //  /** INTERNAL API: Content-Length or -1 if not known. */
+  //  private[play] def contentLength: Long =
+  //    get(HeaderNames.CONTENT_LENGTH).map(_.toLong).getOrElse(-1)
 
   /**
    * The headers as a sequence of name-value pairs.

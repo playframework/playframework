@@ -39,6 +39,12 @@ trait RequestHeader {
   @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
   final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
 
+  // TODO we could do it here instead in Headers, would be cleaner
+  //  /**
+  //   * Content lenght of contained entity. `0` if no entity is present.
+  //   */
+  //  def contentLength: Long 
+
   /**
    * The HTTP method.
    */
@@ -160,8 +166,9 @@ trait RequestHeader {
    */
   def hasBody: Boolean = {
     import HeaderNames._
-    headers.get(CONTENT_LENGTH).isDefined || headers.get(TRANSFER_ENCODING).isDefined
+    headers.get(CONTENT_LENGTH).exists(_gtZero) || headers.get(TRANSFER_ENCODING).isDefined
   }
+  private val _gtZero: String => Boolean = _.toLong > 0
 
   /**
    * The HTTP host (domain, optionally port). This value is derived from the request target, if a hostname is present.
