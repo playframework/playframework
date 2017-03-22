@@ -33,7 +33,7 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
-  private val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
+  override val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
 
   /**
    * Generates an `Action` that serves a static resource from an external folder

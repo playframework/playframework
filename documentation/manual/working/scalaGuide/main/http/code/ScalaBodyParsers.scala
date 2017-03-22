@@ -7,6 +7,7 @@ import akka.stream.ActorMaterializer
 import play.api.http.Writeable
 import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
+import play.api.mvc.Results._
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable.Specification
@@ -17,7 +18,7 @@ import java.io.File
 import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaBodyParsersSpec extends Specification with Controller {
+class ScalaBodyParsersSpec extends Specification {
 
     def helloRequest = FakeRequest("POST", "/").withJsonBody(Json.obj("name" -> "foo"))
 

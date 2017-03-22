@@ -14,7 +14,9 @@ import scala.concurrent.ExecutionContext
 /**
  * Useful mixins for controller classes (no global state)
  */
-trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering
+trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering {
+  def components: ControllerComponents
+}
 
 /**
  * Defines utility methods to generate `Action` and `Results` types.
@@ -32,7 +34,73 @@ trait BaseController extends Results with HttpProtocol with Status with HeaderNa
  *
  * This controller provides some deprecated global state. To inject this state you can AbstractController instead.
  */
-trait Controller extends BodyParsers with BaseController {
+trait Controller extends BaseController {
+
+  private var _components: ControllerComponents = _
+
+  @Inject
+  def setControllerComponents(components: ControllerComponents): Unit = _components = components
+
+  override def components: ControllerComponents = play.api.Play.maybeApplication.fold(_components) { app =>
+    play.Logger.warn(
+      s"""
+        |You are using deprecated global state in your controllers. This is probably happening because your test
+        |code is not setting ControllerComponents inside your controller (${this.getClass}). To fix that, you have to
+        |either migrate to use play.api.mvc.AbstractController or you should call setControllerComponents method after
+        |creating your controller.
+      """.stripMargin)
+    app.injector.instanceOf[ControllerComponents]
+  }
+
+  /**
+   * The default ActionBuilder. Used to construct an action, for example:
+   *
+   * {{{
+   *   def foo(query: String) = Action {
+   *     Ok
+   *   }
+   * }}}
+   *
+   * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
+   */
+  def Action: ActionBuilder[Request, AnyContent] = components.actionBuilder
+
+  /**
+   * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
+   * parser, for example:
+   *
+   * {{{
+   *   def foo(query: String) = Action(parse.tolerantJson) { request =>
+   *     Ok(request.body)
+   *   }
+   * }}}
+   */
+  def parse: PlayBodyParsers = components.parsers
+
+  /**
+   * The default execution context provided by Play. You should use this for non-blocking code only. You can do so by
+   * passing it explicitly, or by defining an implicit in your controller like so:
+   *
+   * {{{
+   *   implicit lazy val executionContext = defaultExecutionContext
+   * }}}
+   */
+  def defaultExecutionContext: ExecutionContext = components.executionContext
+
+  /**
+   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by i18nComponents.
+   */
+  implicit def messagesApi: MessagesApi = components.messagesApi
+
+  /**
+   * The default Langs provided by Play. Can be used to determine the application's supported languages.
+   */
+  implicit def supportedLangs: Langs = components.langs
+
+  /**
+   * The default FileMimeTypes provided by Play. Used to map between file name extensions and mime types.
+   */
+  implicit def fileMimeTypes: FileMimeTypes = components.fileMimeTypes
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.
@@ -102,7 +170,7 @@ trait Controller extends BodyParsers with BaseController {
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
  * base controller class, or write your own version with similar code.
  */
-abstract class AbstractController(components: ControllerComponents) extends BaseController {
+abstract class AbstractController(val components: ControllerComponents) extends BaseController {
 
   /**
    * The default ActionBuilder. Used to construct an action, for example:
