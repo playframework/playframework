@@ -6,8 +6,6 @@
 /**
  * Contains ready to use built-in templates and template helpers.
  */
-package object views
-
 package views {
 
   /**
