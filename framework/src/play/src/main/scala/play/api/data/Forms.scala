@@ -462,6 +462,19 @@ object Forms {
    * @param mapping The mapping to make optional.
    */
   def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
+  /**
+   * Defines an optional mapping, with a default value.
+   *
+   * {{{
+   * Form(
+   *   "name" -> optional(text, "The default text")
+   * )
+   * }}}
+   *
+   * @param mapping The mapping to make optional.
+   * @param defValue The default value when mapping and the field is not present.
+   */
+  def optional[A](mapping: Mapping[A], defValue:A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(defValue), Some(_))
 
   /**
    * Defines an default mapping, if the parameter is not present, provide a default value.
