@@ -1,0 +1,14 @@
+@(myModel: MyModel)
+
+@main("Welcome to Play 2.1") {
+
+	<p>@myModel.firstName</p>
+	<p>@myModel.lastName</p>
+	
+	 @* We can add this statement once the model has been compiled and the getters/setters have been generated.
+	    This shows that getter/setter generation works but that they aren't being called.
+	<p>@myModel.getAge()</p>
+	*@
+	
+
+}
