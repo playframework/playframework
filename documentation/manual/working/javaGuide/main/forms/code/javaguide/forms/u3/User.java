@@ -18,7 +18,7 @@ public class User implements Validatable<String> {
     protected String password;
 
     @Override
-    public String validateInstance() {
+    public String validate() {
         if (authenticate(email, password) == null) {
             // You could also return a key defined in conf/messages
             return "Invalid email or password";

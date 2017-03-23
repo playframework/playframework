@@ -30,7 +30,7 @@ public class PartialUserForm implements Validatable<ValidationError> {
     private String repeatPassword;
 
     @Override
-    public ValidationError validateInstance() {
+    public ValidationError validate() {
         if (!checkPasswords(password, repeatPassword)) {
             return new ValidationError("repeatPassword", "Passwords do not match");
         }

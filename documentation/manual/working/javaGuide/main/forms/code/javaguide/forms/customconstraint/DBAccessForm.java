@@ -28,7 +28,7 @@ public class DBAccessForm implements ValidatableWithDB<ValidationError> {
     private String repeatPassword;
 
     @Override
-    public ValidationError validateInstance(final Database db) {
+    public ValidationError validate(final Database db) {
         // Access the database to check if the email already exists
         if (User.byEmail(email, db) != null) {
             return new ValidationError("email", "This e-mail is already registered.");

@@ -165,7 +165,7 @@ public class JavaForms extends WithApplication {
         }
 
         @Override
-        public List<ValidationError> validateInstance() {
+        public List<ValidationError> validate() {
             final List<ValidationError> errors = new ArrayList<>();
             if (authenticate(email, password) == null) {
                 // Add an error which will be displayed for the email field:
@@ -236,7 +236,7 @@ public class JavaForms extends WithApplication {
         }
 
         @Override
-        public ValidationError validateInstance() {
+        public ValidationError validate() {
             if (authenticate(email, password) == null) {
                 // Error will be displayed for the email field:
                 return new ValidationError("email", "Invalid credentials");

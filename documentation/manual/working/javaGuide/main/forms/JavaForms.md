@@ -95,17 +95,17 @@ Play's built-in validation module is using [Hibernate Validator](http://hibernat
 To validate the state of an entire object we can make use of [class-level constraints](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-class-level-constraints).
 To free you from the burden of implementing your own class-level constraint(s), Play out-of-the-box already provides a generic implementation of such constraint which should cover at least the most common use cases.
 
-Now let's see how this works: To define an ad-hoc validation, all you need to do is annotate your form class with Play's provided class-level constraint (`@Validate`) and implement the corresponding interface (in this case `Validatable<String>`) - which forces you to override a `validateInstance` method:
+Now let's see how this works: To define an ad-hoc validation, all you need to do is annotate your form class with Play's provided class-level constraint (`@Validate`) and implement the corresponding interface (in this case `Validatable<String>`) - which forces you to override a `validate` method:
 
 @[user](code/javaguide/forms/u3/User.java)
 
 The message returned in the above example will become a global error. Errors are defined as [`play.data.validation.ValidationError`](api/java/play/data/validation/ValidationError.html).
-Also be aware that in this example the `validateInstance` method and the `@Constraints.Required` constraint will be called simultaneously - so the `validateInstance` method will be called no matter if `@Constraints.Required` was successful or not (and vice versa). You will learn how to introduce an order later on.
+Also be aware that in this example the `validate` method and the `@Constraints.Required` constraint will be called simultaneously - so the `validate` method will be called no matter if `@Constraints.Required` was successful or not (and vice versa). You will learn how to introduce an order later on.
 
-As you can see the `Validatable<T>` interface takes a type parameter which determines the return type of the `validateInstance()` method.
-So depending if you want to be able to add a single global error, one error (which could be global as well) or multiple (maybe global) errors to a form via `validateInstance()`, you have to use either a `String`, a `ValidationError` or a `List<ValidationError>` as type argument. Any other return types of the validate method will be ignored by Play.
+As you can see the `Validatable<T>` interface takes a type parameter which determines the return type of the `validate()` method.
+So depending if you want to be able to add a single global error, one error (which could be global as well) or multiple (maybe global) errors to a form via `validate()`, you have to use either a `String`, a `ValidationError` or a `List<ValidationError>` as type argument. Any other return types of the validate method will be ignored by Play.
 
-If validation passes inside a `validateInstance()` method you must return `null` or an empty `List`. Returning any other non-`null` value (including empty string) is treated as failed validation.
+If validation passes inside a `validate()` method you must return `null` or an empty `List`. Returning any other non-`null` value (including empty string) is treated as failed validation.
 
 Returning a `ValidationError` object may be useful when you have additional validations for a specific field:
 
@@ -143,7 +143,7 @@ For the sign-up process we simply pass the `SignUpCheck` group to the `form(...)
 
 @[partial-validate-signup](code/javaguide/forms/JavaForms.java)
 
-In this case the email address is required and has to be a valid email address, both the password and the password confirmation are required and the two passwords have to be equal (because of the `@Validate` annotation which calls the `validateInstance` method). But we don't care about the first name and last name - they can be empty or we could even exclude these input fields in the sign up page.
+In this case the email address is required and has to be a valid email address, both the password and the password confirmation are required and the two passwords have to be equal (because of the `@Validate` annotation which calls the `validate` method). But we don't care about the first name and last name - they can be empty or we could even exclude these input fields in the sign up page.
 
 For the login process we just pass the `LoginCheck` group instead:
 
@@ -183,7 +183,7 @@ Now we can use it:
 
 Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on. 
 
-Using a group sequence is especially a good practice when you have a `validateInstance` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validateInstance` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
+Using a group sequence is especially a good practice when you have a `validate` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validate` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
 
 ### Custom class-level constraints with DI support
 
@@ -194,7 +194,7 @@ Because constraints support [[Dependency Injection|JavaDependencyInjection]] we 
 > You only need to create one class-level constraint for each cross concern.
 **For example:** The constraint we will create in this section is reusable and can be used for all validation processes where you need to access the database. The reason why Play doesn't provide any generic class-level constraints with dependency injected components is because Play doesn't know which components you might have enabled in your project.
 
-First let's set up the interface with the `validateInstance` method we will implement in our form later. You can see the method gets passed a `Database` object (Checkout the [[database docs|JavaDatabase]]):
+First let's set up the interface with the `validate` method we will implement in our form later. You can see the method gets passed a `Database` object (Checkout the [[database docs|JavaDatabase]]):
 
 @[interface](code/javaguide/forms/customconstraint/ValidatableWithDB.java)
 
@@ -206,7 +206,7 @@ Finally this is how our constraint implementation looks like:
 
 @[constraint](code/javaguide/forms/customconstraint/ValidateWithDBValidator.java)
 
-As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validateInstance`. When the `validateInstance` returns a non-`null` object or non-empty `List` it means validation failed.
+As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`. When the `validate` returns a non-`null` object or non-empty `List` it means validation failed.
 And now comes the important part: We pass this error to Play's internal validation handling process via the [`withDynamicPayload`](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-dynamic-payload) method so Play knows about the error.
 
 When writing your own class-level constraints you can pass following objects to the `withDynamicPayload` method: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.

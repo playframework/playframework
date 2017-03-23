@@ -38,7 +38,7 @@ public class AnotherUser implements Validatable<List<ValidationError>> {
     }
 
     @Override
-    public List<ValidationError> validateInstance() {
+    public List<ValidationError> validate() {
         final List<ValidationError> errors = new ArrayList<>();
         if (this.name != null && !this.name.equals("Kiki")) {
             errors.add(new ValidationError("name", "Name not correct"));

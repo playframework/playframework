@@ -563,7 +563,7 @@ public class Constraints {
     }
 
     public static interface Validatable<T> {
-        public T validateInstance();
+        public T validate();
     }
 
     public static class ValidateValidator implements ConstraintValidator<Validate, Validatable<?>> {
@@ -574,7 +574,7 @@ public class Constraints {
 
         @Override
         public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
-            final Object result = value.validateInstance();
+            final Object result = value.validate();
             if(result == null || (result instanceof List && ((List<?>)result).isEmpty())) {
                 return true;
             }

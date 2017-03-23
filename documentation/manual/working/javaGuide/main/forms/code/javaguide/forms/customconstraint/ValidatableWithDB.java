@@ -7,6 +7,6 @@ package javaguide.forms.customconstraint;
 import play.db.Database;
 
 public interface ValidatableWithDB<T> {
-    public T validateInstance(final Database db);
+    public T validate(final Database db);
 }
 //#interface

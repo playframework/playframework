@@ -51,7 +51,7 @@ public class LoginUser extends UserBase implements Validatable<String> {
     }
 
     @Override
-    public String validateInstance() {
+    public String validate() {
         if (this.email != null && !this.email.equals("bill.gates@microsoft.com")) {
             return "Invalid email provided!";
         }

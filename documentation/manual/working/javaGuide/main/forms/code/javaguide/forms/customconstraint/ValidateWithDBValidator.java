@@ -29,7 +29,7 @@ public class ValidateWithDBValidator implements ConstraintValidator<ValidateWith
 
     @Override
     public boolean isValid(final ValidatableWithDB<?> value, final ConstraintValidatorContext constraintValidatorContext) {
-        final Object result = value.validateInstance(this.db);
+        final Object result = value.validate(this.db);
         if(result == null || (result instanceof List && ((List<?>)result).isEmpty())) {
             return true;
         }

@@ -82,7 +82,7 @@ public class SomeUser implements Validatable<ValidationError> {
     }
 
     @Override
-    public ValidationError validateInstance() {
+    public ValidationError validate() {
         if (this.password != null && this.repeatPassword != null && !this.password.equals(this.repeatPassword)) {
             return new ValidationError("password", "Passwords do not match");
         }

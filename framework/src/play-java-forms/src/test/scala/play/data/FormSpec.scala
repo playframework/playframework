@@ -436,7 +436,7 @@ class FormSpec extends Specification {
       }
     }
 
-    "honor its validateInstance method" in {
+    "honor its validate method" in {
       "when it returns an error object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
         myForm.error("password").message() must beEqualTo ("Passwords do not match")
