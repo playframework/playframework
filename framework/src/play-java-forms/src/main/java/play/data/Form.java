@@ -363,7 +363,7 @@ public class Form<T> {
         BindingResult result = dataBinder.getBindingResult();
 
         for (ConstraintViolation<Object> violation : validationErrors) {
-            String field = violation.getPropertyPath().toString();
+            String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
             FieldError fieldError = result.getFieldError(field);
             if (fieldError == null || !fieldError.isBindingFailure()) {
                 try {
