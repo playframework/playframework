@@ -24,6 +24,7 @@ import play.mvc.Http;
 import static play.libs.F.*;
 
 import play.data.validation.*;
+import play.data.validation.Constraints.Validatable;
 import play.data.format.Formatters;
 
 import play.Logger;
@@ -446,11 +447,13 @@ public class Form<T> {
         } else {
             Object globalError = null;
             boolean calledDeprecatedValidate = false;
-            if (result.getTarget() != null) {
+            if (result.getTarget() != null && !result.getTarget().getClass().isInstance(Validatable.class)) { // instances of Validatable have been validated already
                 try {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                    globalError = v.invoke(result.getTarget());
-                    calledDeprecatedValidate = true;
+                    if(v.getParameterCount() == 0) {
+                        globalError = v.invoke(result.getTarget());
+                        calledDeprecatedValidate = true;
+                    }
                 } catch (NoSuchMethodException e) {
                     // do nothing
                 } catch (Throwable e) {
