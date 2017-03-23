@@ -48,7 +48,7 @@ libraryDependencies += openId
 Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0-M1"
 ```
 
 Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
