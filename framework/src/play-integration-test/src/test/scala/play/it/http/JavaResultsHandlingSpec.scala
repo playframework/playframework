@@ -52,8 +52,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
         Results.ok("Hello world")
-          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true))
-          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true))
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
       }
     }) { response =>
       response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
@@ -63,7 +63,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in Response" in makeRequest(new MockController {
       def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
         Results.ok("Hello world")
       }
     }) { response =>
@@ -73,9 +73,9 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in both Response and Result" in makeRequest(new MockController {
       def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
         Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
+          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
         )
       }
     }) { response =>

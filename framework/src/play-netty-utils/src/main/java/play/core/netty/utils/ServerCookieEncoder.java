@@ -90,6 +90,10 @@ public final class ServerCookieEncoder extends CookieEncoder {
             add(buf, CookieHeaderNames.EXPIRES, HttpHeaderDateFormat.get().format(expires));
         }
 
+        if (cookie.sameSite() != null) {
+            add(buf, CookieHeaderNames.SAMESITE, cookie.sameSite());
+        }
+
         if (cookie.path() != null) {
             add(buf, CookieHeaderNames.PATH, cookie.path());
         }

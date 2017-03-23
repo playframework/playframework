@@ -7,6 +7,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.ConfigMemorySize
 import org.apache.commons.codec.digest.DigestUtils
+import play.api.mvc.Cookie.SameSite
 import play.api.{ http, _ }
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
@@ -83,10 +84,18 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param maxAge     The max age of the session, none, use "session" sessions
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
  * @param domain     The domain to set for the session cookie, if defined
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
  */
-case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boolean = false,
-  maxAge: Option[FiniteDuration] = None, httpOnly: Boolean = true,
-  domain: Option[String] = None, path: String = "/")
+case class SessionConfiguration(
+  cookieName: String = "PLAY_SESSION",
+  secure: Boolean = false,
+  maxAge: Option[FiniteDuration] = None,
+  httpOnly: Boolean = true,
+  domain: Option[String] = None,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax)
+)
 
 /**
  * The flash configuration
@@ -94,8 +103,16 @@ case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boo
  * @param cookieName The name of the cookie used to store the session
  * @param secure     Whether the flash cookie should set the secure flag or not
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true, path: String = "/")
+case class FlashConfiguration(
+  cookieName: String = "PLAY_FLASH",
+  secure: Boolean = false,
+  httpOnly: Boolean = true,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax)
+)
 
 /**
  * Configuration for body parsers.
@@ -129,6 +146,9 @@ object HttpConfiguration {
 
   private val logger = Logger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
+
+  private implicit val sameSiteConfigLoader: ConfigLoader[Option[SameSite]] =
+    ConfigLoader(_.getString).map(SameSite.parse)
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 
@@ -171,12 +191,14 @@ object HttpConfiguration {
         maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
+        sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
         path = sessionPath
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
         secure = config.get[Boolean]("play.http.flash.secure"),
         httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
+        sameSite = config.get[Option[SameSite]]("play.http.flash.sameSite"),
         path = flashPath
       ),
       fileMimeTypes = FileMimeTypesConfiguration(

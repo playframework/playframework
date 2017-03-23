@@ -8,6 +8,7 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment, Mode, PlayException }
+import play.api.mvc.Cookie.SameSite
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
 class HttpConfigurationSpec extends Specification {
@@ -30,10 +31,12 @@ class HttpConfigurationSpec extends Specification {
         "play.http.session.httpOnly" -> "true",
         "play.http.session.domain" -> "playframework.com",
         "play.http.session.path" -> "/session",
+        "play.http.session.sameSite" -> "lax",
         "play.http.flash.cookieName" -> "PLAY_FLASH",
         "play.http.flash.secure" -> "true",
         "play.http.flash.httpOnly" -> "true",
         "play.http.flash.path" -> "/flash",
+        "play.http.flash.sameSite" -> "lax",
         "play.http.fileMimeTypes" -> "foo=text/foo",
         "play.http.secret.key" -> "mysecret",
         "play.http.secret.provider" -> "HmacSHA1"
@@ -124,6 +127,11 @@ class HttpConfigurationSpec extends Specification {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.session.domain must beEqualTo(Some("playframework.com"))
       }
+
+      "cookie samesite" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+        httpConfiguration.session.sameSite must beSome(SameSite.Lax)
+      }
     }
 
     "configure flash should set" in {
@@ -141,6 +149,11 @@ class HttpConfigurationSpec extends Specification {
       "cookie httpOnly" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.flash.httpOnly must beTrue
+      }
+
+      "cookie samesite" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+        httpConfiguration.flash.sameSite must beSome(SameSite.Lax)
       }
     }
 

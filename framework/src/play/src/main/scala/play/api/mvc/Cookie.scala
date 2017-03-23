@@ -10,6 +10,7 @@ import javax.inject.Inject
 import play.api._
 import play.api.http._
 import play.api.libs.crypto.CookieSigner
+import play.api.mvc.Cookie.SameSite
 import play.mvc.Http.{ Cookie => JCookie }
 
 import scala.collection.immutable.ListMap
@@ -27,14 +28,65 @@ import scala.util.control.NonFatal
  * @param secure whether this cookie is secured, sent only for HTTPS requests
  * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
  */
-case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/",
-    domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true) {
+case class Cookie(
+    name: String,
+    value: String,
+    maxAge: Option[Int] = None,
+    path: String = "/",
+    domain: Option[String] = None,
+    secure: Boolean = false,
+    httpOnly: Boolean = true,
+    sameSite: Option[Cookie.SameSite] = None
+) {
   lazy val asJava = {
-    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull, secure, httpOnly)
+    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull,
+      secure, httpOnly, sameSite.map(_.asJava).orNull)
   }
 }
 
 object Cookie {
+
+  private val logger = Logger(this.getClass)
+
+  sealed abstract class SameSite(val value: String) {
+    private def matches(v: String): Boolean = value equalsIgnoreCase v
+
+    def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
+  }
+  object SameSite {
+    def parse(value: String): Option[SameSite] = Seq(Strict, Lax).find(_ matches value)
+    case object Strict extends SameSite("Strict")
+    case object Lax extends SameSite("Lax")
+  }
+
+  /**
+   * Check the prefix of this cookie and make sure it matches the rules.
+   *
+   * @return the original cookie if it is valid, else a new cookie that has the proper attributes set.
+   */
+  def validatePrefix(cookie: Cookie): Cookie = {
+    val SecurePrefix = "__Secure-"
+    val HostPrefix = "__Host-"
+    @inline def warnIfNotSecure(prefix: String): Unit = {
+      if (!cookie.secure) {
+        logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")
+      }
+    }
+
+    if (cookie.name startsWith SecurePrefix) {
+      warnIfNotSecure(SecurePrefix)
+      cookie.copy(secure = true)
+    } else if (cookie.name startsWith HostPrefix) {
+      warnIfNotSecure(HostPrefix)
+      if (cookie.path != "/") {
+        logger.warn(s"""$HostPrefix is used on cookie but Path is not "/"! Setting now. Cookie is: $cookie""")
+      }
+      cookie.copy(secure = true, path = "/")
+    } else {
+      cookie
+    }
+  }
+
   import scala.concurrent.duration._
 
   /**
@@ -149,13 +201,15 @@ trait CookieHeaderEncoding {
    */
   def encodeSetCookieHeader(cookies: Seq[Cookie]): String = {
     val encoder = config.serverEncoder
-    val newCookies = cookies.map { c =>
+    val newCookies = cookies.map { cookie =>
+      val c = Cookie.validatePrefix(cookie)
       val nc = new DefaultCookie(c.name, c.value)
       nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
       nc.setPath(c.path)
       c.domain.foreach(nc.setDomain)
       nc.setSecure(c.secure)
       nc.setHttpOnly(c.httpOnly)
+      nc.setSameSite(c.sameSite.map(_.value).orNull)
       encoder.encode(nc)
     }
     newCookies.mkString(SetCookieHeaderSeparator)
@@ -187,7 +241,7 @@ trait CookieHeaderEncoding {
     } else {
       Try {
         val decoder = config.clientDecoder
-        for {
+        val newCookies = for {
           cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
           cookie <- Option(decoder.decode(cookieString.trim))
         } yield Cookie(
@@ -197,8 +251,10 @@ trait CookieHeaderEncoding {
           Option(cookie.path).getOrElse("/"),
           Option(cookie.domain),
           cookie.isSecure,
-          cookie.isHttpOnly
+          cookie.isHttpOnly,
+          Option(cookie.sameSite).flatMap(SameSite.parse)
         )
+        newCookies.map(Cookie.validatePrefix)
       } getOrElse {
         logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Seq.empty
@@ -337,6 +393,11 @@ trait CookieBaker[T <: AnyRef] {
    *  The cookie path.
    */
   def path: String
+
+  /**
+   * The value of the SameSite attribute of the cookie. Defaults to no SameSite.
+   */
+  def sameSite: Option[Cookie.SameSite] = None
 
   /**
    * The cookie signer.

@@ -29,7 +29,7 @@ import play.libs.Scala;
 import play.libs.XML;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
-import scala.collection.Seq;
+import play.mvc.Http.Cookie.SameSite;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
 
@@ -245,7 +245,9 @@ public class Http {
                         sessionPath(),
                         domain.isDefined() ? domain.get() : null,
                         messagesApi().langCookieSecure(),
-                        messagesApi().langCookieHttpOnly());
+                        messagesApi().langCookieHttpOnly(),
+                        SameSite.LAX
+                    );
                 response.setCookie(langCookie);
                 return true;
             } else {
@@ -1781,8 +1783,10 @@ public class Http {
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
          * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
-        public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
-            cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
+        public void setCookie(
+                String name, String value, Integer maxAge, String path, String domain,
+                boolean secure, boolean httpOnly, SameSite sameSite) {
+            cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly, sameSite));
         }
 
         /**
@@ -1833,7 +1837,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false));
+            cookies.add(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
         }
 
         public Collection<Cookie> cookies() {
@@ -1959,9 +1963,13 @@ public class Http {
         private final String domain;
         private final boolean secure;
         private final boolean httpOnly;
+        private final SameSite sameSite;
 
+        /**
+         * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your application.
+         */
         public Cookie(String name, String value, Integer maxAge, String path,
-                      String domain, boolean secure, boolean httpOnly) {
+                      String domain, boolean secure, boolean httpOnly, SameSite sameSite) {
             this.name = name;
             this.value = value;
             this.maxAge = maxAge;
@@ -1969,6 +1977,16 @@ public class Http {
             this.domain = domain;
             this.secure = secure;
             this.httpOnly = httpOnly;
+            this.sameSite = sameSite;
+        }
+
+        /**
+         * @deprecated as of 2.6.0. Use {@link Cookie#builder}.
+         */
+        @Deprecated
+        public Cookie(String name, String value, Integer maxAge, String path,
+            String domain, boolean secure, boolean httpOnly) {
+            this(name, value, maxAge, path, domain, secure, httpOnly, null);
         }
 
         /**
@@ -2030,6 +2048,42 @@ public class Http {
             return httpOnly;
         }
 
+        /**
+         * @return the SameSite attribute for this cookie
+         */
+        public Optional<SameSite> sameSite() {
+            return Optional.ofNullable(sameSite);
+        }
+
+        /**
+         * The cookie SameSite attribute
+         */
+        public enum SameSite {
+            STRICT("Strict"), LAX("Lax");
+
+            private final String value;
+
+            SameSite(String value) {
+                this.value = value;
+            }
+
+            public String value() {
+                return this.value;
+            }
+
+            public play.api.mvc.Cookie.SameSite asScala() {
+                return play.api.mvc.Cookie.SameSite$.MODULE$.parse(value).get();
+            }
+
+            public static Optional<SameSite> parse(String sameSite) {
+                for (SameSite value : values()) {
+                    if (value.value.equalsIgnoreCase(sameSite)) {
+                        return Optional.of(value);
+                    }
+                }
+                return Optional.empty();
+            }
+        }
     }
 
     /*
@@ -2045,6 +2099,7 @@ public class Http {
         private String domain;
         private boolean secure = false;
         private boolean httpOnly = false;
+        private SameSite sameSite;
 
         /**
          * @param name the cookie builder name
@@ -2135,10 +2190,20 @@ public class Http {
         }
 
         /**
+         * @param sameSite specify if the cookie is SameSite
+         * @return the cookie builder with the new SameSite flag
+         * */
+        public CookieBuilder withSameSite(SameSite sameSite) {
+            this.sameSite = sameSite;
+            return this;
+        }
+
+        /**
          * @return a new cookie with the current builder parameters
          * */
         public Cookie build() {
-            return new Cookie(this.name, this.value, this.maxAge, this.path, this.domain, this.secure, this.httpOnly);
+            return new Cookie(
+                this.name, this.value, this.maxAge, this.path, this.domain, this.secure, this.httpOnly, this.sameSite);
         }
     }
 

@@ -81,6 +81,7 @@ trait FlashCookieBaker extends CookieBaker[Flash] {
   override def secure = config.secure
   override def httpOnly = config.httpOnly
   override def domain = sessionConfig.domain
+  override def sameSite = config.sameSite
 
   def deserialize(data: Map[String, String]) = new Flash(data)
 

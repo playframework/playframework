@@ -82,6 +82,7 @@ trait SessionCookieBaker extends CookieBaker[Session] {
   override def httpOnly = config.httpOnly
   override def path = config.path
   override def domain = config.domain
+  override def sameSite = config.sameSite
 
   def deserialize(data: Map[String, String]) = new Session(data)
 

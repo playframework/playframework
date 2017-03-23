@@ -304,7 +304,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * @param requestBuilder the request builder
      * @param timeout the timeout
-     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
+     * @deprecated as of 2.6.0. Use {@link routeAndCall(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -337,7 +337,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param router the router
      * @param requestBuilder the request builder
      * @param timeout the timeout
-     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @deprecated as of 2.6.0. Use {@link #routeAndCall(Application, Class, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -373,7 +373,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * @param router the router
      * @param requestBuilder the request builder
-     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, Router, RequestBuilder)}.
+     * @deprecated as of 2.6.0. Use {@link #routeAndCall(Application, Router, RequestBuilder)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -399,7 +399,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param router the router
      * @param requestBuilder the request builder
      * @param timeout the timeout
-     * @deprecated Deprecated as in 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
+     * @deprecated as of 2.6.0. Use {@link #routeAndCall(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -434,7 +434,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      *
      * @param call the call to route
-     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call)}.
+     * @deprecated as of 2.6.0. Use {@link #route(Application, Call)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -450,7 +450,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * @param call the call to route
      * @param timeout the time out
-     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, Call, long)}.
+     * @deprecated as of 2.6.0. Use {@link #route(Application, Call, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -465,7 +465,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * @param requestBuilder the request builder the request builder
-     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder)}.
+     * @deprecated as of 2.6.0. Use {@link #route(Application, RequestBuilder)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
@@ -488,7 +488,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * @param requestBuilder the request builder
      * @param timeout the timeout
-     * @deprecated Deprecated as in 2.6.0. Use {@link #route(Application, RequestBuilder, long)}.
+     * @deprecated as of 2.6.0. Use {@link #route(Application, RequestBuilder, long)}.
      * @see GuiceApplicationBuilder
      * @return the result
      */
