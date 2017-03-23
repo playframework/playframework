@@ -3,7 +3,7 @@
  *@
 @(field: play.api.data.Field, args: (Symbol, Any)* )(inputDef: (String, String, Option[String], Map[Symbol,Any]) => Html)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
 
-@id = @{ args.toMap.get('id).map(_.toString).getOrElse(field.id) }
+@id = @{ args.toMap.get('id').map(_.toString).getOrElse(field.id) }
 
 @handler(
     FieldElements(
