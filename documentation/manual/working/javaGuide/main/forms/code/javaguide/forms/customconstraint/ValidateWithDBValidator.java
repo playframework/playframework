@@ -9,7 +9,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.validation.ConstraintValidatorContext;
 
-import play.data.validation.PlayConstraintValidator;
+import play.data.validation.Constraints.PlayConstraintValidator;
 
 import play.db.Database;
 
