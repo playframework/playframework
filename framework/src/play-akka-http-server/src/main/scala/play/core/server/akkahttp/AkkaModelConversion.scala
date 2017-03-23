@@ -55,7 +55,7 @@ private[server] class AkkaModelConversion(
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
 
-    val headers = convertRequestHeaders(request)
+    val (headers, _uriString) = convertRequestHeaders(request)
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
 
     new RequestHeaderImpl(
@@ -70,13 +70,7 @@ private[server] class AkkaModelConversion(
       request.method.name,
       new RequestTarget {
         override lazy val uri: URI = new URI(uriString)
-        override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
-          case None =>
-            logger.warn("Can't get raw request URI.")
-            request.uri.toString
-          case Some(rawUri) =>
-            rawUri.uri
-        }
+        override lazy val uriString: String = _uriString
         override lazy val path: String = request.uri.path.toString
         override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
       },
@@ -89,7 +83,8 @@ private[server] class AkkaModelConversion(
   /**
    * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
-  private def convertRequestHeaders(request: HttpRequest): Headers = {
+  private def convertRequestHeaders(request: HttpRequest): (Headers, String) = {
+    var requestUri: String = null
     val headerBuffer = new ListBuffer[(String, String)]()
     headerBuffer += CONTENT_TYPE -> request.entity.contentType.value
 
@@ -107,11 +102,18 @@ private[server] class AkkaModelConversion(
     }
     request.headers
       .foreach {
-        case _: `Raw-Request-URI` => // ignore
+        case `Raw-Request-URI`(uri) => requestUri = uri
         case header => headerBuffer += header.name -> header.value
       }
 
-    new Headers(headerBuffer.result())
+    val uri =
+      if (requestUri == null) {
+        logger.warn("Can't get raw request URI. Raw-Request-URI was missing.")
+        request.uri.toString
+      } else
+        requestUri
+
+    (new Headers(headerBuffer.result()), uri)
   }
 
   /**
