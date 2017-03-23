@@ -19,6 +19,7 @@ import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.immutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 
 /**
@@ -89,18 +90,28 @@ private[server] class AkkaModelConversion(
    * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
   private def convertRequestHeaders(request: HttpRequest): Headers = {
-    val entityHeaders: Seq[(String, String)] = request.entity match {
+    val headerBuffer = new ListBuffer[(String, String)]()
+    headerBuffer += CONTENT_TYPE -> request.entity.contentType.value
+
+    request.entity match {
       case HttpEntity.Strict(contentType, data) =>
-        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> data.length.toString)
+        if (request.method.requestEntityAcceptance == RequestEntityAcceptance.Expected || data.nonEmpty)
+          headerBuffer += CONTENT_LENGTH -> data.length.toString
+
       case HttpEntity.Default(contentType, contentLength, _) =>
-        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> contentLength.toString)
-      case HttpEntity.Chunked(contentType, _) =>
-        Seq(CONTENT_TYPE -> contentType.value, TRANSFER_ENCODING -> play.api.http.HttpProtocol.CHUNKED)
+        if (request.method.requestEntityAcceptance == RequestEntityAcceptance.Expected || contentLength > 0)
+          headerBuffer += CONTENT_LENGTH -> contentLength.toString
+
+      case _: HttpEntity.Chunked =>
+        headerBuffer += TRANSFER_ENCODING -> play.api.http.HttpProtocol.CHUNKED
     }
-    val normalHeaders: Seq[(String, String)] = request.headers
-      .filter(_.isNot(`Raw-Request-URI`.lowercaseName))
-      .map(rh => rh.name -> rh.value)
-    new Headers(entityHeaders ++ normalHeaders)
+    request.headers
+      .foreach {
+        case _: `Raw-Request-URI` => // ignore
+        case header => headerBuffer += header.name -> header.value
+      }
+
+    new Headers(headerBuffer.result())
   }
 
   /**
