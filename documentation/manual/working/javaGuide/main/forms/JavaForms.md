@@ -206,10 +206,9 @@ Finally this is how our constraint implementation looks like:
 
 @[constraint](code/javaguide/forms/customconstraint/ValidateWithDBValidator.java)
 
-As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`. When the `validate` returns a non-`null` object or non-empty `List` it means validation failed.
-And now comes the important part: We pass this error to Play's internal validation handling process via the [`withDynamicPayload`](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-dynamic-payload) method so Play knows about the error.
+As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`.
 
-When writing your own class-level constraints you can pass following objects to the `withDynamicPayload` method: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.
+When writing your own class-level constraints you can pass following objects to the `validationSuccessful` and `reportValidationFailure` methods: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.
 
 Finally we can use our custom class-level constraint to validate a form:
 

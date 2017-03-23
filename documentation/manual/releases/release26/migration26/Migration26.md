@@ -133,8 +133,8 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
-The `validate` method implemented inside a form class (usually used for cross field validation) has been deprecated and it's support will be removed in future Play versions. You should use class-level constraints instead now. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
-Existing `validate` methods can be migrated by renaming them to `validate`, annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, your forms also have to implement the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
+From now on a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
 
 | **Return type**                                                                    | **Interface to implement**
 | -----------------------------------------------------------------------------------|-------------------------------------
@@ -170,7 +170,7 @@ public class MyForm implements Validatable<String> {
 }
 ```
 
-> **Be aware**: The now deprecated `validate` method was called only after all other constraints were successful before. By default class-level constraints however are called simultaneously with any other constraint annotations - no matter if they passed or failed. To (also) define an order between the constraints you can now use [[constraint groups|JavaForms#defining-the-order-of-constraint-groups]].
+> **Be aware**: The "old" `validate` method was invoked only after all other constraints were successful before. By default class-level constraints however are called simultaneously with any other constraint annotations - no matter if they passed or failed. To (also) define an order between the constraints you can now use [[constraint groups|JavaForms#defining-the-order-of-constraint-groups]].
 
 ## JPA Migration Notes
 
