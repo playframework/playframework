@@ -25,7 +25,7 @@ If you have a request available in the scope, you can bind directly from the req
 
 ## Defining constraints
 
-You can define additional constraints that will be checked during the binding phase using `JSR-303` (Bean Validation 1.0) annotations:
+You can define additional constraints that will be checked during the binding phase using [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) annotations:
 
 @[user](code/javaguide/forms/u2/User.java)
 
@@ -88,7 +88,7 @@ The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs
 
 ## Advanced validation
 
-Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the `JSR-303` (Bean Validation 1.0) and `JSR-349` (Bean Validation 1.1). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/).
+Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) and [`JSR-349` (Bean Validation 1.1)](http://beanvalidation.org/1.1/spec/1.1.0.cr3/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/).
 
 ### Cross field validation
 
@@ -100,7 +100,7 @@ Now let's see how this works: To define an ad-hoc validation, all you need to do
 @[user](code/javaguide/forms/u3/User.java)
 
 The message returned in the above example will become a global error. Errors are defined as [`play.data.validation.ValidationError`](api/java/play/data/validation/ValidationError.html).
-Also be aware that in this example the `validateInstance` method and the `@Constraints.Required` constraint will be called simultaneously - so the `validateInstance` method will be called no matter if `@Constraints.Required` was successful or not (and vica verca). You will learn how to introduce an order later on.
+Also be aware that in this example the `validateInstance` method and the `@Constraints.Required` constraint will be called simultaneously - so the `validateInstance` method will be called no matter if `@Constraints.Required` was successful or not (and vice versa). You will learn how to introduce an order later on.
 
 As you can see the `Validatable<T>` interface takes a type parameter which determines the return type of the `validateInstance()` method.
 So depending if you want to be able to add a single global error, one error (which could be global as well) or multiple (maybe global) errors to a form via `validateInstance()`, you have to use either a `String`, a `ValidationError` or a `List<ValidationError>` as type argument. Any other return types of the validate method will be ignored by Play.
@@ -111,7 +111,7 @@ Returning a `ValidationError` object may be useful when you have additional vali
 
 @[object-validate](code/javaguide/forms/JavaForms.java)
 
-By returning `List<ValidationError>` you can add multiple validation errors - no matter if for (a) specific field(s) or global errors (or mixed):
+You can add multiple validation errors by returning `List<ValidationError>`. This can be used to add validation errors for a specific field, global errors or even a mix of these options:
 
 @[list-validate](code/javaguide/forms/JavaForms.java)
 
@@ -159,7 +159,7 @@ Which is exactly the same as:
 
 @[partial-validate-nogroup](code/javaguide/forms/JavaForms.java)
 
-In this case following constraints will be validated: The email address is required and has to be valid plus the first name and last name are required as well - that's because if a constraint annotation doesn't *explicitly* define `group` it gets the `Default` group by default.
+In this case following constraints will be validated: The email address is required and has to be valid plus the first name and last name are required as well - that is because if a constraint annotation doesn't *explicitly* define a `group` then the `Default` group is used.
 Be aware we don't check any of the password constraints: Because they *explicitly* define a `group` attribute but don't include the `Default` group they won't be taken into account here.
 
 As you can see in the last example, when **only** passing the group `javax.validation.groups.Default` you can omit it - because it's the default anyway.
@@ -189,7 +189,7 @@ Using a group sequence is especially a good practice when you have a `validateIn
 
 Sometimes you need more sophisticated validation processes. E.g. when a user signs up you want to check if his email address already exists in the database and if so validation should fail.
 
-Because constraints support dependency injection we can easily create our own custom (class-level) constraint which gets a `Database` object injected - which we can use later in the validation process. (Actually you could also inject other components like `MessagesApi`, `JPAApi`, etc.)
+Because constraints support [[Dependency Injection|JavaDependencyInjection]] we can easily create our own custom (class-level) constraint which gets a `Database` object injected - which we can use later in the validation process. (Actually you could also inject other components like `MessagesApi`, `JPAApi`, etc.)
 
 > You only need to create one class-level constraint for each cross concern.
 **For example:** The constraint we will create in this section is reusable and can be used for all validation processes where you need to access the database. The reason why Play doesn't provide any generic class-level constraints with dependency injected components is because Play doesn't know which components you might have enabled in your project.
