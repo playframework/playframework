@@ -7,14 +7,13 @@ package javaguide.forms.customconstraint;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+import play.data.validation.PlayConstraintValidator;
 
 import play.db.Database;
 
-public class ValidateWithDBValidator implements ConstraintValidator<ValidateWithDB, ValidatableWithDB<?>> {
+public class ValidateWithDBValidator implements PlayConstraintValidator<ValidateWithDB, ValidatableWithDB<?>> {
 
     private Database db;
 
@@ -30,11 +29,10 @@ public class ValidateWithDBValidator implements ConstraintValidator<ValidateWith
     @Override
     public boolean isValid(final ValidatableWithDB<?> value, final ConstraintValidatorContext constraintValidatorContext) {
         final Object result = value.validate(this.db);
-        if(result == null || (result instanceof List && ((List<?>)result).isEmpty())) {
+        if(validationSuccessful(result)) {
             return true;
         }
-        constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);
-        return false;
+        return reportValidationFailure(result, constraintValidatorContext);
     }
 }
 //#constraint

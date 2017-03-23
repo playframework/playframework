@@ -566,7 +566,7 @@ public class Constraints {
         public T validate();
     }
 
-    public static class ValidateValidator implements ConstraintValidator<Validate, Validatable<?>> {
+    public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
 
         @Override
         public void initialize(final Validate constraintAnnotation) {
@@ -575,10 +575,23 @@ public class Constraints {
         @Override
         public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
             final Object result = value.validate();
-            if(result == null || (result instanceof List && ((List<?>)result).isEmpty())) {
+            if(validationSuccessful(result)) {
                 return true;
             }
-            constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);
+            return reportValidationFailure(result, constraintValidatorContext);
+        }
+    }
+
+    public interface PlayConstraintValidator<A extends Annotation, T> extends ConstraintValidator<A, T> {
+
+        default boolean validationSuccessful(final Object validationResult) {
+            return validationResult == null || (validationResult instanceof List && ((List<?>)validationResult).isEmpty());
+        }
+
+        default boolean reportValidationFailure(final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
+            constraintValidatorContext
+                .unwrap(HibernateConstraintValidatorContext.class)
+                .withDynamicPayload(validationResult);
             return false;
         }
     }
