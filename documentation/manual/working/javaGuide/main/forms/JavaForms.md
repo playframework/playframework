@@ -105,7 +105,7 @@ Also be aware that in this example the `validateInstance` method and the `@Const
 As you can see the `Validatable<T>` interface takes a type parameter which determines the return type of the `validateInstance()` method.
 So depending if you want to be able to add a single global error, one error (which could be global as well) or multiple (maybe global) errors to a form via `validateInstance()`, you have to use either a `String`, a `ValidationError` or a `List<ValidationError>` as type argument. Any other return types of the validate method will be ignored by Play.
 
-If validation passes inside a `validateInstance()` method you must return `null` or - depending on the return type - an empty string or empty list. Returning any other non-`null` value is treated as failed validation.
+If validation passes inside a `validateInstance()` method you must return `null` or an empty `List`. Returning any other non-`null` value (including empty string) is treated as failed validation.
 
 Returning a `ValidationError` object may be useful when you have additional validations for a specific field:
 
@@ -206,7 +206,7 @@ Finally this is how our constraint implementation looks like:
 
 @[constraint](code/javaguide/forms/customconstraint/ValidateWithDBValidator.java)
 
-As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validateInstance`. When the `validateInstance` returns a non-null object or non-empty List or String it means validation failed.
+As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validateInstance`. When the `validateInstance` returns a non-`null` object or non-empty `List` it means validation failed.
 And now comes the important part: We pass this error to Play's internal validation handling process via the [`withDynamicPayload`](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-dynamic-payload) method so Play knows about the error.
 
 When writing your own class-level constraints you can pass following objects to the `withDynamicPayload` method: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.

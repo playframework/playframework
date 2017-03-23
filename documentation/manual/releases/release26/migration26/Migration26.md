@@ -172,8 +172,6 @@ public class MyForm implements Validatable<String> {
 
 > **Be aware**: The now deprecated `validate` method was called only after all other constraints were successful before. By default class-level constraints however are called simultaneously with any other constraint annotations - no matter if they passed or failed. To (also) define an order between the constraints you can now use [[constraint groups|JavaForms#defining-the-order-of-constraint-groups]].
 
-> **Be aware**: Returning an empty string (when the return type is `String`) or an empty list (when the return type is `List<ValidationError>`) from `validateInstance` now also counts as successful validation. The deprecated `validate` method counts these two returns as failed validation.
-
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].

@@ -30,9 +30,7 @@ public class ValidateWithDBValidator implements ConstraintValidator<ValidateWith
     @Override
     public boolean isValid(final ValidatableWithDB<?> value, final ConstraintValidatorContext constraintValidatorContext) {
         final Object result = value.validateInstance(this.db);
-        if(result == null ||
-                (result instanceof List && ((List<?>)result).isEmpty()) ||
-                (result instanceof String && ((String)result).trim().isEmpty())) {
+        if(result == null || (result instanceof List && ((List<?>)result).isEmpty())) {
             return true;
         }
         constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(result);

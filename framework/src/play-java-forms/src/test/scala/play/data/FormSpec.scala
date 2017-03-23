@@ -457,7 +457,8 @@ class FormSpec extends Specification {
       }
       "when it returns an empty string" in {
         val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "bill.gates@microsoft.com").asJava)
-        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.globalErrors().size() must beEqualTo(1)
+        myForm.globalErrors().get(0).message() must beEqualTo("")
       }
       "when it returns an error list" in {
         val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Bob Marley").asJava)

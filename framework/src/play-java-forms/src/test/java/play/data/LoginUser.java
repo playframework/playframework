@@ -55,7 +55,7 @@ public class LoginUser extends UserBase implements Validatable<String> {
         if (this.email != null && !this.email.equals("bill.gates@microsoft.com")) {
             return "Invalid email provided!";
         }
-        return ""; // null or empty string are handled equal
+        return ""; // for testing purposes only we return an empty string here which will also be seen as an error
     }
 
 }
