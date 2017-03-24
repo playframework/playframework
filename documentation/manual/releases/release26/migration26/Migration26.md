@@ -856,6 +856,36 @@ class MyComponents(context: ApplicationLoader.Context)
 }
 ```
 
+## JWT Support
+
+Play's session cookie encoding has been switched to use JSON Web Token (JWT) under the hood.  JWT comes with a number of advantages, notably automatic signing with HMAC-SHA-256, and support for automatic "not before" and "expires after" date checks which ensure the session cookie cannot be reused outside of a given time window.
+
+More information is available under [[Configuring the Session Cookie|SettingsSession]] page. 
+
+### Legacy Support
+
+Play's `DefaultSessionCookieBaker` has fallback support for reading session cookies in the old url encoded format, so migrations will not be affected.
+
+To use the previous behavior, bind `SessionCookieBaker` to `LegacySessionCookieBaker` in your module:
+
+```scala
+bind[SessionCookieBaker].to[LegacySessionCookieBaker]
+```
+
+### Custom CookieBakers
+
+If you have custom cookies being used in Play, using the `CookieBaker[T]` trait, then you will need to specify what kind of encoding you want for your custom cookie baker.
+
+The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `SignedCookieDataCodec`, `JWTCookieDataCodec`, and `FallbackCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
+  
+To use an implementation, add it to your class:  
+
+```scala
+class MyCookieBaker[T](val secretConfiguration: SecretConfiguration, val jwtConfiguration: JWTConfiguration) extends CookieBaker[T] with JWTCookieDataCodec
+```
+
+and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration.
+
 ## Updated libraries
 
 ### Netty 4.1

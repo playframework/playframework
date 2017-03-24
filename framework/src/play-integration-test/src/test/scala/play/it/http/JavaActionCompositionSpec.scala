@@ -12,6 +12,8 @@ import play.mvc.{ Result, Results }
 
 class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
+  sequential
+
   def makeRequest[T](controller: MockController, configuration: Map[String, _ <: Any] = Map.empty)(block: WSResponse => T) = {
     implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
