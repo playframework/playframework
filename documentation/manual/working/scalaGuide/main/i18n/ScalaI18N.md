@@ -35,7 +35,7 @@ You can also make the language implicit rather than declare it:
 
 Play provides predefined messages for forms validation. 
 You can overwrite these messages either with the default message file or any language-specific message file.
-To see which messages can be overwritten, you can have a look at [`messages.default`](https://github.com/playframework/playframework/blob/2.5.x/framework/src/play/src/main/resources/messages.default)(you need to select the branch according to the version of play you are using).
+To see which messages can be overwritten, you can have a look at [`messages.default`](https://github.com/playframework/playframework/blob/%PLAY_VERSION%/framework/src/play/src/main/resources/messages.default).
 
 ## Using Messages and MessagesProvider
 
