@@ -4,9 +4,7 @@
 package play.data;
 
 import play.data.validation.Constraints.Email;
-import play.data.validation.Constraints.Max;
 import play.data.validation.Constraints.MaxLength;
-import play.data.validation.Constraints.Min;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
@@ -16,11 +14,9 @@ public class UserBase {
 
     @MinLength(255)
     @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)
-    @Max(95)
     @Required
-    @Min(50)
     @MaxLength(255)
-    @Pattern("*")
+    @Pattern("[0-9]")
     @Email
     private String password;
 

@@ -5,7 +5,13 @@ package play.data;
 
 import java.util.*;
 
-public class AnotherUser {
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
+
+import play.data.validation.ValidationError;
+
+@Validate
+public class AnotherUser implements Validatable<List<ValidationError>> {
 
     private String name;
     private final List<String> emails = new ArrayList<>();
@@ -29,6 +35,16 @@ public class AnotherUser {
 
     public List<String> getEmails() {
         return emails;
+    }
+
+    @Override
+    public List<ValidationError> validate() {
+        final List<ValidationError> errors = new ArrayList<>();
+        if (this.name != null && !this.name.equals("Kiki")) {
+            errors.add(new ValidationError("name", "Name not correct"));
+            errors.add(new ValidationError("", "Form could not be processed"));
+        }
+        return errors; // null or empty list are handled equal
     }
 
 }

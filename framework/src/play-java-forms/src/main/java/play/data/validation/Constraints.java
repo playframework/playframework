@@ -16,6 +16,8 @@ import java.lang.reflect.Constructor;
 import javax.validation.*;
 import javax.validation.metadata.*;
 
+import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -484,6 +486,8 @@ public class Constraints {
         return new PatternValidator(regex);
     }
 
+    // --- validate fields with custom validator
+    
      /**
      * Defines a custom validator.
      */
@@ -547,4 +551,47 @@ public class Constraints {
 
     }
 
+    // --- class level helpers
+
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = ValidateValidator.class)
+    public static @interface Validate {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    public static interface Validatable<T> {
+        public T validate();
+    }
+
+    public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
+
+        @Override
+        public void initialize(final Validate constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
+            return reportValidationStatus(value.validate(), constraintValidatorContext);
+        }
+    }
+
+    public interface PlayConstraintValidator<A extends Annotation, T> extends ConstraintValidator<A, T> {
+
+        default boolean validationSuccessful(final Object validationResult) {
+            return validationResult == null || (validationResult instanceof List && ((List<?>)validationResult).isEmpty());
+        }
+
+        default boolean reportValidationStatus(final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
+            if(validationSuccessful(validationResult)) {
+                return true;
+            }
+            constraintValidatorContext
+                .unwrap(HibernateConstraintValidatorContext.class)
+                .withDynamicPayload(validationResult);
+            return false;
+        }
+    }
 }

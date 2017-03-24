@@ -25,7 +25,12 @@ import play.mvc.Http.HttpVerbs;
 import static play.libs.F.*;
 
 import play.data.validation.*;
+import play.data.validation.Constraints.Validatable;
 import play.data.format.Formatters;
+
+import play.Logger;
+
+import org.hibernate.validator.engine.HibernateConstraintViolation;
 
 import org.springframework.beans.*;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -385,14 +390,43 @@ public class Form<T> {
         BindingResult result = dataBinder.getBindingResult();
 
         for (ConstraintViolation<Object> violation : validationErrors) {
-            String field = violation.getPropertyPath().toString();
+            String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
             FieldError fieldError = result.getFieldError(field);
             if (fieldError == null || !fieldError.isBindingFailure()) {
                 try {
-                    result.rejectValue(field,
-                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-                            getMessageForConstraintViolation(violation));
+                    final Object dynamicPayload = violation.unwrap(HibernateConstraintViolation.class).getDynamicPayload(Object.class);
+                    boolean usedDynamicPayload = false;
+                    if (dynamicPayload != null) {
+                        usedDynamicPayload = true;
+                        if (dynamicPayload instanceof String) {
+                            result.rejectValue("", // global error
+                                    violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                                    new Object[0], // no msg arguments to pass
+                                    (String)dynamicPayload); // dynamicPayload itself is the error message(-key)
+                        } else if (dynamicPayload instanceof ValidationError) {
+                            final ValidationError error = (ValidationError) dynamicPayload;
+                            result.rejectValue(error.key(),
+                                    violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                                    error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                                    error.message());
+                        } else if (dynamicPayload instanceof List) {
+                            ((List<ValidationError>) dynamicPayload).forEach(error -> {
+                                result.rejectValue(error.key(),
+                                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                                        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                                        error.message());
+                            });
+                        } else {
+                            // payload is not of a type we expected - therefore we just ignore it and continue with the default validaton process
+                            usedDynamicPayload = false;
+                        }
+                    }
+                    if(!usedDynamicPayload) {
+                        result.rejectValue(field,
+                                violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                                getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                                getMessageForConstraintViolation(violation));
+                    }
                 } catch (NotReadablePropertyException ex) {
                     throw new IllegalStateException("JSR-303 validated property '" + field +
                             "' does not have a corresponding accessor for data binding - " +
@@ -439,15 +473,25 @@ public class Form<T> {
             return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         } else {
             Object globalError = null;
-            if (result.getTarget() != null) {
+            boolean calledDeprecatedValidate = false;
+            if (result.getTarget() != null && !result.getTarget().getClass().isInstance(Validatable.class)) { // instances of Validatable have been validated already
                 try {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                    globalError = v.invoke(result.getTarget());
+                    if(v.getParameterCount() == 0) {
+                        globalError = v.invoke(result.getTarget());
+                        calledDeprecatedValidate = true;
+                    }
                 } catch (NoSuchMethodException e) {
                     // do nothing
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
+            }
+            if(calledDeprecatedValidate) {
+                Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
+                        "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
+                        "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
+                        result.getTarget().getClass().getName());
             }
             if (globalError != null) {
                 final List<ValidationError> errors = new ArrayList<>();
@@ -471,6 +515,9 @@ public class Form<T> {
      * @return The converted arguments.
      */
     private List<Object> convertErrorArguments(Object[] arguments) {
+        if(arguments == null) {
+            return Collections.emptyList();
+        }
         List<Object> converted = Arrays.stream(arguments)
                 .filter(arg -> !(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable))
                 .collect(Collectors.toList());

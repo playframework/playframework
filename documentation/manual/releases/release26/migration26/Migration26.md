@@ -179,6 +179,45 @@ Starting with Play 2.6 query string parameters will not be bound to a form insta
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
+From now on a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
+
+| **Return type**                                                                    | **Interface to implement**
+| -----------------------------------------------------------------------------------|-------------------------------------
+| `String`                                                                           | `Validatable<String>`
+| `ValidationError`                                                                  | `Validatable<ValidationError>`
+| `List<ValidationError>`                                                            | `Validatable<List<ValidationError>>`
+| `Map<String,List<ValidationError>>`<br>(not supported anymore; use `List` instead) | `Validatable<List<ValidationError>>`
+
+For example an existing form like:
+
+```java
+public class MyForm {
+    //...
+    public String validate() {
+        //...
+    }
+}
+```
+
+Has to be changed to:
+
+```java
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
+
+@Validate
+public class MyForm implements Validatable<String> {
+    //...
+    @Override
+    public String validate() {
+        //...
+    }
+}
+```
+
+> **Be aware**: The "old" `validate` method was invoked only after all other constraints were successful before. By default class-level constraints however are called simultaneously with any other constraint annotations - no matter if they passed or failed. To (also) define an order between the constraints you can now use [[constraint groups|JavaForms#defining-the-order-of-constraint-groups]].
+
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].

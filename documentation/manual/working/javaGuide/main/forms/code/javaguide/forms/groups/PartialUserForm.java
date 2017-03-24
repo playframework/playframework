@@ -1,46 +1,45 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.data;
+package javaguide.forms.groups;
 
-import javax.validation.groups.Default;
-
-import play.data.validation.Constraints.Email;
-import play.data.validation.Constraints.MaxLength;
-import play.data.validation.Constraints.MinLength;
-import play.data.validation.Constraints.Required;
+//#user
+import play.data.validation.Constraints;
 import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.Validatable;
-
 import play.data.validation.ValidationError;
+import javax.validation.groups.Default;
 
-@Validate
-public class SomeUser implements Validatable<ValidationError> {
+@Validate(groups = {SignUpCheck.class})
+public class PartialUserForm implements Validatable<ValidationError> {
 
-    @Required(groups = {Default.class, LoginCheck.class})
-    @Email(groups = {LoginCheck.class})
-    @MaxLength(255)
+    @Constraints.Required(groups = {Default.class, SignUpCheck.class, LoginCheck.class})
+    @Constraints.Email(groups = {Default.class, SignUpCheck.class})
     private String email;
 
-    @Required
-    @MaxLength(255)
+    @Constraints.Required
     private String firstName;
 
-    @Required(groups = {Default.class})
-    @MinLength(2)
-    @MaxLength(255)
+    @Constraints.Required
     private String lastName;
-    
-    @Required(groups = {PasswordCheck.class, LoginCheck.class})
-    @MinLength(5)
-    @MaxLength(255)
+
+    @Constraints.Required(groups = {SignUpCheck.class, LoginCheck.class})
     private String password;
-    
-    @Required(groups = {PasswordCheck.class})
-    @MinLength(5)
-    @MaxLength(255)
+
+    @Constraints.Required(groups = {SignUpCheck.class})
     private String repeatPassword;
 
+    @Override
+    public ValidationError validate() {
+        if (!checkPasswords(password, repeatPassword)) {
+            return new ValidationError("repeatPassword", "Passwords do not match");
+        }
+        return null;
+    }
+
+    // getters and setters
+
+    //###skip: 44
     public String getEmail() {
         return this.email;
     }
@@ -81,12 +80,9 @@ public class SomeUser implements Validatable<ValidationError> {
         this.repeatPassword = repeatPassword;
     }
 
-    @Override
-    public ValidationError validate() {
-        if (this.password != null && this.repeatPassword != null && !this.password.equals(this.repeatPassword)) {
-            return new ValidationError("password", "Passwords do not match");
-        }
-        return null;
+    private static boolean checkPasswords(final String pw1, final String pw2) {
+        return false;
     }
 
 }
+//#user

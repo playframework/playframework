@@ -252,7 +252,7 @@ class FormSpec extends Specification {
 
     "support optional deserialization of a common map" in {
       val data = new util.HashMap[String, String]()
-      data.put("name", "kiwi")
+      data.put("name", "Kiki")
 
       val userForm1: Form[AnotherUser] = formFactory.form(classOf[AnotherUser])
       val user1 = userForm1.bind(new java.util.HashMap[String, String]()).get()
@@ -522,44 +522,109 @@ class FormSpec extends Specification {
       }
     }
 
+    "respect the order of validation groups defined via group sequences" in {
+      "first group gets validated and already fails and therefore second group wont even get validated anymore" in {
+        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "invalid_email", "password" -> "", "repeatPassword" -> "").asJava)
+        // first group
+        myForm.errors("email").size() must beEqualTo(1)
+        myForm.errors("email").get(0).message() must beEqualTo("error.email")
+        myForm.errors("password").size() must beEqualTo(1)
+        myForm.errors("password").get(0).message() must beEqualTo("error.required")
+        // next group
+        myForm.errors("repeatPassword").size() must beEqualTo(0)
+      }
+      "first group gets validated and already succeeds but then second group fails" in {
+        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "").asJava)
+        // first group
+        myForm.errors("email").size() must beEqualTo(0)
+        myForm.errors("password").size() must beEqualTo(0)
+        // next group
+        myForm.errors("repeatPassword").size() must beEqualTo(1)
+        myForm.errors("repeatPassword").get(0).message() must beEqualTo("error.required")
+      }
+      "all group gets validated and succeed" in {
+        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+        // first group
+        myForm.errors("email").size() must beEqualTo(0)
+        myForm.errors("password").size() must beEqualTo(0)
+        // next group
+        myForm.errors("repeatPassword").size() must beEqualTo(0)
+        myForm.hasErrors() must beEqualTo(false)
+        myForm.hasGlobalErrors() must beEqualTo(false)
+      }
+    }
+
+    "honor its validate method" in {
+      "when it returns an error object" in {
+        val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+        myForm.error("password").message() must beEqualTo ("Passwords do not match")
+      }
+      "when it returns an null (error) object" in {
+        val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors("password").size() must beEqualTo(0)
+      }
+      "when it returns an error object but is skipped because its not in validation group" in {
+        val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+        myForm.error("password") must beEqualTo (null)
+      }
+      "when it returns a string" in {
+        val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
+        myForm.globalErrors().size() must beEqualTo(1)
+        myForm.globalErrors().get(0).message() must beEqualTo("Invalid email provided!")
+      }
+      "when it returns an empty string" in {
+        val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "bill.gates@microsoft.com").asJava)
+        myForm.globalErrors().size() must beEqualTo(1)
+        myForm.globalErrors().get(0).message() must beEqualTo("")
+      }
+      "when it returns an error list" in {
+        val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Bob Marley").asJava)
+        myForm.globalErrors().size() must beEqualTo(1)
+        myForm.globalErrors().get(0).message() must beEqualTo("Form could not be processed")
+        myForm.errors("name").size() must beEqualTo(1)
+        myForm.errors("name").get(0).message() must beEqualTo("Name not correct")
+      }
+      "when it returns an empty error list" in {
+        val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Kiki").asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(0)
+        myForm.errors("name").size() must beEqualTo(0)
+      }
+    }
+
     "keep the declared order of constraint annotations" in {
       "return the constraints in the same order we declared them" in {
         val myForm = formFactory.form(classOf[LoginUser])
-        myForm.field("email").constraints().size() must beEqualTo(8)
-        myForm.field("email").constraints().get(0)._1 must beEqualTo("constraint.min")
-        myForm.field("email").constraints().get(1)._1 must beEqualTo("constraint.max")
-        myForm.field("email").constraints().get(2)._1 must beEqualTo("constraint.pattern")
-        myForm.field("email").constraints().get(3)._1 must beEqualTo("constraint.validatewith")
-        myForm.field("email").constraints().get(4)._1 must beEqualTo("constraint.required")
-        myForm.field("email").constraints().get(5)._1 must beEqualTo("constraint.minLength")
-        myForm.field("email").constraints().get(6)._1 must beEqualTo("constraint.email")
-        myForm.field("email").constraints().get(7)._1 must beEqualTo("constraint.maxLength")
+        myForm.field("email").constraints().size() must beEqualTo(6)
+        myForm.field("email").constraints().get(0)._1 must beEqualTo("constraint.pattern")
+        myForm.field("email").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
+        myForm.field("email").constraints().get(2)._1 must beEqualTo("constraint.required")
+        myForm.field("email").constraints().get(3)._1 must beEqualTo("constraint.minLength")
+        myForm.field("email").constraints().get(4)._1 must beEqualTo("constraint.email")
+        myForm.field("email").constraints().get(5)._1 must beEqualTo("constraint.maxLength")
       }
 
       "return the constraints in the same order we declared them, mixed with a non constraint annotation" in {
         val myForm = formFactory.form(classOf[LoginUser])
-        myForm.field("name").constraints().size() must beEqualTo(8)
+        myForm.field("name").constraints().size() must beEqualTo(6)
         myForm.field("name").constraints().get(0)._1 must beEqualTo("constraint.required")
         myForm.field("name").constraints().get(1)._1 must beEqualTo("constraint.maxLength")
         myForm.field("name").constraints().get(2)._1 must beEqualTo("constraint.email")
-        myForm.field("name").constraints().get(3)._1 must beEqualTo("constraint.max")
-        myForm.field("name").constraints().get(4)._1 must beEqualTo("constraint.minLength")
-        myForm.field("name").constraints().get(5)._1 must beEqualTo("constraint.pattern")
-        myForm.field("name").constraints().get(6)._1 must beEqualTo("constraint.validatewith")
-        myForm.field("name").constraints().get(7)._1 must beEqualTo("constraint.min")
+        myForm.field("name").constraints().get(3)._1 must beEqualTo("constraint.minLength")
+        myForm.field("name").constraints().get(4)._1 must beEqualTo("constraint.pattern")
+        myForm.field("name").constraints().get(5)._1 must beEqualTo("constraint.validatewith")
       }
 
       "return the constraints of a superclass in the same order we declared them" in {
         val myForm = formFactory.form(classOf[LoginUser])
-        myForm.field("password").constraints().size() must beEqualTo(8)
+        myForm.field("password").constraints().size() must beEqualTo(6)
         myForm.field("password").constraints().get(0)._1 must beEqualTo("constraint.minLength")
         myForm.field("password").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
-        myForm.field("password").constraints().get(2)._1 must beEqualTo("constraint.max")
-        myForm.field("password").constraints().get(3)._1 must beEqualTo("constraint.required")
-        myForm.field("password").constraints().get(4)._1 must beEqualTo("constraint.min")
-        myForm.field("password").constraints().get(5)._1 must beEqualTo("constraint.maxLength")
-        myForm.field("password").constraints().get(6)._1 must beEqualTo("constraint.pattern")
-        myForm.field("password").constraints().get(7)._1 must beEqualTo("constraint.email")
+        myForm.field("password").constraints().get(2)._1 must beEqualTo("constraint.required")
+        myForm.field("password").constraints().get(3)._1 must beEqualTo("constraint.maxLength")
+        myForm.field("password").constraints().get(4)._1 must beEqualTo("constraint.pattern")
+        myForm.field("password").constraints().get(5)._1 must beEqualTo("constraint.email")
       }
     }
   }
