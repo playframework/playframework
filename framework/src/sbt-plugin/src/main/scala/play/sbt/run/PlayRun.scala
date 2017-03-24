@@ -16,6 +16,9 @@ import play.sbt.PlayInternalKeys._
 import play.sbt.Colors
 import play.core.BuildLink
 import play.runsupport.{ AssetsClassLoader, Reloader }
+import play.runsupport.Reloader.GeneratedSourceMapping
+import play.twirl.compiler.MaybeGeneratedSource
+import play.twirl.sbt.SbtTwirl
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys.executableScriptName
@@ -26,6 +29,12 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
  */
 object PlayRun {
 
+  class TwirlSourceMapping extends GeneratedSourceMapping {
+    def getOriginalLine(generatedSource: File, line: Integer): Integer = {
+      MaybeGeneratedSource.unapply(generatedSource).map(_.mapLine(line): java.lang.Integer).orNull
+    }
+  }
+
   /**
    * Configuration for the Play docs application's dependencies. Used to build a classloader for
    * that application. Hidden so that it isn't exposed when the user application is published.
@@ -34,6 +43,10 @@ object PlayRun {
 
   val createURLClassLoader: ClassLoaderCreator = Reloader.createURLClassLoader
   val createDelegatedResourcesClassLoader: ClassLoaderCreator = Reloader.createDelegatedResourcesClassLoader
+
+  val twirlSourceHandler = new TwirlSourceMapping()
+
+  val generatedSourceHandlers = SbtTwirl.defaultFormats.map{ case (k, v) => ("scala." + k, twirlSourceHandler) }
 
   val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader,
     playReloaderClasspath, playReloaderClassLoader, playAssetsClassLoader)
@@ -82,6 +95,7 @@ object PlayRun {
       playCommonClassloader.value,
       playMonitoredFiles.value,
       fileWatchService.value,
+      generatedSourceHandlers,
       (managedClasspath in DocsApplication).value.files,
       playDocsJar.value,
       playDefaultPort.value,

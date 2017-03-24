@@ -170,7 +170,6 @@ object Dependencies {
   def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
     sbtIO(sbtVersion, scalaVersion),
     "com.lightbend.play" %% "play-file-watch" % "1.0.0",
-    "com.typesafe.play" %% "twirl-compiler" % BuildInfo.sbtTwirlVersion,
     logback % Test
   ) ++ specsBuild.map(_ % Test)
 
