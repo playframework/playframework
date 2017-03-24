@@ -28,11 +28,7 @@ public class ValidateWithDBValidator implements PlayConstraintValidator<Validate
 
     @Override
     public boolean isValid(final ValidatableWithDB<?> value, final ConstraintValidatorContext constraintValidatorContext) {
-        final Object result = value.validate(this.db);
-        if(validationSuccessful(result)) {
-            return true;
-        }
-        return reportValidationFailure(result, constraintValidatorContext);
+        return reportValidationStatus(value.validate(this.db), constraintValidatorContext);
     }
 }
 //#constraint

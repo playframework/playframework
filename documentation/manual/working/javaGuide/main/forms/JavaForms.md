@@ -208,7 +208,7 @@ Finally this is how our constraint implementation looks like:
 
 As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`.
 
-When writing your own class-level constraints you can pass following objects to the `validationSuccessful` and `reportValidationFailure` methods: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.
+When writing your own class-level constraints you can pass following objects to the `reportValidationStatus` method: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.
 
 Finally we can use our custom class-level constraint to validate a form:
 

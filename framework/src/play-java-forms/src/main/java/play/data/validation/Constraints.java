@@ -574,11 +574,7 @@ public class Constraints {
 
         @Override
         public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
-            final Object result = value.validate();
-            if(validationSuccessful(result)) {
-                return true;
-            }
-            return reportValidationFailure(result, constraintValidatorContext);
+            return reportValidationStatus(value.validate(), constraintValidatorContext);
         }
     }
 
@@ -588,7 +584,10 @@ public class Constraints {
             return validationResult == null || (validationResult instanceof List && ((List<?>)validationResult).isEmpty());
         }
 
-        default boolean reportValidationFailure(final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
+        default boolean reportValidationStatus(final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
+            if(validationSuccessful(validationResult)) {
+                return true;
+            }
             constraintValidatorContext
                 .unwrap(HibernateConstraintValidatorContext.class)
                 .withDynamicPayload(validationResult);
