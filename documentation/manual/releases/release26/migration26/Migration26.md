@@ -171,7 +171,11 @@ Then in your template you can use `AssetsFinder#path` to find the final path of 
 
 You can still continue to use reverse routes with `Assets.versioned`, but some global state is required to convert the asset name you provide to the final asset name, which can be problematic if you want to run multiple applications at once.
 
-## Java Form Changes
+## Form changes
+
+Starting with Play 2.6 query string parameters will not be bound to a form instance anymore when using `.bindFromRequest()` in combination with `POST`, `PUT` or `PATCH` requests.
+
+### Java Form Changes
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 

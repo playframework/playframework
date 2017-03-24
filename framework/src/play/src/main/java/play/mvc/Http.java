@@ -2407,4 +2407,17 @@ public class Http {
          */
         String BINARY = "application/octet-stream";
     }
+
+    /**
+     * Standard HTTP Verbs
+     */
+    public static interface HttpVerbs {
+        String GET = "GET";
+        String POST = "POST";
+        String PUT = "PUT";
+        String PATCH = "PATCH";
+        String DELETE = "DELETE";
+        String HEAD = "HEAD";
+        String OPTIONS = "OPTIONS";
+    }
 }

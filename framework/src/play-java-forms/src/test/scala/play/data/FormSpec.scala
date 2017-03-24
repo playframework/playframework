@@ -5,6 +5,7 @@ package play.data
 
 import java.util
 import java.util.Optional
+import java.time.{ LocalDate, ZoneId }
 import javax.validation.{ Validation, Validator, Configuration => vConfiguration }
 import javax.validation.groups.Default
 
@@ -53,6 +54,75 @@ class FormSpec extends Specification {
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
+    "query params ignored when using POST" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "POST", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
+    "query params ignored when using PUT" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PUT", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
+    "query params ignored when using PATCH" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PATCH", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getName() must beEqualTo("peter")
+      myForm.value().get().getId() must beEqualTo(null)
+    }
+
+    "query params NOT ignored when using GET" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "GET", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for GET requests
+      myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using GET
+      myForm.value().get().getId() must beEqualTo(55555)
+    }
+    "query params NOT ignored when using DELETE" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "DELETE", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for DELETE requests
+      myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using DELETE
+      myForm.value().get().getId() must beEqualTo(55555)
+    }
+    "query params NOT ignored when using HEAD" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "HEAD", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for HEAD requests
+      myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using HEAD
+      myForm.value().get().getId() must beEqualTo(55555)
+    }
+    "query params NOT ignored when using OPTIONS" in {
+      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "OPTIONS", "?name=michael&id=55555")
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for OPTIONS requests
+      myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using OPTIONS
+      myForm.value().get().getId() must beEqualTo(55555)
+    }
+
     "have an error due to badly formatted date" in new WithApplication() {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
@@ -498,9 +568,10 @@ class FormSpec extends Specification {
 
 object FormSpec {
 
-  def dummyRequest(data: Map[String, Array[String]]): Request = {
+  def dummyRequest(data: Map[String, Array[String]], method: String = "POST", query: String = ""): Request = {
     new RequestBuilder()
-      .uri("http://localhost/test")
+      .method(method)
+      .uri("http://localhost/test" + query)
       .bodyFormArrayValues(data.asJava)
       .build()
   }
