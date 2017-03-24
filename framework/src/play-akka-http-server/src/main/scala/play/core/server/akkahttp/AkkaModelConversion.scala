@@ -19,6 +19,7 @@ import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.immutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 
 /**
@@ -54,7 +55,7 @@ private[server] class AkkaModelConversion(
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
 
-    val headers = convertRequestHeaders(request)
+    val (headers, _uriString) = convertRequestHeaders(request)
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
 
     new RequestHeaderImpl(
@@ -69,13 +70,7 @@ private[server] class AkkaModelConversion(
       request.method.name,
       new RequestTarget {
         override lazy val uri: URI = new URI(uriString)
-        override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
-          case None =>
-            logger.warn("Can't get raw request URI.")
-            request.uri.toString
-          case Some(rawUri) =>
-            rawUri.uri
-        }
+        override lazy val uriString: String = _uriString
         override lazy val path: String = request.uri.path.toString
         override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
       },
@@ -88,19 +83,37 @@ private[server] class AkkaModelConversion(
   /**
    * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
-  private def convertRequestHeaders(request: HttpRequest): Headers = {
-    val entityHeaders: Seq[(String, String)] = request.entity match {
+  private def convertRequestHeaders(request: HttpRequest): (Headers, String) = {
+    var requestUri: String = null
+    val headerBuffer = new ListBuffer[(String, String)]()
+    headerBuffer += CONTENT_TYPE -> request.entity.contentType.value
+
+    request.entity match {
       case HttpEntity.Strict(contentType, data) =>
-        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> data.length.toString)
+        if (request.method.requestEntityAcceptance == RequestEntityAcceptance.Expected || data.nonEmpty)
+          headerBuffer += CONTENT_LENGTH -> data.length.toString
+
       case HttpEntity.Default(contentType, contentLength, _) =>
-        Seq(CONTENT_TYPE -> contentType.value, CONTENT_LENGTH -> contentLength.toString)
-      case HttpEntity.Chunked(contentType, _) =>
-        Seq(CONTENT_TYPE -> contentType.value, TRANSFER_ENCODING -> play.api.http.HttpProtocol.CHUNKED)
+        if (request.method.requestEntityAcceptance == RequestEntityAcceptance.Expected || contentLength > 0)
+          headerBuffer += CONTENT_LENGTH -> contentLength.toString
+
+      case _: HttpEntity.Chunked =>
+        headerBuffer += TRANSFER_ENCODING -> play.api.http.HttpProtocol.CHUNKED
     }
-    val normalHeaders: Seq[(String, String)] = request.headers
-      .filter(_.isNot(`Raw-Request-URI`.lowercaseName))
-      .map(rh => rh.name -> rh.value)
-    new Headers(entityHeaders ++ normalHeaders)
+    request.headers
+      .foreach {
+        case `Raw-Request-URI`(uri) => requestUri = uri
+        case header => headerBuffer += header.name -> header.value
+      }
+
+    val uri =
+      if (requestUri == null) {
+        logger.warn("Can't get raw request URI. Raw-Request-URI was missing.")
+        request.uri.toString
+      } else
+        requestUri
+
+    (new Headers(headerBuffer.result()), uri)
   }
 
   /**
