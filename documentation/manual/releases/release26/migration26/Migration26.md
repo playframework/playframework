@@ -179,6 +179,8 @@ Starting with Play 2.6 query string parameters will not be bound to a form insta
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
+In case you are still using methods that where deprecated in 2.5 (e.g. DynamicForm.form()), refer to the [Code](https://github.com/playframework/playframework/blob/2.5.12/framework/src/play-java/src/main/java/play/data/Form.java) of the corresponding classes in 2.5 to migrate those usages first.
+
 ## JPA Migration Notes
 
 See [[JPA migration notes|JPAMigration26]].
