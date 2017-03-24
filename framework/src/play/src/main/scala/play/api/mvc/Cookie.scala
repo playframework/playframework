@@ -355,7 +355,7 @@ object CookieHeaderMerging {
 /**
  * Trait that should be extended by the Cookie helpers.
  */
-trait CookieBaker[T <: AnyRef] extends CookieDataCodec {
+trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
 
   /**
    * The cookie name.
@@ -466,7 +466,7 @@ trait CookieDataCodec {
  * This trait writes out cookies as url encoded safe text format, optionally prefixed with a
  * signed code.
  */
-trait SignedCookieDataCodec extends CookieDataCodec {
+trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
   /**
    * The cookie signer.
@@ -587,7 +587,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.error(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")
         Map.empty
 
-      case e: Exception =>
+      case NonFatal(e) =>
         // Don't flag user error
         logger.debug(s"decode: could not decode JWT: ${e.getMessage}")
         Map.empty
@@ -700,7 +700,7 @@ trait FallbackCookieDataCodec extends CookieDataCodec {
 
   def jwtCodec: JWTCookieDataCodec
 
-  def signedCodec: SignedCookieDataCodec
+  def signedCodec: UrlEncodedCookieDataCodec
 
   def encode(data: Map[String, String]): String = {
     jwtCodec.encode(data)
@@ -724,10 +724,10 @@ trait FallbackCookieDataCodec extends CookieDataCodec {
   }
 }
 
-case class DefaultSignedCookieDataCodec(
+case class DefaultUrlEncodedCookieDataCodec(
   isSigned: Boolean,
   cookieSigner: CookieSigner
-) extends SignedCookieDataCodec
+) extends UrlEncodedCookieDataCodec
 
 case class DefaultJWTCookieDataCodec @Inject() (
   secretConfiguration: SecretConfiguration,

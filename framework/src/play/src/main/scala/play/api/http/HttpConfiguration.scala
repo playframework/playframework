@@ -36,7 +36,7 @@ case class HttpConfiguration(
  * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
  * production.
  *
- * With the the Play secret we want to:
+ * With the Play secret we want to:
  *
  * 1) Encourage the practice of *not* using the same secret in dev and prod.
  * 2) Make it obvious that the secret should be changed.

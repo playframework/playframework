@@ -68,7 +68,7 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
 /**
  * Helper utilities to manage the Session cookie.
  */
-trait SessionCookieBaker extends CookieBaker[Session] {
+trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
 
   def config: SessionConfiguration
 
@@ -99,7 +99,7 @@ class DefaultSessionCookieBaker @Inject() (
     extends SessionCookieBaker with FallbackCookieDataCodec {
 
   override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
-  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, cookieSigner)
+  override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 
   def this() = this(SessionConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
@@ -110,7 +110,7 @@ class DefaultSessionCookieBaker @Inject() (
  * @param config session configuration
  * @param cookieSigner the cookie signer, typically HMAC-SHA1
  */
-class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner) extends SessionCookieBaker with SignedCookieDataCodec {
+class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner) extends SessionCookieBaker with UrlEncodedCookieDataCodec {
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
@@ -121,5 +121,5 @@ object Session extends SessionCookieBaker with FallbackCookieDataCodec {
   override def path: String = HttpConfiguration.current.context
 
   override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
-  override lazy val signedCodec = DefaultSignedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)
+  override lazy val signedCodec = DefaultUrlEncodedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)
 }

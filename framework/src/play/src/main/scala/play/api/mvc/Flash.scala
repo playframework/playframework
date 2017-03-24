@@ -68,7 +68,7 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
 /**
  * Helper utilities to manage the Flash cookie.
  */
-trait FlashCookieBaker extends CookieBaker[Flash] {
+trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
 
   def config: FlashConfiguration
 
@@ -97,11 +97,11 @@ class DefaultFlashCookieBaker @Inject() (
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 
   override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
-  override val signedCodec: SignedCookieDataCodec = DefaultSignedCookieDataCodec(isSigned, cookieSigner)
+  override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 }
 
 @deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
-object Flash extends FlashCookieBaker with SignedCookieDataCodec {
+object Flash extends FlashCookieBaker with UrlEncodedCookieDataCodec {
   def config: FlashConfiguration = HttpConfiguration.current.flash
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
   override def path: String = HttpConfiguration.current.context

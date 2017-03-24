@@ -2,7 +2,7 @@
 
 Play stores the session using a session cookie in the browser.  When you are programming, you will typically access the session through the [[Scala API|ScalaSessionFlash]] or [[Java API|JavaSessionFlash]], but there are useful configuration settings.
 
-Session cookies are stored in [Java Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format.  The encoding is transparent to Play, but there some useful properties of JWT which can be leveraged for session cookies, and can be configured through `application.conf`.
+Session and flash cookies are stored in [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format.  The encoding is transparent to Play, but there some useful properties of JWT which can be leveraged for session cookies, and can be configured through `application.conf`.  Note that JWT is typically used in an HTTP header value, which is not what is active here -- in addition, the JWT is signed using the secret, but is not encrypted by Play.
 
 ### Not Before Support
 

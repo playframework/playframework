@@ -13,8 +13,8 @@ class ScalaResultsSpec extends PlaySpecification {
   sequential
 
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding = app.injector.instanceOf[CookieHeaderEncoding]
-  def sessionBaker(implicit app: Application): CookieBaker[Session] = app.injector.instanceOf[SessionCookieBaker]
-  def flashBaker(implicit app: Application): CookieBaker[Flash] = app.injector.instanceOf[FlashCookieBaker]
+  def sessionBaker(implicit app: Application): SessionCookieBaker = app.injector.instanceOf[SessionCookieBaker]
+  def flashBaker(implicit app: Application): FlashCookieBaker = app.injector.instanceOf[FlashCookieBaker]
 
   def bake(result: Result)(implicit app: Application): Result = {
     result.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker)
