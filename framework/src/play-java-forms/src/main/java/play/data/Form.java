@@ -392,37 +392,38 @@ public class Form<T> {
         if (fieldError == null || !fieldError.isBindingFailure()) {
             try {
                 final Object dynamicPayload = violation.unwrap(HibernateConstraintViolation.class).getDynamicPayload(Object.class);
-                boolean usedDynamicPayload = false;
-                if (dynamicPayload != null) {
-                    usedDynamicPayload = true;
-                    if (dynamicPayload instanceof String) {
-                        result.rejectValue("", // global error
-                                violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                new Object[0], // no msg arguments to pass
-                                (String)dynamicPayload); // dynamicPayload itself is the error message(-key)
-                    } else if (dynamicPayload instanceof ValidationError) {
-                        final ValidationError error = (ValidationError) dynamicPayload;
-                        result.rejectValue(error.key(),
-                                violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                                error.message());
-                    } else if (dynamicPayload instanceof List) {
-                        ((List<ValidationError>) dynamicPayload).forEach(error -> {
-                            result.rejectValue(error.key(),
-                                    violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                    error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                                    error.message());
-                        });
-                    } else {
-                        // payload is not of a type we expected - therefore we just ignore it and continue with the default validaton process
-                        usedDynamicPayload = false;
-                    }
-                }
-                if(!usedDynamicPayload) {
-                    result.rejectValue(field,
+
+                if (dynamicPayload instanceof String) {
+                    result.rejectValue(
+                        "", // global error
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        new Object[0], // no msg arguments to pass
+                        (String)dynamicPayload // dynamicPayload itself is the error message(-key)
+                    );
+                } else if (dynamicPayload instanceof ValidationError) {
+                    final ValidationError error = (ValidationError) dynamicPayload;
+                    result.rejectValue(
+                        error.key(),
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                        error.message()
+                    );
+                } else if (dynamicPayload instanceof List) {
+                    ((List<ValidationError>) dynamicPayload).forEach(error ->
+                        result.rejectValue(
+                            error.key(),
                             violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-                            getMessageForConstraintViolation(violation));
+                            error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                            error.message()
+                        )
+                    );
+                } else {
+                    result.rejectValue(
+                        field,
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                        getMessageForConstraintViolation(violation)
+                    );
                 }
             } catch (NotReadablePropertyException ex) {
                 throw new IllegalStateException("JSR-303 validated property '" + field +
