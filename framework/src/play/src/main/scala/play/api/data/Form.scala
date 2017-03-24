@@ -7,6 +7,7 @@ import scala.language.existentials
 
 import format._
 import play.api.data.validation._
+import play.api.http.HttpVerbs
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -83,7 +84,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
         case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
         case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
         case _ => Map.empty[String, Seq[String]]
-      }) ++ (if (request.method != "POST" && request.method != "PUT" && request.method != "PATCH") { request.queryString } else { Nil })
+      }) ++ (if (!request.method.equalsIgnoreCase(HttpVerbs.POST) && !request.method.equalsIgnoreCase(HttpVerbs.PUT) && !request.method.equalsIgnoreCase(HttpVerbs.PATCH)) { request.queryString } else { Nil })
     }
   }
 

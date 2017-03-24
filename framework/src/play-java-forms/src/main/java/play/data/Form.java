@@ -20,6 +20,7 @@ import static java.lang.annotation.RetentionPolicy.*;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
+import play.mvc.Http.HttpVerbs;
 
 import static play.libs.F.*;
 
@@ -220,7 +221,7 @@ public class Form<T> {
 
         jsonData.forEach(data::put);
 
-        if(!request.method().equals("POST") && !request.method().equals("PUT") && !request.method().equals("PATCH")) {
+        if(!request.method().equalsIgnoreCase(HttpVerbs.POST) && !request.method().equalsIgnoreCase(HttpVerbs.PUT) && !request.method().equalsIgnoreCase(HttpVerbs.PATCH)) {
             fillDataWith(data, request.queryString());
         }
 
