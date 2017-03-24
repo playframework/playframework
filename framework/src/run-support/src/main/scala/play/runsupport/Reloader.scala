@@ -5,8 +5,9 @@ package play.runsupport
 
 import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
-import java.security.{ PrivilegedAction, AccessController }
+import java.security.{ AccessController, PrivilegedAction }
 import java.util.jar.JarFile
+
 import play.api.PlayException
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.dev.filewatch.{ FileWatchService, SourceModificationWatch, WatchState }
@@ -144,7 +145,7 @@ object Reloader {
     docsClasspath: Classpath, docsJar: Option[File],
     defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
-    runSbtTask: String => AnyRef, mainClassName: String): PlayDevServer = {
+    mainClassName: String): PlayDevServer = {
 
     val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val systemProperties = extractSystemProperties(javaOptions)
@@ -214,7 +215,7 @@ object Reloader {
     lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers, runSbtTask)
+    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -296,8 +297,7 @@ class Reloader(
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
-    generatedSourceHandlers: Map[String, GeneratedSourceMapping],
-    runSbtTask: String => AnyRef) extends BuildLink {
+    generatedSourceHandlers: Map[String, GeneratedSourceMapping]) extends BuildLink {
 
   // The current classloader for the application
   @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
@@ -414,8 +414,6 @@ class Reloader(
       }
     }.orNull
   }
-
-  def runTask(task: String): AnyRef = runSbtTask(task)
 
   def close() = {
     currentApplicationClassLoader = None
