@@ -111,7 +111,7 @@ Cookie cookie = Cookie.builder("color", "blue")
   .withHttpOnly(true)
   .withSameSite(SameSite.STRICT)
   .build();
-``
+```
 
 This is more readable than a plain constructor call, and will be source-compatible if we add/remove cookie attributes in the future.
 
