@@ -66,6 +66,16 @@ case class Lang(locale: Locale) {
  * Utilities related to Lang values.
  */
 object Lang {
+  import play.api.libs.functional.ContravariantFunctor
+  import play.api.libs.json.{ OWrites, Reads, Writes }
+
+  def jsonOWrites(implicit functor: ContravariantFunctor[OWrites]): OWrites[Lang] = functor.contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
+
+  implicit def jsonTagWrites(implicit functor: ContravariantFunctor[Writes]): Writes[Lang] = functor.contramap[Locale, Lang](Writes.localeWrites, _.locale)
+
+  val jsonOReads: Reads[Lang] = Reads.localeObjectReads.map(Lang(_))
+
+  implicit val jsonTagReads: Reads[Lang] = Reads.localeReads.map(Lang(_))
 
   /**
    * The default Lang to use if nothing matches (platform default)
@@ -76,7 +86,8 @@ object Lang {
    * Create a Lang value from a code (such as fr or en-US) and
    *  throw exception if language is unrecognized
    */
-  def apply(code: String): Lang = Lang(new Locale.Builder().setLanguageTag(code).build())
+  def apply(code: String): Lang =
+    Lang(new Locale.Builder().setLanguageTag(code).build())
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
@@ -118,6 +129,7 @@ object Lang {
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     langsCache(app).preferred(langs)
   }
+
 }
 
 /**
