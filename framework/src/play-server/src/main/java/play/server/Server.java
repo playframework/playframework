@@ -10,7 +10,7 @@ import play.core.j.JavaModeConverter;
 import play.core.server.JavaServerHelper;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -246,7 +246,7 @@ public class Server {
      * to serving TEST mode over HTTP on a random available port.
      */
     public static class Builder {
-        private Server.Config _config = new Server.Config(new HashMap<>(), Mode.TEST);
+        private Server.Config _config = new Server.Config(new EnumMap<>(Protocol.class), Mode.TEST);
 
         /**
          * Instruct the server to serve HTTP on a particular port.
@@ -324,7 +324,7 @@ public class Server {
         }
 
         private Builder _protocol(Protocol protocol, int port) {
-            Map<Protocol, Integer> newPorts = new HashMap<>();
+            Map<Protocol, Integer> newPorts = new EnumMap<>(Protocol.class);
             newPorts.putAll(_config.ports());
             newPorts.put(protocol, port);
 
