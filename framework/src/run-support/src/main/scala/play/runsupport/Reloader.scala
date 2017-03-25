@@ -319,11 +319,6 @@ class Reloader(
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
-  def recursivelyListFiles(dir: File): Array[File] = {
-    val filesInDir = dir.listFiles
-    filesInDir ++ filesInDir.filter(_.isDirectory).flatMap(recursivelyListFiles)
-  }
-
   /**
    * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
    * trigger a reload of the app if something has changed.
@@ -361,7 +356,8 @@ class Reloader(
               // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
               // they won't trigger a reload.
               // Use the SBT watch service, passing true as the termination to force it to break after one check
-              val (_, newState) = SourceModificationWatch.watch(() => classpath.iterator.flatMap(recursivelyListFiles(_)).map(_.toScala), 0, watchState)(true)
+              val (_, newState) = SourceModificationWatch.watch(() => classpath.iterator
+                .filter(_.exists()).flatMap(_.toScala.listRecursively), 1000, watchState)(true)
               // SBT has a quiet wait period, if that's set to true, sources were modified
               val triggered = newState.awaitingQuietPeriod
               watchState = newState
