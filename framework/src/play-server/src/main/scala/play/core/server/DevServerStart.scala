@@ -31,10 +31,9 @@ object DevServerStart {
    */
   def mainDevOnlyHttpsMode(
     buildLink: BuildLink,
-    buildDocHandler: BuildDocHandler,
     httpsPort: Int,
     httpAddress: String): ServerWithStop = {
-    mainDev(buildLink, buildDocHandler, None, Some(httpsPort), httpAddress)
+    mainDev(buildLink, None, Some(httpsPort), httpAddress)
   }
 
   /**
@@ -45,15 +44,13 @@ object DevServerStart {
    */
   def mainDevHttpMode(
     buildLink: BuildLink,
-    buildDocHandler: BuildDocHandler,
     httpPort: Int,
     httpAddress: String): ServerWithStop = {
-    mainDev(buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
+    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
   }
 
   private def mainDev(
     buildLink: BuildLink,
-    buildDocHandler: BuildDocHandler,
     httpPort: Option[Int],
     httpsPort: Option[Int],
     httpAddress: String): ServerWithStop = {
@@ -197,10 +194,7 @@ object DevServerStart {
           }
 
           override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-            buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
-              currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
-            )
-
+            currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
           }
 
         }
