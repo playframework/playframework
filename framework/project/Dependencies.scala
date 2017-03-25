@@ -8,7 +8,7 @@ object Dependencies {
 
   val akkaVersion = "2.4.17"
   val akkaHttpVersion = "10.0.5"
-  val playJsonVersion = "2.6.0-M5"
+  val playJsonVersion = "2.6.0-M6"
 
   val specsVersion = "3.8.9"
   val specsBuild = Seq(
@@ -253,7 +253,7 @@ object Dependencies {
       logback % Test
     ) ++ specsBuild.map(_ % Test)
 
-  val playWsStandaloneVersion = "1.0.0-M4"
+  val playWsStandaloneVersion = "1.0.0-M6"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     logback % Test
