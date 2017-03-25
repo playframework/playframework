@@ -309,20 +309,15 @@ class Reloader(
   @volatile private var changed = false
   // The last successful compile results. Used for rendering nice errors.
   @volatile private var currentSourceMap = Option.empty[SourceMap]
-  // A watch state for the classpath. Used to determine whether anything on the classpath has changed as a result
-  // of compilation, and therefore a new classloader is needed and the app needs to be reloaded.
-  @volatile private var watchState: WatchState = WatchState.empty
+  // Last time the classpath was modified in millis. Used to determine whether anything on the classpath has
+  // changed as a result of compilation, and therefore a new classloader is needed and the app needs to be reloaded.
+  @volatile private var lastModified: Long = 0L
 
   // Create the watcher, updates the changed boolean when a file has changed.
   private val watcher = fileWatchService.watch(monitoredFiles, () => {
     changed = true
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
-
-  def recursivelyListFiles(dir: File): Array[File] = {
-    val filesInDir = dir.listFiles
-    filesInDir ++ filesInDir.filter(_.isDirectory).flatMap(recursivelyListFiles)
-  }
 
   /**
    * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
@@ -360,11 +355,11 @@ class Reloader(
 
               // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
               // they won't trigger a reload.
-              // Use the SBT watch service, passing true as the termination to force it to break after one check
-              val (_, newState) = SourceModificationWatch.watch(() => classpath.iterator.flatMap(recursivelyListFiles(_)).map(_.toScala), 0, watchState)(true)
-              // SBT has a quiet wait period, if that's set to true, sources were modified
-              val triggered = newState.awaitingQuietPeriod
-              watchState = newState
+              val classpathFiles = classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
+              val newLastModified =
+                (0L /: classpathFiles) { (acc, file) => math.max(acc, file.lastModified) }
+              val triggered = newLastModified > lastModified
+              lastModified = newLastModified
 
               if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
                 // Create a new classloader
