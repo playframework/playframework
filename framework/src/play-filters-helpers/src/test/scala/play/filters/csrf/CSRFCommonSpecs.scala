@@ -3,6 +3,7 @@
  */
 package play.filters.csrf
 
+import akka.util.Timeout
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Application
@@ -21,6 +22,11 @@ import scala.reflect.ClassTag
  * Specs for functionality that each CSRF filter/action shares in common
  */
 trait CSRFCommonSpecs extends Specification with PlaySpecification {
+
+  //  // FIXME remove me
+  //  import scala.concurrent.duration._
+  //  implicit override def defaultAwaitTimeout: Timeout = 2.seconds
+  //  // FIXME end of remove me 
 
   val TokenName = "csrfToken"
   val HeaderName = "Csrf-Token"
@@ -58,7 +64,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
-    "accept requests with token in form body" in {
+    "xoxo accept requests with token in form body" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
         .post(Map("foo" -> "bar", TokenName -> token))

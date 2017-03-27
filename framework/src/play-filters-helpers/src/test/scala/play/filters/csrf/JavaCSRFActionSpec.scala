@@ -34,7 +34,11 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
-      withActionServer(configuration) { implicit app =>
+      withActionServer(Seq(
+        "play.http.filters" -> classOf[CsrfFilters].getName,
+        "play.filters.csrf.cookie.name" -> "csrf",
+        "play.filters.csrf.errorHandler" -> "play.filters.csrf.JavaErrorHandler"
+      )) { implicit app =>
         {
           case _ if sendUnauthorizedResult =>
             javaAction[JavaCSRFActionSpec.MyUnauthorizedAction]("check", new JavaCSRFActionSpec.MyUnauthorizedAction().check())
