@@ -230,10 +230,9 @@ object Dependencies {
     findBugs,
     ("org.fluentlenium" % "fluentlenium-core" % "3.1.1")
       .exclude("org.jboss.netty", "netty"),
-    "net.sourceforge.htmlunit" % "htmlunit" % "2.23",
-    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.23.2",
-    "org.seleniumhq.selenium" % "selenium-firefox-driver" % "3.0.1",
-    "org.seleniumhq.selenium" % "selenium-support" % "3.0.1"
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.25",
+    "org.seleniumhq.selenium" % "selenium-firefox-driver" % "3.3.1",
+    "org.seleniumhq.selenium" % "selenium-support" % "3.3.1"
   ) ++ guiceDeps
 
   val ehcacheVersion = "2.6.11"
