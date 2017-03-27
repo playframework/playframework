@@ -7,8 +7,8 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 import javax.validation.groups.Default;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.lang.annotation.*;
@@ -489,10 +489,10 @@ public class Form<T> {
                                     "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
                             result.getTarget().getClass().getName());
                 }
-            } catch (NoSuchMethodException e) {
+            } catch (NoSuchMethodException ex) {
                 // do nothing
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
             }
         }
         return globalError;
