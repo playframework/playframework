@@ -78,7 +78,7 @@ private[routing] object RouterBuilderHelper {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {
                       case result: Result => Future.successful(result.asScala)
-                      case promise: CompletionStage[Result] => FutureConverters.toScala(promise).map(_.asScala)
+                      case promise: CompletionStage[Result @unchecked] => FutureConverters.toScala(promise).map(_.asScala)
                     }
                   } finally {
                     Context.current.remove()

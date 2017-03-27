@@ -35,7 +35,7 @@
             }
             @options.map { case (k, v) =>
                 @defining( selectedValues.contains(k) ) { selected =>
-                @defining( args.toMap.get('_disabled).exists { case s: Seq[String] => s.contains(k) }){ disabled =>
+                @defining( args.toMap.get('_disabled).exists { case s: Seq[String@unchecked] => s.contains(k) }){ disabled =>
                 <option value="@k"@if(selected){ selected="selected"}@if(disabled){ disabled}>@v</option>
             }}}
         </select>
