@@ -368,7 +368,11 @@ public class Form<T> {
     private Map<String, String> getObjectData(Map<String, String> data) {
         if (rootName != null) {
             final Map<String, String> objectData = new HashMap<>();
-            data.forEach((key, value) -> objectData.put(key.substring(rootName.length() + 1), value));
+            data.forEach((key, value) -> {
+                if (key.startsWith(rootName + ".")) {
+                    objectData.put(key.substring(rootName.length() + 1), value);
+                }
+            });
             return objectData;
         }
         return data;
