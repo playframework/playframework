@@ -500,6 +500,18 @@ object Forms {
    * @param mapping The mapping to make repeated.
    */
   def seq[A](mapping: Mapping[A]): Mapping[Seq[A]] = RepeatedMapping(mapping).transform(_.toSeq, _.toList)
+  
+  /**
+   * Defines a repeated mapping.
+   * {{{
+   * Form(
+   *   "name" -> set(text)
+   * )
+   * }}}
+   *
+   * @param mapping The mapping to make repeated.
+   */
+  def set[A](mapping: Mapping[A]): Mapping[Set[A]] = RepeatedMapping(mapping).transform(_.toSet, _.toList)
 
   /**
    * Defines a repeated mapping with the Set semantic.
