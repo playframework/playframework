@@ -10,12 +10,14 @@ object Dependencies {
   val akkaHttpVersion = "10.0.5"
   val playJsonVersion = "2.6.0-M6"
 
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.2"
+
   val specsVersion = "3.8.9"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
     "specs2-mock"
-  ).map("org.specs2" %% _ % specsVersion)
+  ).map("org.specs2" %% _ % specsVersion) ++ Seq(logback)
 
   val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specsVersion
 
@@ -32,7 +34,6 @@ object Dependencies {
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.25")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.2"
 
   val guava = "com.google.guava" % "guava" % "21.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
@@ -52,7 +53,6 @@ object Dependencies {
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
-    logback % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
 
   val jpaDeps = Seq(
@@ -76,9 +76,7 @@ object Dependencies {
       .classifier(""),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.9",
-
-    logback % Test
+    "net.jodah" % "typetools" % "0.4.9"
   ) ++ specsBuild.map(_ % Test)
 
   val javaFormsDeps = Seq(
@@ -108,7 +106,8 @@ object Dependencies {
     junit,
     junitInterface,
     "org.easytesting" % "fest-assert"     % "1.4",
-    mockitoAll
+    mockitoAll,
+    logback
   ).map(_ % Test)
 
   val guiceVersion = "4.1.0"
@@ -135,8 +134,6 @@ object Dependencies {
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
 
-      logback % Test,
-
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       scalaJava8Compat
     ) ++ scalaParserCombinators(scalaVersion) ++
@@ -147,8 +144,7 @@ object Dependencies {
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
-    "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64",
-    logback % Test
+    "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64"
   ) ++ specsBuild.map(_ % Test)
 
   val nettyUtilsDependencies = slf4j
@@ -159,8 +155,7 @@ object Dependencies {
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
-    specsMatcherExtra % Test,
-    logback % Test
+    specsMatcherExtra % Test
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
@@ -171,8 +166,7 @@ object Dependencies {
   }
 
   def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
-    "com.lightbend.play" %% "play-file-watch" % "1.0.0",
-    logback % Test
+    "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   ) ++ specsBuild.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
@@ -199,9 +193,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.3.0"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3"),
-
-      logback % Test
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
     ) ++ specsBuild.map(_ % Test)
   }
 
@@ -218,9 +210,8 @@ object Dependencies {
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    scalaJava8Compat,
-    logback % Test
-  ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
+    scalaJava8Compat
+  ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
 
 
 
@@ -230,8 +221,7 @@ object Dependencies {
   )
 
   val playServerDependencies = Seq(
-    guava % Test,
-    logback % Test
+    guava % Test
   ) ++ specsBuild.map(_ % Test)
 
   val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
@@ -243,20 +233,17 @@ object Dependencies {
     "net.sourceforge.htmlunit" % "htmlunit" % "2.23",
     "org.seleniumhq.selenium" % "htmlunit-driver" % "2.23.2",
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % "3.0.1",
-    "org.seleniumhq.selenium" % "selenium-support" % "3.0.1",
-    logback % Test
+    "org.seleniumhq.selenium" % "selenium-support" % "3.0.1"
   ) ++ guiceDeps
 
   val ehcacheVersion = "2.6.11"
   val playCacheDeps = Seq(
-      "net.sf.ehcache" % "ehcache-core" % ehcacheVersion,
-      logback % Test
+      "net.sf.ehcache" % "ehcache-core" % ehcacheVersion
     ) ++ specsBuild.map(_ % Test)
 
   val playWsStandaloneVersion = "1.0.0-M6"
   val playWsDeps = Seq(
-    "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
-    logback % Test
+    "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion
   ) ++
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test
