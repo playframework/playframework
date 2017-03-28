@@ -7,6 +7,7 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 import javax.validation.groups.Default;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -187,7 +188,7 @@ public class Form<T> {
             rootName,
             clazz,
             data,
-            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<>(),
+            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<ValidationError>(),
             value,
             groups,
             messagesApi,
@@ -347,6 +348,156 @@ public class Form<T> {
         return errorMessage;
     }
 
+    private DataBinder dataBinder(String... allowedFields) {
+        DataBinder dataBinder;
+        if (rootName == null) {
+            dataBinder = new DataBinder(blankInstance());
+        } else {
+            dataBinder = new DataBinder(blankInstance(), rootName);
+        }
+        if (allowedFields.length > 0) {
+            dataBinder.setAllowedFields(allowedFields);
+        }
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
+        dataBinder.setValidator(validator);
+        dataBinder.setConversionService(formatters.conversion);
+        dataBinder.setAutoGrowNestedPaths(true);
+        return dataBinder;
+    }
+
+    private Map<String, String> getObjectData(Map<String, String> data) {
+        if (rootName != null) {
+            final Map<String, String> objectData = new HashMap<>();
+            data.forEach((key, value) -> {
+                if (key.startsWith(rootName + ".")) {
+                    objectData.put(key.substring(rootName.length() + 1), value);
+                }
+            });
+            return objectData;
+        }
+        return data;
+    }
+
+    private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
+        return withRequestLocale(() -> {
+            dataBinder.bind(new MutablePropertyValues(objectData));
+            if (groups != null) {
+                return validator.validate(dataBinder.getTarget(), groups);
+            } else {
+                return validator.validate(dataBinder.getTarget());
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addConstraintViolationToBindingResult(ConstraintViolation<Object> violation, BindingResult result) {
+        String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
+        FieldError fieldError = result.getFieldError(field);
+        if (fieldError == null || !fieldError.isBindingFailure()) {
+            try {
+                final Object dynamicPayload = violation.unwrap(HibernateConstraintViolation.class).getDynamicPayload(Object.class);
+
+                if (dynamicPayload instanceof String) {
+                    result.rejectValue(
+                        "", // global error
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        new Object[0], // no msg arguments to pass
+                        (String)dynamicPayload // dynamicPayload itself is the error message(-key)
+                    );
+                } else if (dynamicPayload instanceof ValidationError) {
+                    final ValidationError error = (ValidationError) dynamicPayload;
+                    result.rejectValue(
+                        error.key(),
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                        error.message()
+                    );
+                } else if (dynamicPayload instanceof List) {
+                    ((List<ValidationError>) dynamicPayload).forEach(error ->
+                        result.rejectValue(
+                            error.key(),
+                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                            error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                            error.message()
+                        )
+                    );
+                } else {
+                    result.rejectValue(
+                        field,
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                        getMessageForConstraintViolation(violation)
+                    );
+                }
+            } catch (NotReadablePropertyException ex) {
+                throw new IllegalStateException("JSR-303 validated property '" + field +
+                        "' does not have a corresponding accessor for data binding - " +
+                        "check your DataBinder's configuration (bean property versus direct field access)", ex);
+            }
+        }
+    }
+
+    private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
+        return result.getFieldErrors().stream().map(error -> {
+            String key = error.getObjectName() + "." + error.getField();
+            if (key.startsWith("target.") && rootName == null) {
+                key = key.substring(7);
+            }
+
+            if (error.isBindingFailure()) {
+                ImmutableList.Builder<String> builder = ImmutableList.builder();
+                Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
+                for (String code: error.getCodes()) {
+                    code = code.replace("typeMismatch", "error.invalid");
+                    if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                        builder.add( code );
+                    }
+                }
+                return new ValidationError(key, builder.build().reverse(),
+                        convertErrorArguments(error.getArguments()));
+            } else {
+                return new ValidationError(key, error.getDefaultMessage(),
+                        convertErrorArguments(error.getArguments()));
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private List<ValidationError> globalErrorsAsValidationErrors(BindingResult result) {
+        return result.getGlobalErrors()
+                .stream()
+                .map(error ->
+                    new ValidationError(
+                        "",
+                        error.getDefaultMessage(),
+                        convertErrorArguments(error.getArguments())
+                    )
+                ).collect(Collectors.toList());
+    }
+
+    private Object callLegacyValidateMethod(BindingResult result) {
+        Object globalError = null;
+
+        // instances of Validatable have been validated already
+        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !result.getTarget().getClass().isInstance(Validatable.class);
+        if (shouldTryLegacyValidateMethod) {
+            try {
+                java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
+                if (v.getParameterCount() == 0) {
+                    globalError = v.invoke(result.getTarget());
+                    Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
+                                    "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
+                                    "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
+                            result.getTarget().getClass().getName());
+                }
+            } catch (NoSuchMethodException ex) {
+                // do nothing
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return globalError;
+    }
+
     /**
      * Binds data to this form - that is, handles form submission.
      *
@@ -357,155 +508,38 @@ public class Form<T> {
     @SuppressWarnings("unchecked")
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
 
-        DataBinder dataBinder;
-        Map<String, String> objectData = data;
-        if (rootName == null) {
-            dataBinder = new DataBinder(blankInstance());
-        } else {
-            dataBinder = new DataBinder(blankInstance(), rootName);
-            objectData = new HashMap<>();
-            for (String key: data.keySet()) {
-                if (key.startsWith(rootName + ".")) {
-                    objectData.put(key.substring(rootName.length() + 1), data.get(key));
-                }
-            }
-        }
-        if (allowedFields.length > 0) {
-            dataBinder.setAllowedFields(allowedFields);
-        }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
-        dataBinder.setValidator(validator);
-        dataBinder.setConversionService(formatters.conversion);
-        dataBinder.setAutoGrowNestedPaths(true);
-        final Map<String, String> objectDataFinal = objectData;
-        Set<ConstraintViolation<Object>> validationErrors = withRequestLocale(() -> {
-            dataBinder.bind(new MutablePropertyValues(objectDataFinal));
-            if (groups != null) {
-                return validator.validate(dataBinder.getTarget(), groups);
-            } else {
-                return validator.validate(dataBinder.getTarget());
-            }
-        });
+        final DataBinder dataBinder = dataBinder(allowedFields);
+        final Map<String, String> objectDataFinal = getObjectData(data);
 
-        BindingResult result = dataBinder.getBindingResult();
+        final Set<ConstraintViolation<Object>> validationErrors = runValidation(dataBinder, objectDataFinal);
+        final BindingResult result = dataBinder.getBindingResult();
 
-        for (ConstraintViolation<Object> violation : validationErrors) {
-            String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
-            FieldError fieldError = result.getFieldError(field);
-            if (fieldError == null || !fieldError.isBindingFailure()) {
-                try {
-                    final Object dynamicPayload = violation.unwrap(HibernateConstraintViolation.class).getDynamicPayload(Object.class);
-                    boolean usedDynamicPayload = false;
-                    if (dynamicPayload != null) {
-                        usedDynamicPayload = true;
-                        if (dynamicPayload instanceof String) {
-                            result.rejectValue("", // global error
-                                    violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                    new Object[0], // no msg arguments to pass
-                                    (String)dynamicPayload); // dynamicPayload itself is the error message(-key)
-                        } else if (dynamicPayload instanceof ValidationError) {
-                            final ValidationError error = (ValidationError) dynamicPayload;
-                            result.rejectValue(error.key(),
-                                    violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                    error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                                    error.message());
-                        } else if (dynamicPayload instanceof List) {
-                            ((List<ValidationError>) dynamicPayload).forEach(error -> {
-                                result.rejectValue(error.key(),
-                                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                        error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                                        error.message());
-                            });
-                        } else {
-                            // payload is not of a type we expected - therefore we just ignore it and continue with the default validaton process
-                            usedDynamicPayload = false;
-                        }
-                    }
-                    if(!usedDynamicPayload) {
-                        result.rejectValue(field,
-                                violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                                getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-                                getMessageForConstraintViolation(violation));
-                    }
-                } catch (NotReadablePropertyException ex) {
-                    throw new IllegalStateException("JSR-303 validated property '" + field +
-                            "' does not have a corresponding accessor for data binding - " +
-                            "check your DataBinder's configuration (bean property versus direct field access)", ex);
-                }
-            }
-        }
+        validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
 
-        if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            final List<ValidationError> errors = new ArrayList<>();
-            for (FieldError error: result.getFieldErrors()) {
-                String key = error.getObjectName() + "." + error.getField();
-                if (key.startsWith("target.") && rootName == null) {
-                    key = key.substring(7);
-                }
+        boolean hasAnyError = result.hasErrors() || result.getGlobalErrorCount() > 0;
 
-                ValidationError validationError;
-                if (error.isBindingFailure()) {
-                    ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
-                    for (String code: error.getCodes()) {
-                        code = code.replace("typeMismatch", "error.invalid");
-                        if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
-                            builder.add( code );
-                        }
-                    }
-                    validationError = new ValidationError(key, builder.build().reverse(),
-                            convertErrorArguments(error.getArguments()));
-                } else {
-                    validationError = new ValidationError(key, error.getDefaultMessage(),
-                            convertErrorArguments(error.getArguments()));
-                }
-                errors.add(validationError);
-            }
+        if (hasAnyError) {
+            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(result);
+            final List<ValidationError> globalErrors = globalErrorsAsValidationErrors(result);
 
-            List<ValidationError> globalErrors = result.getGlobalErrors().stream()
-                    .map(error -> new ValidationError("", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
-                    .collect(Collectors.toList());
-
-            if (!globalErrors.isEmpty()) {
-                errors.addAll(globalErrors);
-            }
+            errors.addAll(globalErrors);
 
             return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-        } else {
-            Object globalError = null;
-            boolean calledDeprecatedValidate = false;
-            if (result.getTarget() != null && !result.getTarget().getClass().isInstance(Validatable.class)) { // instances of Validatable have been validated already
-                try {
-                    java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                    if(v.getParameterCount() == 0) {
-                        globalError = v.invoke(result.getTarget());
-                        calledDeprecatedValidate = true;
-                    }
-                } catch (NoSuchMethodException e) {
-                    // do nothing
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if(calledDeprecatedValidate) {
-                Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
-                        "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
-                        "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
-                        result.getTarget().getClass().getName());
-            }
-            if (globalError != null) {
-                final List<ValidationError> errors = new ArrayList<>();
-                if (globalError instanceof String) {
-                    errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
-                } else if (globalError instanceof List) {
-                    errors.addAll((List<ValidationError>) globalError);
-                } else if (globalError instanceof Map) {
-                    ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
-                }
-                return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-            }
-            return new Form<>(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
+
+        final Object globalError = callLegacyValidateMethod(result);
+        if (globalError != null) {
+            final List<ValidationError> errors = new ArrayList<>();
+            if (globalError instanceof String) {
+                errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
+            } else if (globalError instanceof List) {
+                errors.addAll((List<ValidationError>) globalError);
+            } else if (globalError instanceof Map) {
+                ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
+            }
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+        }
+        return new Form<>(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
     }
 
     /**
