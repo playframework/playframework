@@ -205,4 +205,15 @@ For more information, please see [[ScalaLogging]] or [[JavaLogging]].
 
 For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
+## Improved Form Handling I18N support
+
+The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms. 
+ 
+ In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling. 
+  
+In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
+
+For more information, please see [[ScalaI18N]] or [[JavaI18N]].
+
+
 
