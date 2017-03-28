@@ -131,20 +131,20 @@ Please see [[Scala|ScalaSessionFlash]] or [[Java|JavaSessionFlash]] pages for mo
 
 ## Logging Marker API
 
- SLF4J Marker support has been added to `play.Logger` and `play.api.Logger`.
+ SLF4J Marker support has been added to [`play.Logger`](api/java/play/Logger.html) and [`play.api.Logger`](api/scala/play/api/Logger.html).
 
 In the Java API, it is a straight port of the SLF4J Logger API.  This is useful, but you may find an SLF4J wrapper like [Godaddy Logger](https://github.com/godaddy/godaddy-logger) for a richer logging experience.
 
 In the Scala API, markers are added through a MarkerContext trait, which is added as an implicit parameter to the logger methods, i.e.
 
-``` scala
+```scala
 import play.api._
 logger.info("some info message")(MarkerContext(someMarker))
 ```
 
 This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  In particular, see what you can do with the [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#event-specific-custom-fields):
 
-``` scala
+```scala
 implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
   import net.logstash.logback.marker.LogstashMarker
   import net.logstash.logback.marker.Markers._
@@ -170,7 +170,7 @@ import javax.inject._
 import play.api.mvc._
 
 @Singleton
-class TracerBulletController @Inject() extends Controller {
+class TracerBulletController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
   private val logger = org.slf4j.LoggerFactory.getLogger("application")
 
   // in logback.xml
@@ -183,15 +183,12 @@ class TracerBulletController @Inject() extends Controller {
    */
   private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
 
-  def generateMarker(implicit request: RequestHeader): org.slf4j.Marker = {
+  private def generateMarker(implicit request: RequestHeader): org.slf4j.Marker = {
     val marker = org.slf4j.MarkerFactory.getDetachedMarker("dynamic") // base do-nothing marker...
-    request match {
-      case r if r.getQueryString("trace").nonEmpty  =>
+    if (request.getQueryString("trace").nonEmpty) {
         marker.add(tracerMarker)
-        marker
-      case other =>
-        marker
     }
+    marker
   }
 
   def index = Action { implicit request =>
@@ -203,6 +200,8 @@ class TracerBulletController @Inject() extends Controller {
   }
 }
 ```
+
+For more information, please see [[ScalaLogging]] or [[JavaLogging]].
 
 For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
