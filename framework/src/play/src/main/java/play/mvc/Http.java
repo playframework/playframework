@@ -1781,6 +1781,7 @@ public class Http {
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
+         * @param sameSite The SameSite value (Strict or Lax)
          * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
         public void setCookie(
@@ -1981,6 +1982,13 @@ public class Http {
         }
 
         /**
+         * @param name Cookie name, must not be null
+         * @param value Cookie value
+         * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
+         * @param path Cookie path
+         * @param domain Cookie domain
+         * @param secure Whether the cookie is secured (for HTTPS requests)
+         * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
          * @deprecated as of 2.6.0. Use {@link Cookie#builder}.
          */
         @Deprecated
