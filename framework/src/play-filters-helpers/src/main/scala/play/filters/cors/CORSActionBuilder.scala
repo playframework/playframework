@@ -12,7 +12,7 @@ import play.api.{ Configuration, Logger }
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * A play.api.mvc.ActionBuilder that implements Cross-Origin Resource Sharing (CORS)
  *
  * @see [[play.filters.cors.CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
@@ -27,7 +27,7 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
 }
 
 /**
- * An [[play.api.mvc.ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
+ * A play.api.mvc.ActionBuilder that implements Cross-Origin Resource Sharing (CORS)
  *
  * It can be configured to...
  *

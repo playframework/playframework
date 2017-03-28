@@ -13,7 +13,7 @@ import play.api.Logger
 import play.api.mvc.{ Filter, RequestHeader, Result }
 
 /**
- * A [[play.api.mvc.Filter]] that implements Cross-Origin Resource Sharing (CORS)
+ * A play.api.mvc.Filter that implements Cross-Origin Resource Sharing (CORS)
  *
  * It can be configured to...
  *
