@@ -1968,6 +1968,15 @@ public class Http {
 
         /**
          * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your application.
+         *
+         * @param name Cookie name, must not be null
+         * @param value Cookie value
+         * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
+         * @param path Cookie path
+         * @param domain Cookie domain
+         * @param secure Whether the cookie is secured (for HTTPS requests)
+         * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
+         * @param sameSite the SameSite attribute for this cookie (for CSRF protection).
          */
         public Cookie(String name, String value, Integer maxAge, String path,
                       String domain, boolean secure, boolean httpOnly, SameSite sameSite) {
