@@ -126,3 +126,94 @@ Please see [[the Filters page|Filters]] for more details.
 ## JWT Cookies
 
 Play now uses [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration (making replay attacks harder) and more flexibility in signing cookies.
+
+Please see [[Scala|ScalaSessionFlash]] or [[Java|JavaSessionFlash]] pages for more details.
+
+## Logging Marker API
+
+ SLF4J Marker support has been added to [`play.Logger`](api/java/play/Logger.html) and [`play.api.Logger`](api/scala/play/api/Logger.html).
+
+In the Java API, it is a straight port of the SLF4J Logger API.  This is useful, but you may find an SLF4J wrapper like [Godaddy Logger](https://github.com/godaddy/godaddy-logger) for a richer logging experience.
+
+In the Scala API, markers are added through a MarkerContext trait, which is added as an implicit parameter to the logger methods, i.e.
+
+```scala
+import play.api._
+logger.info("some info message")(MarkerContext(someMarker))
+```
+
+This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  In particular, see what you can do with the [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#event-specific-custom-fields):
+
+```scala
+implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
+  import net.logstash.logback.marker.LogstashMarker
+  import net.logstash.logback.marker.Markers._
+
+  val requestMarkers: LogstashMarker = append("host", request.host)
+    .and(append("path", request.path))
+
+  MarkerContext(requestMarkers)
+}
+
+def index = Action { request =>
+  logger.debug("index: ")(request)
+  Ok("testing")
+}
+```
+
+Note that markers are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels:
+
+```scala
+package controllers
+
+import javax.inject._
+import play.api.mvc._
+
+@Singleton
+class TracerBulletController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+  private val logger = org.slf4j.LoggerFactory.getLogger("application")
+
+  // in logback.xml
+  /*
+  <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+    <Name>TRACER_FILTER</Name>
+    <Marker>TRACER</Marker>
+    <OnMatch>ACCEPT</OnMatch>
+  </turboFilter>
+   */
+  private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
+
+  private def generateMarker(implicit request: RequestHeader): org.slf4j.Marker = {
+    val marker = org.slf4j.MarkerFactory.getDetachedMarker("dynamic") // base do-nothing marker...
+    if (request.getQueryString("trace").nonEmpty) {
+        marker.add(tracerMarker)
+    }
+    marker
+  }
+
+  def index = Action { implicit request =>
+    val marker = generateMarker
+    if (logger.isTraceEnabled(marker)) {
+      logger.trace(marker, "Hello world!")
+    }
+    Ok("hello world")
+  }
+}
+```
+
+For more information, please see [[ScalaLogging]] or [[JavaLogging]].
+
+For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
+
+## Improved Form Handling I18N support
+
+The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms. 
+ 
+ In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling. 
+  
+In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
+
+For more information, please see [[ScalaI18N]] or [[JavaI18N]].
+
+
+
