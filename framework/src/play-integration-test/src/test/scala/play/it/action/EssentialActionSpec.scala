@@ -3,7 +3,11 @@
  */
 package play.it.action
 
+import org.specs2.matcher.MatchResult
 import play.api.Environment
+import play.api.mvc.AnyContent
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.BodyParsers
 import play.api.mvc.Results._
 import play.api.mvc.{ DefaultActionBuilder, EssentialAction }
 import play.api.test.{ FakeRequest, PlaySpecification }
@@ -16,8 +20,6 @@ class EssentialActionSpec extends PlaySpecification {
 
     "use the classloader of the running application" in {
 
-      val actionClassLoader = Promise[ClassLoader]()
-
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
 
@@ -26,15 +28,31 @@ class EssentialActionSpec extends PlaySpecification {
 
         val Action = app.injector.instanceOf[DefaultActionBuilder]
 
-        val action: EssentialAction = Action {
-          actionClassLoader.success(Thread.currentThread.getContextClassLoader)
-          Ok("")
+        def checkAction(actionCons: (ClassLoader => Unit) => EssentialAction): MatchResult[_] = {
+          val actionClassLoader = Promise[ClassLoader]()
+          val action = actionCons(cl => actionClassLoader.success(cl))
+          call(action, FakeRequest())
+          await(actionClassLoader.future) must be equalTo applicationClassLoader
         }
 
-        // run the test with the classloader of the current thread
-        Thread.currentThread.getContextClassLoader must not be applicationClassLoader
-        call(action, FakeRequest())
-        await(actionClassLoader.future) must be equalTo applicationClassLoader
+        // make sure running thread has applicationClassLoader set
+        Thread.currentThread.setContextClassLoader(applicationClassLoader)
+
+        // test with simple sync action
+        checkAction { reportCL =>
+          Action {
+            reportCL(Thread.currentThread.getContextClassLoader)
+            Ok("")
+          }
+        }
+
+        // test with async action
+        checkAction { reportCL =>
+          Action(BodyParsers.utils.maxLength(100, BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))) { _ =>
+            reportCL(Thread.currentThread.getContextClassLoader)
+            Ok("")
+          }
+        }
       }
     }
   }

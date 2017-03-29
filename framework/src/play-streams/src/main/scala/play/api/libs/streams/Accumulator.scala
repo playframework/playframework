@@ -4,11 +4,14 @@
 package play.api.libs.streams
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Source, Keep, Flow, Sink }
+import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.compat.java8.FutureConverters._
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * An accumulator of elements into a future of a result.
@@ -142,16 +145,37 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
 private class DoneAccumulator[+A](future: Future[A]) extends Accumulator[Any, A] {
 
   def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(future.map(f))
+    new DoneAccumulator(
+      future.value match {
+        case Some(Success(a)) => Future.fromTry(Try(f(a))) // optimize already completed case
+        case _ => future.map(f)
+      }
+    )
 
   def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(future.flatMap(f))
+    new DoneAccumulator(
+      future.value match {
+        // optimize already completed case
+        case Some(Success(a)) =>
+          Try(f(a)) match {
+            case Success(fut) => fut
+            case Failure(ex) => Future.failed(ex)
+          }
+        case _ => future.flatMap(f)
+      }
+    )
 
   def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(future.recover(pf))
+    future.value match {
+      case Some(Success(a)) => this // optimize already completed case
+      case _ => new DoneAccumulator(future.recover(pf))
+    }
 
   def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(future.recoverWith(pf))
+    future.value match {
+      case Some(Success(a)) => this // optimize already completed case
+      case _ => new DoneAccumulator(future.recoverWith(pf))
+    }
 
   def through[F](flow: Flow[F, Any, _]): Accumulator[F, A] = this
 
