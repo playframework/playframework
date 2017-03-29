@@ -3,28 +3,8 @@
  */
 package play.test;
 
-import akka.stream.Materializer;
-import akka.util.ByteString;
-import org.openqa.selenium.WebDriver;
-import play.*;
-
-import play.inject.guice.GuiceApplicationBuilder;
-import play.routing.Router;
-import play.core.j.JavaHandler;
-import play.core.j.JavaHandlerComponents;
-import play.core.j.JavaContextComponents;
-import play.http.HttpEntity;
-import play.mvc.*;
-import play.api.test.Helpers$;
-import play.libs.*;
-import play.twirl.api.Content;
-
-import org.openqa.selenium.firefox.*;
-import org.openqa.selenium.htmlunit.*;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.OptionConverters;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +12,33 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static play.mvc.Http.*;
+import akka.stream.Materializer;
+import akka.util.ByteString;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import play.Application;
+import play.Play;
+import play.api.test.Helpers$;
+import play.core.j.JavaContextComponents;
+import play.core.j.JavaHandler;
+import play.core.j.JavaHandlerComponents;
+import play.core.j.JavaHelpers$;
+import play.http.HttpEntity;
+import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.Scala;
+import play.mvc.Call;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.routing.Router;
+import play.twirl.api.Content;
+import scala.compat.java8.FutureConverters;
+import scala.compat.java8.OptionConverters;
+
 import static play.libs.Scala.asScala;
+import static play.mvc.Http.Context;
+import static play.mvc.Http.Request;
+import static play.mvc.Http.RequestBuilder;
 
 /**
  * Helper functions to run tests.
@@ -141,6 +146,31 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
+    }
+
+    /**
+     * Builds a new Http.Context from a new request
+     * @return a new Http.Context using the default request
+     */
+    public static Http.Context httpContext() {
+        return httpContext(new Http.RequestBuilder().build());
+    }
+
+    /**
+     * Builds a new Http.Context for a specific request
+     * @param request the Request you want to use for this Context
+     * @return a new Http.Context for this request
+     */
+    public static Http.Context httpContext(Http.Request request) {
+        return new Http.Context(request, contextComponents());
+    }
+
+    /**
+     * Creates a new JavaContextComponents using Configuration.reference and Enviroment.simple as defaults
+     * @return the newly created JavaContextComponents
+     */
+    public static JavaContextComponents contextComponents() {
+        return JavaHelpers$.MODULE$.createContextComponents();
     }
 
     /**
