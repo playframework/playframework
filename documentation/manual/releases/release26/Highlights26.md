@@ -24,7 +24,7 @@ class Attrs {
 // Get the User object from the request
 User user = req.attrs().get(Attrs.USER);
 // Put a User object into the request
-Request newReq = req.withAttrs(req.attrs().put(Attrs.USER, newUser));
+Request newReq = req.addAttr(Attrs.USER, newUser);
 ```
 
 Scala:
@@ -37,7 +37,7 @@ object Attrs {
 // Get the User object from the request
 val user: User = req.attrs(Attrs.User)
 // Put a User object into the request
-val newReq = req.withAttrs(req.attrs.updated(Attrs.User, newUser))
+val newReq = req.addAttr(Attrs.User, newUser)
 ```
 
 Attributes are stored in a `TypedMap`. You can read more about attributes in the `TypedMap` documentation: [Javadoc](api/java/play/libs/typedmap/TypedMap.html), [Scaladoc](api/scala/play/api/libs/typedmap/TypedMap.html).

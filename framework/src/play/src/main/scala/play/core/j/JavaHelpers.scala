@@ -14,7 +14,7 @@ import play.api.mvc._
 import play.api.{ Configuration, Environment }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.Execution.Implicits.trampoline
-import play.libs.typedmap.TypedMap
+import play.libs.typedmap.{ TypedKey, TypedMap }
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.{ Security, Result => JResult }
 
@@ -307,6 +307,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def attrs: TypedMap = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader =
     new RequestHeaderImpl(header.withAttrs(newAttrs.underlying()))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader =
+    withAttrs(attrs.put(key, value))
 
   def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -374,11 +376,14 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def attrs: TypedMap = new TypedMap(asScala.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequest =
     new RequestImpl(request.withAttrs(newAttrs.underlying()))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest =
+    withAttrs(attrs.put(key, value))
 
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
 
   override def username: String = attrs().getOptional(Security.USERNAME).orElse(null)
-  override def withUsername(username: String): JRequest = withAttrs(attrs.put(Security.USERNAME, username))
+  override def withUsername(username: String): JRequest = addAttr(Security.USERNAME, username)
+
 }

@@ -10,7 +10,7 @@ import akka.util.ByteString
 import play.api.http.HttpConfiguration
 import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
-import play.api.libs.typedmap.TypedMap
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc._
 import play.api.mvc.request._
 import play.core.parsers.FormUrlEncodedParser
@@ -52,6 +52,8 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
     new FakeRequest(request.withHeaders(newHeaders))
   override def withAttrs(attrs: TypedMap): FakeRequest[A] =
     new FakeRequest(request.withAttrs(attrs))
+  override def addAttr[B](key: TypedKey[B], value: B): FakeRequest[A] =
+    withAttrs(attrs.updated(key, value))
   override def withBody[B](body: B): FakeRequest[B] =
     new FakeRequest(request.withBody(body))
 
@@ -86,7 +88,7 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
    */
   def withFlash(data: (String, String)*): FakeRequest[A] = {
     val newFlash = new Flash(flash.data ++ data)
-    withAttrs(attrs.updated(RequestAttrKey.Flash, Cell(newFlash)))
+    addAttr(RequestAttrKey.Flash, Cell(newFlash))
   }
 
   /**
@@ -94,7 +96,7 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
    */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
     val newCookies: Cookies = Cookies(CookieHeaderMerging.mergeCookieHeaderCookies(this.cookies ++ cookies))
-    withAttrs(attrs.updated(RequestAttrKey.Cookies, Cell(newCookies)))
+    addAttr(RequestAttrKey.Cookies, Cell(newCookies))
   }
 
   /**
@@ -102,7 +104,7 @@ class FakeRequest[A](request: Request[A]) extends Request[A] {
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
     val newSession = Session(this.session.data ++ newSessions)
-    withAttrs(attrs.updated(RequestAttrKey.Session, Cell(newSession)))
+    addAttr(RequestAttrKey.Session, Cell(newSession))
   }
 
   /**

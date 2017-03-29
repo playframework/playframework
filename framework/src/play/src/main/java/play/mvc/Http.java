@@ -540,6 +540,15 @@ public class Http {
         RequestHeader withAttrs(TypedMap newAttrs);
 
         /**
+         * Create a new versions of this object with the given attribute attached to it.
+         *
+         * @param key The new attribute key.
+         * @param value  The attribute value.
+         * @return The new version of this object with the new attribute.
+         */
+        <A> RequestHeader addAttr(TypedKey<A> key, A value);
+
+        /**
          * Attach a body to this header.
          *
          * @param body The body to attach.
@@ -698,6 +707,9 @@ public class Http {
 
         // Override return type
         Request withAttrs(TypedMap newAttrs);
+
+        // Override return type
+        <A> Request addAttr(TypedKey<A> key, A value);
 
         /**
          * The user name for this request, if defined.
@@ -1047,7 +1059,7 @@ public class Http {
          * @return the request builder with extra attribute
          */
         public <T> RequestBuilder attr(TypedKey<T> key, T value) {
-            req = req.withAttrs(req.attrs().updated(key.underlying(), value));
+            req = req.addAttr(key.underlying(), value);
             return this;
         }
 

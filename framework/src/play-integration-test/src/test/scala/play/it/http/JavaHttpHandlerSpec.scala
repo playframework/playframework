@@ -37,7 +37,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
       response.body must beEqualTo("None")
     }
     "route a modified request to a JavaHandler's Action" in handlerResponse(
-      Handler.Stage.modifyRequest(req => req.withAttrs(req.attrs.updated(TestAttr, "Hello!")), javaHandler)
+      Handler.Stage.modifyRequest(req => req.addAttr(TestAttr, "Hello!"), javaHandler)
     ) { response =>
         response.body must beEqualTo("Some(Hello!)")
       }
