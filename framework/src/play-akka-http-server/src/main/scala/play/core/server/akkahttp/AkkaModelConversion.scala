@@ -35,15 +35,43 @@ private[server] class AkkaModelConversion(
    * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
    * for its body.
    */
-  def convertRequest(
-    requestId: Long,
-    remoteAddress: InetSocketAddress,
-    secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
+  def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
+
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
     )
+
+    //    // FIXME this is if you want to try out avoiding conversion 
+    //    (
+    //      new RequestHeaderImpl(
+    //        forwardedHeaderHandler.forwardedConnection(
+    //          new RemoteConnection {
+    //            override def remoteAddress: InetAddress = InetAddress.getLocalHost
+    //            override def secure: Boolean = secureProtocol
+    //            // TODO - Akka does not yet expose the SSLEngine used for the request
+    //            override lazy val clientCertificateChain = None
+    //          },
+    //          Headers()),
+    //        request.method.name,
+    //        new RequestTarget {
+    //          override lazy val uri: URI = new URI(uriString)
+    //          override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
+    //            case None =>
+    //              logger.warn("Can't get raw request URI.")
+    //              request.uri.toString
+    //            case Some(rawUri) =>
+    //              rawUri.uri
+    //          }
+    //          override lazy val path: String = request.uri.path.toString
+    //          override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
+    //        },
+    //        request.protocol.value,
+    //        Headers(),
+    //        TypedMap.empty
+    //      ),
+    //      None
+    //    )
   }
 
   /**
@@ -124,13 +152,17 @@ private[server] class AkkaModelConversion(
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
         None
+
       case HttpEntity.Strict(_, data) =>
         Some(Source.single(data))
+
       case HttpEntity.Default(_, 0, _) =>
         None
+
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
         Some(pubr)
+
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: do something with trailing headers?
         Some(chunks.takeWhile(!_.isLastChunk).map(_.data()))

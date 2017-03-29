@@ -2,6 +2,8 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
+import Keys._
+
 import buildinfo.BuildInfo
 
 object Dependencies {
@@ -149,10 +151,6 @@ object Dependencies {
 
   val nettyUtilsDependencies = slf4j
 
-  val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
-  )
-
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
     specsMatcherExtra % Test
@@ -255,4 +253,39 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
+}
+
+/*
+ * How to use this:
+ *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
+ *    
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.1", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.1", "2.11.8"), 
+ */
+ object AkkaDependency {
+  // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
+  val akkaSourceDependencyUri = sys.props.getOrElse("akka-http.sources", "")
+  val shouldUseSourceDependency = akkaSourceDependencyUri != ""
+  val akkaRepository = uri(akkaSourceDependencyUri)
+
+  implicit class RichProject(project: Project) {
+    /** Adds either a source or a binary dependency, depending on whether the above settings are set */
+    def addAkkaModuleDependency(module: String, config: String = ""): Project =
+      if (shouldUseSourceDependency) {
+        val moduleRef = ProjectRef(akkaRepository, module)
+        val withConfig: ClasspathDependency =
+          if (config == "") {
+            println("  Using Akka-HTTP directly from sources, from: " + akkaSourceDependencyUri)
+            moduleRef
+          } else moduleRef % config
+
+        project.dependsOn(withConfig)
+      } else {
+        val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
+        val withConfig =
+          if (config == "") dep
+          else dep % config
+        project.settings(libraryDependencies += withConfig)
+      }
+  }
 }

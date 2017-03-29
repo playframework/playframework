@@ -55,8 +55,7 @@ class AkkaHttpServer(
 
   def mode = config.mode
 
-  // Remember that some user config may not be available in development mode due to
-  // its unusual ClassLoader.
+  // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
   implicit val system = actorSystem
   implicit val mat = materializer
 
@@ -90,7 +89,7 @@ class AkkaHttpServer(
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
       connection.handleWith(Flow[HttpRequest]
         .map(HttpRequestDecoder.decodeRequest)
-        .mapAsync(parallelism = 1)(handleRequest(connection.remoteAddress, _, connectionContext.isSecure)))
+        .mapAsync(parallelism = 8)(handleRequest(connection.remoteAddress, _, connectionContext.isSecure)))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
