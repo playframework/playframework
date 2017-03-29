@@ -133,6 +133,13 @@ class CSRFAction(
   }
 
   private def checkBody[T](extractor: (ByteString, String) => Option[String])(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
+    // We need to ensure that the action isn't actually executed until the body is validated.
+    // To do that, we use Flow.splitWhen(_ => false).  This basically says, give me a Source
+    // containing all the elements when you receive the first element.  Our BodyHandler doesn't
+    // output any part of the body until it has validated the CSRF check, so we know that
+    // the source is validated. Then using a Sink.head, we turn that Source into an Accumulator,
+    // which we can then map to execute and feed into our action.
+    // CSRF check failures are used by failing the stream with a NoTokenInBody exception.
     Accumulator(
 
       Flow[ByteString]
@@ -292,47 +299,11 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
       var next: ByteString = _
 
       def continueHandler = new InHandler with OutHandler {
-        override def onPush(): Unit = {
-          val elem = grab(in)
-          // Standard contract for forwarding as is in DetachedStage
-          if (isHoldingDownstream) {
-            push(out, elem)
-            pull(in)
-          } else {
-            next = elem
-            push(out, elem)
-          }
-        }
-
-        private def isHoldingDownstream = {
-          !(isClosed(in) || hasBeenPulled(in))
-        }
-
-        override def onPull(): Unit = {
-          // Standard contract for forwarding as is in DetachedStage
-          if (next != null) {
-            val toPush = next
-            next = null
-            push(out, toPush)
-
-            if (isClosed(in)) {
-              completeStage()
-            } else {
-              pull(in)
-            }
-          } else {
-            if (isClosed(in)) {
-              completeStage()
-            } // else, do nothing
-          }
-        }
+        override def onPush(): Unit = push(out, grab(in))
+        override def onPull(): Unit = pull(in)
 
         override def onUpstreamFinish(): Unit = {
-          if (next != null) {
-            absorbTermination()
-          } else {
-            completeStage()
-          }
+          if (next == null) completeStage()
         }
       }
 
@@ -370,23 +341,8 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
 
       override def onUpstreamFinish(): Unit = {
         // CSRF check
-        val bodyChecked = checkBody(buffer)
-        if (bodyChecked) {
-          // Absorb the termination, hold the buffer, and enter the continue state.
-          // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
-          next = buffer
-          buffer = null
-
-          val continue = continueHandler
-          setHandlers(in, out, continue)
-          continue.onPull()
-        } else {
-          failStage(NoTokenInBody)
-        }
-      }
-
-      def absorbTermination(): Unit = {
-        if (isAvailable(out)) onPull()
+        if (checkBody(buffer)) emit(out, buffer, () => completeStage())
+        else failStage(NoTokenInBody)
       }
 
       private def exceededBufferLimit(elem: ByteString) = {
