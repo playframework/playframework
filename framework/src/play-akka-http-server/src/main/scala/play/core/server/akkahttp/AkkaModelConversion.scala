@@ -269,7 +269,7 @@ final case class AkkaHeadersWrapper(
 ) extends Headers(null) {
 
   override lazy val headers: Seq[(String, String)] =
-    hs.map(h => h.name() -> h.value) 
+    hs.map(h => h.name() -> h.value)
 
   // note that these are rarely used, mostly just in tests
   override def add(headers: (String, String)*): AkkaHeadersWrapper =
@@ -282,7 +282,7 @@ final case class AkkaHeadersWrapper(
     key match {
       case HeaderNames.CONTENT_LENGTH => knownContentLength
       case HeaderNames.TRANSFER_ENCODING => isChunked
-      case HeaderNames.CONTENT_TYPE => Option(request.entity.contentType.value)
+      case HeaderNames.CONTENT_TYPE => Some(request.entity.contentType.value)
       case _ =>
         val lower = key.toLowerCase(Locale.ROOT)
         hs.collectFirst({ case h if h.lowercaseName == lower => h.value })

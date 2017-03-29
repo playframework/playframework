@@ -39,12 +39,6 @@ trait RequestHeader {
   @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
   final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
 
-  // TODO we could do it here instead in Headers, would be cleaner
-  //  /**
-  //   * Content lenght of contained entity. `0` if no entity is present.
-  //   */
-  //  def contentLength: Long 
-
   /**
    * The HTTP method.
    */
