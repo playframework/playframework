@@ -107,7 +107,7 @@ Play now comes with a default set of enabled filters, defined through configurat
 * `play.filters.headers.SecurityHeadersFilter`
 * `play.filters.hosts.AllowedHostsFilter`
 
-This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
+This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.  This provides a "secure by default" experience for new Play applications, and tightens security on existing Play applications.
 
 In addition, filters can now be configured through `application.conf`.  To append to the defaults list, use the `+=`:
 
@@ -122,6 +122,8 @@ play.filters.disabled+=MyFilter
 ```
 
 Please see [[the Filters page|Filters]] for more details.
+
+> **NOTE**: If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests, from the CSRF filter.  To check this behavior, please add `<logger name="play.filters.csrf" value="TRACE"/>` to your `logback.xml`.  Likewise, if you are running a Play application on something other than localhost, you must configure the [[AllowedHostsFilter]] to specifically allow the hostname/ip you are connecting from.
 
 ## JWT Cookies
 
