@@ -176,7 +176,7 @@ private[server] class AkkaModelConversion(
       // Convert result
       resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
         val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
-        val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
+        val entity = convertResultBody(requestHeaders, validated, protocol)
         val connectionHeader = resultUtils.determineConnectionHeader(requestHeaders, validated)
         val closeHeader = connectionHeader.header.map(Connection(_))
         val response = HttpResponse(
@@ -211,7 +211,6 @@ private[server] class AkkaModelConversion(
 
   def convertResultBody(
     requestHeaders: RequestHeader,
-    convertedHeaders: AkkaHttpHeaders,
     result: Result,
     protocol: HttpProtocol): ResponseEntity = {
 
