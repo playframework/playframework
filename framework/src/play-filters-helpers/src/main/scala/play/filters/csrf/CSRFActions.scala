@@ -8,8 +8,9 @@ import java.util.Locale
 import javax.inject.Inject
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
-import akka.stream.stage.{ DetachedContext, DetachedStage }
+import akka.stream._
+import akka.stream.scaladsl._
+import akka.stream.stage._
 import akka.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.SessionConfiguration
@@ -139,7 +140,7 @@ class CSRFAction(
     // which we can then map to execute and feed into our action.
     // CSRF check failures are used by failing the stream with a NoTokenInBody exception.
     Accumulator(
-      Flow[ByteString].transform(() => new BodyHandler(config, { body =>
+      Flow[ByteString].via(new BodyHandler(config, { body =>
         if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
           filterLogger.trace("[CSRF] Valid token found in body")
           true
@@ -276,93 +277,105 @@ class CSRFAction(
  * failing the stream if it's invalid.  If it's valid, it forwards the buffered body, and then stops buffering and
  * continues forwarding the body as is (or finishes if the stream was finished).
  */
-private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) extends DetachedStage[ByteString, ByteString] {
-  var buffer: ByteString = ByteString.empty
-  var next: ByteString = null
-  var continue = false
+private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) extends GraphStage[FlowShape[ByteString, ByteString]] {
 
-  def onPush(elem: ByteString, ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      // Standard contract for forwarding as is in DetachedStage
-      if (ctx.isHoldingDownstream) {
-        ctx.pushAndPull(elem)
-      } else {
-        next = elem
-        ctx.holdUpstream()
-      }
-    } else {
-      if (buffer.size + elem.size > config.postBodyBuffer) {
-        // We've finished buffering up to the configured limit, try to validate
-        buffer ++= elem
-        if (checkBody(buffer)) {
-          // Switch to continue, and push the buffer
-          continue = true
-          if (ctx.isHoldingDownstream) {
-            val toPush = buffer
-            buffer = null
-            ctx.pushAndPull(toPush)
+  val in = Inlet[ByteString]("in")
+  val out = Outlet[ByteString]("out")
+
+  override def shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
+
+  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+    new GraphStageLogic(shape) with OutHandler with InHandler {
+
+      var buffer: ByteString = ByteString.empty
+      var next: ByteString = null
+      var continue = false
+
+      def onPush(): Unit = {
+        val elem = grab(in)
+        if (continue) {
+          // Standard contract for forwarding as is in DetachedStage
+          if (!(isClosed(in) || hasBeenPulled(in))) {
+            push(out, elem)
+            pull(in)
           } else {
-            next = buffer
-            buffer = null
-            ctx.holdUpstream()
+            next = elem
           }
         } else {
-          // CSRF check failed
-          ctx.fail(NoTokenInBody)
+          if (buffer.size + elem.size > config.postBodyBuffer) {
+            // We've finished buffering up to the configured limit, try to validate
+            buffer ++= elem
+            if (checkBody(buffer)) {
+              // Switch to continue, and push the buffer
+              continue = true
+              if (!(isClosed(in) || hasBeenPulled(in))) {
+                val toPush = buffer
+                buffer = null
+                push(out, toPush)
+                pull(in)
+              } else {
+                next = buffer
+                buffer = null
+              }
+            } else {
+              // CSRF check failed
+              failStage(NoTokenInBody)
+            }
+          } else {
+            // Buffer
+            buffer ++= elem
+            pull(in)
+          }
         }
-      } else {
-        // Buffer
-        buffer ++= elem
-        ctx.pull()
       }
-    }
-  }
 
-  def onPull(ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      // Standard contract for forwarding as is in DetachedStage
-      if (next != null) {
-        val toPush = next
-        next = null
-        if (ctx.isFinishing) {
-          ctx.pushAndFinish(toPush)
-        } else {
-          ctx.pushAndPull(toPush)
-        }
-      } else {
-        if (ctx.isFinishing) {
-          ctx.finish()
-        } else {
-          ctx.holdDownstream()
+      def onPull(): Unit = {
+        if (continue) {
+          // Standard contract for forwarding as is in DetachedStage
+          if (next != null) {
+            val toPush = next
+            next = null
+            if (isClosed(in)) {
+              push(out, toPush)
+              completeStage()
+            } else {
+              push(out, toPush)
+              pull(in)
+            }
+          } else {
+            if (isClosed(in)) {
+              completeStage()
+            }
+          }
         }
       }
-    } else {
-      // Otherwise hold because we're buffering
-      ctx.holdDownstream()
-    }
-  }
 
-  override def onUpstreamFinish(ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      if (next != null) {
-        ctx.absorbTermination()
-      } else {
-        ctx.finish()
+      override def onUpstreamFinish(): Unit = {
+        if (continue) {
+          if (next != null) {
+            absorbTermination()
+          } else {
+            completeStage()
+          }
+        } else {
+          // CSRF check
+          if (checkBody(buffer)) {
+            // Absorb the termination, hold the buffer, and enter the continue state.
+            // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
+            next = buffer
+            buffer = null
+            continue = true
+            absorbTermination()
+          } else {
+            failStage(NoTokenInBody)
+          }
+        }
       }
-    } else {
-      // CSRF check
-      if (checkBody(buffer)) {
-        // Absorb the termination, hold the buffer, and enter the continue state.
-        // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
-        next = buffer
-        buffer = null
-        continue = true
-        ctx.absorbTermination()
-      } else {
-        ctx.fail(NoTokenInBody)
-      }
+
+      def absorbTermination(): Unit = if (isAvailable(out)) onPull()
+
+      setHandlers(in, out, this)
     }
-  }
 }
 
 private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
