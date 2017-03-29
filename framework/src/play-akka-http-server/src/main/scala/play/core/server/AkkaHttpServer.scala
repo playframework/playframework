@@ -15,6 +15,7 @@ import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.settings.ServerSettings
 import akka.http.scaladsl.{ ConnectionContext, Http }
+import akka.http.scaladsl.util.FastFuture._
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -242,7 +243,7 @@ class AkkaHttpServer(
       case None => actionAccumulator.run()
       case Some(s) => actionAccumulator.run(s)
     }
-    val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
+    val responseFuture: Future[HttpResponse] = resultFuture.fast.flatMap { result =>
       val cleanedResult: Result = resultUtils.prepareCookies(taggedRequestHeader, result)
       modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
     }
