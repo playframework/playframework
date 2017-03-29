@@ -268,12 +268,8 @@ final case class AkkaHeadersWrapper(
     uri: String
 ) extends Headers(null) {
 
-  override def headers: Seq[(String, String)] =
-    if (_headers ne null) _headers
-    else {
-      _headers = hs.map(h => h.name() -> h.value) // TODO should we mark _headers volatile? It's harmless to re-gen them again
-      _headers
-    }
+  override lazy val headers: Seq[(String, String)] =
+    hs.map(h => h.name() -> h.value) 
 
   // note that these are rarely used, mostly just in tests
   override def add(headers: (String, String)*): AkkaHeadersWrapper =

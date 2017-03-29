@@ -17,7 +17,7 @@ import scala.collection.immutable.{ TreeMap, TreeSet }
  * since subclasses might initially set it to a `null` value and then initialize
  * it lazily.
  */
-class Headers(protected var _headers: Seq[(String, String)]) {
+class Headers(protected var headers: Seq[(String, String)]) {
 
   // TODO expose the actual Long content length? esp.since available in Akka HTTP backend easily
   //  /** INTERNAL API: Content-Length or -1 if not known. */
