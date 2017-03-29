@@ -17,7 +17,9 @@ import play.api._
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {
 
-  lazy val loggerFactory: ILoggerFactory = StaticLoggerBinder.getSingleton.getLoggerFactory
+  def loggerFactory: ILoggerFactory = {
+    StaticLoggerBinder.getSingleton.getLoggerFactory
+  }
 
   /**
    * Initialize the Logger when there's no application ClassLoader available.
@@ -94,7 +96,29 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     ctx.addListener(levelChangePropagator)
     SLF4JBridgeHandler.install()
 
-    ctx.reset()
+    try {
+      ctx.reset()
+    } catch {
+      case npe: NullPointerException =>
+        // Occasionally there's an issue where loggerContextListenerList has a null listener in the list,
+        // so we get the following exception when multiple tests are run at once:
+        //
+        // https://github.com/qos-ch/logback/blob/master/logback-classic/src/main/java/ch/qos/logback/classic/LoggerContext.java#L324
+        //
+        //      [error]    java.lang.NullPointerException: null (LoggerContext.java:324)
+        //      [error] ch.qos.logback.classic.LoggerContext.fireOnReset(LoggerContext.java:324)
+        //      [error] ch.qos.logback.classic.LoggerContext.reset(LoggerContext.java:226)
+        //      [error] play.api.libs.logback.LogbackLoggerConfigurator.configure(LogbackLoggerConfigurator.scala:97)
+        //      [error] play.api.libs.logback.LogbackLoggerConfigurator.configure(LogbackLoggerConfigurator.scala:63)
+        //      [error] play.api.inject.guice.GuiceApplicationBuilder.$anonfun$configureLoggerFactory$1(GuiceApplicationBuilder.scala:122)
+        //      [error] play.api.inject.guice.GuiceApplicationBuilder.configureLoggerFactory(GuiceApplicationBuilder.scala:121)
+        //      [error] play.api.inject.guice.GuiceApplicationBuilder.applicationModule(GuiceApplicationBuilder.scala:100)
+        //      [error] play.api.inject.guice.GuiceBuilder.injector(GuiceInjectorBuilder.scala:181)
+        //      [error] play.api.inject.guice.GuiceApplicationBuilder.build(GuiceApplicationBuilder.scala:137)
+        //
+        // Marking as "we see this in Travis CI but are still not sure what is causing it"
+        throw new IllegalStateException("Logback configuration failed from invalid internal state", npe)
+    }
 
     // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
     // logging
