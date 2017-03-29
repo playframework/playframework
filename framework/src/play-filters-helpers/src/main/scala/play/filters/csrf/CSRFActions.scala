@@ -7,9 +7,9 @@ import java.net.{ URLDecoder, URLEncoder }
 import java.util.Locale
 import javax.inject.Inject
 
-import akka.stream.Materializer
+import akka.stream._
 import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
-import akka.stream.stage.{ DetachedContext, DetachedStage }
+import akka.stream.stage._
 import akka.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.SessionConfiguration
@@ -81,8 +81,10 @@ class CSRFAction(
             // Check the body
             request.contentType match {
               case Some("application/x-www-form-urlencoded") =>
+                filterLogger.trace(s"[CSRF] Check form body with url encoding")
                 checkFormBody(request, next, headerToken, config.tokenName)
               case Some("multipart/form-data") =>
+                filterLogger.trace(s"[CSRF] Check form body with multipart")
                 checkMultipartBody(request, next, headerToken, config.tokenName)
               // No way to extract token from other content types
               case Some(content) =>
@@ -119,7 +121,7 @@ class CSRFAction(
     }
   }
 
-  private def checkFormBody = checkBody(extractTokenFromFormBody) _
+  private def checkFormBody: (RequestHeader, EssentialAction, String, String) => Accumulator[ByteString, Result] = checkBody(extractTokenFromFormBody) _
   private def checkMultipartBody(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
     (for {
       mt <- request.mediaType
@@ -131,32 +133,30 @@ class CSRFAction(
   }
 
   private def checkBody[T](extractor: (ByteString, String) => Option[String])(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
-    // We need to ensure that the action isn't actually executed until the body is validated.
-    // To do that, we use Flow.splitWhen(_ => false).  This basically says, give me a Source
-    // containing all the elements when you receive the first element.  Our BodyHandler doesn't
-    // output any part of the body until it has validated the CSRF check, so we know that
-    // the source is validated. Then using a Sink.head, we turn that Source into an Accumulator,
-    // which we can then map to execute and feed into our action.
-    // CSRF check failures are used by failing the stream with a NoTokenInBody exception.
     Accumulator(
-      Flow[ByteString].transform(() => new BodyHandler(config, { body =>
-        if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
-          filterLogger.trace("[CSRF] Valid token found in body")
-          true
-        } else {
-          filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
-          false
-        }
-      }))
+
+      Flow[ByteString]
+        .via(new BodyHandler(config, { body =>
+          if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
+            filterLogger.trace("[CSRF] Valid token found in body")
+            true
+          } else {
+            filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
+            false
+          }
+        }))
         .splitWhen(_ => false)
-        .prefixAndTail(0)
+        .prefixAndTail(0) // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
         .map(_._2)
         .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
+        filterLogger.trace(s"[CSRF] running with validated body source")
         action(request).run(validatedBodySource)
       }.recoverWith {
-        case NoTokenInBody => csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
+        case NoTokenInBody =>
+          filterLogger.trace("[CSRF] Check failed with NoTokenInBody")
+          csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
       }
   }
 
@@ -276,93 +276,126 @@ class CSRFAction(
  * failing the stream if it's invalid.  If it's valid, it forwards the buffered body, and then stops buffering and
  * continues forwarding the body as is (or finishes if the stream was finished).
  */
-private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) extends DetachedStage[ByteString, ByteString] {
-  var buffer: ByteString = ByteString.empty
-  var next: ByteString = null
-  var continue = false
+private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) extends GraphStage[FlowShape[ByteString, ByteString]] {
 
-  def onPush(elem: ByteString, ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      // Standard contract for forwarding as is in DetachedStage
-      if (ctx.isHoldingDownstream) {
-        ctx.pushAndPull(elem)
-      } else {
-        next = elem
-        ctx.holdUpstream()
-      }
-    } else {
-      if (buffer.size + elem.size > config.postBodyBuffer) {
-        // We've finished buffering up to the configured limit, try to validate
-        buffer ++= elem
-        if (checkBody(buffer)) {
-          // Switch to continue, and push the buffer
-          continue = true
-          if (ctx.isHoldingDownstream) {
-            val toPush = buffer
-            buffer = null
-            ctx.pushAndPull(toPush)
+  private val PostBodyBufferMax = config.postBodyBuffer
+
+  val in: Inlet[ByteString] = Inlet("BodyHandler.in")
+  val out: Outlet[ByteString] = Outlet("BodyHandler.out")
+
+  override val shape = FlowShape(in, out)
+
+  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+    new GraphStageLogic(shape) with OutHandler with InHandler with StageLogging {
+
+      var buffer: ByteString = ByteString.empty
+      var next: ByteString = _
+
+      def continueHandler = new InHandler with OutHandler {
+        override def onPush(): Unit = {
+          val elem = grab(in)
+          // Standard contract for forwarding as is in DetachedStage
+          if (isHoldingDownstream) {
+            push(out, elem)
+            pull(in)
           } else {
-            next = buffer
-            buffer = null
-            ctx.holdUpstream()
+            next = elem
+            push(out, elem)
+          }
+        }
+
+        private def isHoldingDownstream = {
+          !(isClosed(in) || hasBeenPulled(in))
+        }
+
+        override def onPull(): Unit = {
+          // Standard contract for forwarding as is in DetachedStage
+          if (next != null) {
+            val toPush = next
+            next = null
+            push(out, toPush)
+
+            if (isClosed(in)) {
+              completeStage()
+            } else {
+              pull(in)
+            }
+          } else {
+            if (isClosed(in)) {
+              completeStage()
+            } // else, do nothing
+          }
+        }
+
+        override def onUpstreamFinish(): Unit = {
+          if (next != null) {
+            absorbTermination()
+          } else {
+            completeStage()
+          }
+        }
+      }
+
+      def onPush(): Unit = {
+        val elem = grab(in)
+        if (exceededBufferLimit(elem)) {
+          // We've finished buffering up to the configured limit, try to validate
+          buffer ++= elem
+          if (checkBody(buffer)) {
+            // Switch to continue, and push the buffer
+            setHandlers(in, out, continueHandler)
+            if (!(isClosed(in) || hasBeenPulled(in))) {
+              val toPush = buffer
+              buffer = null
+              push(out, toPush)
+              pull(in)
+            } else {
+              next = buffer
+              buffer = null
+            }
+          } else {
+            // CSRF check failed
+            failStage(NoTokenInBody)
           }
         } else {
-          // CSRF check failed
-          ctx.fail(NoTokenInBody)
+          // Buffer
+          buffer ++= elem
+          pull(in)
         }
-      } else {
-        // Buffer
-        buffer ++= elem
-        ctx.pull()
       }
-    }
-  }
 
-  def onPull(ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      // Standard contract for forwarding as is in DetachedStage
-      if (next != null) {
-        val toPush = next
-        next = null
-        if (ctx.isFinishing) {
-          ctx.pushAndFinish(toPush)
-        } else {
-          ctx.pushAndPull(toPush)
-        }
-      } else {
-        if (ctx.isFinishing) {
-          ctx.finish()
-        } else {
-          ctx.holdDownstream()
-        }
+      def onPull(): Unit = {
+        if (!hasBeenPulled(in)) pull(in)
       }
-    } else {
-      // Otherwise hold because we're buffering
-      ctx.holdDownstream()
-    }
-  }
 
-  override def onUpstreamFinish(ctx: DetachedContext[ByteString]) = {
-    if (continue) {
-      if (next != null) {
-        ctx.absorbTermination()
-      } else {
-        ctx.finish()
+      override def onUpstreamFinish(): Unit = {
+        // CSRF check
+        val bodyChecked = checkBody(buffer)
+        if (bodyChecked) {
+          // Absorb the termination, hold the buffer, and enter the continue state.
+          // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
+          next = buffer
+          buffer = null
+
+          val continue = continueHandler
+          setHandlers(in, out, continue)
+          continue.onPull()
+        } else {
+          failStage(NoTokenInBody)
+        }
       }
-    } else {
-      // CSRF check
-      if (checkBody(buffer)) {
-        // Absorb the termination, hold the buffer, and enter the continue state.
-        // Even if we're holding downstream, Akka streams will send another onPull so that we can flush it.
-        next = buffer
-        buffer = null
-        continue = true
-        ctx.absorbTermination()
-      } else {
-        ctx.fail(NoTokenInBody)
+
+      def absorbTermination(): Unit = {
+        if (isAvailable(out)) onPull()
       }
+
+      private def exceededBufferLimit(elem: ByteString) = {
+        buffer.size + elem.size > PostBodyBufferMax
+      }
+
+      setHandlers(in, out, this)
     }
-  }
+
 }
 
 private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
