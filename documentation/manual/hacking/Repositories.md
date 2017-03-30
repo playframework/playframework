@@ -13,11 +13,10 @@ To enable it in your sbt build, you must add a proper resolver (typically in `pl
 resolvers += Resolver.typesafeRepo("releases")
 ```
 
-## Accessing snapshots
+## Accessing nightly snapshots
 
-Snapshots are published daily from our [[Continuous Integration Server|ThirdPartyTools]] to the Sonatype snapshots repository at <https://oss.sonatype.org/content/repositories/snapshots/>.
+Nightly snapshots are published daily from our [[Continuous Integration Server|ThirdPartyTools]] to the Sonatype snapshots repository at <https://oss.sonatype.org/content/repositories/snapshots/>. You can [browse the play directory to find the version of the sbt-plugin you'd like to use](https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/play/sbt-plugin_2.10_0.13/) in your `plugins.sbt`. To enable the snapshots repo in your build, you must add a resolver (typically in `plugins.sbt`):
 
 ```scala
 resolvers += Resolver.sonatypeRepo("snapshots")
 ```
-
