@@ -6,13 +6,12 @@ package play.api.cache
 import java.util.concurrent.{ Callable, CompletableFuture, CompletionStage }
 
 import org.specs2.concurrent.ExecutionEnv
-
-import scala.concurrent.duration._
-import scala.compat.java8.FutureConverters._
-import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 import play.api.test.{ PlaySpecification, WithApplication }
+import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 
+import scala.compat.java8.FutureConverters._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
 

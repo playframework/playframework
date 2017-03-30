@@ -256,10 +256,22 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(
-      libraryDependencies ++= playCacheDeps,
-      parallelExecution in Test := false
-    ).dependsOn(PlayProject)
-    .dependsOn(PlaySpecs2Project % "test")
+      libraryDependencies ++= playCacheDeps
+    )
+    .dependsOn(
+      PlayProject,
+      PlaySpecs2Project % "test"
+    )
+
+lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcache")
+    .settings(
+      libraryDependencies ++= playEhcacheDeps
+    )
+    .dependsOn(
+      PlayProject,
+      PlayCacheProject,
+      PlaySpecs2Project % "test"
+    )
 
 lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
     .enablePlugins(SbtTwirl)
@@ -275,6 +287,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayCacheProject,
+  PlayEhcacheProject,
   PlayJdbcApiProject,
   PlayJdbcProject,
   PlayJdbcEvolutionsProject,
