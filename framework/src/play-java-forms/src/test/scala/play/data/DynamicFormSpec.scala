@@ -34,7 +34,7 @@ class DynamicFormSpec extends Specification {
 
     "allow access to raw data values from request" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validator).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
-      form.data().get("foo") must_== "bar"
+      form.rawData().get("foo") must_== "bar"
     }
 
     "display submitted values in template helpers" in {

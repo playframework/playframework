@@ -560,8 +560,18 @@ public class Form<T> {
 
     /**
      * @return the actual form data.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #rawData()} instead which returns an unmodifiable map.
      */
+    @Deprecated
     public Map<String,String> data() {
+        return data;
+    }
+
+    /**
+     * @return the actual form data as unmodifiable map.
+     */
+    public Map<String,String> rawData() {
         return Collections.unmodifiableMap(data);
     }
 
@@ -1087,7 +1097,7 @@ public class Form<T> {
                 Set<Integer> result = new TreeSet<>();
                 Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
 
-                for (String key: form.data().keySet()) {
+                for (String key: form.rawData().keySet()) {
                     java.util.regex.Matcher matcher = pattern.matcher(key);
                     if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
