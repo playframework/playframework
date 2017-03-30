@@ -46,8 +46,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static play.libs.Scala.asScala;
-
 /**
  * Defines HTTP standard objects.
  */
@@ -103,7 +101,7 @@ public class Http {
          */
         public Context(Request request, JavaContextComponents components) {
             this.request = request;
-            this.header = request._underlyingHeader();
+            this.header = request.asScala();
             this.id = header.id();
             this.response = new Response();
             this.session = new Session(Scala.asJava(header.session().data()));
@@ -488,7 +486,7 @@ public class Http {
         }
     }
 
-    public static interface RequestHeader {
+    public interface RequestHeader {
 
         /**
          * The complete request URI, containing both path and query string.
@@ -671,14 +669,23 @@ public class Http {
          * For internal Play-use only
          *
          * @return the underlying request
+         * @deprecated As of release 2.6.0. Use {@link #asScala()}
          */
+        @Deprecated
         play.api.mvc.RequestHeader _underlyingHeader();
+
+        /**
+         * Return the Scala version of the request header.
+         *
+         * @see play.api.mvc.RequestHeader
+         */
+        play.api.mvc.RequestHeader asScala();
     }
 
     /**
      * An HTTP request.
      */
-    public static interface Request extends RequestHeader {
+    public interface Request extends RequestHeader {
 
         /**
          * The request body.
@@ -714,8 +721,18 @@ public class Http {
          * For internal Play-use only
          *
          * @return the underlying request
+         * @deprecated As of release 2.6.0. Use {@link #asScala()}
          */
+        @Deprecated
         play.api.mvc.Request<RequestBody> _underlyingRequest();
+
+        /**
+         * Return the Scala version of the request
+         *
+         * @return the underlying request.
+         * @see play.api.mvc.Request
+         */
+        play.api.mvc.Request<RequestBody> asScala();
     }
 
     /**
@@ -1313,7 +1330,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(Map<String,String> data) {
-            play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
+            play.api.mvc.Flash flash = new play.api.mvc.Flash(Scala.asScala(data));
             attr(new TypedKey(RequestAttrKey.Flash()), new AssignedCell(flash));
             return this;
         }
@@ -1345,7 +1362,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(Map<String,String> data) {
-            play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
+            play.api.mvc.Session session = new play.api.mvc.Session(Scala.asScala(data));
               attr(new TypedKey(RequestAttrKey.Session()), new AssignedCell(session));
             return this;
         }

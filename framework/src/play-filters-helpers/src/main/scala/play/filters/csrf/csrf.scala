@@ -196,11 +196,11 @@ object CSRF {
   /**
    * Extract token from current Java request
    *
-   * @param request The request to extract the token from
+   * @param requestHeader The request to extract the token from
    * @return The token, if found.
    */
-  def getToken(request: play.mvc.Http.RequestHeader): Optional[Token] = {
-    Optional.ofNullable(getToken(request._underlyingHeader()).orNull)
+  def getToken(requestHeader: play.mvc.Http.RequestHeader): Optional[Token] = {
+    Optional.ofNullable(getToken(requestHeader.asScala()).orNull)
   }
 
   /**
@@ -265,8 +265,8 @@ object CSRF {
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
     import play.core.Execution.Implicits.trampoline
 
-    def handle(req: Http.RequestHeader, msg: String) =
-      FutureConverters.toJava(delegate.handle(req._underlyingHeader(), msg).map(_.asJava))
+    def handle(requestHeader: Http.RequestHeader, msg: String) =
+      FutureConverters.toJava(delegate.handle(requestHeader.asScala(), msg).map(_.asJava))
   }
 
   object ErrorHandler {

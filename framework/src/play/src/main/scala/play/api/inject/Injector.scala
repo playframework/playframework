@@ -33,6 +33,13 @@ trait Injector {
    * Get an instance bound to the given binding key.
    */
   def instanceOf[T](key: BindingKey[T]): T
+
+  /**
+   * Get as an instance of the Java injector.
+   *
+   * @see [[play.inject.Injector]]
+   */
+  def asJava: play.inject.Injector = new play.inject.DelegateInjector(this)
 }
 
 /**

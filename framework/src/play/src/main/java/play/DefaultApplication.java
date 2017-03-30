@@ -66,8 +66,19 @@ public class DefaultApplication implements Application {
      *
      * @return the underlying application
      */
+    @Override
     public play.api.Application getWrappedApplication() {
       return application;
+    }
+
+    /**
+     * Get the application as a Scala application.
+     *
+     * @see play.api.Application
+     */
+    @Override
+    public play.api.Application asScala() {
+        return application;
     }
 
     /**
@@ -75,6 +86,7 @@ public class DefaultApplication implements Application {
      *
      * @return the configuration
      */
+    @Override
     public Config config() {
         return config;
     }
@@ -84,6 +96,7 @@ public class DefaultApplication implements Application {
      *
      * @return the injector
      */
+    @Override
     public Injector injector() {
         return injector;
     }

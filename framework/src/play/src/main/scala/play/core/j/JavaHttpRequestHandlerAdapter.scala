@@ -16,7 +16,7 @@ import play.mvc.Http.{ RequestHeader => JRequestHeader }
 class JavaHttpRequestHandlerAdapter @Inject() (underlying: JHttpRequestHandler) extends HttpRequestHandler {
   override def handlerForRequest(request: RequestHeader) = {
     val handlerForRequest = underlying.handlerForRequest(new RequestHeaderImpl(request))
-    (handlerForRequest.getRequest._underlyingHeader(), handlerForRequest.getHandler)
+    (handlerForRequest.getRequestHeader.asScala, handlerForRequest.getHandler)
   }
 }
 
@@ -24,8 +24,8 @@ class JavaHttpRequestHandlerAdapter @Inject() (underlying: JHttpRequestHandler) 
  * Adapter from a Java HttpRequestHandler to a Scala HttpRequestHandler
  */
 class JavaHttpRequestHandlerDelegate @Inject() (underlying: HttpRequestHandler) extends JHttpRequestHandler {
-  override def handlerForRequest(request: JRequestHeader) = {
-    val (newRequest, handler) = underlying.handlerForRequest(request._underlyingHeader())
+  override def handlerForRequest(requestHeader: JRequestHeader) = {
+    val (newRequest, handler) = underlying.handlerForRequest(requestHeader.asScala())
     new HandlerForRequest(new RequestHeaderImpl(newRequest), handler)
   }
 }

@@ -22,8 +22,16 @@ public interface Application {
      * Get the underlying Scala application.
      *
      * @return the application
+     * @see Application#asScala() method
      */
     play.api.Application getWrappedApplication();
+
+    /**
+     * Get the application as a Scala application.
+     *
+     * @see play.api.Application
+     */
+    play.api.Application asScala();
 
     /**
      * Get the application configuration.

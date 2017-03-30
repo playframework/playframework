@@ -46,7 +46,7 @@ public class BodyParsers {
     }
 
     static <A, B> Accumulator<ByteString, F.Either<Result, A>> delegate(play.api.mvc.BodyParser<B> delegate, Function<B, A> transform, Http.RequestHeader request) {
-        Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request._underlyingHeader()).asJava();
+        Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request.asScala()).asJava();
             
         return javaAccumulator.map(result -> {
                 if (result.isLeft()) {

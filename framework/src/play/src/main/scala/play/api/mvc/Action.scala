@@ -32,7 +32,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
     def apply(rh: play.mvc.Http.RequestHeader) = {
       import play.core.Execution.Implicits.trampoline
-      self(rh._underlyingHeader).map(_.asJava).asJava
+      self(rh.asScala).map(_.asJava).asJava
     }
     override def apply(rh: RequestHeader) = self(rh)
   }
