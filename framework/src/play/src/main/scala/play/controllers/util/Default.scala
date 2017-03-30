@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package controllers
+package play.controllers.util
 
 import javax.inject.Inject
 
@@ -23,7 +23,7 @@ object Default extends Default
  */
 class Default @Inject() () extends Controller {
 
-  private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
+  private val Action = new ActionBuilder.IgnoringBody()(play.core.Execution.trampoline)
 
   /**
    * Returns a 501 NotImplemented response.

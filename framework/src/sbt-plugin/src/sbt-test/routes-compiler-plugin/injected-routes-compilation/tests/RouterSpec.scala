@@ -4,7 +4,7 @@
 package test
 
 import play.api.test._
-import controllers.Assets.Asset
+import play.controllers.assets.Assets.Asset
 
 object RouterSpec extends PlaySpecification {
 
@@ -20,7 +20,7 @@ object RouterSpec extends PlaySpecification {
   }
 
   "bind boolean parameters" in {
-    "from the query string" in new WithApplication() { 
+    "from the query string" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
@@ -145,16 +145,16 @@ object RouterSpec extends PlaySpecification {
 
   "The assets reverse route support" should {
     "fingerprint assets" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
+      play.controllers.assets.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
     }
     "selected the minified version" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/minmain.css").url must_== "/public/css/abcd1234-minmain-min.css"
+      play.controllers.assets.routes.Assets.versioned("css/minmain.css").url must_== "/public/css/abcd1234-minmain-min.css"
     }
     "work for non fingerprinted assets" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
+      play.controllers.assets.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
     }
     "selected the minified non fingerprinted version" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/nonfingerprinted-minmain.css").url must_== "/public/css/nonfingerprinted-minmain-min.css"
+      play.controllers.assets.routes.Assets.versioned("css/nonfingerprinted-minmain.css").url must_== "/public/css/nonfingerprinted-minmain-min.css"
     }
   }
 }

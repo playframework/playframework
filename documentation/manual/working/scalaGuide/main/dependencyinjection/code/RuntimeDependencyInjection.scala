@@ -6,6 +6,11 @@ package scalaguide.dependencyinjection
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
+package object assets {
+  type Assets = play.controllers.assets.Assets
+  val Assets = play.controllers.assets.Assets
+}
+
 class RuntimeDependencyInjection extends PlaySpecification {
 
   "Play's runtime dependency injection support" should {

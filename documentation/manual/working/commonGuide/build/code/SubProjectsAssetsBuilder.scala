@@ -3,19 +3,26 @@
  */
 package common.build
 
-//#assets-builder
-package controllers.admin
+package object assets {
+  type Assets = play.controllers.assets.Assets
+  val Assets = play.controllers.assets.Assets
+}
 
-import _root_.controllers.AssetsMetadata
+package controllers.admin {
+
+//#assets-builder
+import play.controllers.assets._
 
 import play.api.http.HttpErrorHandler
 import javax.inject._
 
-class Assets @Inject() (errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata) extends controllers.AssetsBuilder(errorHandler, assetsMetadata)
+class Assets @Inject() (errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata) extends AssetsBuilder(errorHandler, assetsMetadata)
 //#assets-builder
 
 import play.api.mvc._
 
 class HomeController @Inject()(components: ControllerComponents) extends AbstractController(components) {
   def index = Action(Ok)
+}
+
 }

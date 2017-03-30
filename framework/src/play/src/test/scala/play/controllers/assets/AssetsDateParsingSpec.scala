@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package controllers
+package play.controllers.assets
 
 import java.time._
 import java.time.format.DateTimeFormatter

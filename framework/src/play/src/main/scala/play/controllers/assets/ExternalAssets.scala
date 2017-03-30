@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package controllers
+package play.controllers.assets
 
 import java.io._
 import javax.inject.Inject
@@ -33,7 +33,7 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
-  private val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
+  private val Action = new ActionBuilder.IgnoringBody()(play.core.Execution.trampoline)
 
   /**
    * Generates an `Action` that serves a static resource from an external folder

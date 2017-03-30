@@ -9,4 +9,4 @@ GET        /config              controllers.Application.config
 GET        /countApplicationConf controllers.Application.count
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.at(path="/public", file)
+GET        /assets/*file        play.controllers.assets.Assets.at(path="/public", file)

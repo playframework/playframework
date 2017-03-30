@@ -6,7 +6,7 @@ package scalaguide.dependencyinjection
 import java.io.File
 
 import org.specs2.mutable.Specification
-import _root_.controllers.AssetsMetadata
+import play.controllers.assets.AssetsMetadata
 
 class CompileTimeDependencyInjection extends Specification {
 
@@ -124,7 +124,7 @@ class MyApplicationLoader extends ApplicationLoader {
 class MyComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
-    with controllers.AssetsComponents {
+    with play.controllers.assets.AssetsComponents {
   lazy val barRoutes = new bar.Routes(httpErrorHandler)
   lazy val applicationController = new controllers.Application()
 
@@ -143,10 +143,4 @@ package controllers {
     def index = Action(Ok)
     def foo = Action(Ok)
   }
-
-  trait AssetsComponents extends _root_.controllers.AssetsComponents {
-    override lazy val assets = new controllers.Assets(httpErrorHandler, assetsMetadata)
-  }
-
-  class Assets(errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata) extends _root_.controllers.Assets(errorHandler, assetsMetadata)
 }

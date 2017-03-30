@@ -3,7 +3,7 @@
  */
 package scalaguide.advanced.routing
 
-import controllers.Assets
+import play.controllers.assets.Assets
 import org.specs2.mutable.Specification
 import play.api.test.{FakeRequest, WithApplication}
 

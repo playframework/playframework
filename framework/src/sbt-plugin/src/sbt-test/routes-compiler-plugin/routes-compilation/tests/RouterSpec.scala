@@ -4,7 +4,7 @@
 package test
 
 import play.api.test._
-import controllers.Assets.Asset
+import play.controllers.assets.Assets.Asset
 
 object RouterSpec extends PlaySpecification {
 
@@ -20,7 +20,7 @@ object RouterSpec extends PlaySpecification {
   }
 
   "bind boolean parameters" in {
-    "from the query string" in new WithApplication() { 
+    "from the query string" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
@@ -29,7 +29,7 @@ object RouterSpec extends PlaySpecification {
       contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
       contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
     }
-    "from the path" in new WithApplication() { 
+    "from the path" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool-2/true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool-2/false"))
@@ -42,25 +42,25 @@ object RouterSpec extends PlaySpecification {
 
   "bind int parameters from the query string as a list" in {
 
-    "from a list of numbers" in new WithApplication() { 
+    "from a list of numbers" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
       contentAsString(result) must equalTo("1,2,3")
     }
-    "from a list of numbers and letters" in new WithApplication() { 
+    "from a list of numbers and letters" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
       status(result) must equalTo(BAD_REQUEST)
     }
-    "when there is no parameter at all" in new WithApplication() { 
+    "when there is no parameter at all" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list"))
       contentAsString(result) must equalTo("")
     }
-    "using the Java API" in new WithApplication() { 
+    "using the Java API" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
       contentAsString(result) must equalTo("1,2,3")
     }
   }
 
-  "URL encoding and decoding works correctly" in new WithApplication() { 
+  "URL encoding and decoding works correctly" in new WithApplication() {
     def checkDecoding(
                        dynamicEncoded: String, staticEncoded: String, queryEncoded: String,
                        dynamicDecoded: String, staticDecoded: String, queryDecoded: String) = {
@@ -102,7 +102,7 @@ object RouterSpec extends PlaySpecification {
     checkEncoding("123", "456", "789", "123", "456", "789")
   }
 
-  "allow reverse routing of routes includes" in new WithApplication() { 
+  "allow reverse routing of routes includes" in new WithApplication() {
     // Force the router to bootstrap the prefix
     implicitApp.injector.instanceOf[play.api.routing.Router]
     controllers.module.routes.ModuleController.index().url must_== "/module/index"
@@ -124,16 +124,16 @@ object RouterSpec extends PlaySpecification {
 
   "The assets reverse route support" should {
     "fingerprint assets" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
+      play.controllers.assets.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
     }
     "selected the minified version" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/minmain.css").url must_== "/public/css/abcd1234-minmain-min.css"
+      play.controllers.assets.routes.Assets.versioned("css/minmain.css").url must_== "/public/css/abcd1234-minmain-min.css"
     }
     "work for non fingerprinted assets" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
+      play.controllers.assets.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
     }
     "selected the minified non fingerprinted version" in new WithApplication() {
-      controllers.routes.Assets.versioned("css/nonfingerprinted-minmain.css").url must_== "/public/css/nonfingerprinted-minmain-min.css"
+      play.controllers.assets.routes.Assets.versioned("css/nonfingerprinted-minmain.css").url must_== "/public/css/nonfingerprinted-minmain-min.css"
     }
   }
 }

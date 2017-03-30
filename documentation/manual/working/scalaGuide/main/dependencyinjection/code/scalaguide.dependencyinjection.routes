@@ -2,5 +2,5 @@
 GET        /                    controllers.Application.index
 GET        /foo                 controllers.Application.foo
 ->         /bar                 bar.Routes
-GET        /assets/*file        controllers.Assets.at(path = "/public", file)
+GET        /assets/*file        assets.Assets.at(path = "/public", file)
 #content

@@ -1,7 +1,7 @@
 #assets-configured-path
-GET  /assets/*file        controllers.Assets.at(file)
+GET  /assets/*file        assets.Assets.at(file)
 #assets-configured-path
 
 #assets-configured-path-versioned
-GET  /assets/*file        controllers.Assets.versioned(file)
+GET  /assets/*file        assets.Assets.versioned(file)
 #assets-configured-path-versioned
