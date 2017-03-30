@@ -416,7 +416,7 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: Http.RequestHeader): Messages = {
-    preferred(request._underlyingHeader())
+    preferred(request.asScala())
   }
 
   override def preferred(request: RequestHeader): Messages = {

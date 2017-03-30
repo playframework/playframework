@@ -308,8 +308,8 @@ private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorH
   import play.core.Execution.Implicits.trampoline
 
   def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
-    FutureConverters.toJava(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
+    FutureConverters.toJava(delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava))
 
   def onServerError(request: Http.RequestHeader, exception: Throwable) =
-    FutureConverters.toJava(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
+    FutureConverters.toJava(delegate.onServerError(request.asScala(), exception).map(_.asJava))
 }

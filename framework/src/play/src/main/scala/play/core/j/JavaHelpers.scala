@@ -292,6 +292,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def _underlyingHeader: RequestHeader = header
 
+  override def asScala: RequestHeader = header
+
   def uri = header.uri
 
   def method = header.method
@@ -367,8 +369,9 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
   override def _underlyingRequest: Request[RequestBody] = request
+  override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap = new TypedMap(_underlyingHeader.attrs)
+  override def attrs: TypedMap = new TypedMap(asScala.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequest =
     new RequestImpl(request.withAttrs(newAttrs.underlying()))
 

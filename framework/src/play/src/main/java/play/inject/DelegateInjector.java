@@ -26,4 +26,9 @@ public class DelegateInjector implements Injector {
     public <T> T instanceOf(BindingKey<T> key) {
         return injector.instanceOf(key);
     }
+
+    @Override
+    public play.api.inject.Injector asScala() {
+        return injector;
+    }
 }

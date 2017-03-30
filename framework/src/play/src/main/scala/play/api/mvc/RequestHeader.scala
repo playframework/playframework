@@ -324,7 +324,7 @@ trait RequestHeader {
     newHeader
   }
 
-  override def toString = {
+  override def toString: String = {
     method + " " + uri
   }
 

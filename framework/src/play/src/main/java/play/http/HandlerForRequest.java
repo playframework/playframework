@@ -18,7 +18,20 @@ public class HandlerForRequest {
     this.handler = handler;
   }
 
+  /**
+   * @return the request header.
+   * @deprecated As of release 2.6.0. Use {@link #getRequestHeader()}
+   */
+  @Deprecated
   public RequestHeader getRequest() {
+    return request;
+  }
+
+  /**
+   * @return the request header.
+   * @see play.mvc.Http.RequestHeader
+   */
+  public RequestHeader getRequestHeader() {
     return request;
   }
 

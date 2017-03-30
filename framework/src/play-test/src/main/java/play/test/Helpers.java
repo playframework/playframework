@@ -61,7 +61,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     private static Result invokeHandler(play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
         if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
+            return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
         } else if (handler instanceof JavaHandler) {
             final play.api.inject.Injector injector = app.injector();
             final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
@@ -443,6 +443,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return route(fakeRequest(call));
     }
 
+    /**
+     * Route a call using the given application.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
     public static Result route(Application app, Call call) {
         return route(app, fakeRequest(call));
     }
@@ -459,6 +467,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return route(fakeRequest(call), timeout);
     }
 
+    /**
+     * Route a call using the given application and timeout.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @param timeout the time out
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
     public static Result route(Application app, Call call, long timeout) {
         return route(app, fakeRequest(call), timeout);
     }
@@ -510,7 +527,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
         final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
                 app.getWrappedApplication(),
-                requestBuilder.build()._underlyingRequest(),
+                requestBuilder.build().asScala(),
                 requestBuilder.body()
         );
         return wrapScalaResult(Scala.orNull(opt), timeout);
@@ -543,7 +560,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static void running(Application application, final Runnable block) {
         Helpers$.MODULE$.running(application.getWrappedApplication(), asScala(() -> { block.run(); return null; }));
     }
-
 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001).

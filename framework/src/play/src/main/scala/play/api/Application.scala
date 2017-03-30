@@ -98,6 +98,15 @@ trait Application {
   def errorHandler: HttpErrorHandler
 
   /**
+   * Return the application as a Java application.
+   *
+   * @see [[play.Application]]
+   */
+  def asJava: play.Application = {
+    new play.DefaultApplication(this, configuration.underlying, injector.asJava)
+  }
+
+  /**
    * Retrieves a file relative to the application root path.
    *
    * Note that it is up to you to manage the files in the application root path in production.  By default, there will
@@ -235,11 +244,11 @@ class DefaultApplication @Inject() (
     override val actorSystem: ActorSystem,
     override val materializer: Materializer) extends Application {
 
-  def path = environment.rootPath
+  override def path: File = environment.rootPath
 
-  def classloader = environment.classLoader
+  override def classloader: ClassLoader = environment.classLoader
 
-  def stop() = applicationLifecycle.stop()
+  override def stop(): Future[_] = applicationLifecycle.stop()
 }
 
 /**
