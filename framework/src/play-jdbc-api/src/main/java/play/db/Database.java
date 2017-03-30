@@ -113,8 +113,18 @@ public interface Database {
     /**
      * Converts the given database to a Scala database
      * @return the database for scala API.
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
      */
+    @Deprecated
     public default play.api.db.Database toScala() {
+        return asScala();
+    }
+
+    /**
+     * Converts the given database to a Scala database
+     * @return the database for scala API.
+     */
+    public default play.api.db.Database asScala() {
         return new play.api.db.Database() {
             @Override
             public String name() {
