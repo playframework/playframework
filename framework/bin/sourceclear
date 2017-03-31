@@ -9,6 +9,6 @@
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
 
 echo "[info]"
-echo "[info] ---- RUNNING SOURCECLEAR WITH TRAVIS_SECURE_ENV_VARS = $TRAVIS_SECURE_ENV_VARS"  
+echo "[info] ---- RUNNING SOURCECLEAR WITH SCAN_DIR = $FRAMEWORK"  
 echo "[info]"
 curl -sSL https://download.sourceclear.com/ci.sh | SCAN_DIR="$FRAMEWORK" bash 
