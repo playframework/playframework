@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
@@ -290,8 +292,12 @@ public class Result {
      * @return the transformed copy.
      */
     public Result withCookies(Cookie... newCookies) {
-        List<Cookie> finalCookies = new ArrayList<>(cookies);
-        finalCookies.addAll(Arrays.asList(newCookies));
+        List<Cookie> finalCookies = Stream.concat(cookies.stream().filter(cookie -> {
+            for (Cookie newCookie : newCookies) {
+                if (cookie.name().equals(newCookie.name())) return false;
+            }
+            return true;
+        }), Stream.of(newCookies)).collect(Collectors.toList());
         return new Result(header, body, session, flash, finalCookies);
     }
 

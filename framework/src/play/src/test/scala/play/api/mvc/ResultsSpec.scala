@@ -17,7 +17,7 @@ import play.api.http.HeaderNames._
 import play.api.http._
 import play.api.http.Status._
 import play.api.i18n._
-import play.api.{ Application, Configuration, Environment, Play }
+import play.api.{ Application, Play }
 import play.core.test._
 
 import scala.concurrent.Await
@@ -120,6 +120,21 @@ class ResultsSpec extends Specification {
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
       setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
+    }
+
+    "properly add and discard cookies" in {
+      val result = Ok("hello").as("text/html")
+        .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
+        .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
+        .discardingCookies(DiscardingCookie("logged"))
+
+      result.newCookies.length must_== 4
+      result.newCookies.find(_.name == "logged").map(_.value) must beSome("")
+
+      val resultDiscarded = result.discardingCookies(DiscardingCookie("preferences"), DiscardingCookie("lang"))
+      resultDiscarded.newCookies.length must_== 4
+      resultDiscarded.newCookies.find(_.name == "preferences").map(_.value) must beSome("")
+      resultDiscarded.newCookies.find(_.name == "lang").map(_.value) must beSome("")
     }
 
     "provide convenience method for setting cookie header" in withApplication {
