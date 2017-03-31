@@ -9,16 +9,13 @@ jdk:
 scala:
   - 2.11.8
   - 2.12.1
-script:
-  - framework/bin/travis
+script:    
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash framework/bin/sourceclear; fi'
+  - framework/bin/travis 
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/
-addons:
-  srcclr: true
-  srcclr:
-    debug: true    
 before_cache:
   # Ensure changes to the cache aren't persisted
   - rm -rf $HOME/.ivy2/local
