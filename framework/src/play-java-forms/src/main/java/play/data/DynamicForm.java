@@ -96,8 +96,20 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return super.value().map(v -> v.getData().get(asNormalKey(key)));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
     @Override
     public Map<String, String> data() {
+        return rawData;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, String> rawData() {
         return Collections.unmodifiableMap(rawData);
     }
 
@@ -108,7 +120,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(new HashMap<>(form.data()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(new HashMap<>(form.rawData()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -148,7 +160,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(new HashMap<>(form.data()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(new HashMap<>(form.rawData()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
     }
     
     /**
