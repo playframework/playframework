@@ -116,7 +116,7 @@ public class JavaStream extends WithApplication {
                     sourceActor.tell(ByteString.fromString("foo"), null);
                     sourceActor.tell(ByteString.fromString("bar"), null);
                     sourceActor.tell(new Status.Success(NotUsed.getInstance()), null);
-                    return null;
+                    return NotUsed.getInstance();
                 });
             // Serves this stream with 200 OK
             return ok().chunked(source);
