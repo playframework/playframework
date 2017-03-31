@@ -15,6 +15,10 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/
+addons:
+  srcclr: true
+  srcclr:
+    debug: true    
 before_cache:
   # Ensure changes to the cache aren't persisted
   - rm -rf $HOME/.ivy2/local
