@@ -1,0 +1,14 @@
+#! /bin/bash
+
+# Note that sourceclear will only run on a merged pull request, and the SRCCLR API token
+# will not be available in pull requests 
+#
+# https://docs.travis-ci.com/user/environment-variables/#Convenience-Variables
+# https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
+
+echo "[info]"
+echo "[info] ---- RUNNING SOURCECLEAR WITH TRAVIS_SECURE_ENV_VARS = $TRAVIS_SECURE_ENV_VARS"  
+echo "[info]"
+curl -sSL https://download.sourceclear.com/ci.sh | SCAN_DIR="$FRAMEWORK" bash 
