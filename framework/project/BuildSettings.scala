@@ -9,6 +9,9 @@ import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 
+import de.heikoseeberger.sbtheader.HeaderKey._
+import de.heikoseeberger.sbtheader.HeaderPattern
+
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
@@ -25,7 +28,7 @@ object BuildSettings {
   // Argument for setting size of permgen space or meta space for all forked processes
   val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
 
-  val snapshotBranch = {
+  val snapshotBranch: String = {
     try {
       val branch = "git rev-parse --abbrev-ref HEAD".!!.trim
       if (branch == "HEAD") {
@@ -38,11 +41,30 @@ object BuildSettings {
   }
 
   /**
+   * File header settings
+   */
+  val fileHeaderSettings = Seq(
+    excludes := Seq("*/netty/utils/*", "*/inject/SourceProvider.java"),
+    headers := Map(
+      "scala" -> (HeaderPattern.cStyleBlockComment,
+        """|/*
+           | * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+           | */
+           |""".stripMargin),
+      "java"  -> (HeaderPattern.cStyleBlockComment,
+        """|/*
+           | * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+           | */
+           |""".stripMargin)
+    )
+  )
+
+  /**
    * These settings are used by all projects
    */
   def playCommonSettings: Seq[Setting[_]] = {
 
-    scalariformSettings ++ Seq(
+    scalariformSettings ++ fileHeaderSettings ++ Seq(
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
           .setPreference(SpacesAroundMultiImports, true)
           .setPreference(SpaceInsideParentheses, false)

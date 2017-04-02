@@ -11,6 +11,7 @@ val Versions = new {
   val sbtJmh = "0.2.20"
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.26"
+  val sbtHeader = "1.8.0"
   val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.0")
   val interplay: String = sys.props.getOrElse("interplay.version", "1.3.4")
 }
@@ -29,6 +30,8 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % Versions.sbtHeader)
+
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
