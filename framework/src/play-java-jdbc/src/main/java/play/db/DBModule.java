@@ -4,6 +4,7 @@
 package play.db;
 
 import com.google.common.collect.ImmutableList;
+import play.Logger;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
@@ -39,8 +40,8 @@ public final class DBModule extends Module {
             if (dbs.contains(defaultDb)) {
                 list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
             }
-        } catch (com.typesafe.config.ConfigException.Missing e) {
-            // ignore missing configuration
+        } catch (com.typesafe.config.ConfigException.Missing ex) {
+            Logger.warn("Configuration not found for database: {}", ex.getMessage());
         }
 
         return Scala.toSeq(list.build());
