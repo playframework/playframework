@@ -85,8 +85,20 @@ public interface ApplicationLoader {
          * Get the wrapped Scala context.
          *
          * @return the wrapped scala context
+         *
+         * @deprecated As of release 2.6.0. Use {@link #asScala()}
          */
+        @Deprecated
         public play.api.ApplicationLoader.Context underlying() {
+            return underlying;
+        }
+
+        /**
+         * Get the wrapped Scala context.
+         *
+         * @return the wrapped scala context
+         */
+        public play.api.ApplicationLoader.Context asScala() {
             return underlying;
         }
 

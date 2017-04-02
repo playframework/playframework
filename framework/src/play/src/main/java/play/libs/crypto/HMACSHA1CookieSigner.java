@@ -25,6 +25,7 @@ public class HMACSHA1CookieSigner implements CookieSigner {
      * @param message The message to sign.
      * @return A hexadecimal encoded signature.
      */
+    @Override
     public String sign(String message) {
         return signer.sign(message);
     }
@@ -39,10 +40,12 @@ public class HMACSHA1CookieSigner implements CookieSigner {
      * @param key     The private key to sign with.
      * @return A hexadecimal encoded signature.
      */
+    @Override
     public String sign(String message, byte[] key) {
         return signer.sign(message, key);
     }
 
+    @Override
     public play.api.libs.crypto.CookieSigner asScala() {
         return this.signer;
     }

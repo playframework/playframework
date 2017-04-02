@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 import play.api.http._
 import play.api.i18n.I18nComponents
-import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.inject._
 import play.api.libs.Files._
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
@@ -235,7 +235,7 @@ class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 @Singleton
 class DefaultApplication @Inject() (
     override val environment: Environment,
-    applicationLifecycle: DefaultApplicationLifecycle,
+    applicationLifecycle: ApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
     override val requestFactory: RequestFactory,

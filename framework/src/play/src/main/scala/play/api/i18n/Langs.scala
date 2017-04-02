@@ -155,6 +155,11 @@ trait Langs {
    * none of the candidates are available.
    */
   def preferred(candidates: Seq[Lang]): Lang
+
+  /**
+   * @return the Java version for this Langs.
+   */
+  def asJava: play.i18n.Langs = new play.i18n.Langs(this)
 }
 
 @Singleton
