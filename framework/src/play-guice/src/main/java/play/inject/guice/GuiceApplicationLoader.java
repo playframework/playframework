@@ -55,7 +55,7 @@ public class GuiceApplicationLoader implements ApplicationLoader {
      * @return the bindings that should be used to override
      */
     protected GuiceableModule[] overrides(ApplicationLoader.Context context) {
-        scala.collection.Seq<GuiceableModule> seq = play.api.inject.guice.GuiceApplicationLoader$.MODULE$.defaultOverrides(context.underlying());
+        scala.collection.Seq<GuiceableModule> seq = play.api.inject.guice.GuiceApplicationLoader$.MODULE$.defaultOverrides(context.asScala());
         return Scala.asArray(GuiceableModule.class, seq);
     }
 

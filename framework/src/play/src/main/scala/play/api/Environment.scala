@@ -90,6 +90,12 @@ case class Environment(
     Option(classLoader.getResourceAsStream(n))
   }
 
+  /**
+   * @return Returns the Java version for this environment.
+   * @see [[play.Environment]]
+   */
+  def asJava: play.Environment = new play.Environment(this)
+
 }
 
 object Environment {

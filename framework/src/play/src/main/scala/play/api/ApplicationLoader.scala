@@ -3,12 +3,10 @@
  */
 package play.api
 
-import play.api.i18n.{ I18nComponents, I18nModule }
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
-import play.core.j.{ DefaultJavaContextComponents, JavaHelpers }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.

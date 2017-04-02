@@ -57,4 +57,11 @@ public class Langs {
     public Lang preferred(Collection<Lang> candidates) {
         return new Lang(langs.preferred((scala.collection.Seq) Scala.asScala(candidates).toSeq()));
     }
+
+    /**
+     * @return the Scala version for this Langs.
+     */
+    public play.api.i18n.Langs asScala() {
+        return langs;
+    }
 }

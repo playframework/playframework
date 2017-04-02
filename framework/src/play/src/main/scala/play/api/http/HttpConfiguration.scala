@@ -58,7 +58,7 @@ case class HttpConfiguration(
  *
  * To achieve 4, using the location of application.conf to generate the secret should ensure this.
  *
- * @param secret   the application secre
+ * @param secret   the application secret
  * @param provider the JCE provider to use. If null, uses the platform default
  */
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)

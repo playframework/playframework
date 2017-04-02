@@ -26,4 +26,9 @@ public interface ApplicationLifecycle {
      * @param hook    the stop hook.
      */
     void addStopHook(Callable<? extends CompletionStage<?>> hook);
+
+    /**
+     * @return The Scala version for this Application Lifecycle.
+     */
+    play.api.inject.ApplicationLifecycle asScala();
 }

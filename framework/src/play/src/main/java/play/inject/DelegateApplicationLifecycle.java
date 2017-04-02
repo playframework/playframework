@@ -21,4 +21,9 @@ public class DelegateApplicationLifecycle implements ApplicationLifecycle {
     public void addStopHook(final Callable<? extends CompletionStage<?>> hook) {
         delegate.addStopHook(hook);
     }
+
+    @Override
+    public play.api.inject.ApplicationLifecycle asScala() {
+        return delegate;
+    }
 }

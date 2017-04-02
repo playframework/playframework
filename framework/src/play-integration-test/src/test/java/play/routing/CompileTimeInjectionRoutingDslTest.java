@@ -21,7 +21,7 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
     @BeforeClass
     public static void startApp() {
-        play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).underlying();
+        play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).asScala();
         components = new TestComponents(context);
         Injector injector = new DelegateInjector(components.injector());
         application = new DefaultApplication(components.application(), injector);

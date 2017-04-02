@@ -40,6 +40,13 @@ trait CookieSigner {
    * @return A hexadecimal encoded signature.
    */
   def sign(message: String): String
+
+  /**
+   * @return the Java version for this cookie signer.
+   */
+  def asJava: play.libs.crypto.CookieSigner = {
+    new play.libs.crypto.HMACSHA1CookieSigner(this)
+  }
 }
 
 @Singleton

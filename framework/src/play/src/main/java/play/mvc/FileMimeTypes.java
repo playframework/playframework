@@ -23,4 +23,7 @@ public class FileMimeTypes {
         return OptionConverters.toJava(fileMimeTypes.forFileName(name));
     }
 
+    public play.api.http.FileMimeTypes asScala() {
+        return fileMimeTypes;
+    }
 }
