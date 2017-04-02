@@ -6,11 +6,15 @@ package play;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
 import play.core.SourceMapper;
 import play.core.DefaultWebCommands;
+import play.inject.ApplicationLifecycle;
 import play.libs.Scala;
+import scala.compat.java8.OptionConverters;
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -132,6 +136,24 @@ public interface ApplicationLoader {
          */
         public Config initialConfig() {
             return underlying.initialConfiguration().underlying();
+        }
+
+        /**
+         * Get the application lifecycle from the context.
+         *
+         * @return the application lifecycle
+         */
+        public ApplicationLifecycle applicationLifecycle() {
+           return underlying.lifecycle().asJava();
+        }
+
+        /**
+         * Get the source mapper from the context.
+         *
+         * @return an optional source mapper
+         */
+        public Optional<SourceMapper> sourceMapper() {
+            return OptionConverters.toJava(underlying.sourceMapper());
         }
 
         /**
