@@ -1,11 +1,10 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
+import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._

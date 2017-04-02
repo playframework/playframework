@@ -1,0 +1,9 @@
+#! /bin/bash
+
+# This script checks that the code is formatted correctly
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
+
+cd $FRAMEWORK
+
+build checkHeaders
