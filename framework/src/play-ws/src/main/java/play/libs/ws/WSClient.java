@@ -30,9 +30,14 @@ public interface WSClient extends java.io.Closeable {
     /**
      * The underlying implementation of the client, if any.  You must cast the returned value to the type you want.
      *
-     * @return the backing class.
+     * @return the backing object.
      */
     Object getUnderlying();
+
+    /**
+     * @return the Scala version for this WSClient.
+     */
+    play.api.libs.ws.WSClient asScala();
 
     /**
      * Returns a WSRequest object representing the URL.  You can append additional
