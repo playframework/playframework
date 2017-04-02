@@ -9,7 +9,6 @@ import java.util.regex.Pattern
 import javax.inject.{ Inject, Singleton }
 
 import play.api._
-import play.api.http.{ ContentTypes, HttpErrorHandler, LazyHttpErrorHandler }
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
@@ -44,9 +43,13 @@ package controllers {
     override def bindings(environment: Environment, configuration: Configuration) = Seq(
       bind[Assets].toSelf,
       bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
-      bind[AssetsFinder].to[AssetsMetadata],
+      bind[AssetsFinder].toProvider[AssetsFinderProvider],
       bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
     )
+  }
+
+  class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
+    def get = assetsMetadata.finder
   }
 
   /**
@@ -97,7 +100,7 @@ package controllers {
     lazy val assetsMetadata: AssetsMetadata =
       new AssetsMetadataProvider(environment, assetsConfiguration, fileMimeTypes, applicationLifecycle).get
 
-    lazy val assetFinder: AssetsFinder = assetsMetadata
+    def assetsFinder: AssetsFinder = assetsMetadata.finder
 
     lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
   }
@@ -203,10 +206,7 @@ package controllers {
     /**
      * The configured assets path
      */
-    override def assetsBasePath = delegate.assetsBasePath
-    override def assetsUrlPrefix = delegate.assetsUrlPrefix
-    override def findAssetPath(base: String, path: String) =
-      delegate.findAssetPath(base, path)
+    override def finder = delegate.finder
     override private[controllers] def digest(path: String) =
       delegate.digest(path)
     override private[controllers] def assetInfoForRequest(request: RequestHeader, name: String) =
@@ -214,11 +214,10 @@ package controllers {
   }
 
   /**
-   * Retains metadata for assets that can be readily cached.
-   *
-   * To get the final path of an asset, you can inject an instance and call finalPath.
+   * INTERNAL API: Retains metadata for assets that can be readily cached.
    */
-  trait AssetsMetadata extends AssetsFinder {
+  trait AssetsMetadata {
+    def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
     private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]]
   }
@@ -305,15 +304,17 @@ package controllers {
 
     import HeaderNames._
 
-    val assetsBasePath = config.path
-    val assetsUrlPrefix = config.urlPrefix
+    lazy val finder: AssetsFinder = new AssetsFinder {
+      val assetsBasePath = config.path
+      val assetsUrlPrefix = config.urlPrefix
 
-    def findAssetPath(base: String, path: String): String = blocking {
-      val minPath = minifiedPath(path)
-      digest(minPath).fold(minPath) { dgst =>
-        val lastSep = minPath.lastIndexOf("/")
-        minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
-      }.drop(base.length + 1)
+      def findAssetPath(base: String, path: String): String = blocking {
+        val minPath = minifiedPath(path)
+        digest(minPath).fold(minPath) { dgst =>
+          val lastSep = minPath.lastIndexOf("/")
+          minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+        }.drop(base.length + 1)
+      }
     }
 
     // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
@@ -579,7 +580,7 @@ package controllers {
         def unbind(key: String, value: Asset): String = {
           val base = pathFromParams(rrc)
           val path = base + "/" + value.name
-          StaticAssetsMetadata.findAssetPath(base, path)
+          StaticAssetsMetadata.finder.findAssetPath(base, path)
         }
       }
     }
@@ -639,12 +640,12 @@ package controllers {
     /**
      * Generates an `Action` that serves a static resource, using the base asset path from configuration.
      */
-    def at(file: String): Action[AnyContent] = at(meta.assetsBasePath, file)
+    def at(file: String): Action[AnyContent] = at(finder.assetsBasePath, file)
 
     /**
      * Generates an `Action` that serves a versioned static resource, using the base asset path from configuration.
      */
-    def versioned(file: String): Action[AnyContent] = versioned(meta.assetsBasePath, Asset(file))
+    def versioned(file: String): Action[AnyContent] = versioned(finder.assetsBasePath, Asset(file))
 
     /**
      * Generates an `Action` that serves a versioned static resource.
