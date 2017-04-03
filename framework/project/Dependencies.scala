@@ -29,7 +29,7 @@ object Dependencies {
   ).map(_ % "2.7.8")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
   val guava = "com.google.guava" % "guava" % "19.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
