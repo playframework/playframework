@@ -30,6 +30,6 @@ public interface AhcWSComponents extends WSClientComponents, ConfigurationCompon
             applicationLifecycle().asScala()
         ).get();
 
-        return new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer()), materializer());
+        return new AhcWSClient(asyncHttpClient, materializer());
     }
 }

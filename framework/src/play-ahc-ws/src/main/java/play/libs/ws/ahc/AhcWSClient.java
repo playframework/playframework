@@ -24,6 +24,11 @@ public class AhcWSClient implements WSClient {
     private final StandaloneAhcWSClient client;
     private final Materializer materializer;
 
+    public AhcWSClient(AsyncHttpClient client, Materializer materializer) {
+        this.client = new StandaloneAhcWSClient(client, materializer);
+        this.materializer = materializer;
+    }
+
     @Inject
     public AhcWSClient(StandaloneAhcWSClient client, Materializer materializer) {
         this.client = client;
