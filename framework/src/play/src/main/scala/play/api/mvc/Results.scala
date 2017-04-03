@@ -104,8 +104,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
-   * Adds cookies to this result. If the result already contains
-   * cookies then the new cookies will be merged with the old cookies.
+   * Adds cookies to this result. If the result already contains cookies then cookies with the same name in the new
+   * list will override existing ones.
    *
    * For example:
    * {{{
@@ -116,7 +116,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    if (cookies.isEmpty) this else copy(newCookies = newCookies ++ cookies)
+    val filteredCookies = newCookies.filter(cookie => !cookies.exists(_.name == cookie.name))
+    if (cookies.isEmpty) this else copy(newCookies = filteredCookies ++ cookies)
   }
 
   /**
@@ -131,7 +132,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withCookies(newCookies ++ cookies.map(_.toCookie): _*)
+    withCookies(cookies.map(_.toCookie): _*)
   }
 
   /**
