@@ -161,8 +161,8 @@ public class Form<T> {
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
-        this.data = data != null ? data : new HashMap<>();
-        this.errors = errors != null ? errors : new ArrayList<>();
+        this.data = data != null ? new HashMap<>(data) : new HashMap<>();
+        this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
         this.value = value;
         this.groups = groups;
         this.messagesApi = messagesApi;
@@ -539,7 +539,7 @@ public class Form<T> {
             }
             return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
-        return new Form<>(rootName, backedType, new HashMap<>(data), errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
     }
 
     /**
@@ -767,7 +767,10 @@ public class Form<T> {
      * Adds an error to this form.
      *
      * @param error the <code>ValidationError</code> to add.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(ValidationError)} instead.
      */
+    @Deprecated
     public void reject(ValidationError error) {
         if (error == null) {
             throw new NullPointerException("Can't reject null-values");
@@ -776,14 +779,17 @@ public class Form<T> {
     }
 
     /**
-     * Adds an error to this form.
-     *
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
+     * @param error the <code>ValidationError</code> to add to the returned form.
+     * 
+     * @return a copy of this form with the given error added.
      */
-    public void reject(String key, String error, List<Object> args) {
-        reject(new ValidationError(key, error, args));
+    public Form<T> withError(final ValidationError error) {
+        if (error == null) {
+            throw new NullPointerException("Can't reject null-values");
+        }
+        final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
+        copiedErrors.add(error);
+        return new Form<T>(this.rootName, this.backedType, this.data, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -791,9 +797,47 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
+     * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
+    @Deprecated
+    public void reject(String key, String error, List<Object> args) {
+        reject(new ValidationError(key, error, args));
+    }
+
+    /**
+     * @param key the error key
+     * @param error the error message
+     * @param args the error arguments
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    public Form<T> withError(final String key, final String error, final List<Object> args) {
+        return withError(new ValidationError(key, error, args != null ? new ArrayList<>(args) : new ArrayList<>()));
+    }
+
+    /**
+     * Adds an error to this form.
+     *
+     * @param key the error key
+     * @param error the error message
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
+     */
+    @Deprecated
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<>());
+    }
+
+    /**
+     * @param key the error key
+     * @param error the error message
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    public Form<T> withError(final String key, final String error) {
+        return withError(key, error, new ArrayList<>());
     }
 
     /**
@@ -801,25 +845,60 @@ public class Form<T> {
      *
      * @param error the error message
      * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String, List)} instead.
      */
+    @Deprecated
     public void reject(String error, List<Object> args) {
         reject(new ValidationError("", error, args));
+    }
+
+    /**
+     * @param error the global error message
+     * @param args the global error arguments
+     * 
+     * @return a copy of this form with the given global error added.
+     */
+    public Form<T> withGlobalError(final String error, final List<Object> args) {
+        return withError("", error, args);
     }
 
     /**
      * Adds a global error to this form.
      *
      * @param error the error message.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String)} instead.
      */
+    @Deprecated
     public void reject(String error) {
         reject("", error, new ArrayList<>());
     }
 
     /**
-     * Discards errors of this form
+     * @param error the global error message
+     * 
+     * @return a copy of this form with the given global error added.
      */
+    public Form<T> withGlobalError(final String error) {
+        return withGlobalError(error, new ArrayList<>());
+    }
+
+    /**
+     * Discards errors of this form
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #discardingErrors()} instead.
+     */
+    @Deprecated
     public void discardErrors() {
         errors.clear();
+    }
+
+    /**
+     * @return a copy of this form but with the errors discarded.
+     */
+    public Form<T> discardingErrors() {
+        return new Form<T>(this.rootName, this.backedType, this.data, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -983,9 +1062,9 @@ public class Form<T> {
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.form = form;
             this.name = name;
-            this.constraints = constraints != null ? constraints : new ArrayList<>();
+            this.constraints = constraints != null ? new ArrayList<>(constraints) : new ArrayList<>();
             this.format = format;
-            this.errors = errors != null ? errors : new ArrayList<>();
+            this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
             this.value = value;
         }
 

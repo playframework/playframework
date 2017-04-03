@@ -120,7 +120,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(new HashMap<>(form.rawData()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -160,7 +160,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(new HashMap<>(form.rawData()), new ArrayList<>(form.allErrors()), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
     
     /**
@@ -201,19 +201,48 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
     public void reject(String key, String error, List<Object> args) {
         super.reject(asDynamicKey(key), error, args);
     }
 
     /**
+     * @param key the error key
+     * @param error the error message
+     * @param args the error arguments
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    @Override
+    public DynamicForm withError(final String key, final String error, final List<Object> args) {
+        final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
+        return new DynamicForm(this.rawData, form.allErrors(), form.value(), this.messagesApi, this.formatters, this.validator);
+    }
+    
+    /**
      * Adds an error to this form.
      *
      * @param key the error key
      * @param error the error message
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
      */    
+    @Deprecated
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
+    }
+    
+    /**
+     * @param key the error key
+     * @param error the error message
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    @Override
+    public DynamicForm withError(final String key, final String error) {
+        return withError(key, error, new ArrayList<>());
     }
 
     // -- tools
