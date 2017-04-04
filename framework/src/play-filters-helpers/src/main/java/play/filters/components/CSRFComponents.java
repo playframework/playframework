@@ -3,14 +3,9 @@
  */
 package play.filters.components;
 
-import akka.stream.Materializer;
-import play.components.ConfigurationComponents;
-import play.components.CryptoComponents;
-import play.components.HttpConfigurationComponents;
-import play.components.JavaContextComponentsComponents;
+import play.components.*;
 import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.filters.csrf.*;
-import play.http.HttpErrorHandler;
 import play.inject.Injector;
 
 /**
@@ -19,13 +14,11 @@ import play.inject.Injector;
 public interface CSRFComponents extends ConfigurationComponents,
         CryptoComponents,
         JavaContextComponentsComponents,
-        HttpConfigurationComponents {
+        HttpConfigurationComponents,
+        HttpErrorHandlerComponents,
+        AkkaComponents {
 
     Injector injector();
-
-    HttpErrorHandler httpErrorHandler();
-
-    Materializer materializer();
 
     default CSRFConfig csrfConfig() {
         return CSRFConfig$.MODULE$.fromConfiguration(configuration());
