@@ -4,6 +4,7 @@
 package play.components;
 
 import akka.actor.ActorSystem;
+import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import scala.concurrent.ExecutionContext;
 
@@ -14,8 +15,12 @@ public interface AkkaComponents {
 
     ActorSystem actorSystem();
 
-    Materializer materializer();
+    default Materializer materializer() {
+        return ActorMaterializer.create(actorSystem());
+    }
 
-    ExecutionContext executionContext();
+    default ExecutionContext executionContext() {
+        return actorSystem().dispatcher();
+    }
 
 }

@@ -4,8 +4,6 @@
 package play;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
-import akka.stream.Materializer;
 import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.HttpConfiguration;
@@ -29,7 +27,6 @@ import play.libs.crypto.DefaultCSRFTokenSigner;
 import play.libs.crypto.HMACSHA1CookieSigner;
 import play.mvc.FileMimeTypes;
 import scala.compat.java8.OptionConverters;
-import scala.concurrent.ExecutionContext;
 
 import javax.inject.Provider;
 
@@ -162,16 +159,6 @@ public interface BuiltInComponents extends BaseComponents,
                 configuration(),
                 applicationLifecycle().asScala()
         ).get();
-    }
-
-    @Override
-    default Materializer materializer() {
-        return ActorMaterializer.create(actorSystem());
-    }
-
-    @Override
-    default ExecutionContext executionContext() {
-        return actorSystem().dispatcher();
     }
 
     @Override
