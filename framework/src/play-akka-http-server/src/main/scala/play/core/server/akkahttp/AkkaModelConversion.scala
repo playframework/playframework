@@ -74,7 +74,7 @@ private[server] class AkkaModelConversion(
       request.method.name,
       new RequestTarget {
         override lazy val uri: URI = new URI(headers.uri)
-        override lazy val uriString: String = headers.uri
+        override def uriString: String = headers.uri
         override lazy val path: String = request.uri.path.toString
         override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
       },
