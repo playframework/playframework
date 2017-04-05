@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigException
 import play.api.inject.{ Binding, BindingKey, Injector }
 import play.api.{ Configuration, Environment }
 import play.api.mvc.EssentialFilter
+import play.core.{ HandleWebCommandSupport, WebCommands }
 import play.utils.Reflect
 
 /**
@@ -58,7 +59,7 @@ object HttpFilters {
  * @param configuration the configuration
  * @param injector finds an instance of filter by the class name
  */
-class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
+class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector, webCommands: WebCommands) extends HttpFilters {
 
   private val enabledKey = "play.filters.enabled"
   private val disabledKey = "play.filters.disabled"
@@ -89,6 +90,12 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
    * Return the filters that should filter every request
    */
   override lazy val filters: Seq[EssentialFilter] = defaultBindings.map(injector.instanceOf(_))
+
+  def start(): Unit = {
+    webCommands.addHandler(new EnabledFiltersWebCommands(this))
+  }
+
+  start() // on construction
 }
 
 /**
@@ -108,3 +115,18 @@ class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
 
 class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
   extends play.http.DefaultHttpFilters(delegate.filters: _*)
+
+/**
+ * Web command handler for listing filters on application start.
+ */
+class EnabledFiltersWebCommands @Inject() (enabledFilters: EnabledFilters) extends HandleWebCommandSupport {
+  private val logger = play.api.Logger("application")
+
+  def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
+    logger.info("Enabled Filters: ")
+    for (f <- enabledFilters.filters) {
+      logger.info(s"  ${f.getClass.toString}")
+    }
+    None
+  }
+}
