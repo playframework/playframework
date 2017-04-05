@@ -15,7 +15,6 @@ import play.api.http._
 import play.api.libs.Files.TemporaryFileReaperConfiguration.TemporaryFileReaperConfigurationProvider
 import play.api.libs.Files._
 import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
-import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
@@ -74,13 +73,6 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[ExecutionContext].to[ExecutionContextExecutor],
     bind[Executor].to[ExecutionContextExecutor],
     bind[HttpExecutionContext].toSelf,
-
-    bind[CookieSigner].toProvider[CookieSignerProvider],
-    bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-
-    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
-    bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
-    bind[FlashCookieBaker].to[DefaultFlashCookieBaker],
 
     bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
   ) ++ dynamicBindings(

@@ -10,8 +10,8 @@ import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.{ HttpConfiguration, HttpErrorHandler }
-import play.api.inject.{ Binding, Module }
-import play.api.libs.crypto.CSRFTokenSigner
+import play.api.inject.{ Binding, Module, bind }
+import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider }
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -284,6 +284,7 @@ object CSRF {
 class CSRFModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
+      bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
       bind[CSRFConfig].toProvider[CSRFConfigProvider],
       bind[CSRF.TokenProvider].toProvider[CSRF.TokenProviderProvider],
       bind[CSRFFilter].toSelf

@@ -11,7 +11,8 @@ import javax.inject.Inject
 import io.jsonwebtoken.Jwts
 import play.api._
 import play.api.http._
-import play.api.libs.crypto.CookieSigner
+import play.api.inject.{ SimpleModule, bind }
+import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
 import play.mvc.Http.{ Cookie => JCookie }
@@ -557,9 +558,10 @@ trait JWTCookieDataCodec extends CookieDataCodec {
    * Decodes from an encoded `String`.
    */
   override def decode(encodedString: String): Map[String, String] = {
+    import io.jsonwebtoken._
+
     import scala.collection.JavaConverters._
     import scala.collection.breakOut
-    import io.jsonwebtoken._
 
     try {
       // Get all the claims
@@ -588,7 +590,6 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         Map.empty
 
       case NonFatal(e) =>
-        // Don't flag user error
         logger.debug(s"decode: could not decode JWT: ${e.getMessage}")
         Map.empty
     }
@@ -616,6 +617,7 @@ object JWTCookieDataCodec {
       jwtConfiguration: JWTConfiguration,
       clock: java.time.Clock) {
     import io.jsonwebtoken._
+
     import scala.collection.JavaConverters._
 
     private val jwtClock = new io.jsonwebtoken.Clock {
@@ -733,3 +735,27 @@ case class DefaultJWTCookieDataCodec @Inject() (
   secretConfiguration: SecretConfiguration,
   jwtConfiguration: JWTConfiguration
 ) extends JWTCookieDataCodec
+
+/**
+ * A cookie module that uses JWT as the cookie encoding, falling back to URL encoding.
+ */
+class DefaultCookiesModule extends SimpleModule((env, conf) => {
+  Seq(
+    bind[CookieSigner].toProvider[CookieSignerProvider],
+    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
+    bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
+    bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
+  )
+})
+
+/**
+ * A cookie module that uses the urlencoded cookie encoding.
+ */
+class LegacyCookiesModule extends SimpleModule((env, conf) => {
+  Seq(
+    bind[CookieSigner].toProvider[CookieSignerProvider],
+    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
+    bind[SessionCookieBaker].to[LegacySessionCookieBaker],
+    bind[FlashCookieBaker].to[LegacyFlashCookieBaker]
+  )
+})
