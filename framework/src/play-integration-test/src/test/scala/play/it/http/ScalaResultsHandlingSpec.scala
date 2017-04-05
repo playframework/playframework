@@ -67,12 +67,13 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       response.body must_== "Hello world"
     }
 
-    "not fail when sending an empty entity" in makeRequest(
-      Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], None, None))
+    // todo might not need this after all though - it's indicative of a lower level behaviour of akka http
+    "not fail when sending an empty entity with a known size zero" in makeRequest(
+      Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
     ) {
         response =>
           response.status must_== 200
-          response.header(CONTENT_LENGTH) must beSome(0)
+          response.header(CONTENT_LENGTH) must beSome("0") or beNone
       }
 
     "not fail when sending an empty file" in {
@@ -89,7 +90,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       ) {
           response =>
             response.status must_== 200
-            response.header(CONTENT_LENGTH) must beSome(0)
+            response.header(CONTENT_LENGTH) must beSome("0")
         } finally JFiles.delete(emptyPath)
     }
 
