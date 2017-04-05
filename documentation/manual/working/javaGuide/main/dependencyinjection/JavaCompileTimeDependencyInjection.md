@@ -43,44 +43,7 @@ To correctly configure logging in Play, the `LoggerConfigurator` must be run bef
 
 This initialization code must be added in your application loader:
 
-@[basicextended](code/CompileTimeDependencyInjection.scala)
-
-If you are migrating from Play 2.4.x, `LoggerConfigurator` is the replacement for `Logger.configure()` and allows for [[customization of different logging frameworks|SettingsLogger#Using-a-Custom-Logging-Framework]].
-
-## Providing a router
-
-By default Play will use the [[injected routes generator|ScalaDependencyInjection#Injected-routes-generator]]. This generates a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The router's constructor will also, as its first argument, accept an [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), which is used to handle parameter binding errors, and a prefix String as its last argument. An overloaded constructor that defaults this to `"/"` will also be provided.
-
-The following routes:
-
-@[content](code/scalaguide.dependencyinjection.routes)
-
-Will produce a router with the following constructor signatures:
-
-```scala
-class Routes(
-  override val errorHandler: play.api.http.HttpErrorHandler,
-  Application_0: controllers.Application,
-  bar_Routes_0: bar.Routes,
-  Assets_1: controllers.Assets,
-  val prefix: String
-) extends GeneratedRouter {
-
-  def this(
-    errorHandler: play.api.http.HttpErrorHandler,
-    Application_0: controllers.Application,
-    bar_Routes_0: bar.Routes,
-    Assets_1: controllers.Assets
-  ) = this(Application_0, bar_Routes_0, Assets_1, "/")
-  ...
-}
-```
-
-Note that the naming of the parameters is intentionally not well defined (and in fact the index that is appended to them is random, depending on hash map ordering), so you should not depend on the names of these parameters.
-
-To use this router in an actual application:
-
-@[routers](code/CompileTimeDependencyInjection.scala)
+@[basic-logger-configurator](code/javaguide/di/components/CompileTimeDependencyInjection.java)
 
 ## Using other components
 
