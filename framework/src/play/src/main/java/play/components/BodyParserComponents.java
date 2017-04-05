@@ -5,7 +5,6 @@ package play.components;
 
 import play.api.mvc.PlayBodyParsers;
 import play.api.mvc.PlayBodyParsers$;
-import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.mvc.BodyParser;
 
 /**
@@ -16,18 +15,12 @@ import play.mvc.BodyParser;
 public interface BodyParserComponents extends HttpErrorHandlerComponents,
         HttpConfigurationComponents,
         AkkaComponents,
-        JavaContextComponentsComponents,
         TemporaryFileComponents {
 
     default PlayBodyParsers scalaParsers() {
-        play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(
-                httpErrorHandler(),
-                javaContextComponents()
-        );
-
         return PlayBodyParsers$.MODULE$.apply(
                 httpConfiguration().parser(),
-                scalaErrorHandler,
+                scalaHttpErrorHandler(),
                 materializer(),
                 tempFileCreator().asScala()
         );

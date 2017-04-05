@@ -6,9 +6,6 @@ package play.filters.components;
 import play.components.AkkaComponents;
 import play.components.ConfigurationComponents;
 import play.components.HttpErrorHandlerComponents;
-import play.components.JavaContextComponentsComponents;
-import play.core.j.JavaContextComponents;
-import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.filters.cors.CORSConfig;
 import play.filters.cors.CORSConfig$;
 import play.filters.cors.CORSFilter;
@@ -21,8 +18,7 @@ import java.util.List;
  */
 public interface CORSComponents extends ConfigurationComponents,
         HttpErrorHandlerComponents,
-        AkkaComponents,
-        JavaContextComponentsComponents {
+        AkkaComponents {
 
     default CORSConfig corsConfig() {
         return CORSConfig$.MODULE$.fromConfiguration(configuration());
@@ -35,7 +31,7 @@ public interface CORSComponents extends ConfigurationComponents,
     default CORSFilter corsFilter() {
         return new CORSFilter(
             corsConfig(),
-            new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents()),
+            scalaHttpErrorHandler(),
             Scala.asScala(corsPathPrefixes()),
             materializer()
         );

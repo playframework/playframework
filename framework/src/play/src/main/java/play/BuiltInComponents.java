@@ -36,33 +36,26 @@ import javax.inject.Provider;
  */
 public interface BuiltInComponents extends BaseComponents,
         ApplicationComponents,
-        JavaContextComponentsComponents,
         AkkaComponents,
         ConfigurationComponents,
         HttpComponents,
         HttpErrorHandlerComponents,
+        FileMimeTypesComponents,
         I18nComponents,
         CryptoComponents,
         TemporaryFileComponents {
 
     @Override
     default Application application() {
-        play.api.Environment env = environment().asScala();
-
-        play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(
-            httpErrorHandler(),
-            javaContextComponents()
-        );
-
         RequestFactory requestFactory = new DefaultRequestFactory(httpConfiguration());
         return new play.api.DefaultApplication(
-            env,
+            environment().asScala(),
             applicationLifecycle().asScala(),
             injector().asScala(),
             configuration(),
             requestFactory,
             httpRequestHandler().asScala(),
-            scalaErrorHandler,
+            scalaHttpErrorHandler(),
             actorSystem(),
             materializer()
         ).asJava();

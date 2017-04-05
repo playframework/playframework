@@ -4,7 +4,6 @@
 package play.filters.components;
 
 import play.components.*;
-import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.filters.csrf.*;
 import play.inject.Injector;
 
@@ -13,7 +12,6 @@ import play.inject.Injector;
  */
 public interface CSRFComponents extends ConfigurationComponents,
         CryptoComponents,
-        JavaContextComponentsComponents,
         HttpConfigurationComponents,
         HttpErrorHandlerComponents,
         AkkaComponents {
@@ -49,12 +47,7 @@ public interface CSRFComponents extends ConfigurationComponents,
 
     default CSRFErrorHandler csrfErrorHandler() {
         return new CSRFErrorHandler.DefaultCSRFErrorHandler(
-                new CSRF.CSRFHttpErrorHandler(
-                        new JavaHttpErrorHandlerAdapter(
-                                httpErrorHandler(),
-                                javaContextComponents()
-                        )
-                )
+                new CSRF.CSRFHttpErrorHandler(scalaHttpErrorHandler())
         );
     }
 
