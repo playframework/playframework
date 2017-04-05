@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import java.nio.file.{ Files => JFiles }
 import java.util.Locale.ENGLISH
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -64,6 +65,32 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
     "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
+    }
+
+    "not fail when sending an empty entity" in makeRequest(
+      Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], None, None))
+    ) {
+        response =>
+          response.status must_== 200
+          response.header(CONTENT_LENGTH) must beSome(0)
+      }
+
+    "not fail when sending an empty file" in {
+      val emptyPath = JFiles.createTempFile("empty", ".txt")
+      // todo fix the ExecutionContext. Not sure where to get it from nicely
+      // maybe the test is in the wrong place
+      import scala.concurrent.ExecutionContext.Implicits.global
+      // todo not sure where to get this one from in this context, either
+      implicit val fileMimeTypes = new FileMimeTypes {
+        override def forFileName(name: String): Option[String] = Some("text/plain")
+      }
+      try makeRequest(
+        Results.Ok.sendPath(emptyPath)
+      ) {
+          response =>
+            response.status must_== 200
+            response.header(CONTENT_LENGTH) must beSome(0)
+        } finally JFiles.delete(emptyPath)
     }
 
     "not add a content length header when none is supplied" in makeRequest(
