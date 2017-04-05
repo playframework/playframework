@@ -18,6 +18,7 @@ import play.api.mvc.request.RequestFactory;
 import play.components.*;
 import play.core.j.*;
 import play.http.*;
+import play.i18n.I18nComponents;
 import play.i18n.Langs;
 import play.i18n.MessagesApi;
 import play.libs.Files;

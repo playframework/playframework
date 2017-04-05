@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.components;
+package play.i18n;
 
 import play.i18n.Langs;
 import play.i18n.MessagesApi;

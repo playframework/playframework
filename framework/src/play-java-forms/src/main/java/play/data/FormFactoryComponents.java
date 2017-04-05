@@ -3,7 +3,7 @@
  */
 package play.data;
 
-import play.components.I18nComponents;
+import play.i18n.I18nComponents;
 import play.data.format.Formatters;
 import play.data.validation.ValidatorsComponents;
 
