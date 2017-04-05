@@ -3,6 +3,9 @@
  */
 package play.api.libs.streams
 
+import java.util.Optional
+import java.util.concurrent.CompletionStage
+
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 
@@ -12,6 +15,7 @@ import scala.compat.java8.FutureConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import scala.compat.java8.OptionConverters._
 
 /**
  * An accumulator of elements into a future of a result.
@@ -68,6 +72,11 @@ sealed trait Accumulator[-E, +A] {
    * Run this accumulator by feeding nothing into it.
    */
   def run()(implicit materializer: Materializer): Future[A]
+
+  /**
+   * Run this accumulator by feeding a single element into it.
+   */
+  def run(elem: E)(implicit materializer: Materializer): Future[A]
 
   /**
    * Right associative operator alias for run.
@@ -130,6 +139,10 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
     run(Source.empty)
   }
 
+  def run(elem: E)(implicit materializer: Materializer): Future[A] = {
+    run(Source.single(elem))
+  }
+
   def toSink: Sink[E, Future[A]] = sink
 
   import scala.annotation.unchecked.{ uncheckedVariance => uV }
@@ -139,21 +152,22 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
   }
 }
 
-/**
- * An accumulator that ignores the body passed in, and is immediately available.
- */
-private class DoneAccumulator[+A](future: Future[A]) extends Accumulator[Any, A] {
+private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toSink: Sink[E, Future[A]]) extends Accumulator[E, A] {
 
-  def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(
+  private def mapMat[B](f: Future[A] => Future[B])(implicit executor: ExecutionContext): StrictAccumulator[E, B] = {
+    new StrictAccumulator(handler.andThen(f), toSink.mapMaterializedValue(f))
+  }
+
+  override def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
+    mapMat { future =>
       future.value match {
         case Some(Success(a)) => Future.fromTry(Try(f(a))) // optimize already completed case
         case _ => future.map(f)
       }
-    )
+    }
 
-  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    new DoneAccumulator(
+  def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    mapMat { future =>
       future.value match {
         // optimize already completed case
         case Some(Success(a)) =>
@@ -163,35 +177,48 @@ private class DoneAccumulator[+A](future: Future[A]) extends Accumulator[Any, A]
           }
         case _ => future.flatMap(f)
       }
-    )
-
-  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    future.value match {
-      case Some(Success(a)) => this // optimize already completed case
-      case _ => new DoneAccumulator(future.recover(pf))
     }
 
-  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[Any, B] =
-    future.value match {
-      case Some(Success(a)) => this // optimize already completed case
-      case _ => new DoneAccumulator(future.recoverWith(pf))
+  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    mapMat { future =>
+      future.value match {
+        case Some(Success(a)) => future // optimize already completed case
+        case _ => future.recover(pf)
+      }
     }
 
-  def through[F](flow: Flow[F, Any, _]): Accumulator[F, A] = this
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B] =
+    mapMat { future =>
+      future.value match {
+        case Some(Success(a)) => future // optimize already completed case
+        case _ => future.recoverWith(pf)
+      }
+    }
 
-  def run(source: Source[Any, _])(implicit materializer: Materializer): Future[A] = {
-    source.toMat(Sink.cancelled)((_, _) => future).run()
+  override def through[F](flow: Flow[F, E, _]): Accumulator[F, A] = {
+    new SinkAccumulator(flow.toMat(toSink)(Keep.right))
   }
 
-  def run()(implicit materializer: Materializer): Future[A] = future
+  override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
+    source.runWith(toSink)
+  }
 
-  def toSink: Sink[Any, Future[A]] = Sink.cancelled.mapMaterializedValue(_ => future)
+  override def run()(implicit materializer: Materializer): Future[A] = {
+    handler(None)
+  }
+
+  override def run(elem: E)(implicit materializer: Materializer): Future[A] = {
+    handler(Some(elem))
+  }
 
   import scala.annotation.unchecked.{ uncheckedVariance => uV }
 
-  def asJava: play.libs.streams.Accumulator[Any @uV, A @uV] = {
-    play.libs.streams.Accumulator.done(future.toJava)
-  }
+  override def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = play.libs.streams.Accumulator.strict(
+    new java.util.function.Function[Optional[E], CompletionStage[A]] {
+      override def apply(t: Optional[E]) = handler(t.asScala).toJava
+    },
+    toSink.mapMaterializedValue(FutureConverters.toJava).asJava
+  )
 }
 
 private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
@@ -231,7 +258,7 @@ object Accumulator {
    * The underlying sink will cancel as soon as its onSubscribe method is called, and the materialized value will be
    * an immediately available future of `a`.
    */
-  def done[A](a: A): Accumulator[Any, A] = new DoneAccumulator[A](Future.successful(a))
+  def done[A](a: A): Accumulator[Any, A] = done(Future.successful(a))
 
   /**
    * Create a done accumulator.
@@ -239,7 +266,18 @@ object Accumulator {
    * The underlying sink will cancel as soon as its onSubscribe method is called, and the materialized value will be
    * the passed in future.
    */
-  def done[A](a: Future[A]): Accumulator[Any, A] = new DoneAccumulator(a)
+  def done[A](a: Future[A]): Accumulator[Any, A] =
+    new StrictAccumulator[Any, A](_ => a, Sink.cancelled.mapMaterializedValue(_ => a))
+
+  /**
+   * Create an accumulator that is capable of handling the stream as a single, possibly empty, element, with a sink
+   * provided as a fallback if the stream can't be expressed as a single element.
+   *
+   * This is intended to be able to be used to avoid a stream materialization for strict entities.
+   */
+  def strict[E, A](strictHandler: Option[E] => Future[A], toSink: Sink[E, Future[A]]): Accumulator[E, A] = {
+    new StrictAccumulator(strictHandler, toSink)
+  }
 
   /**
    * Create an accumulator that forwards the stream fed into it to the source it produces.

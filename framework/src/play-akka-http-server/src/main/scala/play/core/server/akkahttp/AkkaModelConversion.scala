@@ -35,7 +35,7 @@ private[server] class AkkaModelConversion(
    * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
    * for its body.
    */
-  def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Option[Source[ByteString, Any]]) = {
+  def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
 
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
@@ -148,24 +148,21 @@ private[server] class AkkaModelConversion(
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: Materializer): Option[Source[ByteString, Any]] = {
+    request: HttpRequest)(implicit fm: Materializer): Either[ByteString, Source[ByteString, Any]] = {
     request.entity match {
-      case HttpEntity.Strict(_, data) if data.isEmpty =>
-        None
-
       case HttpEntity.Strict(_, data) =>
-        Some(Source.single(data))
+        Left(data)
 
       case HttpEntity.Default(_, 0, _) =>
-        None
+        Left(ByteString.empty)
 
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        Some(pubr)
+        Right(pubr)
 
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: do something with trailing headers?
-        Some(chunks.takeWhile(!_.isLastChunk).map(_.data()))
+        Right(chunks.takeWhile(!_.isLastChunk).map(_.data()))
     }
   }
 

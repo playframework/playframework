@@ -178,7 +178,7 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Option[Source[ByteString, _]],
+    requestBodySource: Either[ByteString, Source[ByteString, _]],
     handler: Handler): Future[HttpResponse] = {
 
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
@@ -221,7 +221,7 @@ class AkkaHttpServer(
   def executeAction(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Option[Source[ByteString, _]],
+    requestBodySource: Either[ByteString, Source[ByteString, _]],
     action: EssentialAction,
     errorHandler: HttpErrorHandler): Future[HttpResponse] = {
 
@@ -233,14 +233,15 @@ class AkkaHttpServer(
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.map(source => Source.lazily(() => source)).orElse(Some(Source.empty))
+      requestBodySource.right.map(source => Source.lazily(() => source))
     } else {
       requestBodySource
     }
 
     val resultFuture: Future[Result] = source match {
-      case None => actionAccumulator.run()
-      case Some(s) => actionAccumulator.run(s)
+      case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
+      case Left(bytes) => actionAccumulator.run(bytes)
+      case Right(s) => actionAccumulator.run(s)
     }
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = resultUtils.prepareCookies(taggedRequestHeader, result)

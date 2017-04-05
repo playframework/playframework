@@ -10,8 +10,13 @@ import org.reactivestreams.Subscriber;
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import play.api.libs.streams.Accumulator$;
+import scala.Option;
 import scala.compat.java8.FutureConverters;
+import scala.compat.java8.OptionConverters;
+import scala.concurrent.Future;
+import scala.runtime.AbstractFunction1;
 
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -101,6 +106,15 @@ public abstract class Accumulator<E, A> {
     public abstract CompletionStage<A> run(Source<E, ?> source, Materializer mat);
 
     /**
+     * Run the accumulator with a single element.
+     *
+     * @param element The element to feed into the accumulator.
+     * @param mat The flow materilaizer.
+     * @return A future that will be redeemed when the accumulator is done.
+     */
+    public abstract CompletionStage<A> run(E element, Materializer mat);
+
+    /**
      * Convert this accumulator to a sink.
      *
      * @return The sink.
@@ -167,7 +181,20 @@ public abstract class Accumulator<E, A> {
      * @return The accumulator.
      */
     public static <E, A> Accumulator<E, A> done(CompletionStage<A> a) {
-        return new DoneAccumulator<>(a);
+        return new StrictAccumulator<>(e -> a, Sink.<E>cancelled().mapMaterializedValue(notUsed -> a));
+    }
+
+    /**
+     * Create a done accumulator with the given future.
+     *
+     * @param <E> the "in" type of the parameter.
+     * @param <A> the materialized result of the accumulator.
+     * @param strictHandler the handler to handle the stream if it can be expressed as a single element.
+     * @param toSink The sink representation of this accumulator, in case the stream can't be expressed as a single element.
+     * @return The accumulator.
+     */
+    public static <E, A> Accumulator<E, A> strict(Function<Optional<E>, CompletionStage<A>> strictHandler, Sink<E, CompletionStage<A>> toSink) {
+        return new StrictAccumulator<>(strictHandler, toSink);
     }
 
     /**
@@ -304,6 +331,10 @@ public abstract class Accumulator<E, A> {
             return source.runWith(sink, mat);
         }
 
+        public CompletionStage<A> run(E element, Materializer mat) {
+            return run(Source.single(element), mat);
+        }
+
         public Sink<E, CompletionStage<A>> toSink() {
             return sink;
         }
@@ -311,54 +342,69 @@ public abstract class Accumulator<E, A> {
         public play.api.libs.streams.Accumulator<E, A> asScala() {
             return Accumulator$.MODULE$.apply(sink.mapMaterializedValue(FutureConverters::toScala).asScala());
         }
-
     }
 
-    private static final class DoneAccumulator<E, A> extends Accumulator<E, A> {
+    private static final class StrictAccumulator<E, A> extends Accumulator<E, A> {
 
-        private final CompletionStage<A> value;
+        private final Function<Optional<E>, CompletionStage<A>> strictHandler;
+        private final Sink<E, CompletionStage<A>> toSink;
 
-        private DoneAccumulator(CompletionStage<A> value) {
-            this.value = value;
+        public StrictAccumulator(Function<Optional<E>, CompletionStage<A>> strictHandler, Sink<E, CompletionStage<A>> toSink) {
+            this.strictHandler = strictHandler;
+            this.toSink = toSink;
+        }
+
+        private <B> Accumulator<E, B> mapMat(Function<CompletionStage<A>, CompletionStage<B>> f) {
+            return new StrictAccumulator<>(strictHandler.andThen(f), toSink.mapMaterializedValue(f::apply));
         }
 
         public <B> Accumulator<E, B> map(Function<? super A, ? extends B> f, Executor executor) {
-            return new DoneAccumulator<>(value.thenApplyAsync(f, executor));
+            return mapMat(cs -> cs.thenApplyAsync(f, executor));
         }
 
         public <B> Accumulator<E, B> mapFuture(Function<? super A, ? extends CompletionStage<B>> f, Executor executor) {
-            return new DoneAccumulator<>(value.thenComposeAsync(f, executor));
+            return mapMat(cs -> cs.thenComposeAsync(f, executor));
         }
 
         public Accumulator<E, A> recover(Function<? super Throwable, ? extends A> f, Executor executor) {
-            return new DoneAccumulator<>(completionStageRecover(value, f, executor));
+            return mapMat(cs -> completionStageRecover(cs, f, executor));
         }
 
         public Accumulator<E, A> recoverWith(Function<? super Throwable, ? extends CompletionStage<A>> f, Executor executor) {
-            return new DoneAccumulator<>(completionStageRecoverWith(value, f, executor));
+            return mapMat(cs -> completionStageRecoverWith(cs, f, executor));
         }
 
-        @SuppressWarnings("unchecked")
         public <D> Accumulator<D, A> through(Flow<D, E, ?> flow) {
-            return (Accumulator<D, A>) this;
+            return new SinkAccumulator<>(flow.toMat(toSink, Keep.right()));
         }
 
         public CompletionStage<A> run(Materializer mat) {
-            return value;
+            return strictHandler.apply(Optional.empty());
         }
 
         public CompletionStage<A> run(Source<E, ?> source, Materializer mat) {
-            source.runWith(Sink.cancelled(), mat);
-            return value;
+            return source.runWith(toSink, mat);
+        }
+
+        public CompletionStage<A> run(E element, Materializer mat) {
+            return strictHandler.apply(Optional.of(element));
         }
 
         public Sink<E, CompletionStage<A>> toSink() {
-            return Sink.<E>cancelled().mapMaterializedValue(u -> value);
+            return toSink;
         }
 
         @SuppressWarnings("unchecked")
         public play.api.libs.streams.Accumulator<E, A> asScala() {
-            return (play.api.libs.streams.Accumulator<E, A>) Accumulator$.MODULE$.done(FutureConverters.toScala(value));
+            return Accumulator$.MODULE$.strict(
+                    new AbstractFunction1<Option<E>, Future<A>>() {
+                        @Override
+                        public Future<A> apply(Option<E> v1) {
+                            return FutureConverters.toScala(strictHandler.apply(OptionConverters.toJava(v1)));
+                        }
+                    },
+                    toSink.mapMaterializedValue(FutureConverters::toScala).asScala()
+            );
         }
 
     }
