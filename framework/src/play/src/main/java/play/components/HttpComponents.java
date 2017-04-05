@@ -45,6 +45,4 @@ public interface HttpComponents extends HttpConfigurationComponents {
     EssentialFilter[] httpFilters();
 
     HttpRequestHandler httpRequestHandler();
-
-    FileMimeTypes fileMimeTypes();
 }
