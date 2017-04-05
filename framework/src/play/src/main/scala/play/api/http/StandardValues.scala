@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -22,6 +22,11 @@ trait ContentTypes {
    * Content-Type of html.
    */
   def HTML(implicit codec: Codec) = withCharset(MimeTypes.HTML)
+
+  /**
+   * Content-Type of xhtml.
+   */
+  def XHTML(implicit codec: Codec) = withCharset(MimeTypes.XHTML)
 
   /**
    * Content-Type of xml.
@@ -115,6 +120,11 @@ trait MimeTypes {
   val XML = "application/xml"
 
   /**
+   * Content-Type of xml.
+   */
+  val XHTML = "application/xhtml+xml"
+
+  /**
    * Content-Type of css.
    */
   val CSS = "text/css"
@@ -147,9 +157,15 @@ trait MimeTypes {
 }
 
 /**
- * Defines all standard HTTP Status.
+ * Defines all standard HTTP status codes, with additional helpers for determining the type of status.
  */
-object Status extends Status
+object Status extends Status {
+  def isInformational(status: Int): Boolean = status / 100 == 1
+  def isSuccessful(status: Int): Boolean = status / 100 == 2
+  def isRedirect(status: Int): Boolean = status / 100 == 3
+  def isClientError(status: Int): Boolean = status / 100 == 4
+  def isServerError(status: Int): Boolean = status / 100 == 5
+}
 
 /**
  * Defines all standard HTTP status codes.
@@ -195,12 +211,13 @@ trait Status {
   val UNSUPPORTED_MEDIA_TYPE = 415
   val REQUESTED_RANGE_NOT_SATISFIABLE = 416
   val EXPECTATION_FAILED = 417
+  val IM_A_TEAPOT = 418
   val UNPROCESSABLE_ENTITY = 422
   val LOCKED = 423
   val FAILED_DEPENDENCY = 424
   val UPGRADE_REQUIRED = 426
   val TOO_MANY_REQUESTS = 429
-  @deprecated("Use TOO_MANY_REQUESTS instead", "3.0.0")
+  @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
   val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
   val INTERNAL_SERVER_ERROR = 500
@@ -306,6 +323,8 @@ trait HeaderNames {
   val ORIGIN = "Origin"
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
   val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
+
+  val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
 }
 
 /**

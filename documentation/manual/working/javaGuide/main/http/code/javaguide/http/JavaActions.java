@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -22,7 +23,7 @@ import static javaguide.testhelpers.MockJavaActionHelper.call;
 public class JavaActions extends WithApplication {
     @Test
     public void simpleAction() {
-        assertThat(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#simple-action
             public Result index() {
                 return ok("Got request " + request() + "!");
@@ -33,7 +34,7 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void fullController() {
-        assertThat(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             public Result index() {
                 return new javaguide.http.full.Application().index();
             }
@@ -42,7 +43,7 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void withParams() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#params-action
             public Result index(String name) {
                 return ok("Hello " + name);
@@ -59,7 +60,7 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void simpleResult() {
-        assertThat(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#simple-result
             public Result index() {
                 return ok("Hello world!");
@@ -104,7 +105,7 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void redirectAction() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#redirect-action
             public Result index() {
                 return redirect("/user/home");
@@ -117,7 +118,7 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void temporaryRedirectAction() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#temporary-redirect-action
             public Result index() {
                 return temporaryRedirect("/user/home");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data
 
@@ -7,9 +7,11 @@ import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.data.format.Formats._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.i18n._
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
+import play.api.http.HttpConfiguration
+import play.core.test.FakeRequest
 
 class FormSpec extends Specification {
   "A form" should {
@@ -34,6 +36,62 @@ class FormSpec extends Specification {
       f9.errors must beEmpty
 
       ScalaForms.emailForm.fillAndValidate(("o'flynn@example.com", "O'Flynn")).errors must beEmpty
+    }
+
+    "query params ignored when using POST" in {
+      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PUT" in {
+      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PATCH" in {
+      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params NOT ignored when using GET" in {
+      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using DELETE" in {
+      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using HEAD" in {
+      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using OPTIONS" in {
+      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
     }
 
     "support mapping 22 fields" in {
@@ -268,7 +326,11 @@ class FormSpec extends Specification {
   }
 
   "correctly lookup error messages when using errorsAsJson" in {
-    val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
+    val messagesApi: MessagesApi = {
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      new DefaultMessagesApiProvider(Environment.simple(), config, langs, HttpConfiguration()).get
+    }
     implicit val messages = messagesApi.preferred(Seq.empty)
 
     val form = Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
@@ -391,6 +453,13 @@ object ScalaForms {
     tuple(
       "email" -> email,
       "name" -> of[String]
+    )
+  )
+
+  val updateForm = Form(
+    tuple(
+      "email" -> optional(text),
+      "name" -> optional(text)
     )
   )
 

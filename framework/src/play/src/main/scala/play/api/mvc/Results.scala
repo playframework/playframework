@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -11,8 +11,9 @@ import java.time.{ ZoneOffset, ZonedDateTime }
 import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
 import akka.util.ByteString
 import play.api.http.HeaderNames._
-import play.api.http._
+import play.api.http.{ FileMimeTypes, _ }
 import play.api.i18n.{ Lang, MessagesApi }
+import play.api.{ Logger, Mode }
 import play.core.utils.CaseInsensitiveOrdered
 import play.utils.UriEncoding
 
@@ -30,7 +31,7 @@ import scala.concurrent.ExecutionContext
  */
 final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
   private[play] def this(status: Int, _headers: java.util.Map[String, String], reasonPhrase: Option[String]) =
-    this(status, collection.JavaConversions.mapAsScalaMap(_headers).toMap, reasonPhrase)
+    this(status, _headers.asScala.toMap, reasonPhrase)
 
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
@@ -48,6 +49,10 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
   override def equals(o: Any) = o match {
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _ => false
+  }
+
+  def asJava: play.mvc.ResponseHeader = {
+    new play.mvc.ResponseHeader(status, headers.asJava, reasonPhrase.orNull)
   }
 }
 object ResponseHeader {
@@ -99,8 +104,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
-   * Adds cookies to this result. If the result already contains
-   * cookies then the new cookies will be merged with the old cookies.
+   * Adds cookies to this result. If the result already contains cookies then cookies with the same name in the new
+   * list will override existing ones.
    *
    * For example:
    * {{{
@@ -111,7 +116,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    if (cookies.isEmpty) this else copy(newCookies = newCookies ++ cookies)
+    val filteredCookies = newCookies.filter(cookie => !cookies.exists(_.name == cookie.name))
+    if (cookies.isEmpty) this else copy(newCookies = filteredCookies ++ cookies)
   }
 
   /**
@@ -126,7 +132,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withCookies(newCookies ++ cookies.map(_.toCookie): _*)
+    withCookies(cookies.map(_.toCookie): _*)
   }
 
   /**
@@ -179,9 +185,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    if (shouldWarnIfNotRedirect(flash)) {
-      logRedirectWarning("flashing")
-    }
+    warnFlashingIfNotRedirect(flash)
     copy(newFlash = Some(flash))
   }
 
@@ -246,25 +250,20 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
-   * Returns true if the status code is not 3xx and the application is in Dev mode.
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
-  private def shouldWarnIfNotRedirect(flash: Flash): Boolean = {
-    play.api.Play.privateMaybeApplication.exists(app =>
-      (app.mode == play.api.Mode.Dev) && (!flash.isEmpty) && (header.status < 300 || header.status > 399))
-  }
-
-  /**
-   * Logs a redirect warning.
-   */
-  private def logRedirectWarning(methodName: String) {
-    val status = header.status
-    play.api.Logger("play").warn(s"You are using status code '$status' with $methodName, which should only be used with a redirect status!")
+  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
   }
 
   /**
    * Convert this result to a Java result.
    */
-  def asJava: play.mvc.Result = new play.mvc.Result(header, body.asJava,
+  def asJava: play.mvc.Result = new play.mvc.Result(header.asJava, body.asJava,
     newSession.map(_.asJava).orNull, newFlash.map(_.asJava).orNull, newCookies.map(_.asJava).asJava)
 
   /**
@@ -272,6 +271,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * followed by all the other cookies in order.
    */
   def bakeCookies(
+    cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
     sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
     flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
     requestHasFlash: Boolean = false): Result = {
@@ -400,7 +400,7 @@ trait Results {
       )
     }
 
-    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean): Result = {
+    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(implicit fileMimeTypes: FileMimeTypes): Result = {
       Result(
         ResponseHeader(
           status,
@@ -414,7 +414,7 @@ trait Results {
         HttpEntity.Streamed(
           file,
           Some(length),
-          play.api.libs.MimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
+          fileMimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
       )
     }
@@ -426,7 +426,7 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(implicit ec: ExecutionContext): Result = {
+    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
     }
 
@@ -437,11 +437,11 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ())(implicit ec: ExecutionContext): Result = {
+    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
         onClose()
       })
-      streamFile(io, fileName(content), Files.size(content), inline)
+      streamFile(io, fileName(content), Files.size(content), inline)(fileMimeTypes)
     }
 
     /**
@@ -451,7 +451,7 @@ trait Results {
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      */
-    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true): Result = {
+    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true)(implicit fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
       streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
@@ -599,6 +599,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘418 IM_A_TEAPOT’ result. */
+  val ImATeapot = new Status(IM_A_TEAPOT)
+
   /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
   val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
 
@@ -612,7 +615,7 @@ trait Results {
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
 
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  @deprecated("Use TooManyRequests instead", "3.0.0")
+  @deprecated("Use TooManyRequests instead", "2.6.0")
   val TooManyRequest = TooManyRequests
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */

@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
 import play.api.http.HeaderNames
+import play.api.mvc.request.RemoteConnection
 import play.api.test.FakeRequest
 
 class HttpSpec extends org.specs2.mutable.Specification {
@@ -22,7 +23,7 @@ class HttpSpec extends org.specs2.mutable.Specification {
     }
 
     "have HTTPS scheme" in {
-      (Call("GET", "/playframework").absoluteURL()(req.copy(secure = true)).
+      (Call("GET", "/playframework").absoluteURL()(req.withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))).
         aka("absolute URL 1") must_== (
           "https://playframework.com/playframework")) and (
             Call("GET", "/playframework").absoluteURL(secure = true)(req).
@@ -44,7 +45,7 @@ class HttpSpec extends org.specs2.mutable.Specification {
     }
 
     "have WSS scheme" in {
-      (Call("GET", "/playframework").webSocketURL()(req.copy(secure = true)).
+      (Call("GET", "/playframework").webSocketURL()(req.withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))).
         aka("absolute URL 1") must_== (
           "wss://playframework.com/playframework")) and (
             Call("GET", "/playframework").webSocketURL(secure = true)(req).

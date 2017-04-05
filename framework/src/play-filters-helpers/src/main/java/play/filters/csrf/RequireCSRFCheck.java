@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf;
 
@@ -19,9 +19,10 @@ import java.lang.annotation.Target;
 public @interface RequireCSRFCheck {
 
     /**
-     * Call a implementation class for handling the CSRF error.
+     * Calls a implementation class for handling the CSRF error.
      *
      * @see play.filters.csrf.CSRFErrorHandler
+     * @return the subtype of CSRFErrorHandler
      */
     Class<? extends CSRFErrorHandler> error() default CSRFErrorHandler.DefaultCSRFErrorHandler.class;
 

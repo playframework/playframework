@@ -1,23 +1,26 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
-import javax.inject.{ Singleton, Inject, Provider }
+import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.ConfigMemorySize
-import play.api.{ Application, Play, Configuration }
-import play.core.netty.utils.{ ServerCookieDecoder, ClientCookieEncoder, ClientCookieDecoder, ServerCookieEncoder }
+import org.apache.commons.codec.digest.DigestUtils
+import play.api.mvc.Cookie.SameSite
+import play.api.{ http, _ }
+import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 /**
  * HTTP related configuration of a Play application
  *
- * @param context The HTTP context
- * @param parser The parser configuration
- * @param session The session configuration
- * @param flash The flash configuration
+ * @param context       The HTTP context
+ * @param parser        The parser configuration
+ * @param session       The session configuration
+ * @param flash         The flash configuration
+ * @param fileMimeTypes The fileMimeTypes configuration
  */
 case class HttpConfiguration(
   context: String = "/",
@@ -25,7 +28,40 @@ case class HttpConfiguration(
   actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
   cookies: CookiesConfiguration = CookiesConfiguration(),
   session: SessionConfiguration = SessionConfiguration(),
-  flash: FlashConfiguration = FlashConfiguration())
+  flash: FlashConfiguration = FlashConfiguration(),
+  fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
+  secret: SecretConfiguration = SecretConfiguration())
+
+/**
+ * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
+ * production.
+ *
+ * With the Play secret we want to:
+ *
+ * 1) Encourage the practice of *not* using the same secret in dev and prod.
+ * 2) Make it obvious that the secret should be changed.
+ * 3) Ensure that in dev mode, the secret stays stable across restarts.
+ * 4) Ensure that in dev mode, sessions do not interfere with other applications that may be or have been running
+ *   on localhost.  Eg, if I start Play app 1, and it stores a PLAY_SESSION cookie for localhost:9000, then I stop
+ *   it, and start Play app 2, when it reads the PLAY_SESSION cookie for localhost:9000, it should not see the
+ *   session set by Play app 1.  This can be achieved by using different secrets for the two, since if they are
+ *   different, they will simply ignore the session cookie set by the other.
+ *
+ * To achieve 1 and 2, we will, in Activator templates, set the default secret to be "changeme".  This should make
+ * it obvious that the secret needs to be changed and discourage using the same secret in dev and prod.
+ *
+ * For safety, if the secret is not set, or if it's changeme, and we are in prod mode, then we will fail fatally.
+ * This will further enforce both 1 and 2.
+ *
+ * To achieve 3, if in dev or test mode, if the secret is either changeme or not set, we will generate a secret
+ * based on the location of application.conf.  This should be stable across restarts for a given application.
+ *
+ * To achieve 4, using the location of application.conf to generate the secret should ensure this.
+ *
+ * @param secret   the application secret
+ * @param provider the JCE provider to use. If null, uses the platform default
+ */
+case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
 
 /**
  * The cookies configuration
@@ -44,29 +80,51 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * The session configuration
  *
  * @param cookieName The name of the cookie used to store the session
- * @param secure Whether the session cookie should set the secure flag or not
- * @param maxAge The max age of the session, none, use "session" sessions
- * @param httpOnly Whether the HTTP only attribute of the cookie should be set
- * @param domain The domain to set for the session cookie, if defined
+ * @param secure     Whether the session cookie should set the secure flag or not
+ * @param maxAge     The max age of the session, none, use "session" sessions
+ * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
+ * @param domain     The domain to set for the session cookie, if defined
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
-case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boolean = false,
-  maxAge: Option[FiniteDuration] = None, httpOnly: Boolean = true,
-  domain: Option[String] = None)
+case class SessionConfiguration(
+  cookieName: String = "PLAY_SESSION",
+  secure: Boolean = false,
+  maxAge: Option[FiniteDuration] = None,
+  httpOnly: Boolean = true,
+  domain: Option[String] = None,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
+)
 
 /**
  * The flash configuration
  *
  * @param cookieName The name of the cookie used to store the session
- * @param secure Whether the flash cookie should set the secure flag or not
- * @param httpOnly Whether the HTTP only attribute of the cookie should be set
+ * @param secure     Whether the flash cookie should set the secure flag or not
+ * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
+ * @param domain     The domain to set for the session cookie, if defined
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true)
+case class FlashConfiguration(
+  cookieName: String = "PLAY_FLASH",
+  secure: Boolean = false,
+  httpOnly: Boolean = true,
+  domain: Option[String] = None,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
+)
 
 /**
  * Configuration for body parsers.
  *
  * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory.
- * @param maxDiskBuffer The maximum size that a request body should be buffered on disk.
+ * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
  */
 case class ParserConfiguration(
   maxMemoryBuffer: Int = 102400,
@@ -75,19 +133,139 @@ case class ParserConfiguration(
 /**
  * Configuration for action composition.
  *
- * @param controllerAnnotationsFirst If annotations put on controllers should be executed before the ones put on actions.
+ * @param controllerAnnotationsFirst      If annotations put on controllers should be executed before the ones put on actions.
  * @param executeActionCreatorActionFirst If the action returned by the action creator should be
- *                                         executed before the action composition ones.
+ *                                        executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
   controllerAnnotationsFirst: Boolean = false,
   executeActionCreatorActionFirst: Boolean = false)
 
+/**
+ * Configuration for file MIME types, mapping from extension to content type.
+ *
+ * @param mimeTypes     the extension to mime type mapping.
+ */
+case class FileMimeTypesConfiguration(mimeTypes: Map[String, String] = Map.empty)
+
 object HttpConfiguration {
 
+  private val logger = Logger(classOf[HttpConfiguration])
+  private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
+
+  private implicit val sameSiteConfigLoader: ConfigLoader[Option[SameSite]] =
+    ConfigLoader(_.getString).map(SameSite.parse)
+
+  def fromConfiguration(config: Configuration, environment: Environment) = {
+
+    def getPath(key: String, deprecatedKey: Option[String] = None): String = {
+      val path = deprecatedKey match {
+        case Some(depKey) => config.getDeprecated[String](key, depKey)
+        case None => config.get[String](key)
+      }
+      if (!path.startsWith("/")) {
+        throw config.globalError(s"$key must start with a /")
+      }
+      path
+    }
+
+    val context = getPath("play.http.context", Some("application.context"))
+    val sessionPath = getPath("play.http.session.path")
+    val flashPath = getPath("play.http.flash.path")
+
+    if (config.has("mimetype")) {
+      throw config.globalError("mimetype replaced by play.http.fileMimeTypes map")
+    }
+
+    HttpConfiguration(
+      context = context,
+      parser = ParserConfiguration(
+        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength")
+          .toBytes.toInt,
+        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
+      ),
+      actionComposition = ActionCompositionConfiguration(
+        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
+        executeActionCreatorActionFirst = config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
+      ),
+      cookies = CookiesConfiguration(
+        strict = config.get[Boolean]("play.http.cookies.strict")
+      ),
+      session = SessionConfiguration(
+        cookieName = config.getDeprecated[String]("play.http.session.cookieName", "session.cookieName"),
+        secure = config.getDeprecated[Boolean]("play.http.session.secure", "session.secure"),
+        maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
+        httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
+        domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
+        sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
+        path = sessionPath,
+        jwt = JWTConfigurationParser(config, "play.http.session.jwt")
+      ),
+      flash = FlashConfiguration(
+        cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
+        secure = config.get[Boolean]("play.http.flash.secure"),
+        httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
+        domain = config.get[Option[String]]("play.http.flash.domain"),
+        sameSite = config.get[Option[SameSite]]("play.http.flash.sameSite"),
+        path = flashPath,
+        jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
+      ),
+      fileMimeTypes = FileMimeTypesConfiguration(
+        config.get[String]("play.http.fileMimeTypes")
+        .split('\n')
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .filter(_ (0) != '#')
+        .map(_.split('='))
+        .map(parts => parts(0) -> parts.drop(1).mkString).toMap
+      ),
+      secret = getSecretConfiguration(config, environment)
+    )
+  }
+
+  private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
+
+    val Blank = """\s*""".r
+
+    val secret = config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
+      case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
+        val message =
+          """
+            |The application secret has not been set, and we are in prod mode. Your application is not secure.
+            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+          """.stripMargin
+        throw config.reportError("play.http.secret", message)
+      case Some("changeme") | Some(Blank()) | None =>
+        val appConfLocation = environment.resource("application.conf")
+        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+        val secret = appConfLocation.fold(
+          // No application.conf?  Oh well, just use something hard coded.
+          "she sells sea shells on the sea shore"
+        )(_.toString)
+        val md5Secret = DigestUtils.md5Hex(secret)
+        logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
+        md5Secret
+      case Some(s) => s
+    }
+
+    val provider = config.getDeprecated[Option[String]]("play.http.secret.provider", "play.crypto.provider")
+
+    SecretConfiguration(String.valueOf(secret), provider)
+  }
+
+  /**
+   * Don't use this - only exists for transition from global state
+   */
+  private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+
+  /**
+   * For calling from Java.
+   */
+  def createWithDefaults() = apply()
+
   @Singleton
-  class HttpConfigurationProvider @Inject() (configuration: Configuration) extends Provider[HttpConfiguration] {
-    lazy val get = fromConfiguration(configuration)
+  class HttpConfigurationProvider @Inject() (configuration: Configuration, environment: Environment) extends Provider[HttpConfiguration] {
+    lazy val get = fromConfiguration(configuration, environment)
   }
 
   @Singleton
@@ -115,47 +293,39 @@ object HttpConfiguration {
     lazy val get = conf.actionComposition
   }
 
-  def fromConfiguration(config: Configuration) = {
-    val context = {
-      val ctx = config.getDeprecated[String]("play.http.context", "application.context")
-      if (!ctx.startsWith("/")) {
-        throw config.globalError("play.http.context must start with a /")
-      }
-      ctx
-    }
-
-    HttpConfiguration(
-      context = context,
-      parser = ParserConfiguration(
-        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength")
-          .toBytes.toInt,
-        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
-      ),
-      actionComposition = ActionCompositionConfiguration(
-        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
-        executeActionCreatorActionFirst = config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
-      ),
-      cookies = CookiesConfiguration(
-        strict = config.get[Boolean]("play.http.cookies.strict")
-      ),
-      session = SessionConfiguration(
-        cookieName = config.getDeprecated[String]("play.http.session.cookieName", "session.cookieName"),
-        secure = config.getDeprecated[Boolean]("play.http.session.secure", "session.secure"),
-        maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
-        httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
-        domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain")
-      ),
-      flash = FlashConfiguration(
-        cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
-        secure = config.get[Boolean]("play.http.flash.secure"),
-        httpOnly = config.get[Boolean]("play.http.flash.httpOnly")
-      )
-    )
+  @Singleton
+  class FileMimeTypesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FileMimeTypesConfiguration] {
+    lazy val get = conf.fileMimeTypes
   }
 
-  private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
-  /**
-   * Don't use this - only exists for transition from global state
-   */
-  private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+  @Singleton
+  class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
+    lazy val get: SecretConfiguration = conf.secret
+  }
+}
+
+/**
+ * The JSON Web Token configuration
+ *
+ * @param signatureAlgorithm The signature algorithm used to sign the JWT
+ * @param expiresAfter The period of time after which the JWT expires, if any.
+ * @param clockSkew The amount of clock skew to permit for expiration / not before checks
+ * @param dataClaim The claim key corresponding to the data map passed in by the user
+ */
+case class JWTConfiguration(
+  signatureAlgorithm: String = "HS256",
+  expiresAfter: Option[FiniteDuration] = None,
+  clockSkew: FiniteDuration = 30.seconds,
+  dataClaim: String = "data"
+)
+
+object JWTConfigurationParser {
+  def apply(config: Configuration, parent: String): JWTConfiguration = {
+    JWTConfiguration(
+      signatureAlgorithm = config.get[String](s"${parent}.signatureAlgorithm"),
+      expiresAfter = config.get[Option[FiniteDuration]](s"${parent}.expiresAfter"),
+      clockSkew = config.get[FiniteDuration](s"${parent}.clockSkew"),
+      dataClaim = config.get[String](s"${parent}.dataClaim")
+    )
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
@@ -12,6 +12,9 @@ import play.Application;
 import play.ApplicationLoader;
 import play.Environment;
 
+import java.util.Properties;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -23,7 +26,7 @@ public class GuiceApplicationLoaderTest {
     public ExpectedException exception = ExpectedException.none();
 
     private ApplicationLoader.Context fakeContext() {
-        return ApplicationLoader.Context.create(Environment.simple());
+        return ApplicationLoader.create(Environment.simple());
     }
 
     @Test
@@ -55,7 +58,24 @@ public class GuiceApplicationLoaderTest {
         assertThat(app.config().getInt("a"), is(1));
     }
 
-    public static interface A {}
+    @Test
+    public void usingAdditionalConfiguration() {
+        Properties properties = new Properties();
+        properties.setProperty("play.http.context", "/tests");
+
+        Config config = ConfigFactory.parseProperties(properties)
+                .withFallback(ConfigFactory.defaultReference());
+
+        GuiceApplicationBuilder builder = new GuiceApplicationBuilder();
+        ApplicationLoader loader = new GuiceApplicationLoader(builder);
+        ApplicationLoader.Context context = ApplicationLoader.create(Environment.simple())
+                .withConfig(config);
+        Application app = loader.load(context);
+
+        assertThat(app.getWrappedApplication().httpConfiguration().context(), equalTo("/tests"));
+    }
+
+    public interface A {}
     public static class A1 implements A {}
 
     public static class AModule extends com.google.inject.AbstractModule {
@@ -64,7 +84,7 @@ public class GuiceApplicationLoaderTest {
         }
     }
 
-    public static interface B {}
+    public interface B {}
     public static class B1 implements B {}
 
 }

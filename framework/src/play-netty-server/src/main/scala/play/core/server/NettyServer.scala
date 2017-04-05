@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
 import java.io.IOException
 import java.net.InetSocketAddress
-import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -145,6 +144,11 @@ class NettyServer(
   }
 
   /**
+   * Create a new PlayRequestHandler.
+   */
+  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this)
+
+  /**
    * Create a sink for the incoming connection channels.
    */
   private def channelSink(port: Int, secure: Boolean): Sink[Channel, Future[Done]] = {
@@ -191,7 +195,7 @@ class NettyServer(
           pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
       }
 
-      val requestHandler = new PlayRequestHandler(this)
+      val requestHandler = newRequestHandler()
 
       // Use the streams handler to close off the connection.
       pipeline.addLast("http-handler", new HttpStreamsServerHandler(Seq[ChannelHandler](requestHandler).asJava))
@@ -320,7 +324,7 @@ object NettyServer {
    * Create a Netty server from the given router and server config.
    */
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): NettyServer = {
-    new NettyServerComponents with BuiltInComponents {
+    new NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig = config
       lazy val router = Router.from(routes)
     }.server

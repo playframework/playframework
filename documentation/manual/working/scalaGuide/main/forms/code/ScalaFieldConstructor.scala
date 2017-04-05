@@ -1,16 +1,21 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.forms.scalafieldconstructor {
 
 import org.specs2.mutable.Specification
-import play.api.{Environment, Configuration}
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages}
+import play.api.http.HttpConfiguration
+import play.api.{Configuration, Environment}
+import play.api.i18n._
 
 class ScalaFieldConstructorSpec extends Specification {
 
+  val environment = Environment.simple()
   val conf = Configuration.reference
-  implicit val messages: Messages = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
+  val langs = new DefaultLangsProvider(conf).get
+  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, environment)
+  val messagesApi = new DefaultMessagesApiProvider(environment, conf, langs, httpConfiguration).get
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "field constructors" should {
 

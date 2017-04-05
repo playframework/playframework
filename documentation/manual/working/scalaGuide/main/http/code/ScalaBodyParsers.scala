@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.http.scalabodyparsers {
 
@@ -18,13 +18,13 @@ import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends Specification with Controller {
-    import scala.concurrent.ExecutionContext.Implicits.global
 
     def helloRequest = FakeRequest("POST", "/").withJsonBody(Json.obj("name" -> "foo"))
 
     "A scala body parser" should {
 
       "parse request as json" in {
+        import scala.concurrent.ExecutionContext.Implicits.global
         //#access-json-body
         def save = Action { request =>
           val body: AnyContent = request.body
@@ -114,8 +114,7 @@ import org.specs2.execute.AsResult
           def forward(request: WSRequest): BodyParser[WSResponse] = BodyParser { req =>
             Accumulator.source[ByteString].mapFuture { source =>
               request
-                // TODO: stream body when support is implemented
-                // .withBody(source)
+                .withBody(StreamedBody(source))
                 .execute()
                 .map(Right.apply)
             }
@@ -131,7 +130,7 @@ import org.specs2.execute.AsResult
       }
 
       "parse the body as csv" in new WithApplication() {
-
+        import scala.concurrent.ExecutionContext.Implicits.global
         //#csv
         import play.api.mvc._
         import play.api.libs.streams._

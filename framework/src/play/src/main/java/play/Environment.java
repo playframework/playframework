@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -148,8 +148,21 @@ public class Environment {
      * wraps.
      *
      * @return the environment
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
      */
+    @Deprecated
     public play.api.Environment underlying() {
         return env;
+    }
+
+    /**
+     * The underlying Scala API Environment object that this Environment
+     * wraps.
+     *
+     * @return the environment
+     * @see play.api.Environment
+     */
+    public play.api.Environment asScala() {
+       return env;
     }
 }

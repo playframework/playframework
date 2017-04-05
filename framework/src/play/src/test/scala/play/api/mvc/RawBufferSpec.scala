@@ -1,19 +1,22 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
 import akka.util.ByteString
 import org.specs2.mutable.Specification
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.utils.PlayIO
 
 class RawBufferSpec extends Specification {
+
+  val tempFileCreator = SingletonTemporaryFileCreator
 
   "RawBuffer" should {
     implicit def stringToBytes(s: String): ByteString = ByteString(s, "utf-8")
 
     "work in memory" in {
-      val buffer = RawBuffer(100)
+      val buffer = RawBuffer(100, tempFileCreator)
       buffer.size must_== 0
       buffer.push("hello")
       buffer.push(" ")
@@ -25,7 +28,7 @@ class RawBufferSpec extends Specification {
     }
 
     "write out to a file" in {
-      val buffer = RawBuffer(10)
+      val buffer = RawBuffer(10, tempFileCreator)
       buffer.push("hello")
       buffer.push(" ")
       buffer.push("world")
@@ -42,7 +45,7 @@ class RawBufferSpec extends Specification {
     }
 
     "extend the size by a small amount" in {
-      val buffer = RawBuffer(1024 * 100)
+      val buffer = RawBuffer(1024 * 100, tempFileCreator)
       // RawBuffer starts with 8192 buffer size, write 8000 bytes, then another 400, make sure that works
       val big = rand(8000)
       val small = rand(400)
@@ -55,7 +58,7 @@ class RawBufferSpec extends Specification {
     }
 
     "extend the size by a large amount" in {
-      val buffer = RawBuffer(1024 * 100)
+      val buffer = RawBuffer(1024 * 100, tempFileCreator)
       // RawBuffer starts with 8192 buffer size, write 8000 bytes, then another 8000, make sure that works
       val big = rand(8000)
       buffer.push(big)
@@ -67,12 +70,12 @@ class RawBufferSpec extends Specification {
     }
 
     "allow something that fits in memory to be accessed as a file" in {
-      val buffer = RawBuffer(20)
+      val buffer = RawBuffer(20, tempFileCreator)
       buffer.push("hello")
       buffer.push(" ")
       buffer.push("world")
       buffer.size must_== 11
-      val file = buffer.asFile
+      val file = buffer.asFile.toPath
       PlayIO.readFileAsString(file) must_== "hello world"
     }
   }

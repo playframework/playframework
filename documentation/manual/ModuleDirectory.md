@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -19,6 +19,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/zalando/play-swagger>
 * **Short description:** Generate Play code from a Swagger spec
 
+### mohiva/swagger-codegen-play-scala
+* **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
+* **Short description:** Swagger client generator which is based on the PlayWS library
 
 ## Assets
 
@@ -38,9 +41,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Silhouette (Scala)
 
-* **Website:** <http://silhouette.mohiva.com/>
-* **Documentation:** <http://silhouette.mohiva.com/docs/>
-* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
+* **Website:** <http://www.silhouette.rocks/>
+* **Documentation:** <http://www.silhouette.rocks/docs/>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ### Deadbolt 2 Plugin
 
@@ -84,6 +87,10 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website (docs, sample):** <https://github.com/alexanderjarvis/play-jongo>
 * **Short description:** Provides managed MongoDB access and object mapping using [Jongo](http://jongo.org/)
 
+### MongoDB Morphia Plugin (Java)
+* **Website (docs, sample):** <https://github.com/morellik/play-morphia>
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://mongodb.github.io/morphia/)
+
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>
 * **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
@@ -105,6 +112,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/scalikejdbc/scalikejdbc-play-support>
 * **Short description:** Provides yet another database access API for Play
 
+### Redis Cache Plugin (Java and Scala)
+
+* **Website:** <https://github.com/KarelCemus/play-redis>
+* **Short description:** Provides both blocking and asynchronous redis based cache implementation. It implements common Play's CacheApi for both Java and Scala plus provides a few more Scala APIs implementing various Redis commands including the support of collections.
+
 
 
 ## Deployment
@@ -115,6 +127,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/dlecan/play2-war-plugin/blob/develop/README.md>
 * **Short description:** Allow to package Play! 2.x applications into standard WAR packages.
 
+
+## Page Rendering
+
+### Play Pagelets
+* **Website:** <https://github.com/splink/pagelets>
+* **Short Description:** A Module for the Play Framework to build resilient and modular Play applications in an elegant and concise manner.
+* **Seed project:** <https://github.com/splink/pagelets-seed>
 
 
 ## Localization
@@ -167,6 +186,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/loicdescotte/Play2-HTML5Tags/blob/master/README.md>
 * **Short description:** These tags add client side validation capabilities, based on model constraints (e.g required, email pattern, max|min length...) and specific input fields (date, telephone number, url...) to Play templates
 
+### Scalate
+* **Website:** <https://github.com/scalate/play-scalate>
+* **Documentation:** <https://scalate.github.io/scalate/documentation/index.html>
+* **Short description:** Alternatives to Twirl HTML template support for Jade (like Haml), Mustache, Scaml (also like Haml), SSP (like Velocity), and Scuery (CSS3 selector language)
+
 ### PDF module (Java)
 
 * **Website:** <https://github.com/innoveit/play2-pdf>
@@ -177,12 +201,6 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://adrianhurt.github.io/play-bootstrap/>
 * **Repository:** <https://github.com/adrianhurt/play-bootstrap>
 * **Short description:** A library for Bootstrap that gives you an out-of-the-box solution with a set of input helpers and field constructors.
-
-### Play Dok
-
-* **Website:** <https://go.fudok.com/en/>
-* **Documentation:** <https://github.com/cchantep/play-dok/>
-* **Short description:** Library to integrate Fukdok PDF templating service with your Play application.
 
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
@@ -218,8 +236,13 @@ to Twirl
 
 * **Website:** <https://edulify.github.io/play-sitemap-module.edulify.com/>
 * **Documentation:** <https://github.com/edulify/play-sitemap-module.edulify.com/blob/master/README.md>
-* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play
+* **Short description:** Automatic [sitemaps](https://www.sitemaps.org/) generator for Play
 
+### play-guard (Scala)
+
+* **Website:** <https://github.com/sief/play-guard/>
+* **Documentation:** <https://github.com/sief/play-guard/blob/master/README.md>
+* **Short description:** Play2 module for blocking and throttling abusive requests
 
 
 ## Cloud services

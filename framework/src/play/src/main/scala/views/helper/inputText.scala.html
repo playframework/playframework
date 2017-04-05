@@ -10,7 +10,7 @@
  * @param args Set of extra attributes.
  * @param handler The field constructor.
  *@
-@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.Messages)
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
 
 @inputType = @{ args.toMap.get('type).map(_.toString).getOrElse("text") }
 

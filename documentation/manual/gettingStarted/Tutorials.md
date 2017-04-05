@@ -1,80 +1,63 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play Tutorials
 
 Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials and examples come in.
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-## Activator Templates Overview
-
-Many tutorials come in the form of templates, which can be downloaded as projects onto your computer.
-
-A full list of templates can be discovered in the [Activator Web Interface](https://www.lightbend.com/activator/docs) or by typing "activator list-templates" at the command line.
-
-Templates are also published on the Lightbend website.  A full list of both official and community contributed templates for Play can be found [here](https://www.lightbend.com/activator/templates#filter:play).
-
-Finally, the core Play templates are available as git repositories on Github under [https://github.com/playframework/](https://github.com/playframework/) and can be cloned directly from there.
-
-### Creating a Project From A Template
-
-In general, whenever you see a template, you can download the template by using the Github project name.  For example, if you have an example Play project on Github called "some-awesome-play-template", you can download and use the template by typing
-
-```
-activator new my-local-project-directory some-awesome-play-template
-```
-
-If you do not have activator installed or would prefer to use git, you can always clone the project the old fashioned way:
-
-```
-git clone https://github.com/playframework/some-awesome-play-template my-local-project-directory
-```
-
-Creating new projects is covered in more detail in [[Creating a new application|NewApplication]].
-
 ## Play Maintained Seeds and Example Templates
 
 This section covers the core tutorials and examples from Play.  These are maintained by the core Play team, and so will be based on the latest Play release.
 
-### Downloading an example template from the web
+**All of the following projects can be downloaded as example projects from the [download page](https://playframework.com/download).**
 
-Many of these templates are provided without a dependency on Activator from our [download page](https://www.playframework.com/download#examples)
+### Play Seeds
 
-### Creating a Seed Template from Activator
+There are two Play Seeds that are designed expressly for getting started with new Play applications.  They contain a hello world controller and view template, filters, and nothing else.
 
-If you are starting off a new Play project and don't want any extras, you can use the seed templates by typing the following at the command prompt:
+If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
+ using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately.
 
-``` shell
-activator new my-scala-project play-scala
+Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
+
+#### Java
+
+```
+sbt new playframework/play-java-seed.g8
 ```
 
-or
+#### Scala
 
-``` shell
-activator new my-java-project play-java
+```
+sbt new playframework/play-scala-seed.g8
 ```
 
-If you want to look at the template code without creating a new project, you can see the templates below:
+### Play Starter Projects
 
-* [play-scala](https://github.com/playframework/playframework/tree/master/templates/play-scala)
-* [play-java](https://github.com/playframework/playframework/tree/master/templates/play-java)
+For people using Play for the first time, there is a starter project which introduces Play with some sample controllers and components.
+
+* [play-java](https://github.com/playframework/play-java)
+* [play-scala](https://github.com/playframework/play-scala)
+
+or you can download it as an example project from the [download page](https://playframework.com/download).
 
 ### Database / ORM Access
 
-Play is unopinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
+Play is non-opinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
 
 #### Slick
 
-[Slick](http://slick.typesafe.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
+[Slick](http://slick.lightbend.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
 
 * [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
-* [play-scala-intro](https://github.com/playframework/playframework/tree/master/templates/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
+* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
 * [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
 
 #### JPA
 
 This is a example template showing Play with Java Persistence API (JPA), using Hibernate Entity Manager.  It is included in the Play project itself.
 
-* [play-java-intro](https://github.com/playframework/playframework/tree/master/templates/play-java-intro)
+* [play-java-intro](https://github.com/playframework/play-java-intro)
 
 #### Anorm
 
@@ -145,7 +128,7 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 #### Database
 
-* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an activator project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
 
 #### REST APIs
 
@@ -156,6 +139,10 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 * [Play Multidomain Seed](https://github.com/adrianhurt/play-multidomain-seed) by Adrianhurt: tries to be a skeleton for a simple multidomain project (www.myweb.com and admin.myweb.com). It shows you how to use subprojects for that and how to share common code. It is also ready to use with Webjars, CoffeeScript, LESS, RequireJS, assets Gzip and assets fingerprinting. Please, check the readme file for more details.
 * [Play Multidomain Auth](https://github.com/adrianhurt/play-multidomain-auth) by Adrianhurt: this is a second part of play-multidomain-seed project. This project tries to be an example of how to implement an Authentication and Authorization layer using the Silhouette authentication library. It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
+
+#### Upgrading
+
+* [Upgrading from Play 2.3 to Play 2.5](https://www.lucidchart.com/techblog/2017/02/22/upgrading-play-framework-2-3-play-2-5/) by Gregg Hernandez: Learn how to deal with common problems when upgrading to Play 2.5, including maintaining legacy behavior, transitioning to Akka Streams, and implementing compile-time dependency injection.
 
 ### 2.4.x
 
@@ -185,8 +172,8 @@ Semisafe has an excellent series on Play in general:
 
 Justin Rodenbostel of SPR Consulting also has two blog posts on building REST APIs in Play:
 
-* [Building a Simple REST API with Scala & Play (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
-* [Building a simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
+* [Building a Simple REST API with Scala & Play! (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
+* [Building a Simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
 
 #### Slick
 
@@ -194,7 +181,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### RethinkDB
 
-* [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions)
+* [A classic CRUD application with Play 2.4.x, Scala and RethinkDB](https://rklicksolutions.wordpress.com/2016/02/03/play-2-4-x-rethinkdb-crud-application/) by [Rklick](https://github.com/rklick-solutions).
 
 #### Forms
 
@@ -202,11 +189,11 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### EmberJS
 
-* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation))
+* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
 
 #### AngularJS, RequireJS and sbt-web
 
-Marius Soutier has an excellent series on setting up a Javascript interface using AngularJS with Play and sbt-web.  It was originally written for Play 2.1.x, but has been updated for Play 2.4.x
+Marius Soutier has an excellent series on setting up a Javascript interface using AngularJS with Play and sbt-web.  It was originally written for Play 2.1.x, but has been updated for Play 2.4.x.
 
 * [RequireJS Optimization with Play 2.1 and WebJars](http://mariussoutier.com/blog/2013/08/25/requirejs-optimization-play-webjars/)
 * [Intro to sbt-web](http://mariussoutier.com/blog/2014/10/20/intro-sbt-web/)
@@ -216,13 +203,13 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 #### React JS
 
 * [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
-* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master)
+* [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master).
 
 ### 2.3.x
 
 #### REST APIs
 
-* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](https://blog.shinetech.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
+* [Playing with Play Framework 2.3.x: REST, pipelines, and Scala](https://shinesolutions.com/2015/04/21/playing-with-play-framework-2-3-x-rest-pipelines-and-scala/) by Sampson Oliver.
 
 #### Anorm
 
@@ -236,7 +223,7 @@ Knoldus has a nice series of blog posts on Anorm:
 #### Forms
 
 * [Example form including multiple checkboxes and selection](https://ics-software-engineering.github.io/play-example-form/) by Philip Johnson.
-* [UX-friendly conditional form mapping in Play](http://blog.ntcoding.com/2016/02/play-framework-conditional-form-mappings.html) by Nick Tune.
+* [UX-friendly conditional form mapping in Play](http://ntcoding.com/blog/2016/02/play-framework-conditional-form-mappings) by Nick Tune.
 
 ### 2.2.x
 

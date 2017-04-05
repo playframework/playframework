@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms.html;
 
@@ -12,19 +12,19 @@ public class UserForm {
     private List<String> emails;
 
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public String getName() {
-    	return name;
+        return name;
     }
 
     public void setEmails(List<String> emails) {
-    	this.emails = emails;
+        this.emails = emails;
     }
 
     public List<String> getEmails() {
-    	return emails;
+        return emails;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
@@ -51,18 +51,42 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
-        )
+        Results.ok("Hello world")
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
       }
     }) { response =>
-      response.header("Set-Cookie").get must contain("bar=KitKat;")
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
+      response.body must_== "Hello world"
+    }
+
+    "handle duplicate withCookies in Result" in {
+      val result = Results.ok("Hello world")
+        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+
+      import scala.collection.JavaConverters._
+      val cookies = result.cookies().iterator().asScala.toList
+      val cookieValues = cookies.map(_.value)
+      cookieValues must not contain ("KitKat")
+      cookieValues must contain("Mars")
+    }
+
+    "handle duplicate cookies" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+      }
+    }) { response =>
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
       response.body must_== "Hello world"
     }
 
     "add cookies in Response" in makeRequest(new MockController {
       def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
         Results.ok("Hello world")
       }
     }) { response =>
@@ -72,9 +96,9 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in both Response and Result" in makeRequest(new MockController {
       def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true))
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
         Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true)
+          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
         )
       }
     }) { response =>

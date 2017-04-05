@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.akka {
 
 import akka.actor.ActorSystem
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test._
 import java.io.File
 
 import akka.util.Timeout
+import play.api.mvc.{ActionBuilder, AnyContent, DefaultActionBuilder, Request}
 
 class ScalaAkkaSpec extends PlaySpecification {
 
@@ -31,19 +29,21 @@ class ScalaAkkaSpec extends PlaySpecification {
 
   override def defaultAwaitTimeout: Timeout = 5.seconds
 
+  private def Action(implicit app: play.api.Application): ActionBuilder[Request, AnyContent] = {
+    app.injector.instanceOf[DefaultActionBuilder]
+  }
 
   "The Akka support" should {
 
-    "allow injecting actors" in new WithApplication() {
+    "allow injecting actors" in new WithApplication {
       import controllers._
       val controller = app.injector.instanceOf[Application]
       
       val helloActor = controller.helloActor
-      import play.api.mvc._
       import play.api.mvc.Results._
       import actors.HelloActor.SayHello
 
-
+      import scala.concurrent.ExecutionContext.Implicits.global
       //#ask
       import scala.concurrent.duration._
       import akka.pattern.ask
@@ -79,6 +79,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       import akka.pattern.ask
       implicit val timeout: Timeout = 5.seconds
 
+      import scala.concurrent.ExecutionContext.Implicits.global
       val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
       val futureConfig = for {
         child <- (actor ? actors.ParentActor.GetChild("my.config")).mapTo[ActorRef]
@@ -95,6 +96,7 @@ class ScalaAkkaSpec extends PlaySpecification {
       //#schedule-actor
       import scala.concurrent.duration._
 
+      import scala.concurrent.ExecutionContext.Implicits.global
       val cancellable = system.scheduler.schedule(
         0.microseconds, 300.microseconds, testActor, "tick")
       //#schedule-actor
@@ -104,6 +106,7 @@ class ScalaAkkaSpec extends PlaySpecification {
     "actor scheduler" in withActorSystem { system =>
       val file = new File("/tmp/nofile")
       file.mkdirs()
+      import scala.concurrent.ExecutionContext.Implicits.global
       //#schedule-callback
       system.scheduler.scheduleOnce(10.milliseconds) {
         file.delete()
@@ -145,8 +148,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 @Singleton
-class Application @Inject() (@Named("configured-actor") configuredActor: ActorRef)
-                            (implicit ec: ExecutionContext) extends Controller {
+class Application @Inject() (@Named("configured-actor") configuredActor: ActorRef, components: ControllerComponents)
+                            (implicit ec: ExecutionContext) extends AbstractController(components) {
 
   implicit val timeout: Timeout = 5.seconds
 
@@ -222,7 +225,7 @@ object ConfiguredActor {
 class ConfiguredActor @Inject() (configuration: Configuration) extends Actor {
   import ConfiguredActor._
 
-  val config = configuration.getString("my.config").getOrElse("none")
+  val config = configuration.getOptional[String]("my.config").getOrElse("none")
 
   def receive = {
     case GetConfig =>
@@ -249,7 +252,7 @@ class ConfiguredChildActor @Inject() (configuration: Configuration,
     @Assisted key: String) extends Actor {
   import ConfiguredChildActor._
 
-  val config = configuration.getString(key).getOrElse("none")
+  val config = configuration.getOptional[String](key).getOrElse("none")
 
   def receive = {
     case GetConfig =>

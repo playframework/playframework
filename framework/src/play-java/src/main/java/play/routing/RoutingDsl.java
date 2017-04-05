@@ -1,20 +1,31 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routing;
 
 import net.jodah.typetools.TypeResolver;
+import play.Logger;
+import play.api.Application;
+import play.api.mvc.AnyContent;
+import play.api.mvc.BodyParser;
 import play.api.mvc.PathBindable;
 import play.api.mvc.PathBindable$;
+import play.api.mvc.PlayBodyParsers;
+import play.core.j.JavaContextComponents;
 import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Result;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
+import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterators;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +52,7 @@ import java.util.stream.StreamSupport;
  * Example usage:
  *
  * <pre>
+ * import javax.inject.*;
  * import play.mvc.*;
  * import play.routing.*;
  * import play.libs.json.*;
@@ -48,8 +60,15 @@ import java.util.stream.StreamSupport;
  *
  * public class MyRouterBuilder extends Controller {
  *
+ *   private final RoutingDsl routingDsl;
+ *
+ *   \@Inject
+ *   public MyRouterBuilder(RoutingDsl routingDsl) {
+ *     this.routingDsl = routingDsl;
+ *   }
+ *
  *   public Router getRouter() {
- *     return new RouterDsl()
+ *     return this.routingDsl
  *
  *       .GET("/hello/:to").routeTo(to -&gt; ok("Hello " + to))
  *
@@ -70,7 +89,47 @@ import java.util.stream.StreamSupport;
  */
 public class RoutingDsl {
 
+    private final Logger.ALogger logger = Logger.of(RoutingDsl.class);
+
+    private final BodyParser<AnyContent> bodyParser;
+    private final JavaContextComponents contextComponents;
+
     final List<Route> routes = new ArrayList<>();
+
+    /**
+     * Construct a new builder.
+     *
+     * @deprecated Deprecated as of 2.6.0. Use an injected version instead.
+     *
+     * @see #RoutingDsl(PlayBodyParsers, JavaContextComponents)
+     */
+    @Deprecated
+    public RoutingDsl() {
+        logger.warn(
+            "RoutingDsl default constructor was deprecated in favor of using Dependency Injection. " +
+            "You should migrate to use a version that uses the #RoutingDsl(BodyParser, JavaContextComponents) constructor " +
+            "or just inject an instance of play.routing.RoutingDsl."
+        );
+        this.bodyParser = app().injector().instanceOf(PlayBodyParsers.class).defaultBodyParser();
+        this.contextComponents = app().injector().instanceOf(JavaContextComponents.class);
+    }
+
+    public RoutingDsl(BodyParser<AnyContent> bodyParser, JavaContextComponents contextComponents) {
+        this.bodyParser = bodyParser;
+        this.contextComponents = contextComponents;
+    }
+
+    @Inject
+    public RoutingDsl(PlayBodyParsers bodyParsers, JavaContextComponents contextComponents) {
+        this.bodyParser = bodyParsers.defaultBodyParser();
+        this.contextComponents = contextComponents;
+    }
+
+    private Application app() {
+        // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
+        // it to instantiate the default body parser, we have to instantiate it ourselves.
+        return play.api.Play.maybeApplication().get(); // throw exception if no current app
+    }
 
     /**
      * Create a GET route for the given path pattern.
@@ -159,7 +218,7 @@ public class RoutingDsl {
      * @return The built router.
      */
     public play.routing.Router build() {
-        return RouterBuilderHelper.build(this);
+        return new RouterBuilderHelper(this.bodyParser, this.contextComponents).build(this);
     }
 
     private RoutingDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
@@ -276,7 +335,7 @@ public class RoutingDsl {
     }
 
     private static final Pattern paramExtractor =
-            Pattern.compile("([:\\*\\$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
+            Pattern.compile("([:*$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
 
     /**
      * A matcher for routes.
@@ -304,6 +363,7 @@ public class RoutingDsl {
         /**
          * Route with one parameter.
          *
+         * @param <A1> the first type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -314,6 +374,8 @@ public class RoutingDsl {
         /**
          * Route with two parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -324,6 +386,9 @@ public class RoutingDsl {
         /**
          * Route with three parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
+         * @param <A3> the third type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -344,6 +409,7 @@ public class RoutingDsl {
         /**
          * Route with one parameter.
          *
+         * @param <A1> the first type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -354,6 +420,8 @@ public class RoutingDsl {
         /**
          * Route with two parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
          * @param action The action to execute.
          * @return This router builder.
          */
@@ -364,6 +432,9 @@ public class RoutingDsl {
         /**
          * Route with three parameters.
          *
+         * @param <A1> the first type parameter
+         * @param <A2> the second type parameter
+         * @param <A3> the third type parameter
          * @param action The action to execute.
          * @return This router builder.
          */

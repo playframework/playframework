@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import play.sbt.PlayScala
@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
   val appName = "secret-sample"
   val appVersion = "1.0-SNAPSHOT"
 
-  val Secret = """(?s).*play.crypto.secret="(.*)".*""".r
+  val Secret = """(?s).*play.http.secret.key="(.*)".*""".r
 
   val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 import com.google.common.collect.ImmutableMap;
@@ -16,8 +17,6 @@ import org.jdbcdslog.LogSqlDataSource;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.Test;
-
-import play.api.libs.JNDI;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -49,7 +48,6 @@ public class DatabaseTest {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
-        assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
@@ -92,7 +90,7 @@ public class DatabaseTest {
         Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
-        assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
+        assertThat(new InitialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
@@ -194,7 +192,7 @@ public class DatabaseTest {
         Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getDataSource(), instanceOf(LogSqlDataSource.class));
-        assertThat(JNDI.initialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
+        assertThat(new InitialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
         db.shutdown();
     }
 }

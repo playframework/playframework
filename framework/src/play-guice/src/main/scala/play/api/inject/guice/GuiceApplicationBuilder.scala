@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject.guice
 
@@ -33,6 +33,12 @@ final case class GuiceApplicationBuilder(
 
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
+
+  /**
+   * Sets the configuration key to enable/disable global application state
+   */
+  def globalApp(enabled: Boolean): GuiceApplicationBuilder =
+    configure(Play.GlobalAppConfigKey -> enabled)
 
   /**
    * Set the initial configuration loader.

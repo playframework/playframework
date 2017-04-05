@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.libs.concurrent
 
@@ -9,13 +9,13 @@ import akka.dispatch.MessageDispatcher
 import scala.concurrent.ExecutionContextExecutor
 
 /**
- * This class defines a custom execution context that delegates to an [[ActorSystem]].
+ * This class defines a custom execution context that delegates to an akka.actor.ActorSystem.
  *
  * It is very useful for situations in which the default execution context should not
  * be used, for example if a database or blocking I/O is being used.
  *
- * To define a custom context, subclass DispatcherExecutionContext with the dispatcher
- * name and have it bound through dependency injection:
+ * To define a custom context, subclass CustomExecutionContext with the dispatcher
+ * name:
  *
  * {{{
  * @Singleton
@@ -23,7 +23,13 @@ import scala.concurrent.ExecutionContextExecutor
  *    extends CustomExecutionContext(system, "database-dispatcher")
  * }}}
  *
- * and then have the execution context passed in as a class parameter:
+ * and then bind it in dependency injection:
+ *
+ * {{{
+ * bind[DatabaseExecutionContext].to(classOf[DatabaseExecutionContext]).asEagerSingleton()
+ * }}}
+ *
+ * Then have the execution context passed in as an implicit parameter:
  *
  * {{{
  * class DatabaseService @Inject()(implicit executionContext: DatabaseExecutionContext) {

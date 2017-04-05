@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.j
 
@@ -30,7 +30,7 @@ object JavaParsers {
       lazy val getFiles = {
         multipart.files.map { file =>
           new play.mvc.Http.MultipartFormData.FilePart(
-            file.key, file.filename, file.contentType.orNull, file.ref.file)
+            file.key, file.filename, file.contentType.orNull, file.ref.path.toFile)
         }.asJava
       }
     }

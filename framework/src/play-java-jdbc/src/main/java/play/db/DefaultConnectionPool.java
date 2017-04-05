@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -25,11 +25,15 @@ public class DefaultConnectionPool implements ConnectionPool {
     }
 
     public DataSource create(String name, Config config, Environment environment) {
-        return cp.create(name, DatabaseConfig.fromConfig(new play.api.Configuration(config), environment.underlying()), config);
+        return cp.create(name, DatabaseConfig.fromConfig(new play.api.Configuration(config), environment.asScala()), config);
     }
 
     public void close(DataSource dataSource) {
         cp.close(dataSource);
     }
 
+    @Override
+    public play.api.db.ConnectionPool asScala() {
+        return cp;
+    }
 }

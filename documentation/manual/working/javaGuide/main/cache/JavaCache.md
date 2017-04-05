@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Play cache API
 
 Caching data is a typical optimization in modern applications, and so Play provides a global cache. An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
@@ -19,7 +19,7 @@ The cache API is defined by the [AsyncCacheApi](api/java/play/cache/AsyncCacheAp
 
 @[inject](code/javaguide/cache/inject/Application.java)
 
-> **Note:** The API is intentionally minimal to allow various implementations to be plugged in. If you need a more specific API, use the one provided by your Cache plugin.
+> **Note:** The API is intentionally minimal to allow various implementations to be plugged in. If you need a more specific API, use the one provided by your Cache library.
 
 Using this simple API you can store data in the cache:
 
@@ -63,7 +63,7 @@ Now to access these different caches, when you inject them, use the [NamedCache]
 
 You can easily create a smart cached action using standard `Action` composition.
 
-> **Note:** Play HTTP `Result` instances are safe to cache and reuse later.
+> **Tip:** Play HTTP `Result` instances are safe to cache and reuse later.
 
 Play provides a default built-in helper for the standard case:
 

@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.i18n
 
 import java.io.File
 
 import org.specs2.mutable._
-import play.api.mvc.{ Cookie, Cookies, Results }
-import play.api.{ PlayException, Mode, Environment, Configuration }
+import play.api.http.HttpConfiguration
 import play.api.i18n.Messages.MessageSource
+import play.api.mvc.{ Cookie, Results }
+import play.api.{ Configuration, Environment, Mode, PlayException }
 import play.core.test.FakeRequest
 
 class MessagesSpec extends Specification {
@@ -22,11 +23,11 @@ class MessagesSpec extends Specification {
       "foo" -> "foo francais"),
     "fr-CH" -> Map(
       "title" -> "Titre suisse"))
-  val api = new DefaultMessagesApi(
-    new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-    Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH"))))
-  ) {
-    override protected def loadAllMessages = testMessages
+  val api = {
+    val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+    val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
+    val langs = new DefaultLangsProvider(config).get
+    new DefaultMessagesApi(testMessages, langs)
   }
 
   def translate(msg: String, lang: String, reg: String): Option[String] = {
@@ -90,10 +91,10 @@ class MessagesSpec extends Specification {
     }
 
     "report error for invalid lang" in {
-      new DefaultMessagesApi(
-        new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-        Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language"))))
-      ) must throwA[PlayException]
+      {
+        val langs = new DefaultLangsProvider(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))).get
+        val messagesApi = new DefaultMessagesApiProvider(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev), Configuration.reference, langs, HttpConfiguration()).get
+      } must throwA[PlayException]
     }
   }
 

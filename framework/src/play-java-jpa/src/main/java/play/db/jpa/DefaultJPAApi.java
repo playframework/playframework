@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
+import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
 
 import java.util.*;
@@ -36,7 +37,7 @@ public class DefaultJPAApi implements JPAApi {
         private final JPAApi jpaApi;
 
         @Inject
-        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle) {
+        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
             jpaApi = new DefaultJPAApi(jpaConfig, context);
             lifecycle.addStopHook(() -> {

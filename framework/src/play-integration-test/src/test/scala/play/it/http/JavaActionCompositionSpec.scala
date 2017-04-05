@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
@@ -11,6 +11,8 @@ import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnn
 import play.mvc.{ Result, Results }
 
 class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
+
+  sequential
 
   def makeRequest[T](controller: MockController, configuration: Map[String, _ <: Any] = Map.empty)(block: WSResponse => T) = {
     implicit val port = testServerPort

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.advanced.filters
 
@@ -41,11 +41,45 @@ import simple.LoggingFilter
 // #filters
 import javax.inject.Inject
 import play.api.http.DefaultHttpFilters
+import play.api.http.EnabledFilters
 import play.filters.gzip.GzipFilter
 
 class Filters @Inject() (
+  defaultFilters: EnabledFilters,
   gzip: GzipFilter,
   log: LoggingFilter
-) extends DefaultHttpFilters(gzip, log)
+) extends DefaultHttpFilters(defaultFilters.filters :+ gzip :+ log: _*)
 //#filters
+
+object router {
+  class Routes extends play.api.routing.Router {
+    def routes = ???
+    def documentation = ???
+    def withPrefix(prefix: String) = ???
+  }
+}
+
+//#components-filters
+
+import play.api._
+import play.filters.gzip._
+import play.filters.HttpFiltersComponents
+import router.Routes
+
+class MyComponents(context: ApplicationLoader.Context)
+    extends BuiltInComponentsFromContext(context)
+    with HttpFiltersComponents
+    with GzipFilterComponents {
+
+  // implicit executionContext and materializer are defined in BuiltInComponents
+  lazy val loggingFilter: LoggingFilter = new LoggingFilter()
+
+  // gzipFilter is defined in GzipFilterComponents
+  override lazy val httpFilters = Seq(gzipFilter, loggingFilter)
+
+  lazy val router = new Routes(/* ... */)
+}
+
+//#components-filters
+
 }

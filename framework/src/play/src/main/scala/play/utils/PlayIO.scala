@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.utils
 
 import java.io._
+
 import scala.io.Codec
 import java.net.URL
+import java.nio.file.{ Files, Path }
+
 import play.api.Logger
 
 /**
@@ -38,8 +41,8 @@ private[play] object PlayIO {
   /**
    * Read the file into a byte array.
    */
-  def readFile(file: File): Array[Byte] = {
-    readStream(new FileInputStream(file))
+  def readFile(file: Path): Array[Byte] = {
+    readStream(Files.newInputStream(file))
   }
 
   /**
@@ -61,8 +64,8 @@ private[play] object PlayIO {
   /**
    * Read the file as a String.
    */
-  def readFileAsString(file: File)(implicit codec: Codec): String = {
-    readStreamAsString(new FileInputStream(file))
+  def readFileAsString(file: Path)(implicit codec: Codec): String = {
+    readStreamAsString(Files.newInputStream(file))
   }
 
   /**

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
 import scala.reflect._
 
@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.1")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 

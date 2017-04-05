@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
@@ -55,7 +55,7 @@ public class GuiceApplicationLoader implements ApplicationLoader {
      * @return the bindings that should be used to override
      */
     protected GuiceableModule[] overrides(ApplicationLoader.Context context) {
-        scala.collection.Seq<GuiceableModule> seq = play.api.inject.guice.GuiceApplicationLoader$.MODULE$.defaultOverrides(context.underlying());
+        scala.collection.Seq<GuiceableModule> seq = play.api.inject.guice.GuiceApplicationLoader$.MODULE$.defaultOverrides(context.asScala());
         return Scala.asArray(GuiceableModule.class, seq);
     }
 

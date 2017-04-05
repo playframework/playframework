@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.advanced.routing
 
 import controllers.Assets
 import org.specs2.mutable.Specification
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, WithApplication}
 
 class ScalaSirdRouter extends Specification {
 
@@ -15,8 +15,10 @@ class ScalaSirdRouter extends Specification {
   import play.api.routing.sird._
   //#imports
 
+  private def Action(block: => Result)(implicit app: play.api.Application) = app.injector.instanceOf[DefaultActionBuilder].apply(block)
+
   "sird router" should {
-    "allow a simple match" in {
+    "allow a simple match" in new WithApplication {
       //#simple
       val router = Router.from {
         case GET(p"/hello/$to") => Action {
@@ -29,7 +31,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/goodbye/world")) must beNone
     }
 
-    "allow a full path match" in {
+    "allow a full path match" in new WithApplication {
       //#full-path
       val router = Router.from {
         case GET(p"/assets/$file*") =>
@@ -41,7 +43,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/foo/bar")) must beNone
     }
 
-    "allow a regex match" in {
+    "allow a regex match" in new WithApplication {
       //#regexp
       val router = Router.from {
         case GET(p"/items/$id<[0-9]+>") => Action {
@@ -54,7 +56,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items/foo")) must beNone
     }
 
-    "allow extracting required query parameters" in {
+    "allow extracting required query parameters" in new WithApplication {
       //#required
       val router = Router.from {
         case GET(p"/search" ? q"query=$query") => Action {
@@ -67,7 +69,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/search")) must beNone
     }
 
-    "allow extracting optional query parameters" in {
+    "allow extracting optional query parameters" in new WithApplication {
       //#optional
       val router = Router.from {
         case GET(p"/items" ? q_o"page=$page") => Action {
@@ -81,7 +83,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
     }
 
-    "allow extracting multi value query parameters" in {
+    "allow extracting multi value query parameters" in new WithApplication {
       //#many
       val router = Router.from {
         case GET(p"/items" ? q_s"tag=$tags") => Action {
@@ -95,7 +97,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
     }
 
-    "allow extracting multiple query parameters" in {
+    "allow extracting multiple query parameters" in new WithApplication {
       //#multiple
       val router = Router.from {
         case GET(p"/items" ? q_o"page=$page"
@@ -112,7 +114,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
     }
 
-    "allow sub extractor" in {
+    "allow sub extractor" in new WithApplication {
       //#int
       val router = Router.from {
         case GET(p"/items/${int(id)}") => Action {
@@ -125,7 +127,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items/foo")) must beNone
     }
 
-    "allow sub extractor on a query parameter" in {
+    "allow sub extractor on a query parameter" in new WithApplication {
       //#query-int
       val router = Router.from {
         case GET(p"/items" ? q_o"page=${int(page)}") => Action {
@@ -140,7 +142,7 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
     }
 
-    "allow complex extractors" in {
+    "allow complex extractors" in new WithApplication {
       //#complex
       val router = Router.from {
         case rh @ GET(p"/items/${idString @ int(id)}" ?

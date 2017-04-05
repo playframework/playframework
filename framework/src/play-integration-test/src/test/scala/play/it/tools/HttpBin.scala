@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.tools
@@ -14,7 +14,7 @@ import play.api.mvc._
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird._
-import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment }
+import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment, NoHttpFiltersComponents }
 import play.filters.gzip.GzipFilter
 
 /**
@@ -52,7 +52,7 @@ object HttpBinApplication {
             case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
               Json.obj(
                 "form" -> m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
-                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref.file)).getOrElse(""))
+                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref)).getOrElse(""))
               )
             case b =>
               Json.obj("data" -> JsString(b.toString))
@@ -323,7 +323,7 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents with NoHttpFiltersComponents {
       implicit lazy val Action = defaultActionBuilder
       def router = SimpleRouter(
         PartialFunction.empty

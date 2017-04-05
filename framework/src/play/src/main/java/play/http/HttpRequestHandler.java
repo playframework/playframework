@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.http;
 
@@ -73,7 +73,7 @@ public interface HttpRequestHandler {
     }
 
     /**
-     * Adapt this to a Scala HttpRequestHandler
+     * @return a Scala HttpRequestHandler
      */
     default play.api.http.HttpRequestHandler asScala() {
         return new JavaHttpRequestHandlerAdapter(this);

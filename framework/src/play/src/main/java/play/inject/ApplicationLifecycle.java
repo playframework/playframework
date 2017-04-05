@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject;
 
@@ -23,6 +23,12 @@ public interface ApplicationLifecycle {
      *
      * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
      * immediately and return a successful future.
+     * @param hook    the stop hook.
      */
     void addStopHook(Callable<? extends CompletionStage<?>> hook);
+
+    /**
+     * @return The Scala version for this Application Lifecycle.
+     */
+    play.api.inject.ApplicationLifecycle asScala();
 }

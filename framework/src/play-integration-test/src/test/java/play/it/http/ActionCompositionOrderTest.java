@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http;
 
@@ -54,7 +54,7 @@ public class ActionCompositionOrderTest {
     static class WithUsernameAction extends Action<WithUsername> {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx.withRequest(ctx.request().withAttr(Security.USERNAME, configuration.value())));
+            return delegate.call(ctx.withRequest(ctx.request().withAttrs(ctx.request().attrs().put(Security.USERNAME, configuration.value()))));
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.tests;
 
@@ -30,11 +30,11 @@ public class FunctionalTest extends WithApplication {
     //#bad-route
     @Test
     public void testBadRoute() {
-        RequestBuilder request = new RequestBuilder()
+        RequestBuilder request = Helpers.fakeRequest()
                 .method(GET)
                 .uri("/xx/Kiwi");
 
-        Result result = route(request);
+        Result result = route(app, request);
         assertEquals(NOT_FOUND, result.status());
     }
     //#bad-route
@@ -60,11 +60,9 @@ public class FunctionalTest extends WithApplication {
     public void testInServer() throws Exception {
         TestServer server = testServer(3333);
         running(server, () -> {
-            try {
-                WSClient ws = play.test.WSTestClient.newClient(3333);
+            try (WSClient ws = WSTestClient.newClient(3333)) {
                 CompletionStage<WSResponse> completionStage = ws.url("/").get();
                 WSResponse response = completionStage.toCompletableFuture().get();
-                ws.close();
                 assertEquals(OK, response.getStatus());
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -78,9 +76,9 @@ public class FunctionalTest extends WithApplication {
     public void runInBrowser() {
         running(testServer(), HTMLUNIT, browser -> {
             browser.goTo("/");
-            assertEquals("Welcome to Play!", browser.$("#title").getText());
+            assertEquals("Welcome to Play!", browser.$("#title").text());
             browser.$("a").click();
-            assertEquals("/login", browser.url());
+            assertEquals("login", browser.url());
         });
     }
     //#test-browser

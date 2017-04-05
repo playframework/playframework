@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Cross-Origin Resource Sharing
 
 Play provides a filter that implements Cross-Origin Resource Sharing (CORS).
@@ -7,22 +7,10 @@ CORS is a protocol that allows web applications to make requests from the browse
 
 ## Enabling the CORS filter
 
-To enable the CORS filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
-
-@[content](code/filters.sbt)
-
-Now add the CORS filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
-
-Scala
-: @[filters](code/CorsFilter.scala)
-
-Java
-: @[filters](code/detailedtopics/configuration/cors/Filters.java)
-
-The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+To enable the CORS filter, add `play.filters.cors.CORSFilter` to `application.conf`:
 
 ```
-play.http.filters = "filters.MyFilters"
+play.filters.enabled += "play.filters.cors.CORSFilter"
 ```
 
 ## Configuring the CORS filter
@@ -38,6 +26,7 @@ The available options include:
 * `play.filters.cors.exposedHeaders` - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
 * `play.filters.cors.supportsCredentials` - disable/enable support for credentials (by default credentials support is enabled)
 * `play.filters.cors.preflightMaxAge` - set how long the results of a preflight request can be cached in a preflight result cache (by default 1 hour)
+* `play.filters.cors.serveForbiddenOrigins` - enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)
 
 For example:
 

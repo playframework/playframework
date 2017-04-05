@@ -1,11 +1,18 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.mvc
 
-import org.openjdk.jmh.annotations.{ Level, Setup }
+import play.api.http.HttpConfiguration
+import play.api.mvc.request.DefaultRequestFactory
 import play.core.server.netty.NettyHelpers
 
 object MvcHelpers {
-  def requestHeader(headerList: List[(String, String)]): RequestHeader = {
-    val rawRequest = NettyHelpers.nettyRequest(headers = headerList)
-    NettyHelpers.conversion.convertRequest(1L, NettyHelpers.localhost, None, rawRequest).get
+  def requestHeaderFromHeaders(headerList: List[(String, String)]): RequestHeader = {
+    val channel = NettyHelpers.nettyChannel(remoteAddress = NettyHelpers.localhost, ssl = false)
+    val nettyRequest = NettyHelpers.nettyRequest(headers = headerList)
+    val convertedRequest = NettyHelpers.conversion.convertRequest(channel, nettyRequest).get
+    val defaultRequest = new DefaultRequestFactory(HttpConfiguration()).copyRequestHeader(convertedRequest)
+    defaultRequest
   }
 }

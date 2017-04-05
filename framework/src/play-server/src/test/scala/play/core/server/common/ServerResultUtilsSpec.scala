@@ -1,17 +1,19 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.common
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
+import io.jsonwebtoken.{ Jws, Jwts }
 import org.specs2.mutable.Specification
 import play.api.http.Status._
-import play.api.http.{ HttpConfiguration, DefaultHttpErrorHandler, HttpEntity }
+import play.api.http._
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestAttrKey, RequestTarget }
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -19,28 +21,26 @@ import scala.util.{ Success, Try }
 
 class ServerResultUtilsSpec extends Specification {
 
+  val jwtCodec = new JWTCookieDataCodec {
+    override def jwtConfiguration = JWTConfiguration()
+    override def secretConfiguration = SecretConfiguration()
+  }
+  val resultUtils = new ServerResultUtils(HttpConfiguration())
+
   private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
-    new RequestHeaderImpl(
-      id = 1L,
-      tags = Map.empty,
-      uri = "",
-      path = "",
-      method = "",
-      version = "",
-      queryString = Map.empty,
-      headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq),
-      remoteAddress = "",
-      secure = false,
-      clientCertificateChain = None,
-      attrMap = TypedMap.empty
+    new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
+      RemoteConnection("", false, None), "", RequestTarget("", "", Map.empty), "",
+      new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq),
+      TypedMap.empty
     )
   }
 
-  "ServerResultUtils.prepareCookies" should {
+  "resultUtils.prepareCookies" should {
     def cookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
+      val encoding = new DefaultCookieHeaderEncoding()
       val rh = cookieRequestHeader(cookie)
-      val newResult = ServerResultUtils.prepareCookies(rh, result, HttpConfiguration())
-      newResult.header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
+      val newResult = resultUtils.prepareCookies(rh, result)
+      newResult.header.headers.get("Set-Cookie").map(encoding.decodeSetCookieHeader)
     }
 
     "do nothing when flash not present" in {
@@ -51,7 +51,7 @@ class ServerResultUtilsSpec extends Specification {
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
-        cookie.value must_== "a=b"
+        jwtCodec.decode(cookie.value) must_== Map("a" -> "b")
       }
     }
     "clear flash when received" in {
@@ -78,29 +78,18 @@ class ServerResultUtilsSpec extends Specification {
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
-        cookie.value must_== "c=d"
+        jwtCodec.decode(cookie.value) must_== Map("c" -> "d")
       }
     }
   }
 
-  "ServerResultUtils.validateResult" should {
+  "resultUtils.validateResult" should {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
 
     val header = new RequestHeaderImpl(
-      id = 1L,
-      tags = Map(),
-      uri = "",
-      path = "",
-      method = "",
-      version = "",
-      queryString = Map(),
-      remoteAddressFunc = () => "",
-      secureFunc = () => false,
-      clientCertificateChain = None,
-      headers = new Headers(Seq()),
-      attrMap = TypedMap.empty
-    )
+      RemoteConnection("", false, None), "", RequestTarget("", "", Map.empty), "",
+      Headers(), TypedMap.empty)
 
     def hasNoEntity(response: Future[Result], responseStatus: Int) = {
       Await.ready(response, 5.seconds)
@@ -115,53 +104,53 @@ class ServerResultUtilsSpec extends Specification {
     }
 
     "cancel a message-body when a 100 response is returned" in {
-      val response = ServerResultUtils.validateResult(header, Results.Continue, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, Results.Continue, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 100)
     }
 
     "cancel a message-body when a 101 response is returned" in {
-      val response = ServerResultUtils.validateResult(header, Results.SwitchingProtocols, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, Results.SwitchingProtocols, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 101)
     }
 
     "cancel a message-body when a 204 response is returned" in {
-      val response = ServerResultUtils.validateResult(header, Results.NoContent, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, Results.NoContent, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 204)
     }
 
     "cancel a message-body when a 304 response is returned" in {
-      val response = ServerResultUtils.validateResult(header, Results.NotModified, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, Results.NotModified, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 304)
     }
 
     "cancel a message-body when a 100 response with a non-empty body is returned" in {
       val result = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.Strict(ByteString("foo"), None))
-      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, result, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 100)
     }
 
     "cancel a message-body when a 101 response with a non-empty body is returned" in {
       val result = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.Strict(ByteString("foo"), None))
-      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, result, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 101)
     }
 
     "cancel a message-body when a 204 response with a non-empty body is returned" in {
       val result = Result(header = ResponseHeader(NO_CONTENT), body = HttpEntity.Strict(ByteString("foo"), None))
-      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, result, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 204)
     }
 
     "cancel a message-body when a 304 response with a non-empty body is returned" in {
       val result = Result(header = ResponseHeader(NOT_MODIFIED), body = HttpEntity.Strict(ByteString("foo"), None))
-      val response = ServerResultUtils.validateResult(header, result, DefaultHttpErrorHandler)
+      val response = resultUtils.validateResult(header, result, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 304)
     }

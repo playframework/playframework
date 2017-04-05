@@ -1,14 +1,16 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
-import java.net.URI
+import java.security.cert.X509Certificate
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
+import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
+import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
 
 class RequestHeaderSpec extends Specification {
 
@@ -17,20 +19,20 @@ class RequestHeaderSpec extends Specification {
     "have typed attributes" in {
       "can set and get a single attribute" in {
         val x = TypedKey[Int]("x")
-        (dummyRequestHeader().withAttrs(x -> 3)).attr(x) must_== 3
+        dummyRequestHeader().withAttrs(TypedMap(x -> 3)).attrs(x) must_== 3
       }
       "can set two attributes and get one back" in {
         val x = TypedKey[Int]("x")
         val y = TypedKey[String]("y")
-        (dummyRequestHeader().withAttrs(x -> 3, y -> "hello")).attr(y) must_== "hello"
+        dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).attrs(y) must_== "hello"
       }
       "getting a set attribute should be Some" in {
         val x = TypedKey[Int]("x")
-        (dummyRequestHeader().withAttrs(x -> 5)).getAttr(x) must beSome(5)
+        dummyRequestHeader().withAttrs(TypedMap(x -> 5)).attrs.get(x) must beSome(5)
       }
       "getting a nonexistent attribute should be None" in {
         val x = TypedKey[Int]("x")
-        dummyRequestHeader().getAttr(x) must beNone
+        dummyRequestHeader().attrs.get(x) must beNone
       }
     }
 
@@ -86,6 +88,73 @@ class RequestHeaderSpec extends Specification {
       }
 
     }
+
+    "deprecated copy method" in {
+
+      def checkRequestValues(
+        origReq: RequestHeader,
+        changeReq: RequestHeader => RequestHeader)(
+        id: Long = origReq.id,
+        tags: Map[String, String] = origReq.tags,
+        uri: String = origReq.uri,
+        path: String = origReq.path,
+        method: String = origReq.method,
+        version: String = origReq.version,
+        queryString: Map[String, Seq[String]] = origReq.queryString,
+        headers: Headers = origReq.headers,
+        remoteAddress: String = origReq.remoteAddress,
+        secure: Boolean = origReq.secure,
+        clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain) = {
+        val newReq: RequestHeader = changeReq(origReq)
+        newReq.id must_== id
+        newReq.tags must_== tags
+        newReq.uri must_== uri
+        newReq.path must_== path
+        newReq.method must_== method
+        newReq.version must_== version
+        newReq.queryString must_== queryString
+        newReq.headers must_== headers
+        newReq.remoteAddress must_== remoteAddress
+        newReq.secure must_== secure
+        newReq.clientCertificateChain must_== clientCertificateChain
+      }
+
+      "must change request id" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(id = 999L))(id = 999L)
+      }
+      "must change request tags" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(tags = Map("hello" -> "world")))(tags = Map("hello" -> "world"))
+      }
+      "must change request uri" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(uri = "/x/y/z"))(uri = "/x/y/z")
+      }
+      "must change request path" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(path = "/x/y/z"))(path = "/x/y/z")
+      }
+      "must change request method" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(method = "HELLO"))(method = "HELLO")
+      }
+      "must change request version" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(version = "HTTP/9.9"))(version = "HTTP/9.9")
+      }
+      "must change request queryString" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(queryString = Map("x" -> Seq("y", "z"))))(queryString = Map("x" -> Seq("y", "z")))
+      }
+      "must change request headers" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(headers = new Headers(List(("x", "y")))))(headers = new Headers(List(("x", "y"))))
+      }
+      "must change request remoteAddress" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(remoteAddress = "x"))(remoteAddress = "x")
+      }
+      "must change request secure" in {
+        checkRequestValues(dummyRequestHeader(), _.copy(secure = true))(secure = true)
+      }
+      "must change request client certificate chain" in {
+        // Too lazy to make a real object, so take advantage of Java's weak runtime checks
+        val ccc = Some("x").asInstanceOf[Option[Seq[X509Certificate]]]
+        checkRequestValues(dummyRequestHeader(), _.copy(clientCertificateChain = ccc))(clientCertificateChain = ccc)
+      }
+    }
   }
 
   private def accept(value: String) = dummyRequestHeader(
@@ -96,19 +165,13 @@ class RequestHeaderSpec extends Specification {
     requestMethod: String = "GET",
     requestUri: String = "/",
     headers: Headers = Headers()): RequestHeader = {
-    new RequestHeaderImpl(
-      id = 1L,
-      tags = Map.empty,
-      uri = requestUri,
-      path = "",
+    new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
+      connection = RemoteConnection("", false, None),
       method = requestMethod,
+      target = RequestTarget(requestUri, "", Map.empty),
       version = "",
-      queryString = Map.empty,
       headers = headers,
-      remoteAddress = "",
-      secure = false,
-      clientCertificateChain = None,
-      attrMap = TypedMap.empty
+      attrs = TypedMap.empty
     )
   }
 }

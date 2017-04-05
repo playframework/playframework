@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 
@@ -44,13 +44,13 @@ object ApplicationSecretGenerator {
       val lines = IO.readLines(appConfFile)
       val config: Config = ConfigFactory.parseString(lines.mkString("\n"))
 
-      val newLines = if (config.hasPath("play.crypto.secret")) {
-        log.info("Replacing old application secret: " + config.getString("play.crypto.secret"))
+      val newLines = if (config.hasPath("play.http.secret.key")) {
+        log.info("Replacing old application secret: " + config.getString("play.http.secret.key"))
         getUpdatedSecretLines(secret, lines, config)
       } else {
         log.warn("Did not find application secret in " + appConfFile.getCanonicalPath)
         log.warn("Adding application secret to start of file")
-        val secretConfig = s"""play.crypto.secret="$secret""""
+        val secretConfig = s"""play.http.secret.key="$secret""""
         secretConfig :: lines
       }
 
@@ -65,11 +65,11 @@ object ApplicationSecretGenerator {
 
   def getUpdatedSecretLines(newSecret: String, lines: List[String], config: Config): List[String] = {
 
-    val secretConfigValue: ConfigValue = config.getValue("play.crypto.secret")
+    val secretConfigValue: ConfigValue = config.getValue("play.http.secret.key")
     val secretConfigOrigin: ConfigOrigin = secretConfigValue.origin()
 
     if (secretConfigOrigin.lineNumber == -1) {
-      throw new MessageOnlyException("Could not change play.crypto.secret")
+      throw new MessageOnlyException("Could not change play.http.secret.key")
     } else {
       val lineNumber: Int = secretConfigOrigin.lineNumber - 1
 
@@ -77,9 +77,9 @@ object ApplicationSecretGenerator {
         lineNumber,
         lines(lineNumber).replace(secretConfigValue.unwrapped().asInstanceOf[String], newSecret))
 
-      // removes existing application.secret key
-      if (config.hasPath("application.secret")) {
-        val applicationSecretValue = config.getValue("application.secret")
+      // removes existing play.crypto.secret key
+      if (config.hasPath("play.crypto.secret")) {
+        val applicationSecretValue = config.getValue("play.crypto.secret")
         val applicationSecretOrigin = applicationSecretValue.origin()
 
         if (applicationSecretOrigin.lineNumber == -1) {

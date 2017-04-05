@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
-import akka.stream.Materializer;
 import akka.util.ByteString;
-import org.junit.Before;
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.Json;
@@ -24,8 +23,6 @@ import play.mvc.Http.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletionStage;
 
-import scala.compat.java8.FutureConverters;
-
 import java.util.*;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
@@ -37,7 +34,7 @@ public class JavaBodyParsers extends WithApplication {
 
     @Test
     public void accessRequestBody() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#access-json-body
             public Result index() {
                 JsonNode json = request().body().asJson();
@@ -49,7 +46,7 @@ public class JavaBodyParsers extends WithApplication {
 
     @Test
     public void particularBodyParser() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#particular-body-parser
                     @BodyParser.Of(BodyParser.Text.class)
                     public Result index() {
@@ -109,7 +106,7 @@ public class JavaBodyParsers extends WithApplication {
 
     @Test
     public void composingBodyParser() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 //#composing-access
                 @BodyParser.Of(UserBodyParser.class)
                 public Result save() {
@@ -129,11 +126,16 @@ public class JavaBodyParsers extends WithApplication {
         for (int i = 0; i < 1100; i++) {
             body.append("1234567890");
         }
-        assertThat(callWithStringBody(new MaxLengthAction(), fakeRequest(), body.toString(), mat).status(),
+        assertThat(callWithStringBody(new MaxLengthAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), body.toString(), mat).status(),
                 equalTo(413));
     }
 
     public static class MaxLengthAction extends MockJavaAction {
+
+        MaxLengthAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#max-length
         // Accept only 10KB of data.
         public static class Text10Kb extends BodyParser.Text {
@@ -213,7 +215,7 @@ public class JavaBodyParsers extends WithApplication {
 
     @Test
     public void testCsv() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 @BodyParser.Of(CsvBodyParser.class)
                 public Result uploadCsv() {
                     String value = ((List<List<String>>) request().body().as(List.class)).get(1).get(2);

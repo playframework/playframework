@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # OpenID Support in Play
 
 [OpenID](http://openid.net/get-an-openid/what-is-openid/) is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
@@ -14,9 +14,9 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenID, first add `javaWs`  to your `build.sbt` file:
+To use OpenID, first add `openId` to your `build.sbt` file:
 
-@[javaws-sbt-dependencies](code/javaws.sbt)
+@[javaopenid-sbt-dependencies](code/javaopenid.sbt)
 
 Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/java/play/libs/openid/OpenIdClient.html).
 

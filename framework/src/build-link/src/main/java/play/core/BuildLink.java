@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core;
 
@@ -78,18 +78,4 @@ public interface BuildLink {
      * @return The settings.
      */
     public Map<String,String> settings();
-
-    /**
-     * Run a task in the build tool.
-     *
-     * This can be used by Play plugins, for example, by a test fixture plugin to run tests.  The format of the passed
-     * in task and the return value are build tool specific.
-     *
-     * For the default SBT implementation, it's a standard SBT task, and the result is the return value of that task.
-     * Note that if the return value is anything but JDK classes, the only way to access it will be using reflection.
-     *
-     * @param task The name of the task to run.
-     * @return The result of running the task.
-     */
-    public Object runTask(String task);
 }

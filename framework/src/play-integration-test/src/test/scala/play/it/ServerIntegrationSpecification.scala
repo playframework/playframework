@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it
 
@@ -7,8 +7,10 @@ import org.specs2.execute._
 import org.specs2.mutable.Specification
 import org.specs2.specification.AroundEach
 import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server.{ NettyServer, ServerProvider }
-import play.core.server.akkahttp.AkkaHttpServer
+import play.core.server.AkkaHttpServer
+
 import scala.concurrent.duration._
 
 /**
@@ -24,11 +26,12 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
-  /**
-   * Retry up to 3 times.
-   */
+  def aroundEventually[R: AsResult](r: => R) = {
+    EventuallyResults.eventually[R](1, 20.milliseconds)(r)
+  }
+
   def around[R: AsResult](r: => R) = {
-    AsResult(EventuallyResults.eventually(1, 20.milliseconds)(r))
+    AsResult(aroundEventually(r))
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
@@ -53,6 +56,19 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
+  implicit class UntilFastCIServer[T: AsResult](t: => T) {
+    def skipOnSlowCIServer: Result = parent match {
+      case _ if isContinuousIntegrationEnvironment => Skipped()
+      case _ => ResultExecution.execute(AsResult(t))
+    }
+  }
+
+  // There are some tests that we still want to run, but Travis CI will fail
+  // because the server is underpowered...
+  def isContinuousIntegrationEnvironment: Boolean = {
+    System.getenv("CONTINUOUS_INTEGRATION") == "true"
+  }
+
   /**
    * Override the standard TestServer factory method.
    */
@@ -67,18 +83,25 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Override the standard WithServer class.
    */
   abstract class WithServer(
-    app: play.api.Application = play.api.test.FakeApplication(),
-    port: Int = play.api.test.Helpers.testServerPort) extends play.api.test.WithServer(
-    app, port, serverProvider = Some(integrationServerProvider))
+    app: play.api.Application = GuiceApplicationBuilder().build(),
+    port: Int = play.api.test.Helpers.testServerPort)
+      extends play.api.test.WithServer(
+        app, port, serverProvider = Some(integrationServerProvider)
+      )
 
 }
+
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
+  self: Specification =>
+  // Provide a flag to disable Netty tests
+  private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
+  skipAllIf(!runTests)
+
   override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
+
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: Specification =>
-  // Provide a flag to disable Akka HTTP tests
-  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "true") == "true")
-  skipAllIf(!runTests)
+
   override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.4 Migration Guide
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
@@ -345,7 +345,7 @@ Additionally, Java actions may now declare a `BodyParser.Of.maxLength` value tha
 
 ## JSON API changes
 
-The semantics of JSON lookups have changed slightly. `JsUndefined` has been removed from the `JsValue` type hierarchy and all lookups of the form `jsv \ foo` or `jsv(bar)` have been moved to [`JsLookup`](api/scala/play/api/libs/json/JsLookup.html). They now return a [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html) instead of a `JsValue`.
+The semantics of JSON lookups have changed slightly. `JsUndefined` has been removed from the `JsValue` type hierarchy and all lookups of the form `jsv \ foo` or `jsv(bar)` have been moved to `JsLookup`. They now return a `JsLookupResult` instead of a `JsValue`.
 
 If you have code of the form
 
@@ -359,7 +359,7 @@ the following code is equivalent, if you know the property exists:
 val v: JsValue = (json \ "foo" \ "bar").get
 ```
 
-If you don't know the property exists, we recommend using pattern matching or the methods on [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html) to safely handle the `JsUndefined` case, e.g.
+If you don't know the property exists, we recommend using pattern matching or the methods on `JsLookupResult` to safely handle the `JsUndefined` case, e.g.
 
 ```scala
 val vOpt: Option[JsValue] = (json \ "foo" \ "bar").toOption
@@ -367,7 +367,7 @@ val vOpt: Option[JsValue] = (json \ "foo" \ "bar").toOption
 
 ### JsLookup
 
-All JSON traversal methods have been moved to the [`JsLookup`](api/scala/play/api/libs/json/JsLookup.html) class, which is implicitly applied to all values of type `JsValue` or `JsLookupResult`. In addition to the `apply`, `\`, and `\\` methods, the `head`, `tail`, and `last` methods have been added for JSON arrays. All methods except `\\` return a [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html), a wrapper for `JsValue` that helps with handling undefined values.
+All JSON traversal methods have been moved to the `JsLookup` class, which is implicitly applied to all values of type `JsValue` or `JsLookupResult`. In addition to the `apply`, `\`, and `\\` methods, the `head`, `tail`, and `last` methods have been added for JSON arrays. All methods except `\\` return a `JsLookupResult`, a wrapper for `JsValue` that helps with handling undefined values.
 
 The methods `as[A]`, `asOpt[A]`, `validate[A]` also exist on `JsLookup`, so code like the below should require no source changes:
 
@@ -408,7 +408,7 @@ implicit val optionStringReads: Reads[Option[String]] = Reads.optionWithNull[Str
 
 ## Testing changes
 
-[`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
+`FakeRequest` has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
 
 The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
 

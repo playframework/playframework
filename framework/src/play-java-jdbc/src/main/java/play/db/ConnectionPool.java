@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -28,6 +28,11 @@ public interface ConnectionPool {
      *
      * @param dataSource the data source to close
      */
-    public void close(DataSource dataSource);
+    void close(DataSource dataSource);
+
+    /**
+     * @return the Scala version for this connection pool.
+     */
+    play.api.db.ConnectionPool asScala();
 
 }

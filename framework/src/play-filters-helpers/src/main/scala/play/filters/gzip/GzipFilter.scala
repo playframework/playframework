@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.gzip
 
 import java.util.function.BiFunction
-import java.util.zip.GZIPOutputStream
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.stream.scaladsl._
@@ -20,7 +19,7 @@ import play.api.mvc._
 import play.core.j
 
 import scala.compat.java8.FunctionConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * A gzip filter.
@@ -62,23 +61,28 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
+
       val header = result.header.copy(headers = setupHeader(result.header.headers))
 
       result.body match {
 
         case HttpEntity.Strict(data, contentType) =>
-          Future.successful(Result(header, compressStrictEntity(data, contentType)))
+          compressStrictEntity(Source.single(data), contentType).map(entity =>
+            result.copy(header = header, body = entity)
+          )
 
         case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType) if contentLength <= config.chunkedThreshold =>
           // It's below the chunked threshold, so buffer then compress and send
-          entity.consumeData.map { data =>
-            Result(header, compressStrictEntity(data, contentType))
-          }
+          compressStrictEntity(entity.data, contentType).map(strictEntity =>
+            result.copy(header = header, body = strictEntity)
+          )
 
         case HttpEntity.Streamed(data, _, contentType) =>
           // It's above the chunked threshold, compress through the gzip flow, and send as chunked
           val gzipped = data via GzipFlow.gzip(config.bufferSize) map (d => HttpChunk.Chunk(d))
-          Future.successful(Result(header, HttpEntity.Chunked(gzipped, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType))
+          )
 
         case HttpEntity.Chunked(chunks, contentType) =>
           val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
@@ -105,19 +109,18 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
             new FlowShape(broadcast.in, concat.out)
           })
 
-          Future.successful(Result(header, HttpEntity.Chunked(chunks via gzipFlow, contentType)))
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Chunked(chunks via gzipFlow, contentType))
+          )
       }
     } else {
       Future.successful(result)
     }
   }
 
-  private def compressStrictEntity(data: ByteString, contentType: Option[String]) = {
-    val builder = ByteString.newBuilder
-    val gzipOs = new GZIPOutputStream(builder.asOutputStream, config.bufferSize, true)
-    gzipOs.write(data.toArray)
-    gzipOs.close()
-    HttpEntity.Strict(builder.result(), contentType)
+  private def compressStrictEntity(source: Source[ByteString, Any], contentType: Option[String])(implicit ec: ExecutionContext) = {
+    val compressed = source.via(GzipFlow.gzip(config.bufferSize)).runFold(ByteString.empty)(_ ++ _)
+    compressed.map(data => HttpEntity.Strict(data, contentType))
   }
 
   /**

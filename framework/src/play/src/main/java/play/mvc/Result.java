@@ -1,22 +1,22 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import play.api.mvc.ResponseHeader;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
 import play.libs.Scala;
-import scala.collection.JavaConversions;
-import scala.compat.java8.OptionConverters;
 
 import static play.mvc.Http.Cookie;
 import static play.mvc.Http.Cookies;
@@ -38,8 +38,11 @@ public class Result {
     /**
      * Create a result from a Scala ResponseHeader and a body.
      *
-     * @param header the response header
-     * @param body the response body.
+     * @param header  the response header
+     * @param body    the response body.
+     * @param session the session set on the response.
+     * @param flash   the flash object on the response.
+     * @param cookies the cookies set on the response.
      */
     public Result(ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
         this.header = header;
@@ -66,10 +69,23 @@ public class Result {
      * @param reasonPhrase The reason phrase, if a non default reason phrase is required.
      * @param headers The headers.
      * @param body The body.
+     *
+     * @deprecated Deprecated as of 2.6.0. Use {@link #Result(int, String, Map, HttpEntity)}.
      */
     public Result(int status, Optional<String> reasonPhrase, Map<String, String> headers, HttpEntity body) {
-        this(new ResponseHeader(status, headers, OptionConverters.toScala(reasonPhrase)),
-                body);
+        this(new ResponseHeader(status, headers, reasonPhrase.orElse(null)), body);
+    }
+
+    /**
+     * Create a result.
+     *
+     * @param status The status.
+     * @param reasonPhrase The reason phrase, if a non default reason phrase is required.
+     * @param headers The headers.
+     * @param body The body.
+     */
+    public Result(int status, String reasonPhrase, Map<String, String> headers, HttpEntity body) {
+        this(new ResponseHeader(status, headers, reasonPhrase), body);
     }
 
     /**
@@ -80,7 +96,7 @@ public class Result {
      * @param body The body.
      */
     public Result(int status, Map<String, String> headers, HttpEntity body) {
-        this(status, Optional.empty(), headers, body);
+        this(status, (String)null, headers, body);
     }
 
     /**
@@ -90,7 +106,7 @@ public class Result {
      * @param headers The headers.
      */
     public Result(int status, Map<String, String> headers) {
-        this(status, Optional.empty(), headers, HttpEntity.NO_ENTITY);
+        this(status, (String)null, headers, HttpEntity.NO_ENTITY);
     }
 
     /**
@@ -100,7 +116,7 @@ public class Result {
      * @param body The entity.
      */
     public Result(int status, HttpEntity body) {
-        this(status, Optional.empty(), Collections.emptyMap(), body);
+        this(status, (String)null, Collections.emptyMap(), body);
     }
 
     /**
@@ -109,7 +125,7 @@ public class Result {
      * @param status The status.
      */
     public Result(int status) {
-        this(status, Optional.empty(), Collections.emptyMap(), HttpEntity.NO_ENTITY);
+        this(status, (String)null, Collections.emptyMap(), HttpEntity.NO_ENTITY);
     }
 
     /**
@@ -127,7 +143,20 @@ public class Result {
      * @return the reason phrase (e.g. "NOT FOUND")
      */
     public Optional<String> reasonPhrase() {
-        return OptionConverters.toJava(header.reasonPhrase());
+        return header.reasonPhrase();
+    }
+
+    /**
+     * Get the Scala version of response header
+     *
+     * @return the header
+     *
+     * @deprecated Deprecated as in 2.6.0. Use {@link #getHeader()}
+     *
+     * @see play.api.mvc.ResponseHeader
+     */
+    protected play.api.mvc.ResponseHeader header() {
+        return header.asScala();
     }
 
     /**
@@ -135,8 +164,8 @@ public class Result {
      *
      * @return the header
      */
-    protected ResponseHeader header() {
-        return header;
+    protected ResponseHeader getHeader() {
+        return this.header;
     }
 
     /**
@@ -164,7 +193,7 @@ public class Result {
      * @return the header (if it was set)
      */
     public Optional<String> header(String header) {
-        return OptionConverters.<String>toJava(this.header.headers().get(header));
+        return this.header.getHeader(header);
     }
 
     /**
@@ -175,7 +204,7 @@ public class Result {
      * @return the immutable map of headers
      */
     public Map<String, String> headers() {
-        return Collections.unmodifiableMap(JavaConversions.mapAsJavaMap(this.header.headers()));
+        return this.header.headers();
     }
 
     /**
@@ -259,11 +288,17 @@ public class Result {
 
     /**
      * Returns a copy of this result with the given cookies.
-     * @param cookies the cookies to add to the result.
+     * @param newCookies the cookies to add to the result.
      * @return the transformed copy.
      */
-    public Result withCookies(Cookie... cookies) {
-        return new Result(header, body, session, flash, Arrays.asList(cookies));
+    public Result withCookies(Cookie... newCookies) {
+        List<Cookie> finalCookies = Stream.concat(cookies.stream().filter(cookie -> {
+            for (Cookie newCookie : newCookies) {
+                if (cookie.name().equals(newCookie.name())) return false;
+            }
+            return true;
+        }), Stream.of(newCookies)).collect(Collectors.toList());
+        return new Result(header, body, session, flash, finalCookies);
     }
 
     /**
@@ -274,7 +309,7 @@ public class Result {
      * @return the transformed copy
      */
     public Result withHeader(String name, String value) {
-        return new Result(JavaResultExtractor.withHeader(header, name, value), body, session, flash, cookies);
+        return new Result(header.withHeader(name, value), body, session, flash, cookies);
     }
 
     /**
@@ -308,7 +343,7 @@ public class Result {
      */
     public play.api.mvc.Result asScala() {
         return new play.api.mvc.Result(
-            header,
+            header.asScala(),
             body.asScala(),
             session == null ? Scala.None() : Scala.Option(play.api.mvc.Session.fromJavaSession(session)),
             flash == null ? Scala.None() : Scala.Option(play.api.mvc.Flash.fromJavaFlash(flash)),

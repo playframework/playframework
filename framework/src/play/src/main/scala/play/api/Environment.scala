@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -58,9 +58,9 @@ case class Environment(
    * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
    * directory.
    *
-   * For example, to retrieve the conf/logger.xml configuration file:
+   * For example, to retrieve the conf/logback.xml configuration file:
    * {{{
-   * val maybeConf = application.resource("logger.xml")
+   * val maybeConf = application.resource("logback.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
@@ -77,9 +77,9 @@ case class Environment(
    * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
    * directory.
    *
-   * For example, to retrieve the conf/logger.xml configuration file:
+   * For example, to retrieve the conf/logback.xml configuration file:
    * {{{
-   * val maybeConf = application.resourceAsStream("logger.xml")
+   * val maybeConf = application.resourceAsStream("logback.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
@@ -89,6 +89,12 @@ case class Environment(
     val n = name.stripPrefix("/")
     Option(classLoader.getResourceAsStream(n))
   }
+
+  /**
+   * @return Returns the Java version for this environment.
+   * @see [[play.Environment]]
+   */
+  def asJava: play.Environment = new play.Environment(this)
 
 }
 

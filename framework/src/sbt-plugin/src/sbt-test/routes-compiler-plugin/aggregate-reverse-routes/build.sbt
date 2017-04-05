@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
   .aggregate(common, a, b, c, nonplay)
 
 def commonSettings: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.11.8"),
+  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.1"),
   libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
   // This makes it possible to run tests on the output regardless of scala version

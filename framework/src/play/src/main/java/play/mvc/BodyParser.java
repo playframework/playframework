@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -453,7 +453,7 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request._underlyingHeader()).asJava();
+            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request.asScala()).asJava();
 
             return javaAccumulator.map(result -> {
                         if (result.isLeft()) {
@@ -499,15 +499,18 @@ public interface BodyParser<A> {
         private final Materializer materializer;
         private final long maxLength;
         private final play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> delegate;
+        private final play.api.http.HttpErrorHandler errorHandler;
 
-        public DelegatingMultipartFormDataBodyParser(Materializer materializer, long maxLength) {
+        public DelegatingMultipartFormDataBodyParser(Materializer materializer, long maxLength, play.api.http.HttpErrorHandler errorHandler) {
             this.maxLength = maxLength;
             this.materializer = materializer;
+            this.errorHandler = errorHandler;
             delegate = multipartParser();
         }
 
         /**
          * Returns a FilePartHandler expressed as a Java function.
+         * @return a file part handler function.
          */
         public abstract Function<Multipart.FileInfo, play.libs.streams.Accumulator<ByteString, Http.MultipartFormData.FilePart<A>>> createFilePartHandler();
 
@@ -516,7 +519,7 @@ public interface BodyParser<A> {
          */
         private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
             ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
-            return Multipart.multipartParser((int) maxLength, filePartHandler, materializer);
+            return Multipart.multipartParser((int) maxLength, filePartHandler, errorHandler, materializer);
         }
 
         private class ScalaFilePartHandler extends AbstractFunction1<Multipart.FileInfo, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {

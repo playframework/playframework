@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package detailedtopics.configuration.gzipencoding;
 
@@ -8,8 +8,11 @@ import play.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.http.HttpFilters;
+import play.mvc.Http;
+import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.function.BiFunction;
 
 public class CustomFilters implements HttpFilters {
 
@@ -18,8 +21,9 @@ public class CustomFilters implements HttpFilters {
     @Inject
     public CustomFilters(Materializer materializer) {
         //#gzip-filter
+        GzipFilterConfig gzipFilterConfig = new GzipFilterConfig();
         GzipFilter gzipFilter = new GzipFilter(
-          new GzipFilterConfig().withShouldGzip((req, res) ->
+          gzipFilterConfig.withShouldGzip((BiFunction<Http.RequestHeader, Result, Object>) (req, res) ->
             res.body().contentType().orElse("").startsWith("text/html")
           ), materializer
         );

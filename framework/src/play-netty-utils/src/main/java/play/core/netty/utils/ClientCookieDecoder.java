@@ -19,7 +19,7 @@ import java.text.ParsePosition;
 import java.util.Date;
 
 /**
- * A <a href="http://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used client side.
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used client side.
  *
  * It will store the way the raw value was wrapped in {@link Cookie#setWrap(boolean)} so it can be
  * eventually sent back to the Origin server as is.
@@ -46,6 +46,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
     /**
      * Decodes the specified Set-Cookie HTTP header value into a {@link Cookie}.
      *
+     * @param header    the Set-Cookie header.
      * @return the decoded {@link Cookie}
      */
     public Cookie decode(String header) {
@@ -156,6 +157,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
         private String expires;
         private boolean secure;
         private boolean httpOnly;
+        private String sameSite;
 
         public CookieBuilder(DefaultCookie cookie) {
             this.cookie = cookie;
@@ -181,6 +183,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
             cookie.setMaxAge(mergeMaxAgeAndExpire(maxAge, expires));
             cookie.setSecure(secure);
             cookie.setHttpOnly(httpOnly);
+            cookie.setSameSite(sameSite);
             return cookie;
         }
 
@@ -237,7 +240,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
 
         private void setMaxAge(String value) {
             try {
-                maxAge = Math.max(Integer.valueOf(value), 0);
+                maxAge = Integer.valueOf(value);
             } catch (NumberFormatException e1) {
                 // ignore failure to parse -> treat as session cookie
             }
@@ -254,7 +257,13 @@ public final class ClientCookieDecoder extends CookieDecoder {
         private void parse8(String header, int nameStart, String value) {
             if (header.regionMatches(true, nameStart, CookieHeaderNames.HTTPONLY, 0, 8)) {
                 httpOnly = true;
+            } else if (header.regionMatches(true, nameStart, CookieHeaderNames.SAMESITE, 0, 8)) {
+                setSameSite(value);
             }
+        }
+
+        private void setSameSite(String value) {
+            sameSite = value;
         }
     }
 }

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -16,7 +16,11 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 ## Dependency Injection
 
-Play supports generating two types of routers, one is a dependency injected router, the other is a static router. The default is the dependency injected router, and that is also the case in the Play seed Activator templates, since we recommend you use dependency-injected controllers. If you need to use static controllers you can switch to the static routes generator by adding the following configuration to your `build.sbt`:
+Play's default routes generator creates a router class that accepts controller instances in an `@Inject`-annotated constructor. That means the class is suitable for use with dependency injection and can also be instantiated manually using the constructor.
+
+Play also comes with a legacy static routes generator that works with controllers that declare actions as static methods. This is generally not recommended because it breaks encapsulation, makes code less testable, and is incompatible with many of Play's new APIs.
+
+If you need to use static controllers, you can switch to the static routes generator by adding the following configuration to your `build.sbt`.
 
 ```scala
 routesGenerator := StaticRoutesGenerator
@@ -157,7 +161,7 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 @[reverse-redirect](code/javaguide/http/routing/controllers/Application.java)
 
-> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.Application.hello` can be reversed via `controllers.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
 
 The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
 

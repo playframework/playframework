@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -38,7 +38,7 @@ public abstract class Filter extends EssentialFilter {
                     play.api.mvc.RequestHeader requestHeader) {
                 return FutureConverters.toScala(
                         Filter.this.apply(
-                                (rh) -> FutureConverters.toJava(next.apply(rh._underlyingHeader())).thenApply(play.api.mvc.Result::asJava),
+                                (rh) -> FutureConverters.toJava(next.apply(rh.asScala())).thenApply(play.api.mvc.Result::asJava),
                                 new RequestHeaderImpl(requestHeader)
                         ).thenApply(Result::asScala)
                 );

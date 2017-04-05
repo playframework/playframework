@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
 Writing tests for your application can be an involved process. Play supports [JUnit](http://junit.org/) and provides helpers and application stubs to make testing your application as easy as possible.
@@ -81,14 +81,10 @@ In this way, the `UserService.isAdmin` method can be tested by mocking the `User
 
 You can test your controllers using Play's [test helpers](api/java/play/test/Helpers.html) to extract useful properties.
 
-@[test-controller-test](code/javaguide/tests/ApplicationTest.java)
-
-You can also retrieve an action reference from the reverse router and invoke it. This also allows you to use [`FakeRequest`](api/java/play/test/FakeRequest.html) which is a mock for request data:
-
-@[test-controller-routes](code/javaguide/tests/ApplicationTest.java)
+@[test-controller-test](code/javaguide/tests/ControllerTest.java)
 
 ## Unit testing view templates
 
 As a template is a standard Scala function, you can execute it from a test and check the result:
 
-@[test-template](code/javaguide/tests/ApplicationTest.java)
+@[test-template](code/javaguide/tests/ControllerTest.java)

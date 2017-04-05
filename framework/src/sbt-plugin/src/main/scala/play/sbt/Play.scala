@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+import play.sbt.PlayAkkaHttpServer.allRequirements
 import play.sbt.PlayImport.PlayKeys
 import play.sbt.routes.RoutesCompiler
 import play.twirl.sbt.SbtTwirl
@@ -29,8 +30,28 @@ object Play extends AutoPlugin {
 }
 
 /**
- * The main plugin for Play Java projects. To use this the plugin must be made available to your project
+ * The main plugin for minimal Play Java projects that do not include Forms.
+ *
+ * To use this the plugin must be made available to your project
  * via sbt's enablePlugins mechanism e.g.:
+ *
+ * {{{
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayMinimalJava)
+ * }}}
+ */
+object PlayMinimalJava extends AutoPlugin {
+  override def requires = Play
+  override def projectSettings =
+    PlaySettings.minimalJavaSettings ++
+      Seq(libraryDependencies += PlayImport.javaCore)
+}
+
+/**
+ * The main plugin for Play Java projects.
+ *
+ * To use this the plugin must be made available to your project
+ * via sbt's enablePlugins mechanism e.g.:
+ *
  * {{{
  *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
  * }}}
@@ -39,7 +60,7 @@ object PlayJava extends AutoPlugin {
   override def requires = Play
   override def projectSettings =
     PlaySettings.defaultJavaSettings ++
-      Seq(libraryDependencies += PlayImport.javaCore)
+      Seq(libraryDependencies += PlayImport.javaForms)
 }
 
 /**
@@ -60,7 +81,6 @@ object PlayScala extends AutoPlugin {
  */
 object PlayNettyServer extends AutoPlugin {
   override def requires = Play
-  override def trigger = allRequirements
 
   override def projectSettings = Seq(
     libraryDependencies ++= {
@@ -78,8 +98,9 @@ object PlayNettyServer extends AutoPlugin {
  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires = Play
+  override def trigger = allRequirements
 
   override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current
+    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server" % play.core.PlayVersion.current
   )
 }

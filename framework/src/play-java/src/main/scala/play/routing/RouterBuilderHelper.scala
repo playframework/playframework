@@ -1,26 +1,24 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routing
 
 import java.util.concurrent.CompletionStage
 
-import play.api.Play
-import play.api.http.{ HttpConfiguration, JavaHttpErrorHandlerDelegate, ParserConfiguration }
-import play.api.mvc.{ ActionBuilder, PlayBodyParsers, Results }
-import play.core.j.JavaHelpers
-import play.core.routing.HandlerInvokerFactory
+import play.api.mvc._
+import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.mvc.Http.Context
 import play.mvc.Result
 import play.utils.UriEncoding
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
-private[routing] object RouterBuilderHelper {
+private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], contextComponents: JavaContextComponents) {
+
   def build(router: RoutingDsl): play.routing.Router = {
-    val routes = router.routes.toList
+    val routes = router.routes.asScala
 
     // Create the router
     play.api.routing.Router.from(Function.unlift { requestHeader =>
@@ -41,7 +39,7 @@ private[routing] object RouterBuilderHelper {
             }
 
             // Bind params if required
-            val params = groups.zip(route.params).map {
+            val params = groups.zip(route.params.asScala).map {
               case (param, routeParam) =>
                 val rawParam = if (routeParam.decode) {
                   UriEncoding.decodePathSegment(param, "utf-8")
@@ -60,23 +58,12 @@ private[routing] object RouterBuilderHelper {
 
             val action = maybeParams match {
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
-              case Right(params) =>
-
-                // Convert to a Scala action
-                val parser = HandlerInvokerFactory.javaBodyParserToScala {
-                  // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
-                  // it to instantiate the default body parser, we have to instantiate it ourselves.
-                  val app = Play.privateMaybeApplication.get // throw exception if no current app
-                  val bp = PlayBodyParsers(ParserConfiguration(), app.errorHandler, app.materializer)
-                  new play.mvc.BodyParser.Default(
-                    new JavaHttpErrorHandlerDelegate(app.errorHandler),
-                    app.injector.instanceOf[HttpConfiguration], bp)
-                }
-                ActionBuilder.ignoringBody.async(parser) { request =>
-                  val ctx = JavaHelpers.createJavaContext(request)
+              case Right(parameters) =>
+                ActionBuilder.ignoringBody.async(bodyParser) { request =>
+                  val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)
-                    route.actionMethod.invoke(route.action, params: _*) match {
+                    route.actionMethod.invoke(route.action, parameters: _*) match {
                       case result: Result => Future.successful(result.asScala)
                       case promise: CompletionStage[_] =>
                         val p = promise.asInstanceOf[CompletionStage[Result]]

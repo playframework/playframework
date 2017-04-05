@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Understanding Play thread pools
 
 Play Framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools in Play are tuned to use fewer threads than in traditional web frameworks, since IO in play-core never blocks.
@@ -30,10 +30,9 @@ In contrast, the following types of IO do not block:
 
 Play uses a number of different thread pools for different purposes:
 
-* **Netty boss/worker thread pools** - These are used internally by Netty for handling Netty IO.  An application's code should never be executed by a thread in these thread pools.
-* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Akka, described below.
+* **Internal thread pools** - These are used internally by the server engine for handling IO.  An application's code should never be executed by a thread in these thread pools.  Play is configured with Akka HTTP server backend by default, and so [[configuration settings|SettingsAkkaHttp]] from `application.conf` should be used to change the backend.  Alternately, Play also comes with a Netty server backend which, if enabled, also has settings that can be [[configured|SettingsNetty]] from `application.conf`.
 
-> Note that in Play 2.4 several thread pools were combined together into the Play default thread pool.
+* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Akka, described below.
 
 ## Using the default thread pool
 
@@ -105,7 +104,7 @@ In some cases you may not be able to explicitly use the application classloader.
 
 Java code in Play uses a `ThreadLocal` to find out about contextual information such as the current HTTP request. Scala code doesn't need to use `ThreadLocal`s because it can use implicit parameters to pass context instead. `ThreadLocal`s are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
 
-The problem with using thread locals however is that as soon as control switches to another thread, you lose thread local information. So if you were to map a `CompletionStage` using `thenApply`, and then try to access the HTTP context (eg, the session or request), it won't work.  To address this, Play provides an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html).  This allows you to capture the current context in an `Executor`, which you can then pass to the `CompletionStage` `*Async` methods such as `thenApplyAsync()`, and when the executor executes your callback, it will ensure the thread local context is setup so that you can access the request/session/flash/response objects.
+The problem with using thread locals however is that as soon as control switches to another thread, you lose thread local information. So if you were to map a `CompletionStage` using `thenApplyAsync`, or using `thenApply` at a point in time after the `Future` associated with that `CompletionStage` had completed, and you then try to access the HTTP context (eg, the session or request), it won't work .  To address this, Play provides an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html).  This allows you to capture the current context in an `Executor`, which you can then pass to the `CompletionStage` `*Async` methods such as `thenApplyAsync()`, and when the executor executes your callback, it will ensure the thread local context is setup so that you can access the request/session/flash/response objects.
 
 To use the `HttpExecutionContext`, inject it into your component, and then pass the current context anytime a `CompletionStage` is interacted with.  For example:
 

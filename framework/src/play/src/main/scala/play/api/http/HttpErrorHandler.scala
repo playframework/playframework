@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
 import javax.inject._
 
 import play.api._
-import play.api.inject.Binding
+import play.api.inject.{ Binding, BindingKey }
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.http.Status._
@@ -51,8 +51,12 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
       "play.http.errorHandler", "ErrorHandler")
+
+    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+
+    fromConfiguration ++ javaContextComponentsBindings
   }
 }
 
@@ -256,7 +260,7 @@ object HttpErrorHandlerExceptions {
         other) {
         def line = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
         def position = null
-        def input = source.map(_._1).map(PlayIO.readFileAsString).orNull
+        def input = source.map(_._1).map(f => PlayIO.readFileAsString(f.toPath)).orNull
         def sourceName = source.map(_._1.getAbsolutePath).orNull
       }
   }
@@ -304,8 +308,8 @@ private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorH
   import play.core.Execution.Implicits.trampoline
 
   def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
-    FutureConverters.toJava(delegate.onClientError(request._underlyingHeader(), statusCode, message).map(_.asJava))
+    FutureConverters.toJava(delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava))
 
   def onServerError(request: Http.RequestHeader, exception: Throwable) =
-    FutureConverters.toJava(delegate.onServerError(request._underlyingHeader(), exception).map(_.asJava))
+    FutureConverters.toJava(delegate.onServerError(request.asScala(), exception).map(_.asJava))
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.common
 
@@ -20,13 +20,14 @@ object WebSocketFlowHandler {
   def webSocketProtocol(bufferLimit: Int): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
     BidiFlow.fromGraph(new GraphStage[BidiShape[RawMessage, Message, Message, Message]] {
       // The stream of incoming messages from the websocket connection
-      val remoteIn = Inlet[RawMessage]("WebSocketIn")
-      // The stream of websocket messages going to the application
-      val appOut = Outlet[Message]("WebSocketAppOut")
-      // The stream of websocket messages being produced by the application
-      val appIn = Inlet[Message]("WebSocketAppIn")
+      val remoteIn = Inlet[RawMessage]("WebSocketFlowHandler.remote.in")
       // The stream of websocket messages going out to the websocket connection
-      val remoteOut = Outlet[Message]("WebSocketOut")
+      val remoteOut = Outlet[Message]("WebSocketFlowHandler.remote.out")
+
+      // The stream of websocket messages being produced by the application
+      val appIn = Inlet[Message]("WebSocketFlowHandler.app.in")
+      // The stream of websocket messages going to the application
+      val appOut = Outlet[Message]("WebSocketFlowHandler.app.out")
 
       override def shape: BidiShape[RawMessage, Message, Message, Message] = new BidiShape(remoteIn, appOut, appIn, remoteOut)
 

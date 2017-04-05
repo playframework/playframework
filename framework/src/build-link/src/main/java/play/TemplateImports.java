@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -10,6 +10,7 @@ import java.util.List;
 
 public class TemplateImports {
 
+  public static List<String> minimalJavaTemplateImports;
   public static List<String> defaultJavaTemplateImports;
   public static List<String> defaultScalaTemplateImports;
 
@@ -23,18 +24,23 @@ public class TemplateImports {
     ));
 
   static {
-    List<String> javaImports = new ArrayList();
-    javaImports.addAll(defaultTemplateImports);
-    javaImports.add("java.lang._");
-    javaImports.add("java.util._");
-    javaImports.add("scala.collection.JavaConversions._");
-    javaImports.add("scala.collection.JavaConverters._");
-    javaImports.add("play.core.j.PlayMagicForJava._");
-    javaImports.add("play.mvc._");
-    javaImports.add("play.data._");
-    javaImports.add("play.api.data.Field");
-    javaImports.add("play.mvc.Http.Context.Implicit._");
-    defaultJavaTemplateImports = Collections.unmodifiableList(javaImports);
+    List<String> minimalJavaImports = new ArrayList();
+    minimalJavaImports.addAll(defaultTemplateImports);
+    minimalJavaImports.add("java.lang._");
+    minimalJavaImports.add("java.util._");
+    minimalJavaImports.add("scala.collection.JavaConversions._");
+    minimalJavaImports.add("scala.collection.JavaConverters._");
+    minimalJavaImports.add("play.core.j.PlayMagicForJava._");
+    minimalJavaImports.add("play.mvc._");
+    minimalJavaImports.add("play.api.data.Field");
+    minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
+    minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
+
+    List<String> defaultJavaImports = new ArrayList();
+    defaultJavaImports.addAll(minimalJavaTemplateImports);
+    defaultJavaImports.add("play.data._");
+    defaultJavaImports.add("play.core.j.PlayFormsMagicForJava._");
+    defaultJavaTemplateImports = Collections.unmodifiableList(defaultJavaImports);
 
     List<String> scalaImports = new ArrayList();
     scalaImports.addAll(defaultTemplateImports);

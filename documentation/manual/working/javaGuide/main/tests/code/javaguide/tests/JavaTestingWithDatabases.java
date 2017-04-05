@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.tests;
 
@@ -36,7 +36,7 @@ public class JavaTestingWithDatabases {
                     "com.mysql.jdbc.Driver",
                     "jdbc:mysql://localhost/test",
                     ImmutableMap.of(
-                            "user", "test",
+                            "username", "test",
                             "password", "secret"
                     )
             );

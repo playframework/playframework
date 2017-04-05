@@ -1,4 +1,5 @@
 ScalaHome:Section introduction
+config:Configuration API
 http:HTTP programming
 async:Asynchronous HTTP programming
 templates:The Twirl template engine
@@ -10,7 +11,7 @@ sql:Accessing an SQL database
 cache:Using the Cache
 ws:Calling WebServices
 akka:Integrating with Akka
-i18n:Internationalization
+i18n:Internationalization with Messages
 dependencyinjection:Dependency injection
 application:Application Settings
 tests:Testing your application

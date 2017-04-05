@@ -1,18 +1,28 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Using the SBT console
 
 ## Launching the console
 
 The SBT console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
-To launch the Play console, change to the directory of your project, and run SBT (or `activator` in place of the `sbt` command):
+To launch the Play console, change to the directory of your project, and run `sbt`:
 
 ```bash
 $ cd my-first-app
 $ sbt
 ```
 
-[[images/console.png]]
+And you will see something like:
+
+```bash
+[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Updating {file:/Users/play-developer/my-first-app/project/}my-first-app-build...
+[info] Resolving org.fusesource.jansi#jansi;1.4 ...
+[info] Done updating.
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+[my-first-app] $
+```
 
 ## Getting help
 
@@ -30,7 +40,21 @@ To run the current application in development mode, use the `run` command:
 [my-first-app] $ run
 ```
 
-[[images/consoleRun.png]]
+And you will see something like:
+
+```bash
+$ sbt
+[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+[my-first-app] $ run
+
+--- (Running the application, auto-reloading is enabled) ---
+
+[info] p.c.s.NettyServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+
+(Server started, use Ctrl+D to stop and go back to the console...)
+```
 
 In this mode, the server will be launched with the auto-reload feature enabled, meaning that for each request Play will check your project and recompile required sources. If needed the application will restart automatically.
 
@@ -38,17 +62,41 @@ If there are any compilation errors you will see the result of the compilation d
 
 [[images/errorPage.png]]
 
-To stop the server, type `Crtl+D` key, and you will be returned to the Play console prompt.
+To stop the server, type `Ctrl+D` key (or `Enter` key), and you will be returned to the Play console prompt.
 
 ## Compiling
 
-In Play you can also compile your application without running the server. Just use the `compile` command:
+In Play you can also compile your application without running the server. Just use the `compile` command. It shows any compilation problems your app may have:
 
 ```bash
 [my-first-app] $ compile
 ```
 
-[[images/consoleCompile.png]]
+And you will see something like:
+
+```bash
+[my-first-app] $ compile
+[info] Compiling 1 Scala source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
+[error] /Users/play-developer/my-first-app/app/controllers/HomeController.scala:21: not found: value Actionx
+[error]   def index = Actionx { implicit request =>
+[error]               ^
+[error] one error found
+[error] (compile:compileIncremental) Compilation failed
+[error] Total time: 1 s, completed Feb 6, 2017 2:00:07 PM
+[my-first-app] $
+```
+
+And, if there are no errors with your code, you will see:
+
+```bash
+[my-first-app] $ compile
+[info] Updating {file:/Users/play-developer/my-first-app/}root...
+[info] Resolving jline#jline;2.12.1 ...
+[info] Done updating.
+[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
+[success] Total time: 3 s, completed Feb 6, 2017 2:01:31 PM
+[my-first-app] $
+```
 
 ## Running the tests
 
@@ -70,14 +118,12 @@ To start application inside scala console (e.g. to access database):
 
 @[consoleapp](code/PlayConsole.scala)
 
-[[images/consoleEval.png]]
-
 ## Debugging
 
 You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `sbt -jvm-debug <port>` command to do that:
 
 ```bash
-$ activator -jvm-debug 9999
+$ sbt -jvm-debug 9999
 ```
 
 When a JPDA port is available, the JVM will log this line during boot:
@@ -112,6 +158,14 @@ You can also do the same for `~ test`, to continuously test your project each ti
 [my-first-app] $ ~ test
 ```
 
+This could be especially useful if you want to run just a small set of your tests using `testOnly` command. For instance:
+
+```bash
+[my-first-app] $ ~ testOnly com.acme.SomeClassTest 
+```
+
+Will trigger the execution of `com.acme.SomeClassTest` test every time you modify a source file.
+
 ## Using the play commands directly
 
 You can also run commands directly without entering the Play console. For example, enter `sbt run`:
@@ -125,10 +179,10 @@ $ sbt run
 
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
-(Server started, use Ctrl+D to stop and go back to the console...)
+(Server started, use Enter to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
+The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -39,7 +39,7 @@ public abstract class EssentialAction
     @Override
     public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result> apply(play.api.mvc.RequestHeader rh) {
         return apply(new RequestHeaderImpl(rh))
-            .map(Result::asScala, Execution.internalContext())
+            .map(Result::asScala, Execution.trampoline())
             .asScala();
     }
 

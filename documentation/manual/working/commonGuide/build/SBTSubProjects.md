@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Working with sub-projects
 
 A complex project is not necessarily composed of a single Play application. You may want to split a large project into several smaller applications, or even extract some logic into a standard Java or Scala library that has nothing to do with a Play application.
@@ -141,7 +141,7 @@ lazy val main = (project in file("."))
 name := "myadmin"
 
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "5.1.36",
+  "mysql" % "mysql-connector-java" % "5.1.41",
   jdbc,
   anorm
 )

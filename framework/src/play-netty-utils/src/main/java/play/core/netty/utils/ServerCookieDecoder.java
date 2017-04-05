@@ -20,11 +20,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * A <a href="http://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used server side.
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used server side.
  *
  * Only name and value fields are expected, so old fields are not populated (path, domain, etc).
  *
- * Old <a href="http://tools.ietf.org/html/rfc2965">RFC2965</a> cookies are still supported,
+ * Old <a href="https://tools.ietf.org/html/rfc2965">RFC2965</a> cookies are still supported,
  * old fields will simply be ignored.
  *
  * @see ServerCookieEncoder
@@ -57,6 +57,7 @@ public final class ServerCookieDecoder extends CookieDecoder {
     /**
      * Decodes the specified Set-Cookie HTTP header value into a {@link Cookie}.
      *
+     * @param header    the Set-Cookie header.
      * @return the decoded {@link Cookie}
      */
     public Set<Cookie> decode(String header) {

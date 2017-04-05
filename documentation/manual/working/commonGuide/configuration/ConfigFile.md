@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
@@ -9,6 +9,8 @@ As well as the `application.conf` file, configuration comes from a couple of oth
 
 * Default settings are loaded from any `reference.conf` files found on the classpath. Most Play JARs include a `reference.conf` file with default settings. Settings in `application.conf` will override settings in `reference.conf` files.
 * It's also possible to set configuration using system properties. System properties override `application.conf` settings.
+
+The idiomatic way to use Config is to to have all configuration keys defined somewhere, either in `reference.conf` or `application.conf`. If the key does not have a reasonable default value, it is usually set to `null` to signify "no value".
 
 ## Specifying an alternative configuration file
 

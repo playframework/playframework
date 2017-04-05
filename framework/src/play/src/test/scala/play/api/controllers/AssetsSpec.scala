@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
 import java.time.Instant
 
 import org.specs2.mutable.Specification
+import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, FileMimeTypesConfiguration }
 import play.api.mvc.ResponseHeader
-import play.api.{ Environment, Configuration, Mode }
 import play.utils.InvalidUriEncodingException
 
 class AssetsSpec extends Specification {
@@ -105,7 +105,9 @@ class AssetsSpec extends Specification {
 
     "use the unescaped path when finding the last modified date of an asset" in {
       val url = this.getClass.getClassLoader.getResource("file withspace.css")
-      val assetInfo = new AssetInfo("file withspace.css", url, None, None, AssetsConfiguration())
+      implicit val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration()).get
+
+      val assetInfo = new AssetInfo("file withspace.css", url, None, None, AssetsConfiguration(), fileMimeTypes)
       val lastModified = ResponseHeader.httpDateFormat.parse(assetInfo.lastModified.get)
       // If it uses the escaped path, the file won't be found, and so last modified will be 0
       Instant.from(lastModified).toEpochMilli must_!= 0

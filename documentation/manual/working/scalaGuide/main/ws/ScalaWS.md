@@ -1,11 +1,13 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Play WS API
 
-Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/package.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
+Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/), which provides a way to make asynchronous HTTP calls through a WSClient instance.
 
 There are two important parts to using the WSClient: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WSClient.  Finally, we'll discuss some common use cases.
 
-## Making a Request
+> **Note**: In Play 2.6, Play WS has been split into two, with an underlying standalone client that does not depend on Play, and a wrapper on top that uses Play specific classes.  In addition, shaded versions of AsyncHttpClient and Netty are now used in Play WS to minimize library conflicts, primarily so that Play's HTTP engine can use a different version of Netty.  Please see the [[2.6 migration guide|WSMigration26]] for more information.
+
+## Adding WS to project
 
 To use WSClient, first add `ws` to your `build.sbt` file:
 
@@ -15,11 +17,11 @@ libraryDependencies ++= Seq(
 )
 ```
 
+## Making a Request
+
 Now any component that wants to use WS will have to declare a dependency on the `WSClient`:
 
 @[dependency](code/ScalaWSSpec.scala)
-
-> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using `play.api.libs.concurrent.Timeout` and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 We've called the `WSClient` instance `ws`, all the following examples will assume this name.
 
@@ -39,7 +41,7 @@ This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs
 
 ### Request with authentication
 
-If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an [AuthScheme](api/scala/play/api/libs/ws/WSAuthScheme.html).  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
+If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `AuthScheme`.  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
 
 @[auth-request](code/ScalaWSSpec.scala)
 
@@ -117,7 +119,7 @@ The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[Byte
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.api.libs.ws.WSRequestFilter`](api/scala/play/api/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.api.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
 A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
 
@@ -154,11 +156,11 @@ The examples also use the following case class for serialization/deserialization
 
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](api/scala/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
-The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](api/scala/play/api/libs/json/Reads.html) directly to a class:
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Reads.html) directly to a class:
 
 @[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
 
@@ -210,11 +212,15 @@ When making a request from a controller, you can map the response to a `Future[R
 
 If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The best way to do this is with Play's [[non-blocking Timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html).
 
+### Using WSClient with unreliable networks
+
+If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
+
 ## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
 
-However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options. 
+However, if you choose, you can instantiate a `WSClient` directly from code and use this for making requests or for configuring underlying `AsyncHttpClient` options.
 
 > **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
 
@@ -226,7 +232,7 @@ Creating a client directly means that you can also change configuration at the A
 
 @[ws-custom-client](code/ScalaWSSpec.scala)
 
-You can also use [`play.api.test.WsTestClient.withTestClient`](api/scala/play/api/test/WsTestClient.html) to create an instance of `WSClient` in a functional test.  See [[ScalaTestingWebServiceClients]] for more details. 
+You can also use [`play.api.test.WsTestClient.withTestClient`](api/scala/play/api/test/WsTestClient.html) to create an instance of `WSClient` in a functional test.  See [[ScalaTestingWebServiceClients]] for more details.
 
 Or, you can run the `WSClient` completely standalone without involving a running Play application at all:
 
@@ -237,6 +243,16 @@ Again, once you are done with your custom client work, you **must** close the cl
 @[close-client](code/ScalaWSSpec.scala)
 
 Ideally, you should close a client after you know all requests have been completed.  Be careful of using an automatic resource management pattern to close the client, because WSClient logic is asynchronous and many ARM solutions may be designed for a single threaded synchronous solution.
+
+## Standalone WS
+
+If you want to call WS outside of the context of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
+```
+
+Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
 
 ## Accessing AsyncHttpClient
 

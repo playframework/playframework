@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.routing
 
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.mvc._
-import play.api.routing.Router
+import play.api.routing.{ HandlerDef, Router }
 import play.core.j.{ JavaAction, JavaHandler }
 import play.core.test.FakeRequest
 
@@ -72,7 +72,7 @@ object GeneratedRouterSpec extends Specification {
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteController) must_== "ControllerClassName"
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteActionMethod) must_== "handler"
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteComments) must_== "Comment"
-        preprocessedRequest.attr(play.api.routing.Router.HandlerDefAttr) must_== handlerDef
+        preprocessedRequest.attrs(play.api.routing.Router.Attrs.HandlerDef) must_== handlerDef
       }
     }
 
@@ -99,7 +99,7 @@ object GeneratedRouterSpec extends Specification {
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteController) must_== controller.getClass.getName
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteActionMethod) must_== "index"
         preprocessedRequest.tags(play.api.routing.Router.Tags.RouteComments) must_== "Comment"
-        preprocessedRequest.attr(play.api.routing.Router.HandlerDefAttr) must_== handlerDef
+        preprocessedRequest.attrs(play.api.routing.Router.Attrs.HandlerDef) must_== handlerDef
       }
     }
 

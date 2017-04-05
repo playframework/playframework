@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Overview of the build system
 
 The Play build system uses [sbt](http://www.scala-sbt.org/), a high-performance integrated build for Scala and Java projects.  Using `sbt` as our build tool brings certain requirements to play which are explained on this page.
@@ -13,7 +13,7 @@ The documentation here describes Play's usage of sbt at a very high level.  As y
 
 ## Play application directory structure
 
-Most people get started with Play using on of our [example templates](https://playframework.com/download#examples), or with the `activator new` command, which generally produce a directory structure like this:
+Most people get started with Play using on of our [example templates](https://playframework.com/download#examples), or with the `sbt new` command, which generally produce a directory structure like this:
 
 - `/`: The root folder of your application
 - `/README`: A text file describing your application that will get deployed with it.
@@ -26,17 +26,19 @@ Most people get started with Play using on of our [example templates](https://pl
 
 For now, we are going to concern ourselves with the `/build.sbt` file and the `/project` directory.
 
+> **Tip**: See the complete [[anatomy of a Play application here|Anatomy]].
+
 ## The `/build.sbt` file.
 
 An SBT build file for Play generally looks something like this:
 
 @[default](code/build.sbt)
 
-The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`. In Activator this is derived from the argument that you gave to the `activator new` command.
+The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`. In sbt this is derived from the argument that you gave to the `sbt new` command.
 
 The `version` line provides  the version of your application which is used as part of the name for the artifacts your build will produce.
 
-The `libraryDependencies` line specifies the libraries that your application depends on. More on this below.
+The `libraryDependencies` line specifies the libraries that your application depends on. You can see more details about [how to manage your dependencies in the sbt docs](http://www.scala-sbt.org/0.13/docs/Library-Management.html).
 
 You should use the `PlayJava` or `PlayScala` plugin to configure sbt for Java or Scala respectively.
 
@@ -73,4 +75,4 @@ The Play console and all of its development features like live reloading are imp
 ```scala
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. "%PLAY_VERSION%"
 ```
-> Note that `build.properties` and `plugins.sbt` must be manually updated when you are changing the play version.
+> **Note**: `build.properties` and `plugins.sbt` must be manually updated when you are changing the play version.

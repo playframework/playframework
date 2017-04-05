@@ -1,11 +1,18 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.advanced.routing;
 
+import org.junit.Before;
 import org.junit.Test;
 
 //#imports
+import javax.inject.Inject;
+
+import play.api.mvc.AnyContent;
+import play.api.mvc.BodyParser;
+import play.api.mvc.PlayBodyParsers;
+import play.core.j.JavaContextComponents;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 import java.util.concurrent.CompletableFuture;
@@ -21,10 +28,18 @@ import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
 public class JavaRoutingDsl extends WithApplication {
+
+    private RoutingDsl routingDsl;
+
+    @Before
+    public void initializeRoutingDsl() {
+        this.routingDsl = app.injector().instanceOf(RoutingDsl.class);
+    }
+
     @Test
     public void simple() {
         //#simple
-        Router router = new RoutingDsl()
+        Router router = routingDsl
             .GET("/hello/:to").routeTo(to ->
                     ok("Hello " + to)
             )
@@ -37,7 +52,7 @@ public class JavaRoutingDsl extends WithApplication {
     @Test
     public void fullPath() {
         //#full-path
-        Router router = new RoutingDsl()
+        Router router = routingDsl
             .GET("/assets/*file").routeTo(file ->
                 ok("Serving " + file)
             )
@@ -50,7 +65,7 @@ public class JavaRoutingDsl extends WithApplication {
     @Test
     public void regexp() {
         //#regexp
-        Router router = new RoutingDsl()
+        Router router = routingDsl
             .GET("/api/items/$id<[0-9]+>").routeTo(id ->
                 ok("Getting item " + id)
             )
@@ -63,7 +78,7 @@ public class JavaRoutingDsl extends WithApplication {
     @Test
     public void integer() {
         //#integer
-        Router router = new RoutingDsl()
+        Router router = routingDsl
             .GET("/api/items/:id").routeTo((Integer id) ->
                 ok("Getting item " + id)
             )
@@ -76,7 +91,7 @@ public class JavaRoutingDsl extends WithApplication {
     @Test
     public void async() {
         //#async
-        Router router = new RoutingDsl()
+        Router router = routingDsl
             .GET("/api/items/:id").routeAsync((Integer id) ->
                 CompletableFuture.completedFuture(ok("Getting item " + id))
             )
@@ -87,11 +102,40 @@ public class JavaRoutingDsl extends WithApplication {
     }
 
     private String makeRequest(Router router, String method, String path) {
-        Result result = routeAndCall(router, fakeRequest(method, path));
+        Result result = routeAndCall(app, router, fakeRequest(method, path));
         if (result == null) {
             return null;
         } else {
             return contentAsString(result);
         }
+    }
+
+    //#inject
+    public class MyComponent {
+
+        private final RoutingDsl routingDsl;
+
+        @Inject
+        public MyComponent(RoutingDsl routing) {
+            this.routingDsl = routing;
+        }
+    }
+    //#inject
+
+    @Test
+    public void createNewRoutingDsl() {
+        BodyParser<AnyContent> bodyParser = app.injector().instanceOf(PlayBodyParsers.class).defaultBodyParser();
+        JavaContextComponents javaContextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+        //#new-routing-dsl
+        RoutingDsl routingDsl = new RoutingDsl(bodyParser, javaContextComponents);
+        //#new-routing-dsl
+        Router router = routingDsl
+                .GET("/hello/:to").routeTo(to ->
+                        ok("Hello " + to)
+                )
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
     }
 }

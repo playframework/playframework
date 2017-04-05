@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import play.ApplicationLoader;
 import play.api.inject.BindingKey;
 import play.api.inject.guice.GuiceableModule;
 import play.api.inject.guice.GuiceableModule$;
 import play.inject.guice.GuiceApplicationLoader;
-import scala.collection.JavaConversions;
 
 import java.util.ArrayList;
 import java.util.Arrays;

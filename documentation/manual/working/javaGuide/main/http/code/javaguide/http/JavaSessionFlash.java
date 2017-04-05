@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.*;
-import play.Application;
-import play.libs.Json;
+import play.core.j.JavaHandlerComponents;
 import play.test.WithApplication;
 import javaguide.testhelpers.MockJavaAction;
 
@@ -24,7 +22,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void readSession() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-session
                     public Result index() {
                         String user = session("connected");
@@ -41,7 +39,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void storeSession() {
-        Session session = call(new MockJavaAction() {
+        Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-session
             public Result login() {
                 session("connected", "user@gmail.com");
@@ -54,7 +52,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void removeFromSession() {
-        Session session = call(new MockJavaAction() {
+        Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#remove-from-session
             public Result logout() {
                 session().remove("connected");
@@ -67,7 +65,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void discardWholeSession() {
-        Session session = call(new MockJavaAction() {
+        Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#discard-whole-session
             public Result logout() {
                 session().clear();
@@ -80,7 +78,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void readFlash() {
-        assertThat(contentAsString(call(new MockJavaAction() {
+        assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-flash
                     public Result index() {
                         String message = flash("success");
@@ -96,7 +94,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void storeFlash() {
-        Flash flash = call(new MockJavaAction() {
+        Flash flash = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-flash
             public Result save() {
                 flash("success", "The item has been created");
@@ -109,7 +107,7 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void accessFlashInTemplate() {
-        MockJavaAction index = new MockJavaAction() {
+        MockJavaAction index = new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             public Result index() {
                 return ok(javaguide.http.views.html.index.render());
             }

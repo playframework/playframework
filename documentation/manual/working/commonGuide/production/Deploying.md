@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying your application
 
 We have seen how to run a Play application in development mode, however the `run` command should not be used to run an application in production mode.  When using `run`, on each request, Play checks with sbt to see if any files have changed, and this may have significant performance impacts on your application.
@@ -7,11 +7,11 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 ## The application secret
 
-Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dapplication.secret=abcdefghijk`.  You must generate your own secret to use here.
+Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=abcdefghijk`.  You must generate your own secret to use here.
 
 ## Using the dist task
 
-The dist task builds a binary version of your application that you can deploy to a server without any dependency on SBT or Activator, the only thing the server needs is a Java installation.
+The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on SBT, the only thing the server needs is a Java installation.
 
 In the Play console, simply type `dist`:
 
@@ -19,7 +19,34 @@ In the Play console, simply type `dist`:
 [my-first-app] $ dist
 ```
 
-[[images/dist.png]]
+And will see something like:
+
+```bash
+$ sbt
+[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+[my-first-app] $ dist
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sources.jar ...
+[info] Done packaging.
+[info] Wrote /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.pom
+[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.11/api...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-web-assets.jar ...
+[info] Done packaging.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.jar ...
+[info] Done packaging.
+model contains 21 documentable templates
+[info] Main Scala API documentation successful.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-javadoc.jar ...
+[info] Done packaging.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sans-externalized.jar ...
+[info] Done packaging.
+[info]
+[info] Your package is ready in /Users/play-developer/my-first-app/target/universal/my-first-app-1.0-SNAPSHOT.zip
+[info]
+[success] Total time: 5 s, completed Feb 6, 2017 2:08:44 PM
+[my-first-app] $
+```
 
 This produces a ZIP file containing all JAR files needed to run your application in the `target/universal` folder of your application.
 
@@ -27,7 +54,7 @@ To run the application, unzip the file on the target server, and then run the sc
 
 ```bash
 $ unzip my-first-app-1.0.zip
-$ my-first-app-1.0/bin/my-first-app -Dplay.crypto.secret=abcdefghijk
+$ my-first-app-1.0/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -80,7 +107,7 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/my-first-project.html#default-mappings)
+* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html#default-mappings)
 
 A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
 
@@ -159,14 +186,42 @@ In some circumstances, you may not want to create a full distribution, you may i
 $ sbt clean stage
 ```
 
-[[images/stage.png]]
+And you will see something like this:
+
+```bash
+$ sbt
+[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+[my-first-app] $ stage
+[info] Updating {file:/Users/play-developer/my-first-app/}root...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sources.jar ...
+[info] Done packaging.
+[info] Wrote /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.pom
+[info] Resolving jline#jline;2.12.1 ...
+[info] Done updating.
+[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.11/api...
+[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-web-assets.jar ...
+[info] Done packaging.
+model contains 21 documentable templates
+[info] Main Scala API documentation successful.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-javadoc.jar ...
+[info] Done packaging.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.jar ...
+[info] Done packaging.
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sans-externalized.jar ...
+[info] Done packaging.
+[success] Total time: 8 s, completed Feb 6, 2017 2:11:10 PM
+[my-first-app] $
+```
 
 This cleans and compiles your application, retrieves the required dependencies and copies them to the `target/universal/stage` directory. It also creates a `bin/<start>` script where `<start>` is the project's name. The script runs the Play server on Unix style systems and there is also a corresponding `bat` file for Windows.
 
 For example to start an application of the project `my-first-app` from the project folder you can:
 
 ```bash
-$ target/universal/stage/bin/my-first-app -Dplay.crypto.secret=abcdefghijk
+$ target/universal/stage/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -204,7 +259,7 @@ Now add the following configuration to your `build.sbt`:
 Now you can build the artifact by running `sbt assembly`, and run your application by running:
 
 ```
-$ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar -Dplay.crypto.secret=abcdefghijk
+$ java -Dplay.http.secret.key=abcdefghijk -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.

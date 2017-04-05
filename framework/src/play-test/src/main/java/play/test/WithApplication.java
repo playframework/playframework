@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
@@ -25,25 +25,34 @@ public class WithApplication {
     /**
      * Override this method to setup the application to use.
      *
-     * By default this will call the old {@link #provideFakeApplication() provideFakeApplication} method.
-     *
      * @return The application to use
      */
     protected Application provideApplication() {
-        return provideFakeApplication();
+        return Helpers.fakeApplication();
     }
 
     /**
+     * Provides an instance from the application.
      *
-     * Override this method to setup the fake application to use.
-     *
-     * @deprecated use the new {@link #provideApplication() provideApplication} method instead.
-     *
-     * @return The fake application to use
+     * @param clazz the type's class.
+     * @param <T> the type to return, using `app.injector.instanceOf`
+     * @return an instance of type T.
      */
-    @Deprecated
-    protected Application provideFakeApplication() {
-        return Helpers.fakeApplication();
+    protected <T> T instanceOf(Class<T> clazz) {
+        return app.injector().instanceOf(clazz);
+    }
+
+    /**
+     * Provides an instance from the application.
+     *
+     * @param clazz the type's class.
+     * @param <T> the type to return, using `app.injector.instanceOf`
+     * @return an instance of type T.
+     *
+     * @deprecated As of 2.6.0. Use {@link #instanceOf(Class)}.
+     */
+    <T> T inject(Class<T> clazz) {
+        return instanceOf(clazz);
     }
 
     @Before

@@ -30,9 +30,12 @@ public class DefaultCookie implements Cookie {
     private int maxAge = Integer.MIN_VALUE;
     private boolean secure;
     private boolean httpOnly;
+    private String sameSite;
 
     /**
      * Creates a new cookie with the specified name and value.
+     * @param name     The cookie's name
+     * @param value    The cookie's value.
      */
     public DefaultCookie(String name, String value) {
         if (name == null) {
@@ -101,6 +104,14 @@ public class DefaultCookie implements Cookie {
         this.secure = secure;
     }
 
+    public String sameSite() {
+        return sameSite;
+    }
+
+    public void setSameSite(String sameSite) {
+        this.sameSite = sameSite;
+    }
+
     public boolean isHttpOnly() {
         return httpOnly;
     }
@@ -147,6 +158,16 @@ public class DefaultCookie implements Cookie {
             return false;
         } else {
             return domain().equalsIgnoreCase(that.domain());
+        }
+
+        if (sameSite() == null) {
+            if (that.sameSite() != null) {
+                return false;
+            }
+        } else if (that.sameSite() == null) {
+            return false;
+        } else {
+            return sameSite().equalsIgnoreCase(that.sameSite());
         }
 
         return true;
@@ -221,6 +242,9 @@ public class DefaultCookie implements Cookie {
         }
         if (isHttpOnly()) {
             buf.append(", HTTPOnly");
+        }
+        if (sameSite() != null) {
+            buf.append(", SameSite=" + sameSite);
         }
         return buf.toString();
     }

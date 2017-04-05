@@ -1,9 +1,16 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
-import org.slf4j.{ Logger => Slf4jLogger, LoggerFactory }
+import java.util.concurrent.{ LinkedBlockingDeque, BlockingDeque, ConcurrentHashMap }
+import java.util.concurrent.atomic.AtomicInteger
+
+import org.slf4j.{ Logger => Slf4jLogger, LoggerFactory, Marker }
+
+import scala.collection.mutable
+import scala.language.implicitConversions
+import scala.collection.JavaConverters._
 
 /**
  * Typical logger interface.
@@ -20,38 +27,71 @@ trait LoggerLike {
    */
   lazy val underlyingLogger = logger
 
+  @inline def enabled: Boolean = true
+
   /**
    * `true` if the logger instance is enabled for the `TRACE` level.
    */
-  def isTraceEnabled = logger.isTraceEnabled
+  def isTraceEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
+    case None =>
+      logger.isTraceEnabled
+    case Some(marker) =>
+      logger.isTraceEnabled(marker)
+  })
 
   /**
    * `true` if the logger instance is enabled for the `DEBUG` level.
    */
-  def isDebugEnabled = logger.isDebugEnabled
+  def isDebugEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
+    case None =>
+      logger.isDebugEnabled
+    case Some(marker) =>
+      logger.isDebugEnabled(marker)
+  })
 
   /**
    * `true` if the logger instance is enabled for the `INFO` level.
    */
-  def isInfoEnabled = logger.isInfoEnabled
+  def isInfoEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
+    case None =>
+      logger.isInfoEnabled
+    case Some(marker) =>
+      logger.isInfoEnabled(marker)
+  })
 
   /**
    * `true` if the logger instance is enabled for the `WARN` level.
    */
-  def isWarnEnabled = logger.isWarnEnabled
+  def isWarnEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
+    case None =>
+      logger.isWarnEnabled()
+    case Some(marker) =>
+      logger.isWarnEnabled(marker)
+  })
 
   /**
    * `true` if the logger instance is enabled for the `ERROR` level.
    */
-  def isErrorEnabled = logger.isErrorEnabled
+  def isErrorEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
+    case None =>
+      logger.isErrorEnabled()
+    case Some(marker) =>
+      logger.isErrorEnabled(marker)
+  })
 
   /**
    * Logs a message with the `TRACE` level.
    *
    * @param message the message to log
+   * @param mc the implicit marker context, if defined.
    */
-  def trace(message: => String) {
-    if (logger.isTraceEnabled) logger.trace(message)
+  def trace(message: => String)(implicit mc: MarkerContext): Unit = {
+    if (isTraceEnabled) {
+      mc.marker match {
+        case None => logger.trace(message)
+        case Some(marker) => logger.trace(marker, message)
+      }
+    }
   }
 
   /**
@@ -59,18 +99,30 @@ trait LoggerLike {
    *
    * @param message the message to log
    * @param error the associated exception
+   * @param mc the implicit marker context, if defined.
    */
-  def trace(message: => String, error: => Throwable) {
-    if (logger.isTraceEnabled) logger.trace(message, error)
+  def trace(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
+    if (isTraceEnabled) {
+      mc.marker match {
+        case None => logger.trace(message, error)
+        case Some(marker) => logger.trace(marker, message, error)
+      }
+    }
   }
 
   /**
    * Logs a message with the `DEBUG` level.
    *
    * @param message the message to log
+   * @param mc the implicit marker context, if defined.
    */
-  def debug(message: => String) {
-    if (logger.isDebugEnabled) logger.debug(message)
+  def debug(message: => String)(implicit mc: MarkerContext): Unit = {
+    if (isDebugEnabled) {
+      mc.marker match {
+        case None => logger.debug(message)
+        case Some(marker) => logger.debug(marker, message)
+      }
+    }
   }
 
   /**
@@ -78,18 +130,30 @@ trait LoggerLike {
    *
    * @param message the message to log
    * @param error the associated exception
+   * @param mc the implicit marker context, if defined.
    */
-  def debug(message: => String, error: => Throwable) {
-    if (logger.isDebugEnabled) logger.debug(message, error)
+  def debug(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
+    if (isDebugEnabled) {
+      mc.marker match {
+        case None => logger.debug(message, error)
+        case Some(marker) => logger.debug(marker, message, error)
+      }
+    }
   }
 
   /**
    * Logs a message with the `INFO` level.
    *
    * @param message the message to log
+   * @param mc the implicit marker context, if defined.
    */
-  def info(message: => String) {
-    if (logger.isInfoEnabled) logger.info(message)
+  def info(message: => String)(implicit mc: MarkerContext): Unit = {
+    if (isInfoEnabled) {
+      mc.marker match {
+        case None => logger.info(message)
+        case Some(marker) => logger.info(marker, message)
+      }
+    }
   }
 
   /**
@@ -97,18 +161,30 @@ trait LoggerLike {
    *
    * @param message the message to log
    * @param error the associated exception
+   * @param mc the implicit marker context, if defined.
    */
-  def info(message: => String, error: => Throwable) {
-    if (logger.isInfoEnabled) logger.info(message, error)
+  def info(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
+    if (isInfoEnabled) {
+      mc.marker match {
+        case None => logger.info(message, error)
+        case Some(marker) => logger.info(marker, message, error)
+      }
+    }
   }
 
   /**
    * Logs a message with the `WARN` level.
    *
    * @param message the message to log
+   * @param mc the implicit marker context, if defined.
    */
-  def warn(message: => String) {
-    if (logger.isWarnEnabled) logger.warn(message)
+  def warn(message: => String)(implicit mc: MarkerContext): Unit = {
+    if (isWarnEnabled) {
+      mc.marker match {
+        case None => logger.warn(message)
+        case Some(marker) => logger.warn(marker, message)
+      }
+    }
   }
 
   /**
@@ -116,18 +192,30 @@ trait LoggerLike {
    *
    * @param message the message to log
    * @param error the associated exception
+   * @param mc the implicit marker context, if defined.
    */
-  def warn(message: => String, error: => Throwable) {
-    if (logger.isWarnEnabled) logger.warn(message, error)
+  def warn(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
+    if (isWarnEnabled) {
+      mc.marker match {
+        case None => logger.warn(message, error)
+        case Some(marker) => logger.warn(marker, message, error)
+      }
+    }
   }
 
   /**
    * Logs a message with the `ERROR` level.
    *
    * @param message the message to log
+   * @param mc the implicit marker context, if defined.
    */
-  def error(message: => String) {
-    if (logger.isErrorEnabled) logger.error(message)
+  def error(message: => String)(implicit mc: MarkerContext): Unit = {
+    if (isErrorEnabled) {
+      mc.marker match {
+        case None => logger.error(message)
+        case Some(marker) => logger.error(marker, message)
+      }
+    }
   }
 
   /**
@@ -135,9 +223,15 @@ trait LoggerLike {
    *
    * @param message the message to log
    * @param error the associated exception
+   * @param mc the implicit marker context, if defined.
    */
-  def error(message: => String, error: => Throwable) {
-    if (logger.isErrorEnabled) logger.error(message, error)
+  def error(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
+    if (isErrorEnabled) {
+      mc.marker match {
+        case None => logger.error(message, error)
+        case Some(marker) => logger.error(marker, message, error)
+      }
+    }
   }
 
 }
@@ -147,7 +241,24 @@ trait LoggerLike {
  *
  * @param logger the underlying SL4FJ logger
  */
-class Logger(val logger: Slf4jLogger) extends LoggerLike
+class Logger private (val logger: Slf4jLogger, isEnabled: => Boolean) extends LoggerLike {
+
+  def this(logger: Slf4jLogger) = this(logger, true)
+
+  @inline override def enabled = isEnabled
+
+  /**
+   * Get a logger that only works when the application is in the given mode(s).
+   *
+   * If the global application mode has not been set (by calling Logger.setApplicationMode), this has no effect.
+   */
+  def forMode(mode: Mode.Mode*): Logger = {
+    modeLoggerCache.getOrElseUpdate(mode, new Logger(logger, Logger.applicationMode.forall(mode.contains)))
+  }
+
+  private[this] val modeLoggerCache: mutable.Map[Seq[Mode.Mode], Logger] =
+    new ConcurrentHashMap[Seq[Mode.Mode], Logger]().asScala
+}
 
 /**
  * High-level API for logging operations.
@@ -162,12 +273,47 @@ class Logger(val logger: Slf4jLogger) extends LoggerLike
  * Logger("my.logger").info("Hello!")
  * }}}
  */
-object Logger extends LoggerLike {
+object Logger extends Logger(LoggerFactory.getLogger("application")) {
+
+  private[this] val log: Slf4jLogger = LoggerFactory.getLogger(getClass)
+
+  private[this] var _mode: Option[Mode.Mode] = None
+  private[this] val _appsRunning: AtomicInteger = new AtomicInteger(0)
 
   /**
-   * The 'application' logger.
+   * The global application mode currently being used by the logging API.
    */
-  val logger = LoggerFactory.getLogger("application")
+  def applicationMode: Option[Mode.Mode] = _mode
+
+  /**
+   * Set the global application mode used for logging. Used when the Play application starts.
+   */
+  def setApplicationMode(mode: Mode.Mode): Unit = {
+    val appsRunning = _appsRunning.incrementAndGet()
+    applicationMode foreach { currentMode =>
+      if (currentMode != mode) {
+        log.warn(s"Setting logging mode to $mode when it was previously set to $currentMode")
+        log.warn(s"There are currently $appsRunning applications running.")
+      }
+    }
+    _mode = Some(mode)
+  }
+
+  /**
+   * Unset the global application mode. Used when the application shuts down.
+   *
+   * If multiple applications are running
+   */
+  def unsetApplicationMode(): Unit = {
+    val appsRunning = _appsRunning.decrementAndGet()
+    if (appsRunning == 0) {
+      _mode = None
+    } else if (appsRunning < 0) {
+      log.warn("Cannot unset application mode because none was previously set")
+      _mode = None
+      _appsRunning.incrementAndGet()
+    }
+  }
 
   /**
    * Obtains a logger instance.
@@ -183,6 +329,85 @@ object Logger extends LoggerLike {
    * @param clazz a class whose name will be used as logger name
    * @return a logger
    */
-  def apply[T](clazz: Class[T]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
+  def apply(clazz: Class[_]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
 
+}
+
+/**
+ * A MarkerContext trait, to provide easy access to org.slf4j.Marker in Logger API.  This is usually accessed
+ * with a marker through an implicit conversion from a Marker.
+ *
+ * {{{
+ *   implicit val markerContext: MarkerContext = org.slf4j.MarkerFactory.getMarker("EXAMPLEMARKER")
+ *   log.error("This message will be logged with the EXAMPLEMARKER marker")
+ * }}}
+ *
+ */
+trait MarkerContext {
+  /**
+   * @return an SLF4J marker, if one has been defined.
+   */
+  def marker: Option[Marker]
+}
+
+object MarkerContext extends LowPriorityMarkerContextImplicits {
+
+  /**
+   * Provides an instance of a MarkerContext from a Marker.  The explicit form is useful when
+   * you want to explicitly tag a log message with a particular Marker and you already have a
+   * Marker in implicit scope.
+   *
+   * {{{
+   *   implicit val implicitContext: MarkerContext = ...
+   *   val explicitContext: MarkerContext = MarkerContext(MarkerFactory.getMarker("EXPLICITMARKER"))
+   *
+   *   // do not use the implicit MarkerContext
+   *   log.error("This message is logged with EXPLICITMARKER")(explicitContext)
+   * }}}
+   *
+   * @param marker the marker to wrap in DefaultMarkerContext
+   * @return an instance of DefaultMarkerContext.
+   */
+  def apply(marker: Marker): MarkerContext = {
+    new DefaultMarkerContext(marker)
+  }
+}
+
+trait LowPriorityMarkerContextImplicits {
+
+  /**
+   * A MarkerContext that returns None.  This is used as the "default" marker context if
+   * no implicit MarkerContext is found in local scope (meaning there is nothing defined
+   * through import or "implicit val").
+   */
+  implicit val NoMarker = MarkerContext(null)
+
+  /**
+   * Enables conversion from a marker to a MarkerContext:
+   *
+   * {{{
+   *  val mc: MarkerContext = MarkerFactory.getMarker("SOMEMARKER")
+   * }}}
+   *
+   * @param marker the SLF4J marker to convert
+   * @return the result of `MarkerContext.apply(marker)`
+   */
+  implicit def markerToMarkerContext(marker: Marker): MarkerContext = {
+    MarkerContext(marker)
+  }
+}
+
+/**
+ * A default marker context.  This is used by `MarkerContext.apply`, but can also be used to provide
+ * explicit typing for markers.  For example, to define a SecurityContext marker, you can define a case
+ * object extending DefaultMarkerContext
+ *
+ * {{{
+ * case object SecurityMarkerContext extends DefaultMarkerContext(MarkerFactory.getMarker("SECURITY"))
+ * }}}
+ *
+ * @param someMarker a marker used in the `marker` method.
+ */
+class DefaultMarkerContext(someMarker: Marker) extends MarkerContext {
+  def marker: Option[Marker] = Option(someMarker)
 }

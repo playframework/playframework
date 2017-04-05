@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -124,5 +125,12 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
   lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
+
+  lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
+    defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
+  )
+
+  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
+    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
 

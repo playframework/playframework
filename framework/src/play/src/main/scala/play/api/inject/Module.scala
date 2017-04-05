@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 
 import java.lang.reflect.Constructor
 import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+
+import org.apache.commons.lang3.reflect.ConstructorUtils
 import play.api._
+
 import scala.annotation.varargs
 import scala.reflect.ClassTag
 
@@ -130,14 +133,14 @@ object Modules {
       val moduleClass = loadModuleClass()
 
       def tryConstruct(args: AnyRef*): Option[T] = {
-        val ctor: Option[Constructor[T]] = try {
+        val constructor: Option[Constructor[T]] = try {
           val argTypes = args.map(_.getClass)
-          Some(moduleClass.getConstructor(argTypes: _*))
+          Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
         } catch {
           case _: NoSuchMethodException => None
           case _: SecurityException => None
         }
-        ctor.map(_.newInstance(args: _*))
+        constructor.map(_.newInstance(args: _*))
       }
 
       {

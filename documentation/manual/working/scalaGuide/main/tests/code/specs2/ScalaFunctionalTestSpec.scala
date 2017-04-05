@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.specs2
 
@@ -107,12 +107,12 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       browser.goTo("/")
 
       // Check the page
-      browser.$("#title").getTexts.get(0) must equalTo("Hello Guest")
+      browser.$("#title").text() must equalTo("Hello Guest")
 
       browser.$("a").click()
 
-      browser.url must equalTo("/login")
-      browser.$("#title").getTexts.get(0) must equalTo("Hello Coco")
+      browser.url must equalTo("login")
+      browser.$("#title").text() must equalTo("Hello Coco")
     }
     // #scalafunctionaltest-testwithbrowser
 

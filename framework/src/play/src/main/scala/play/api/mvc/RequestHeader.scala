@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -7,7 +7,8 @@ import java.security.cert.X509Certificate
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
 import play.api.i18n.Lang
-import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
+import play.api.libs.typedmap.{ TypedEntry, TypedMap }
+import play.api.mvc.request._
 
 import scala.annotation.implicitNotFound
 
@@ -16,30 +17,27 @@ import scala.annotation.implicitNotFound
  */
 @implicitNotFound("Cannot find any HTTP Request Header here")
 trait RequestHeader {
+  top =>
 
   /**
-   * The request ID.
+   * The remote connection that made the request.
    */
-  def id: Long
+  def connection: RemoteConnection
+
+  def withConnection(newConnection: RemoteConnection): RequestHeader =
+    new RequestHeaderImpl(newConnection, method, target, version, headers, attrs)
 
   /**
-   * The request Tags.
+   * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
    */
-  @deprecated("Use attributes instead (e.g. attr(), getAttr(), withAttr(), etc)", "2.6.0")
-  def tags: Map[String, String]
+  final def id: Long = attrs(RequestAttrKey.Id)
 
   /**
-   * The complete request URI, containing both path and query string.
-   * The URI is what was on the status line after the request method.
-   * E.g. in "GET /foo/bar?q=s HTTP/1.1" the URI should be /foo/bar?q=s.
-   * It could be absolute, some clients send absolute URLs, especially proxies.
+   * The request Tags. The request's tags are stored in an optional attribute indexed by
+   * [[play.api.mvc.request.RequestAttrKey.Tags]]. If the attribute is not present then the tags are assumed to be empty.
    */
-  def uri: String
-
-  /**
-   * The URI path.
-   */
-  def path: String
+  @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
+  final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
 
   /**
    * The HTTP method.
@@ -47,14 +45,54 @@ trait RequestHeader {
   def method: String
 
   /**
+   * Return a new copy of the request with its method changed.
+   */
+  def withMethod(newMethod: String): RequestHeader =
+    new RequestHeaderImpl(connection, newMethod, target, version, headers, attrs)
+
+  /**
+   * The target of the HTTP request, i.e. the URI or path that was
+   * given on the first line of the request.
+   */
+  def target: RequestTarget
+
+  /**
+   * Return a new copy of the request with its target changed.
+   */
+  def withTarget(newTarget: RequestTarget): RequestHeader =
+    new RequestHeaderImpl(connection, method, newTarget, version, headers, attrs)
+
+  /**
+   * The complete request URI, containing both path and query string.
+   * The URI is what was on the status line after the request method.
+   * E.g. in "GET /foo/bar?q=s HTTP/1.1" the URI should be /foo/bar?q=s.
+   * It could be absolute, some clients send absolute URLs, especially proxies,
+   * e.g. http://www.example.org/foo/bar?q=s.
+   *
+   * This method delegates to `target.uriString`.
+   */
+  final def uri: String = target.uriString
+
+  /**
+   * The URI path. This method delegates to `target.path`.
+   */
+  final def path: String = target.path
+
+  /**
    * The HTTP version.
    */
   def version: String
 
   /**
-   * The parsed query string.
+   * Return a new copy of the request with its HTTP version changed.
    */
-  def queryString: Map[String, Seq[String]]
+  def withVersion(newVersion: String): RequestHeader =
+    new RequestHeaderImpl(connection, method, target, newVersion, headers, attrs)
+
+  /**
+   * The parsed query string. This method delegates to `target.queryMap`.
+   */
+  final def queryString: Map[String, Seq[String]] = target.queryMap
 
   /**
    * The HTTP headers.
@@ -62,83 +100,58 @@ trait RequestHeader {
   def headers: Headers
 
   /**
+   * The remote connection that made the request.
+   */
+  def withHeaders(newHeaders: Headers): RequestHeader =
+    new RequestHeaderImpl(connection, method, target, version, newHeaders, attrs)
+
+  /**
    * The client IP address.
    *
    * retrieves the last untrusted proxy
    * from the Forwarded-Headers or the X-Forwarded-*-Headers.
    *
-   *
+   * This method delegates to `connection.remoteAddressString`.
    */
-  def remoteAddress: String
+  final def remoteAddress: String = connection.remoteAddressString
 
   /**
-   * Is the client using SSL?
+   * Is the client using SSL? This method delegates to `connection.secure`.
    */
-  def secure: Boolean
+  final def secure: Boolean = connection.secure
 
   /**
-   * The X509 certificate chain presented by a client during SSL requests.
+   * The X509 certificate chain presented by a client during SSL requests.  This method is
+   * equivalent to `connection.clientCertificateChain`.
    */
-  def clientCertificateChain: Option[Seq[X509Certificate]]
+  final def clientCertificateChain: Option[Seq[X509Certificate]] = connection.clientCertificateChain
 
   /**
-   * Get an attribute by its key or throw an exception if it's not
-   * present.
-   *
-   * Use this method if the attribute is expected to be present. If the
-   * attribute is optional then use [[getAttr()]] instead.
-   *
-   * @param key The attribute key.
-   * @tparam A The type of attribute.
-   * @return The attribute value, if it exists.
-   * @throws NoSuchElementException If the attribute doesn't exist.
+   * A map of typed attributes associated with the request.
    */
-  def attr[A](key: TypedKey[A]): A
+  def attrs: TypedMap
 
   /**
-   * Get an optional attribute by its key.
+   * Create a new version of this object with the given attributes attached to it.
+   * This replaces any existing attributes.
    *
-   * Use this method if the attribute is optional. If the attribute is
-   * always present then use [[attr()]] instead.
-   *
-   * @param key The attribute key.
-   * @tparam A The type of attribute.
-   * @return `Some` attribute value, if it exists, or `None` otherwise.
+   * @param newAttrs The new attributes to add.
+   * @return The new version of this object with the attributes attached.
    */
-  def getAttr[A](key: TypedKey[A]): Option[A]
-
-  /**
-   * Check if this object contains an attribute.
-   *
-   * @param key The attribute key to check for.
-   * @return True if the object contains the attribute, false otherwise.
-   */
-  def containsAttr(key: TypedKey[_]): Boolean
-
-  /**
-   * Create a new version of this object with an attribute added to it.
-   *
-   * @param key The attribute key.
-   * @param value The new attribute value.
-   * @tparam A The type of attribute.
-   * @return The new version of this object with the attribute added.
-   */
-  def withAttr[A](key: TypedKey[A], value: A): RequestHeader
-
-  /**
-   * Create a new version of this object with several attributes added to it.
-   *
-   * @param entries The new attributes to add.
-   * @return The new version of this object with the attributes added.
-   */
-  def withAttrs(entries: TypedEntry[_]*): RequestHeader
+  def withAttrs(newAttrs: TypedMap): RequestHeader =
+    new RequestHeaderImpl(connection, method, target, version, headers, newAttrs)
 
   // -- Computed
 
   /**
-   * Helper method to access a queryString parameter.
+   * Helper method to access a queryString parameter. This method delegates to `connection.getQueryParameter(key)`.
+   *
+   * @return The query parameter's value if the parameter is present
+   *         and there is only one value. If the parameter is absent
+   *         or there is more than one value for that parameter then
+   *         `None` is returned.
    */
-  def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+  def getQueryString(key: String): Option[String] = target.getQueryParameter(key)
 
   /**
    * True if this request has a body, so we know if we should trigger body parsing. The base implementation simply
@@ -151,7 +164,9 @@ trait RequestHeader {
   }
 
   /**
-   * The HTTP host (domain, optionally port)
+   * The HTTP host (domain, optionally port). This value is derived from the request target, if a hostname is present.
+   * If the target doesn't have a host then the `Host` header is used, if present. If that's not present then an
+   * empty string is returned.
    */
   lazy val host: String = {
     val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
@@ -162,7 +177,7 @@ trait RequestHeader {
   }
 
   /**
-   * The HTTP domain
+   * The HTTP domain. The domain part of the request's [[host]].
    */
   lazy val domain: String = host.split(':').head
 
@@ -191,24 +206,28 @@ trait RequestHeader {
   }
 
   /**
-   * The HTTP cookies.
+   * The HTTP cookies. The request's cookies are stored in an attribute indexed by
+   * [[play.api.mvc.request.RequestAttrKey.Cookies]]. The attribute uses a Cell to store the cookies,
+   * to allow them to be evaluated on-demand.
    */
-  lazy val cookies: Cookies = Cookies.fromCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE))
+  def cookies: Cookies = attrs(RequestAttrKey.Cookies).value
 
   /**
-   * Parses the `Session` cookie and returns the `Session` data.
+   * Parses the `Session` cookie and returns the `Session` data. The request's session cookie is stored in an attribute indexed by
+   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a Cell to store the session cookie, to allow it to be evaluated on-demand.
    */
-  lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
+  def session: Session = attrs(RequestAttrKey.Session).value
 
   /**
-   * Parses the `Flash` cookie and returns the `Flash` data.
+   * Parses the `Flash` cookie and returns the `Flash` data. The request's flash cookie is stored in an attribute indexed by
+   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session, to allow it to be evaluated on-demand.
    */
-  lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
+  def flash: Flash = attrs(RequestAttrKey.Flash).value
 
   /**
-   * Returns the raw query string.
+   * Returns the raw query string. This method delegates to `connection.rawQueryString`.
    */
-  lazy val rawQueryString: String = uri.split('?').drop(1).mkString("?")
+  def rawQueryString: String = target.queryString
 
   /**
    * The media type of this request.  Same as contentType, except returns a fully parsed media type with parameters.
@@ -245,40 +264,67 @@ trait RequestHeader {
    * @tparam A The type of the body.
    * @return A new request with the body attached to the header.
    */
-  def withBody[A](body: A): Request[A] = new RequestHeaderWithBody[A](this, body)
+  def withBody[A](body: A): Request[A] =
+    new RequestImpl[A](connection, method, target, version, headers, attrs, body)
 
   /**
    * Copy the request.
    */
+  @deprecated("Use the with* methods instead", "2.6.0")
   def copy(
-    id: Long = this.id,
-    tags: Map[String, String] = this.tags,
-    uri: String = this.uri,
-    path: String = this.path,
+    id: java.lang.Long = null,
+    tags: Map[String, String] = null,
+    uri: String = null,
+    path: String = null,
     method: String = this.method,
     version: String = this.version,
-    queryString: Map[String, Seq[String]] = this.queryString,
-    headers: Headers = this.headers,
-    remoteAddress: => String = this.remoteAddress,
-    secure: => Boolean = this.secure,
-    clientCertificateChain: Option[Seq[X509Certificate]] = this.clientCertificateChain): RequestHeader = {
-    new RequestHeaderImpl(
-      id = id,
-      tags = tags,
-      uri = uri,
-      path = path,
-      method = method,
-      version = version,
-      queryString = queryString,
-      headers = headers,
-      remoteAddressFunc = () => remoteAddress,
-      secureFunc = () => secure,
-      clientCertificateChain = clientCertificateChain,
-      attrMap = TypedMap.empty
-    )
+    queryString: Map[String, Seq[String]] = null,
+    headers: Headers = null,
+    remoteAddress: String = null,
+    secure: java.lang.Boolean = null,
+    clientCertificateChain: Option[Seq[X509Certificate]] = null): RequestHeader = {
+
+    var newHeader: RequestHeader = this
+
+    // We only need to modify the request when an argument is non-null.
+    if (id != null) {
+      newHeader = newHeader.withAttrs(newHeader.attrs.updated(RequestAttrKey.Id, (id: Long)))
+    }
+    if (tags != null) {
+      newHeader = newHeader.withAttrs(newHeader.attrs.updated(RequestAttrKey.Tags, tags))
+    }
+    if (uri != null) {
+      newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))
+    }
+    if (path != null) {
+      newHeader = newHeader.withTarget(newHeader.target.withPath(path))
+    }
+    if (method != null) {
+      newHeader = newHeader.withMethod(method)
+    }
+    if (queryString != null) {
+      newHeader = newHeader.withTarget(newHeader.target.withQueryString(queryString))
+    }
+    if (version != null) {
+      newHeader = newHeader.withVersion(version)
+    }
+    if (headers != null) {
+      newHeader = newHeader.withHeaders(headers)
+    }
+    if (remoteAddress != null) {
+      newHeader = newHeader.withConnection(RemoteConnection(remoteAddress, newHeader.secure, newHeader.clientCertificateChain))
+    }
+    if (secure != null) {
+      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, secure, newHeader.clientCertificateChain))
+    }
+    if (clientCertificateChain != null) {
+      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, newHeader.secure, clientCertificateChain))
+    }
+
+    newHeader
   }
 
-  override def toString = {
+  override def toString: String = {
     method + " " + uri
   }
 
@@ -307,156 +353,11 @@ object RequestHeader {
 
 /**
  * A standard implementation of a RequestHeader.
- *
- * @param remoteAddressFunc A function that evaluates to the remote address.
- * @param secureFunc A function that evaluates to the security status.
- * @param attrMap A map of the RequestHeader's typed attributes.
  */
 private[play] class RequestHeaderImpl(
-    override val id: Long,
-    override val tags: Map[String, String],
-    override val uri: String,
-    override val path: String,
-    override val method: String,
-    override val version: String,
-    override val queryString: Map[String, Seq[String]],
-    override val headers: Headers,
-    remoteAddressFunc: () => String,
-    secureFunc: () => Boolean,
-    override val clientCertificateChain: Option[Seq[X509Certificate]],
-    override protected val attrMap: TypedMap) extends RequestHeader with WithAttrMap[RequestHeader] {
-
-  def this(
-    id: Long,
-    tags: Map[String, String],
-    uri: String,
-    path: String,
-    method: String,
-    version: String,
-    queryString: Map[String, Seq[String]],
-    headers: Headers,
-    remoteAddress: String,
-    secure: Boolean,
-    clientCertificateChain: Option[Seq[X509Certificate]],
-    attrMap: TypedMap) = {
-    this(
-      id = id,
-      tags = tags,
-      uri = uri,
-      path = path,
-      method = method,
-      version = version,
-      queryString = queryString,
-      headers = headers,
-      remoteAddressFunc = () => remoteAddress,
-      secureFunc = () => secure,
-      clientCertificateChain = clientCertificateChain,
-      attrMap = attrMap
-    )
-  }
-
-  override lazy val remoteAddress: String = remoteAddressFunc()
-  override lazy val secure: Boolean = secureFunc()
-
-  override protected def withAttrMap(newAttrMap: TypedMap): RequestHeaderImpl = {
-    new RequestHeaderImpl(
-      id = id,
-      tags = tags,
-      uri = uri,
-      path = path,
-      method = method,
-      version = version,
-      queryString = queryString,
-      headers = headers,
-      remoteAddressFunc = () => remoteAddress,
-      secureFunc = () => secure,
-      clientCertificateChain = clientCertificateChain,
-      attrMap = newAttrMap
-    )
-  }
-}
-
-/**
- * Mixin to help build a RequestHeader that has attributes. This mixin
- * assumes the attributes are stored in a TypedMap.
- *
- * @tparam Repr The type of object to return when a copy is made.
- */
-private[play] trait WithAttrMap[+Repr <: RequestHeader] {
-  self: RequestHeader =>
-
-  /**
-   * The TypeMap holding this RequestHeader's attributes.
-   */
-  protected def attrMap: TypedMap
-
-  /**
-   * Create a new instance with a new set of attributes.
-   */
-  protected def withAttrMap(newAttrMap: TypedMap): Repr
-
-  // Mixin methods
-
-  override def attr[A](key: TypedKey[A]): A =
-    attrMap.apply(key)
-  override def getAttr[A](key: TypedKey[A]): Option[A] =
-    attrMap.get(key)
-  override def withAttr[A](key: TypedKey[A], value: A): Repr =
-    withAttrMap(attrMap.updated(key, value))
-  override def containsAttr(key: TypedKey[_]): Boolean =
-    attrMap.contains(key)
-  override def withAttrs(entries: TypedEntry[_]*): Repr =
-    withAttrMap(attrMap.+(entries: _*))
-}
-
-/**
- * A Request formed from a RequestHeader and a body value. Most methods are delegated
- * to the RequestHeader. This means that creating this object is very cheap because it
- * doesn't evaluate any of the RequestHeader methods when it's constructed.
- */
-private[play] class RequestHeaderWithBody[+A](
-    private[RequestHeaderWithBody] val rh: RequestHeader,
-    override val body: A) extends Request[A] {
-  override def id = rh.id
-  override def tags = rh.tags
-  override def headers = rh.headers
-  override def queryString = rh.queryString
-  override def path = rh.path
-  override def uri = rh.uri
-  override def method = rh.method
-  override def version = rh.version
-  override def remoteAddress = rh.remoteAddress
-  override def secure = rh.secure
-  override def clientCertificateChain = rh.clientCertificateChain
-
-  override def withBody[B](newBody: B): Request[B] = this match {
-    case wrapper: RequestHeaderWithBody[_] => new RequestHeaderWithBody(wrapper.rh, newBody)
-    case _ => new RequestHeaderWithBody(rh, newBody)
-  }
-  override def withAttr[B](key: TypedKey[B], value: B): Request[A] = new RequestHeaderWithBody(rh.withAttr(key, value), body)
-  override def withAttrs(entries: TypedEntry[_]*): Request[A] = new RequestHeaderWithBody(rh.withAttrs(entries: _*), body)
-  override def getAttr[A](key: TypedKey[A]): Option[A] = rh.getAttr(key)
-  override def attr[A](key: TypedKey[A]): A = rh.attr(key)
-  override def containsAttr(key: TypedKey[_]): Boolean = rh.containsAttr(key)
-}
-
-/**
- * A Request formed from a RequestHeader and a new set of attributes. Most methods are delegated
- * to the RequestHeader. This means that creating this object is very cheap because it
- * doesn't evaluate any of the RequestHeader methods when it's constructed.
- */
-private[play] class RequestHeaderWithAttributes(rh: RequestHeader, override val attrMap: TypedMap)
-    extends RequestHeader with WithAttrMap[RequestHeader] {
-  override def id = rh.id
-  override def tags = rh.tags
-  override def headers = rh.headers
-  override def queryString = rh.queryString
-  override def path = rh.path
-  override def uri = rh.uri
-  override def method = rh.method
-  override def version = rh.version
-  override def remoteAddress = rh.remoteAddress
-  override def secure = rh.secure
-  override def clientCertificateChain = rh.clientCertificateChain
-  override protected def withAttrMap(newAttrMap: TypedMap): RequestHeader = new RequestHeaderWithAttributes(rh, newAttrMap)
-}
+  override val connection: RemoteConnection,
+  override val method: String,
+  override val target: RequestTarget,
+  override val version: String,
+  override val headers: Headers,
+  override val attrs: TypedMap) extends RequestHeader

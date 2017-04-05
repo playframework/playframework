@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -15,6 +15,13 @@ import scala.language.reflectiveCalls
  * Helpers to create secure actions.
  */
 object Security {
+
+  private val logger = Logger(getClass)
+
+  /**
+   * The default error response for an unauthorized request; used multiple places here
+   */
+  private val DefaultUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -44,7 +51,8 @@ object Security {
    */
   def Authenticated[A](
     userinfo: RequestHeader => Option[A],
-    onUnauthorized: RequestHeader => Result)(action: A => EssentialAction): EssentialAction = {
+    onUnauthorized: RequestHeader => Result
+  )(action: A => EssentialAction): EssentialAction = {
 
     EssentialAction { request =>
       userinfo(request).map { user =>
@@ -56,11 +64,26 @@ object Security {
 
   }
 
+  def WithAuthentication[A](
+    userinfo: RequestHeader => Option[A]
+  )(action: A => EssentialAction): EssentialAction = {
+    Authenticated(userinfo, DefaultUnauthorized)(action)
+  }
+
   /**
    * Key of the username attribute stored in session.
    */
-  lazy val username: String =
-    Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String]("session.username")) getOrElse "username"
+  @deprecated("Security.username is deprecated.", "2.6.0")
+  lazy val username: String = {
+    Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String]("session.username")) match {
+      case Some(usernameKey) =>
+        logger.warn("The session.username configuration key is no longer supported.")
+        logger.warn("Inject Configuration into your controller or component and call get[String](\"session.username\")")
+        usernameKey
+      case None =>
+        "username"
+    }
+  }
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -84,9 +107,10 @@ object Security {
    *
    * @param action the action to wrap
    */
+  @deprecated("Use Authenticated(RequestHeader => Option[String])(String => EssentialAction)", "2.6.0")
   def Authenticated(action: String => EssentialAction): EssentialAction = Authenticated(
     req => req.session.get(username),
-    _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
+    DefaultUnauthorized)(action)
 
   /**
    * An authenticated request
@@ -197,13 +221,17 @@ object Security {
     def apply[U](
       userinfo: RequestHeader => Option[U],
       defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))(implicit ec: ExecutionContext): AuthenticatedBuilder[U] = {
+      onUnauthorized: RequestHeader => Result = DefaultUnauthorized
+    )(implicit ec: ExecutionContext): AuthenticatedBuilder[U] = {
       new AuthenticatedBuilder(userinfo, defaultParser, onUnauthorized)
     }
 
     /**
      * Simple authenticated action builder that looks up the username from the session
      */
+    @deprecated(
+      "Use AuthenticatedBuilder(RequestHeader => Option[String], BodyParser[AnyContent]); the first argument gets the username",
+      "2.6.0")
     def apply(defaultParser: BodyParser[AnyContent])(implicit ec: ExecutionContext): AuthenticatedBuilder[String] = {
       apply[String](req => req.session.get(username), defaultParser)
     }

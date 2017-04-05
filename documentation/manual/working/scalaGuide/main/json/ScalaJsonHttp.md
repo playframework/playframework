@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # JSON with HTTP
 
 Play supports HTTP requests and responses with a content type of JSON by using the HTTP API in combination with the JSON library.
@@ -62,10 +62,14 @@ Next we'll define the `Action`.
 This `Action` is more complicated than our list case. Some things to note:
 
 - This `Action` expects a request with a `Content-Type` header of `text/json` or `application/json` and a body containing a JSON representation of the entity to create.
-- It uses a JSON specific `BodyParser` which will parse the request and provide `request.body` as a `JsValue`. 
+- It uses a JSON specific `BodyParser` which will [[parse the request|ScalaBodyParsers]] and provide `request.body` as a `JsValue`. 
 - We used the `validate` method for conversion which will rely on our implicit `Reads[Place]`.
 - To process the validation result, we used a `fold` with error and success flows. This pattern may be familiar as it is also used for [[form submission|ScalaForms]].
 - The `Action` also sends JSON responses.
+
+Body parsers can be typed with a case class, an explicit `Reads` object or take a function. So we can offload even more of the work onto Play to make it automatically parse JSON to a case class and [[validate|ScalaJsonCombinators#Validation-with-Reads]] it before even calling our `Action`:
+
+@[handle-json-bodyparser-concise](code/ScalaJsonHttpSpec.scala)
 
 Finally we'll add a route binding in `conf/routes`:
 

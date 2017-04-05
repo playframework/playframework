@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.crypto;
 
@@ -32,4 +32,9 @@ public interface CookieSigner {
      * @return A hexadecimal encoded signature.
      */
     String sign(String message, byte[] key);
+
+    /**
+     * @return The Scala version for this cookie signer.
+     */
+    play.api.libs.crypto.CookieSigner asScala();
 }

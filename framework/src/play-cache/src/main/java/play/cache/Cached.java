@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.cache;
 import play.mvc.With;
@@ -8,6 +8,8 @@ import java.lang.annotation.*;
 
 /**
  * Mark an action to be cached on server side.
+ *
+ * @see CachedAction
  */
 @With(CachedAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.tests;
 
@@ -22,7 +22,7 @@ public class BrowserFunctionalTest extends WithBrowser {
     @Test
     public void runInBrowser() {
         browser.goTo("/");
-        assertNotNull(browser.$("title").getText());
+        assertNotNull(browser.$("title").text());
     }
 
 }

@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Managing library dependencies
 
-> **Note:** Some sections of this page were copied from sbt manual, specifically from the [Library Dependencies](http://www.scala-sbt.org/0.13/docs/Library-Dependencies.html) page. Please, for a most updated version.
+> **Note:** Some sections of this page were copied from the sbt manual, specifically from the [Library Dependencies](http://www.scala-sbt.org/0.13/docs/Library-Dependencies.html) page. You can refer to that page for a more detailed and updated version of the information here.
 
 ## Unmanaged dependencies
 
@@ -15,7 +15,7 @@ There's nothing to add to `build.sbt` to use unmanaged dependencies, although yo
 
 Play uses [Apache Ivy](http://ant.apache.org/ivy/) (via sbt) to implement managed dependencies, so if you're familiar with Maven or Ivy, you are already used to managed dependencies.
 
-Most of the time you can simply list your dependencies in the `build.sbt` file. 
+Most of the time you can simply list your dependencies in the `build.sbt` file.
 
 Declaring a dependency looks like this (defining `group`, `artifact` and `revision`):
 

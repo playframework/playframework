@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db.evolutions
 
@@ -67,6 +67,14 @@ trait EvolutionsApi {
    * @param schema The schema where all the play evolution tables are saved in
    */
   def resolve(db: String, revision: Int, schema: String): Unit
+
+  /**
+   * Apply pending evolutions for the given database.
+   */
+  def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
+    val scripts = this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema)
+    this.evolve(dbName, scripts, autocommit, schema)
+  }
 }
 
 /**

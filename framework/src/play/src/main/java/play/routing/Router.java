@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routing;
 
@@ -8,8 +8,10 @@ import java.util.Optional;
 
 import akka.japi.JavaPartialFunction;
 import play.api.mvc.Handler;
+import play.api.routing.HandlerDef;
 import play.api.routing.SimpleRouter$;
 import play.core.j.RequestHeaderImpl;
+import play.libs.typedmap.TypedKey;
 import play.mvc.Http.RequestHeader;
 
 /**
@@ -43,17 +45,47 @@ public interface Router {
         return play.api.routing.Router$.MODULE$.empty().asJava();
     }
 
+    /**
+     * Request attributes used by the router.
+     */
+    class Attrs {
+        /**
+         * Key for the {@link HandlerDef} used to handle the request.
+         */
+        public static final TypedKey<HandlerDef> HANDLER_DEF = new TypedKey<>(play.api.routing.Router.Attrs$.MODULE$.HandlerDef());
+    }
+
     // These should match those in play.api.routing.Router.Tags
     class Tags {
-        /** The verb that the router matched */
+        /**
+         * The verb that the router matched
+         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         */
+        @Deprecated
         public static final String ROUTE_VERB = "ROUTE_VERB";
-        /** The pattern that the router used to match the path */
+        /**
+         * The pattern that the router used to match the path
+         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         */
+        @Deprecated
         public static final String ROUTE_PATTERN = "ROUTE_PATTERN";
-        /** The controller that was routed to */
+        /**
+         * The controller that was routed to
+         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         */
+        @Deprecated
         public static final String ROUTE_CONTROLLER = "ROUTE_CONTROLLER";
-        /** The method on the controller that was invoked */
+        /**
+         * The method on the controller that was invoked
+         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         */
+        @Deprecated
         public static final String ROUTE_ACTION_METHOD = "ROUTE_ACTION_METHOD";
-        /** The comments in the routes file that were above the route */
+        /**
+         * The comments in the routes file that were above the route
+         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         */
+        @Deprecated
         public static final String ROUTE_COMMENTS = "ROUTE_COMMENTS";
     }
 

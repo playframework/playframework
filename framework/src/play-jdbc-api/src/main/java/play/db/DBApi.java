@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db;
 
@@ -11,14 +11,13 @@ import java.util.List;
 public interface DBApi {
 
     /**
-     * All configured databases.
+     * @return all configured databases.
      */
     public List<Database> getDatabases();
 
     /**
-     * Get database with given configuration name.
-     *
      * @param name the configuration name of the database
+     * @return Get database with given configuration name.
      */
     public Database getDatabase(String name);
 

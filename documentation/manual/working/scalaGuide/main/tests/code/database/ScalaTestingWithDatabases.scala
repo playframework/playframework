@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.testing.database
 
@@ -31,7 +31,7 @@ class ScalaTestingWithDatabases extends Specification {
         url = "jdbc:mysql://localhost/test",
         name = "mydatabase",
         config = Map(
-          "user" -> "test",
+          "username" -> "test",
           "password" -> "secret"
         )
       )
@@ -66,7 +66,7 @@ class ScalaTestingWithDatabases extends Specification {
           url = "jdbc:mysql://localhost/test",
           name = "mydatabase",
           config = Map(
-            "user" -> "test",
+            "username" -> "test",
             "password" -> "secret"
           )
         )(block)

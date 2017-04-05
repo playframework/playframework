@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -11,4 +11,12 @@ package object test {
    * Provided as an implicit by WithServer and WithBrowser.
    */
   type Port = Int
+
+  /**
+   * A structural type indicating there is an application.
+   */
+  type HasApp = {
+    def app: Application
+  }
+
 }

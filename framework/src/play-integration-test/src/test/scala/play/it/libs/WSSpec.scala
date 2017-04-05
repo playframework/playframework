@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.libs
 
@@ -11,11 +11,12 @@ import java.util.concurrent.TimeUnit
 
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
-import org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
+import play.shaded.ahc.org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 import play.api.http.Port
 import play.api.libs.json.JsString
 import play.api.libs.oauth._
 import play.api.libs.streams.Accumulator
+import play.api.libs.ws.WSBody
 import play.api.mvc.Results.Ok
 import play.api.mvc._
 import play.api.test._
@@ -239,8 +240,8 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
       body.path("file").textValue() must_== "This is a test asset."
     }
 
-    class CustomSigner extends WSSignatureCalculator with org.asynchttpclient.SignatureCalculator {
-      def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: org.asynchttpclient.RequestBuilderBase[_]) = {
+    class CustomSigner extends WSSignatureCalculator with play.shaded.ahc.org.asynchttpclient.SignatureCalculator {
+      def calculateAndAddSignature(request: play.shaded.ahc.org.asynchttpclient.Request, requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[_]) = {
         // do nothing
       }
     }
@@ -380,7 +381,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
-      def calculateAndAddSignature(request: org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {
+      def calculateAndAddSignature(request: play.shaded.ahc.org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {
         // do nothing
       }
     }

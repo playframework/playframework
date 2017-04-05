@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.websocket
 
@@ -9,14 +9,17 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.actor.{ Actor, Props, Status }
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import org.specs2.execute.{ AsResult, EventuallyResults }
 import org.specs2.matcher.Matcher
+import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
+import play.api.libs.ws.WSClient
 import play.api.mvc.{ Handler, Results, WebSocket }
+import play.api.routing.HandlerDef
 import play.api.test._
-import play.core.routing.HandlerDef
 import play.it._
 import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 
@@ -28,26 +31,9 @@ import scala.reflect.ClassTag
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
-// class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
-//
-// These tests fail in Netty because there is no close frame returned from runWebSocket.
-//
-// # testOnly play.it.http.websocket.NettyPingWebSocketOnlySpec
-//
-// # application.conf
-// play.server.netty.log.wire = true
-// logback.xml:
-//
-// <logger name="io.netty.handler" level="DEBUG"/>
-// <logger name="play.it.http.websocket" level="DEBUG"/>
-//
-// Best way to track it down is to add a LoggingHandler to
-// the context and see where the close frame gets eaten.
-// The server seems to send one out, but since WebsocketClient
-// is built on Netty, it's not impossible it could be eaten
-// before it gets to the flow.
-//
-// IntelliJ debugging directly against the spec seems to work well.
+class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+
 trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIntegrationSpecification with WebSocketSpecMethods {
 
   sequential
@@ -94,6 +80,14 @@ trait WebSocketSpec extends PlaySpecification
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
+
+  /*
+   * This is the flakiest part of the test suite -- the CI server will timeout websockets
+   * and fail tests seemingly at random.
+   */
+  override def aroundEventually[R: AsResult](r: => R) = {
+    EventuallyResults.eventually[R](5, 100.milliseconds)(r)
+  }
 
   sequential
 
@@ -189,6 +183,8 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
+      // we keep getting timeouts on this test
+      // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
         withServer(app => WebSocket.accept[String, String] { req =>
           Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
@@ -338,7 +334,8 @@ trait WebSocketSpec extends PlaySpecification
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  override implicit def defaultAwaitTimeout = 5.seconds
+  // Extend the default spec timeout for Travis CI.
+  override implicit def defaultAwaitTimeout = 10.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
     val currentApp = new AtomicReference[Application]
@@ -444,9 +441,9 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   }
 
   def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
-    withServer(app => webSocket(app)(FORBIDDEN)) { app =>
-      implicit val port = testServerPort
-      await(wsUrl("/stream").withHeaders(
+    withServer(app => webSocket(app)(FORBIDDEN)) { implicit app =>
+      val ws = app.injector.instanceOf[WSClient]
+      await(ws.url(s"http://localhost:$testServerPort/stream").withHeaders(
         "Upgrade" -> "websocket",
         "Connection" -> "upgrade",
         "Sec-WebSocket-Version" -> "13",

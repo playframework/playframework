@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf;
 
@@ -35,8 +35,8 @@ public interface CSRFErrorHandler {
         }
 
         @Override
-        public CompletionStage<Result> handle(Http.RequestHeader req, String msg) {
-            return FutureConverters.toJava(errorHandler.handle(req._underlyingHeader(), msg))
+        public CompletionStage<Result> handle(Http.RequestHeader requestHeader, String msg) {
+            return FutureConverters.toJava(errorHandler.handle(requestHeader.asScala(), msg))
                     .thenApply(play.api.mvc.Result::asJava);
         }
 

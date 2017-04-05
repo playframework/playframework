@@ -1,5 +1,5 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
-# Externalising messages and internationalization
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+# Internationalization with Messages
 
 ## Specifying languages supported by your application
 
@@ -19,7 +19,7 @@ You can externalize messages in the `conf/messages.xxx` files.
 
 The default `conf/messages` file matches all languages. You can specify additional language messages files, such as `conf/messages.fr` or `conf/messages.en-US`.
 
-You can retrieve messages for the _current language_ using the `play.i18n.Messages` object:
+You can retrieve messages for the _current language_ using the [`play.i18n.Messages`](api/java/play/i18n/Messages.html) object:
 
 @[current-lang-render](code/javaguide/i18n/JavaI18N.java)
 
@@ -36,17 +36,34 @@ If you don't want to use the current language you can specify a message's langua
 
 @[specify-lang-render](code/javaguide/i18n/JavaI18N.java)
 
+Note that you should inject the [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) class, using [[dependency injection|JavaDependencyInjection]].  For example, using Guice you would do the following:
+
+```
+public MyClass {
+    @javax.inject.Inject 
+    public MyClass(play.i18n.MessagesApi messagesApi) { ... }
+}
+```
+
+## Use in Controllers
+
+If you are in a Controller, you get the `Messages` instance through `Http.Context`, using `Http.Context.current().messages()`:
+
+@[show-context-messages](code/javaguide/i18n/JavaI18N.java)
+
 ## Use in templates
 
-You can use the `Messages.get` method from within a template. This will localize a message with the current language.
+Once you have the Messages object, you can pass it into the template:
 
-@[template](code/javaguide/i18n/hellotemplate.scala.html)
+@[template](code/javaguide/i18n/explicitjavatemplate.scala.html)
 
-You can also use the Scala `Messages` object from within templates. The Scala `Messages` object has a shorter form that's equivalent to `Messages.get` which many people find useful. If you use the Scala `Messages` object remember not to import the Java `play.i18n.Messages` class or they will conflict!
+You can also use the Scala `Messages` object from within templates. The Scala `Messages` object has a shorter form that's equivalent to `messages.at` which many people find useful.
+
+If you use the Scala `Messages` object remember not to import the Java `play.i18n.Messages` class or they will conflict!
 
 @[template](code/javaguide/i18n/helloscalatemplate.scala.html)
 
-Localized templates that use `Messages.get` or the Scala `Messages` object are invoked like normal:
+Localized templates that use `messages.at` or the Scala `Messages` object are invoked like normal:
 
 @[default-lang-render](code/javaguide/i18n/JavaI18N.java)
 

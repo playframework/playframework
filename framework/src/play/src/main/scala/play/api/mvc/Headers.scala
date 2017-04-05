@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -95,6 +95,11 @@ class Headers(protected var _headers: Seq[(String, String)]) {
 }
 
 object Headers {
+
+  /**
+   * For calling from Java.
+   */
+  def create() = new Headers(Seq.empty)
 
   def apply(headers: (String, String)*) = new Headers(headers)
 

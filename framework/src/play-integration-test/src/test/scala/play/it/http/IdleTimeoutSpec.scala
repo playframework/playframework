@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
@@ -66,7 +66,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 400L) must throwA[SocketException]
-    }
+    }.skipOnSlowCIServer
 
     "support a separate timeout for https" in withServer(1.second, httpsPort = Some(httpsPort), httpsTimeout = 400.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
@@ -77,13 +77,13 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses(1).status must_== 200
 
       doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]
-    }
+    }.skipOnSlowCIServer
 
     "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 1600L) must throwA[SocketException]
-    }
+    }.skipOnSlowCIServer
 
     "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
@@ -92,7 +92,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }
+    }.skipOnSlowCIServer
 
     "not timeout for slow requests with a multi-second timeout" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
@@ -101,7 +101,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }
+    }.skipOnSlowCIServer
   }
 
 }

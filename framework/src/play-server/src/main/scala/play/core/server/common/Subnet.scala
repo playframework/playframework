@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.common
 
 import java.net.InetAddress
+
+import com.google.common.net.InetAddresses
 
 private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
@@ -31,8 +33,8 @@ private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
 private[common] object Subnet {
   def apply(s: String): Subnet = s.split("/") match {
-    case Array(ip, subnet) => Subnet(InetAddress.getByName(ip), Some(subnet.toInt))
-    case Array(ip) => Subnet(InetAddress.getByName(ip))
+    case Array(ip, subnet) => Subnet(InetAddresses.forString(ip), Some(subnet.toInt))
+    case Array(ip) => Subnet(InetAddresses.forString(ip))
     case _ => throw new IllegalArgumentException(s"$s contains more than one '/'.")
   }
 

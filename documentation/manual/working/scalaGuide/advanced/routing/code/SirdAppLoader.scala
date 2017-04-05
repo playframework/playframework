@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -15,11 +15,11 @@ class SirdAppLoader extends ApplicationLoader {
   }
 }
 
-class SirdComponents(context: Context) extends BuiltInComponentsFromContext(context) {
+class SirdComponents(context: Context) extends BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
   lazy val router = Router.from {
-       case GET(p"/hello/$to") => Action {
-        Ok(s"Hello $to")
-        }
+    case GET(p"/hello/$to") => Action {
+      Ok(s"Hello $to")
+    }
   }
 }
 //#load

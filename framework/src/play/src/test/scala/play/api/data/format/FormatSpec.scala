@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.format
 
@@ -118,6 +118,40 @@ class FormatSpec extends Specification {
         { char => char must equalTo('X') }
       )
     }
+  }
+
+  "String parsing utility function" should {
+
+    val errorMessage = "error.parsing"
+
+    def parsingFunction[T](fu: String => T) = Formats.parsing(fu, errorMessage, Nil) _
+
+    val intParse: String => Int = Integer.parseInt
+
+    val testField = "field"
+    val testNumber = 1234
+
+    "parse an integer from a string" in {
+      parsingFunction(intParse)(testField, Map(testField -> testNumber.toString)).fold(
+        errors => "The parsing should not fail" must equalTo("Error"),
+        parsedInt => parsedInt mustEqual testNumber
+      )
+    }
+
+    "register a field error if string not parseable into an Int" in {
+      parsingFunction(intParse)(testField, Map(testField -> "notParseable")).fold(
+        errors => errors should containTheSameElementsAs(Seq(FormError(testField, errorMessage))),
+        parsedInt => "The parsing should fail" must equalTo("Error")
+      )
+    }
+
+    "register a field error if unexpected exception encountered during parsing" in {
+      parsingFunction(_ => throw new AssertionError)(testField, Map(testField -> testNumber.toString)).fold(
+        errors => errors should containTheSameElementsAs(Seq(FormError(testField, errorMessage))),
+        parsedInt => "The parsing should fail" must equalTo("Error")
+      )
+    }
+
   }
 
 }

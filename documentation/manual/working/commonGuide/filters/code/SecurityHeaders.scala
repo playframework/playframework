@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package detailedtopics.configuration.securityheaders
@@ -12,10 +12,11 @@ object SecurityHeaders {
   import play.api.http.DefaultHttpFilters
   import play.filters.headers.SecurityHeadersFilter
 
-  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends DefaultHttpFilters(securityHeadersFilter)
+  import play.api.mvc.Action
   //#filters
 
-  import play.api.mvc.Action
+  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends DefaultHttpFilters(securityHeadersFilter)
+
   import play.api.mvc.Results.Ok
   def index = Action {
   //#allowActionSpecificHeaders

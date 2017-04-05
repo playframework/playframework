@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.http;
 
@@ -12,12 +12,12 @@ import play.mvc.EssentialFilter;
 public interface HttpFilters {
 
     /**
-     * Return the filters that should filter every request
+     * @return the filters that should filter every request
      */
     EssentialFilter[] filters();
 
     /**
-     * Get a Scala HttpFilters object
+     * @return a Scala HttpFilters object
      */
     default play.api.http.HttpFilters asScala() {
         return new JavaHttpFiltersAdapter(this);

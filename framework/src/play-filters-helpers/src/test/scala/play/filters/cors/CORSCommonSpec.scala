@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.cors
 
@@ -49,6 +49,29 @@ trait CORSCommonSpec extends PlaySpecification {
         val result = route(app, FakeRequest().withHeaders(
           ORIGIN -> "http://www.example.com",
           HOST -> "www.example.com"
+        )).get
+
+        status(result) must_== OK
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+    }
+
+    val serveForbidden = Map(
+      "play.filters.cors.allowedOrigins" -> Seq("http://example.org"),
+      "play.filters.cors.serveForbiddenOrigins" -> "true")
+
+    "pass through requests with serve forbidden origins on and an origin header that is" in {
+      "invalid" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "file://"
+        )).get
+
+        status(result) must_== OK
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "forbidden" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "http://www.example.com"
         )).get
 
         status(result) must_== OK

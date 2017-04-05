@@ -1,25 +1,24 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.di.guice.configured;
 
+import com.typesafe.config.Config;
 import javaguide.di.*;
 
 //#dynamic-guice-module
 import com.google.inject.AbstractModule;
-import com.google.inject.ConfigurationException;
 import com.google.inject.name.Names;
-import play.Configuration;
 import play.Environment;
 
 public class Module extends AbstractModule {
 
     private final Environment environment;
-    private final Configuration configuration;
+    private final Config configuration;
 
     public Module(
           Environment environment,
-          Configuration configuration) {
+          Config configuration) {
         this.environment = environment;
         this.configuration = configuration;
     }
@@ -28,23 +27,24 @@ public class Module extends AbstractModule {
         // Expect configuration like:
         // hello.en = "myapp.EnglishHello"
         // hello.de = "myapp.GermanHello"
-        Configuration helloConf = configuration.getConfig("hello");
+        final Config helloConf = configuration.getConfig("hello");
         // Iterate through all the languages and bind the
         // class associated with that language. Use Play's
         // ClassLoader to load the classes.
-        for (String l: helloConf.subKeys()) {
+        helloConf.entrySet().forEach(entry -> {
             try {
-                String bindingClassName = helloConf.getString(l);
-                Class<? extends Hello> bindingClass =
-                  environment.classLoader().loadClass(bindingClassName)
-                  .asSubclass(Hello.class);
+                String name = entry.getKey();
+                Class<? extends Hello> bindingClass = environment
+                        .classLoader()
+                        .loadClass(entry.getValue().toString())
+                        .asSubclass(Hello.class);
                 bind(Hello.class)
-                        .annotatedWith(Names.named(l))
+                        .annotatedWith(Names.named(name))
                         .to(bindingClass);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            } catch (ClassNotFoundException ex) {
+              throw new RuntimeException(ex);
             }
-        }
+        });
     }
 }
 //#dynamic-guice-module

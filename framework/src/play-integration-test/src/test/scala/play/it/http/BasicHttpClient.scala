@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
@@ -10,6 +10,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 import org.apache.commons.io.IOUtils
+import play.api.http.HttpConfiguration
 import play.api.test.Helpers._
 import play.core.server.common.ServerResultUtils
 import play.core.utils.CaseInsensitiveOrdered
@@ -227,7 +228,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         headers.get(CONTENT_LENGTH).map { length =>
           readCompletely(length.toInt)
         } getOrElse {
-          if (ServerResultUtils.mayHaveEntity(status)) {
+          if (new ServerResultUtils(HttpConfiguration()).mayHaveEntity(status)) {
             consumeRemaining(reader)
           } else {
             ""

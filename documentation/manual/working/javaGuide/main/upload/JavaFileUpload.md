@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling file upload
 
 ## Uploading files in a form using `multipart/form-data`
@@ -22,6 +22,14 @@ Start by writing an HTML form:
 Now let’s define the `upload` action:
 
 @[syncUpload](code/JavaFileUpload.java)
+
+### Testing the file upload
+
+You can also write an automated JUnit test to your `upload` action:
+
+@[testSyncUpload](code/JavaFileUploadTest.java)
+
+Basically, we are creating a `Http.MultipartFormData.FilePart` that is required by `RequestBuilder` method `bodyMultipart`. Besides that, everything else is just like [[unit testing controllers|JavaTest#Unit-testing-controllers]].
 
 ## Direct file upload
 

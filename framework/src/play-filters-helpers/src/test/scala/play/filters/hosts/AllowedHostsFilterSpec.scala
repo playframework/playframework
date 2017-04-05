@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.hosts
 
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import play.api.http.HttpFilters
+import play.api.http.{ HeaderNames, HttpFilters }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results._
 import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Result }
-import play.api.routing.{ SimpleRouterImpl, Router }
+import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test.{ FakeRequest, PlaySpecification, TestServer }
 import play.api.{ Application, Configuration }
 
@@ -113,7 +113,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       """.stripMargin) { app =>
       status(request(app, "")) must_== OK
       status(request(app, "example.net")) must_== BAD_REQUEST
-      status(route(app, FakeRequest()).get) must_== OK
+      status(route(app, FakeRequest().withHeaders(HeaderNames.HOST -> "")).get) must_== OK
     }
 
     "support host headers with ports" in withApplication(

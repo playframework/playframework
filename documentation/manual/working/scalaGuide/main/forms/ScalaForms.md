@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 ## Overview
@@ -84,7 +84,7 @@ The out of the box constraints are defined on the [Forms object](api/scala/play/
 
 ### Defining ad-hoc constraints
 
-You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/package.html).
+You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/).
 
 @[userForm-constraints](code/ScalaForms.scala)
 
@@ -130,22 +130,24 @@ The first thing is to be able to create the [form tag](api/scala/views/html/help
 
 @[form-user](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
-You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/package.html) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
+You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
 
 > **Note:** You can use `@import helper._` in the template to avoid prefixing helpers with `@helper.`
 
 There are several input helpers, but the most helpful are:
 
-* [`form`](api/scala/views/html/helper/form$.html): renders a [form](http://www.w3.org/TR/html-markup/form.html#form) element.
-* [`inputText`](api/scala/views/html/helper/inputText$.html): renders a [text input](http://www.w3.org/TR/html-markup/input.text.html) element.
-* [`inputPassword`](api/scala/views/html/helper/inputPassword$.html): renders a [password input](http://www.w3.org/TR/html-markup/input.password.html#input.password) element.
-* [`inputDate`](api/scala/views/html/helper/inputDate$.html): renders a [date input](http://www.w3.org/TR/html-markup/input.date.html) element.
-* [`inputFile`](api/scala/views/html/helper/inputFile$.html): renders a [file input](http://www.w3.org/TR/html-markup/input.file.html) element.
-* [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html): renders a [radio input](http://www.w3.org/TR/html-markup/input.radio.html#input.radio) element.
-* [`select`](api/scala/views/html/helper/select$.html): renders a [select](http://www.w3.org/TR/html-markup/select.html#select) element.
-* [`textarea`](api/scala/views/html/helper/textarea$.html): renders a [textarea](http://www.w3.org/TR/html-markup/textarea.html#textarea) element.
-* [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](http://www.w3.org/TR/html-markup/input.checkbox.html#input.checkbox) element.
+* [`form`](api/scala/views/html/helper/form$.html): renders a [form](https://www.w3.org/TR/html/sec-forms.html#the-form-element) element.
+* [`inputText`](api/scala/views/html/helper/inputText$.html): renders a [text input](https://www.w3.org/TR/html/sec-forms.html#elementdef-input) element.
+* [`inputPassword`](api/scala/views/html/helper/inputPassword$.html): renders a [password input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-password) element.
+* [`inputDate`](api/scala/views/html/helper/inputDate$.html): renders a [date input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-date) element.
+* [`inputFile`](api/scala/views/html/helper/inputFile$.html): renders a [file input](https://www.w3.org/TR/html/sec-forms.html#file-upload-state-typefile) element.
+* [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html): renders a [radio input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-radio-button) element.
+* [`select`](api/scala/views/html/helper/select$.html): renders a [select](https://www.w3.org/TR/html/sec-forms.html#the-select-element) element.
+* [`textarea`](api/scala/views/html/helper/textarea$.html): renders a [textarea](https://www.w3.org/TR/html/sec-forms.html#the-textarea-element) element.
+* [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
+
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/framework/src/play/src/main/scala/views/helper) package on Github.
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
@@ -158,6 +160,35 @@ The generic `input` helper mentioned above will let you code the desired HTML re
 > **Note:** All extra parameters will be added to the generated Html, unless they start with the **\_** character. Arguments starting with **\_** are reserved for [[field constructor arguments|ScalaCustomFieldConstructors]].
 
 For complex form elements, you can also create your own custom view helpers (using scala classes in the `views` package) and [[custom field constructors|ScalaCustomFieldConstructors]].
+
+### Passing Messages to Form Helpers
+
+The form helpers above -- [`input`](api/scala/views/html/helper/input$.html), [`checkbox`](api/scala/views/html/helper/checkbox$.html), and so on -- all take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter.  The form handlers need to take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) because they need to provide error messages mapped to the language defined in the request.
+
+There are two ways to pass in the [`Messages`](api/scala/play/api/i18n/Messages.html) object required.
+  
+The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), which makes use of an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
+
+@[messages-controller](code/ScalaForms.scala)
+
+The second way is to use the [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) trait.  This is useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.  By using a `WrappedRequest` that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates.
+
+The implementation of a `MessagesRequest` is straightforward:
+
+@[messages-request](code/ScalaForms.scala)
+
+The `MessagesRequest` is used inside an action by using an `ActionTransformer` (see [[the action composition section|ScalaActionsComposition]]) that transforms a `Request` into a `MessagesRequest`:
+
+@[messages-action-transformer](code/ScalaForms.scala)
+
+An example of a form that uses the `AbstractMessagesController`:
+
+@[messages-request-controller](code/ScalaForms.scala)
+
+Finally, the implicit request does double duty as both a [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) and a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) in the template:
+
+@[form-define](code/scalaguide/forms/scalaforms/views/messages.scala.html)
+
 
 ### Displaying errors in a view template
 
@@ -177,6 +208,8 @@ The form errors are accessed on the bound form instance as follows:
 Errors attached to a field will render automatically using the form helpers, so `@helper.inputText` with errors can display as follows:
 
 @[form-user-generated](code/scalaguide/forms/scalaforms/views/user.scala.html)
+
+Errors that are not attached to a field can be converted to a string with `error.format`, which takes an implicit [play.api.i18n.Messages](api/scala/play/api/i18n/Messages.html) instance.
 
 Global errors that are not bound to a key do not have a helper and must be defined explicitly in the page:
 
@@ -210,7 +243,24 @@ When you use this with a view helper, the value of the element will be filled wi
 @helper.inputText(filledForm("name")) @* will render value="Bob" *@
 ```
 
-Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs.
+Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs:
+
+A single valued form mapping can set the selected options in a select
+dropdown:
+
+@[addressSelectForm-constraint](code/ScalaForms.scala)
+
+@[addressSelectForm-filled](code/ScalaForms.scala)
+
+And when this is used in a template that sets the options to a list of pairs
+
+@[select-form-define](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+@[addressSelectForm-options-usage](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+The filled value will be selected in the dropdown based on the first value of the pair.
+In this case, the U.K. Office will be displayed in the select and the option's value 
+will be London.
 
 ### Nested values
 
@@ -240,6 +290,10 @@ If you are using Play to generate your form HTML, you can generate as many input
 
 The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
 
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[form-field-repeat-with-index](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
+
 ### Optional values
 
 A form mapping can also define optional values using [`Forms.optional`](api/scala/play/api/data/Forms$.html):
@@ -258,20 +312,29 @@ You can populate a form with initial values using [`Form#fill`](api/scala/play/a
 
 Or you can define a default mapping on the number using [`Forms.default`](api/scala/play/api/data/Forms$.html):
 
-```
-Form(
-  mapping(
-    "name" -> default(text, "Bob")
-    "age" -> default(number, 18)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-default](code/ScalaForms.scala)
 
 ### Ignored values
 
 If you want a form to have a static value for a field, use [`Forms.ignored`](api/scala/play/api/data/Forms$.html):
 
 @[userForm-static-value](code/ScalaForms.scala)
+
+### Custom binders for form mappings
+
+Each form mapping uses an implicitly provided [`Formatter[T]`](api/scala/play/api/data/format/Formatter.html) binder object that performs the conversion of incoming `String` form data to/from the target data type.
+
+@[userData-custom-datatype](code/ScalaForms.scala)
+
+To bind to a custom type like java.net.URL in the example above, define a form mapping like this:
+
+@[userForm-custom-datatype](code/ScalaForms.scala)
+
+For this to work you will need to make an implicit `Formatter[java.net.URL]` available to perform the data binding/unbinding.
+
+@[userForm-custom-formatter](code/ScalaForms.scala)
+
+Note the [`Formats.parsing`](api/scala/play/api/data/format/Formats$.html) function is used to capture any exceptions thrown in the act of converting a `String` to target type `T` and registers a [`FormError`](api/scala/play/api/data/FormError.html) on the form field binding.
 
 ## Putting it all together
 

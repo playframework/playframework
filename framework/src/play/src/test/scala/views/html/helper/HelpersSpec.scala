@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package views.html.helper
 
@@ -7,14 +7,18 @@ import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
+import play.api.http.HttpConfiguration
+import play.api.i18n._
 import play.twirl.api.Html
-import scala.beans.BeanProperty
 
 class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
-  implicit val messages = messagesApi.preferred(Seq.empty)
+
+  val conf = Configuration.reference
+  val langs = new DefaultLangsProvider(conf).get
+  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, Environment.simple())
+  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {
 

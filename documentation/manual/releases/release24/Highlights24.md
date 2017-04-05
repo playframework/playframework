@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.4
 
 This page highlights the new features of Play 2.4. If you want learn about the changes you need to make to migrate to Play 2.4, check out the [[Play 2.4 Migration Guide|Migration24]].
@@ -48,9 +48,9 @@ You can read about these new APIs here:
 
 It is now straightforward to embed a Play application.  Play 2.4 provides both APIs to start and stop a Play server, as well as routing DSLs for Java and Scala so that routes can be embedded directly in code.
 
-In Java, see [[Embedding Play|JavaEmbeddingPlay]] as well as information about the [[Routing DSL|JavaRoutingDSL]].
+In Java, see [[Embedding Play|ScalaEmbeddingPlayAkkaHttp]] as well as information about the [[Routing DSL|JavaRoutingDSL]].
 
-In Scala, see [[Embedding Play|ScalaEmbeddingPlay]] as well as information about the [[String Interpolating Routing DSL|ScalaSirdRouter]].
+In Scala, see [[Embedding Play|ScalaEmbeddingPlayAkkaHttp]] as well as information about the [[String Interpolating Routing DSL|ScalaSirdRouter]].
 
 ## Aggregated reverse routers
 

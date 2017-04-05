@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
 import play.Logger;
+import play.cache.AsyncCacheApi;
 import play.cache.Cached;
 import play.libs.Json;
 import play.mvc.*;
 
+import javax.inject.Inject;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -96,4 +98,31 @@ public class JavaActionsComposition extends Controller {
 
     }
     // #annotated-controller
+
+    // #action-composition-dependency-injection-annotation
+    @With(MyOwnCachedAction.class)
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface WithCache {
+        String key();
+    }
+    // #action-composition-dependency-injection-annotation
+
+    // #action-composition-dependency-injection
+    public class MyOwnCachedAction extends Action<WithCache> {
+
+        private final AsyncCacheApi cacheApi;
+
+        @Inject
+        public MyOwnCachedAction(AsyncCacheApi cacheApi) {
+            this.cacheApi = cacheApi;
+        }
+
+        @Override
+        public CompletionStage<Result> call(Http.Context ctx) {
+            return cacheApi.getOrElseUpdate(configuration.key(), () -> delegate.call(ctx));
+        }
+    }
+    // #action-composition-dependency-injection
+
 }

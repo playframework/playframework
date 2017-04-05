@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt.run
 
@@ -16,6 +16,9 @@ import play.sbt.PlayInternalKeys._
 import play.sbt.Colors
 import play.core.BuildLink
 import play.runsupport.{ AssetsClassLoader, Reloader }
+import play.runsupport.Reloader.GeneratedSourceMapping
+import play.twirl.compiler.MaybeGeneratedSource
+import play.twirl.sbt.SbtTwirl
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys.executableScriptName
@@ -26,6 +29,12 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
  */
 object PlayRun {
 
+  class TwirlSourceMapping extends GeneratedSourceMapping {
+    def getOriginalLine(generatedSource: File, line: Integer): Integer = {
+      MaybeGeneratedSource.unapply(generatedSource).map(_.mapLine(line): java.lang.Integer).orNull
+    }
+  }
+
   /**
    * Configuration for the Play docs application's dependencies. Used to build a classloader for
    * that application. Hidden so that it isn't exposed when the user application is published.
@@ -34,6 +43,10 @@ object PlayRun {
 
   val createURLClassLoader: ClassLoaderCreator = Reloader.createURLClassLoader
   val createDelegatedResourcesClassLoader: ClassLoaderCreator = Reloader.createDelegatedResourcesClassLoader
+
+  val twirlSourceHandler = new TwirlSourceMapping()
+
+  val generatedSourceHandlers = SbtTwirl.defaultFormats.map{ case (k, v) => ("scala." + k, twirlSourceHandler) }
 
   val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader,
     playReloaderClasspath, playReloaderClassLoader, playAssetsClassLoader)
@@ -64,13 +77,6 @@ object PlayRun {
       () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
     )
 
-    val runSbtTask: String => AnyRef = (task: String) => {
-      val parser = Act.scopedKeyParser(state)
-      val Right(sk) = complete.DefaultParsers.result(parser, task)
-      val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
-      result.flatMap(_.toEither.right.toOption).orNull
-    }
-
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
       (javaOptions in Runtime).value,
@@ -82,14 +88,12 @@ object PlayRun {
       playCommonClassloader.value,
       playMonitoredFiles.value,
       fileWatchService.value,
-      (managedClasspath in DocsApplication).value.files,
-      playDocsJar.value,
+      generatedSourceHandlers,
       playDefaultPort.value,
       playDefaultAddress.value,
       baseDirectory.value,
       devSettings.value,
       args,
-      runSbtTask,
       (mainClass in (Compile, Keys.run)).value.get
     )
 
@@ -100,7 +104,7 @@ object PlayRun {
         devModeServer
 
         println()
-        println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
+        println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
         // If we have both Watched.Configuration and Watched.ContinuousState

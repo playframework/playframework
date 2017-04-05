@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
@@ -30,7 +30,7 @@ case class ServerConfig(
     properties: Properties,
     configuration: Configuration) {
   // Some basic validation of config
-  if (!port.isDefined && !sslPort.isDefined) throw new IllegalArgumentException("Must provide either an HTTP port or an HTTPS port")
+  if (port.isEmpty && sslPort.isEmpty) throw new IllegalArgumentException("Must provide either an HTTP port or an HTTPS port")
 }
 
 object ServerConfig {

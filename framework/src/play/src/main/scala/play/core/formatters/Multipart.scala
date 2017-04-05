@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.formatters
 
@@ -121,8 +121,8 @@ object Multipart {
 
     new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
 
-      val in = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("in")
-      val out = Outlet[Source[ByteString, Any]]("out")
+      val in = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("CustomCharsetByteStringFormatter.in")
+      val out = Outlet[Source[ByteString, Any]]("CustomCharsetByteStringFormatter.out")
 
       override def shape = FlowShape.of(in, out)
 

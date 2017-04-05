@@ -10,6 +10,7 @@
 
 @for(p <- pkg) {package @p}
 
+import play.api.routing.HandlerDef
 import play.core.routing._
 import play.core.routing.HandlerInvokerFactory._
 import play.core.j._

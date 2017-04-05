@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.advanced.extending
 
@@ -26,6 +26,10 @@ class MyMessagesApi extends MessagesApi {
   override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = ???
 }
 
+class MyMessagesApiProvider extends javax.inject.Provider[MyMessagesApi] {
+  override def get(): MyMessagesApi = new MyMessagesApi
+}
+
 // #module-definition
 class MyCode {
   // add functionality here
@@ -42,8 +46,8 @@ class MyModule extends play.api.inject.Module {
 class MyI18nModule extends play.api.inject.Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
-      bind[Langs].to[DefaultLangs],
-      bind[MessagesApi].to[MyMessagesApi]
+      bind[Langs].toProvider[DefaultLangsProvider],
+      bind[MessagesApi].toProvider[MyMessagesApiProvider]
     )
   }
 }

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring logging
 
 Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
@@ -17,7 +17,7 @@ A few things to note about these configurations:
 
 * These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
@@ -102,6 +102,20 @@ Here's an example of configuration that uses a rolling file appender, as well as
         </encoder>
     </appender>
 
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>SECURITY</marker>
+            </evaluator>
+            <OnMismatch>DENY</OnMismatch>
+            <OnMatch>ACCEPT</OnMatch>
+        </filter>
+        <file>${application.home:-.}/logs/security.log</file>
+        <encoder>
+            <pattern>%date [%level] [%marker] from %logger in %thread - %message%n%xException</pattern>
+        </encoder>
+    </appender>
+
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${user.dir}/web/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -124,19 +138,22 @@ Here's an example of configuration that uses a rolling file appender, as well as
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
+        <appender-ref ref="SECURITY_FILE"/>
     </root>
 
 </configuration>
-
 ```
 
 This demonstrates a few useful features:
 
-- It uses `RollingFileAppender` which can help manage growing log files.
-- It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
+- It uses `RollingFileAppender` which can help manage growing log files. See more [details here](https://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy).
+- It writes log files to a directory external to the application so they will not affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
-- The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
+- The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
+- Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](http://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.
+
+> **Note**: the `file` tag is optional and you can omit it if you want to avoid file renaming. See [Logback docs](https://logback.qos.ch/codes.html#renamingError) for more information.
 
 ## Including Properties
 

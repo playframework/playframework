@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A <a href="http://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used server side,
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used server side,
  * so some fields are sent (Version is typically ignored).
  *
  * As Netty's Cookie merges Expires and MaxAge into one single field, only Max-Age field is sent.
@@ -88,6 +88,10 @@ public final class ServerCookieEncoder extends CookieEncoder {
             add(buf, CookieHeaderNames.MAX_AGE, cookie.maxAge());
             Date expires = new Date(cookie.maxAge() * 1000l + System.currentTimeMillis());
             add(buf, CookieHeaderNames.EXPIRES, HttpHeaderDateFormat.get().format(expires));
+        }
+
+        if (cookie.sameSite() != null) {
+            add(buf, CookieHeaderNames.SAMESITE, cookie.sameSite());
         }
 
         if (cookie.path() != null) {

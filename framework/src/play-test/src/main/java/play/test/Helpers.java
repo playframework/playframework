@@ -1,29 +1,10 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
-import akka.stream.Materializer;
-import akka.util.ByteString;
-import org.openqa.selenium.WebDriver;
-import play.*;
-
-import play.routing.Router;
-import play.api.test.PlayRunners$;
-import play.core.j.JavaHandler;
-import play.core.j.JavaHandlerComponents;
-import play.http.HttpEntity;
-import play.mvc.*;
-import play.api.test.Helpers$;
-import play.libs.*;
-import play.twirl.api.Content;
-
-import org.openqa.selenium.firefox.*;
-import org.openqa.selenium.htmlunit.*;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.OptionConverters;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +12,33 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static play.mvc.Http.*;
+import akka.stream.Materializer;
+import akka.util.ByteString;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import play.Application;
+import play.Play;
+import play.api.test.Helpers$;
+import play.core.j.JavaContextComponents;
+import play.core.j.JavaHandler;
+import play.core.j.JavaHandlerComponents;
+import play.core.j.JavaHelpers$;
+import play.http.HttpEntity;
+import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.Scala;
+import play.mvc.Call;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.routing.Router;
+import play.twirl.api.Content;
+import scala.compat.java8.FutureConverters;
+import scala.compat.java8.OptionConverters;
+
+import static play.libs.Scala.asScala;
+import static play.mvc.Http.Context;
+import static play.mvc.Http.Request;
+import static play.mvc.Http.RequestBuilder;
 
 /**
  * Helper functions to run tests.
@@ -56,14 +63,16 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     // --
     @SuppressWarnings(value = "unchecked")
-    private static Result invokeHandler(play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
+    private static Result invokeHandler(play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
         if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
+            return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
         } else if (handler instanceof JavaHandler) {
-            final play.api.inject.Injector injector = play.api.Play.current().injector();
+            final play.api.inject.Injector injector = app.injector();
+            final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
             return invokeHandler(
-                    ((JavaHandler) handler).withComponents(injector.instanceOf(JavaHandlerComponents.class)),
+                    app,
+                    ((JavaHandler) handler).withComponents(handlerComponents),
                     requestBuilder, timeout
             );
         } else {
@@ -93,11 +102,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
 
     /**
-     * Calls a Callable which invokes a Controller or some other method with a Context
+     * Calls a Callable which invokes a Controller or some other method with a Context.
+     *
+     * @param requestBuilder the request builder to invoke in this context.
+     * @param contextComponents the context components to run.
+     * @param callable the callable block to run.
+     * @param <V> the return type.
+     * @return the value from {@code callable}.
      */
-    public static <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
+    public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
         try {
-            Context.current.set(new Context(requestBuilder));
+            Context.current.set(new Context(requestBuilder, contextComponents));
             return callable.call();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -107,33 +122,64 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new GET / fake request.
+     * Builds a new "GET /" fake request.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest() {
         return fakeRequest("GET", "/");
     }
 
     /**
-     * Build a new fake request.
+     * Builds a new fake request.
+     * @param method    the request method.
+     * @param uri the relative URL.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest(String method, String uri) {
-        return new RequestBuilder().method(method).uri(uri);
+        return new RequestBuilder().host("localhost").method(method).uri(uri);
     }
 
     /**
-     * Build a new fake request corresponding to a given route call
+     * Builds a new fake request corresponding to a given route call.
+     * @param call    the route call.
+     * @return the request builder.
      */
     public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
     }
 
     /**
-     * Builds a new fake application.
+     * Builds a new Http.Context from a new request
+     * @return a new Http.Context using the default request
+     */
+    public static Http.Context httpContext() {
+        return httpContext(new Http.RequestBuilder().build());
+    }
+
+    /**
+     * Builds a new Http.Context for a specific request
+     * @param request the Request you want to use for this Context
+     * @return a new Http.Context for this request
+     */
+    public static Http.Context httpContext(Http.Request request) {
+        return new Http.Context(request, contextComponents());
+    }
+
+    /**
+     * Creates a new JavaContextComponents using Configuration.reference and Enviroment.simple as defaults
+     * @return the newly created JavaContextComponents
+     */
+    public static JavaContextComponents contextComponents() {
+        return JavaHelpers$.MODULE$.createContextComponents();
+    }
+
+    /**
+     * Builds a new fake application, using GuiceApplicationBuilder.
      *
      * @return an application from the current path with no additional configuration.
      */
     public static Application fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<>());
+        return new GuiceApplicationBuilder().build();
     }
 
     /**
@@ -148,6 +194,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
      *
+     * @param name    the database name.
      * @return a map of String containing database config info.
      */
     public static Map<String, String> inMemoryDatabase(String name) {
@@ -157,6 +204,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Constructs a in-memory (h2) database configuration to add to a fake application.
      *
+     * @param name       the database name.
+     * @param options the database options.
      * @return a map of String containing database config info.
      */
     public static Map<String, String> inMemoryDatabase(String name, Map<String, String> options) {
@@ -164,20 +213,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Build a new fake application.
+     * Build a new fake application.  Uses GuiceApplicationBuilder.
      *
      * @param additionalConfiguration map containing config info for the app.
      * @return an application from the current path with additional configuration.
      */
     public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
+        //noinspection unchecked
+        Map<String, Object> conf = (Map<String, Object>) additionalConfiguration;
+        return new GuiceApplicationBuilder().configure(conf).build();
     }
 
     /**
      * Extracts the content as a {@link akka.util.ByteString}.
      * <p>
      * This method is only capable of extracting the content of results with strict entities. To extract the content of
-     * results with streamed entities, use {@link #contentAsBytes(Result, Materializer)}.
+     * results with streamed entities, use {@link Helpers#contentAsBytes(Result, Materializer)}.
      *
      * @param result The result to extract the content from.
      * @return The content of the result as a ByteString.
@@ -244,7 +295,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as a String.
      * <p>
      * This method is only capable of extracting the content of results with strict entities. To extract the content of
-     * results with streamed entities, use {@link #contentAsString(Result, Materializer)}.
+     * results with streamed entities, use {@link Helpers#contentAsString(Result, Materializer)}.
      *
      * @param result The result to extract the content from.
      * @return The content of the result as a String.
@@ -280,10 +331,31 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 .decodeString(result.charset().orElse("utf-8"));
     }
 
+    /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, requestBuilder, timeout);
+    }
+
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
         try {
-            return routeAndCall((Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
+            return routeAndCall(app, (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
         } catch (RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -291,12 +363,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     public static Result routeAndCall(Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder, timeout);
+    }
+
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router type
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             return routes.route(request).map(handler ->
-                    invokeHandler(handler, request, timeout)
+                invokeHandler(app.getWrappedApplication(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -305,15 +400,59 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, Router, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder) {
-        return routeAndCall(router, requestBuilder, DEFAULT_TIMEOUT);
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder);
     }
 
+    /**
+     * Route and call the request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder) {
+        return routeAndCall(app, router, requestBuilder, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return routeAndCall(application, router, requestBuilder, timeout);
+    }
+
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
             return router.route(request).map(handler ->
-                    invokeHandler(handler, request, timeout)
+                    invokeHandler(app.getWrappedApplication(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -322,40 +461,105 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     *
+     * @param call the call to route
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, Call)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     public static Result route(Call call) {
         return route(fakeRequest(call));
     }
 
-    public static Result route(Call call, long timeout) {
-        return route(fakeRequest(call), timeout);
-    }
-
+    /**
+     * Route a call using the given application.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
     public static Result route(Application app, Call call) {
         return route(app, fakeRequest(call));
     }
 
+    /**
+     * @param call the call to route
+     * @param timeout the time out
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, Call, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(Call call, long timeout) {
+        return route(fakeRequest(call), timeout);
+    }
+
+    /**
+     * Route a call using the given application and timeout.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @param timeout the time out
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
     public static Result route(Application app, Call call, long timeout) {
         return route(app, fakeRequest(call), timeout);
     }
 
+    /**
+     * @param requestBuilder the request builder the request builder
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     public static Result route(RequestBuilder requestBuilder) {
         return route(requestBuilder, DEFAULT_TIMEOUT);
     }
 
-    public static Result route(RequestBuilder requestBuilder, long timeout) {
-        final play.Application application = play.api.Play.current().injector().instanceOf(play.Application.class);
-
-        return route(application, requestBuilder, timeout);
-    }
-
+    /**
+     * Route a request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @return the result.
+     */
     public static Result route(Application app, RequestBuilder requestBuilder) {
         return route(app, requestBuilder, DEFAULT_TIMEOUT);
     }
 
+    /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return route(application, requestBuilder, timeout);
+    }
+
+    /**
+     * Route the request considering the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @param timeout the amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
         final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
-                app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.body());
+                app.getWrappedApplication(),
+                requestBuilder.build().asScala(),
+                requestBuilder.body()
+        );
         return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
@@ -381,18 +585,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Executes a block of code in a running application.
      *
      * @param application the application context.
+     * @param block       the block to run after the Play app is started.
      */
     public static void running(Application application, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(application);
-                block.run();
-            } finally {
-                stop(application);
-            }
-        }
+        Helpers$.MODULE$.running(application.getWrappedApplication(), asScala(() -> { block.run(); return null; }));
     }
-
 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001).
@@ -416,6 +613,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      *
+     * @param port    the port to run the server on.
      * @return the test server.
      */
     public static TestServer testServer(int port) {
@@ -425,6 +623,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      *
+     *
+     * @param port    the port to run the server on.
+     * @param app     the Play application.
      * @return the test server.
      */
     public static TestServer testServer(int port, Application app) {
@@ -433,6 +634,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Starts a Test server.
+     * @param server    the test server to start.
      */
     public static void start(TestServer server) {
         server.start();
@@ -440,6 +642,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Stops a Test server.
+     * @param server    the test server to stop.a
      */
     public static void stop(TestServer server) {
         server.stop();
@@ -447,16 +650,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running server.
+     * @param server    the server to start.
+     * @param block  the block of code to run after the server starts.
      */
     public static void running(TestServer server, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(server);
-                block.run();
-            } finally {
-                stop(server);
-            }
-        }
+        Helpers$.MODULE$.running(server, asScala(() -> { block.run(); return null; }));
     }
 
     /**
@@ -478,7 +676,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param block     the block of code to execute.
      */
     public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
+        Helpers$.MODULE$.runSynchronized(server.application(), asScala(() -> {
             TestBrowser browser = null;
             TestServer startedServer = null;
             try {
@@ -494,7 +692,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                     stop(startedServer);
                 }
             }
-        }
+            return null;
+        }));
     }
 
     /**
@@ -509,6 +708,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param port    the local port.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(int port) {
@@ -518,6 +718,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param webDriver    the class of webdriver.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
@@ -527,6 +728,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param webDriver    the class of webdriver.
+     * @param port  the local port to test against.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
@@ -542,6 +745,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param of      the web driver to run the browser with.
+     * @param port    the port to run against http://localhost
      * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of, int port) {
@@ -551,6 +756,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      *
+     * @param of      the web driver to run the browser with.
      * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {

@@ -1,21 +1,21 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Allowed hosts filter
 
 Play provides a filter that lets you configure which hosts can access your application. This is useful to prevent cache poisoning attacks. For a detailed description of how this attack works, see [this blog post](http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html). The filter introduces a whitelist of allowed hosts and sends a 400 (Bad Request) response to all requests with a host that do not match the whitelist.
 
+This is an important filter to use even in development, because DNS rebinding attacks can be used against a developer's instance of Play: see [Rails Webconsole DNS Rebinding](https://benmmurphy.github.io/blog/2016/07/11/rails-webconsole-dns-rebinding/) for an example of how short lived DNS rebinding can attack a server running on localhost.
+
+Note that if you are running a functional test against a Play application which has the AllowedHostsFilter, then `FakeRequest` and `Helpers.fakeRequest()` will create a request which already has `HOST` set to `localhost`.
+
 ## Enabling the allowed hosts filter
 
-To enable the filter, first add the Play filters project to your `libraryDependencies` in `build.sbt`:
+> **Note:** As of Play 2.6.x, the Allowed Hosts filter is included in Play's list of default filters that are applied automatically to projects.  See [[the Filters page|Filters]] for more information.
 
-@[content](code/filters.sbt)
+To enable the filter manually, add the allowed hosts filter to your filters in `application.conf`:
 
-Now add the allowed hosts filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
-
-Scala
-: @[filters](code/AllowedHostsFilter.scala)
-
-Java
-: @[filters](code/detailedtopics/configuration/hosts/Filters.java)
+```
+play.filters.enabled += play.filters.hosts.AllowedHostsFilter
+```
 
 ## Configuring allowed hosts
 

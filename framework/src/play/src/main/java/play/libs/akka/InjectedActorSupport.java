@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.akka;
 
@@ -43,6 +43,7 @@ public interface InjectedActorSupport {
 
     /**
      * Context method expected to be implemented by UntypedActor.
+     * @return the ActorContext.
      */
     ActorContext context();
 }

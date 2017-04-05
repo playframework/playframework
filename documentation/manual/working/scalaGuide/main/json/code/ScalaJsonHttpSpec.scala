@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.json
 
@@ -145,6 +145,58 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       """)
       val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(body)
       val result: Future[Result] = savePlace().apply(request)
+      val bodyText: String = contentAsString(result)
+      status(result) === OK
+      contentType(result) === Some("application/json")
+      contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
+    }
+
+    "allow concise handling JSON with BodyParser" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      //#handle-json-bodyparser-concise
+      import play.api.libs.json._
+      import play.api.libs.json.Reads._
+      import play.api.libs.functional.syntax._
+
+      implicit val locationReads: Reads[Location] = (
+        (JsPath \ "lat").read[Double](min(-90.0) keepAnd max(90.0)) and
+          (JsPath \ "long").read[Double](min(-180.0) keepAnd max(180.0))
+        )(Location.apply _)
+
+      implicit val placeReads: Reads[Place] = (
+        (JsPath \ "name").read[String](minLength[String](2)) and
+          (JsPath \ "location").read[Location]
+        )(Place.apply _)
+
+      // This helper parses and validates JSON using the implicit `placeReads`
+      // above, returning errors if the parsed json fails validation.
+      def validateJson[A : Reads] = BodyParsers.parse.json.validate(
+        _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
+      )
+
+      // if we don't care about validation we could replace `validateJson[Place]`
+      // with `BodyParsers.parse.json[Place]` to get an unvalidated case class
+      // in `request.body` instead.
+      def savePlaceConcise = Action(validateJson[Place]) { request =>
+        // `request.body` contains a fully validated `Place` instance.
+        val place = request.body
+        Place.save(place)
+        Ok(Json.obj("status" ->"OK", "message" -> ("Place '"+place.name+"' saved.") ))
+      }
+      //#handle-json-bodyparser-concise
+
+      val body: JsValue = Json.parse("""
+      {
+        "name" : "Nuthanger Farm",
+        "location" : {
+          "lat" : 51.244031,
+          "long" : -1.263224
+        }
+      }
+      """)
+      val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(Json.fromJson[Place](body).get)
+      val result: Future[Result] = savePlaceConcise().apply(request)
       val bodyText: String = contentAsString(result)
       status(result) === OK
       contentType(result) === Some("application/json")

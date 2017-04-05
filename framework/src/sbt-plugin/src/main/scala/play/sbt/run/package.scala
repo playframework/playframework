@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 import sbt._
-import play.runsupport.LoggerProxy
+import play.dev.filewatch.LoggerProxy
 
 package object run {
   import scala.language.implicitConversions

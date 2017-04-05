@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.i18n;
 
 import org.apache.commons.lang3.ArrayUtils;
+import play.libs.Scala;
 import play.mvc.Http;
-import scala.collection.JavaConversions;
 import scala.collection.Seq;
 import scala.collection.mutable.Buffer;
 
@@ -23,13 +23,25 @@ public class MessagesApi {
 
     private final play.api.i18n.MessagesApi messages;
 
-    public play.api.i18n.MessagesApi scalaApi() {
-        return messages;
-    }
-
     @Inject
     public MessagesApi(play.api.i18n.MessagesApi messages) {
         this.messages = messages;
+    }
+
+    /**
+     * @return the Scala versions of the Messages API.
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
+     */
+    @Deprecated
+    public play.api.i18n.MessagesApi scalaApi() {
+        return asScala();
+    }
+
+    /**
+     * @return the Scala versions of the Messages API.
+     */
+    public play.api.i18n.MessagesApi asScala() {
+        return messages;
     }
 
     /**
@@ -50,6 +62,7 @@ public class MessagesApi {
      * Otherwise, it calls Arrays.asList on args
      * @param args arguments as a List
      */
+    @SafeVarargs
     private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
         List<T> out;
         if (ArrayUtils.isNotEmpty(args)
@@ -114,9 +127,9 @@ public class MessagesApi {
      * @return the most appropriate Messages instance given the candidate languages
      */
     public Messages preferred(Collection<Lang> candidates) {
-        Seq<Lang> cs = JavaConversions.collectionAsScalaIterable(candidates).toSeq();
+        Seq<Lang> cs = Scala.asScala(candidates);
         play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
-        return new Messages(new Lang(msgs.lang()), this);
+        return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
 
@@ -131,7 +144,7 @@ public class MessagesApi {
      */
     public Messages preferred(Http.RequestHeader request) {
         play.api.i18n.Messages msgs = messages.preferred(request);
-        return new Messages(new Lang(msgs.lang()), this);
+        return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
     public String langCookieName() {

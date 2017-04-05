@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core
 
@@ -10,7 +10,7 @@ import play.api._
 import play.api.mvc._
 
 /**
- * provides source code to be displayed on error pages
+ * Provides source code to be displayed on error pages
  */
 trait SourceMapper {
 

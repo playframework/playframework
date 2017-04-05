@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.binder.controllers
 
-import play.api.Play.current
 //#javascript-router-resource-imports
+import javax.inject.Inject
+
 import play.api.mvc._
 import play.api.routing._
 //#javascript-router-resource-imports
 
-class Application extends Controller {
+class Application @Inject()(components: ControllerComponents) extends AbstractController(components) {
     //#javascript-router-resource
     def javascriptRoutes = Action { implicit request =>
         Ok(
@@ -34,7 +35,7 @@ class Application extends Controller {
     
 }
 
-class Users extends Controller {
+class Users @Inject()(components: ControllerComponents) extends AbstractController(components) {
     
     def list = Action {
         Ok("List users")

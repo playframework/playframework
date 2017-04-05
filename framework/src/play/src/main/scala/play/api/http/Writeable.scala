@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -89,10 +89,17 @@ trait DefaultWriteables extends LowPriorityWriteables {
   }
 
   /**
-   * `Writeable` for `JsValue` values - Json
+   * `Writeable` for `JsValue` values that writes to UTF-8, so they can be sent with the application/json media type.
    */
-  implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[JsValue] = {
-    Writeable(a => codec.encode(Json.stringify(a)))
+  implicit def writeableOf_JsValue: Writeable[JsValue] = {
+    Writeable(a => ByteString(Json.toBytes(a)))
+  }
+
+  /**
+   * `Writeable` for `JsValue` values using an arbitrary codec. Can be used to force a non-UTF-8 encoding for JSON.
+   */
+  def writeableOf_JsValue(codec: Codec, contentType: Option[String] = None): Writeable[JsValue] = {
+    Writeable(a => codec.encode(Json.stringify(a)), contentType)
   }
 
   /**

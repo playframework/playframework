@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 
-import java.util.concurrent.{ Callable, CompletionStage, ConcurrentLinkedDeque, LinkedBlockingDeque }
+import java.util.concurrent.{ Callable, CompletionStage, ConcurrentLinkedDeque }
 import javax.inject.{ Inject, Singleton }
 
 import play.api.Logger
@@ -66,6 +66,17 @@ trait ApplicationLifecycle {
   def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit = {
     addStopHook(() => FutureConverters.toScala(hook.call().asInstanceOf[CompletionStage[_]]))
   }
+
+  /**
+   * Call to shutdown the application and execute the registered hooks.
+   * @return A future that will be redeemed once all hooks have executed.
+   */
+  def stop(): Future[_]
+
+  /**
+   * @return the Java version for this Application Lifecycle.
+   */
+  def asJava: play.inject.ApplicationLifecycle = new play.inject.DelegateApplicationLifecycle(this)
 }
 
 /**
@@ -75,14 +86,14 @@ trait ApplicationLifecycle {
 class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
   private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
-  def addStopHook(hook: () => Future[_]) = hooks.push(hook)
+  override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
 
   /**
    * Call to shutdown the application.
    *
    * @return A future that will be redeemed once all hooks have executed.
    */
-  def stop(): Future[_] = {
+  override def stop(): Future[_] = {
 
     // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
     import play.core.Execution.Implicits.trampoline

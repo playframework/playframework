@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package common.build
 
@@ -16,6 +16,6 @@ class Assets @Inject() (errorHandler: HttpErrorHandler, assetsMetadata: AssetsMe
 
 import play.api.mvc._
 
-class HomeController extends Controller {
+class HomeController @Inject()(components: ControllerComponents) extends AbstractController(components) {
   def index = Action(Ok)
 }

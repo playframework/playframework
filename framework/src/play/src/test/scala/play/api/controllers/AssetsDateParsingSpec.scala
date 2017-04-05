@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
 
 class AssetsDateParsingSpec extends Specification {
 

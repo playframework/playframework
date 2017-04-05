@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.mvc
 
@@ -14,9 +14,10 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
-import play.api.{ ApplicationLoader, BuiltInComponents, BuiltInComponentsFromContext, Environment }
+import play.api._
 import play.core.server.Server
 import play.it._
+import play.filters.HttpFiltersComponents
 
 import scala.concurrent.ExecutionContext.{ global => ec }
 import scala.concurrent._
@@ -38,7 +39,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
     val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
       environment = Environment.simple(),
       initialSettings = settings
-    )) {
+    )) with HttpFiltersComponents {
       lazy val router = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
@@ -162,7 +163,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       }
     }
 
-    "Filters are not applied when the request is outside the application.context" in withServer(
+    "Filters are not applied when the request is outside play.http.context" in withServer(
       Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
         val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
         response.status must_== 200
@@ -194,12 +195,24 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       response.body must_== ThrowExceptionFilter.expectedText
     }
 
+    object ThreadNameFilter extends EssentialFilter {
+      def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
+        Accumulator.done(Results.Ok(Thread.currentThread().getName))
+      }
+    }
+
+    "Filters should use the Akka ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      val threadName = result.body
+      threadName must startWith("application-akka.actor.default-dispatcher-")
+    }
+
     val filterAddedHeaderKey = "CUSTOM_HEADER"
     val filterAddedHeaderVal = "custom header val"
 
     object CustomHeaderFilter extends EssentialFilter {
       def apply(next: EssentialAction) = EssentialAction { request =>
-        next(request.copy(headers = addCustomHeader(request.headers)))
+        next(request.withHeaders(addCustomHeader(request.headers)))
       }
       def addCustomHeader(originalHeaders: Headers): Headers = {
         FakeHeaders(originalHeaders.headers :+ (filterAddedHeaderKey -> filterAddedHeaderVal))

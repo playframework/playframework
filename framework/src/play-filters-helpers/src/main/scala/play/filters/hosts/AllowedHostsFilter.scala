@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.hosts
 
@@ -10,7 +10,7 @@ import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.core.j.JavaHttpErrorHandlerAdapter
+import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
 
 /**
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
@@ -19,8 +19,8 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
     extends EssentialFilter {
 
   // Java API
-  def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler) {
-    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
+  def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler, contextComponents: JavaContextComponents) {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents))
   }
 
   private val hostMatchers: Seq[HostMatcher] = config.allowed map HostMatcher.apply

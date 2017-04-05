@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
@@ -15,6 +15,8 @@ import play.twirl.api.Content
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+import org.specs2.mutable._
+import play.api.mvc.AnyContentAsEmpty
 
 class HelpersSpec extends Specification {
 
@@ -133,6 +135,20 @@ class HelpersSpec extends Specification {
         (contentAsJson(ctrl.jsonAction.apply(FakeRequest())) \ "content").as[String] must_== "abc"
       } finally {
         system.terminate()
+      }
+    }
+  }
+
+  "Fakes" in {
+    "FakeRequest" should {
+      "parse query strings" in {
+        val request = FakeRequest("GET", "/uri?q1=1&q2=2", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString.get("q1") must beSome.which(_.contains("1"))
+        request.queryString.get("q2") must beSome.which(_.contains("2"))
+      }
+      "return an empty map when there is no query string parameters" in {
+        val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString must beEmpty
       }
     }
   }

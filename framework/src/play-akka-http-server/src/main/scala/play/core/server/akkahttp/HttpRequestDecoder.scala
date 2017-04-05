@@ -1,21 +1,25 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.akkahttp
 
-import akka.http.scaladsl.coding.{ DataMapper, Decoder, Deflate, Gzip }
+import akka.NotUsed
 import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.headers.{ HttpEncodings, `Content-Encoding` }
+import akka.stream.scaladsl.{ Compression, Flow }
+import akka.util.ByteString
 
-object HttpRequestDecoder {
+private[server] object HttpRequestDecoder {
 
-  def decodeRequestWith(decoder: Decoder, request: HttpRequest): HttpRequest = {
-    decoder.decode(request)(DataMapper.mapRequest)
+  private def decodeRequestWith(decoderFlow: Flow[ByteString, ByteString, NotUsed], request: HttpRequest): HttpRequest = {
+    request.withEntity(request.entity.transformDataBytes(decoderFlow))
+      .withHeaders(request.headers.filter(_.isInstanceOf[`Content-Encoding`]))
   }
 
   def decodeRequest(request: HttpRequest): HttpRequest = {
     request.encoding match {
-      case Gzip.encoding => decodeRequestWith(Gzip, request)
-      case Deflate.encoding => decodeRequestWith(Deflate, request)
+      case HttpEncodings.gzip => decodeRequestWith(Compression.gunzip(), request)
+      case HttpEncodings.deflate => decodeRequestWith(Compression.inflate(), request)
       // Handle every undefined decoding as is
       case _ => request
     }

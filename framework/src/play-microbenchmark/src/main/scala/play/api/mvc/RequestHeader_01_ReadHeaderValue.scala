@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.mvc
 
 import org.openjdk.jmh.annotations._
@@ -13,7 +16,7 @@ class RequestHeader_01_ReadHeaderValue {
 
   @Setup(Level.Iteration)
   def setup(): Unit = {
-    requestHeader = MvcHelpers.requestHeader(List(
+    requestHeader = MvcHelpers.requestHeaderFromHeaders(List(
       "Accept-Encoding" -> "gzip, deflate, sdch, br",
       "Host" -> "www.playframework.com",
       "Accept-Language" -> "en-US,en;q=0.8",

@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db
 
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
 class ConnectionPoolConfigSpec extends PlaySpecification {
@@ -58,14 +59,13 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       bonecpConfig.getMaxConnectionsPerPartition must be_==(50)
     }
 
-    "use BoneCP when database-specific pool is 'bonecp'" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map(
-        "db.default.pool" -> "bonecp",
-        "db.default.url" -> "jdbc:h2:mem:default",
-        "db.other.driver" -> "org.h2.Driver",
-        "db.other.url" -> "jdbc:h2:mem:other"
-      )
-    )) {
+    "use BoneCP when database-specific pool is 'bonecp'" in new WithApplication(GuiceApplicationBuilder().configure(Map(
+      "db.default.pool" -> "bonecp",
+      "db.default.url" -> "jdbc:h2:mem:default",
+      "db.other.driver" -> "org.h2.Driver",
+      "db.other.url" -> "jdbc:h2:mem:other"
+    )
+    ).build()) {
       val db = app.injector.instanceOf[DBApi]
       db.database("default").withConnection { c =>
         c.getClass.getName must contain("bonecp")

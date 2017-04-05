@@ -1,15 +1,13 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package detailedtopics.configuration.gzipencoding
 
 import akka.stream.ActorMaterializer
 import play.api.test._
-import detailedtopics.configuration.gzipencoding.CustomFilters
 
 class GzipEncoding extends PlaySpecification {
 
-  //#filters
   import javax.inject.Inject
 
   import play.api.http.DefaultHttpFilters
@@ -17,7 +15,6 @@ class GzipEncoding extends PlaySpecification {
 
   class Filters @Inject() (gzipFilter: GzipFilter)
       extends DefaultHttpFilters(gzipFilter)
-  //#filters
 
   "gzip filter" should {
 
@@ -26,6 +23,7 @@ class GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
         //#should-gzip
@@ -42,9 +40,10 @@ class GzipEncoding extends PlaySpecification {
     "allow custom strategies for when to gzip (Java)" in {
 
       import play.api.mvc._
-      val app = FakeApplication()
+      val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter = (new CustomFilters(mat)).filters()(0)
 

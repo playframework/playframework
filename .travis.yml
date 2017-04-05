@@ -1,22 +1,24 @@
 language: scala
-sudo: false
-# This is needed as long as the travis build environment is JDK 1.8.0 < u40 (at time of writing it is u31)
-# Otherwise, FSpec fails due to deadlocks caused by CompletableFuture.thenCompose blocking in the trampoline 
-# executor.
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
+# Trusty VM has 1.8u101
+# https://github.com/travis-ci/travis-ci/issues/3259#issuecomment-243534696
+dist: trusty
+sudo: true
+group: beta
 jdk:
   - oraclejdk8
-script:
-  - framework/bin/travis
+scala:
+  - 2.11.8
+  - 2.12.1
+script:    
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash framework/bin/sourceclear; fi'
+  - framework/bin/travis 
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/
 before_cache:
   # Ensure changes to the cache aren't persisted
+  - rm -rf $HOME/.ivy2/local
   - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
   - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
   # Delete all ivydata files since ivy touches them on each build

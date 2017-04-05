@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs;
 
@@ -16,6 +16,7 @@ public class ResourcesTest {
 
     @Test
     public void testAsyncTryWithResource() throws Exception {
+
         InputStream inputStream = mock(InputStream.class);
         CompletionStage<Void> completionStage = Resources.asyncTryWithResource(
                 inputStream,
@@ -31,7 +32,7 @@ public class ResourcesTest {
         InputStream inputStream = mock(InputStream.class);
         CompletionStage<Void> completionStage = Resources.asyncTryWithResource(
                 inputStream,
-                is -> CompletableFuture.runAsync(() -> { throw new RuntimeException(); })
+                is -> CompletableFuture.runAsync(() -> { throw new RuntimeException("test exception"); })
         );
 
         try {

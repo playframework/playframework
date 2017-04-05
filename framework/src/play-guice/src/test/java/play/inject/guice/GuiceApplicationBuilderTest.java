@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject.guice;
 
@@ -69,16 +69,6 @@ public class GuiceApplicationBuilderTest {
     }
 
     @Test
-    public void disableLoadedModules() {
-        Injector injector = new GuiceApplicationBuilder()
-            .disable(play.api.i18n.I18nModule.class)
-            .injector();
-
-        exception.expect(com.google.inject.ConfigurationException.class);
-        injector.instanceOf(play.api.i18n.Langs.class);
-    }
-
-    @Test
     public void setInitialConfigurationLoader() {
         Config extra = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
         Application app = new GuiceApplicationBuilder()
@@ -92,7 +82,7 @@ public class GuiceApplicationBuilderTest {
     public void setModuleLoader() {
         Injector injector = new GuiceApplicationBuilder()
             .withModuleLoader((env, conf) -> ImmutableList.of(
-                Guiceable.modules(new play.api.inject.BuiltinModule()),
+                Guiceable.modules(new play.api.inject.BuiltinModule(), new play.api.i18n.I18nModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();
 
@@ -103,7 +93,7 @@ public class GuiceApplicationBuilderTest {
     public void setLoadedModulesDirectly() {
         Injector injector = new GuiceApplicationBuilder()
             .load(
-                Guiceable.modules(new play.api.inject.BuiltinModule()),
+                Guiceable.modules(new play.api.inject.BuiltinModule(), new play.api.i18n.I18nModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class)))
             .injector();
 

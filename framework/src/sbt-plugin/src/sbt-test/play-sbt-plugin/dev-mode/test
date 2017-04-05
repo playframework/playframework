@@ -59,7 +59,7 @@ $ delete public/new
 # JDK7 watcher
 # - - - - - -
 
-> set PlayKeys.fileWatchService <<= DevModeBuild.jdk7WatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jdk7WatchService.value
 
 # Start dev mode
 > run
@@ -100,7 +100,7 @@ $ delete public/new
 # JNotify watch service
 # - - - - - - - - - - -
 
-> set PlayKeys.fileWatchService <<= DevModeBuild.jnotifyWatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jnotifyWatchService.value
 
 # Start dev mode
 > run
@@ -156,40 +156,40 @@ $ sleep 1000
 > verifyReloads 1
 
 # Change a scala file
-$ copy-file changes/Application.scala.1 app/controllers/Application.scala
 $ sleep 1000
+$ copy-file changes/Application.scala.1 app/controllers/Application.scala
 > verifyResourceContains / 200 first
 > verifyReloads 2
 
 # Change a static asset
-$ copy-file changes/some.css.1 public/css/some.css
 $ sleep 1000
+$ copy-file changes/some.css.1 public/css/some.css
 > verifyResourceContains /assets/css/some.css 200 first
 # No reloads should have happened
 > verifyReloads 2
 
 # Change a compiled asset
-$ copy-file changes/main.less.1 app/assets/main.less
 $ sleep 1000
+$ copy-file changes/main.less.1 app/assets/main.less
 > verifyResourceContains /assets/main.css 200 first
 # No reloads should have happened
 > verifyReloads 2
 
 # Introduce a compile error
-$ copy-file changes/Application.scala.2 app/controllers/Application.scala
 $ sleep 1000
+$ copy-file changes/Application.scala.2 app/controllers/Application.scala
 > verifyResourceContains / 500
 > verifyReloads 2
 
 # Fix the compile error
-$ copy-file changes/Application.scala.3 app/controllers/Application.scala
 $ sleep 1000
+$ copy-file changes/Application.scala.3 app/controllers/Application.scala
 > verifyResourceContains / 200 second
 > verifyReloads 3
 
 # Change a resource (also introduces a startup failure)
-$ copy-file changes/application.conf.1 conf/application.conf
 $ sleep 1000
+$ copy-file changes/application.conf.1 conf/application.conf
 > verifyResourceContains / 500
 > verifyReloads 4
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.sbt
 
@@ -10,7 +10,7 @@ import sbt._
 import sbt.Keys._
 
 import play.TemplateImports
-import play.runsupport.FileWatchService
+import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys
@@ -26,6 +26,15 @@ import WebKeys._
 
 object PlaySettings {
 
+  lazy val minimalJavaSettings = Seq[Setting[_]](
+
+    TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
+
+    RoutesKeys.routesImport ++= Seq(
+      "play.libs.F"
+    )
+  )
+
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
     TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
@@ -40,8 +49,8 @@ object PlaySettings {
   )
 
   /** Ask SBT to manage the classpath for the given configuration. */
-  def manageClasspath(config: Configuration) = managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
-    Classpaths.managedJars(config, ct, report)
+  def manageClasspath(config: Configuration) = managedClasspath in config := {
+    Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
   }
 
   lazy val defaultSettings = Seq[Setting[_]](
@@ -51,15 +60,16 @@ object PlaySettings {
 
     externalizeResources := true,
 
+    includeDocumentationInBinary := true,
+
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
-    libraryDependencies <+= (playPlugin) {
-      isPlugin =>
-        if (isPlugin) {
-          "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
-        } else {
-          "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
-        }
+    libraryDependencies += {
+      if (playPlugin.value) {
+        "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
+      } else {
+        "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
+      }
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
@@ -80,8 +90,8 @@ object PlaySettings {
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
 
     // Adds app directory's source files to continuous hot reloading
-    watchSources <++= (sourceDirectory in Compile, sourceDirectory in Assets) map { (sources, assets) =>
-      (sources ** "*" --- assets ** "*").get
+    watchSources ++= {
+      ((sourceDirectory in Compile).value ** "*" --- (sourceDirectory in Assets).value ** "*").get
     },
 
     commands ++= {
@@ -91,7 +101,7 @@ object PlaySettings {
     },
 
     // THE `in Compile` IS IMPORTANT!
-    Keys.run in Compile <<= PlayRun.playDefaultRunTask,
+    Keys.run in Compile := PlayRun.playDefaultRunTask.evaluated,
     mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
 
     PlayInternalKeys.playStop := {
@@ -105,23 +115,23 @@ object PlaySettings {
     shellPrompt := PlayCommands.playPrompt,
 
     // all dependencies from outside the project (all dependency jars)
-    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+    playDependencyClasspath := (externalDependencyClasspath in Runtime).value,
 
     // all user classes, in this project and any other subprojects that it depends on
-    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+    playReloaderClasspath := Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime).value,
 
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
 
-    playCommonClassloader <<= PlayCommands.playCommonClassloaderTask,
+    playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
 
     playDependencyClassLoader := PlayRun.createURLClassLoader,
 
     playReloaderClassLoader := PlayRun.createDelegatedResourcesClassLoader,
 
-    playCompileEverything <<= PlayCommands.playCompileEverythingTask,
+    playCompileEverything := PlayCommands.playCompileEverythingTask.value,
 
-    playReload <<= PlayCommands.playReloadTask,
+    playReload := PlayCommands.playReloadTask.value,
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
@@ -132,7 +142,7 @@ object PlaySettings {
       (dirs * "routes").get ++ (dirs * "*.routes").get
     },
 
-    playMonitoredFiles <<= PlayCommands.playMonitoredFilesTask,
+    playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
 
     fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
 
@@ -196,7 +206,7 @@ object PlaySettings {
       } else scriptClasspath.value
     },
     // taskDyn ensures we only build the sans externalised jar if we need to
-    scriptClasspathOrdering <<= Def.taskDyn {
+    scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       if (externalizeResources.value) {
         Def.task {
@@ -215,17 +225,26 @@ object PlaySettings {
       } else {
         Def.task(oldValue)
       }
-    },
+    }.value,
 
-    mappings in Universal ++= {
-      val docDirectory = (doc in Compile).value
-      val docDirectoryLen = docDirectory.getCanonicalPath.length
-      val pathFinder = docDirectory ** "*"
-      pathFinder.get map {
-        docFile: File =>
-          docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+    mappings in Universal ++= Def.taskDyn {
+      // the documentation will only be included if includeDocumentation is true (see: http://www.scala-sbt.org/1.0/docs/Tasks.html#Dynamic+Computations+with)
+      if (includeDocumentationInBinary.value) {
+        Def.task{
+          val docDirectory = (doc in Compile).value
+          val docDirectoryLen = docDirectory.getCanonicalPath.length
+          val pathFinder = docDirectory ** "*"
+          pathFinder.get map {
+            docFile: File =>
+              docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+          }
+        }
+      } else {
+        Def.task {
+          Seq[(sbt.File, String)]()
+        }
       }
-    },
+    }.value,
 
     mappings in Universal ++= {
       val pathFinder = baseDirectory.value * "README*"
@@ -238,8 +257,8 @@ object PlaySettings {
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
 
-    generateSecret <<= ApplicationSecretGenerator.generateSecretTask,
-    updateSecret <<= ApplicationSecretGenerator.updateSecretTask
+    generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
+    updateSecret := ApplicationSecretGenerator.updateSecretTask.value
 
   ) ++ inConfig(Compile)(externalizedSettings)
 

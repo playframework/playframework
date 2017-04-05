@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import akka.stream.IOResult;
 import akka.stream.Materializer;
@@ -7,8 +7,9 @@ import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import javaguide.http.JavaBodyParsers;
 import org.junit.Test;
+import play.api.http.HttpErrorHandler;
+import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
 import play.libs.streams.Accumulator;
 import play.mvc.BodyParser;
@@ -37,6 +38,7 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static play.mvc.Results.ok;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
@@ -75,8 +77,8 @@ public class JavaFileUpload extends WithApplication {
     public static class MultipartFormDataWithFileBodyParser extends BodyParser.DelegatingMultipartFormDataBodyParser<File> {
 
         @Inject
-        public MultipartFormDataWithFileBodyParser(Materializer materializer, play.api.http.HttpConfiguration config) {
-            super(materializer, config.parser().maxDiskBuffer());
+        public MultipartFormDataWithFileBodyParser(Materializer materializer, play.api.http.HttpConfiguration config, HttpErrorHandler errorHandler) {
+            super(materializer, config.parser().maxDiskBuffer(), errorHandler);
         }
 
         /**
@@ -94,7 +96,7 @@ public class JavaFileUpload extends WithApplication {
                 return Accumulator.fromSink(
                         sink.mapMaterializedValue(completionStage ->
                                 completionStage.thenApplyAsync(results ->
-                                        new Http.MultipartFormData.FilePart(partname,
+                                        new Http.MultipartFormData.FilePart<>(partname,
                                                 filename,
                                                 contentType,
                                                 file))
@@ -121,9 +123,10 @@ public class JavaFileUpload extends WithApplication {
 
     @Test
     public void testCustomMultipart() throws IOException {
+        play.libs.Files.TemporaryFileCreator tfc = play.libs.Files.singletonTemporaryFileCreator();
         Source source = FileIO.fromPath(Files.createTempFile("temp", "txt"));
         Http.MultipartFormData.FilePart dp = new Http.MultipartFormData.FilePart<Source>("name", "filename", "text/plain", source);
-        assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction() {
+        assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                     public Result uploadCustomMultiPart() throws Exception {
                         final Http.MultipartFormData<File> formData = request().body().asMultipartFormData();
@@ -133,7 +136,7 @@ public class JavaFileUpload extends WithApplication {
                         Files.deleteIfExists(file.toPath());
                         return ok("Got: file size = " + size + "");
                     }
-                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), mat), mat)),
+                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), tfc, mat), mat)),
                 equalTo("Got: file size = 0"));
     }
 }

@@ -1,28 +1,32 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.i18n
 
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.api.mvc.Controller
 import play.api.i18n._
-import play.api.Mode
 
 class MessagesSpec extends PlaySpecification with Controller {
 
   sequential
 
   implicit val lang = Lang("en-US")
-  import play.api.i18n.Messages.Implicits.applicationMessages
 
   "Messages" should {
-    "provide default messages" in new WithApplication() {
-      val msg = Messages("constraint.email")
+    "provide default messages" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val javaMessagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+
+      val msg = messagesApi("constraint.email")
+      val javaMsg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
 
       msg must ===("Email")
+      msg must ===(javaMsg)
     }
-    "permit default override" in new WithApplication() {
-      val msg = Messages("constraint.required")
+    "permit default override" in new WithApplication(_.requireExplicitBindings()) {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val msg = messagesApi("constraint.required")
 
       msg must ===("Required!")
     }
@@ -33,20 +37,24 @@ class MessagesSpec extends PlaySpecification with Controller {
     import java.util
     val enUS: Lang = new play.i18n.Lang(play.api.i18n.Lang("en-US"))
     "allow translation without parameters" in new WithApplication() {
-      val msg = Messages.get(enUS, "constraint.email")
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val msg = messagesApi.get(enUS, "constraint.email")
 
       msg must ===("Email")
     }
     "allow translation with any non-list parameter" in new WithApplication() {
-      val msg = Messages.get(enUS, "constraint.min", "Croissant")
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val msg = messagesApi.get(enUS, "constraint.min", "Croissant")
 
       msg must ===("Minimum value: Croissant")
     }
     "allow translation with any list parameter" in new WithApplication() {
+      val messagesApi = app.injector.instanceOf[MessagesApi]
+
       val msg = {
         val list: util.ArrayList[String] = new util.ArrayList[String]()
         list.add("Croissant")
-        Messages.get(enUS, "constraint.min", list)
+        messagesApi.get(enUS, "constraint.min", list)
       }
 
       msg must ===("Minimum value: Croissant")

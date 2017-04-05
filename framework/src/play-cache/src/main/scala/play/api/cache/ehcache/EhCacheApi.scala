@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.cache.ehcache
 
@@ -45,10 +45,10 @@ trait EhCacheComponents {
  */
 class EhCacheModule extends SimpleModule((environment, configuration) => {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
-  val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").toSeq
+  val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").asScala
   val createBoundCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
 
   // Creates a named cache qualifier

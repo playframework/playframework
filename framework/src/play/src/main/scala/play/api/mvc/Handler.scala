@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.mvc
 
 import scala.annotation.tailrec
@@ -46,13 +49,13 @@ final object Handler {
   }
 
   /**
-   * A special type of [[Handler]] which allows custom logic to be inserted
+   * A special type of [[play.api.mvc.Handler]] which allows custom logic to be inserted
    * during handling. A `Stage` accepts a `RequestHeader` then returns a new
    * `RequestHeader` along with the next `Handler` to use during request
    * handling. The next handler could be a terminal `Handler` like an
    * [[EssentialAction]], but it could also be another `Stage`. This means
    * it's possible to chains of `Stage`s that should each be executed in turn.
-   * To automatically execute all `Stage`s you can call [[Handler.applyStages()]].
+   * To automatically execute all `Stage`s you can call [[play.api.mvc.Handler.applyStages]].
    */
   trait Stage extends Handler {
     def apply(requestHeader: RequestHeader): (RequestHeader, Handler)

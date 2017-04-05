@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Compile Time Dependency Injection
 
 Out of the box, Play provides a mechanism for runtime dependency injection - that is, dependency injection where dependencies aren't wired until runtime.  This approach has both advantages and disadvantages, the main advantages being around minimisation of boilerplate code, the main disadvantage being that the construction of the application is not validated at compile time.
@@ -80,4 +80,4 @@ As described before, Play provides a number of helper traits for wiring in other
 
 @[messages](code/CompileTimeDependencyInjection.scala)
 
-Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWsComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)
+Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWSComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)

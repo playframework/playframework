@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.netty
 
 import java.io.IOException
-import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
@@ -12,20 +11,18 @@ import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http.HttpHeaders.Names
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.codec.http._
-import io.netty.handler.ssl.SslHandler
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.timeout.IdleStateEvent
-import play.api.{ Application, Logger }
 import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, RequestHeader, Results, WebSocket }
+import play.api.{ Application, Configuration, Logger }
 import play.core.server.NettyServer
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
-import play.core.system.RequestIdProvider
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
@@ -44,12 +41,21 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   // in.
   private var lastResponseSent: Future[Unit] = Future.successful(())
 
-  // todo: make forwarded header handling a filter
-  private lazy val modelConversion = new NettyModelConversion(
-    new ForwardedHeaderHandler(
-      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(server.applicationProvider.get.toOption.map(_.configuration))
-    )
-  )
+  private lazy val resultUtils: ServerResultUtils = {
+    val httpConfiguration = server.applicationProvider.get match {
+      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration, app.environment)
+      case Failure(_) => HttpConfiguration()
+    }
+    new ServerResultUtils(httpConfiguration)
+  }
+
+  // todo: make forwarded header handling part of the DefaultRequestFactory
+  private lazy val modelConversion = {
+    val configuration: Option[Configuration] = server.applicationProvider.get.toOption.map(_.configuration)
+    val forwardedHeaderHandler = new ForwardedHeaderHandler(
+      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(configuration))
+    new NettyModelConversion(resultUtils, forwardedHeaderHandler)
+  }
 
   /**
    * Handle the given request.
@@ -60,15 +66,11 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
     import play.core.Execution.Implicits.trampoline
 
-    val requestId = RequestIdProvider.requestIDs.incrementAndGet()
-    val tryRequest = modelConversion.convertRequest(
-      requestId,
-      channel.remoteAddress().asInstanceOf[InetSocketAddress], Option(channel.pipeline().get(classOf[SslHandler])),
-      request)
+    val tryRequest: Try[RequestHeader] = modelConversion.convertRequest(channel, request)
 
     def clientError(statusCode: Int, message: String) = {
-      val requestHeader = modelConversion.createUnparsedRequestHeader(requestId, request,
-        channel.remoteAddress().asInstanceOf[InetSocketAddress], Option(channel.pipeline().get(classOf[SslHandler])))
+      val unparsedTarget = modelConversion.createUnparsedRequestTarget(request)
+      val requestHeader = modelConversion.createRequestHeader(channel, request, unparsedTarget)
       val result = errorHandler(server.applicationProvider.current).onClientError(requestHeader, statusCode,
         if (message == null) "" else message)
       // If there's a problem in parsing the request, then we should close the connection, once done with it
@@ -111,7 +113,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
         val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L).asInstanceOf[Int]
         val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
 
-        val executed = Future(ws(requestHeader))(play.core.Execution.internalContext)
+        val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
 
         import play.core.Execution.Implicits.trampoline
         executed.flatMap(identity).flatMap {
@@ -257,10 +259,10 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     import play.core.Execution.Implicits.trampoline
 
     for {
+      bodyParser <- Future(action(requestHeader))(mat.executionContext)
       // Execute the action and get a result
       actionResult <- {
         val body = modelConversion.convertRequestBody(request)
-        val bodyParser = action(requestHeader)
         (body match {
           case None => bodyParser.run()
           case Some(source) => bodyParser.run(source)
@@ -272,9 +274,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
       }
       // Clean and validate the action's result
       validatedResult <- {
-        val config = httpConfiguration(app)
-        val cleanedResult = ServerResultUtils.prepareCookies(requestHeader, actionResult, config)
-        ServerResultUtils.validateResult(requestHeader, cleanedResult, errorHandler(app))
+        val cleanedResult = resultUtils.prepareCookies(requestHeader, actionResult)
+        resultUtils.validateResult(requestHeader, cleanedResult, errorHandler(app))
       }
       // Convert the result to a Netty HttpResponse
       convertedResult <- {

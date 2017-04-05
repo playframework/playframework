@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package detailedtopics.configuration.threadpools
 
@@ -16,7 +16,6 @@ import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 import org.specs2.execute.AsResult
 
 class ThreadPoolsSpec extends PlaySpecification {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Play's thread pools" should {
 
@@ -207,7 +206,7 @@ class ThreadPoolsSpec extends PlaySpecification {
 
 // since specs provides defaultContext, implicitly importing it doesn't work
 //#global-thread-pool
-class Samples @Inject()(implicit ec: ExecutionContext) extends Controller {
+class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(components) {
   def someAsyncAction = Action.async {
     someCalculation().map { result =>
       Ok(s"The answer is $result")

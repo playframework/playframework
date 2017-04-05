@@ -1,10 +1,11 @@
 
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.http.scalaactionscomposition {
 
 import javax.inject.Inject
+
 import akka.actor._
 import akka.stream.ActorMaterializer
 import play.api.http._
@@ -16,9 +17,11 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
 import play.api.mvc.Controller
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import org.specs2.execute.AsResult
+import play.api.libs.Files.SingletonTemporaryFileCreator
 
 case class User(name: String)
 object User {
@@ -45,17 +48,19 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
       //#basic-logging-index
-      def index = loggingAction {
-        Ok("Hello World")
+      class MyController @Inject()(loggingAction: LoggingAction) extends Controller {
+        def index = loggingAction {
+          Ok("Hello World")
+        }
       }
       //#basic-logging-index
 
-      testAction(index)
+      testAction(new MyController(loggingAction).index)
 
       //#basic-logging-parse
       def submit = loggingAction(parse.text) { request =>
@@ -64,7 +69,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#basic-logging-parse
 
       val request = FakeRequest().withTextBody("hello with the parse")
-      testAction(index, request)
+      testAction(new MyController(loggingAction).index, request)
     }
 
     "Wrapping existing actions" in {
@@ -79,8 +84,8 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
           action(request)
         }
 
-        lazy val parser = action.parser
-        lazy val executionContext = action.executionContext
+        override def parser = action.parser
+        override def executionContext = action.executionContext
       }
       //#actions-class-wrapping
 
@@ -97,7 +102,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer())
+      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -146,13 +151,15 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
     "allow modifying the request object" in {
       //#modify-request
       import play.api.mvc._
+      import play.api.mvc.request.RemoteConnection
 
       def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
-        val newRequest = request.headers.get("X-Forwarded-For").map { xff =>
-          new WrappedRequest[A](request) {
-            override def remoteAddress = xff
-          }
-        } getOrElse request
+        val newRequest = request.headers.get("X-Forwarded-For") match {
+          case None => request
+          case Some(xff) =>
+            val xffConnection = RemoteConnection(xff, request.connection.secure, None)
+            request.withConnection(xffConnection)
+        }
         action(newRequest)
       }
       //#modify-request
@@ -210,7 +217,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
       val eh: HttpErrorHandler =
         new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer())
+      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
       val userAction = new UserAction(parser)
 
       def currentUser = userAction { request =>
@@ -266,7 +273,6 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
         }
       //#item-action-use
 
-      import scala.concurrent.ExecutionContext.Implicits.global
       testAction(tagItem("foo", "bar"), expectedResponse = FORBIDDEN)
     }
 

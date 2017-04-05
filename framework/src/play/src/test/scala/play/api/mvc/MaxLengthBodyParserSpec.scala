@@ -7,6 +7,7 @@ import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.api.http.{ DefaultHttpErrorHandler, ParserConfiguration, Status }
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.libs.streams.Accumulator
 import play.api.{ Configuration, Environment }
 import play.core.test.FakeRequest
@@ -28,8 +29,9 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   implicit val system = ActorSystem()
   import system.dispatcher
   implicit val mat = ActorMaterializer()
-  val parse = new PlayBodyParsersImpl(
-    ParserConfiguration(), new DefaultHttpErrorHandler(Environment.simple(), Configuration.empty), mat)
+  val tempFileCreator = SingletonTemporaryFileCreator
+  val parse = new DefaultPlayBodyParsers(
+    ParserConfiguration(), new DefaultHttpErrorHandler(Environment.simple(), Configuration.empty), mat, tempFileCreator)
 
   override def afterAll: Unit = {
     system.terminate()

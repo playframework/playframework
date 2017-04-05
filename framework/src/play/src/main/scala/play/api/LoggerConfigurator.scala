@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -61,7 +61,7 @@ object LoggerConfigurator {
 
   def apply(classLoader: ClassLoader): Option[LoggerConfigurator] = {
     findFromResources(classLoader).flatMap { className =>
-      apply(className, this.getClass.getClassLoader)
+      apply(className, classLoader)
     }
   }
 

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Filters
 
 Play provides a simple filter API for applying global filters to each request.
@@ -39,11 +39,11 @@ If you want to have different filters in different environments, or would prefer
 
 Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router. However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain. If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in [[ a `HttpRequestHandler`|JavaActionCreator#HTTP-request-handlers]] instead.
 
-Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`. For example, you might want to log the time against the action method. In that case, you might update the filter to look like this:
+Since filters are applied after routing is done, it is possible to access routing information from the request, via the `attrs` map on the `RequestHeader`. For example, you might want to log the time against the action method. In that case, you might update the filter to look like this:
 
 @[routing-info-access](code/javaguide/application/httpfilters/RoutedLoggingFilter.java)
 
-> **Note:** Routing tags are a feature of the Play router. If you use a custom router these parameters may not be available.
+> **Note:** Routing attributes are a feature of the Play router. If you use a custom router these parameters may not be available.
 
 ## More powerful filters
 

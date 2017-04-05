@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
@@ -1293,6 +1293,279 @@ public class Results {
      */
     public static Result notFound(File content, String filename) {
         return status(NOT_FOUND, content, filename);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @return the result
+     */
+    public static StatusHeader notAcceptable() {
+        return new StatusHeader(NOT_ACCEPTABLE);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the HTTP response body
+     * @return the result
+     */
+    public static Result notAcceptable(Content content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
+     */
+    public static Result notAcceptable(Content content, String charset) {
+        return status(NOT_ACCEPTABLE, content, charset);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
+     */
+    public static Result notAcceptable(String content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
+     */
+    public static Result notAcceptable(String content, String charset) {
+        return status(NOT_ACCEPTABLE, content, charset);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
+     */
+    public static Result notAcceptable(JsonNode content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result notAcceptable(JsonNode content, JsonEncoding encoding) {
+        return status(NOT_ACCEPTABLE, content, encoding);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the result's body content
+     * @return the result
+     */
+    public static Result notAcceptable(byte[] content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
+     */
+    public static Result notAcceptable(InputStream content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
+     */
+    public static Result notAcceptable(InputStream content, long contentLength) {
+        return status(NOT_ACCEPTABLE, content, contentLength);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @return the result
+     */
+    public static Result notAcceptable(File content) {
+        return status(NOT_ACCEPTABLE, content);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     */
+    public static Result notAcceptable(File content, boolean inline) {
+        return status(NOT_ACCEPTABLE, content, inline);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     */
+    public static Result notAcceptable(File content, String filename) {
+        return status(NOT_ACCEPTABLE, content, filename);
+    }
+
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @return the result
+     */
+    public static StatusHeader unsupportedMediaType() {
+        return new StatusHeader(UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the HTTP response body
+     * @return the result
+     */
+    public static Result unsupportedMediaType(Content content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
+     */
+    public static Result unsupportedMediaType(Content content, String charset) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, charset);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content HTTP response body, encoded as a UTF-8 string
+     * @return the result
+     */
+    public static Result unsupportedMediaType(String content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the HTTP response body
+     * @param charset the charset into which the content should be encoded (e.g. "UTF-8")
+     * @return the result
+     */
+    public static Result unsupportedMediaType(String content, String charset) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, charset);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the result's body content as a play-json object. It will be encoded
+     *        as a UTF-8 string.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(JsonNode content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the result's body content as a play-json object
+     * @param encoding the encoding into which the json should be encoded
+     * @return the result
+     */
+    public static Result unsupportedMediaType(JsonNode content, JsonEncoding encoding) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, encoding);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the result's body content
+     * @return the result
+     */
+    public static Result unsupportedMediaType(byte[] content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @return the result
+     */
+    public static Result unsupportedMediaType(InputStream content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content the input stream containing data to chunk over
+     * @param contentLength the length of the provided content in bytes.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(InputStream content, long contentLength) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, contentLength);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(File content) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(File content, boolean inline) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, inline);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(File content, String filename) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, filename);
     }
 
     /**
