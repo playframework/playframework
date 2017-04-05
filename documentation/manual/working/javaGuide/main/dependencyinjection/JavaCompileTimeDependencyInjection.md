@@ -39,7 +39,7 @@ In addition, if you're modifying an existing project that uses the built-in Guic
 
 ## Configuring Logging
 
-To correctly configure logging in Play, the `LoggerConfigurator` must be run before the application is returned.  The default  [BuiltInComponentsFromContext](api/java/play/BuiltInComponentsFromContext.html) does not call `LoggerConfigurator` for you.
+To correctly configure logging in Play, the `LoggerConfigurator` must be run before the application is returned.  The default [BuiltInComponentsFromContext](api/java/play/BuiltInComponentsFromContext.html) does not call `LoggerConfigurator` for you.
 
 This initialization code must be added in your application loader:
 
@@ -84,8 +84,8 @@ To use this router in an actual application:
 
 ## Using other components
 
-As described before, Play provides a number of helper traits for wiring in other components.  For example, if you wanted to use the messages module, you can mix in [I18nComponents](api/scala/play/api/i18n/I18nComponents.html) into your components cake, like so:
+As described before, Play provides a number of helper traits for wiring in other components.  For example, if you wanted to use a database connection pool, you can mix in [HikariCPComponents](api/java/play/db/HikariCPComponents.html) into your components cake, like so:
 
-@[messages](code/CompileTimeDependencyInjection.scala)
+@[connection-pool](code/javaguide/di/components/CompileTimeDependencyInjection.java)
 
-Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWSComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)
+Other helper traits are also available as the [CSRFComponents](api/java/play/filters/components/CSRFComponents.html) or the [AhcWSComponents](api/java/play/libs/ws/ahc/AhcWSComponents.html).
