@@ -387,7 +387,7 @@ class CSRFActionHelper(
         // vulnerability
         val newTokenValue = tokenSigner.extractSignedToken(token.value).map(tokenSigner.signToken)
         newTokenValue.fold(newReq)(tv =>
-          newReq.withAttrs(newReq.attrs + (Token.InfoAttr -> TokenInfo(token, tv)))
+          newReq.addAttr(Token.InfoAttr, TokenInfo(token, tv))
         )
       } else {
         newReq
@@ -400,7 +400,7 @@ class CSRFActionHelper(
   }
 
   def tagRequest(request: RequestHeader, token: Token): RequestHeader = {
-    request.withAttrs(request.attrs + (Token.InfoAttr -> TokenInfo(token)))
+    request.addAttr(Token.InfoAttr, TokenInfo(token))
   }
 
   def tagRequest[A](request: Request[A], token: Token): Request[A] = {

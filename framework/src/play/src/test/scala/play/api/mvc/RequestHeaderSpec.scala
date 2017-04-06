@@ -11,7 +11,6 @@ import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
-
 class RequestHeaderSpec extends Specification {
 
   "request header" should {
@@ -33,6 +32,25 @@ class RequestHeaderSpec extends Specification {
       "getting a nonexistent attribute should be None" in {
         val x = TypedKey[Int]("x")
         dummyRequestHeader().attrs.get(x) must beNone
+      }
+      "can add single attribute" in {
+        val x = TypedKey[Int]("x")
+        dummyRequestHeader().addAttr(x, 3).attrs(x) must_== 3
+      }
+      "keep current attributes when adding a new one" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[String]
+        dummyRequestHeader().withAttrs(TypedMap(y -> "hello")).addAttr(x, 3).attrs(y) must_== "hello"
+      }
+      "overrides current attribute value" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[String]
+        val requestHeader = dummyRequestHeader().withAttrs(TypedMap(y -> "hello"))
+          .addAttr(x, 3)
+          .addAttr(y, "white")
+
+        requestHeader.attrs(y) must_== "white"
+        requestHeader.attrs(x) must_== 3
       }
     }
 

@@ -4,16 +4,16 @@
 package play.mvc;
 
 import akka.stream.javadsl.Source;
+import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
+import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
-import play.libs.Files.*;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
-import org.junit.Test;
 
 import java.io.File;
 import java.util.Collections;
@@ -132,7 +132,7 @@ public class RequestBuilderTest {
     public void testUsername() {
         final Request req1 =
             new RequestBuilder().uri("http://playframework.com/").build();
-        final Request req2 = req1.withAttrs(req1.attrs().put(Security.USERNAME, "user2"));
+        final Request req2 = req1.addAttr(Security.USERNAME, "user2");
         final Request req3 = req1.withUsername("user3");
         final Request req4 =
                 new RequestBuilder().uri("http://playframework.com/").username("user4").build();

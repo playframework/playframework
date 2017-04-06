@@ -133,7 +133,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     val CustomAttr = TypedKey[String]("CustomAttr")
     def addCustomTagAndAttr(r: RequestHeader): RequestHeader = {
       val withTags = r.copy(tags = Map("CustomTag" -> "x"))
-      val withAttrs = withTags.withAttrs(withTags.attrs.updated(CustomAttr, "y"))
+      val withAttrs = withTags.addAttr(CustomAttr, "y")
       withAttrs
     }
     val tagAndAttrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>

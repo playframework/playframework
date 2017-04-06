@@ -444,7 +444,7 @@ object Attrs {
 val userName: String = req.attrs(Attrs.UserName)
 val optUserName: [String] = req.attrs.get(Attrs.UserName)
 // Setting an attribute on a Request or RequestHeader
-val newReq = req.withAttrs(req.attrs.updated(Attrs.UserName, newName))
+val newReq = req.addAttr(Attrs.UserName, newName)
 ```
 
 However, if appropriate, we recommend you convert your `String` tags into attributes with non-`String` values. Converting your tags into non-`String` objects has several benefits. First, you will make your code more type-safe. This will increase your code's reliability and make it easier to understand. Second, the objects you store in attributes can contain multiple properties, allowing you to aggregate multiple tags into a single value. Third, converting tags into attributes means you don't need to encode and decode values from `String`s, which may increase performance.
