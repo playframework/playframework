@@ -5,14 +5,8 @@ package play.routing;
 
 import org.junit.BeforeClass;
 import play.Application;
-import play.DefaultApplication;
-import play.api.ApplicationLoader;
-import play.api.http.HttpFilters;
-import play.api.mvc.EssentialFilter;
-import play.inject.DelegateInjector;
-import play.inject.Injector;
-import play.libs.Scala;
-import scala.collection.Seq;
+import play.ApplicationLoader;
+import play.filters.components.NoHttpFiltersComponents;
 
 public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
@@ -21,10 +15,9 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
     @BeforeClass
     public static void startApp() {
-        play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).asScala();
+        play.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple());
         components = new TestComponents(context);
-        Injector injector = new DelegateInjector(components.injector());
-        application = new DefaultApplication(components.application(), injector);
+        application = components.application();
     }
 
     @Override
@@ -37,20 +30,15 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
         return application;
     }
 
-    private static class TestComponents extends RoutingDslComponentsFromContext {
+    private static class TestComponents extends RoutingDslComponentsFromContext implements NoHttpFiltersComponents {
 
         TestComponents(ApplicationLoader.Context context) {
             super(context);
         }
 
         @Override
-        public play.api.routing.Router router() {
-            return routingDsl().build().asScala();
-        }
-
-        @Override
-        public Seq<EssentialFilter> httpFilters() {
-            return Scala.emptySeq();
+        public Router router() {
+            return routingDsl().build();
         }
     }
 }

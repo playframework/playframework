@@ -3,6 +3,7 @@
  */
 package play.components;
 
+import play.api.mvc.AnyContent;
 import play.api.mvc.PlayBodyParsers;
 import play.api.mvc.PlayBodyParsers$;
 import play.mvc.BodyParser;
@@ -24,6 +25,10 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
                 materializer(),
                 tempFileCreator().asScala()
         );
+    }
+
+    default play.api.mvc.BodyParser<AnyContent> defaultScalaParser() {
+        return scalaParsers().defaultBodyParser();
     }
 
     /**
