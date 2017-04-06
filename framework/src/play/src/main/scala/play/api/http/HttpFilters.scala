@@ -60,7 +60,6 @@ object HttpFilters {
  * @param injector finds an instance of filter by the class name
  */
 class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector, webCommands: WebCommands) extends HttpFilters {
-
   private val enabledKey = "play.filters.enabled"
   private val disabledKey = "play.filters.disabled"
 
@@ -120,12 +119,18 @@ class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
  * Web command handler for listing filters on application start.
  */
 class EnabledFiltersWebCommands @Inject() (enabledFilters: EnabledFilters) extends HandleWebCommandSupport {
-  private val logger = play.api.Logger("application")
+  private val logger = play.api.Logger("play.api.http.EnabledFilters")
+
+  private var enabled = true
 
   def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
-    logger.info("Enabled Filters: ")
-    for (f <- enabledFilters.filters) {
-      logger.info(s"  ${f.getClass.toString}")
+    if (enabled) {
+      enabled = false
+      val b = new StringBuffer()
+      b.append("Enabled Filters: ")
+      enabledFilters.filters.foreach(f => b.append(s"  ${f.getClass.getCanonicalName}\n"))
+      b.append("Play comes with filters enabled by default for security: https://www.playframework.com/documentation/latest/Filters\n")
+      logger.info(b.toString)
     }
     None
   }
