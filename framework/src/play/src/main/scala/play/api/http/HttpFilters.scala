@@ -7,9 +7,8 @@ import javax.inject.Inject
 
 import com.typesafe.config.ConfigException
 import play.api.inject.{ Binding, BindingKey, Injector }
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration, Environment, Logger }
 import play.api.mvc.EssentialFilter
-import play.core.{ HandleWebCommandSupport, WebCommands }
 import play.utils.Reflect
 
 /**
@@ -53,45 +52,63 @@ object HttpFilters {
 }
 
 /**
- * This class pulls in a list of filters through configuration property, binding them to a list of classes.
+ * This class provides filters that are "automatically" enabled through `play.filters.enabled`.
+ * A list of default filters are defined in reference.conf.
+ *
+ * See https://www.playframework.com/documentation/latest/Filters for more information.
  *
  * @param env the environment (classloader is used from here)
  * @param configuration the configuration
  * @param injector finds an instance of filter by the class name
  */
-class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector, webCommands: WebCommands) extends HttpFilters {
+class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
+
+  private val url = "https://www.playframework.com/documentation/latest/Filters"
+
+  private val logger = Logger(this.getClass)
+
   private val enabledKey = "play.filters.enabled"
+
   private val disabledKey = "play.filters.disabled"
 
-  private val defaultBindings: Seq[BindingKey[EssentialFilter]] = {
-    try {
-      val disabledSet = configuration.get[Seq[String]](disabledKey).toSet
-      val enabledList = configuration.get[Seq[String]](enabledKey).filterNot(disabledSet.contains)
+  override val filters: Seq[EssentialFilter] = {
+    val bindings: Seq[BindingKey[EssentialFilter]] = {
+      try {
+        val disabledSet = configuration.get[Seq[String]](disabledKey).toSet
+        val enabledList = configuration.get[Seq[String]](enabledKey).filterNot(disabledSet.contains)
 
-      for (filterClassName <- enabledList) yield {
-        try {
-          val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
-          BindingKey(filterClass)
-        } catch {
-          case e: ClassNotFoundException =>
-            throw configuration.reportError(enabledKey, s"Cannot load class $filterClassName", Some(e))
+        for (filterClassName <- enabledList) yield {
+          try {
+            val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
+            BindingKey(filterClass)
+          } catch {
+            case e: ClassNotFoundException =>
+              throw configuration.reportError(enabledKey, s"Cannot load class $filterClassName", Some(e))
+          }
         }
+      } catch {
+        case e: ConfigException.Null =>
+          Nil
+        case e: ConfigException.Missing =>
+          Nil
       }
-    } catch {
-      case e: ConfigException.Null =>
-        Nil
-      case e: ConfigException.Missing =>
-        Nil
+    }
+
+    bindings.map(injector.instanceOf(_))
+  }
+
+  private def printMessageInDevMode(): Unit = {
+    if (env.mode == play.api.Mode.Dev) {
+      val b = new StringBuffer()
+      b.append("Enabled Filters: ")
+      filters.foreach(f => b.append(s"  ${f.getClass.getCanonicalName}\n"))
+      b.append(s"Play comes with filters enabled by default for security: $url\n")
+      logger.info(b.toString)
     }
   }
 
-  /**
-   * Return the filters that should filter every request
-   */
-  override lazy val filters: Seq[EssentialFilter] = defaultBindings.map(injector.instanceOf(_))
-
   def start(): Unit = {
-    webCommands.addHandler(new EnabledFiltersWebCommands(this))
+    printMessageInDevMode()
   }
 
   start() // on construction
@@ -114,24 +131,3 @@ class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
 
 class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
   extends play.http.DefaultHttpFilters(delegate.filters: _*)
-
-/**
- * Web command handler for listing filters on application start.
- */
-class EnabledFiltersWebCommands @Inject() (enabledFilters: EnabledFilters) extends HandleWebCommandSupport {
-  private val logger = play.api.Logger("play.api.http.EnabledFilters")
-
-  private var enabled = true
-
-  def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
-    if (enabled) {
-      enabled = false
-      val b = new StringBuffer()
-      b.append("Enabled Filters: ")
-      enabledFilters.filters.foreach(f => b.append(s"  ${f.getClass.getCanonicalName}\n"))
-      b.append("Play comes with filters enabled by default for security: https://www.playframework.com/documentation/latest/Filters\n")
-      logger.info(b.toString)
-    }
-    None
-  }
-}
