@@ -5,12 +5,16 @@ package play.mvc;
 
 import play.inject.Injector;
 import play.libs.typedmap.TypedKey;
-import play.mvc.Http.*;
+import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 
-import java.lang.annotation.*;
+import javax.inject.Inject;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 
 /**
  * Defines several security helpers.
@@ -51,7 +55,7 @@ public class Security {
                 Result unauthorized = authenticator.onUnauthorized(ctx);
                 return CompletableFuture.completedFuture(unauthorized);
             } else {
-                Request usernameReq = ctx.request().withAttrs(ctx.request().attrs().put(USERNAME, username));
+                Request usernameReq = ctx.request().addAttr(USERNAME, username);
                 Context usernameCtx = ctx.withRequest(usernameReq);
                 return delegate.call(usernameCtx);
             }

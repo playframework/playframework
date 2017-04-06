@@ -7,7 +7,7 @@ import java.security.cert.X509Certificate
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
 import play.api.i18n.Lang
-import play.api.libs.typedmap.{ TypedEntry, TypedMap }
+import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
 import play.api.mvc.request._
 
 import scala.annotation.implicitNotFound
@@ -140,6 +140,17 @@ trait RequestHeader {
    */
   def withAttrs(newAttrs: TypedMap): RequestHeader =
     new RequestHeaderImpl(connection, method, target, version, headers, newAttrs)
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param key The new attribute key.
+   * @param value  The attribute value.
+   * @tparam A The type of value.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
+    withAttrs(attrs.updated(key, value))
 
   // -- Computed
 
@@ -288,10 +299,10 @@ trait RequestHeader {
 
     // We only need to modify the request when an argument is non-null.
     if (id != null) {
-      newHeader = newHeader.withAttrs(newHeader.attrs.updated(RequestAttrKey.Id, (id: Long)))
+      newHeader = newHeader.addAttr(RequestAttrKey.Id, (id: Long))
     }
     if (tags != null) {
-      newHeader = newHeader.withAttrs(newHeader.attrs.updated(RequestAttrKey.Tags, tags))
+      newHeader = newHeader.addAttr(RequestAttrKey.Tags, tags)
     }
     if (uri != null) {
       newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))
