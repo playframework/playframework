@@ -52,7 +52,7 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment
         Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule(), new play.api.mvc.CookiesModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
@@ -69,7 +69,7 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment-values
         Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule(), new play.api.mvc.CookiesModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new File("path/to/app"))
@@ -149,6 +149,7 @@ public class JavaGuiceApplicationBuilderTest {
                 Guiceable.modules(
                     new play.api.inject.BuiltinModule(),
                     new play.api.i18n.I18nModule(),
+                    new play.api.mvc.CookiesModule(),
                     new play.inject.BuiltInModule()
                 ),
                 Guiceable.bindings(

@@ -871,7 +871,7 @@ Play's cookie encoding uses a "fallback" cookie encoding mechanism that reads in
 Using JWT encoded cookies should be seamless, but if you want, you can revert back to URL encoded cookie encoding by switching to `play.api.mvc.LegacyCookiesModule` in application.conf file:
 
 ```
-play.modules.disabled+="play.api.mvc.DefaultCookiesModule"
+play.modules.disabled+="play.api.mvc.CookiesModule"
 play.modules.enabled+="play.api.mvc.LegacyCookiesModule"
 ```
 
@@ -880,7 +880,7 @@ play.modules.enabled+="play.api.mvc.LegacyCookiesModule"
 If you have custom cookies being used in Play, using the `CookieBaker[T]` trait, then you will need to specify what kind of encoding you want for your custom cookie baker.
 
 The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `FallbackCookieDataCodec`, `JWTCookieDataCodec`, or `UrlEncodedCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
-  
+
 
 and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
 

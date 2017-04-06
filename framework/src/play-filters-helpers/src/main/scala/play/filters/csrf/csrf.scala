@@ -282,14 +282,13 @@ object CSRF {
  * The CSRF module.
  */
 class CSRFModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
-    Seq(
-      bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-      bind[CSRFConfig].toProvider[CSRFConfigProvider],
-      bind[CSRF.TokenProvider].toProvider[CSRF.TokenProviderProvider],
-      bind[CSRFFilter].toSelf
-    ) ++ ErrorHandler.bindingsFromConfiguration(environment, configuration)
-  }
+  def bindings(environment: Environment, configuration: Configuration) = Seq(
+    bind[play.libs.crypto.CSRFTokenSigner].to(classOf[play.libs.crypto.DefaultCSRFTokenSigner]),
+    bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
+    bind[CSRFConfig].toProvider[CSRFConfigProvider],
+    bind[CSRF.TokenProvider].toProvider[CSRF.TokenProviderProvider],
+    bind[CSRFFilter].toSelf
+  ) ++ ErrorHandler.bindingsFromConfiguration(environment, configuration)
 }
 
 /**

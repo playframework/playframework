@@ -739,10 +739,9 @@ case class DefaultJWTCookieDataCodec @Inject() (
 /**
  * A cookie module that uses JWT as the cookie encoding, falling back to URL encoding.
  */
-class DefaultCookiesModule extends SimpleModule((env, conf) => {
+class CookiesModule extends SimpleModule((env, conf) => {
   Seq(
     bind[CookieSigner].toProvider[CookieSignerProvider],
-    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
     bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
   )
@@ -754,7 +753,6 @@ class DefaultCookiesModule extends SimpleModule((env, conf) => {
 class LegacyCookiesModule extends SimpleModule((env, conf) => {
   Seq(
     bind[CookieSigner].toProvider[CookieSignerProvider],
-    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[SessionCookieBaker].to[LegacySessionCookieBaker],
     bind[FlashCookieBaker].to[LegacyFlashCookieBaker]
   )

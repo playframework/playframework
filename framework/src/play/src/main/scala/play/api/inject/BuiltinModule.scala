@@ -49,6 +49,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[SecretConfiguration].toProvider[SecretConfigurationProvider],
     bind[TemporaryFileReaperConfiguration].toProvider[TemporaryFileReaperConfigurationProvider],
 
+    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[RequestFactory].to[DefaultRequestFactory],
     bind[TemporaryFileReaper].to[DefaultTemporaryFileReaper],
     bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],

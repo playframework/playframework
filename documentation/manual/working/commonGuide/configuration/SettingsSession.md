@@ -10,14 +10,14 @@ When a session cookie is created, the "issued at" `iat` and "not before" `nbf` c
 
 ## Session Timeout / Expiration
 
-By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, you set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` in `application.conf`, and this will also set `play.http.session.jwt.expiresAfter` to the same value.  The `maxAge` property will remove the cookie from the browser, and the JWT `exp` claim will be set in the cookie, and will make it invalid after the given duration. 
+By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, you set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` in `application.conf`, and this will also set `play.http.session.jwt.expiresAfter` to the same value.  The `maxAge` property will remove the cookie from the browser, and the JWT `exp` claim will be set in the cookie, and will make it invalid after the given duration.
 
 ## URL Encoded Cookie Encoding
 
 The session cookie uses the JWT cookie encoding.  If you want, you can revert back to URL encoded cookie encoding by switching to `play.api.mvc.LegacyCookiesModule` in the application.conf file:
 
 ```
-play.modules.disabled+="play.api.mvc.DefaultCookiesModule"
+play.modules.disabled+="play.api.mvc.CookiesModule"
 play.modules.enabled+="play.api.mvc.LegacyCookiesModule"
 ```
 

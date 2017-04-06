@@ -7,11 +7,12 @@ import org.specs2.mutable.Specification
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import play.api.i18n.I18nModule
-import play.{ Environment => JavaEnvironment }
-import play.api.{ ApplicationLoader, Configuration, Environment }
-import play.api.inject.{ BuiltinModule, DefaultApplicationLifecycle }
+import play.{Environment => JavaEnvironment}
+import play.api.{ApplicationLoader, Configuration, Environment}
+import play.api.inject.{BuiltinModule, DefaultApplicationLifecycle}
+import play.api.mvc.CookiesModule
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class GuiceApplicationLoaderSpec extends Specification {
@@ -31,7 +32,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new I18nModule, new ManualTestModule)
+      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new I18nModule, new CookiesModule, new ManualTestModule)
       val loader = new GuiceApplicationLoader(builder)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]
