@@ -6,7 +6,7 @@ package play.api.libs.crypto
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import javax.inject.{Inject, Provider, Singleton}
+import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.http.SecretConfiguration
 import play.api.libs.Codecs

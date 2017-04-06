@@ -4,13 +4,13 @@
 package play.api.inject
 package guice
 
-import javax.inject.{Inject, Provider, Singleton}
+import javax.inject.{ Inject, Provider, Singleton }
 
-import com.google.inject.{CreationException, ProvisionException}
+import com.google.inject.{ CreationException, ProvisionException }
 import org.specs2.mutable.Specification
 import play.api.i18n.I18nModule
 import play.api.mvc.CookiesModule
-import play.api.{Configuration, Environment}
+import play.api.{ Configuration, Environment }
 
 class GuiceApplicationBuilderSpec extends Specification {
 
