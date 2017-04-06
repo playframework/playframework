@@ -159,7 +159,26 @@ package controllers {
     aggressiveCacheControl: String = "public, max-age=31536000, immutable",
     digestAlgorithm: String = "md5",
     checkForMinified: Boolean = true,
-    textContentTypes: Set[String] = Set("application/json", "application/javascript"))
+    textContentTypes: Set[String] = Set("application/json", "application/javascript"),
+    encodings: Seq[AssetEncoding] = Seq(
+      AssetEncoding.Brotli,
+      AssetEncoding.Gzip,
+      AssetEncoding.Xz,
+      AssetEncoding.Bzip2
+    )
+  )
+
+  case class AssetEncoding(acceptEncoding: String, extension: String) {
+    def forFilename(filename: String): String = if (extension != "") s"$filename.$extension" else filename
+  }
+
+  object AssetEncoding {
+    val Identity = AssetEncoding("identity", "")
+    val Brotli = AssetEncoding("br", "br")
+    val Gzip = AssetEncoding("gzip", "gz")
+    val Bzip2 = AssetEncoding("bz2", "bz2")
+    val Xz = AssetEncoding("xz", "xz")
+  }
 
   object AssetsConfiguration {
     def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Test): AssetsConfiguration = {
@@ -175,8 +194,14 @@ package controllers {
         digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
         checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
           .getOrElse(mode != Mode.Dev),
-        textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet
+        textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet,
+        encodings = getAssetEncodings(c)
       )
+    }
+
+    private def getAssetEncodings(c: Configuration): Seq[AssetEncoding] = {
+      c.get[Seq[Configuration]]("play.assets.encodings")
+        .map(configs => AssetEncoding(configs.get[String]("accept"), configs.get[String]("extension")))
     }
   }
 
@@ -219,7 +244,7 @@ package controllers {
   trait AssetsMetadata {
     def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]]
+    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Seq[String])]]
   }
 
   /**
@@ -358,14 +383,15 @@ package controllers {
 
     private lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
-    private def assetInfoFromResource(name: String): Option[AssetInfo] = {
-      blocking {
-        for {
-          url <- resource(name)
-        } yield {
-          val gzipUrl: Option[URL] = resource(name + ".gz")
-          new AssetInfo(name, url, gzipUrl, digest(name), config, fileMimeTypes)
-        }
+    private def assetInfoFromResource(name: String): Option[AssetInfo] = blocking {
+      for {
+        url <- resource(name)
+      } yield {
+        val compressionUrls: Seq[(String, URL)] = config.encodings
+          .map { case AssetEncoding(accept, extension) => (accept, resource(name + "." + extension)) }
+          .collect { case (key: String, Some(url: URL)) => (key, url) }
+
+        new AssetInfo(name, url, compressionUrls, digest(name), config, fileMimeTypes)
       }
     }
 
@@ -377,9 +403,9 @@ package controllers {
       }
     }
 
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
-      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-      assetInfo(name).map(_.map(_ -> gzipRequested))
+    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Seq[String])]] = {
+      val requestedEncodings: Seq[String] = request.headers.getAll(ACCEPT_ENCODING).flatMap(_.split(',').toSeq.map(_.trim.split(";")(0)))
+      assetInfo(name).map(_.map(_ -> requestedEncodings))
     }
   }
 
@@ -389,7 +415,7 @@ package controllers {
   private class AssetInfo(
       val name: String,
       val url: URL,
-      val gzipUrl: Option[URL],
+      val compressedUrls: Seq[(String, URL)],
       val digest: Option[String],
       config: AssetsConfiguration,
       fileMimeTypes: FileMimeTypes
@@ -457,11 +483,10 @@ package controllers {
 
     lazy val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
-    def url(gzipAvailable: Boolean): URL = {
-      gzipUrl match {
-        case Some(x) => if (gzipAvailable) x else url
-        case None => url
-      }
+    def url(requestedEncodings: Seq[String]): URL = {
+      val firstFoundEncoding: Option[(String, URL)] = compressedUrls.find { case (s: String, u: URL) => requestedEncodings.contains(s) }
+
+      firstFoundEncoding.map(s => s._2).getOrElse(url)
     }
   }
 
@@ -627,14 +652,18 @@ package controllers {
       r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
     }
 
-    private def asGzipResult(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
-      if (gzipRequested && gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-      } else if (gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING)
-      } else {
-        response
-      }
+    private def asEncodedResult(response: Result, requestedEncodings: Seq[String], availableEncodings: Seq[(String, URL)]): Result = {
+      // we search in availableEncodings instead of requestedEncodings, because we honor the
+      // server admins choices higher than the ones the clients send (as they usually weight all content types equal anyway and we
+      // don't support q-values yet)
+      val firstFoundEncoding: Option[(String, URL)] = availableEncodings.find { case (s: String, u: URL) => requestedEncodings.contains(s) }
+      firstFoundEncoding
+        .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc._1))
+        .getOrElse(if (availableEncodings.nonEmpty) {
+          response.withHeaders(VARY -> ACCEPT_ENCODING)
+        } else {
+          response
+        })
     }
 
     /**
@@ -680,15 +709,15 @@ package controllers {
 
     private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
+      val assetInfoFuture: Future[Option[(AssetInfo, Seq[String])]] = assetName.map { name =>
         assetInfoForRequest(request, name)
       } getOrElse Future.successful(None)
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
       val pendingResult: Future[Result] = assetInfoFuture.flatMap {
-        case Some((assetInfo, gzipRequested)) =>
-          val connection = assetInfo.url(gzipRequested).openConnection()
+        case Some((assetInfo, requestedEncodings)) =>
+          val connection = assetInfo.url(requestedEncodings).openConnection()
           // Make sure it's not a directory
           if (Resources.isUrlConnectionADirectory(connection)) {
             Resources.closeUrlConnection(connection)
@@ -704,7 +733,7 @@ package controllers {
               cacheableResult(
                 assetInfo,
                 aggressiveCaching,
-                asGzipResult(result, gzipRequested, assetInfo.gzipUrl.isDefined)
+                asEncodedResult(result, requestedEncodings, assetInfo.compressedUrls)
               )
             })
           }
