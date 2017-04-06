@@ -37,6 +37,28 @@ To configure Play to use this application loader, configure the `play.applicatio
 
 In addition, if you're modifying an existing project that uses the built-in Guice module, you should be able to remove `guice` from your `libraryDependencies` in `build.sbt`.
 
+## Providing a Router
+
+To configure a router, you have two options, use [`RoutingDsl`](api/java/play/routing/RoutingDsl.html) or the generated router.
+
+### Providing a router with `RoutingDsl`
+
+To make this easier, Play has a [`RoutingDslComponentsFromContext`](api/java/play/routing/RoutingDslComponentsFromContext.html) class that already provides a `RoutingDsl` instance, created using the other provided components:
+
+@[with-routing-dsl](code/javaguide/di/components/CompileTimeDependencyInjection.java)
+
+### Using the generated router
+
+By default Play will use the [[injected routes generator|JavaDependencyInjection#Injected-routes-generator]]. This generates a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The router's constructor will also, as its first argument, accept an [`play.api.http.HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html) (the Scala version of [`play.http.HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html)), which is used to handle parameter binding errors, and a prefix String as its last argument. An overloaded constructor that defaults this to `"/"` will also be provided.
+
+The following routes:
+
+@[content](code/javaguide/di/components/javaguide.dependencyinjection.routes)
+
+Will produce a router that accepts instances of `controllers.HomeController`, `controllers.Assets` and any other that has a declared route. To use this router in an actual application:
+
+@[with-generated-router](code/javaguide/di/components/CompileTimeDependencyInjection.java)
+
 ## Configuring Logging
 
 To correctly configure logging in Play, the `LoggerConfigurator` must be run before the application is returned.  The default [BuiltInComponentsFromContext](api/java/play/BuiltInComponentsFromContext.html) does not call `LoggerConfigurator` for you.

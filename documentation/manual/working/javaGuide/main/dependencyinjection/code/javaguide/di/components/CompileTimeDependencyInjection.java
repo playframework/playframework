@@ -4,15 +4,18 @@
 package javaguide.di.components;
 
 //#basic-imports
+import controllers.HomeController;
 import play.Application;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.api.LoggerConfigurator$;
+import play.controllers.AssetsComponents;
 import play.db.ConnectionPool;
 import play.db.HikariCPComponents;
 import play.filters.components.HttpFiltersComponents;
+import play.mvc.Results;
 import play.routing.Router;
-//###skip: 1
+import play.routing.RoutingDslComponentsFromContext;
 import scala.compat.java8.OptionConverters;
 //#basic-imports
 
@@ -30,7 +33,8 @@ public class CompileTimeDependencyInjection {
     //#basic-app-loader
 
     //#basic-my-components
-    public class MyComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
+    public class MyComponents extends BuiltInComponentsFromContext
+            implements HttpFiltersComponents {
 
         public MyComponents(ApplicationLoader.Context context) {
             super(context);
@@ -87,4 +91,39 @@ public class CompileTimeDependencyInjection {
             this.pool = pool;
         }
     }
+
+    //#with-routing-dsl
+    public class MyComponentsWithRouter extends RoutingDslComponentsFromContext
+            implements HttpFiltersComponents {
+
+        public MyComponentsWithRouter(ApplicationLoader.Context context) {
+            super(context);
+        }
+
+        @Override
+        public Router router() {
+            //
+            return routingDsl()
+                    .GET("/path").routeTo(() -> Results.ok("The content"))
+                    .build();
+        }
+    }
+    //#with-routing-dsl
+
+    //#with-generated-router
+    public class MyComponentsWithGeneratedRouter extends BuiltInComponentsFromContext
+            implements HttpFiltersComponents, AssetsComponents {
+
+        public MyComponentsWithGeneratedRouter(ApplicationLoader.Context context) {
+            super(context);
+        }
+
+        @Override
+        public Router router() {
+            bar.Routes barRoutes = new bar.Routes(scalaHttpErrorHandler());
+            HomeController homeController = new HomeController();
+            return new router.Routes(scalaHttpErrorHandler(), homeController, barRoutes, assets());
+        }
+    }
+    //#with-generated-router
 }

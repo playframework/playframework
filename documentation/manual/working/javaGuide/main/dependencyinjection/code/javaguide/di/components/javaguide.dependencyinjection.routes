@@ -1,0 +1,5 @@
+#content
+GET        /                    controllers.HomeController.index
+->         /bar                 bar.Routes
+GET        /assets/*file        controllers.Assets.at(path = "/public", file)
+#content
