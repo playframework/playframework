@@ -100,9 +100,8 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
   private def printMessageInDevMode(): Unit = {
     if (env.mode == play.api.Mode.Dev) {
       val b = new StringBuffer()
-      b.append("Enabled Filters: ")
-      filters.foreach(f => b.append(s"  ${f.getClass.getCanonicalName}\n"))
-      b.append(s"Play comes with filters enabled by default for security: $url\n")
+      b.append(s"Enabled Filters (see <$url>):\n\n")
+      filters.foreach(f => b.append(s"    ${f.getClass.getCanonicalName}\n"))
       logger.info(b.toString)
     }
   }

@@ -7,7 +7,6 @@ import org.specs2.mutable.Specification
 import play.api.inject.{ Injector, NewInstanceInjector }
 import play.api.mvc.{ EssentialAction, EssentialFilter }
 import play.api.{ Configuration, Environment, PlayException }
-import play.core.DefaultWebCommands
 
 /**
  * Unit tests for default filter spec functionality
@@ -23,8 +22,7 @@ class EnabledFiltersSpec extends Specification {
         "play.filters.disabled.0" -> ""
       ))
       val injector: Injector = NewInstanceInjector
-      val webCommands = new DefaultWebCommands
-      val defaultFilters = new EnabledFilters(env, conf, injector, webCommands)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(1)
       defaultFilters.filters.head must beAnInstanceOf[MyTestFilter]
@@ -34,8 +32,7 @@ class EnabledFiltersSpec extends Specification {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(Map("play.filters.enabled" -> null))
       val injector: Injector = NewInstanceInjector
-      val webCommands = new DefaultWebCommands
-      val defaultFilters = new EnabledFilters(env, conf, injector, webCommands)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(0)
     }
@@ -44,8 +41,7 @@ class EnabledFiltersSpec extends Specification {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(Map())
       val injector: Injector = NewInstanceInjector
-      val webCommands = new DefaultWebCommands
-      val defaultFilters = new EnabledFilters(env, conf, injector, webCommands)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(0)
     }
@@ -57,10 +53,9 @@ class EnabledFiltersSpec extends Specification {
         "play.filters.disabled.0" -> ""
       ))
       val injector: Injector = NewInstanceInjector
-      val webCommands = new DefaultWebCommands
 
       {
-        new EnabledFilters(env, conf, injector, webCommands)
+        new EnabledFilters(env, conf, injector)
       } must throwAn[PlayException.ExceptionSource]
     }
 
@@ -72,8 +67,7 @@ class EnabledFiltersSpec extends Specification {
         "play.filters.disabled.0" -> "play.api.http.MyTestFilter"
       ))
       val injector: Injector = NewInstanceInjector
-      val webCommands = new DefaultWebCommands
-      val defaultFilters = new EnabledFilters(env, conf, injector, webCommands)
+      val defaultFilters = new EnabledFilters(env, conf, injector)
 
       defaultFilters.filters must haveLength(1)
       defaultFilters.filters.head must beAnInstanceOf[MyTestFilter2]
