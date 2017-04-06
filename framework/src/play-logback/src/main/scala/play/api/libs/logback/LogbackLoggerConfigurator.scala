@@ -65,77 +65,64 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     configure(properties, configUrl)
   }
 
-  def configure(properties: Map[String, String], config: Option[URL]): Unit = synchronized {
-    // Redirect JUL -> SL4FJ
-
-    // Remove existing handlers from JUL
-    SLF4JBridgeHandler.removeHandlersForRootLogger()
-
-    // Configure logback
-    val ctx = loggerFactory.asInstanceOf[LoggerContext]
-
-    val configurator = new JoranConfigurator
-    configurator.setContext(ctx)
-
-    // Set a level change propagator to minimize the overhead of JUL
+  def configure(properties: Map[String, String], config: Option[URL]): Unit = {
+    // Touching LoggerContext is not thread-safe, and so if you run several
+    // application tests at the same time (spec2 / scalatest with "new WithApplication()")
+    // then you will see NullPointerException as the array list loggerContextListenerList
+    // is accessed concurrently from several different threads.
     //
-    // Please note that translating a java.util.logging event into SLF4J incurs the
-    // cost of constructing LogRecord instance regardless of whether the SLF4J logger
-    // is disabled for the given level. Consequently, j.u.l. to SLF4J translation can
-    // seriously increase the cost of disabled logging statements (60 fold or 6000%
-    // increase) and measurably impact the performance of enabled log statements
-    // (20% overall increase). Please note that as of logback-version 0.9.25,
-    // it is possible to completely eliminate the 60 fold translation overhead for
-    // disabled log statements with the help of LevelChangePropagator.
-    //
-    // https://www.slf4j.org/api/org/slf4j/bridge/SLF4JBridgeHandler.html
-    // https://logback.qos.ch/manual/configuration.html#LevelChangePropagator
-    val levelChangePropagator = new LevelChangePropagator()
-    levelChangePropagator.setContext(ctx)
-    levelChangePropagator.setResetJUL(true)
-    ctx.addListener(levelChangePropagator)
-    SLF4JBridgeHandler.install()
+    // The workaround is to use a synchronized block around a singleton
+    // instance -- in this case, we use the StaticLoggerBinder's loggerFactory.
+    loggerFactory.synchronized {
+      // Redirect JUL -> SL4FJ
 
-    try {
+      // Remove existing handlers from JUL
+      SLF4JBridgeHandler.removeHandlersForRootLogger()
+
+      // Configure logback
+      val ctx = loggerFactory.asInstanceOf[LoggerContext]
+
+      val configurator = new JoranConfigurator
+      configurator.setContext(ctx)
+
+      // Set a level change propagator to minimize the overhead of JUL
+      //
+      // Please note that translating a java.util.logging event into SLF4J incurs the
+      // cost of constructing LogRecord instance regardless of whether the SLF4J logger
+      // is disabled for the given level. Consequently, j.u.l. to SLF4J translation can
+      // seriously increase the cost of disabled logging statements (60 fold or 6000%
+      // increase) and measurably impact the performance of enabled log statements
+      // (20% overall increase). Please note that as of logback-version 0.9.25,
+      // it is possible to completely eliminate the 60 fold translation overhead for
+      // disabled log statements with the help of LevelChangePropagator.
+      //
+      // https://www.slf4j.org/api/org/slf4j/bridge/SLF4JBridgeHandler.html
+      // https://logback.qos.ch/manual/configuration.html#LevelChangePropagator
+      val levelChangePropagator = new LevelChangePropagator()
+      levelChangePropagator.setContext(ctx)
+      levelChangePropagator.setResetJUL(true)
+      ctx.addListener(levelChangePropagator)
+      SLF4JBridgeHandler.install()
+
       ctx.reset()
-    } catch {
-      case npe: NullPointerException =>
-        // Occasionally there's an issue where loggerContextListenerList has a null listener in the list,
-        // so we get the following exception when multiple tests are run at once:
-        //
-        // https://github.com/qos-ch/logback/blob/master/logback-classic/src/main/java/ch/qos/logback/classic/LoggerContext.java#L324
-        //
-        //      [error]    java.lang.NullPointerException: null (LoggerContext.java:324)
-        //      [error] ch.qos.logback.classic.LoggerContext.fireOnReset(LoggerContext.java:324)
-        //      [error] ch.qos.logback.classic.LoggerContext.reset(LoggerContext.java:226)
-        //      [error] play.api.libs.logback.LogbackLoggerConfigurator.configure(LogbackLoggerConfigurator.scala:97)
-        //      [error] play.api.libs.logback.LogbackLoggerConfigurator.configure(LogbackLoggerConfigurator.scala:63)
-        //      [error] play.api.inject.guice.GuiceApplicationBuilder.$anonfun$configureLoggerFactory$1(GuiceApplicationBuilder.scala:122)
-        //      [error] play.api.inject.guice.GuiceApplicationBuilder.configureLoggerFactory(GuiceApplicationBuilder.scala:121)
-        //      [error] play.api.inject.guice.GuiceApplicationBuilder.applicationModule(GuiceApplicationBuilder.scala:100)
-        //      [error] play.api.inject.guice.GuiceBuilder.injector(GuiceInjectorBuilder.scala:181)
-        //      [error] play.api.inject.guice.GuiceApplicationBuilder.build(GuiceApplicationBuilder.scala:137)
-        //
-        // Marking as "we see this in Travis CI but are still not sure what is causing it"
-        throw new IllegalStateException("Logback configuration failed from invalid internal state", npe)
+
+      // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
+      // logging
+      val frameworkPackages = ctx.getFrameworkPackages
+      frameworkPackages.add(classOf[play.Logger].getName)
+      frameworkPackages.add(classOf[play.api.Logger].getName)
+
+      properties.foreach { case (k, v) => ctx.putProperty(k, v) }
+
+      config match {
+        case Some(url) => configurator.doConfigure(url)
+        case None =>
+          System.err.println("Could not detect a logback configuration file, not configuring logback")
+      }
+
+      StatusPrinter.printIfErrorsOccured(ctx)
+
     }
-
-    // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
-    // logging
-    val frameworkPackages = ctx.getFrameworkPackages
-    frameworkPackages.add(classOf[play.Logger].getName)
-    frameworkPackages.add(classOf[play.api.Logger].getName)
-
-    properties.foreach { case (k, v) => ctx.putProperty(k, v) }
-
-    config match {
-      case Some(url) => configurator.doConfigure(url)
-      case None =>
-        System.err.println("Could not detect a logback configuration file, not configuring logback")
-    }
-
-    StatusPrinter.printIfErrorsOccured(ctx)
-
   }
 
   /**
