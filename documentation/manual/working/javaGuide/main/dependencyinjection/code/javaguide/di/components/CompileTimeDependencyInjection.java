@@ -43,7 +43,7 @@ public class CompileTimeDependencyInjection {
     }
     //#basic-my-components
 
-    //basic-logger-configurator
+    //#basic-logger-configurator
     //###insert: import scala.compat.java8.OptionConverters;
     public class MyAppLoaderWithLoggerConfiguration implements ApplicationLoader {
         @Override
@@ -58,10 +58,11 @@ public class CompileTimeDependencyInjection {
             return new MyComponents(context).application();
         }
     }
-    //basic-logger-configurator
+    //#basic-logger-configurator
 
-    //messages
-    public class MyComponentsWithDatabase extends BuiltInComponentsFromContext implements HikariCPComponents, HttpFiltersComponents {
+    //#connection-pool
+    public class MyComponentsWithDatabase extends BuiltInComponentsFromContext
+            implements HikariCPComponents, HttpFiltersComponents {
 
         public MyComponentsWithDatabase(ApplicationLoader.Context context) {
             super(context);
@@ -77,7 +78,7 @@ public class CompileTimeDependencyInjection {
             return new SomeComponent(connectionPool());
         }
     }
-    //messages
+    //#connection-pool
 
     static class SomeComponent {
         private final ConnectionPool pool;
