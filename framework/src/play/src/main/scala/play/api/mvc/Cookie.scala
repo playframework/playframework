@@ -9,6 +9,7 @@ import java.util.{ Base64, Date, Locale }
 import javax.inject.Inject
 
 import io.jsonwebtoken.Jwts
+import play.api.MarkerContexts.SecurityMarkerContext
 import play.api._
 import play.api.http._
 import play.api.inject.{ SimpleModule, bind }
@@ -73,7 +74,7 @@ object Cookie {
     val HostPrefix = "__Host-"
     @inline def warnIfNotSecure(prefix: String): Unit = {
       if (!cookie.secure) {
-        logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")
+        logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")(SecurityMarkerContext)
       }
     }
 
@@ -83,7 +84,7 @@ object Cookie {
     } else if (cookie.name startsWith HostPrefix) {
       warnIfNotSecure(HostPrefix)
       if (cookie.path != "/") {
-        logger.warn(s"""$HostPrefix is used on cookie but Path is not "/"! Setting now. Cookie is: $cookie""")
+        logger.warn(s"""$HostPrefix is used on cookie but Path is not "/"! Setting now. Cookie is: $cookie""")(SecurityMarkerContext)
       }
       cookie.copy(secure = true, path = "/")
     } else {
@@ -151,6 +152,8 @@ object Cookies extends CookieHeaderEncoding {
  * Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
  */
 trait CookieHeaderEncoding {
+
+  private implicit val markerContext = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
 
@@ -469,6 +472,8 @@ trait CookieDataCodec {
  */
 trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
+  private val logger = Logger(this.getClass)
+
   /**
    * The cookie signer.
    */
@@ -523,12 +528,16 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
         val message = splitted.tail.mkString("-")
         if (safeEquals(splitted(0), cookieSigner.sign(message)))
           urldecode(message)
-        else
+        else {
+          logger.warn("Cookie failed message authentication check")(SecurityMarkerContext)
           Map.empty[String, String]
+        }
       } else urldecode(data)
     } catch {
       // fail gracefully is the session cookie is corrupted
-      case NonFatal(_) => Map.empty[String, String]
+      case NonFatal(e) =>
+        logger.warn("Could not decode cookie", e)(SecurityMarkerContext)
+        Map.empty[String, String]
     }
   }
 }
@@ -581,16 +590,16 @@ trait JWTCookieDataCodec extends CookieDataCodec {
       // if production servers get out of sync
       case e: PrematureJwtException =>
         val id = e.getClaims.getId
-        logger.error(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")
+        logger.warn(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
       case e: ExpiredJwtException =>
         val id = e.getClaims.getId
-        logger.error(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")
+        logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
       case NonFatal(e) =>
-        logger.debug(s"decode: could not decode JWT: ${e.getMessage}")
+        logger.warn(s"decode: could not decode JWT: ${e.getMessage}", e)(SecurityMarkerContext)
         Map.empty
     }
   }
@@ -617,7 +626,6 @@ object JWTCookieDataCodec {
       jwtConfiguration: JWTConfiguration,
       clock: java.time.Clock) {
     import io.jsonwebtoken._
-
     import scala.collection.JavaConverters._
 
     private val jwtClock = new io.jsonwebtoken.Clock {
@@ -646,7 +654,7 @@ object JWTCookieDataCodec {
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
         val id = jws.getBody.getId
-        val msg = s"decode: invalid header algorithm $headerAlgorithm in JWT $id"
+        val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
         throw new IllegalStateException(msg)
       }
       val claims: Claims = jws.getBody

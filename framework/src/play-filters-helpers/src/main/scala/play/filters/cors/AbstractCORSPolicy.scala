@@ -7,12 +7,12 @@ import java.util.Locale
 
 import scala.collection.immutable
 import scala.concurrent.Future
-
 import java.net.{ URI, URISyntaxException }
 
 import play.api.LoggerLike
-import play.api.http.{ HttpErrorHandler, HeaderNames, HttpVerbs }
-import play.api.mvc.{ RequestHeader, Results, Result }
+import play.api.MarkerContexts.SecurityMarkerContext
+import play.api.http.{ HeaderNames, HttpErrorHandler, HttpVerbs }
+import play.api.mvc.{ RequestHeader, Result, Results }
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
@@ -302,7 +302,7 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   private def handleInvalidCORSRequest(request: RequestHeader): Future[Result] = {
-    logger.trace(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")
+    logger.warn(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
     Future.successful(Results.Forbidden)
   }
 

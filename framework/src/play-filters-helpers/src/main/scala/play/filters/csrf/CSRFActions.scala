@@ -11,6 +11,8 @@ import akka.stream._
 import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 import akka.stream.stage._
 import akka.util.ByteString
+import play.api.Logger
+import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.HeaderNames._
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
@@ -72,7 +74,7 @@ class CSRFAction(
               filterLogger.trace("[CSRF] Valid token found in query string")
               continue
             } else {
-              filterLogger.trace("[CSRF] Check failed because invalid token found in query string: " + queryStringToken)
+              filterLogger.warn("[CSRF] Check failed because invalid token found in query string: " + queryStringToken)(SecurityMarkerContext)
               checkFailed(request, "Bad CSRF token found in query String")
             }
 
@@ -88,17 +90,17 @@ class CSRFAction(
                 checkMultipartBody(request, next, headerToken, config.tokenName)
               // No way to extract token from other content types
               case Some(content) =>
-                filterLogger.trace(s"[CSRF] Check failed because $content request")
+                filterLogger.warn(s"[CSRF] Check failed because $content request")(SecurityMarkerContext)
                 checkFailed(request, s"No CSRF token found for $content body")
               case None =>
-                filterLogger.trace(s"[CSRF] Check failed because request without content type")
+                filterLogger.warn(s"[CSRF] Check failed because request without content type")(SecurityMarkerContext)
                 checkFailed(request, s"No CSRF token found for body without content type")
             }
 
           }
         } getOrElse {
 
-          filterLogger.trace("[CSRF] Check failed because no token found in headers")
+          filterLogger.warn("[CSRF] Check failed because no token found in headers")(SecurityMarkerContext)
           checkFailed(request, "No CSRF token found in headers")
 
         }
@@ -148,7 +150,7 @@ class CSRFAction(
             filterLogger.trace("[CSRF] Valid token found in body")
             true
           } else {
-            filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
+            filterLogger.warn("[CSRF] Check failed because no or invalid token found in body")(SecurityMarkerContext)
             false
           }
         }))
@@ -162,7 +164,7 @@ class CSRFAction(
         action(request).run(validatedBodySource)
       }.recoverWith {
         case NoTokenInBody =>
-          filterLogger.trace("[CSRF] Check failed with NoTokenInBody")
+          filterLogger.warn("[CSRF] Check failed with NoTokenInBody")(SecurityMarkerContext)
           csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
       }
   }
@@ -511,6 +513,7 @@ case class CSRFCheck @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
         }.getOrElse {
+          filterLogger.warn("CSRF token check failed")(SecurityMarkerContext)
           csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "CSRF token check failed")
         }
       }
