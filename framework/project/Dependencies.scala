@@ -31,7 +31,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.8.7")
+  ).map(_ % "2.8.8")
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
@@ -59,7 +59,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.2.6.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "5.2.9.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
