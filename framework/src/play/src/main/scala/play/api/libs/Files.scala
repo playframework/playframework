@@ -15,9 +15,7 @@ import akka.actor.{ ActorSystem, Cancellable }
 import com.google.common.base.{ FinalizablePhantomReference, FinalizableReferenceQueue }
 import com.google.common.collect.Sets
 import play.api.Configuration
-import play.api.http.HttpConfiguration
 import play.api.inject.ApplicationLifecycle
-import play.libs.Files
 
 import scala.concurrent.Future
 import scala.concurrent.duration.{ Duration, FiniteDuration }
