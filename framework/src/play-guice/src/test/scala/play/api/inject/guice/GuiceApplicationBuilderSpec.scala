@@ -8,8 +8,15 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import com.google.inject.{ CreationException, ProvisionException }
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.i18n.I18nModule
-import play.api.{ Configuration, Environment }
+import play.api.inject.guice.GuiceApplicationBuilderSpec.RequestScopedRoutes
+import play.api.mvc.Results._
+import play.api.mvc.{ DefaultActionBuilder, EssentialAction, RequestHeader }
+import play.api.routing.Router
+import play.core.test.FakeRequest
+
+import scala.concurrent.duration._
 
 class GuiceApplicationBuilderSpec extends Specification {
 
@@ -36,6 +43,27 @@ class GuiceApplicationBuilderSpec extends Specification {
 
       app.configuration.get[Int]("a") must_== 1
       app.injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A2]
+    }
+
+    "allow defining a custom request-scoped router" in {
+      val app = new GuiceApplicationBuilder()
+        .overrides(
+          bind[Router].to[RequestScopedRoutes]
+        )
+        .build()
+
+      import scala.concurrent.Await
+
+      val router = app.injector.instanceOf[Router]
+      import app.materializer
+      val request = FakeRequest("GET", "/echo?message=foo")
+      val action = router.handlerFor(request).get.asInstanceOf[EssentialAction]
+      val resultFuture = action(request).run()
+      val result = Await.result(resultFuture, 1.second)
+
+      val bodyString = Await.result(result.body.consumeData, 1.second).utf8String
+
+      bodyString must_== "foo"
     }
 
     "disable modules" in {
@@ -117,6 +145,13 @@ class GuiceApplicationBuilderSpec extends Specification {
 }
 
 object GuiceApplicationBuilderSpec {
+
+  class TestRoutes @Inject() (action: DefaultActionBuilder, request: RequestHeader) extends FakeRoutes({
+    case ("GET", "/echo") => action(Ok(request.getQueryString("message") getOrElse ""))
+  }, Router.empty)
+
+  class RequestScopedRoutes @Inject() (injector: com.google.inject.Injector)
+    extends RequestScopedRouter[TestRoutes](injector)
 
   class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
     @Inject
