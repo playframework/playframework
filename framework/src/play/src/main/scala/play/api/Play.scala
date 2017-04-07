@@ -11,13 +11,40 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
+
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
-/** Application mode, either `DEV`, `TEST`, or `PROD`. */
-object Mode extends Enumeration {
-  type Mode = Value
-  val Dev, Test, Prod = Value
+/**
+ * Application mode, either `Dev`, `Test`, or `Prod`.
+ *
+ * @see [[play.Mode]]
+ */
+
+object Mode {
+
+  sealed trait Mode {
+    def asJava: play.Mode
+  }
+
+  case object Dev extends Mode {
+    override def asJava: play.Mode = play.Mode.DEV
+  }
+
+  case object Test extends Mode {
+    override def asJava: play.Mode = play.Mode.TEST
+  }
+
+  case object Prod extends Mode {
+    override def asJava: play.Mode = play.Mode.PROD
+  }
+
+  // Made the modes accessible in Java code.
+  def dev() = Dev
+  def test() = Test
+  def prod() = Prod
+
+  def modes() = Seq(Dev, Test, Prod)
 }
 
 /**

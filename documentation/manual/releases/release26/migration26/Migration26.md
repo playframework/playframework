@@ -71,6 +71,35 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
+## Scala `Mode` changes
+
+Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
+
+```java
+// Consider this Java code
+play.api.Mode.Mode scalaMode = play.api.Mode.Test();
+```
+
+Must be rewritten to:
+
+```java
+// Consider this Java code
+play.api.Mode.Mode scalaMode = play.api.Mode.test();
+```
+
+Notice the lowercase in `test` call. It is also easier to convert between Java and Scala modes:
+
+```java
+// In your Java code
+play.api.Mode.Mode scalaMode = play.Mode.TEST.asScala();
+```
+
+Or in your Scala code:
+
+```scala
+play.Mode javaMode = play.api.Mode.Dev.asJava
+```
+
 ## `Writeable[JsValue]` changes
 
 Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.

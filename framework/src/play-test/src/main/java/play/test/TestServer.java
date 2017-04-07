@@ -43,7 +43,7 @@ public class TestServer extends play.api.test.TestServer {
     private static ServerConfig createServerConfig(Optional<Integer> port, Optional<Integer> sslPort) {
         return ServerConfig.apply(TestServer.class.getClassLoader(), new File("."),
                 (Option) OptionConverters.toScala(port), (Option) OptionConverters.toScala(sslPort), "0.0.0.0",
-                Mode.Test(), System.getProperties());
+                Mode.test(), System.getProperties());
     }
 
 }

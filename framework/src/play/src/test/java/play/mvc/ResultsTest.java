@@ -186,7 +186,7 @@ public class ResultsTest {
   }
 
   private void mockRegularFileTypes() {
-    HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.Test())).get();
+    HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.test())).get();
     final DefaultFileMimeTypes defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes()).get();
     final FileMimeTypes fileMimeTypes = new FileMimeTypes(defaultFileMimeTypes);
     when(this.ctx.fileMimeTypes()).thenReturn(fileMimeTypes);
