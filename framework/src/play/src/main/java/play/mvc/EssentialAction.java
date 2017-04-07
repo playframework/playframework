@@ -6,12 +6,12 @@ package play.mvc;
 import java.util.function.Function;
 
 import akka.util.ByteString;
+import play.api.mvc.AbstractEssentialAction;
 import play.api.mvc.Handler;
 import play.core.Execution;
 import play.core.j.RequestHeaderImpl;
 import play.libs.streams.Accumulator;
 import play.mvc.Http.RequestHeader;
-import scala.runtime.AbstractFunction1;
 
 /**
  * Given a `RequestHeader`, an `EssentialAction` consumes the request body (a `ByteString`) and returns a `Result`.
@@ -21,9 +21,7 @@ import scala.runtime.AbstractFunction1;
  *
  * Unlike traditional method-based Java actions, EssentialAction does not use a context.
  */
-public abstract class EssentialAction
-    extends AbstractFunction1<play.api.mvc.RequestHeader, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result>>
-    implements play.api.mvc.EssentialAction, Handler {
+public abstract class EssentialAction extends AbstractEssentialAction implements Handler {
 
     public static EssentialAction of(Function<RequestHeader, Accumulator<ByteString, Result>> action) {
         return new EssentialAction() {
@@ -41,15 +39,5 @@ public abstract class EssentialAction
         return apply(new RequestHeaderImpl(rh))
             .map(Result::asScala, Execution.trampoline())
             .asScala();
-    }
-
-    @Override
-    public play.api.mvc.EssentialAction apply() {
-        return this;
-    }
-
-    @Override
-    public EssentialAction asJava() {
-        return this;
     }
 }
