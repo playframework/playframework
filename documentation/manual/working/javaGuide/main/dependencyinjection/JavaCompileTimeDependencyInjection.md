@@ -53,7 +53,7 @@ By default Play will use the [[injected routes generator|JavaDependencyInjection
 
 The following routes:
 
-@[content](code/javaguide/di/components/javaguide.dependencyinjection.routes)
+@[content](code/javaguide.dependencyinjection.routes)
 
 Will produce a router that accepts instances of `controllers.HomeController`, `controllers.Assets` and any other that has a declared route. To use this router in an actual application:
 

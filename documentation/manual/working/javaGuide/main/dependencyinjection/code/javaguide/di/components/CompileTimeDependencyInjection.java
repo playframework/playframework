@@ -4,7 +4,6 @@
 package javaguide.di.components;
 
 //#basic-imports
-import controllers.HomeController;
 import play.Application;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
@@ -18,6 +17,9 @@ import play.routing.Router;
 import play.routing.RoutingDslComponentsFromContext;
 import scala.compat.java8.OptionConverters;
 //#basic-imports
+
+import javaguide.dependencyinjection.controllers.Assets;
+import javaguide.dependencyinjection.controllers.HomeController;
 
 public class CompileTimeDependencyInjection {
 
@@ -120,9 +122,10 @@ public class CompileTimeDependencyInjection {
 
         @Override
         public Router router() {
-            bar.Routes barRoutes = new bar.Routes(scalaHttpErrorHandler());
             HomeController homeController = new HomeController();
-            return new router.Routes(scalaHttpErrorHandler(), homeController, barRoutes, assets());
+            Assets assets = new Assets(scalaHttpErrorHandler(), assetsMetadata());
+            //###replace: return new router.Routes(scalaHttpErrorHandler(), homeController, assets).asJava();
+            return new javaguide.dependencyinjection.Routes(scalaHttpErrorHandler(), homeController, assets).asJava();
         }
     }
     //#with-generated-router
