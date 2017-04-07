@@ -4,9 +4,13 @@
 package play;
 
 import com.typesafe.config.Config;
+import play.api.inject.NewInstanceInjector$;
+import play.api.inject.SimpleInjector;
 import play.core.SourceMapper;
 import play.inject.ApplicationLifecycle;
+import play.inject.DelegateInjector;
 import play.inject.Injector;
+import scala.collection.immutable.Map$;
 
 import java.util.Optional;
 
@@ -43,8 +47,8 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Injector injector() {
-        // FIXME Why do we have an injector if we are using Compile Time DI?
-        // The same exists in scala components.
-        return null;
+        // TODO do we need to register components like the scala version?
+        SimpleInjector scalaInjector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
+        return new DelegateInjector(scalaInjector);
     }
 }
