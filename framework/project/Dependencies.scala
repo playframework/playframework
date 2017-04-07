@@ -163,7 +163,7 @@ object Dependencies {
     )
   }
 
-  def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
+  def runSupportDependencies(scalaVersion: String) = Seq(
     "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   ) ++ specsBuild.map(_ % Test)
 
@@ -258,9 +258,9 @@ object Dependencies {
 /*
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
- *    
+ *
  * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.1", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.1", "2.11.8"), 
+ *    crossScalaVersions := Seq("2.12.1", "2.11.8"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
