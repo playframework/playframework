@@ -68,7 +68,7 @@ If your action runs only queries, you can set the `readOnly` attribute to `true`
 
 @[jpa-controller-transactional-readonly](code/controllers/JPAController.java)
 
-> Using JPA directly in an Action will limit your ability to use Play asynchronously.  Consider arranging your code so that all access to to JPA is wrapped in a custom [[execution context|ThreadPools]], and returns [`java.util.concurrent.CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to Play.
+> Using JPA directly in an Action will limit your ability to use Play asynchronously because JDBC blocks the thread it's running on. Consider arranging your code so that all access to to JPA is wrapped in a custom [[execution context|ThreadPools]], and returns [`java.util.concurrent.CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to Play.
 
 ## Using `play.db.jpa.JPAApi`
 
