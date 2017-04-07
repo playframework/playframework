@@ -100,6 +100,14 @@ class DefaultFlashCookieBaker @Inject() (
   override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 }
 
+class LegacyFlashCookieBaker @Inject() (
+  val config: FlashConfiguration,
+  val secretConfiguration: SecretConfiguration,
+  val cookieSigner: CookieSigner)
+    extends FlashCookieBaker with UrlEncodedCookieDataCodec {
+  def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
+}
+
 @deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
 object Flash extends FlashCookieBaker with UrlEncodedCookieDataCodec {
   def config: FlashConfiguration = HttpConfiguration.current.flash

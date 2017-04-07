@@ -10,6 +10,8 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.http.SecretConfiguration
 import play.api.libs.Codecs
+import play.libs.crypto
+import play.libs.crypto.DefaultCookieSigner
 
 /**
  * Authenticates a cookie by returning a message authentication code (MAC).
@@ -45,7 +47,7 @@ trait CookieSigner {
    * @return the Java version for this cookie signer.
    */
   def asJava: play.libs.crypto.CookieSigner = {
-    new play.libs.crypto.HMACSHA1CookieSigner(this)
+    new crypto.DefaultCookieSigner(this)
   }
 }
 

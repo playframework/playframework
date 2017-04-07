@@ -858,33 +858,54 @@ class MyComponents(context: ApplicationLoader.Context)
 
 ## JWT Support
 
-Play's session cookie encoding has been switched to use JSON Web Token (JWT) under the hood.  JWT comes with a number of advantages, notably automatic signing with HMAC-SHA-256, and support for automatic "not before" and "expires after" date checks which ensure the session cookie cannot be reused outside of a given time window.
+Play's cookie encoding has been switched to use JSON Web Token (JWT) under the hood.  JWT comes with a number of advantages, notably automatic signing with HMAC-SHA-256, and support for automatic "not before" and "expires after" date checks which ensure the session cookie cannot be reused outside of a given time window.
 
-More information is available under [[Configuring the Session Cookie|SettingsSession]] page. 
+More information is available under [[Configuring the Session Cookie|SettingsSession]] page.
+
+### Fallback Cookie Support
+
+Play's cookie encoding uses a "fallback" cookie encoding mechanism that reads in JWT encoded cookies, then attempts reading a URL encoded cookie if the JWT parsing fails, so you can safely migrate existing session cookies to JWT.  This functionality is in the `FallbackCookieDataCodec` trait and leveraged by `DefaultSessionCookieBaker` and `DefaultFlashCookieBaker`.
 
 ### Legacy Support
 
-Play's `DefaultSessionCookieBaker` has fallback support for reading session cookies in the old url encoded format, so migrations will not be affected.
+Using JWT encoded cookies should be seamless, but if you want, you can revert back to URL encoded cookie encoding by switching to `play.api.mvc.LegacyCookiesModule` in application.conf file:
 
-To use the previous behavior, bind `SessionCookieBaker` to `LegacySessionCookieBaker` in your module:
-
-```scala
-bind[SessionCookieBaker].to[LegacySessionCookieBaker]
+```
+play.modules.disabled+="play.api.mvc.CookiesModule"
+play.modules.enabled+="play.api.mvc.LegacyCookiesModule"
 ```
 
 ### Custom CookieBakers
 
 If you have custom cookies being used in Play, using the `CookieBaker[T]` trait, then you will need to specify what kind of encoding you want for your custom cookie baker.
 
-The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `SignedCookieDataCodec`, `JWTCookieDataCodec`, and `FallbackCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
-  
-To use an implementation, add it to your class:  
+The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `FallbackCookieDataCodec`, `JWTCookieDataCodec`, or `UrlEncodedCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
+
+
+and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
+
 
 ```scala
-class MyCookieBaker[T](val secretConfiguration: SecretConfiguration, val jwtConfiguration: JWTConfiguration) extends CookieBaker[T] with JWTCookieDataCodec
-```
+@Singleton
+class UserInfoCookieBaker @Inject()(service: UserInfoService,
+                                    val secretConfiguration: SecretConfiguration)
+  extends CookieBaker[UserInfo] with JWTCookieDataCodec {
 
-and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration.
+  override val COOKIE_NAME: String = "userInfo"
+
+  override val isSigned = true
+
+  override def emptyCookie: UserInfo = new UserInfo()
+
+  override protected def serialize(userInfo: UserInfo): Map[String, String] = service.encrypt(userInfo)
+
+  override protected def deserialize(data: Map[String, String]): UserInfo = service.decrypt(data)
+
+  override val path: String = "/"
+
+  override val jwtConfiguration: JWTConfiguration = JWTConfigurationParser()
+}
+```
 
 ## Updated libraries
 
