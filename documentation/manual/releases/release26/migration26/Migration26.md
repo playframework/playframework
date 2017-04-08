@@ -73,7 +73,7 @@ Finally, Play Iteratees has a separate versioning scheme, so the version no long
 
 ## Scala `Mode` changes
 
-Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
+Scala [`Mode`](api/scala/play/api/Mode$.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
 
 ```java
 // Consider this Java code
