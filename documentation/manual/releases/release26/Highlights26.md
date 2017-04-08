@@ -101,13 +101,13 @@ Once the template is defined with its dependencies, then the controller can have
 
 ## Filters Enhancements
 
-Play now comes with a default set of enabled filters, defined through configuration.
+Play now comes with a default set of enabled filters, defined through configuration.  This provides a "secure by default" experience for new Play applications, and tightens security on existing Play applications.
 
-* `play.filters.csrf.CSRFFilter`
-* `play.filters.headers.SecurityHeadersFilter`
-* `play.filters.hosts.AllowedHostsFilter`
+The following filters are enabled by default:
 
-This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.  This provides a "secure by default" experience for new Play applications, and tightens security on existing Play applications.
+* `play.filters.csrf.CSRFFilter` prevents CSRF attacks, see [[ScalaCsrf]] / [[JavaCsrf]]
+* `play.filters.headers.SecurityHeadersFilter` prevents XSS and frame origin attacks, see [[SecurityHeaders]]
+* `play.filters.hosts.AllowedHostsFilter` prevents DNS rebinding attacks, see [[AllowedHostsFilter]]
 
 In addition, filters can now be configured through `application.conf`.  To append to the defaults list, use the `+=`:
 
@@ -207,12 +207,27 @@ For more information, please see [[ScalaLogging]] or [[JavaLogging]].
 
 For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
+## Security Logging
+
+A security marker has been added for security related operations in Play, and failed security checks now log  at WARN level, with the security marker set.  This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
+
+The security marker also allows security failures to be triggered or filtered distinct from normal logging.  For example, to disable all logging with the SECURITY marker set, add the following lines to the `logback.xml` file:
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+    <Marker>SECURITY</Marker>
+    <OnMatch>DENY</OnMatch>
+</turboFilter>
+```
+
+In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SEIM) engine for further processing.
+
 ## Improved Form Handling I18N support
 
-The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms. 
- 
- In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling. 
-  
+The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms.
+
+In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling. 
+
 In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
 
 For more information, please see [[ScalaI18N]] or [[JavaI18N]].

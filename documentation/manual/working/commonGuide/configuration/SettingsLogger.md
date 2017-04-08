@@ -45,6 +45,20 @@ Add the necessary appender(s) to the root:
 </root>
 ```
 
+## Security Logging
+
+A security marker has been added for security related operations in Play, and failed security checks now log  at WARN level, with the security marker set.  This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
+
+The security marker also allows security failures to be triggered or filtered distinct from normal logging.  For example, to disable all logging with the SECURITY marker set, add the following lines to the `logback.xml` file:
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+    <Marker>SECURITY</Marker>
+    <OnMatch>DENY</OnMatch>
+</turboFilter>
+```
+
+In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SEIM) engine for further processing.
 
 ## Using a custom application loader
 
