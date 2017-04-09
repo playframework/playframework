@@ -6,7 +6,6 @@ package play.components;
 import play.http.ActionCreator;
 import play.http.HttpRequestHandler;
 import play.mvc.EssentialFilter;
-import play.mvc.FileMimeTypes;
 
 public interface HttpComponents extends HttpConfigurationComponents {
 
@@ -19,26 +18,41 @@ public interface HttpComponents extends HttpConfigurationComponents {
      * In most cases you will want to mixin HttpFiltersComponents and append your own filters:
      *
      * <pre>
-     * class MyComponents(context: ApplicationLoader.Context)
-     *   extends BuiltInComponentsFromContext(context)
-     *   with play.filters.HttpFiltersComponents {
+     * public class MyComponents extends BuiltInComponentsFromContext implements play.filters.components.HttpFiltersComponents {
      *
-     *   lazy val loggingFilter = new LoggingFilter()
-     *   override def httpFilters = {
-     *     super.httpFilters :+ loggingFilter
+     *   public MyComponents(ApplicationLoader.Context context) {
+     *       super(context);
      *   }
+     *
+     *   public EssentialFilter[] httpFilters() {
+     *       LoggingFilter loggingFilter = new LoggingFilter();
+     *       List<EssentialFilter> filters = Arrays.asList(httpFilters());
+     *       filters.add(loggingFilter);
+     *       return filters.toArray();
+     *   }
+     *
+     *   // other required methods
      * }
      * </pre>
      *
      * If you want to filter elements out of the list, you can do the following:
      *
      * <pre>
-     * class MyComponents(context: ApplicationLoader.Context)
-     *   extends BuiltInComponentsFromContext(context)
-     *   with play.filters.HttpFiltersComponents {
-     *   override def httpFilters = {
-     *     super.httpFilters.filterNot(_.getClass == classOf[CSRFFilter])
+     * class MyComponents extends BuiltInComponentsFromContext implements play.filters.HttpFiltersComponents {
+     *
+     *   public MyComponents(ApplicationLoader.Context context) {
+     *       super(context);
      *   }
+     *
+     *   public EssentialFilter[] httpFilters() {
+     *     return Arrays
+     *          .stream(httpFilters())
+     *          // accept only filters that are not CSRFFilter
+     *          .filter(f -> !f.getClass().equals(CSRFFilter.class))
+     *          .toArray();
+     *   }
+     *
+     *   // other required methods
      * }
      * </pre>
      */

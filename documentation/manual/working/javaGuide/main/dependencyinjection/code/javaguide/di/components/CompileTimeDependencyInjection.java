@@ -104,7 +104,7 @@ public class CompileTimeDependencyInjection {
 
         @Override
         public Router router() {
-            //
+            // routingDsl method is provided by RoutingDslComponentsFromContext
             return routingDsl()
                     .GET("/path").routeTo(() -> Results.ok("The content"))
                     .build();

@@ -14,6 +14,25 @@ import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 /**
  * AsyncHttpClient WS implementation components.
  *
+ * <p>Usage:</p>
+ *
+ * <pre>
+ * public class MyComponents extends BuiltInComponentsFromContext implements AhcWSComponents {
+ *
+ *   public MyComponents(ApplicationLoader.Context context) {
+ *       super(context);
+ *   }
+ *
+ *   // some service class that depends on WSClient
+ *   public SomeService someService() {
+ *       // wsClient is provided by AhcWSComponents
+ *       return new SomeService(wsClient());
+ *   }
+ *
+ *   // other methods
+ * }
+ * </pre>
+ *
  * @see play.BuiltInComponents
  * @see WSClient
  */

@@ -3,9 +3,6 @@
  */
 package play.i18n;
 
-import play.i18n.Langs;
-import play.i18n.MessagesApi;
-
 /**
  * Java I18n components.
  *

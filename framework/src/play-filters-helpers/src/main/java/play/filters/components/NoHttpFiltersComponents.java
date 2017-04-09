@@ -9,6 +9,21 @@ import play.mvc.EssentialFilter;
 /**
  * Java component to mix in when no default filters should be mixed in to {@link play.BuiltInComponents}.
  *
+ * <p>Usage:</p>
+ *
+ * <pre>
+ * public class MyComponents extends BuiltInComponentsFromContext
+ *                           implements play.filters.components.NoHttpFiltersComponents {
+ *
+ *    public MyComponents(ApplicationLoader.Context context) {
+ *        super(context);
+ *    }
+ *
+ *    // required methods implementation
+ *
+ * }
+ * </pre>
+ *
  * @see HttpFiltersComponents
  */
 public interface NoHttpFiltersComponents extends HttpComponents {
