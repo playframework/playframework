@@ -46,7 +46,7 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
+This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html).
 
 ### Configuring the default thread pool
 
@@ -60,7 +60,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/current/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 

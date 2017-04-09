@@ -5,12 +5,12 @@ package javaguide.akka;
 
 //#injectedparent
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import play.libs.akka.InjectedActorSupport;
 
 import javax.inject.Inject;
 
-public class ParentActor extends UntypedActor implements InjectedActorSupport {
+public class ParentActor extends UntypedAbstractActor implements InjectedActorSupport {
 
     private ConfiguredChildActorProtocol.Factory childFactory;
 

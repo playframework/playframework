@@ -27,7 +27,7 @@ import static play.test.Helpers.*;
 public class JavaAkka {
 
     private static volatile CountDownLatch latch;
-    public static class MyActor extends UntypedActor {
+    public static class MyActor extends UntypedAbstractActor {
         @Override
         public void onReceive(Object msg) throws Exception {
             latch.countDown();

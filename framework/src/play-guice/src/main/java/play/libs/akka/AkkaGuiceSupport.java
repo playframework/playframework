@@ -80,7 +80,7 @@ public interface AkkaGuiceSupport {
      * Let's say you have an actor that looks like this:
      *
      * <pre>
-     * public class MyChildActor extends UntypedActor {
+     * public class MyChildActor extends UntypedAbstractActor {
      *     final Database db;
      *     final String id;
      *
@@ -115,7 +115,7 @@ public interface AkkaGuiceSupport {
      * Now, when you want an actor to instantiate this as a child actor, inject `MyChildActorFactory`:
      *
      * <pre>
-     * public class MyActor extends UntypedActor implements InjectedActorSupport {
+     * public class MyActor extends UntypedAbstractActor implements InjectedActorSupport {
      *   final MyChildActorFactory myChildActorFactory;
      *
      *   {@literal @}Inject

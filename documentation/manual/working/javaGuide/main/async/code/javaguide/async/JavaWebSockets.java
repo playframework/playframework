@@ -18,11 +18,9 @@ import play.mvc.Controller;
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 public class JavaWebSockets {
 
-    public static class Actor1 extends UntypedActor {
+    public static class Actor1 extends UntypedAbstractActor {
         private final Closeable someResource;
 
         public Actor1(Closeable someResource) {
@@ -39,7 +37,7 @@ public class JavaWebSockets {
         //#actor-post-stop
     }
 
-    public static class Actor2 extends UntypedActor {
+    public static class Actor2 extends UntypedAbstractActor {
         public void onReceive(Object message) throws Exception {
         }
 

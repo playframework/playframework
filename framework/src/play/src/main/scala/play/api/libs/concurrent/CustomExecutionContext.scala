@@ -37,7 +37,7 @@ import scala.concurrent.ExecutionContextExecutor
  * }
  * }}}
  *
- * @see <a href="http://doc.akka.io/docs/akka/current/java/dispatchers.html">Dispatchers</a>
+ * @see <a href="http://doc.akka.io/docs/akka/2.5/java/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  *
  * @param system the actor system
