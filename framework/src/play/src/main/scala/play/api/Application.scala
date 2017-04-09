@@ -99,8 +99,6 @@ trait Application {
 
   /**
    * Return the application as a Java application.
-   *
-   * @see [[play.Application]]
    */
   def asJava: play.Application = {
     new play.DefaultApplication(this, configuration.underlying, injector.asJava)
