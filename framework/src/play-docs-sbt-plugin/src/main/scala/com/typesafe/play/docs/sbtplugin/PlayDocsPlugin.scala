@@ -272,6 +272,16 @@ object PlayDocsPlugin extends AutoPlugin {
   val templateCodec = scala.io.Codec("UTF-8")
 
   def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
-    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, templateCodec, false, log)
+    play.twirl.sbt.TemplateCompiler.compile(
+      sourceDirectories = sourceDirectories,
+      targetDirectory = target,
+      templateFormats = templateFormats,
+      templateImports = imports,
+      constructorAnnotations = Nil,
+      includeFilter = templateFilter,
+      excludeFilter = HiddenFileFilter,
+      codec = templateCodec,
+      log = log
+    )
   }
 }

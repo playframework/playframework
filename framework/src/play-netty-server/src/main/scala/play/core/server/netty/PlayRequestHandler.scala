@@ -7,10 +7,10 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
+import com.typesafe.config.ConfigMemorySize
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
-import io.netty.handler.codec.http.HttpHeaders.Names
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.timeout.IdleStateEvent
@@ -110,7 +110,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L).asInstanceOf[Int]
+        val bufferLimit = app.configuration.getOptional[ConfigMemorySize]("play.websocket.buffer.limit").map(_.toBytes).getOrElse(65536L).asInstanceOf[Int]
         val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
 
         val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
@@ -124,7 +124,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
           case Right(flow) =>
             import app.materializer
             val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
-            Future.successful(new DefaultWebSocketHttpResponse(request.getProtocolVersion, HttpResponseStatus.OK,
+            Future.successful(new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK,
               processor, factory))
 
         }.recoverWith {
@@ -164,7 +164,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   // Netty overrides
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
-    logger.trace(s"channelRead: ctx = ${ctx}, msg = ${msg}")
+    logger.trace(s"channelRead: ctx = $ctx, msg = $msg")
     msg match {
       case req: HttpRequest =>
         requestsInFlight.incrementAndGet()
@@ -193,7 +193,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   }
 
   override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
-    logger.trace(s"channelReadComplete: ctx = ${ctx}")
+    logger.trace(s"channelReadComplete: ctx = $ctx")
 
     // The normal response to read complete is to issue another read,
     // but we only want to do that if there are no requests in flight,
@@ -279,7 +279,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
       }
       // Convert the result to a Netty HttpResponse
       convertedResult <- {
-        modelConversion.convertResult(validatedResult, requestHeader, request.getProtocolVersion, errorHandler(app))
+        modelConversion.convertResult(validatedResult, requestHeader, request.protocolVersion(), errorHandler(app))
       }
     } yield convertedResult
   }
@@ -290,16 +290,13 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
   private def errorHandler(app: Option[Application]): HttpErrorHandler =
     app.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
 
-  private def httpConfiguration(app: Option[Application]): HttpConfiguration =
-    app.fold[HttpConfiguration](HttpConfiguration())(_.httpConfiguration)
-
   /**
    * Sends a simple response with no body, then closes the connection.
    */
   private def sendSimpleErrorResponse(ctx: ChannelHandlerContext, status: HttpResponseStatus): ChannelFuture = {
     val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status)
-    response.headers().set(Names.CONNECTION, "close")
-    response.headers().set(Names.CONTENT_LENGTH, "0")
+    response.headers().set(HttpHeaderNames.CONNECTION, "close")
+    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, "0")
     val f = ctx.channel().write(response)
     f.addListener(ChannelFutureListener.CLOSE)
     f

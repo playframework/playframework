@@ -27,7 +27,7 @@ object Databases {
    * @return a configured database
    */
   def apply(driver: String, url: String, name: String = "default", config: Map[String, _ <: Any] = Map.empty): Database = {
-    val dbConfig = Configuration.reference.getConfig("play.db.prototype").get ++
+    val dbConfig = Configuration.reference.get[Configuration]("play.db.prototype") ++
       Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
     new PooledDatabase(name, dbConfig)
   }

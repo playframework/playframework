@@ -9,7 +9,7 @@ import akka.stream.scaladsl.StreamConverters
 import play.api.http._
 import play.api.mvc._
 import play.core.{ BuildDocHandler, PlayVersion }
-import play.doc.{ FileRepository, PageIndex, PlayDoc, RenderedPage }
+import play.doc._
 
 /**
  * Used by the DocumentationApplication class to handle requests for Play documentation.
@@ -39,7 +39,15 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
    * This is a def because we want to reindex the docs each time.
    */
   def playDoc = {
-    new PlayDoc(repo, repo, "resources", PlayVersion.current, PageIndex.parseFrom(repo, "Home", Some("manual")), "Next")
+    new PlayDoc(
+      markdownRepository = repo,
+      codeRepository = repo,
+      resources = "resources",
+      playVersion = PlayVersion.current,
+      pageIndex = PageIndex.parseFrom(repo, "Home", Some("manual")),
+      new TranslatedPlayDocTemplates("Next"),
+      pageExtension = None
+    )
   }
 
   val locator: String => String = new Memoise(name =>

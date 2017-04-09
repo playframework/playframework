@@ -139,7 +139,7 @@ object WebSocketClient {
     override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
       msg match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
-          throw new WebSocketException("Unexpected HttpResponse (status=" + resp.getStatus + ")")
+          throw new WebSocketException("Unexpected HttpResponse (status=" + resp.status + ")")
         case resp: FullHttpResponse =>
 
           // Setup the pipeline

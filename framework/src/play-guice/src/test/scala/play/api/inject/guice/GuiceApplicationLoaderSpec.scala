@@ -72,9 +72,7 @@ class GuiceApplicationLoaderSpec extends Specification {
   def fakeContextWithModule(module: Class[_ <: AbstractModule]) = {
     val f = fakeContext
     val c = f.initialConfiguration
-    val newModules: Seq[String] = c.getStringSeq("play.modules.enabled").fold(Seq.empty[String]) { oldModules =>
-      oldModules :+ module.getName
-    }
+    val newModules: Seq[String] = c.get[Seq[String]]("play.modules.enabled") :+ module.getName
     val modulesConf = Configuration("play.modules.enabled" -> newModules)
     val combinedConf = f.initialConfiguration ++ modulesConf
     f.copy(initialConfiguration = combinedConf)
