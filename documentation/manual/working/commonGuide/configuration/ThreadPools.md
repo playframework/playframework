@@ -185,4 +185,4 @@ Once you see the logged HOCON output, you can copy and paste it into an "example
 }
 ```
 
-Note also that Play has different configuration settings for development mode than it does for production.  To ensure that the thread pool settings are correct, you should run Play in a [production configuration](https://www.playframework.com/documentation/2.5.x/Deploying#Running-a-test-instance).
+Note also that Play has different configuration settings for development mode than it does for production.  To ensure that the thread pool settings are correct, you should run Play in a [[production configuration|Deploying#Running-a-test-instance]].
