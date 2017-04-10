@@ -8,7 +8,6 @@ import org.slf4j.ILoggerFactory;
 import play.api.Configuration;
 import play.api.LoggerConfigurator$;
 import play.libs.Scala;
-import scala.Enumeration;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 
@@ -104,8 +103,18 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
                 if (loggerConfigurator instanceof LoggerConfigurator) {
                     return (LoggerConfigurator)loggerConfigurator;
                 } else {
+                    // Avoid failing if using a Scala logger configurator
                     return new DelegateLoggerConfigurator(loggerConfigurator);
                 }
             });
+    }
+
+    static Map<String, String> generateProperties(Environment env, Config config, Map<String, String> optionalProperties) {
+        scala.collection.immutable.Map<String, String> generateProperties = LoggerConfigurator$.MODULE$.generateProperties(
+                env.asScala(),
+                new Configuration(config),
+                Scala.asScala(optionalProperties)
+        );
+        return Scala.asJava(generateProperties);
     }
 }
