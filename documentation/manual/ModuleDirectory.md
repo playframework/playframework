@@ -41,8 +41,8 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Silhouette (Scala)
 
-* **Website:** <http://www.silhouette.rocks/>
-* **Documentation:** <http://www.silhouette.rocks/docs/>
+* **Website:** <https://www.silhouette.rocks/>
+* **Documentation:** <https://www.silhouette.rocks/docs/>
 * **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ### Deadbolt 2 Plugin

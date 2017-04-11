@@ -4,8 +4,7 @@
 package javaguide.forms
 
 import play.api.Application
-import play.api.test.{FakeRequest, Injecting, PlaySpecification, WithApplication}
-import play.data.Form
+import play.api.test.{PlaySpecification, WithApplication}
 import javaguide.forms.html.{User, UserForm}
 
 import play.mvc.Http.{Context => JContext}

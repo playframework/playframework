@@ -4,13 +4,13 @@
 package javaguide.akka;
 
 //#injectedchild
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.google.inject.assistedinject.Assisted;
 import com.typesafe.config.Config;
 
 import javax.inject.Inject;
 
-public class ConfiguredChildActor extends UntypedActor {
+public class ConfiguredChildActor extends UntypedAbstractActor {
 
     private final Config configuration;
     private final String key;

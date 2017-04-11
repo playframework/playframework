@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/java/play/Logger.html) class and uses [Logback](http://logback.qos.ch/) as the default logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/java/play/Logger.html) class and uses [Logback](https://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
@@ -36,7 +36,7 @@ The logging API allows logging requests to print to one or many output destinati
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> **Note:** For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> **Note:** For further information on architecture, see the [Logback documentation](https://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
 

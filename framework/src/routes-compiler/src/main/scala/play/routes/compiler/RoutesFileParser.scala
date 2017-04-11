@@ -4,12 +4,12 @@
 package play.routes.compiler
 
 import java.io.File
+import java.nio.charset.Charset
 
 import org.apache.commons.io.FileUtils
 
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
-
 import scala.language.postfixOps
 
 object RoutesFileParser {
@@ -22,7 +22,7 @@ object RoutesFileParser {
    */
   def parse(routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
 
-    val routesContent = FileUtils.readFileToString(routesFile)
+    val routesContent = FileUtils.readFileToString(routesFile, Charset.defaultCharset())
 
     parseContent(routesContent, routesFile)
   }

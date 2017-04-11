@@ -4,12 +4,12 @@
 package javaguide.akka;
 
 //#injected
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.typesafe.config.Config;
 
 import javax.inject.Inject;
 
-public class ConfiguredActor extends UntypedActor {
+public class ConfiguredActor extends UntypedAbstractActor {
 
     private Config configuration;
 

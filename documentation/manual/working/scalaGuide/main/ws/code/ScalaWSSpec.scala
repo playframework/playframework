@@ -223,7 +223,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         import play.api.mvc.MultipartFormData._
         val response =
         //#multipart-encoded2
-        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromFile(tmpFile)) :: DataPart("key", "value") :: List()))
+        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromPath(tmpFile.toPath)) :: DataPart("key", "value") :: List()))
         //#multipart-encoded2
 
         await(response).body must_== "world"

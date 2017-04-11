@@ -544,6 +544,7 @@ public class Http {
          *
          * @param key The new attribute key.
          * @param value  The attribute value.
+         * @param <A> the attribute type
          * @return The new version of this object with the new attribute.
          */
         <A> RequestHeader addAttr(TypedKey<A> key, A value);
@@ -686,6 +687,7 @@ public class Http {
         /**
          * Return the Scala version of the request header.
          *
+         * @return the Scala version for this request header.
          * @see play.api.mvc.RequestHeader
          */
         play.api.mvc.RequestHeader asScala();

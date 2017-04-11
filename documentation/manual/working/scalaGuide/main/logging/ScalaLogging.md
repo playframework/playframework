@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](http://logback.qos.ch/) as the default logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](https://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
@@ -33,7 +33,7 @@ The logging API allows logging requests to print to one or many output destinati
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> Note: For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> Note: For further information on architecture, see the [Logback documentation](https://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
 First import the `Logger` class and companion object:
@@ -75,7 +75,7 @@ A common strategy for logging application events is to use a distinct logger per
 
 ### Using Markers and Marker Contexts
 
-The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
 
 The Logger API provides access to markers through the `play.api.MarkerContext` trait.
 

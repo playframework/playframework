@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * operations that require processing outside of Play's main rendering
  * thread.
  *
- * @see <a href="http://doc.akka.io/docs/akka/current/java/dispatchers.html">Dispatchers</a>
+ * @see <a href="http://doc.akka.io/docs/akka/2.5/java/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  */
 public abstract class CustomExecutionContext implements ExecutionContextExecutor {

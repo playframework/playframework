@@ -13,7 +13,7 @@ import scala.concurrent.duration.FiniteDuration
  *
  * Please note that the [[play.api.Application]] default ActorSystem should
  * be used as input here, as the actorSystem.scheduler is responsible for scheduling
- * the timeout, using <a href="http://doc.akka.io/docs/akka/current/scala/futures.html#After">akka.pattern.actor</a> under the hood.
+ * the timeout, using <a href="http://doc.akka.io/docs/akka/2.5/scala/futures.html#After">akka.pattern.actor</a> under the hood.
  *
  * You can dependency inject the ActorSystem as follows to create a Future that will
  * timeout after a certain period of time:

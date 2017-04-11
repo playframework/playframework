@@ -29,6 +29,7 @@ public interface Application {
     /**
      * Get the application as a Scala application.
      *
+     * @return this application as a Scala application.
      * @see play.api.Application
      */
     play.api.Application asScala();

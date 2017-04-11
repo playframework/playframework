@@ -15,6 +15,7 @@ import play.mvc.Http.Cookie;
 import play.mvc.Result;
 import play.test.WithApplication;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -93,7 +94,7 @@ public class JavaResponse extends WithApplication {
         //#detailed-set-cookie
         response().setCookie(
             Cookie.builder("theme", "blue")
-                .withMaxAge(3600)
+                .withMaxAge(Duration.ofSeconds(3600))
                 .withPath("/some/path")
                 .withDomain(".example.com")
                 .withSecure(false)
