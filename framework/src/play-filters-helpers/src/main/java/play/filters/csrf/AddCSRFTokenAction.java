@@ -59,7 +59,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             // Also add it to the response
             if (config.cookieName().isDefined()) {
                 scala.Option<String> domain = Session.domain();
-                Http.Cookie cookie = new Http.Cookie(config.cookieName().get(), newToken, null, Session.path(),
+                Http.Cookie cookie = new Http.Cookie(config.cookieName().get(), newToken, null, sessionConfiguration.path(),
                         domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
                 ctx.response().setCookie(cookie);
             } else {
