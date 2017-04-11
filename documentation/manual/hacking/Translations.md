@@ -39,7 +39,7 @@ translation-project
 `build.properties` should contain the SBT version, ie:
 
 ```
-sbt.version=0.13.13
+sbt.version=0.13.15
 ```
 
 `plugins.sbt` should include the Play docs sbt plugin, ie:
