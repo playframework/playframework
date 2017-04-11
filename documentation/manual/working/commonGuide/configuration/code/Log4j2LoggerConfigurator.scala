@@ -66,9 +66,9 @@ object Configurator {
 }
 
 object LogManager {
-  def getContext() = ???
+  def getContext(): LoggerContext = ???
 
-  def getContext(b: Boolean) = ???
+  def getContext(b: Boolean): LoggerContext = ???
 
 }
 
