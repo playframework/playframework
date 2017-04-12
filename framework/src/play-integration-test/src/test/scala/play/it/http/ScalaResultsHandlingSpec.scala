@@ -5,17 +5,13 @@ package play.it.http
 
 import java.nio.file.{ Files => JFiles }
 import java.util.Locale.ENGLISH
-import java.util.concurrent.LinkedBlockingQueue
 
 import akka.stream.scaladsl.Source
-import akka.util.{ ByteString, Timeout }
-import play.api._
+import akka.util.ByteString
 import play.api.http._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.routing.Router
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.EventSource
@@ -24,10 +20,7 @@ import play.it._
 
 import scala.util.Try
 import scala.concurrent.Future
-import play.api.http.{ HttpChunk, HttpEntity, Status }
-import play.core.utils.CaseInsensitiveOrdered
-
-import scala.collection.immutable.TreeMap
+import play.api.http.{ HttpChunk, HttpEntity }
 
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -67,14 +60,13 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       response.body must_== "Hello world"
     }
 
-    // todo might not need this after all though - it's indicative of a lower level behaviour of akka http
-    "not fail when sending an empty entity with a known size zero" in makeRequest(
-      Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
-    ) {
-        response =>
-          response.status must_== 200
-          response.header(CONTENT_LENGTH) must beSome("0") or beNone
-      }
+    def emptyStreamedEntity = Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
+
+    "not fail when sending an empty entity with a known size zero" in makeRequest(emptyStreamedEntity) {
+      response =>
+        response.status must_== 200
+        response.header(CONTENT_LENGTH) must beSome("0") or beNone
+    }
 
     "not fail when sending an empty file" in {
       val emptyPath = JFiles.createTempFile("empty", ".txt")
