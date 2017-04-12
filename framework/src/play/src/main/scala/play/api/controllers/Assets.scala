@@ -12,7 +12,7 @@ import play.api._
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
-import play.utils.{ InvalidUriEncodingException, Resources, UriEncoding }
+import play.utils.{ InvalidUriEncodingException, Resources, UriEncoding, StreamsUtils }
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ ExecutionContext, Future, Promise, blocking }
@@ -30,12 +30,17 @@ package play.api.controllers {
 package controllers {
 
   import java.time._
+  import java.util.zip.ZipEntry
   import javax.inject.Provider
 
-  import akka.stream.scaladsl.StreamConverters
+  import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
+  import akka.util.ByteString
+  import org.apache.commons.compress.archivers.zip.{ ZipArchiveEntry, ZipFile }
   import play.api.controllers.TrampolineContextProvider
   import play.api.http._
   import play.api.inject.{ ApplicationLifecycle, Module }
+
+  import scala.util.Try
 
   object Execution extends TrampolineContextProvider
 
@@ -209,8 +214,8 @@ package controllers {
     override def finder = delegate.finder
     override private[controllers] def digest(path: String) =
       delegate.digest(path)
-    override private[controllers] def assetInfoForRequest(request: RequestHeader, name: String) =
-      delegate.assetInfoForRequest(request, name)
+    override private[controllers] def assetInfo(name: String) =
+      delegate.assetInfo(name)
   }
 
   /**
@@ -219,7 +224,7 @@ package controllers {
   trait AssetsMetadata {
     def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]]
+    private[controllers] def assetInfo(name: String): Future[Option[AssetInfo]]
   }
 
   /**
@@ -369,19 +374,25 @@ package controllers {
       }
     }
 
-    private def assetInfo(name: String): Future[Option[AssetInfo]] = {
+    private[controllers] def assetInfo(name: String): Future[Option[AssetInfo]] = {
       if (config.enableCaching) {
         assetInfoCache.putIfAbsent(name)(assetInfoFromResource)
       } else {
         Future.successful(assetInfoFromResource(name))
       }
     }
-
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
-      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-      assetInfo(name).map(_.map(_ -> gzipRequested))
-    }
   }
+
+  /**
+   * Play assets usually come from jar files. Files are stored in jar files compressed, using the deflate compression
+   * algorithm. If a request has come in, and it accepts the deflate content encoding, then we can serve the file
+   * directly from the jar file without decompressing it. This class tracks where in a jar file a deflated asset lives.
+   *
+   * @param jarFile The jar file that the asset comes from.
+   * @param offset The offset of the file (where the files contents starts).
+   * @param length The length of the file.
+   */
+  private case class DeflateIndex(jarFile: File, offset: Long, length: Long)
 
   /*
  * Retain meta information regarding an asset.
@@ -462,6 +473,69 @@ package controllers {
         case Some(x) => if (gzipAvailable) x else url
         case None => url
       }
+    }
+
+    val deflateIndex: Option[DeflateIndex] = {
+      url.getProtocol match {
+        case "jar" =>
+          val fileName = new URL(url.getPath.takeWhile(_ != '!')).getPath
+          try {
+            val file = new File(fileName)
+            // java.util.zip uses a native zip implementation that does not give out the offset location of the file in
+            // the zip archive, so we use commons-compress instead, which is pure java. Even this doesn't just give the
+            // offset out in public API, but instead we have to reflect over it.
+            val zipFile = new ZipFile(file)
+            try {
+              val resource = url.getPath.dropWhile(_ != '!').drop(2)
+              val entry = zipFile.getEntry(resource)
+              if (entry != null && !entry.isDirectory && entry.getMethod == ZipEntry.DEFLATED) {
+                // The asset is stored deflated, which means we can serve it as is without decompressing
+                // The only safe way to check if an entry in a zip file is a directory is if its stream is null
+                if (zipFile.getInputStream(entry) != null) {
+                  val offset = AssetInfo.getZipOffset(entry)
+                  val length = entry.getCompressedSize
+                  Some(DeflateIndex(file, offset, length))
+                } else {
+                  None
+                }
+              } else {
+                None
+              }
+            } finally {
+              zipFile.close()
+            }
+          } catch {
+            case NonFatal(e) =>
+              Logger.debug("Error while searching for deflate index", e)
+              None
+          }
+        case _ => None
+      }
+    }
+  }
+
+  private object AssetInfo {
+    // Apache compress does not offer public APIs for getting the data offset :(
+    private val offsetEntryField = Try {
+      val field = this.getClass.getClassLoader.loadClass("org.apache.commons.compress.archivers.zip.ZipFile$Entry")
+        .getDeclaredField("offsetEntry")
+      field.setAccessible(true)
+      field
+    }
+    private val dataOffsetField = Try {
+      val field = ClassLoader.getSystemClassLoader.loadClass("org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry")
+        .getDeclaredField("dataOffset")
+      field.setAccessible(true)
+      field
+    }
+
+    def getZipOffset(entry: ZipArchiveEntry): Long = {
+      (for {
+        offsetEntry <- offsetEntryField
+        dataOffset <- dataOffsetField
+      } yield {
+        dataOffset.get(offsetEntry.get(entry)).asInstanceOf[Long]
+      }).get
     }
   }
 
@@ -627,13 +701,14 @@ package controllers {
       r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
     }
 
-    private def asGzipResult(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
-      if (gzipRequested && gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-      } else if (gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING)
-      } else {
-        response
+    private def asEncodedResult(response: Result, contentEncoding: Option[String], contentEncodingAvailable: Boolean): Result = {
+      contentEncoding match {
+        case Some(encoding) =>
+          response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> encoding)
+        case None if contentEncodingAvailable =>
+          response.withHeaders(VARY -> ACCEPT_ENCODING)
+        case _ =>
+          response
       }
     }
 
@@ -680,34 +755,53 @@ package controllers {
 
     private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
-        assetInfoForRequest(request, name)
+      val assetInfoFuture: Future[Option[AssetInfo]] = assetName.map { name =>
+        assetInfo(name)
       } getOrElse Future.successful(None)
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
       val pendingResult: Future[Result] = assetInfoFuture.flatMap {
-        case Some((assetInfo, gzipRequested)) =>
-          val connection = assetInfo.url(gzipRequested).openConnection()
-          // Make sure it's not a directory
-          if (Resources.isUrlConnectionADirectory(connection)) {
-            Resources.closeUrlConnection(connection)
-            notFound
-          } else {
-            val stream = connection.getInputStream
-            val source = StreamConverters.fromInputStream(() => stream)
-            // FIXME stream.available does not necessarily return the length of the file. According to the docs "It is never
-            // correct to use the return value of this method to allocate a buffer intended to hold all data in this stream."
-            val result = RangeResult.ofSource(stream.available(), source, request.headers.get(RANGE), None, Option(assetInfo.mimeType))
+        case Some(assetInfo) =>
+          val acceptEncodings = request.headers.get(ACCEPT_ENCODING).fold(Array.empty[String])(_.split(','))
+          val deflateRequested = acceptEncodings.exists(_.trim == "deflate")
+          val gzipRequested = acceptEncodings.exists(_.trim == "gzip")
+          val contentEncodingAvailable = assetInfo.gzipUrl.isDefined || assetInfo.deflateIndex.isDefined
+
+          def sendResource(source: Source[ByteString, _], contentLength: Long, contentEncoding: Option[String]): Future[Result] = {
+            val result = RangeResult.ofSource(contentLength, source, request.headers.get(RANGE), None, Option(assetInfo.mimeType))
 
             Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
               cacheableResult(
                 assetInfo,
                 aggressiveCaching,
-                asGzipResult(result, gzipRequested, assetInfo.gzipUrl.isDefined)
+                asEncodedResult(result, contentEncoding, contentEncodingAvailable)
               )
             })
           }
+
+          assetInfo.deflateIndex match {
+            case Some(deflateIndex) if deflateRequested =>
+              // Serve as deflated directly from the file
+              val source = FileIO.fromFile(deflateIndex.jarFile).via(
+                StreamsUtils.sliceBytesTransformer(deflateIndex.offset, Some(deflateIndex.length)))
+
+              sendResource(source, deflateIndex.length, Some("deflate"))
+            case other =>
+              val connection = assetInfo.url(gzipRequested).openConnection()
+              // Make sure it's not a directory
+              if (Resources.isUrlConnectionADirectory(connection)) {
+                Resources.closeUrlConnection(connection)
+                notFound
+              } else {
+                val stream = connection.getInputStream
+                val source = StreamConverters.fromInputStream(() => stream)
+                // FIXME stream.available does not necessarily return the length of the file. According to the docs "It is never
+                // correct to use the return value of this method to allocate a buffer intended to hold all data in this stream."
+                sendResource(source, stream.available(), if (gzipRequested && assetInfo.gzipUrl.isDefined) Some("gzip") else None)
+              }
+          }
+
         case None => notFound
       }
 

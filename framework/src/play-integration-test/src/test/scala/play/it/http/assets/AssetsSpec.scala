@@ -29,11 +29,13 @@ trait AssetsSpec extends PlaySpecification
     def defaultCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.defaultCache")
     def aggressiveCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.aggressiveCache")
 
-    def withServer[T](block: WSClient => T): T = {
+    def withServer[T](block: WSClient => T): T = withBaseDir("/testassets")(block)
+
+    def withBaseDir[T](baseDir: String)(block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
         new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
           override def router: Router = Router.from {
-            case req => assets.versioned("/testassets", req.path)
+            case req => assets.versioned(baseDir, req.path)
           }
         }.application
       } { withClient(block)(_) }
@@ -112,6 +114,21 @@ trait AssetsSpec extends PlaySpecification
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
       IOUtils.toString(is, StandardCharsets.UTF_8) must_== "This is a test gzipped asset.\n"
       // release deflate resources
+      is.close()
+      success
+    }
+
+    "serve a deflated asset directly from a jar file" in withBaseDir("/META-INF/maven") { client =>
+      // Assume that all reference.conf files on the classpath must be compressed. If this isn't true, this test will fail.
+      val result = await(client.url("/com.google.guava/guava/pom.properties")
+        .withHeaders(ACCEPT_ENCODING -> "deflate")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      //result.header(CONTENT_ENCODING) must beSome("deflate")
+      val ahcResult: play.shaded.ahc.org.asynchttpclient.Response = result.underlying.asInstanceOf[play.shaded.ahc.org.asynchttpclient.Response]
+      val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
+      IOUtils.toString(is, StandardCharsets.UTF_8) must contain("artifactId=guava")
       is.close()
       success
     }
@@ -224,18 +241,8 @@ trait AssetsSpec extends PlaySpecification
       "if the directory is on the file system" in withServer { client =>
         await(client.url("/subdir").get()).status must_== NOT_FOUND
       }
-      "if the directory is a jar entry" in {
-        Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
-            override def router: Router = Router.from {
-              case req => assets.versioned("/scala", req.path)
-            }
-          }.application
-        } {
-          withClient { client =>
-            await(client.url("/collection").get()).status must_== NOT_FOUND
-          }(_)
-        }
+      "if the directory is a jar entry" in withBaseDir("/scala") { client =>
+        await(client.url("/collection").get()).status must_== NOT_FOUND
       }
     }
 
