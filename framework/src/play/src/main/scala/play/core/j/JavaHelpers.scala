@@ -345,9 +345,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     if (header == null) null else header(0)
   }
 
-  def hasHeader(headerName: String): Boolean = {
-    getHeader(headerName) != null
-  }
+  def hasHeader(headerName: String): Boolean = header.headers.hasHeader(headerName)
 
   def hasBody: Boolean = header.hasBody
 

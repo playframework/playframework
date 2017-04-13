@@ -5,6 +5,9 @@ package play.api.mvc
 
 import java.util.Locale
 
+import play.api.http.HeaderNames
+import play.api.http.HeaderNames.CONTENT_LENGTH
+import play.api.http.HeaderNames.TRANSFER_ENCODING
 import play.core.utils.CaseInsensitiveOrdered
 
 import scala.collection.immutable.{ TreeMap, TreeSet }
@@ -22,6 +25,24 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    * The headers as a sequence of name-value pairs.
    */
   def headers: Seq[(String, String)] = _headers
+
+  /**
+   * Checks if the given header is present.
+   *
+   * @param headerName The name of the header (case-insensitive)
+   * @return <code>true</code> if the request did contain the header.
+   */
+  def hasHeader(headerName: String): Boolean = get(headerName).isDefined
+
+  /**
+   * True if this request has a body, so we know if we should trigger body parsing. The base implementation simply
+   * checks for the Content-Length or Transfer-Encoding headers, but subclasses (such as fake requests) may return
+   * true in other cases so the headers need not be updated to reflect the body.
+   */
+  def hasBody: Boolean = {
+    import HeaderNames._
+    get(CONTENT_LENGTH).exists(_.toLong > 0) || hasHeader(TRANSFER_ENCODING)
+  }
 
   /**
    * Append the given headers

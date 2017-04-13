@@ -169,10 +169,7 @@ trait RequestHeader {
    * checks for the Content-Length or Transfer-Encoding headers, but subclasses (such as fake requests) may return
    * true in other cases so the headers need not be updated to reflect the body.
    */
-  def hasBody: Boolean = {
-    import HeaderNames._
-    headers.get(CONTENT_LENGTH).isDefined || headers.get(TRANSFER_ENCODING).isDefined
-  }
+  def hasBody: Boolean = headers.hasBody
 
   /**
    * The HTTP host (domain, optionally port). This value is derived from the request target, if a hostname is present.
@@ -197,7 +194,7 @@ trait RequestHeader {
    */
   lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
     val langs = RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
-    langs.sortWith((a, b) => a._1 > b._1).map(_._2).flatten
+    langs.sortWith((a, b) => a._1 > b._1).flatMap(_._2)
   }
 
   /**
@@ -213,7 +210,7 @@ trait RequestHeader {
    * @return true if `mimeType` matches the Accept header, otherwise false
    */
   def accepts(mimeType: String): Boolean = {
-    acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
+    acceptedTypes.isEmpty || acceptedTypes.exists(_.accepts(mimeType))
   }
 
   /**
