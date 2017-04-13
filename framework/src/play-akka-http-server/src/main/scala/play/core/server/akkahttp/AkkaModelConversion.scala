@@ -8,6 +8,7 @@ import java.util.Locale
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.util.FastFuture._
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -176,7 +177,7 @@ private[server] class AkkaModelConversion(
 
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
       // Convert result
-      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).map { validated: Result =>
+      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
         val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
         val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
         val connectionHeader = resultUtils.determineConnectionHeader(requestHeaders, validated)
