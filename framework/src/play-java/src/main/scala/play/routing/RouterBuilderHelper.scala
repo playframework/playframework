@@ -76,10 +76,13 @@ private[routing] object RouterBuilderHelper {
                   val ctx = JavaHelpers.createJavaContext(request)
                   try {
                     Context.current.set(ctx)
-                    route.actionMethod.invoke(route.action, params: _*) match {
-                      case result: Result => Future.successful(result.asScala)
-                      case promise: CompletionStage[Result] => FutureConverters.toScala(promise).map(_.asScala)
+                    val javaResultFuture = route.actionMethod.invoke(route.action, params: _*) match {
+                      case result: Result => Future.successful(result)
+                      case promise: CompletionStage[_] =>
+                        val p = promise.asInstanceOf[CompletionStage[Result]]
+                        FutureConverters.toScala(p)
                     }
+                    javaResultFuture.map(JavaHelpers.createResult(ctx, _))
                   } finally {
                     Context.current.remove()
                   }
