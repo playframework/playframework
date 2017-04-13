@@ -183,7 +183,7 @@ class AkkaHttpServer(
 
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
-    // Get the app's HttpErroHandler or fallback to a default value
+    // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
       case Failure(_) => DefaultHttpErrorHandler

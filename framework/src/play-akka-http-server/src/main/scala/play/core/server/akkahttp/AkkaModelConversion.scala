@@ -229,6 +229,9 @@ private[server] class AkkaModelConversion(
       case PlayHttpEntity.Strict(data, _) =>
         HttpEntity.Strict(contentType, data)
 
+      case PlayHttpEntity.Streamed(data, Some(contentLength), _) if contentLength == 0 =>
+        HttpEntity.Strict(contentType, ByteString.empty)
+
       case PlayHttpEntity.Streamed(data, Some(contentLength), _) =>
         HttpEntity.Default(contentType, contentLength, data)
 

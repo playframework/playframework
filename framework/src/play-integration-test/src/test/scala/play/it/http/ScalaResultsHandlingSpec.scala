@@ -3,18 +3,15 @@
  */
 package play.it.http
 
+import java.nio.file.{ Files => JFiles }
 import java.util.Locale.ENGLISH
-import java.util.concurrent.LinkedBlockingQueue
 
 import akka.stream.scaladsl.Source
-import akka.util.{ ByteString, Timeout }
-import play.api._
+import akka.util.ByteString
 import play.api.http._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.routing.Router
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.EventSource
@@ -23,10 +20,7 @@ import play.it._
 
 import scala.util.Try
 import scala.concurrent.Future
-import play.api.http.{ HttpChunk, HttpEntity, Status }
-import play.core.utils.CaseInsensitiveOrdered
-
-import scala.collection.immutable.TreeMap
+import play.api.http.{ HttpChunk, HttpEntity }
 
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -64,6 +58,32 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
     "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
+    }
+
+    def emptyStreamedEntity = Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
+
+    "not fail when sending an empty entity with a known size zero" in makeRequest(emptyStreamedEntity) {
+      response =>
+        response.status must_== 200
+        response.header(CONTENT_LENGTH) must beSome("0") or beNone
+    }
+
+    "not fail when sending an empty file" in {
+      val emptyPath = JFiles.createTempFile("empty", ".txt")
+      // todo fix the ExecutionContext. Not sure where to get it from nicely
+      // maybe the test is in the wrong place
+      import scala.concurrent.ExecutionContext.Implicits.global
+      // todo not sure where to get this one from in this context, either
+      implicit val fileMimeTypes = new FileMimeTypes {
+        override def forFileName(name: String): Option[String] = Some("text/plain")
+      }
+      try makeRequest(
+        Results.Ok.sendPath(emptyPath)
+      ) {
+          response =>
+            response.status must_== 200
+            response.header(CONTENT_LENGTH) must beSome("0")
+        } finally JFiles.delete(emptyPath)
     }
 
     "not add a content length header when none is supplied" in makeRequest(
