@@ -1,11 +1,12 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
+//#log4j2-class
 import java.io.File
-import java.net.{URI, URL}
+import java.net.{ URI, URL }
 
+//###skip: 1
 /*
-// #log4j2-import
 import play.api.{Mode, Configuration, Environment, LoggerConfigurator}
 
 import org.slf4j.ILoggerFactory
@@ -13,13 +14,12 @@ import org.slf4j.ILoggerFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core._
 import org.apache.logging.log4j.core.config.Configurator
-// #log4j2-import
+//###skip: 1
 */
 
-import play.api.{Mode, Configuration, Environment, LoggerConfigurator}
+import play.api.{ Mode, Configuration, Environment, LoggerConfigurator }
 import org.slf4j.ILoggerFactory
 
-//#log4j2-class
 class Log4J2LoggerConfigurator extends LoggerConfigurator {
 
   private var factory: ILoggerFactory = _

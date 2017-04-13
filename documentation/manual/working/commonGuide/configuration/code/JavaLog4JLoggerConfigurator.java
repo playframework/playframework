@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-// #log4j2-import
+//#log4j2-class
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.ILoggerFactory;
@@ -23,10 +23,9 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.*;
 import org.apache.logging.log4j.core.config.Configurator;
-// #log4j2-import
+//###skip: 1
 */
 
-//#log4j2-class
 public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
 
     private ILoggerFactory factory;
