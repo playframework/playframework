@@ -749,13 +749,13 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getMillisecondsList("engine.timeouts")
+   * val futures = configuration.getMillisecondsList("engine.futures")
    * }}}
    *
    * The configuration must be provided as:
    *
    * {{{
-   * engine.timeouts = [1 second, 1 second]
+   * engine.futures = [1 second, 1 second]
    * }}}
    */
   @deprecated("Use underlying.getMillisecondsList with reference config entry", "2.6.0")
@@ -768,13 +768,13 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getMillisecondsSeq("engine.timeouts")
+   * val futures = configuration.getMillisecondsSeq("engine.futures")
    * }}}
    *
    * The configuration must be provided as:
    *
    * {{{
-   * engine.timeouts = [1 second, 1 second]
+   * engine.futures = [1 second, 1 second]
    * }}}
    */
   @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")
@@ -787,13 +787,13 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getNanosecondsList("engine.timeouts")
+   * val futures = configuration.getNanosecondsList("engine.futures")
    * }}}
    *
    * The configuration must be provided as:
    *
    * {{{
-   * engine.timeouts = [1 second, 1 second]
+   * engine.futures = [1 second, 1 second]
    * }}}
    */
   @deprecated("Use underlying.getNanosecondsList with reference config entry", "2.6.0")
@@ -806,13 +806,13 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getNanosecondsSeq("engine.timeouts")
+   * val futures = configuration.getNanosecondsSeq("engine.futures")
    * }}}
    *
    * The configuration must be provided as:
    *
    * {{{
-   * engine.timeouts = [1 second, 1 second]
+   * engine.futures = [1 second, 1 second]
    * }}}
    */
   @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")

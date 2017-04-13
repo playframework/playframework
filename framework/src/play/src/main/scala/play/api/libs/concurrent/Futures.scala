@@ -3,10 +3,13 @@
  */
 package play.api.libs.concurrent
 
+import javax.inject.Inject
+
 import akka.actor.ActorSystem
 
-import scala.concurrent.{ Future, TimeoutException }
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ Future, TimeoutException }
+import scala.language.implicitConversions
 
 /**
  * This trait is used to provide a non-blocking timeout on an operation that returns a Future.
@@ -44,9 +47,8 @@ import scala.concurrent.duration.FiniteDuration
  * }}}
  *
  * @see [[http://docs.scala-lang.org/overviews/core/futures.html Futures and Promises]]
- *
  */
-trait Timeout {
+trait Futures {
 
   /**
    * Creates a future which will resolve to a timeout exception if the
@@ -57,12 +59,31 @@ trait Timeout {
    * is not returned.
    *
    * @tparam A the result type used in the Future.
-   * @param actorSystem the application's actor system.
    * @param timeoutDuration the duration after which a Future.failed(TimeoutException) should be thrown.
    * @param f a call by value Future[A]
    * @return the future that completes first, either the failed future, or the operation.
    */
-  def timeout[A](actorSystem: ActorSystem, timeoutDuration: FiniteDuration)(f: Future[A]): Future[A] = {
+  def timeout[A](timeoutDuration: FiniteDuration)(f: Future[A]): Future[A]
+
+  /**
+   * Creates a future which will be completed after the specified duration.
+   *
+   * @tparam A the result type used in the Future.
+   * @param duration the duration to delay the future by.
+   * @param f the future to delay
+   */
+  def delayed[A](duration: FiniteDuration)(f: Future[A]): Future[A]
+
+}
+
+/**
+ * ActorSystem based timeout.
+ *
+ * @param actorSystem the actor system to use.
+ */
+class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
+
+  override def timeout[A](timeoutDuration: FiniteDuration)(f: Future[A]): Future[A] = {
     implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher
     val timeoutFuture = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
       val msg = s"Timeout after $timeoutDuration"
@@ -71,23 +92,47 @@ trait Timeout {
     Future.firstCompletedOf(Seq(f, timeoutFuture))
   }
 
+  override def delayed[A](duration: FiniteDuration)(f: Future[A]): Future[A] = {
+    implicit val ec = actorSystem.dispatcher
+    akka.pattern.after(duration, actorSystem.scheduler)(f)
+  }
 }
 
 /**
- * This is a static object that can be used to import timeout implicits, as a convenience.
+ * Low priority implicits to add `withTimeout` methods to [[scala.concurrent.Future]].
+ *
+ * You can dependency inject the ActorSystem as follows to create a Future that will
+ * timeout after a certain period of time:
  *
  * {{{
- * import play.api.libs.concurrent.Timeout._
+ * class MyService @Inject()(actorSystem: ActorSystem)(implicit futures: Futures) {
+ *   import play.api.libs.concurrent.Implicits._
+ *
+ *   def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
+ *      rawCalculation().withTimeout(timeoutDuration)
+ *   }
+ *
+ *   def rawCalculation(): Future[Int] = {
+ *     import akka.pattern.after
+ *     implicit val ec = actorSystem.dispatcher
+ *     akka.pattern.after(300 millis, actorSystem.scheduler)(Future(42))
+ *   }
+ * }
+ * }}}
+ *
+ * You should check for timeout by using `scala.concurrent.Future.recover` or `scala.concurrent.Future.recoverWith`
+ * and checking for [[scala.concurrent.TimeoutException]]:
+ *
+ * {{{
+ * val future = myService.calculateWithTimeout(100 millis).recover {
+ *   case _: TimeoutException =>
+ *     -1
+ * }
  * }}}
  */
-object Timeout extends Timeout with LowPriorityTimeoutImplicits
+trait LowPriorityFuturesImplicits {
 
-/**
- * Low priority timeouts to add `withTimeout` methods to [[scala.concurrent.Future]].
- */
-trait LowPriorityTimeoutImplicits {
-
-  implicit class FutureTimeout[T](future: Future[T]) extends Timeout {
+  implicit class FutureToFutures[T](future: Future[T]) {
 
     /**
      * Creates a future which will resolve to a timeout exception if the
@@ -98,11 +143,11 @@ trait LowPriorityTimeoutImplicits {
      * is not returned.
      *
      * @param timeoutDuration the duration after which a Future.failed(TimeoutException) should be thrown.
-     * @param actorSystem the application's actor system.
+     * @param futures the implicit Futures.
      * @return the future that completes first, either the failed future, or the operation.
      */
-    def withTimeout(timeoutDuration: FiniteDuration)(implicit actorSystem: ActorSystem): Future[T] = {
-      timeout(actorSystem, timeoutDuration)(future)
+    def withTimeout(timeoutDuration: FiniteDuration)(implicit futures: Futures): Future[T] = {
+      futures.timeout(timeoutDuration)(future)
     }
 
     /**
@@ -115,12 +160,31 @@ trait LowPriorityTimeoutImplicits {
      * the given future will still complete, even though that completed value
      * is not returned.
      *
-     * @param timeoutDuration the duration after which a Future.failed(TimeoutException) should be thrown.
-     * @param actorSystem the application's actor system.
+     * @param akkaTimeout the duration after which a Future.failed(TimeoutException) should be thrown.
+     * @param futures the implicit Futures.
      * @return the future that completes first, either the failed future, or the operation.
      */
-    def withTimeout(implicit timeoutDuration: akka.util.Timeout, actorSystem: ActorSystem): Future[T] = {
-      timeout(actorSystem, timeoutDuration.duration)(future)
+    def withTimeout(implicit akkaTimeout: akka.util.Timeout, futures: Futures): Future[T] = {
+      futures.timeout(akkaTimeout.duration)(future)
+    }
+
+    /**
+     * Creates a future which will be executed after the given delay.
+     *
+     * @param duration the duration after which the future should be executed.
+     * @param futures the implicit Futures.
+     * @return the future that completes first, either the failed future, or the operation.
+     */
+    def withDelayed[A](duration: FiniteDuration)(future: Future[A])(implicit futures: Futures): Future[A] = {
+      futures.delayed(duration)(future)
     }
   }
+}
+
+object Futures extends LowPriorityFuturesImplicits {
+
+  implicit def actorSystemToFutures(implicit actorSystem: ActorSystem): Futures = {
+    new DefaultFutures(actorSystem)
+  }
+
 }

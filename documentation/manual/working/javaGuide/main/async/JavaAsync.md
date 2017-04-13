@@ -61,7 +61,7 @@ Once you have the custom dispatcher, add in the explicit executor and wrap it wi
 
 @[async-explicit-ec](code/javaguide/async/controllers/Application.java)
 
-> You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
+> You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information, and download the [play example templates](https://playframework.com/download#examples) that show database integration.
 
 ## Actions are asynchronous by default
 
@@ -71,10 +71,9 @@ Play [[actions|JavaActions]] are asynchronous by default. For instance, in the c
 
 > **Note:** Whether the action code returns a `Result` or a `CompletionStage<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `CompletionStage` is a technique for writing non-blocking code.
 
-
 ## Handling time-outs
 
-It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.libs.concurrent.Timeout.timeout`](api/java/play/libs/concurrent/Timeout.html) method to wrap a CompletionStage in a non-blocking timeout.
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use the [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) method to wrap a `CompletionStage` in a non-blocking timeout.
 
 @[timeout](code/javaguide/async/JavaAsync.java)
 

@@ -350,7 +350,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
       val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").patch("body")
 
-      // This test experiences CI timeouts. Give it more time.
+      // This test experiences CI futures. Give it more time.
       val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
       val rep = await(futureResponse)(reallyLongTimeout)
 

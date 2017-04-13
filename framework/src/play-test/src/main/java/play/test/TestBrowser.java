@@ -89,7 +89,7 @@ public class TestBrowser extends FluentAdapter {
 
     /**
      * Retrieves the underlying option interface that can be used
-     * to set cookies, manage timeouts among other things.
+     * to set cookies, manage futures among other things.
      *
      * @return the web driver options.
      */

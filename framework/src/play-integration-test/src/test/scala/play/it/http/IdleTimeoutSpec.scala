@@ -62,7 +62,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses
     }
 
-    "support sub-second timeouts" in withServer(300.millis)(EssentialAction { req =>
+    "support sub-second futures" in withServer(300.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 400L) must throwA[SocketException]
@@ -79,7 +79,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]
     }.skipOnSlowCIServer
 
-    "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
+    "support multi-second futures" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 1600L) must throwA[SocketException]

@@ -232,5 +232,44 @@ In addition, it was inconvenient to have a `Messages` instance passed through al
 
 For more information, please see [[ScalaI18N]] or [[JavaI18N]].
 
+## Future Timeout and Delayed Support
 
+Play's support for futures in asynchronous operations has been improved, using the `Futures` trait.
 
+You can use the [`play.libs.concurrent.Futures`](api/java/play/libs/concurrent/Futures.html) interface to wrap a `CompletionStage` in a non-blocking timeout:
+
+```java
+class MyClass {
+    @Inject
+    public MyClass(Futures futures) {
+        this.futures = futures;
+    }
+
+    CompletionStage<Double> callWithOneSecondTimeout() {
+        return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
+    }
+}
+```
+
+or use [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) trait in the Scala API:
+
+```scala
+import play.api.libs.concurrent.Futures._
+
+class MyClass @Inject()(implicit futures: Futures) {
+
+  def index = Action.async {
+    // withTimeout is an implicit type enrichment provided by importing Futures._
+    intensiveComputation().withTimeout(1.seconds).map { i =>
+      Ok("Got result: " + i)
+    }.recover {
+      case e: TimeoutException =>
+        InternalServerError("timeout")
+    }
+  }
+}
+```
+
+There is also a `delayed` method which only executes a `Future` after a specified delay, which works similarly to timeout.
+
+For more information, please see [[ScalaAsync]] or [[JavaAsync]].

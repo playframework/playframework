@@ -909,6 +909,29 @@ class UserInfoCookieBaker @Inject()(service: UserInfoService,
 }
 ```
 
+## Deprecated Futures methods
+
+The following `play.libs.concurrent.Futures` static methods have been deprecated:
+
+* `timeout(A value, long amount, TimeUnit unit)`
+* `timeout(final long delay, final TimeUnit unit)`
+* `delayed(Supplier<A> supplier, long delay, TimeUnit unit, Executor executor)`
+
+A dependency injected instance of `Futures` should be used instead:
+
+```java
+class MyClass {
+    @Inject
+    public MyClass(play.libs.concurrent.Futures futures) {
+        this.futures = futures;
+    }
+
+    CompletionStage<Double> callWithOneSecondTimeout() {
+        return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
+    }
+}
+```
+
 ## Updated libraries
 
 ### Netty 4.1

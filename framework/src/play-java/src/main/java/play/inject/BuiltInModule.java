@@ -7,6 +7,8 @@ import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;
 import play.libs.Files;
+import play.libs.concurrent.DefaultFutures;
+import play.libs.concurrent.Futures;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCookieSigner;
 import play.mvc.FileMimeTypes;
@@ -21,7 +23,8 @@ public class BuiltInModule extends play.api.inject.Module {
             bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
             bind(CookieSigner.class).to(DefaultCookieSigner.class),
             bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
-            bind(FileMimeTypes.class).toSelf()
+            bind(FileMimeTypes.class).toSelf(),
+            bind(Futures.class).to(DefaultFutures.class)
         );
     }
 }
