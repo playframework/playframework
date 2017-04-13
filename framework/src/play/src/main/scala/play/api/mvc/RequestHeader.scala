@@ -169,10 +169,7 @@ trait RequestHeader {
    * checks for the Content-Length or Transfer-Encoding headers, but subclasses (such as fake requests) may return
    * true in other cases so the headers need not be updated to reflect the body.
    */
-  def hasBody: Boolean = {
-    import HeaderNames._
-    headers.get(CONTENT_LENGTH).exists(_.toLong > 0) || headers.hasHeader(TRANSFER_ENCODING)
-  }
+  def hasBody: Boolean = headers.hasBody
 
   /**
    * The HTTP host (domain, optionally port). This value is derived from the request target, if a hostname is present.

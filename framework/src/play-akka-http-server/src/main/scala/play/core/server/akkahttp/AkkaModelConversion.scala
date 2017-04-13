@@ -320,6 +320,11 @@ final case class AkkaHeadersWrapper(
       case _ => get(headerName).isDefined
     }
 
+  override def hasBody: Boolean = request.entity match {
+    case HttpEntity.Strict(_, data) => data.length > 0
+    case _ => true
+  }
+
   override def apply(key: String): String =
     get(key).getOrElse(throw new RuntimeException(s"Header with name $key not found!"))
 
