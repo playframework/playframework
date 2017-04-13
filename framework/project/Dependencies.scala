@@ -125,6 +125,7 @@ object Dependencies {
     jacksons ++
     Seq(
       "commons-codec" % "commons-codec" % "1.10",
+      "org.apache.commons" % "commons-compress" % "1.13",
 
       playJson,
 
