@@ -12,7 +12,6 @@ import play.api.i18n.DefaultLangsProvider;
 import play.api.i18n.DefaultMessagesApiProvider;
 import play.api.inject.RoutesProvider;
 import play.api.libs.concurrent.ActorSystemProvider;
-import play.api.libs.crypto.DefaultCookieSigner;
 import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
 import play.components.*;
@@ -25,7 +24,7 @@ import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
-import play.libs.crypto.HMACSHA1CookieSigner;
+import play.libs.crypto.DefaultCookieSigner;
 import play.mvc.FileMimeTypes;
 import scala.compat.java8.OptionConverters;
 
@@ -157,8 +156,8 @@ public interface BuiltInComponents extends BaseComponents,
 
     @Override
     default CookieSigner cookieSigner() {
-        play.api.libs.crypto.CookieSigner scalaCookieSigner = new DefaultCookieSigner(httpConfiguration().secret());
-        return new HMACSHA1CookieSigner(scalaCookieSigner);
+        play.api.libs.crypto.CookieSigner scalaCookieSigner = new play.api.libs.crypto.DefaultCookieSigner(httpConfiguration().secret());
+        return new DefaultCookieSigner(scalaCookieSigner);
     }
 
     @Override
