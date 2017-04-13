@@ -4,6 +4,8 @@
 package play.routing;
 
 import org.junit.Test;
+import play.Application;
+import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
 import play.mvc.Results;
@@ -170,6 +172,20 @@ public class RoutingDslTest extends WithApplication {
 
         assertThat(makeRequest(router, "OPTIONS", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
+    }
+
+    @Test
+    public void withContext() {
+        Router router = new RoutingDsl()
+            .GET("/hello/world").routeTo(() -> {
+                Http.Context.current().session().put("foo", "bar");
+                Http.Context.current().response().setHeader("Foo", "Bar");
+                return Results.ok("Hello world");
+            }).build();
+
+        Result result = routeAndCall(router, fakeRequest("GET", "/hello/world"));
+        assertThat(result.session().get("foo"), equalTo("bar"));
+        assertThat(result.headers().get("Foo"), equalTo("Bar"));
     }
 
     @Test
