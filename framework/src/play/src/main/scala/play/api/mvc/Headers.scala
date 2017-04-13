@@ -24,6 +24,14 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   def headers: Seq[(String, String)] = _headers
 
   /**
+   * Checks if the given header is present.
+   *
+   * @param headerName The name of the header (case-insensitive)
+   * @return <code>true</code> if the request did contain the header.
+   */
+  def hasHeader(headerName: String): Boolean = get(headerName).isDefined
+
+  /**
    * Append the given headers
    */
   def add(headers: (String, String)*) = new Headers(this.headers ++ headers)
