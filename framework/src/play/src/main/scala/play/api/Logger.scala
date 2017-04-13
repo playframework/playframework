@@ -400,7 +400,7 @@ trait LowPriorityMarkerContextImplicits {
 /**
  * A default marker context.  This is used by `MarkerContext.apply`, but can also be used to provide
  * explicit typing for markers.  For example, to define a SecurityContext marker, you can define a case
- * object extending DefaultMarkerContext
+ * object extending DefaultMarkerContext:
  *
  * {{{
  * case object SecurityMarkerContext extends DefaultMarkerContext(MarkerFactory.getMarker("SECURITY"))
@@ -410,4 +410,10 @@ trait LowPriorityMarkerContextImplicits {
  */
 class DefaultMarkerContext(someMarker: Marker) extends MarkerContext {
   def marker: Option[Marker] = Option(someMarker)
+}
+
+object MarkerContexts {
+
+  case object SecurityMarkerContext extends DefaultMarkerContext(org.slf4j.MarkerFactory.getMarker("SECURITY"))
+
 }

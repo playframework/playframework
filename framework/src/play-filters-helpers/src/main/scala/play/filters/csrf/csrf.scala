@@ -158,7 +158,7 @@ class CSRFConfigProvider @Inject() (config: Configuration) extends Provider[CSRF
 
 object CSRF {
 
-  private[csrf] val filterLogger = play.api.Logger("play.filters")
+  private[csrf] val filterLogger = play.api.Logger("play.filters.CSRF")
 
   /**
    * A CSRF token
