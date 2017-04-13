@@ -5,6 +5,7 @@ package play.routing;
 
 import org.junit.Test;
 import play.Application;
+import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
 
@@ -181,6 +182,21 @@ public abstract class AbstractRoutingDslTest {
 
         assertThat(makeRequest(router, "OPTIONS", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "POST", "/hello/world"));
+    }
+
+    @Test
+    public void withContext() {
+        Router router = router(routingDsl ->
+            routingDsl.GET("/hello/world").routeTo(() -> {
+                Http.Context.current().session().put("foo", "bar");
+                Http.Context.current().response().setHeader("Foo", "Bar");
+                return ok("Hello world");
+            }).build()
+        );
+
+        Result result = routeAndCall(application(), router, fakeRequest("GET", "/hello/world"));
+        assertThat(result.session().get("foo"), equalTo("bar"));
+        assertThat(result.headers().get("Foo"), equalTo("Bar"));
     }
 
     @Test
