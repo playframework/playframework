@@ -3,7 +3,9 @@
  */
 package play.api.http
 
+import javax.inject
 import javax.inject.Inject
+import javax.inject.Singleton
 
 import com.typesafe.config.ConfigException
 import play.api.inject.{ Binding, BindingKey, Injector }
@@ -35,6 +37,7 @@ trait HttpFilters {
  *     extends DefaultHttpFilters(defaultFilters.filters :+ corsFilter: _*)
  * }}}
  */
+@Singleton
 class DefaultHttpFilters @Inject() (val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {
@@ -61,6 +64,7 @@ object HttpFilters {
  * @param configuration the configuration
  * @param injector finds an instance of filter by the class name
  */
+@Singleton
 class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
 
   private val url = "https://www.playframework.com/documentation/latest/Filters"
