@@ -183,7 +183,7 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
-      // we keep getting futures on this test
+      // we keep getting timeouts on this test
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
         withServer(app => WebSocket.accept[String, String] { req =>

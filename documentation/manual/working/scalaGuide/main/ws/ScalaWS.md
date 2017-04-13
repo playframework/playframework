@@ -279,7 +279,7 @@ To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring
 
 ### Configuring Timeouts
 
-There are 3 different futures in WSClient. Reaching a timeout causes the WSClient request to interrupt.
+There are 3 different timeouts in WSClient. Reaching a timeout causes the WSClient request to interrupt.
 
 * `play.ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
 * `play.ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.

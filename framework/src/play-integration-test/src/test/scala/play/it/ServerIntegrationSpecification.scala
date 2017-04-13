@@ -36,7 +36,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
     /**
-     * We may want to skip some tests if they're slow due to futures. This tag
+     * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
      */
     def skipUntilAkkaHttpFixed: Result = parent match {
@@ -47,7 +47,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 
   implicit class UntilNettyHttpFixed[T: AsResult](t: => T) {
     /**
-     * We may want to skip some tests if they're slow due to futures. This tag
+     * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
      */
     def skipUntilNettyHttpFixed: Result = parent match {

@@ -72,7 +72,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
 
   /**
    * retrieves the underlying option interface that can be used
-   * to set cookies, manage futures among other things
+   * to set cookies, manage timeouts among other things
    */
   def manage: WebDriver.Options = super.getDriver.manage
 

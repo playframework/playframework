@@ -101,7 +101,7 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: Execut
     import play.api.libs.concurrent.Futures._
 
     def index = Action.async {
-      // actorsystem is implicit here
+      // futures instance implicit here
       intensiveComputation().withTimeout(1.seconds).map { i =>
         Ok("Got result: " + i)
       }.recover {

@@ -244,7 +244,7 @@ Use the following properties in `application.conf` to configure the WS client:
 
 ### Timeouts
 
-There are 3 different futures in WS. Reaching a timeout causes the WS request to interrupt.
+There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
 * `play.ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
 * `play.ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.

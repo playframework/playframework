@@ -30,7 +30,7 @@ class FuturesSpec extends Specification {
 
   "Futures" should {
 
-    "futures if duration is too small" in {
+    "time out if duration is too small" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(100 millis).recover {
@@ -54,7 +54,7 @@ class FuturesSpec extends Specification {
       result
     }
 
-    "succeed with a futures duration" in {
+    "succeed with a timeout duration" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(600 millis).recover {
@@ -70,7 +70,7 @@ class FuturesSpec extends Specification {
 
   "Future enriched with FutureToFutures implicit class" should {
 
-    "futures with a duration" in {
+    "timeout with a duration" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().rawCalculation().withTimeout(100 millis).recover {
@@ -94,7 +94,7 @@ class FuturesSpec extends Specification {
       result
     }
 
-    "futures with an implicit akka.util.Futures" in {
+    "timeout with an implicit akka.util.Timeout" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(100 millis)
@@ -107,7 +107,7 @@ class FuturesSpec extends Specification {
       result
     }
 
-    "succeed with an implicit akka.util.Futures" in {
+    "succeed with an implicit akka.util.Timeout" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(500 millis)

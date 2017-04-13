@@ -31,7 +31,7 @@ public class DefaultFutures implements Futures {
     /**
      * Creates a CompletionStage that returns either the input stage, or a futures.
      *
-     * Note that futures is not the same as cancellation.  Even in case of futures,
+     * Note that timeout is not the same as cancellation.  Even in case of futures,
      * the given completion stage will still complete, even though that completed value
      * is not returned.
      *
