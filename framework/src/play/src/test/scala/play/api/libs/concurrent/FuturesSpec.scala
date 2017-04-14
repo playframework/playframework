@@ -68,7 +68,7 @@ class FuturesSpec extends Specification {
 
   }
 
-  "Future enriched with FutureToFutures implicit class" should {
+  "Future enriched with FutureOps implicit class" should {
 
     "timeout with a duration" in {
       implicit val actorSystem = ActorSystem()

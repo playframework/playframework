@@ -132,7 +132,7 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
  */
 trait LowPriorityFuturesImplicits {
 
-  implicit class FutureToFutures[T](future: Future[T]) {
+  implicit class FutureOps[T](future: Future[T]) {
 
     /**
      * Creates a future which will resolve to a timeout exception if the
@@ -175,7 +175,7 @@ trait LowPriorityFuturesImplicits {
      * @param futures the implicit Futures.
      * @return the future that completes first, either the failed future, or the operation.
      */
-    def withDelayed[A](duration: FiniteDuration)(future: Future[A])(implicit futures: Futures): Future[A] = {
+    def withDelay[A](duration: FiniteDuration)(future: Future[A])(implicit futures: Futures): Future[A] = {
       futures.delayed(duration)(future)
     }
   }
