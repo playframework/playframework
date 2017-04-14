@@ -8,14 +8,15 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import Futures._
 
-// testOnly play.api.libs.concurrent.TimeoutSpec
-class TimeoutSpec extends Specification {
+// testOnly play.api.libs.concurrent.FuturesSpec
+class FuturesSpec extends Specification {
 
-  class MyService(val actorSystem: ActorSystem) extends Timeout {
+  class MyService()(implicit actorSystem: ActorSystem) {
 
     def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
-      timeout(actorSystem, timeoutDuration)(rawCalculation())
+      rawCalculation().withTimeout(timeoutDuration)
     }
 
     def rawCalculation(): Future[Int] = {
@@ -27,12 +28,12 @@ class TimeoutSpec extends Specification {
 
   val timeoutDuration = 10 seconds
 
-  "Timeout" should {
+  "Futures" should {
 
-    "timeout if duration is too small" in {
-      val actorSystem = ActorSystem()
+    "time out if duration is too small" in {
+      implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
-      val future = new MyService(actorSystem).calculateWithTimeout(100 millis).recover {
+      val future = new MyService().calculateWithTimeout(100 millis).recover {
         case _: TimeoutException =>
           -1
       }
@@ -42,9 +43,9 @@ class TimeoutSpec extends Specification {
     }
 
     "succeed eventually with the raw calculation" in {
-      val actorSystem = ActorSystem()
+      implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
-      val future = new MyService(actorSystem).rawCalculation().recover {
+      val future = new MyService().rawCalculation().recover {
         case _: TimeoutException =>
           -1
       }
@@ -54,9 +55,9 @@ class TimeoutSpec extends Specification {
     }
 
     "succeed with a timeout duration" in {
-      val actorSystem = ActorSystem()
+      implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
-      val future = new MyService(actorSystem).calculateWithTimeout(600 millis).recover {
+      val future = new MyService().calculateWithTimeout(600 millis).recover {
         case _: TimeoutException =>
           -1
       }
@@ -67,14 +68,12 @@ class TimeoutSpec extends Specification {
 
   }
 
-  "Future enriched with FutureTimeout implicit class" should {
+  "Future enriched with FutureOps implicit class" should {
 
     "timeout with a duration" in {
-      import Timeout._
-
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
-      val future = new MyService(actorSystem).rawCalculation().withTimeout(100 millis).recover {
+      val future = new MyService().rawCalculation().withTimeout(100 millis).recover {
         case _: TimeoutException =>
           -1
       }
@@ -84,11 +83,9 @@ class TimeoutSpec extends Specification {
     }
 
     "succeed with a duration" in {
-      import Timeout._
-
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
-      val future = new MyService(actorSystem).rawCalculation().withTimeout(500 millis).recover {
+      val future = new MyService().rawCalculation().withTimeout(500 millis).recover {
         case _: TimeoutException =>
           -1
       }
@@ -98,12 +95,10 @@ class TimeoutSpec extends Specification {
     }
 
     "timeout with an implicit akka.util.Timeout" in {
-      import Timeout._
-
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(100 millis)
-      val future = new MyService(actorSystem).rawCalculation().withTimeout.recover {
+      val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1
       }
@@ -113,12 +108,10 @@ class TimeoutSpec extends Specification {
     }
 
     "succeed with an implicit akka.util.Timeout" in {
-      import Timeout._
-
       implicit val actorSystem = ActorSystem()
       implicit val ec = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(500 millis)
-      val future = new MyService(actorSystem).rawCalculation().withTimeout.recover {
+      val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1
       }

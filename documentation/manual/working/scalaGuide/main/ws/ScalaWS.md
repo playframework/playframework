@@ -210,11 +210,11 @@ When making a request from a controller, you can map the response to a `Future[R
 
 ### Using WSClient with Future Timeout
 
-If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  The best way to do this is with Play's [[non-blocking Timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html).
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time -- this is more generic than using `withRequestTimeout`, which only applies to a single request.  The best way to do this is with Play's [[non-blocking timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html).
 
 ### Using WSClient with unreliable networks
 
-If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
+If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 ## Directly creating WSClient
 
