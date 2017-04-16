@@ -177,7 +177,7 @@ trait RequestHeader {
    * empty string is returned.
    */
   lazy val host: String = {
-    val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
+    import RequestHeader.AbsoluteUri
     uri match {
       case AbsoluteUri(proto, hostPort, rest) => hostPort
       case _ => headers.get(HeaderNames.HOST).getOrElse("")
@@ -339,6 +339,8 @@ trait RequestHeader {
 }
 
 object RequestHeader {
+  private val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
+
   // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
   val qPattern = ";\\s*q=([0-9.]+)".r
 
