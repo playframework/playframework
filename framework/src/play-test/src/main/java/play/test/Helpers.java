@@ -64,19 +64,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
     @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
-        if (handler instanceof play.api.mvc.Action) {
-            play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
-        } else if (handler instanceof JavaHandler) {
-            final play.api.inject.Injector injector = app.injector();
-            final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
-            return invokeHandler(
-                    app,
-                    ((JavaHandler) handler).withComponents(handlerComponents),
-                    requestBuilder, timeout
-            );
-        } else {
-            throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
+        while (true) {
+            if (handler instanceof play.api.mvc.Action) {
+                play.api.mvc.Action action = (play.api.mvc.Action) handler;
+                return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
+            } else if (handler instanceof JavaHandler) {
+                final play.api.inject.Injector injector = app.injector();
+                final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
+                handler = ((JavaHandler) handler).withComponents(handlerComponents);
+            } else {
+                throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
+            }
         }
     }
 
@@ -389,7 +387,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result routeAndCall(Application app, Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
             Request request = requestBuilder.build();
-            Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
+            Router routes = (Router) router.getClassLoader().loadClass(router.getName() + '$').getDeclaredField("MODULE$").get(null);
             return routes.route(request).map(handler ->
                 invokeHandler(app.getWrappedApplication(), handler, request, timeout)
             ).orElse(null);
