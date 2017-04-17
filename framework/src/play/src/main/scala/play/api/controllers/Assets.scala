@@ -173,11 +173,10 @@ package controllers {
   }
 
   object AssetEncoding {
-    val Identity = AssetEncoding("identity", "")
-    val Brotli = AssetEncoding("br", "br")
-    val Gzip = AssetEncoding("gzip", "gz")
-    val Bzip2 = AssetEncoding("bz2", "bz2")
-    val Xz = AssetEncoding("xz", "xz")
+    val Brotli = AssetEncoding(ContentEncoding.Brotli, "br")
+    val Gzip = AssetEncoding(ContentEncoding.Gzip, "gz")
+    val Bzip2 = AssetEncoding(ContentEncoding.Bzip2, "bz2")
+    val Xz = AssetEncoding(ContentEncoding.Xz, "xz")
   }
 
   object AssetsConfiguration {
@@ -244,7 +243,8 @@ package controllers {
   trait AssetsMetadata {
     def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Seq[String])]]
+    private[controllers] def assetInfoForRequest(
+      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]]
   }
 
   /**
@@ -388,7 +388,7 @@ package controllers {
         url <- resource(name)
       } yield {
         val compressionUrls: Seq[(String, URL)] = config.encodings
-          .map { case AssetEncoding(accept, extension) => (accept, resource(name + "." + extension)) }
+          .map { ae => (ae.acceptEncoding, resource(ae.forFilename(name))) }
           .collect { case (key: String, Some(url: URL)) => (key, url) }
 
         new AssetInfo(name, url, compressionUrls, digest(name), config, fileMimeTypes)
@@ -403,9 +403,9 @@ package controllers {
       }
     }
 
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Seq[String])]] = {
-      val requestedEncodings: Seq[String] = request.headers.getAll(ACCEPT_ENCODING).flatMap(_.split(',').toSeq.map(_.trim.split(";")(0)))
-      assetInfo(name).map(_.map(_ -> requestedEncodings))
+    private[controllers] def assetInfoForRequest(
+      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]] = {
+      assetInfo(name).map(_.map(_ -> AcceptEncoding.forRequest(request)))
     }
   }
 
@@ -423,6 +423,12 @@ package controllers {
 
     import ResponseHeader._
     import config._
+
+    private val encodingNames: Seq[String] = compressedUrls.map(_._1)
+    private val encodingsByName: Map[String, URL] = compressedUrls.toMap
+
+    // Determines whether we need to Vary: Accept-Encoding on the encoding because there are multiple available
+    val varyEncoding: Boolean = compressedUrls.nonEmpty
 
     /**
      * tells you if mimeType is text or not.
@@ -483,11 +489,15 @@ package controllers {
 
     lazy val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
-    def url(requestedEncodings: Seq[String]): URL = {
-      val firstFoundEncoding: Option[(String, URL)] = compressedUrls.find { case (s: String, u: URL) => requestedEncodings.contains(s) }
+    def bestEncoding(acceptEncoding: AcceptEncoding): Option[String] =
+      acceptEncoding.preferred(encodingNames)
+        .filter(_ != ContentEncoding.Identity) // ignore identity encoding
 
-      firstFoundEncoding.map(s => s._2).getOrElse(url)
-    }
+    // NOTE: we are assuming all clients can accept the unencoded version. Technically the if the `identity` encoding
+    // is given a q-value of zero, that's not the case, but in practice that is quite rare so we have chosen not to
+    // handle that case.
+    def url(acceptEncoding: AcceptEncoding): URL =
+      bestEncoding(acceptEncoding).flatMap(encodingsByName.get).getOrElse(url)
   }
 
   /**
@@ -652,18 +662,20 @@ package controllers {
       r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
     }
 
-    private def asEncodedResult(response: Result, requestedEncodings: Seq[String], availableEncodings: Seq[(String, URL)]): Result = {
-      // we search in availableEncodings instead of requestedEncodings, because we honor the
-      // server admins choices higher than the ones the clients send (as they usually weight all content types equal anyway and we
-      // don't support q-values yet)
-      val firstFoundEncoding: Option[(String, URL)] = availableEncodings.find { case (s: String, u: URL) => requestedEncodings.contains(s) }
-      firstFoundEncoding
-        .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc._1))
-        .getOrElse(if (availableEncodings.nonEmpty) {
-          response.withHeaders(VARY -> ACCEPT_ENCODING)
-        } else {
-          response
-        })
+    private def asEncodedResult(
+      response: Result,
+      acceptEncoding: AcceptEncoding,
+      assetInfo: AssetInfo
+    ): Result = {
+      assetInfo.bestEncoding(acceptEncoding)
+        .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc))
+        .getOrElse {
+          if (assetInfo.varyEncoding) {
+            response.withHeaders(VARY -> ACCEPT_ENCODING)
+          } else {
+            response
+          }
+        }
     }
 
     /**
@@ -709,15 +721,15 @@ package controllers {
 
     private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, Seq[String])]] = assetName.map { name =>
+      val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName.map { name =>
         assetInfoForRequest(request, name)
       } getOrElse Future.successful(None)
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
       val pendingResult: Future[Result] = assetInfoFuture.flatMap {
-        case Some((assetInfo, requestedEncodings)) =>
-          val connection = assetInfo.url(requestedEncodings).openConnection()
+        case Some((assetInfo, acceptEncoding)) =>
+          val connection = assetInfo.url(acceptEncoding).openConnection()
           // Make sure it's not a directory
           if (Resources.isUrlConnectionADirectory(connection)) {
             Resources.closeUrlConnection(connection)
@@ -733,7 +745,7 @@ package controllers {
               cacheableResult(
                 assetInfo,
                 aggressiveCaching,
-                asEncodedResult(result, requestedEncodings, assetInfo.compressedUrls)
+                asEncodedResult(result, acceptEncoding, assetInfo)
               )
             })
           }
