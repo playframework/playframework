@@ -7,11 +7,13 @@ import org.specs2.mutable.Specification
 
 class LoggerConfiguratorSpec extends Specification {
 
+  private lazy val referenceConfig = Configuration.reference
+
   "generateProperties" should {
 
     "generate in the simplest case" in {
       val env = Environment.simple()
-      val config = Configuration.empty
+      val config = referenceConfig
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       properties.size must beEqualTo(1)
       properties must havePair("application.home" -> env.rootPath.getAbsolutePath)
@@ -19,7 +21,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate in the case of including string config property" in {
       val env = Environment.simple()
-      val config = Configuration(
+      val config = referenceConfig ++ Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.string.in.application.conf" -> "hello"
       )
@@ -29,7 +31,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate in the case of including integer config property" in {
       val env = Environment.simple()
-      val config = Configuration(
+      val config = referenceConfig ++ Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.number.in.application.conf" -> 1
       )
@@ -39,7 +41,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate in the case of including null config property" in {
       val env = Environment.simple()
-      val config = Configuration(
+      val config = referenceConfig ++ Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.null.in.application.conf" -> null
       )
@@ -51,7 +53,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate in the case of direct properties" in {
       val env = Environment.simple()
-      val config = Configuration.empty
+      val config = referenceConfig
       val optProperties = Map("direct.map.property" -> "goodbye")
       val properties = LoggerConfigurator.generateProperties(env, config, optProperties)
 
@@ -62,7 +64,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate a null using direct properties" in {
       val env = Environment.simple()
-      val config = Configuration.empty
+      val config = referenceConfig
       val optProperties = Map("direct.null.property" -> null)
       val properties = LoggerConfigurator.generateProperties(env, config, optProperties)
 
@@ -71,7 +73,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "override config property with direct properties" in {
       val env = Environment.simple()
-      val config = Configuration("some.property" -> "AAA")
+      val config = referenceConfig ++ Configuration("some.property" -> "AAA")
       val optProperties = Map("some.property" -> "BBB")
       val properties = LoggerConfigurator.generateProperties(env, config, optProperties)
 

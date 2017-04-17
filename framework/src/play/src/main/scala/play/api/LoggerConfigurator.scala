@@ -17,7 +17,7 @@ trait LoggerConfigurator {
   /**
    * Initialize the Logger when there's no application ClassLoader available.
    */
-  def init(rootPath: java.io.File, mode: Mode.Mode): Unit
+  def init(rootPath: java.io.File, mode: Mode): Unit
 
   /**
    * This is a convenience method that adds no extra properties.
@@ -73,14 +73,14 @@ object LoggerConfigurator {
     val mutableMap = new scala.collection.mutable.HashMap[String, String]()
     mutableMap.put("application.home", env.rootPath.getAbsolutePath)
 
-    if (config.getBoolean("play.logger.includeConfigProperties").contains(true)) {
+    if (config.get[Boolean]("play.logger.includeConfigProperties")) {
       val entrySet = config.underlying.entrySet.asScala
       for (entry <- entrySet) {
         val value = entry.getValue
         value.valueType() match {
           case ConfigValueType.STRING =>
             mutableMap.put(entry.getKey, value.unwrapped().asInstanceOf[String])
-          case other =>
+          case _ =>
             mutableMap.put(entry.getKey, value.render())
         }
       }

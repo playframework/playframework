@@ -222,15 +222,23 @@ object Dependencies {
     guava % Test
   ) ++ specsBuild.map(_ % Test)
 
+  val seleniumVersion = "3.3.1"
   val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-core" % "3.1.1")
-      .exclude("org.jboss.netty", "netty"),
-    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.25",
-    "org.seleniumhq.selenium" % "selenium-firefox-driver" % "3.3.1",
-    "org.seleniumhq.selenium" % "selenium-support" % "3.3.1"
+    "org.fluentlenium" % "fluentlenium-core" % "3.1.1" exclude("org.jboss.netty", "netty"),
+    // htmlunit-driver uses an open range to selenium dependencies. This is slightly
+    // slowing down the build. So the open range deps were removed and we can re-add
+    // them using a specific version. Using an open range is also not good for the
+    // local cache.
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.26" excludeAll(
+      ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
+      ExclusionRule("org.seleniumhq.selenium", "selenium-support")
+    ),
+    "org.seleniumhq.selenium" % "selenium-api" % seleniumVersion,
+    "org.seleniumhq.selenium" % "selenium-support" % seleniumVersion,
+    "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
   ) ++ guiceDeps
 
   val ehcacheVersion = "2.6.11"

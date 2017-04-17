@@ -230,7 +230,8 @@ play.logger.configurator=Log4J2LoggerConfigurator
 
 And then extend LoggerConfigurator with any customizations:
 
-@[log4j2-import](code/Log4j2LoggerConfigurator.scala)
+Java
+: @[log4j2-class](code/JavaLog4JLoggerConfigurator.java)
 
-@[log4j2-class](code/Log4j2LoggerConfigurator.scala)
-
+Scala
+: @[log4j2-class](code/Log4j2LoggerConfigurator.scala)

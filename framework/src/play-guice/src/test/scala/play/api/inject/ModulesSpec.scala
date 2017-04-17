@@ -50,7 +50,7 @@ class ModulesSpec extends Specification {
       located.size must_== 1
       located.head must beLike {
         case mod: JavaGuiceConfigurationModule =>
-          mod.environment.underlying must_== env
+          mod.environment.asScala() must_== env
           mod.configuration.underlying must_== conf.underlying
       }
     }
@@ -64,7 +64,7 @@ class ModulesSpec extends Specification {
       located.size must_== 1
       located.head must beLike {
         case mod: JavaGuiceConfigModule =>
-          mod.environment.underlying must_== env
+          mod.environment.asScala() must_== env
           mod.config must_== conf.underlying
       }
     }

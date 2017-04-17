@@ -17,11 +17,14 @@ set -ev
 
 declare -a TASKS=(checkCodeStyle checkFileHeaders test testSbtPlugins testDocumentation)
 
+# Use travis scala version or defaults to 2.12.1 which is the `scalaVersion` configured in build.sbt
+SCALA_VERSION=${TRAVIS_SCALA_VERSION:-"2.12.1"}
+
 for TASK in "${TASKS[@]}"
 do
   # We have multi-threaded tests and see concurrent modification when starting logback,
   # so always run tests sequentially.
   # Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
-  framework/bin/$TASK +++$TRAVIS_SCALA_VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
+  framework/bin/$TASK +++$SCALA_VERSION "set concurrentRestrictions in Global += Tags.limitAll(1)"
 done
 

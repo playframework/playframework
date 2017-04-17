@@ -57,7 +57,7 @@ trait Application {
   /**
    * `Dev`, `Prod` or `Test`
    */
-  def mode: Mode.Mode = environment.mode
+  def mode: Mode = environment.mode
 
   /**
    * The application's environment

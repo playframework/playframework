@@ -21,7 +21,7 @@ import javax.inject.Singleton;
 /**
  * The current application configuration.
  *
- * @deprecated Use Config instead.
+ * @deprecated As of release 2.6.0. Use {@link Config} instead.
  */
 @Singleton
 @Deprecated

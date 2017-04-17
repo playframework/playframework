@@ -30,7 +30,7 @@ trait WebSocketable {
  */
 trait Server extends ServerWithStop {
 
-  def mode: Mode.Mode
+  def mode: Mode
 
   /**
    * Try to get the handler for a request and return it as a `Right`. If we
@@ -223,13 +223,13 @@ object Server {
 }
 
 private[play] object JavaServerHelper {
-  def forRouter(router: Router, mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
+  def forRouter(router: Router, mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
     forRouter(mode, httpPort, sslPort)(new JFunction[BuiltInComponents, Router] {
       override def apply(components: BuiltInComponents): Router = router
     })
   }
 
-  def forRouter(mode: Mode.Mode, httpPort: Option[Integer], sslPort: Option[Integer])(block: JFunction[BuiltInComponents, Router]): Server = {
+  def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(block: JFunction[BuiltInComponents, Router]): Server = {
     val context = ApplicationLoader.Context(
       Environment.simple(mode = mode),
       None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),

@@ -58,7 +58,7 @@ object ConnectionPool {
    *
    * Supports shortcut URLs for postgres and mysql, and also adds various default parameters as appropriate.
    */
-  def extractUrl(maybeUrl: Option[String], mode: Mode.Mode): (Option[String], Option[(String, String)]) = {
+  def extractUrl(maybeUrl: Option[String], mode: Mode): (Option[String], Option[(String, String)]) = {
 
     maybeUrl match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
