@@ -27,6 +27,7 @@ trait AssetsSpec extends PlaySpecification
   "Assets controller" should {
 
     def defaultCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.defaultCache")
+
     def aggressiveCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.aggressiveCache")
 
     def withServer[T](block: WSClient => T): T = {
@@ -36,7 +37,9 @@ trait AssetsSpec extends PlaySpecification
             case req => assets.versioned("/testassets", req.path)
           }
         }.application
-      } { withClient(block)(_) }
+      } {
+        withClient(block)(_)
+      }
     }
 
     val etagPattern = """([wW]/)?"([^"]|\\")*""""
@@ -354,6 +357,100 @@ trait AssetsSpec extends PlaySpecification
 
         result.header(CONTENT_DISPOSITION) must beNone
       }
+
+      "serve a brotli compressed asset" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "br")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        result.header(CONTENT_ENCODING) must beSome("br")
+        result.bodyAsBytes.length must_=== 66
+        success
+      }
+
+      "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        // this check is disabled, because the underlying http client does strip the content-encoding header.
+        // to prevent this, we would have to pass a DefaultAsyncHttpClientConfig which sets
+        // org.asynchttpclient.DefaultAsyncHttpClientConfig.keepEncodingHeader to true
+        //      result.header(CONTENT_ENCODING) must beSome("gzip")
+        // 107 is the length of the uncompressed message in encoding.js.gz .. as the http client transparently unzips
+        result.body.contains("this is the gzipped version.") must_=== true
+        result.bodyAsBytes.length must_=== 107
+        success
+      }
+
+      "serve a plain asset when brotli is available but not requested" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        result.header(CONTENT_ENCODING) must beNone
+        result.bodyAsBytes.length must_=== 105
+        success
+      }
+
+      "serve a asset if accept encoding is given with a q value" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        result.header(CONTENT_ENCODING) must beSome("br")
+        result.bodyAsBytes.length must_=== 66
+        success
+      }
+
+      "serve a brotli compressed asset when brotli and gzip are requested, brotli first (because configured to be first)" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
+          // something is wrong here... if we just have "gzip, deflate, sdch, br", the "br" does not end up in the ACCEPT_ENCODING header
+          //          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        result.header(CONTENT_ENCODING) must beSome("br")
+        result.bodyAsBytes.length must_=== 66
+        success
+      }
+      "serve a gzip compressed asset when brotli and gzip are available, but only gzip requested" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        // result.header(CONTENT_ENCODING) must beSome("gzip")
+        // this is stripped by the http client
+        result.body.contains("this is the gzipped version.") must_=== true
+        result.bodyAsBytes.length must_=== 107
+        success
+      }
+      "serve a xz compressed asset when brotli, gzip and xz are available, but xz requested" in withServer { client =>
+        val result = await(client.url("/encoding.js")
+          .withHeaders(ACCEPT_ENCODING -> "xz")
+          .get())
+
+        result.header(VARY) must beSome(ACCEPT_ENCODING)
+        result.header(CONTENT_ENCODING) must beSome("xz")
+        result.bodyAsBytes.length must_=== 144
+        success
+      }
     }
+    "serve a bz2 compressed asset when brotli, gzip and bz2 are available, but bz2 requested" in withServer { client =>
+      val result = await(client.url("/encoding.js")
+        .withHeaders(ACCEPT_ENCODING -> "bz2")
+        .get())
+
+      result.header(VARY) must beSome(ACCEPT_ENCODING)
+      result.header(CONTENT_ENCODING) must beSome("bz2")
+      result.bodyAsBytes.length must_=== 112
+      success
+    }
+
   }
 }
