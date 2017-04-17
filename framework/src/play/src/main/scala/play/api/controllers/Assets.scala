@@ -181,7 +181,7 @@ package controllers {
   }
 
   object AssetsConfiguration {
-    def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Test): AssetsConfiguration = {
+    def fromConfiguration(c: Configuration, mode: Mode = Mode.Test): AssetsConfiguration = {
       AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
         urlPrefix = c.get[String]("play.assets.urlPrefix"),

@@ -26,7 +26,7 @@ case class ServerConfig(
     port: Option[Int],
     sslPort: Option[Int],
     address: String,
-    mode: Mode.Mode,
+    mode: Mode,
     properties: Properties,
     configuration: Configuration) {
   // Some basic validation of config
@@ -41,7 +41,7 @@ object ServerConfig {
     port: Option[Int] = Some(9000),
     sslPort: Option[Int] = None,
     address: String = "0.0.0.0",
-    mode: Mode.Mode = Mode.Prod,
+    mode: Mode = Mode.Prod,
     properties: Properties = System.getProperties): ServerConfig = {
     ServerConfig(
       rootDir = rootDir,

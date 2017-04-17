@@ -7,7 +7,7 @@ class ModeSpecificLoggerSpec extends Specification {
 
   sequential
 
-  case class ModeLoggerTest(mode: Mode.Mode*) {
+  case class ModeLoggerTest(mode: Mode*) {
     private val logger = Logger(getClass).forMode(mode: _*)
 
     logger.info("This is info")
@@ -32,7 +32,7 @@ class ModeSpecificLoggerSpec extends Specification {
     }
   }
 
-  private def withLoggerMode[T](mode: Mode.Mode)(block: => T): T = {
+  private def withLoggerMode[T](mode: Mode)(block: => T): T = {
     Logger.setApplicationMode(mode)
     val result = block
     Logger.unsetApplicationMode()

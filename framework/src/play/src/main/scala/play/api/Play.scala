@@ -20,31 +20,21 @@ import javax.xml.XMLConstants
  *
  * @see [[play.Mode]]
  */
+sealed abstract class Mode(val asJava: play.Mode)
 
 object Mode {
 
-  sealed trait Mode {
-    def asJava: play.Mode
-  }
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Mode", "2.6.0")
+  type Mode = play.api.Mode
 
-  case object Dev extends Mode {
-    override def asJava: play.Mode = play.Mode.DEV
-  }
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
+  type Value = play.api.Mode
 
-  case object Test extends Mode {
-    override def asJava: play.Mode = play.Mode.TEST
-  }
+  case object Dev extends play.api.Mode(play.Mode.DEV)
+  case object Test extends play.api.Mode(play.Mode.TEST)
+  case object Prod extends play.api.Mode(play.Mode.PROD)
 
-  case object Prod extends Mode {
-    override def asJava: play.Mode = play.Mode.PROD
-  }
-
-  // Made the modes accessible in Java code.
-  def dev() = Dev
-  def test() = Test
-  def prod() = Prod
-
-  def modes() = Seq(Dev, Test, Prod)
+  lazy val values: Set[play.api.Mode] = Set(Dev, Test, Prod)
 }
 
 /**

@@ -17,7 +17,7 @@ import play.api.mvc.request.DefaultRequestFactory
 private[play] case class PlayCoreTestApplication(
     config: Map[String, Any] = Map(),
     path: File = new File("."),
-    override val mode: Mode.Mode = Mode.Test) extends Application {
+    override val mode: Mode = Mode.Test) extends Application {
 
   def this() = this(config = Map())
 

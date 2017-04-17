@@ -6,7 +6,6 @@ package play.filters.https
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import play.api.Mode.Mode
 import play.api._
 import play.api.http.HttpFilters
 import play.api.inject.bind
@@ -42,7 +41,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       val result = route(app, req).get
 
       status(result) must_== PERMANENT_REDIRECT
-      header(LOCATION, result) must_== Some("https://playframework.com/please/dont?remove=this&foo=bar")
+      header(LOCATION, result) must beSome("https://playframework.com/please/dont?remove=this&foo=bar")
     }
 
     "redirect with custom redirect status code if configured" in new WithApplication(buildApp(
@@ -59,28 +58,28 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
-      header(STRICT_TRANSPORT_SECURITY, result) must_== None
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== OK
     }
 
     "redirect to custom HTTPS port if configured" in new WithApplication(buildApp("play.filters.https.port = 9443")) {
       val result = route(app, request("/please/dont?remove=this&foo=bar")).get
 
-      header(LOCATION, result) must_== Some("https://playframework.com:9443/please/dont?remove=this&foo=bar")
+      header(LOCATION, result) must beSome("https://playframework.com:9443/please/dont?remove=this&foo=bar")
     }
 
     "not contain default HSTS header if secure in test" in new WithApplication(buildApp()) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
-      header(STRICT_TRANSPORT_SECURITY, result) must_== None
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
     }
 
     "contain default HSTS header if secure in production" in new WithApplication(buildApp(mode = Mode.Prod)) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
-      header(STRICT_TRANSPORT_SECURITY, result) must_== Some("max-age=31536000; includeSubDomains")
+      header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=31536000; includeSubDomains")
     }
 
     "contain custom HSTS header if configured explicitly in prod" in new WithApplication(buildApp(
@@ -90,7 +89,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
-      header(STRICT_TRANSPORT_SECURITY, result) must_== Some("max-age=12345; includeSubDomains")
+      header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=12345; includeSubDomains")
     }
   }
 

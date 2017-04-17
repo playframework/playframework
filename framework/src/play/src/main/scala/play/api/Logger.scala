@@ -252,12 +252,12 @@ class Logger private (val logger: Slf4jLogger, isEnabled: => Boolean) extends Lo
    *
    * If the global application mode has not been set (by calling Logger.setApplicationMode), this has no effect.
    */
-  def forMode(mode: Mode.Mode*): Logger = {
+  def forMode(mode: Mode*): Logger = {
     modeLoggerCache.getOrElseUpdate(mode, new Logger(logger, Logger.applicationMode.forall(mode.contains)))
   }
 
-  private[this] val modeLoggerCache: mutable.Map[Seq[Mode.Mode], Logger] =
-    new ConcurrentHashMap[Seq[Mode.Mode], Logger]().asScala
+  private[this] val modeLoggerCache: mutable.Map[Seq[Mode], Logger] =
+    new ConcurrentHashMap[Seq[Mode], Logger]().asScala
 }
 
 /**
@@ -277,18 +277,18 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) {
 
   private[this] val log: Slf4jLogger = LoggerFactory.getLogger(getClass)
 
-  private[this] var _mode: Option[Mode.Mode] = None
+  private[this] var _mode: Option[Mode] = None
   private[this] val _appsRunning: AtomicInteger = new AtomicInteger(0)
 
   /**
    * The global application mode currently being used by the logging API.
    */
-  def applicationMode: Option[Mode.Mode] = _mode
+  def applicationMode: Option[Mode] = _mode
 
   /**
    * Set the global application mode used for logging. Used when the Play application starts.
    */
-  def setApplicationMode(mode: Mode.Mode): Unit = {
+  def setApplicationMode(mode: Mode): Unit = {
     val appsRunning = _appsRunning.incrementAndGet()
     applicationMode foreach { currentMode =>
       if (currentMode != mode) {

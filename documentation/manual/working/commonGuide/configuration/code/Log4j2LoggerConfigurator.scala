@@ -24,7 +24,7 @@ class Log4J2LoggerConfigurator extends LoggerConfigurator {
 
   private var factory: ILoggerFactory = _
 
-  override def init(rootPath: File, mode: Mode.Mode): Unit = {
+  override def init(rootPath: File, mode: Mode): Unit = {
     val properties = Map("application.home" -> rootPath.getAbsolutePath)
     val resourceName = "log4j2.xml"
     val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))

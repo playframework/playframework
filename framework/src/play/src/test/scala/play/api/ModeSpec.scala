@@ -17,15 +17,6 @@ class ModeSpec extends Specification {
     "convert Prod mode to Java play.Mode.PROD" in {
       Mode.Prod.asJava must beEqualTo(play.Mode.PROD)
     }
-    "get test mode" in {
-      Mode.test() must beEqualTo(Mode.Test)
-    }
-    "get dev mode" in {
-      Mode.dev() must beEqualTo(Mode.Dev)
-    }
-    "get prod mode" in {
-      Mode.prod() must beEqualTo(Mode.Prod)
-    }
   }
 
   "Java Mode" should {

@@ -73,25 +73,25 @@ Finally, Play Iteratees has a separate versioning scheme, so the version no long
 
 ## Scala `Mode` changes
 
-Scala [`Mode`](api/scala/play/api/Mode$.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
+Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
 
 ```java
 // Consider this Java code
-play.api.Mode.Mode scalaMode = play.api.Mode.Test();
+play.api.Mode scalaMode = play.api.Mode.Test();
 ```
 
 Must be rewritten to:
 
 ```java
 // Consider this Java code
-play.api.Mode.Mode scalaMode = play.api.Mode.test();
+play.api.Mode scalaMode = play.Mode.TEST.asScala();
 ```
 
-Notice the lowercase in `test` call. It is also easier to convert between Java and Scala modes:
+It is also easier to convert between Java and Scala modes:
 
 ```java
 // In your Java code
-play.api.Mode.Mode scalaMode = play.Mode.TEST.asScala();
+play.api.Mode scalaMode = play.Mode.DEV.asScala();
 ```
 
 Or in your Scala code:
@@ -99,6 +99,8 @@ Or in your Scala code:
 ```scala
 play.Mode javaMode = play.api.Mode.Dev.asJava
 ```
+
+Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead. 
 
 ## `Writeable[JsValue]` changes
 

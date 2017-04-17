@@ -49,6 +49,7 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
 
     @Override
     public void configure(Environment env, Config configuration, Map<String, String> optionalProperties) {
+        // LoggerConfigurator.generateProperties enables play.logger.includeConfigProperties=true
         Map<String, String> properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties);
         URL resourceUrl = env.resource("log4j2.xml");
         configure(properties, Optional.ofNullable(resourceUrl));

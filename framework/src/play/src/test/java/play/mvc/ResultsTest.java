@@ -3,8 +3,6 @@
  */
 package play.mvc;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.junit.*;
 
 import java.io.File;
@@ -13,11 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
 
+import play.Mode;
 import play.api.Configuration;
-import play.api.Mode;
 import play.api.http.DefaultFileMimeTypes;
 import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.HttpConfiguration;
@@ -186,7 +182,7 @@ public class ResultsTest {
   }
 
   private void mockRegularFileTypes() {
-    HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.test())).get();
+    HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.TEST.asScala())).get();
     final DefaultFileMimeTypes defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes()).get();
     final FileMimeTypes fileMimeTypes = new FileMimeTypes(defaultFileMimeTypes);
     when(this.ctx.fileMimeTypes()).thenReturn(fileMimeTypes);

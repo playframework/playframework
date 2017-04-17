@@ -4,7 +4,7 @@
 package play.test;
 
 import play.Application;
-import play.api.Mode;
+import play.Mode;
 import play.core.server.ServerConfig;
 import play.core.server.ServerProvider;
 import scala.Option;
@@ -43,7 +43,7 @@ public class TestServer extends play.api.test.TestServer {
     private static ServerConfig createServerConfig(Optional<Integer> port, Optional<Integer> sslPort) {
         return ServerConfig.apply(TestServer.class.getClassLoader(), new File("."),
                 (Option) OptionConverters.toScala(port), (Option) OptionConverters.toScala(sslPort), "0.0.0.0",
-                Mode.test(), System.getProperties());
+                Mode.TEST.asScala(), System.getProperties());
     }
 
 }

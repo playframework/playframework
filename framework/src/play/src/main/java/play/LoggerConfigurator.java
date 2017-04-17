@@ -27,14 +27,8 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
     void init(File rootPath, Mode mode);
 
     @Override
-    default void init(File rootPath, play.api.Mode.Mode mode) {
-        Mode javaMode = Mode.TEST;
-        if (mode.equals(play.api.Mode.dev())) {
-            javaMode = Mode.DEV;
-        } else if (mode.equals(play.api.Mode.prod())) {
-            javaMode = Mode.PROD;
-        }
-        init(rootPath, javaMode);
+    default void init(File rootPath, play.api.Mode mode) {
+        init(rootPath, mode.asJava());
     }
 
     /**

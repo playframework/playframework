@@ -24,7 +24,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
   /**
    * Initialize the Logger when there's no application ClassLoader available.
    */
-  def init(rootPath: java.io.File, mode: Mode.Mode): Unit = {
+  def init(rootPath: java.io.File, mode: Mode): Unit = {
     // Set the global application mode for logging
     play.api.Logger.setApplicationMode(mode)
 

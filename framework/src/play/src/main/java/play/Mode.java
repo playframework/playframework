@@ -9,12 +9,12 @@ package play;
 public enum Mode {
     DEV, TEST, PROD;
 
-    public play.api.Mode.Mode asScala() {
+    public play.api.Mode asScala() {
         if (this == DEV) {
-            return play.api.Mode.dev();
+            return play.api.Mode.Dev$.MODULE$;
         } else if (this == PROD) {
-            return play.api.Mode.prod();
+            return play.api.Mode.Prod$.MODULE$;
         }
-        return play.api.Mode.test();
+        return play.api.Mode.Test$.MODULE$;
     }
 }
