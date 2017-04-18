@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import java.io.{ File, FileOutputStream, InputStream }
+import java.io.{ File, InputStream }
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
@@ -455,7 +455,7 @@ class RangeResultSpec extends Specification {
   private def createFile(path: Path): File = {
     if (!java.nio.file.Files.exists(path)) {
       java.nio.file.Files.createFile(path)
-      val fos = new FileOutputStream(path.toFile)
+      val fos = java.nio.file.Files.newOutputStream(path)
       try {
         fos.write("The file content".getBytes)
       } finally {

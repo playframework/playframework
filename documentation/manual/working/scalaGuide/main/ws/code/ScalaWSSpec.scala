@@ -359,7 +359,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
             res =>
-              val outputStream = new FileOutputStream(file)
+              val outputStream = java.nio.file.Files.newOutputStream(file.toPath)
 
               // The sink that writes to the output stream
               val sink = Sink.foreach[ByteString] { bytes =>

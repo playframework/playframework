@@ -9,7 +9,7 @@ import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
 import java.security.cert.X509Certificate
-import java.io.{ File, FileInputStream, FileOutputStream }
+import java.io.File
 import javax.net.ssl.KeyManagerFactory
 import scala.util.Properties.isJavaAtLeast
 import play.utils.PlayIO
@@ -34,7 +34,7 @@ object FakeKeyStore {
 
     // Should regenerate if we find an unacceptably weak key in there.
     val store = KeyStore.getInstance("JKS")
-    val in = new FileInputStream(keyStoreFile)
+    val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
     try {
       store.load(in, "".toCharArray)
     } finally {
@@ -69,14 +69,14 @@ object FakeKeyStore {
       keyStore.load(null, "".toCharArray)
       keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
       keyStore.setCertificateEntry("playgeneratedtrusted", cert)
-      val out = new FileOutputStream(keyStoreFile)
+      val out = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
       try {
         keyStore.store(out, "".toCharArray)
       } finally {
         PlayIO.closeQuietly(out)
       }
     } else {
-      val in = new FileInputStream(keyStoreFile)
+      val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
       try {
         keyStore.load(in, "".toCharArray)
       } finally {
