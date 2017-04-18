@@ -42,8 +42,8 @@ public class JPAController extends Controller {
     //#jpa-controller-transactional-readonly
 
     //#jpa-access-entity-manager
-    public void upadateSomething() {
-        EntityManager em = jpaApi.em();
+    public void updateSomething() {
+        EntityManager em = play.db.jpa.JPA.em();
         // do something with the entity manager, per instance
         // save, update or query model objects.
     }
