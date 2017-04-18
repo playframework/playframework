@@ -26,7 +26,7 @@ public interface HttpComponents extends HttpConfigurationComponents {
      *
      *   public EssentialFilter[] httpFilters() {
      *       LoggingFilter loggingFilter = new LoggingFilter();
-     *       List<EssentialFilter> filters = Arrays.asList(httpFilters());
+     *       List&lt;EssentialFilter&gt; filters = Arrays.asList(httpFilters());
      *       filters.add(loggingFilter);
      *       return filters.toArray();
      *   }
@@ -48,13 +48,16 @@ public interface HttpComponents extends HttpConfigurationComponents {
      *     return Arrays
      *          .stream(httpFilters())
      *          // accept only filters that are not CSRFFilter
-     *          .filter(f -> !f.getClass().equals(CSRFFilter.class))
+     *          .filter(f -&gt; !f.getClass().equals(CSRFFilter.class))
      *          .toArray();
      *   }
      *
      *   // other required methods
      * }
      * </pre>
+     *
+     * @return an array with the http filters.
+     * @see EssentialFilter
      */
     EssentialFilter[] httpFilters();
 

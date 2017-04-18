@@ -50,6 +50,7 @@ public interface DBComponents extends ConfigurationComponents, ConnectionPoolCom
     /**
      * @return the database with the given name, associated with the {@link #dbApi()}.
      *
+     * @param name the database name
      * @see DBApi#getDatabase(String)
      */
     default Database database(String name) {
