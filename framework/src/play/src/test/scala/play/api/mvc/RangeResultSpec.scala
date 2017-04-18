@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import java.io.{ File, FileOutputStream }
+import java.io.{ File, InputStream }
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
@@ -17,8 +17,6 @@ import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
-
-import scala.tools.nsc.interpreter.InputStream
 
 object ByteRangeSpec extends Specification {
 
@@ -444,7 +442,7 @@ object RangeResultSpec extends Specification {
   private def createFile(path: Path): File = {
     if (!java.nio.file.Files.exists(path)) {
       java.nio.file.Files.createFile(path)
-      val fos = new FileOutputStream(path.toFile)
+      val fos = java.nio.file.Files.newOutputStream(path)
       try {
         fos.write("The file content".getBytes)
       } finally {

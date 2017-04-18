@@ -3,7 +3,7 @@
  */
 package play.api.db.evolutions
 
-import java.io.{ FileInputStream, InputStream }
+import java.io.InputStream
 import java.sql._
 import javax.inject.{ Inject, Singleton }
 
@@ -472,7 +472,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
 
   def loadResource(db: String, revision: Int) = {
-    environment.getExistingFile(Evolutions.fileName(db, revision)).map(new FileInputStream(_)).orElse {
+    environment.getExistingFile(Evolutions.fileName(db, revision)).map(f => java.nio.file.Files.newInputStream(f.toPath)).orElse {
       environment.resourceAsStream(Evolutions.resourceName(db, revision))
     }
   }
