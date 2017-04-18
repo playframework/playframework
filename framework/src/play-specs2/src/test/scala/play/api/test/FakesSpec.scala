@@ -26,7 +26,16 @@ class FakesSpec extends PlaySpecification {
       case (PUT, "/process") => Action { req =>
         Results.Ok(req.headers.get(CONTENT_TYPE) getOrElse "")
       }
+      case (GET, "/") ⇒ Action { req ⇒
+        Ok.sendFile(new java.io.File(""))
+      }
     }.build()
+
+    "Have Content-Length for Ok.sendFile" in new WithApplication(app) {
+      route(app, FakeRequest(GET, "/")) aka "response" must beSome.which { resp ⇒
+        headers(resp) aka "headers" must contain(CONTENT_LENGTH)
+      }
+    }
 
     "Define Content-Type header based on body" in new WithApplication(app) {
       val xml =
