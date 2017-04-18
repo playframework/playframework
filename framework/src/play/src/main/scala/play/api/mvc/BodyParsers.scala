@@ -842,19 +842,32 @@ trait PlayBodyParsers extends BodyParserUtils {
     BodyParser(name + ", maxLength=" + maxLength) { request =>
       import play.core.Execution.Implicits.trampoline
 
-      enforceMaxLength(request, maxLength, Accumulator(
-        Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
-      ) mapFuture { bytes =>
-          try {
-            Future.successful(Right(parser(request, bytes)))
-          } catch {
-            case NonFatal(e) =>
-              logger.debug(errorMessage, e)
-              createBadResult(errorMessage + ": " + e.getMessage)(request).map(Left(_))
-          }
-        })
-    }
+      def parseBody(bytes: ByteString): Future[Either[Result, A]] = {
+        try {
+          Future.successful(Right(parser(request, bytes)))
+        } catch {
+          case NonFatal(e) =>
+            logger.debug(errorMessage, e)
+            createBadResult(errorMessage + ": " + e.getMessage)(request).map(Left(_))
+        }
+      }
 
+      Accumulator.strict[ByteString, Either[Result, A]](
+        // If the body was strict
+        {
+          case Some(bytes) if bytes.size <= maxLength =>
+            parseBody(bytes)
+          case None =>
+            parseBody(ByteString.empty)
+          case _ =>
+            createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request).map(Left.apply)
+        },
+        // Otherwise, use an enforce max length accumulator on a folding sink
+        enforceMaxLength(request, maxLength, Accumulator(
+          Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+        ).mapFuture(parseBody)).toSink
+      )
+    }
 }
 
 /**
