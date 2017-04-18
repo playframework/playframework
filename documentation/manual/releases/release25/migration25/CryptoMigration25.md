@@ -65,7 +65,7 @@ Play, however, offers configuring mode of operation globally by configuring the 
 
 ## Migration
 
-There are several migration paths from Crypto functionality.  In order of preference, they are Kalium, Keyczar, or pure JCA.
+There are several migration paths from Crypto functionality.  In order of preference, they are Kalium, Keyczar, or pure JCE.
 
 ### Kalium
 
@@ -79,13 +79,13 @@ Note that Kalium does require that a libsodium binary be [installed](https://dow
 
 ### Keyczar
 
-If you are looking for a pure Java solution or depend on NIST approved algorithms, [Keyczar](https://tersesystems.com/2015/10/05/effective-cryptography-in-the-jvm/) provides a high level cryptographic library on top of JCA.  Note that Keyczar does not have the same level of support as libsodium / Kalium, and so Kalium is preferred.
+If you are looking for a pure Java solution or depend on NIST approved algorithms, [Keyczar](https://tersesystems.com/2015/10/05/effective-cryptography-in-the-jvm/) provides a high level cryptographic library on top of JCE.  Note that Keyczar does not have the same level of support as libsodium / Kalium, and so Kalium is preferred.
 
 If you need a MAC replacement for `Crypto.sign`, use `org.keyczar.Signer`.
 
 If you need a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.keyczar.Crypter`.
 
-### JCA
+### JCE
 
 Both Kalium and Keyczar use different cryptographic primitives than Crypto.  For users who intend to migrate from Crypto functionality without changing the underlying algorithms, the best option is probably to extract the code from the Crypto library to a user level class.
 
