@@ -48,7 +48,7 @@ public class JavaStream extends WithApplication {
     public void serveFile() throws Exception {
         File file = new File("/tmp/fileToServe.pdf");
         file.deleteOnExit();
-        try (OutputStream os = new FileOutputStream(file)) {
+        try (OutputStream os = java.nio.file.Files.newOutputStream(file.toPath())) {
             IOUtils.write("hi", os, "UTF-8");
         }
         Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);

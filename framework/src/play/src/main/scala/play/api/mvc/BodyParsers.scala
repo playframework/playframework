@@ -5,6 +5,7 @@ package play.api.mvc
 
 import java.io._
 import java.nio.channels.{ ByteChannel, Channels }
+import java.nio.file.Files
 import java.util.Locale
 import javax.inject.{ Inject, Provider }
 
@@ -223,7 +224,7 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
 
   @volatile private var inMemory: ByteString = initialData
   @volatile private var backedByTemporaryFile: TemporaryFile = _
-  @volatile private var outStream: FileOutputStream = _
+  @volatile private var outStream: OutputStream = _
 
   private[play] def push(chunk: ByteString) {
     if (inMemory != null) {
@@ -246,7 +247,7 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
 
   private[play] def backToTemporaryFile() {
     backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
-    outStream = new FileOutputStream(backedByTemporaryFile)
+    outStream = Files.newOutputStream(backedByTemporaryFile)
     outStream.write(inMemory.toArray)
     inMemory = null
   }
@@ -670,7 +671,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
     import play.core.Execution.Implicits.trampoline
-    Accumulator(StreamConverters.fromOutputStream(() => new FileOutputStream(to))).map(_ => Right(to))
+    Accumulator(StreamConverters.fromOutputStream(() => Files.newOutputStream(to.toPath))).map(_ => Right(to))
   }
 
   /**
