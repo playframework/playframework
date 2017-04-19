@@ -9,12 +9,13 @@ import javaguide.testhelpers.MockJavaAction;
 import org.slf4j.Logger;
 import play.Application;
 import play.api.Configuration;
+import play.core.j.HttpExecutionContext;
 import play.core.j.JavaHandlerComponents;
+import play.libs.concurrent.Futures;
 import play.libs.ws.*;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 // #ws-imports
 
 // #json-imports
@@ -27,7 +28,6 @@ import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
-import java.util.concurrent.ExecutionException;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -43,6 +43,7 @@ import play.mvc.Http.Status;
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
+import play.mvc.Results;
 // #ws-client-imports
 
 public class JavaWS {
@@ -369,5 +370,51 @@ public class JavaWS {
             );
         }
         // #ws-request-filter
+    }
+
+    public static class Controller4 extends MockJavaAction {
+        private final WSClient ws;
+        private final Futures futures;
+        private Logger logger;
+        Executor customExecutionContext = ForkJoinPool.commonPool();
+
+        @Inject
+        public Controller4(JavaHandlerComponents javaHandlerComponents, WSClient ws, Futures futures) {
+            super(javaHandlerComponents);
+            this.ws = ws;
+            this.futures = futures;
+            this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
+        }
+
+        //#ws-futures-timeout
+        public CompletionStage<Result> index() {
+            CompletionStage<Result> f = futures.timeout(ws.url("http://playframework.com").get().thenApplyAsync(result -> {
+                try {
+                    Thread.sleep(10000L);
+                    return Results.ok();
+                } catch (InterruptedException e) {
+                    return Results.status(SERVICE_UNAVAILABLE);
+                }
+            }, customExecutionContext), 1L, TimeUnit.SECONDS);
+
+            return f.handleAsync((result, e) -> {
+                if (e != null) {
+                    if (e instanceof CompletionException) {
+                        Throwable completionException = e.getCause();
+                        if (completionException instanceof TimeoutException) {
+                            return Results.status(SERVICE_UNAVAILABLE, "Service has timed out");
+                        } else {
+                            return internalServerError(e.getMessage());
+                        }
+                    } else {
+                        logger.error("Unknown exception " + e.getMessage(), e);
+                        return internalServerError(e.getMessage());
+                    }
+                } else {
+                    return result;
+                }
+            });
+        }
+        //#ws-futures-timeout
     }
 }

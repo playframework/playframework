@@ -15,6 +15,9 @@ import java.io._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
+import play.api.libs.concurrent.Futures
+
+import scala.concurrent.TimeoutException
 
 //#dependency
 import javax.inject.Inject
@@ -501,6 +504,22 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       }
       status(wsAction(FakeRequest())) must_== OK
       //#async-result
+    }
+
+    "allow timeout" in new WithServer() with Injecting {
+      val futures = inject[Futures]
+      val ws = inject[WSClient]
+      //#ws-futures-timeout
+      val result = futures.timeout(1 second) {
+        ws.url(url).get().map { response =>
+          Ok(response.body)
+        }
+      }.recover {
+        case e: scala.concurrent.TimeoutException =>
+          GatewayTimeout
+      }
+      //#ws-futures-timeout
+      status(result) must_== OK
     }
 
     "allow simple programmatic configuration" in new WithApplication() {
