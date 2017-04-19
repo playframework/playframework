@@ -89,7 +89,7 @@ With weak cipher checking disabled, you are vulnerable to attackers that use for
 If you want to disable hostname verification, you can set a loose flag:
 
 ```
-play.ws.ssl.loose.acceptAnyCertificate=true
+play.ws.ssl.loose.disableHostnameVerification=true
 ```
 
 With hostname verification disabled, a DNS proxy such as `dnschef` can [easily intercept communication](https://tersesystems.com/2014/03/31/testing-hostname-verification/).
