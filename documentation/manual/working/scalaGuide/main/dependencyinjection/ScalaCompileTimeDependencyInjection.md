@@ -74,3 +74,5 @@ To use this router in an actual application:
 As described before, Play provides a number of helper traits for wiring in other components.  For example, if you wanted to use the messages module, you can mix in [I18nComponents](api/scala/play/api/i18n/I18nComponents.html) into your components cake, like so:
 
 @[messages](code/CompileTimeDependencyInjection.scala)
+
+Other helper traits are also available as the [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) or the [AhcWsComponents](api/scala/play/api/libs/ws/ahc/AhcWSComponents.html)
