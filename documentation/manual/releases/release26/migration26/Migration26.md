@@ -100,7 +100,7 @@ Or in your Scala code:
 play.Mode javaMode = play.api.Mode.Dev.asJava
 ```
 
-Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead. 
+Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead.
 
 ## `Writeable[JsValue]` changes
 
@@ -110,26 +110,77 @@ Now, the default `Writeable[JsValue]` takes no implicit parameters and always wr
 
 If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
 
-## Scala ActionBuilder and BodyParser changes:
+## Scala ActionBuilder and BodyParser changes
 
 The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
-The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively.
+The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively. If you are inside a controller, they are automatically provided by the new `BaseController` trait (see the controller changes below).
 
-To provide a mostly source-compatible API, controllers can extend the `AbstractController` class and pass through the `ControllerComponents` in the constructor:
+## Scala Controller changes
+
+The idiomatic Play controller has in the past required global state. The main places that was needed was in the global `Action` object and `BodyParsers#parse` method.
+
+We have provided several new controller classes with new ways of injecting that state, providing the same syntax:
+ - `BaseController`: a trait with an abstract `ControllerComponents` that can be provided by an implementing class.
+ - `AbstractController`: an abstract class extending `BaseController` with a `ControllerComponents` constructor parameter that can be injected using constructor injection.
+ - `InjectedController`: a trait, extending `BaseController`, that obtains the `ControllerComponents` through method injection (calling a setControllerComponents method). If you are using a runtime DI framework like Guice, this is done automatically.
+
+`ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `ControllerHelpers` and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
+
+Note that `BaseController` makes `Action` and `parse` refer to injected instances rather than the global objects, which is usually what you want to do.
+
+Here's an example of code using `AbstractController`:
 
 ```scala
-class FooController @Inject() (components: ControllerComponents) extends AbstractController(components) {
+class FooController @Inject() (components: ControllerComponents)
+    extends AbstractController(components) {
+
   // Action and parse now use the injected components
-  def foo = Action(parse.text) {
+  def foo = Action(parse.json) {
     Ok
   }
 }
 ```
 
-This trait makes `Action` and `parse` refer to injected instances rather than the global objects.
+and using `BaseController`:
 
-`ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `BaseController` and injecting your own bundle of components (though Play does not require controllers to implement any particular trait).
+```scala
+class FooController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
+
+  // Action and parse now use the injected components
+  def foo = Action(parse.json) {
+    Ok
+  }
+}
+```
+
+and `InjectedController`:
+
+```scala
+class FooController @Inject() () extends InjectedController {
+
+  // Action and parse now use the injected components
+  def foo = Action(parse.json) {
+    Ok
+  }
+}
+```
+
+`InjectedController` gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using `InjectedController` with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding `InjectedController` since it hides the dependency.
+
+If you prefer to pass the individial dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
+
+```scala
+class Controller @Inject() (
+    action: DefaultActionBuilder,
+    parse: PlayBodyParsers,
+    messagesApi: MessagesApi
+  ) extends ControllerHelpers {
+  def index = action(parse.text) { request =>
+    Ok(messagesApi.preferred(request)("hello.world"))
+  }
+}
+```
 
 ## Cookies
 
@@ -682,10 +733,10 @@ implicit val fileMimeTypes: FileMimeTypes = ...
 Ok(file) // <-- takes implicit FileMimeTypes
 ```
 
-An implicit instance of `FileMimeTypes` is provided by `AbstractController` through the `ControllerComponents` class, to provide a convenient binding:
+An implicit instance of `FileMimeTypes` is provided by `BaseController` (and its subclass `AbstractController` and subtrait `InjectedController`) through the `ControllerComponents` class, to provide a convenient binding:
 
 ```scala
-class SendFileController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class SendFileController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   def index() = Action { implicit request =>
      val file = readFile()

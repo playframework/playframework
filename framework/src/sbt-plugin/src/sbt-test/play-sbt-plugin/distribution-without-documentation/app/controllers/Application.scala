@@ -12,7 +12,7 @@ import javax.inject.Inject
 /**
  * i will fail since I check for a undefined class [[Documentation]]
  */
-class Application @Inject() (action: DefaultActionBuilder) extends Controller {
+class Application @Inject() (action: DefaultActionBuilder) extends ControllerHelpers {
 
   def index = action {
     Ok

@@ -5,21 +5,47 @@ package play.api.mvc
 
 import javax.inject.Inject
 
+import play.api.Logger
 import play.api.http._
-import play.api.i18n._
+import play.api.i18n.{ Lang, Langs, MessagesApi }
 import play.twirl.api.Html
 
 import scala.concurrent.ExecutionContext
 
 /**
- * Useful mixins for controller classes (no global state)
+ * Useful mixins for controller classes.
+ *
+ * If you wish to write a controller with minimal dependencies, you can mix in this trait, which includes helpers and
+ * useful constants.
+ *
+ * {{{
+ *   class Controller @Inject() (action: DefaultActionBuilder, parse: PlayBodyParsers) extends ControllerHelpers {
+ *     def index = action(parse.text) {
+ *       Ok
+ *     }
+ *   }
+ * }}}
  */
-trait BaseController extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering with RequestMethods
+trait ControllerHelpers extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering with RequestImplicits {
+
+  /**
+   * Used to mark an action that is still not implemented, e.g.:
+   *
+   * {{{
+   *   def action(query: String) = TODO
+   * }}}
+   */
+  lazy val TODO: Action[AnyContent] = Action {
+    NotImplemented[Html](views.html.defaultpages.todo())
+  }
+}
+
+object ControllerHelpers extends ControllerHelpers
 
 /**
  * Useful mixin for methods that do implicit transformations of a request
  */
-trait RequestMethods {
+trait RequestImplicits {
 
   /**
    * Retrieves the session implicitly from the request.
@@ -47,26 +73,6 @@ trait RequestMethods {
    */
   implicit def request2flash(implicit request: RequestHeader): Flash = request.flash
 
-  /**
-   * Retrieve the language implicitly from the request.
-   *
-   * For example:
-   * {{{
-   * def index(name:String) = Action { implicit request =>
-   *   val lang: Lang = request2lang
-   *   Ok("Got " + lang)
-   * }
-   * }}}
-   *
-   * @deprecated This class relies on MessagesApi. Use [[play.api.i18n.I18nSupport]]
-   *            and use `request.messages.lang`.
-   */
-  @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
-  implicit def request2lang(implicit request: RequestHeader): Lang = {
-    play.api.Play.privateMaybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
-      .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
-  }
-
 }
 
 /**
@@ -74,7 +80,7 @@ trait RequestMethods {
  *
  * For example:
  * {{{
- * class HomeController @Inject()() extends Controller {
+ * class HomeController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
  *
  *   def hello(name:String) = Action { request =>
  *     Ok("Hello " + name)
@@ -83,33 +89,17 @@ trait RequestMethods {
  * }
  * }}}
  *
- * This controller provides some deprecated global state. To inject this state you can AbstractController instead.
- */
-trait Controller extends BodyParsers with BaseController {
-
-  /**
-   * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.
-   *
-   * For example:
-   * {{{
-   * def index(name:String) = TODO
-   * }}}
-   */
-  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
-    NotImplemented[Html](views.html.defaultpages.todo())
-  }
-
-}
-
-/**
- * An base controller class that provides a "parse" method containing parsers and an "Action" method, as well as other
- * commonly used components.
  *
  * This is intended to provide the idiomatic Play API for actions, allowing you to use "Action" for the default
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
  * base controller class, or write your own version with similar code.
  */
-abstract class AbstractController(components: ControllerComponents) extends BaseController {
+trait BaseController extends ControllerHelpers {
+
+  /**
+   * The components needed to use the controller methods
+   */
+  protected def controllerComponents: ControllerComponents
 
   /**
    * The default ActionBuilder. Used to construct an action, for example:
@@ -122,7 +112,7 @@ abstract class AbstractController(components: ControllerComponents) extends Base
    *
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
-  def Action: ActionBuilder[Request, AnyContent] = components.actionBuilder
+  def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
 
   /**
    * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
@@ -134,18 +124,7 @@ abstract class AbstractController(components: ControllerComponents) extends Base
    *   }
    * }}}
    */
-  def parse: PlayBodyParsers = components.parsers
-
-  /**
-   * Used to mark an action that is still not implemented, e.g.:
-   *
-   * {{{
-   *   def action(query: String) = TODO
-   * }}}
-   */
-  lazy val TODO: Action[AnyContent] = Action {
-    NotImplemented[Html](views.html.defaultpages.todo())
-  }
+  def parse: PlayBodyParsers = controllerComponents.parsers
 
   /**
    * The default execution context provided by Play. You should use this for non-blocking code only. You can do so by
@@ -155,22 +134,57 @@ abstract class AbstractController(components: ControllerComponents) extends Base
    *   implicit lazy val executionContext = defaultExecutionContext
    * }}}
    */
-  def defaultExecutionContext: ExecutionContext = components.executionContext
+  def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
 
   /**
    * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by i18nComponents.
    */
-  implicit def messagesApi: MessagesApi = components.messagesApi
+  implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
 
   /**
    * The default Langs provided by Play. Can be used to determine the application's supported languages.
    */
-  implicit def supportedLangs: Langs = components.langs
+  implicit def supportedLangs: Langs = controllerComponents.langs
 
   /**
    * The default FileMimeTypes provided by Play. Used to map between file name extensions and mime types.
    */
-  implicit def fileMimeTypes: FileMimeTypes = components.fileMimeTypes
+  implicit def fileMimeTypes: FileMimeTypes = controllerComponents.fileMimeTypes
+}
+
+/**
+ * An abstract implementation of [[BaseController]] to make it slightly easier to use.
+ */
+abstract class AbstractController(protected val controllerComponents: ControllerComponents) extends BaseController
+
+/**
+ * A variation of [[BaseController]] that gets its components via method injection.
+ */
+trait InjectedController extends BaseController {
+
+  private val logger = Logger(getClass)
+
+  private[this] var _components: ControllerComponents = _
+
+  override protected def controllerComponents: ControllerComponents = {
+    if (_components == null) fallbackControllerComponents else _components
+  }
+
+  /**
+   * Call this method to set the [[ControllerComponents]] instance.
+   */
+  @Inject
+  def setControllerComponents(components: ControllerComponents): Unit = {
+    _components = components
+  }
+
+  /**
+   * Defines fallback components to use in case setControllerComponents has not been called.
+   */
+  protected def fallbackControllerComponents: ControllerComponents = {
+    throw new NoSuchElementException(
+      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.")
+  }
 }
 
 trait ControllerComponents {
@@ -190,3 +204,32 @@ case class DefaultControllerComponents @Inject() (
   fileMimeTypes: FileMimeTypes,
   executionContext: scala.concurrent.ExecutionContext)
     extends ControllerComponents
+
+/**
+ * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or
+ * traits extending [[BaseController]] instead.
+ */
+@deprecated(
+  "Your controller should extend AbstractController, BaseController, or InjectedController instead.",
+  "2.6.0")
+trait Controller extends ControllerHelpers with BodyParsers {
+  /**
+   * Retrieve the language implicitly from the request.
+   *
+   * For example:
+   * {{{
+   * def index(name:String) = Action { implicit request =>
+   *   val lang: Lang = request2lang
+   *   Ok("Got " + lang)
+   * }
+   * }}}
+   *
+   * @deprecated This class relies on MessagesApi. Use [[play.api.i18n.I18nSupport]]
+   *            and use `request.messages.lang`.
+   */
+  @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
+  implicit def request2lang(implicit request: RequestHeader): Lang = {
+    play.api.Play.privateMaybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
+      .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
+  }
+}

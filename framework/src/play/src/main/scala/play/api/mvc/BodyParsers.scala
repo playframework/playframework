@@ -303,7 +303,7 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
  * Legacy body parsers trait. Basically all this does is define a "parse" member with a PlayBodyParsers instance
  * constructed from the running app's settings. If no app is running, we create parsers using default settings and an
  * internally-created materializer. This is done to support legacy behavior. Instead of using this trait, we suggest
- * injecting an instance of PlayBodyParsers (either directly or through AbstractController).
+ * injecting an instance of PlayBodyParsers (either directly or through [[BaseController]] or one of its subclasses).
  */
 trait BodyParsers {
 
