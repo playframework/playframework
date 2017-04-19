@@ -159,7 +159,7 @@ lib                        → Unmanaged libraries dependencies
 logs                       → Logs folder
  └ application.log         → Default log file
 target                     → Generated stuff
- └ scala-2.11.8
+ └ scala-2.11.11
     └ cache
     └ classes              → Compiled class files
     └ classes_managed      → Managed class files (templates, ...)

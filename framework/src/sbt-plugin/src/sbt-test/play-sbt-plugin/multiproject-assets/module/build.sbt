@@ -6,7 +6,7 @@ name := "assets-module-sample"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.1")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
 

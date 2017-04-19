@@ -7,8 +7,8 @@ group: beta
 jdk:
   - oraclejdk8
 scala:
-  - 2.11.8
-  - 2.12.1
+  - 2.11.11
+  - 2.12.2
 script:    
   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash framework/bin/sourceclear; fi'
   - framework/bin/travis 
