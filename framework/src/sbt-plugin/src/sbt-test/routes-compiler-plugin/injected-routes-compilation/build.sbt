@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.1")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.2")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"
