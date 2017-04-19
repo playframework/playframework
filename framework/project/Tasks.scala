@@ -12,13 +12,13 @@ object Generators {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
         """|package play.core
-            |
-            |object PlayVersion {
-            |    val current = "%s"
-            |    val scalaVersion = "%s"
-            |    val sbtVersion = "%s"
-            |}
-          """.stripMargin.format(version, scalaVersion, sbtVersion)
+           |
+           |object PlayVersion {
+           |  val current = "%s"
+           |  val scalaVersion = "%s"
+           |  val sbtVersion = "%s"
+           |}
+           |""".stripMargin.format(version, scalaVersion, sbtVersion)
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)
