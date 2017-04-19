@@ -82,13 +82,34 @@ db.default.password="a strong password"
 
 ## Accessing the JDBC datasource
 
-The `play.db` package provides access to the default datasource.
+The `play.db` package provides access to the default datasource, primarily through the [`play.db.Database`](api/java/play/db/Database.html) class.
 
 @[](code/JavaApplicationDatabase.java)
 
 For a database other than the default:
 
 @[](code/JavaNamedDatabase.java)
+
+## Configuring a CustomExecutionContext
+
+You should always use a custom execution context when using JDBC, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) class to configure a custom execution context dedicated to serving JDBC operations.  See [[JavaAsync]] and [[ThreadPools]] for more details.
+
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+
+For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
+
+```
+# db connections = ((physical_core_count * 2) + effective_spindle_count)
+fixedConnectionPool = 9
+
+database.dispatcher {
+  executor = "thread-pool-executor"
+  throughput = 1
+  thread-pool-executor {
+    fixed-pool-size = ${fixedConnectionPool}
+  }
+}
+```
 
 ## Obtaining a JDBC connection
 
@@ -133,33 +154,12 @@ After that, you can configure the jdbcdslog-exp [log level as explained in their
 
 ## Configuring the JDBC Driver dependency
 
-Other than for the h2 in-memory database, useful mostly in development mode, Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
+Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 
 ```
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"
-```
-
-## Configuring a CustomExecutionContext
-
-You should always use a custom execution context when using JDBC, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's `CustomExecutionContext` class to configure a custom execution context dedicated to serving JDBC operations.  See [[JavaAsync]] and [[ThreadPools]] for more details.
-
-All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
-
-For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
-
-```
-# db connections = ((physical_core_count * 2) + effective_spindle_count)
-fixedConnectionPool = 9
-
-database.dispatcher {
-  executor = "thread-pool-executor"
-  throughput = 1
-  thread-pool-executor {
-    fixed-pool-size = ${fixedConnectionPool}
-  }
-}
 ```
 
 ## Selecting and configuring the connection pool

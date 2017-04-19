@@ -53,7 +53,7 @@ Add the following imports:
 
 Define a custom execution context:
 
-@[custom-execution-context](code/javaguide/async/controllers/MyExecutionContextImpl.java)
+@[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
 You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
 

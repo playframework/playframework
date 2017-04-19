@@ -324,16 +324,12 @@ The `play.libs.concurrent.CustomExecutionContext` class calls out to an [Akka di
 ```java
 import akka.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
-import scala.concurrent.ExecutionContextExecutor;
 
-interface DatabaseExecutionContext extends ExecutionContextExecutor {}
-
-public class DatabaseExecutionContextImpl
-        extends CustomExecutionContext
-        implements DatabaseExecutionContext {
+public class DatabaseExecutionContext
+        extends CustomExecutionContext {
 
     @javax.inject.Inject
-    public MyExecutionContextImpl(ActorSystem actorSystem) {
+    public DatabaseExecutionContext(ActorSystem actorSystem) {
         // uses a custom thread pool defined in application.conf
         super(actorSystem, "database-dispatcher");
     }

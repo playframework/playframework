@@ -58,36 +58,15 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 ## Using `play.db.jpa.JPAApi`
 
-Play offers you a convenient API to work with [Entity Manager](https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html) and Transactions. This API is defined by `play.db.jpa.JPAApi`, which can be injected at other objects like the code below:
+Play offers you a convenient API to work with [Entity Manager](https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html) and Transactions. This API is defined by [`play.db.jpa.JPAApi`](api/java/play/db/jpa/JPAApi.html), which can be injected at other objects like the code below:
 
-@[jpa-controller-api-inject](code/controllers/JPAController.java)
+@[jpa-repository-api-inject](code/JPARepository.java)
 
-If you already are in a transactional context:
+We recommend isolating your JPA operations behind a [Repository](https://martinfowler.com/eaaCatalog/repository.html) or [DAO](https://en.wikipedia.org/wiki/Data_access_object), so that you can manage all your JPA operations with a custom execution context and transactions.  
 
-@[jpa-access-entity-manager](code/controllers/JPAController.java)
+This means that all JPA operations are done behind the interface -- JPA classes are package private, there is no exposure of persistence aware objects to the rest of the application, and sessions are not held open past the method that defines an asynchronous boundary (i.e. returns `CompletionStage`).  
 
-> We recommend isolating your JPA operations behind a Repository or DAO interface, so that you can manage all your JPA operations with a custom execution context and transactions.  This means that all JPA operations are done behind the interface, so JPA classes are package private, there is no exposure of persistence aware objects to the rest of the application, and sessions are not held open past the operation.  This may mean that your domain object (aggregate root, in DDD terms) has an internal reference to the repository and calls it to return lists of entities and value objects, rather than holding a session open and using JPA based lazy loading.
-
-### Running transactions decoupled from requests
-
-It is likely that you need to run transactions that are not coupled with requests, for instance, transactions executed inside a scheduled job. JPAApi has some methods that enable you to do so. The following methods are available to execute arbitrary code inside a JPA transaction:
-
-* `play.db.jpa.JPAApi.withTransaction(Function<EntityManager, T>)`
-* `play.db.jpa.JPAApi.withTransaction(String, Function<EntityManager, T>)`
-* `play.db.jpa.JPAApi.withTransaction(String, boolean, Function<EntityManager, T>)`
-* `play.db.jpa.JPAApi.withTransaction(Supplier<T>)`
-* `play.db.jpa.JPAApi.withTransaction(Runnable)`
-* `play.db.jpa.JPAApi.withTransaction(String, boolean, Supplier<T>)`
-
-### Examples:
-
-Using `JPAApi.withTransaction(Function<EntityManager, T>)`:
-
-@[jpa-withTransaction-function](code/controllers/JPAController.java)
-
-Using `JPAApi.withTransaction(Runnable)` to run a batch update:
-
-@[jpa-withTransaction-runnable](code/controllers/JPAController.java)
+This may mean that your domain object (aggregate root, in DDD terms) has an internal reference to the repository and calls it to return lists of entities and value objects, rather than holding a session open and using JPA based lazy loading.
 
 ## Using a CustomExecutionContext
 
@@ -111,6 +90,20 @@ database.dispatcher {
   }
 }
 ```
+
+### Running JPA transctions
+
+The following methods are available to execute arbitrary code inside a JPA transaction, but 
+
+### Examples:
+
+Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-.html):
+
+@[jpa-withTransaction-function](code/JPARepository.java)
+
+Using [`JPAApi.withTransaction(Runnable)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.lang.Runnable-.html) to run a batch update:
+
+@[jpa-withTransaction-runnable](code/JPARepository.java)
 
 ## Enabling Play database evolutions
 
