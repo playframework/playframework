@@ -382,6 +382,7 @@ Here's a list of some common mappings for enumerator factory methods:
 | `Enumerator.generateM` | `Source.unfoldAsync` | |
 | `Enumerator.fromStream` | `StreamConverters.fromInputStream` | |
 | `Enumerator.fromFile` | `StreamConverters.fromInputStream` | You have to create an `InputStream` for the `java.io.File` |
+| `Enumerator.outputStream` | `StreamConverters.asOutputStream().mapMaterializedValue` | Creating a `Source[ByteString,Unit]` |
 
 ### Migrating `Iteratee`s to `Sink`s and `Accumulator`s
 
