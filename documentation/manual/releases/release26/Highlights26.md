@@ -230,6 +230,44 @@ In the past, putting together a form in Play has required [multiple steps](https
 
 In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
 
+The [`FormAction`](api/scala/play/api/mvc/AbstractController.html) has been added.  This action exposes a [`FormRequest`](api/scala/play/api/mvc/FormRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates, and you don't need to extend `Controller` with `I18nSupport`.  This is also useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.
+
+```scala
+class FormController @Inject()(components: ControllerComponents)
+  extends AbstractController(components) {
+
+  import play.api.data.Form
+  import play.api.data.Forms._
+
+  val userForm = Form(
+    mapping(
+      "name" -> text,
+      "age" -> number
+    )(UserData.apply)(UserData.unapply)
+  )
+
+  def index = FormAction { implicit request: FormRequest[AnyContent] =>
+    Ok(views.html.displayForm(userForm))
+  } 
+  
+  def post = ...  
+}
+```
+
+where `displayForm.scala.html` is defined as:
+
+```twirl
+@(userForm: Form[UserData])(implicit request: FormRequestHeader)
+
+@import helper._
+
+@helper.form(action = routes.FormController.post()) {
+  @CSRF.formField                     @* <- takes a RequestHeader    *@
+  @helper.inputText(userForm("name")) @* <- takes a MessagesProvider *@
+  @helper.inputText(userForm("age"))  @* <- takes a MessagesProvider *@
+}
+```
+
 For more information, please see [[ScalaI18N]] or [[JavaI18N]].
 
 ## Future Timeout and Delayed Support

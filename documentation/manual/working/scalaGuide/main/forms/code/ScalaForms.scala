@@ -552,7 +552,6 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
 
 }
 
-
 //#messages-controller
 class MessagesController @Inject()(cc: ControllerComponents)
   extends AbstractController(cc) with play.api.i18n.I18nSupport {
@@ -573,31 +572,10 @@ class MessagesController @Inject()(cc: ControllerComponents)
 }
 //#messages-controller
 
-//#messages-action-transformer
-// Exposes a "MessagesAction" to the user while hiding the underpinnings
-abstract class AbstractMessagesController(cc: ControllerComponents)
-  extends AbstractController(cc) {
-
-  private val messagesRequestTransformer = {
-    new ActionTransformer[Request, MessagesRequest] {
-      def transform[A](request: Request[A]) = Future.successful {
-        val messages = cc.messagesApi.preferred(request)
-        new MessagesRequest(request, messages)
-      }
-      override protected def executionContext = cc.executionContext
-    }
-  }
-
-  def MessagesAction: ActionBuilder[MessagesRequest, AnyContent] = {
-    cc.actionBuilder.andThen(messagesRequestTransformer)
-  }
-}
-//#messages-action-transformer
-
 //#messages-request-controller
 // Example form that uses a MessagesRequest, which is also a MessagesProvider
-class MessagesRequestController @Inject()(components: ControllerComponents)
-  extends AbstractMessagesController(components) {
+class FormController @Inject()(components: ControllerComponents)
+  extends AbstractController(components) {
 
   import play.api.data.Form
   import play.api.data.Forms._
@@ -609,7 +587,7 @@ class MessagesRequestController @Inject()(components: ControllerComponents)
     )(views.html.UserData.apply)(views.html.UserData.unapply)
   )
 
-  def index = MessagesAction { implicit request: MessagesRequest[_] =>
+  def index = FormAction { implicit request: FormRequest[AnyContent] =>
     Ok(views.html.messages(userForm))
   }
 

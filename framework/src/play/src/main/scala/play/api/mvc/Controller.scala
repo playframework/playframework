@@ -115,6 +115,20 @@ trait BaseController extends ControllerHelpers {
   def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
 
   /**
+   * An action builder that can be used for views that are involved with form processing.  For example:
+   *
+   * {{{
+   *   def foo(query: String) = FormAction { formRequest =>
+   *     // showForm = @(form: Form[_])(implicit messagesProvider: MessagesProvider)
+   *     Ok(views.html.showForm(form)(formRequest)) // formRequest is a MessagesProvider
+   *   }
+   * }}}
+   */
+  def FormAction: ActionBuilder[FormRequest, AnyContent] = {
+    components.actionBuilder.andThen(new FormActionFunction(components.messagesApi))
+  }
+
+  /**
    * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
    * parser, for example:
    *
