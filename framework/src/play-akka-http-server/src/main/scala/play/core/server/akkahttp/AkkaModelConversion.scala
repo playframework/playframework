@@ -13,11 +13,12 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
-import play.api.http.{ HeaderNames, HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
+import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
+import play.mvc.Http.HeaderNames
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -174,14 +175,13 @@ private[server] class AkkaModelConversion(
 
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
       // Convert result
+
       resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
-        val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(validated.header.headers)
-        val entity = convertResultBody(requestHeaders, convertedHeaders, validated, protocol)
-        val connectionHeader = resultUtils.determineConnectionHeader(requestHeaders, validated)
-        val closeHeader = connectionHeader.header.map(Connection(_))
+        val convertedHeaders = convertHeaders(validated.header.headers)
+        val entity = convertResultBody(requestHeaders, validated, protocol)
         val response = HttpResponse(
           status = validated.header.status,
-          headers = convertedHeaders.misc ++ closeHeader,
+          headers = convertedHeaders,
           entity = entity,
           protocol = protocol
         )
@@ -211,7 +211,6 @@ private[server] class AkkaModelConversion(
 
   def convertResultBody(
     requestHeaders: RequestHeader,
-    convertedHeaders: AkkaHttpHeaders,
     result: Result,
     protocol: HttpProtocol): ResponseEntity = {
 
@@ -244,46 +243,20 @@ private[server] class AkkaModelConversion(
   }
 
   private def convertHeaders(headers: Iterable[(String, String)]): immutable.Seq[HttpHeader] = {
-    headers.map {
-      case (name, value) =>
+    headers.flatMap {
+      case (HeaderNames.SET_COOKIE, value) =>
+        resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
+      case (name, value) if name != HeaderNames.TRANSFER_ENCODING =>
         HttpHeader.parse(name, value) match {
           case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>
-            header
+            header :: Nil
           case HttpHeader.ParsingResult.Error(error) =>
             sys.error(s"Error parsing header: $error")
         }
-    }.to[immutable.Seq]
+
+      case _ => Nil
+    }(collection.breakOut): Vector[HttpHeader]
   }
-
-  /**
-   * A representation of Akka HTTP headers separate from an `HTTPMessage`.
-   * Akka HTTP treats some headers specially and these are split out into
-   * separate values.
-   *
-   * @param misc General headers. Guaranteed not to contain any of the special
-   * headers stored in the other values.
-   */
-  case class AkkaHttpHeaders(
-    misc: immutable.Seq[HttpHeader],
-    transferEncoding: Option[immutable.Seq[TransferEncoding]])
-
-  /**
-   * Convert Play response headers into `HttpHeader` objects, then separate
-   * out any special headers.
-   */
-  private def convertResponseHeaders(
-    playHeaders: Map[String, String]): AkkaHttpHeaders = {
-    val rawHeaders: Iterable[(String, String)] = resultUtils.splitSetCookieHeaders(playHeaders)
-    val convertedHeaders: Seq[HttpHeader] = convertHeaders(rawHeaders)
-    val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, None)
-    convertedHeaders.foldLeft(emptyHeaders) {
-      case (accum, te: `Transfer-Encoding`) =>
-        accum.copy(transferEncoding = Some(te.encodings))
-      case (accum, miscHeader) =>
-        accum.copy(misc = accum.misc :+ miscHeader)
-    }
-  }
-
 }
 
 final case class AkkaHeadersWrapper(
