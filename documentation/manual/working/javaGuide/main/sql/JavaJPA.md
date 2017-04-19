@@ -56,35 +56,17 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 > **Note:** Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. The content of conf directory will still be available in the classpath due to it being included in the application's jar file.
 
-## Annotating JPA actions with `@Transactional`
-
-Every JPA call must be done in a transaction so, to enable JPA for a particular action, annotate it with `@play.db.jpa.Transactional`. This will compose your action method with a JPA `Action` that manages the transaction for you:
-
-@[jpa-controller-transactional-imports](code/controllers/JPAController.java)
-
-@[jpa-controller-transactional-action](code/controllers/JPAController.java)
-
-If your action runs only queries, you can set the `readOnly` attribute to `true`:
-
-@[jpa-controller-transactional-readonly](code/controllers/JPAController.java)
-
-> Using JPA directly in an Action will limit your ability to use Play asynchronously because JDBC blocks the thread it's running on. Consider arranging your code so that all access to to JPA is wrapped in a custom [[execution context|ThreadPools]], and returns [`java.util.concurrent.CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to Play.
-
 ## Using `play.db.jpa.JPAApi`
 
 Play offers you a convenient API to work with [Entity Manager](https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html) and Transactions. This API is defined by `play.db.jpa.JPAApi`, which can be injected at other objects like the code below:
 
 @[jpa-controller-api-inject](code/controllers/JPAController.java)
 
-If you already are in a transactional context (because you have annotated your action with `@Transactional`),
+If you already are in a transactional context:
 
 @[jpa-access-entity-manager](code/controllers/JPAController.java)
 
-But if you do not annotate your action with `@Transactional` and are trying to access a Entity Manager using `jpaApi.em()`, you will get the following error:
-
-```
-java.lang.RuntimeException: No EntityManager found in the context. Try to annotate your action method with @play.db.jpa.Transactional
-```
+> We recommend isolating your JPA operations behind a Repository or DAO interface, so that you can manage all your JPA operations with a custom execution context and transactions.  This means that all JPA operations are done behind the interface, so JPA classes are package private, there is no exposure of persistence aware objects to the rest of the application, and sessions are not held open past the operation.  This may mean that your domain object (aggregate root, in DDD terms) has an internal reference to the repository and calls it to return lists of entities and value objects, rather than holding a session open and using JPA based lazy loading.
 
 ### Running transactions decoupled from requests
 
@@ -106,6 +88,29 @@ Using `JPAApi.withTransaction(Function<EntityManager, T>)`:
 Using `JPAApi.withTransaction(Runnable)` to run a batch update:
 
 @[jpa-withTransaction-runnable](code/controllers/JPAController.java)
+
+## Using a CustomExecutionContext
+
+> **NOTE**: Using JPA directly in an Action -- which uses Play's default rendering thread pool -- will limit your ability to use Play asynchronously because JDBC blocks the thread it's running on. 
+
+You should always use a custom execution context when using JPA, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's `CustomExecutionContext` class to configure a custom execution context dedicated to serving JDBC operations.  See [[JavaAsync]] and [[ThreadPools]] for more details.
+
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+
+For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
+
+```
+# db connections = ((physical_core_count * 2) + effective_spindle_count)
+fixedConnectionPool = 9
+
+database.dispatcher {
+  executor = "thread-pool-executor"
+  throughput = 1
+  thread-pool-executor {
+    fixed-pool-size = ${fixedConnectionPool}
+  }
+}
+```
 
 ## Enabling Play database evolutions
 
