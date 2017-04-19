@@ -280,9 +280,11 @@ This class defines a custom execution context that delegates to an akka.actor.Ac
 
 ## Updated Templates with Preconfigured CustomExecutionContexts
 
-All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/4f962bc/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
 
 For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles.
+
+The dispatcher settings used here come from [Akka dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html):
 
 ```
 # db connections = ((physical_core_count * 2) + effective_spindle_count)
@@ -299,12 +301,12 @@ database.dispatcher {
 
 ### Defining a CustomExecutionContext in Scala
 
-To define a custom context, subclass CustomExecutionContext with the dispatcher name:
+To define a custom execution context, subclass [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html) with the dispatcher name:
 
 ```scala
 @Singleton
 class DatabaseExecutionContext @Inject()(system: ActorSystem)
-   extends CustomExecutionContext(system, "database-dispatcher")
+   extends CustomExecutionContext(system, "database.dispatcher")
 ```
 
 Then have the execution context passed in as an implicit parameter:
@@ -317,9 +319,7 @@ class DatabaseService @Inject()(implicit executionContext: DatabaseExecutionCont
 
 ### Defining a CustomExecutionContext in Java
 
-In Java, asynchronous support is built around the CompletionStage API, which takes a custom Executor in much the same way.
-
-The `play.libs.concurrent.CustomExecutionContext` class calls out to an [Akka dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html) under the hood, and is defined in application.conf:
+To define a custom execution context, subclass [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with the dispatcher name:
 
 ```java
 import akka.actor.ActorSystem;
@@ -331,7 +331,7 @@ public class DatabaseExecutionContext
     @javax.inject.Inject
     public DatabaseExecutionContext(ActorSystem actorSystem) {
         // uses a custom thread pool defined in application.conf
-        super(actorSystem, "database-dispatcher");
+        super(actorSystem, "database.dispatcher");
     }
 }
 ```
