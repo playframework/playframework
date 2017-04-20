@@ -4,7 +4,6 @@
 package test
 
 import play.api.test._
-import controllers.Assets.Asset
 
 object RouterSpec extends PlaySpecification {
 
