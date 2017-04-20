@@ -18,7 +18,7 @@ Other cases when your code may block include:
 
 In general, if the API you are using returns `Future`s, it is non-blocking, otherwise it is blocking.
 
-> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.
+> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on http://playframework.com/download#examples for how to configure your application for a blocking API.
 
 In contrast, the following types of IO do not block:
 
@@ -68,7 +68,7 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 @[my-context-usage](code/ThreadPools.scala)
 
-In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.
+In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.  Please see [[ScalaAsync]] or [[JavaAsync]] for further details.
 
 To configure this Akka execution context, you can add the following configuration to your `application.conf`:
 
@@ -81,6 +81,8 @@ To use this execution context in Scala, you would simply use the scala `Future` 
 or you could just use it implicitly:
 
 @[my-context-implicit](code/ThreadPools.scala)
+
+In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ## Class loaders and thread locals
 
@@ -136,6 +138,8 @@ In this profile, you would use the default execution context everywhere, but con
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
+In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+
 ### Many specific thread pools
 
 This profile is for when you want to do a lot of synchronous IO, but you also want to control exactly how much of which types of operations your application does at once.  In this profile, you would only do non blocking operations in the default execution context, and then dispatch blocking operations to different execution contexts for those specific operations.
@@ -150,7 +154,7 @@ These might then be configured like so:
 
 Then in your code, you would create `Future`s and pass the relevant `ExecutionContext` for the type of work that `Future` was doing.
 
-> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `app.actorSystem.dispatchers.lookup`.
+> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `app.actorSystem.dispatchers.lookup`.  The `CustomExecutionContext` class will do this for you automatically.
 
 ### Few specific thread pools
 
