@@ -231,9 +231,9 @@ package object templates {
       case Parameter(name, _, Some(fixed), _) => "(\"%s\", %s)".format(name, fixed)
     }
     if (fixedParams.isEmpty) {
-      "import ReverseRouteContext.empty"
+      ""
     } else {
-      "implicit val _rrc = new ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
+      "implicit val _rrc = new play.core.routing.ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
     }
   }
 
@@ -260,9 +260,9 @@ package object templates {
         route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
           val paramName: String = paramNameOnQueryString(param.name)
           if (encode && encodeable(param.typeName))
-            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", dynamicString(""" + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """))"""
+            """implicitly[play.api.mvc.PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", play.core.routing.dynamicString(""" + safeKeyword(localNames.getOrElse(param.name, param.name)) + """))"""
           else
-            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
+            """implicitly[play.api.mvc.PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", """ + safeKeyword(localNames.getOrElse(param.name, param.name)) + """)"""
         }.getOrElse {
           throw new Error("missing key " + name)
         }
@@ -278,9 +278,9 @@ package object templates {
     val callQueryString = if (queryParams.isEmpty) {
       ""
     } else {
-      """ + queryString(List(%s))""".format(
+      """ + play.core.routing.queryString(List(%s))""".format(
         queryParams.map { p =>
-          ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + paramNameOnQueryString(p.name) + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
+          ("""implicitly[play.api.mvc.QueryStringBindable[""" + p.typeName + """]].unbind("""" + paramNameOnQueryString(p.name) + """", """ + safeKeyword(localNames.getOrElse(p.name, p.name)) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) =>
             """if(""" + safeKeyword(localNames.getOrElse(name, name)) + """ == """ + default + """) None else Some(""" + u + """)"""
@@ -302,7 +302,7 @@ package object templates {
     Option(route.call.parameters.getOrElse(Nil).filter { p =>
       localNames.contains(p.name) && p.fixed.isDefined
     }.map { p =>
-      localNames(p.name) + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+      localNames(p.name) + " == \"\"\" + implicitly[play.api.mvc.JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
     }).filterNot(_.isEmpty).map(_.mkString(" && "))
   }
 
@@ -359,7 +359,7 @@ package object templates {
       """ + _qS([%s])""".format(
         queryParams.map { p =>
           val paramName: String = paramNameOnQueryString(p.name)
-          ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+          ("(\"\"\" + implicitly[play.api.mvc.QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames.getOrElse(p.name, p.name) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.getOrElse(name, name) + " == null ? null : " + u + ")"
           case (u, Parameter(name, typeName, None, None)) => u

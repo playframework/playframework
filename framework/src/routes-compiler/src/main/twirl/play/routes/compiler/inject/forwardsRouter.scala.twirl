@@ -10,10 +10,8 @@
 
 @for(p <- pkg) {package @p}
 
-import play.api.routing.HandlerDef
 import play.core.routing._
 import play.core.routing.HandlerInvokerFactory._
-import play.core.j._
 
 import play.api.mvc._
 @for(i <- imports) {
@@ -31,8 +29,6 @@ class Routes(
     @markLines(dep.rule)
     @dep.ident: @dep.clazz}
   ) = this(errorHandler, @for(dep <- deps){@dep.ident, }"/")
-
-  import ReverseRouteContext.empty
 
   def withPrefix(prefix: String): Routes = @ob
     @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
@@ -63,7 +59,7 @@ case route @ Route(verb, path, call, comments) => {
   )
   private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
     @injectedControllerMethodCall(route, dep.ident, p => s"fakeValue[${p.typeName}]"),
-    HandlerDef(this.getClass.getClassLoader,
+    play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "@for(p <- pkg) {@p}",
       "@(call.packageName).@call.controller",
       "@call.method",

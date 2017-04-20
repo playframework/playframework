@@ -5,9 +5,7 @@
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
 
-import play.api.mvc.@ob QueryStringBindable, PathBindable, Call, JavascriptLiteral @cb
-import play.api.routing.HandlerDef
-import play.core.routing.@ob ReverseRouteContext, queryString, dynamicString @cb
+import play.api.mvc.Call
 
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}
