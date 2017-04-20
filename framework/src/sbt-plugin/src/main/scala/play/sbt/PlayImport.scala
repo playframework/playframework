@@ -45,7 +45,12 @@ object PlayImport {
 
   val filters = component("filters-helpers")
 
-  val cache = component("play-cache")
+  @deprecated("Use ehcache for ehcache implementation, or cacheApi for just the API", since = "2.6.0")
+  val cache = component("play-ehcache")
+
+  val cacheApi = component("play-cache")
+
+  val ehcache = component("play-ehcache")
 
   def json = movedExternal(
     """play-json module has been moved to a separate project.

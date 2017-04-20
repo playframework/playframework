@@ -241,10 +241,10 @@ object Dependencies {
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
   ) ++ guiceDeps
 
+  val playCacheDeps = specsBuild.map(_ % Test)
+
   val ehcacheVersion = "2.6.11"
-  val playCacheDeps = Seq(
-      "net.sf.ehcache" % "ehcache-core" % ehcacheVersion
-    ) ++ specsBuild.map(_ % Test)
+  val playEhcacheDeps = Seq("net.sf.ehcache" % "ehcache-core" % ehcacheVersion)
 
   val playWsStandaloneVersion = "1.0.0-M6"
   val playWsDeps = Seq(

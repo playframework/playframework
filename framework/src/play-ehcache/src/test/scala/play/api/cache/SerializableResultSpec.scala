@@ -3,8 +3,8 @@
  */
 package play.api.cache
 
-import play.api.test._
 import play.api.mvc.{ Result, Results }
+import play.api.test._
 
 class SerializableResultSpec extends PlaySpecification {
 

@@ -1,19 +1,21 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.api.cache
+package play.api.cache.ehcache
 
 import javax.inject.{ Inject, Provider }
 
 import net.sf.ehcache.CacheManager
+import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
 import play.api.cache.ehcache.CacheManagerProvider
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
+import play.cache.NamedCache
 import scala.concurrent.duration._
 
 import scala.concurrent.{ Future, Await }
 
-class CacheApiSpec extends PlaySpecification {
+class EhCacheApiSpec extends PlaySpecification {
   sequential
 
   "CacheApi" should {

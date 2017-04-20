@@ -7,18 +7,21 @@ Caching data is a typical optimization in modern applications, and so Play provi
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
-The default implementation of the Cache API uses [EHCache](http://ehcache.org/).
+The default implementation of the Cache API uses [Ehcache](http://ehcache.org/).
 
 ## Importing the Cache API
 
-Add `cache` into your dependencies list. For example, in `build.sbt`:
+Play provides both an API and an default Ehcache implementation of that API. To get the full Ehcache implementation, add `ehcache` to your dependencies list:
 
-```scala
-libraryDependencies ++= Seq(
-  cache,
-  ...
-)
-```
+@[ehcache-sbt-dependencies](code/cache.sbt)
+
+This will also automatically set up the bindings for runtime DI so the components are injectable. If you are using compile-time DI, mix [EhCacheComponents](api/scala/play/api/cache/ehcache/EhCacheComponents.html) into your components cake to get access to the `defaultCacheApi` and the `cacheApi` method for getting a cache by name.
+
+To add only the API, add `cacheApi` to your dependencies list.
+
+@[cache-sbt-dependencies](code/cache.sbt)
+
+The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on Ehcache. If you're writing a custom cache module you should use this.
 
 ## Accessing the Cache API
 
@@ -52,7 +55,7 @@ Note that the [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) has the
 
 ## Accessing different caches
 
-It is possible to access different caches.  The default cache is called `play`, and can be configured by creating a file called `ehcache.xml`.  Additional caches may be configured with different configurations, or even implementations.
+It is possible to access different caches. In the default Ehcache implementation, the default cache is called `play`, and can be configured by creating a file called `ehcache.xml`. Additional caches may be configured with different configurations, or even implementations.
 
 If you want to access multiple different ehcache caches, then you'll need to tell Play to bind them in `application.conf`, like so:
 
@@ -100,10 +103,10 @@ Or cache 404 Not Found only for a couple of minutes
 
 It is possible to provide a custom implementation of the cache API that either replaces, or sits along side the default implementation.
 
-To replace the default implementation, you'll need to disable the default implementation by setting the following in `application.conf`:
+To replace the default implementation based on something other than Ehcache, you only need the `cacheApi` dependency rather than the `ehcache` dependency in your `build.sbt`. If you still need access to the Ehcache implementation classes, you can use `ehcache` and disable the module from automatically binding it in `application.conf`:
 
 ```
-play.modules.disabled += "play.api.cache.EhCacheModule"
+play.modules.disabled += "play.api.cache.ehcache.EhCacheModule"
 ```
 
 You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
