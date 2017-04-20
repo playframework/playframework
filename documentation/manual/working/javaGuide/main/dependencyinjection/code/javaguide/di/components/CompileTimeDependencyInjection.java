@@ -7,7 +7,7 @@ package javaguide.di.components;
 import play.Application;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
-import play.api.LoggerConfigurator$;
+import play.LoggerConfigurator;
 import play.controllers.AssetsComponents;
 import play.db.ConnectionPool;
 import play.db.HikariCPComponents;
@@ -15,7 +15,6 @@ import play.filters.components.HttpFiltersComponents;
 import play.mvc.Results;
 import play.routing.Router;
 import play.routing.RoutingDslComponentsFromContext;
-import scala.compat.java8.OptionConverters;
 //#basic-imports
 
 import javaguide.dependencyinjection.controllers.Assets;
@@ -55,11 +54,10 @@ public class CompileTimeDependencyInjection {
         @Override
         public Application load(Context context) {
 
-            OptionConverters.toJava(
-                LoggerConfigurator$.MODULE$.apply(context.environment().classLoader())
-            ).ifPresent(loggerConfigurator ->
-                loggerConfigurator.configure(context.environment().asScala())
-            );
+            LoggerConfigurator.apply(context.environment().classLoader())
+                .ifPresent(loggerConfigurator ->
+                        loggerConfigurator.configure(context.environment().asScala())
+                );
 
             return new MyComponents(context).application();
         }
@@ -87,10 +85,8 @@ public class CompileTimeDependencyInjection {
     //#connection-pool
 
     static class SomeComponent {
-        private final ConnectionPool pool;
-
         SomeComponent(ConnectionPool pool) {
-            this.pool = pool;
+            // do nothing
         }
     }
 
