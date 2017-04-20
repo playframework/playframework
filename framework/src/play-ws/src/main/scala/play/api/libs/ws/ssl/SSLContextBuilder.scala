@@ -8,6 +8,7 @@ import java.security._
 import java.security.cert._
 import java.io._
 import java.net.URL
+import java.nio.file.Files
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -261,7 +262,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   }
 
   def generateCRLFromFile(file: File): CRL = {
-    val fileStream = new BufferedInputStream(new FileInputStream(file))
+    val fileStream = new BufferedInputStream(Files.newInputStream(file.toPath))
     val inStream = new DataInputStream(fileStream)
     try {
       generateCRL(inStream)

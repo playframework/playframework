@@ -12,7 +12,6 @@ import akka.NotUsed;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -43,8 +42,8 @@ public class JavaStream extends WithApplication {
     public void serveFile() throws Exception {
         File file = new File("/tmp/fileToServe.pdf");
         file.deleteOnExit();
-        try (OutputStream os = new FileOutputStream(file)) {
-            IOUtils.write("hi", os);
+        try (OutputStream os = java.nio.file.Files.newOutputStream(file.toPath())) {
+            IOUtils.write("hi", os, "UTF-8");
         }
         Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest(), mat);
         assertThat(contentAsString(result, mat), equalTo("hi"));

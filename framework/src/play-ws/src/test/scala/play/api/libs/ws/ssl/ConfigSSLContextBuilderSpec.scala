@@ -5,6 +5,7 @@
  */
 package play.api.libs.ws.ssl
 
+import java.nio.file.Files
 import java.security._
 import java.security.cert.CertPathValidatorException
 import javax.net.ssl._
@@ -71,7 +72,7 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, password.toCharArray, Array(cert))
 
       val tempFile = java.io.File.createTempFile("privatekeystore", ".p12")
-      val out = new java.io.FileOutputStream(tempFile)
+      val out = Files.newOutputStream(tempFile.toPath)
       try {
         keyStore.store(out, password.toCharArray)
       } finally {
