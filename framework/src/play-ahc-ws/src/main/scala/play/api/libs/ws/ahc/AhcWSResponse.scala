@@ -33,8 +33,16 @@ case class AhcWSResponse(underlying: StandaloneAhcWSResponse) extends WSResponse
 
   /**
    * Return the current headers of the request being constructed
+   *
+   * @deprecated Please use the headers method
    */
-  override def allHeaders: Map[String, Seq[String]] = underlying.allHeaders
+  @deprecated("Please use request.headers", since = "2.6.0")
+  override def allHeaders: Map[String, Seq[String]] = underlying.headers
+
+  /**
+   * Return the current headers of the request being constructed
+   */
+  override def headers: Map[String, Seq[String]] = underlying.headers
 
   /**
    * Get the underlying response object, i.e. play.shaded.ahc.org.asynchttpclient.Response

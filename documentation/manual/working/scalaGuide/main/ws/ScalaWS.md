@@ -12,10 +12,22 @@ There are two important parts to using the WSClient: making a request, and proce
 To use WSClient, first add `ws` to your `build.sbt` file:
 
 ```scala
-libraryDependencies ++= Seq(
-  ws
-)
+libraryDependencies += ws
 ```
+
+## Enabling HTTP Caching in Play WS
+
+Play WS supports [HTTP caching](https://tools.ietf.org/html/rfc7234), but requires a JSR-107 cache implementation to enable this feature.  You can add `ehcache`:
+
+```scala
+libraryDependencies += ehcache
+```
+
+Or you can use another JSR-107 compatible cache such as [Caffeine](https://github.com/ben-manes/caffeine/wiki/JCache).
+
+Once you have the library dependencies, then enable the HTTP cache as shown on [[WS Cache Configuration|WsCache]] page.
+
+Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 ## Making a Request
 
@@ -278,6 +290,10 @@ Use the following properties in `application.conf` to configure the WSClient:
 ### Configuring WSClient with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring WS with Caching
+
+To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsCache]].
 
 ### Configuring Timeouts
 

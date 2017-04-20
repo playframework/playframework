@@ -90,8 +90,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     implicit val materializer = mock[Materializer]
 
     val client = mock[StandaloneAhcWSClient]
-    client.executionContext returns scala.concurrent.ExecutionContext.global
-
     val standalone = new StandaloneAhcWSRequest(client, "http://playframework.com/")
     AhcWSRequest(standalone)
   }

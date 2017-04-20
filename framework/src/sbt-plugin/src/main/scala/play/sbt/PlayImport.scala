@@ -48,6 +48,9 @@ object PlayImport {
   @deprecated("Use ehcache for ehcache implementation, or cacheApi for just the API", since = "2.6.0")
   val cache = component("play-ehcache")
 
+  // Integration with JSR 107
+  val jcache = component("play-jcache")
+
   val cacheApi = component("play-cache")
 
   val ehcache = component("play-ehcache")
@@ -62,6 +65,9 @@ object PlayImport {
 
   // alias javaWs to ws
   val javaWs = ws
+
+  // ws with HTTP caching based on jcache adapter
+  val wsCache = component("play-ahc-ws-cache")
 
   val openId = component("play-openid")
 

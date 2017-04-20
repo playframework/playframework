@@ -500,6 +500,14 @@ public class JPAPersonRepository implements PersonRepository {
 }
 ```
 
+## Play WS Improvements
+
+There are substantial improvements to Play WS.  Play WS is now a wrapper around a standalone Play WS implementation, which can be used outside of Play.  In addition, the underlying libraries involved in Play WS have been [shaded](https://github.com/sbt/sbt-assembly#shading), so that the Netty implementation used in Play WS does not conflict with Spark or Play.
+  
+Finally, Play WS now supports [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).  
+
+For more details, please see [[WsCache]] and the [[WS Migration Guide|WSMigration26]].
+
 ## Testing Improvements
 
 Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.  
