@@ -491,7 +491,8 @@ class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: Exec
 /**
  * Helper object to create `Action` values.
  */
-@deprecated("Inject an ActionBuilder (e.g. DefaultActionBuilder) or use AbstractController instead", "2.6.0")
+@deprecated("Inject an ActionBuilder (e.g. DefaultActionBuilder)" +
+  " or extend BaseController/AbstractController/InjectedController", "2.6.0")
 object Action extends DefaultActionBuilder {
   override def executionContext: ExecutionContext = play.core.Execution.internalContext
   override def parser: BodyParser[AnyContent] = BodyParsers.parse.default

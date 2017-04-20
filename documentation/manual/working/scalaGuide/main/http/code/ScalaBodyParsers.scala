@@ -109,7 +109,8 @@ import org.specs2.execute.AsResult
         import scala.concurrent.ExecutionContext
         import akka.util.ByteString
 
-        class MyController @Inject() (ws: WSClient)(implicit ec: ExecutionContext) {
+        class MyController @Inject() (ws: WSClient, val controllerComponents: ControllerComponents)
+            (implicit ec: ExecutionContext) extends BaseController {
 
           def forward(request: WSRequest): BodyParser[WSResponse] = BodyParser { req =>
             Accumulator.source[ByteString].mapFuture { source =>
@@ -132,7 +133,7 @@ import org.specs2.execute.AsResult
       "parse the body as csv" in new WithApplication() {
         import scala.concurrent.ExecutionContext.Implicits.global
         //#csv
-        import play.api.mvc._
+        import play.api.mvc.BodyParser
         import play.api.libs.streams._
         import akka.util.ByteString
         import akka.stream.scaladsl._
@@ -216,4 +217,4 @@ import org.specs2.execute.AsResult
     }
   }
 }
- 
+

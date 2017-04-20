@@ -9,18 +9,16 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
 import play.api.mvc.Results._
-import play.api.mvc.{ ActionBuilder, Controller, EssentialAction }
+import play.api.mvc._
 import play.api.test.Helpers._
 import play.twirl.api.Content
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
-import org.specs2.mutable._
-import play.api.mvc.AnyContentAsEmpty
 
 class HelpersSpec extends Specification {
 
-  val ctrl = new Controller {
+  val ctrl = new ControllerHelpers {
     private val Action = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
       Ok("abc").as("text/plain")

@@ -8,7 +8,7 @@ package play.api
  *
  * For example, a typical controller:
  * {{{
- * object Application extends Controller {
+ * class HomeController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
  *
  *   def index = Action {
  *     Ok("It works!")

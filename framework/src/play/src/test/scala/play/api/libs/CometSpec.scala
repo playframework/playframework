@@ -18,7 +18,7 @@ import scala.concurrent.{ Await, Future }
 
 class CometSpec extends Specification {
 
-  class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent]) extends Controller {
+  class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent]) extends ControllerHelpers {
 
     //#comet-string
     def cometString = action {

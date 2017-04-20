@@ -30,7 +30,7 @@ import play.api.data.validation.Constraints._
 // #validation-imports
 
 @RunWith(classOf[JUnitRunner])
-class ScalaFormsSpec extends Specification with Controller {
+class ScalaFormsSpec extends Specification with ControllerHelpers {
 
   val messagesApi = new DefaultMessagesApi()
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
@@ -104,12 +104,12 @@ class ScalaFormsSpec extends Specification with Controller {
     "display global errors user template" in new WithApplication {
       val controller = app.injector.instanceOf[controllers.Application]
       val userForm = controller.userFormConstraintsAdHoc
-      
+
       implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
-      
+
       val boundForm = userForm.bindFromRequest
       boundForm.hasGlobalErrors must beTrue
-      
+
       val html = views.html.user(boundForm)
       html.body must contain("Failed form constraints!")
     }
@@ -531,7 +531,7 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
     Ok(views.html.contact.form(contactForm.fill(existingContact)))
   }
   // #contact-edit
-  
+
   // #contact-save
   def saveContact = Action { implicit request =>
     contactForm.bindFromRequest.fold(
@@ -545,7 +545,7 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
     )
   }
   // #contact-save
-  
+
   def showContact(id: Int) = Action {
     Ok("Contact id: " + id)
   }

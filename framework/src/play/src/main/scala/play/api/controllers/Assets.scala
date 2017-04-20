@@ -614,7 +614,7 @@ package controllers {
   @Singleton
   class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
-  class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends BaseController {
+  class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
 
     import meta._
     import Assets._

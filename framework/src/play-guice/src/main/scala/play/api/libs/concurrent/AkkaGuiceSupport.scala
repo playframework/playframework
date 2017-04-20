@@ -25,7 +25,8 @@ import scala.reflect._
  *
  * Then to use the above actor in your application, add a qualified injected dependency, like so:
  * {{{
- *   class MyController @Inject() (@Named("myActor") myActor: ActorRef) extends Controller {
+ *   class MyController @Inject() (@Named("myActor") myActor: ActorRef, val controllerComponents: ControllerComponents)
+ *       extends BaseController {
  *     ...
  *   }
  * }}}
