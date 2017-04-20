@@ -38,6 +38,8 @@ sourcePositionMappers := Nil
 
 routesGenerator := play.routes.compiler.InjectedRoutesGenerator
 
+play.sbt.routes.RoutesKeys.routesImport := Seq()
+
 compile in Compile := {
   (compile in Compile).result.value match {
     case Inc(inc) =>

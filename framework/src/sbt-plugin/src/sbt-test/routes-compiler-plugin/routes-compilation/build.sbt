@@ -44,6 +44,8 @@ compile in Compile := {
   }
 }
 
+play.sbt.routes.RoutesKeys.routesImport := Seq()
+
 scalacOptions ++= {
   Seq(
     "-deprecation",
