@@ -302,7 +302,14 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
 
       def continueHandler = new InHandler with OutHandler {
         override def onPush(): Unit = push(out, grab(in))
-        override def onPull(): Unit = pull(in)
+        override def onPull(): Unit = {
+          if (next ne null) {
+            push(out, next)
+            next = null
+          } else {
+            pull(in)
+          }
+        }
 
         override def onUpstreamFinish(): Unit = {
           if (next == null) completeStage()
@@ -321,7 +328,6 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
               val toPush = buffer
               buffer = null
               push(out, toPush)
-              pull(in)
             } else {
               next = buffer
               buffer = null
