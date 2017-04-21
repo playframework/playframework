@@ -176,10 +176,12 @@ You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that 
 
 @[ws-action](code/javaguide/ws/JavaWS.java)
 
-### Using WSClient with CompletionStage Timeout
+### Using WSClient with Futures Timeout
 
 If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time -- this is more generic than using `withRequestTimeout`, which only applies to a single request.
-The best way to do this is with Play's [[non-blocking timeout feature|JavaAsync]], using [`play.libs.concurrent.Futures`](api/java/play/libs/concurrent/Futures.html).
+The best way to do this is with Play's [[non-blocking timeout feature|JavaAsync]], using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) to ensure some kind of resolution:
+
+@[ws-futures-timeout](code/javaguide/ws/JavaWS.java)
 
 ## Directly creating WSClient
 
