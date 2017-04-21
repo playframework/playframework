@@ -3,7 +3,9 @@
  */
 package play.api.i18n
 
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
+import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 
 /**
  * Brings convenient implicit conversions from [[play.api.mvc.RequestHeader]] to [[Messages]].

@@ -112,7 +112,7 @@ trait BaseController extends ControllerHelpers {
    *
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
-  def Action: ActionBuilder[FormRequest, AnyContent] = controllerComponents.actionBuilder.andThen(new FormActionFunction(messagesApi))
+  def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
 
   /**
    * The default body parsers provided by Play. This can be used along with the Action helper to customize the body

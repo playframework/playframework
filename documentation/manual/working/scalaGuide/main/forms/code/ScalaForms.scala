@@ -171,13 +171,6 @@ case class UserOptionalData(name: String, email: Option[String])
 case class UserCustomData(name:String, website: java.net.URL)
 // #userData-custom-datatype
 
-//#messages-request
-class MessagesRequest[A](request: Request[A], val messages: Messages)
-  extends WrappedRequest(request) with play.api.i18n.MessagesProvider {
-  def lang: Lang = messages.lang
-}
-//#messages-request
-
 }
 
 package views.html.contact {
@@ -574,7 +567,7 @@ class MessagesController @Inject()(cc: ControllerComponents)
 
 //#messages-request-controller
 // Example form that uses a MessagesRequest, which is also a MessagesProvider
-class FormController @Inject()(components: ControllerComponents)
+class FormController @Inject()(messagesAction: MessagesAction, components: ControllerComponents)
   extends AbstractController(components) {
 
   import play.api.data.Form
@@ -587,7 +580,7 @@ class FormController @Inject()(components: ControllerComponents)
     )(views.html.UserData.apply)(views.html.UserData.unapply)
   )
 
-  def index = FormAction { implicit request: FormRequest[AnyContent] =>
+  def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
     Ok(views.html.messages(userForm))
   }
 

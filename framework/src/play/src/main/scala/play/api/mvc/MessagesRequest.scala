@@ -3,6 +3,8 @@
  */
 package play.api.mvc
 
+import javax.inject.Inject
+
 import play.api.i18n.{ Messages, MessagesApi, MessagesProvider }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -29,7 +31,7 @@ trait PreferredMessagesProvider extends MessagesProvider { self: RequestHeader =
  * This is very useful with when used for forms processing, as the form helpers defined
  * in views.helper (e.g. inputText.scala.html) take a MessagesProvider.
  */
-trait FormRequestHeader extends RequestHeader with MessagesProvider
+trait MessagesRequestHeader extends RequestHeader with MessagesProvider
 
 /**
  * This class is a wrapped Request that is "i18n-aware" and can return the preferred
@@ -39,22 +41,28 @@ trait FormRequestHeader extends RequestHeader with MessagesProvider
  * @param messagesApi the injected messagesApi
  * @tparam A the body type of the request
  */
-class FormRequest[A](request: Request[A], val messagesApi: MessagesApi) extends WrappedRequest(request)
-  with PreferredMessagesProvider with FormRequestHeader
+class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) extends WrappedRequest(request)
+  with PreferredMessagesProvider with MessagesRequestHeader
 
 /**
- * This class is an ActionFunction that takes a Request[A] and returns a FormRequest[A].
- *
- * You can compose this with an existing ActionBuilder:
+ * This class is an ActionBuilder that provides a MessagesRequest to the block:
  *
  * {{{
- *   myActionBuilder.andThen(new FormActionFunction(messagesApi))
+ * class Controller @Inject()(messagesAction: MessagesAction, cc: ControllerComponents) extends AbstractController(cc) {
+ *   def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
+ *
+ *   }
+ * }
  * }}}
+ *
+ * This is useful when you don't want to have to extend I18nSupport.
  */
-class FormActionFunction(messagesApi: MessagesApi) extends ActionFunction[Request, FormRequest] {
-  override def invokeBlock[A](request: Request[A], block: (FormRequest[A]) => Future[Result]): Future[Result] = {
-    block(new FormRequest[A](request, messagesApi))
+class MessagesAction @Inject() (parsers: PlayBodyParsers, messagesApi: MessagesApi) extends ActionBuilder[MessagesRequest, AnyContent] {
+  override def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
+    block(new MessagesRequest[A](request, messagesApi))
   }
 
   override protected def executionContext: ExecutionContext = play.core.Execution.trampoline
+
+  override def parser: BodyParser[AnyContent] = parsers.anyContent
 }
