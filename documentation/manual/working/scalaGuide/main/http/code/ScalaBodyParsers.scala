@@ -181,11 +181,10 @@ import org.specs2.execute.AsResult
   import play.api.mvc._
 
     object Application extends Controller {
-      def file(to: File) = parse.file(to)
       //#body-parser-combining
       val storeInUserFile = parse.using { request =>
         request.session.get("username").map { user =>
-          file(to = new File("/tmp/" + user + ".upload"))
+          parse.file(to = new File("/tmp/" + user + ".upload"))
         }.getOrElse {
           sys.error("You don't have the right to upload here")
         }
@@ -217,4 +216,3 @@ import org.specs2.execute.AsResult
     }
   }
 }
-
