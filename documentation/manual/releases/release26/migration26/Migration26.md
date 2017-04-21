@@ -1024,7 +1024,7 @@ And if you are, for some reason, directly using Netty classes, you should [adapt
 
 ### FluentLenium and Selenium
 
-The FluentLenium library was updated to version 3.1.1 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/master/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
+The FluentLenium library was updated to version 3.2.0 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/master/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
 If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
 ### HikariCP
