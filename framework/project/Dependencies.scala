@@ -227,7 +227,7 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    "org.fluentlenium" % "fluentlenium-core" % "3.1.1" exclude("org.jboss.netty", "netty"),
+    "org.fluentlenium" % "fluentlenium-core" % "3.2.0" exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
