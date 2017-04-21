@@ -3,8 +3,6 @@
  */
 package play.api.libs
 
-import play.api._
-
 import javax.naming._
 import javax.naming.Context._
 
@@ -24,16 +22,22 @@ object JNDI {
     val env = new java.util.Hashtable[String, String]
 
     env.put(INITIAL_CONTEXT_FACTORY, {
-      Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String](INITIAL_CONTEXT_FACTORY)).getOrElse {
+      val initialContextFactory = System.getProperty(INITIAL_CONTEXT_FACTORY)
+      if (initialContextFactory != null) {
         System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
         IN_MEMORY_JNDI
+      } else {
+        initialContextFactory
       }
     })
 
     env.put(PROVIDER_URL, {
-      Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String](PROVIDER_URL)).getOrElse {
+      val providerUrl = System.getProperty(PROVIDER_URL)
+      if (providerUrl != null) {
         System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
         IN_MEMORY_URL
+      } else {
+        providerUrl
       }
     })
 
