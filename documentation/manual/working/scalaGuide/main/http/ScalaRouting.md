@@ -174,7 +174,7 @@ Play includes a [`Default` controller](api/scala/controllers/Default.html) which
 
 @[defaultcontroller](code/scalaguide.http.routing.defaultcontroller.routes)
 
-In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+In this example, `GET /about` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
 
 ## Custom routing
 
