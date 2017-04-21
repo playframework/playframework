@@ -94,7 +94,7 @@ trait RequestImplicits {
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
  * base controller class, or write your own version with similar code.
  */
-trait BaseController extends ControllerHelpers {
+trait BaseController extends ControllerHelpers with FormActions {
 
   /**
    * The components needed to use the controller methods
@@ -113,20 +113,6 @@ trait BaseController extends ControllerHelpers {
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
   def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
-
-  /**
-   * An action builder that can be used for views that are involved with form processing.  For example:
-   *
-   * {{{
-   *   def foo(query: String) = FormAction { formRequest =>
-   *     // showForm = @(form: Form[_])(implicit messagesProvider: MessagesProvider)
-   *     Ok(views.html.showForm(form)(formRequest)) // formRequest is a MessagesProvider
-   *   }
-   * }}}
-   */
-  def FormAction: ActionBuilder[FormRequest, AnyContent] = {
-    components.actionBuilder.andThen(new FormActionFunction(components.messagesApi))
-  }
 
   /**
    * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
@@ -151,7 +137,7 @@ trait BaseController extends ControllerHelpers {
   def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
 
   /**
-   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by i18nComponents.
+   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by play.api.i18n.I18nSupport.
    */
   implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
 

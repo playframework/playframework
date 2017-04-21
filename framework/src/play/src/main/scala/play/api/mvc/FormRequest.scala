@@ -8,7 +8,8 @@ import play.api.i18n.{ Messages, MessagesApi, MessagesProvider }
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * This trait is a [[play.api.i18n.MessagesProvider]] that can be applied to a RequestHeader.
+ * This trait is a [[play.api.i18n.MessagesProvider]] that can be applied to a RequestHeader, and
+ * uses messagesApi.preferred(requestHeader) to return the messages.
  */
 trait PreferredMessagesProvider extends MessagesProvider { self: RequestHeader =>
   /**
@@ -23,13 +24,16 @@ trait PreferredMessagesProvider extends MessagesProvider { self: RequestHeader =
 }
 
 /**
- * This trait is a RequestHeader that can provide a Messages instance.
+ * This trait is a RequestHeader that can provide a play.api.i18n.Messages instance.
+ *
+ * This is very useful with when used for forms processing, as the form helpers defined
+ * in views.helper (e.g. inputText.scala.html) take a MessagesProvider.
  */
 trait FormRequestHeader extends RequestHeader with MessagesProvider
 
 /**
- * This class is a Request that is "i18n-aware" and can return the messages associated
- * with the request.  This is very useful with when used for forms processing.
+ * This class is a wrapped Request that is "i18n-aware" and can return the preferred
+ * messages associated with the request.
  *
  * @param request the original request
  * @param messagesApi the injected messagesApi
@@ -53,4 +57,28 @@ class FormActionFunction(messagesApi: MessagesApi) extends ActionFunction[Reques
   }
 
   override protected def executionContext: ExecutionContext = play.core.Execution.trampoline
+}
+
+/**
+ * A trait containing an action builder that can be used for views involved with form processing.
+ *
+ * This is an alternative to extending your controller with play.api.i18n.I18nSupport, but is simpler
+ * because there is only one implicit parameter to pass through.
+ *
+ * For example:
+ *
+ * {{{
+ *   def foo(query: String) = FormAction { implicit formRequest =>
+ *     // showForm.scala.html has parameters as follows:
+ *     //   @(form: Form[_])(implicit request: FormRequestHeader)
+ *     Ok(views.html.showForm(form)) // formRequest is a MessagesProvider and so works with form helpers
+ *   }
+ * }}}
+ */
+trait FormActions { self: BaseController =>
+
+  def FormAction: ActionBuilder[FormRequest, AnyContent] = {
+    controllerComponents.actionBuilder.andThen(new FormActionFunction(controllerComponents.messagesApi))
+  }
+
 }
