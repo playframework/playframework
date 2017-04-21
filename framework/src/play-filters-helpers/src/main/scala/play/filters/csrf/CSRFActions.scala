@@ -3,12 +3,12 @@
  */
 package play.filters.csrf
 
-import java.net.{URLDecoder, URLEncoder}
+import java.net.{ URLDecoder, URLEncoder }
 import java.util.Locale
 import javax.inject.Inject
 
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api.http.HeaderNames._
@@ -292,7 +292,14 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
 
       def continueHandler = new InHandler with OutHandler {
         override def onPush(): Unit = push(out, grab(in))
-        override def onPull(): Unit = pull(in)
+        override def onPull(): Unit = {
+          if (next ne null) {
+            push(out, next)
+            next = null
+          } else {
+            pull(in)
+          }
+        }
 
         override def onUpstreamFinish(): Unit = {
           if (next == null) completeStage()
@@ -311,7 +318,6 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean) 
               val toPush = buffer
               buffer = null
               push(out, toPush)
-              pull(in)
             } else {
               next = buffer
               buffer = null
