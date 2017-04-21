@@ -58,27 +58,3 @@ class FormActionFunction(messagesApi: MessagesApi) extends ActionFunction[Reques
 
   override protected def executionContext: ExecutionContext = play.core.Execution.trampoline
 }
-
-/**
- * A trait containing an action builder that can be used for views involved with form processing.
- *
- * This is an alternative to extending your controller with play.api.i18n.I18nSupport, but is simpler
- * because there is only one implicit parameter to pass through.
- *
- * For example:
- *
- * {{{
- *   def foo(query: String) = FormAction { implicit formRequest =>
- *     // showForm.scala.html has parameters as follows:
- *     //   @(form: Form[_])(implicit request: FormRequestHeader)
- *     Ok(views.html.showForm(form)) // formRequest is a MessagesProvider and so works with form helpers
- *   }
- * }}}
- */
-trait FormActions { self: BaseController =>
-
-  def FormAction: ActionBuilder[FormRequest, AnyContent] = {
-    controllerComponents.actionBuilder.andThen(new FormActionFunction(controllerComponents.messagesApi))
-  }
-
-}

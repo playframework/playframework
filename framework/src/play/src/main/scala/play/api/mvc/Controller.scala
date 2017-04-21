@@ -94,7 +94,7 @@ trait RequestImplicits {
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
  * base controller class, or write your own version with similar code.
  */
-trait BaseController extends ControllerHelpers with FormActions {
+trait BaseController extends ControllerHelpers {
 
   /**
    * The components needed to use the controller methods
@@ -112,7 +112,7 @@ trait BaseController extends ControllerHelpers with FormActions {
    *
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
-  def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
+  def Action: ActionBuilder[FormRequest, AnyContent] = controllerComponents.actionBuilder.andThen(new FormActionFunction(messagesApi))
 
   /**
    * The default body parsers provided by Play. This can be used along with the Action helper to customize the body
