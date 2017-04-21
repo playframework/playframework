@@ -4,13 +4,13 @@
 package play.api.db
 
 import javax.inject.{ Inject, Singleton }
-import javax.naming.InitialContext
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
 import com.zaxxer.hikari.{ HikariConfig, HikariDataSource }
 import play.api._
 import play.api.inject._
+import play.api.libs.JNDI
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.{ Failure, Success, Try }
@@ -53,7 +53,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 
       // Bind in JNDI
       dbConfig.jndiName.foreach { jndiName =>
-        new InitialContext().rebind(jndiName, wrappedDataSource)
+        JNDI.initialContext.rebind(jndiName, wrappedDataSource)
         logger.info(s"datasource [$name] bound to JNDI as $jndiName")
       }
 
