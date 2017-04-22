@@ -137,7 +137,7 @@ trait BaseController extends ControllerHelpers {
   def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
 
   /**
-   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by i18nComponents.
+   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by play.api.i18n.I18nSupport.
    */
   implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
 
