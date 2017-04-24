@@ -8,10 +8,7 @@ import org.junit.Test;
 import play.api.http.HttpConfiguration;
 import play.components.BodyParserComponents;
 import play.filters.components.HttpFiltersComponents;
-import play.mvc.EssentialFilter;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.Results;
+import play.mvc.*;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 import play.test.Helpers;
@@ -28,7 +25,7 @@ public class BuiltInComponentsFromContextTest {
             HttpFiltersComponents,
             BodyParserComponents {
 
-        public TestBuiltInComponentsFromContext(ApplicationLoader.Context context) {
+        TestBuiltInComponentsFromContext(ApplicationLoader.Context context) {
             super(context);
         }
 
@@ -148,5 +145,45 @@ public class BuiltInComponentsFromContextTest {
     @Test
     public void shouldProvideTempFileCreator() {
         assertThat(this.componentsFromContext.tempFileCreator(), notNullValue());
+    }
+
+    @Test
+    public void actorSystemMustBeASingleton() {
+        assertThat(this.componentsFromContext.actorSystem(), equalTo(this.componentsFromContext.actorSystem()));
+    }
+
+    @Test
+    public void applicationMustBeASingleton() {
+        assertThat(this.componentsFromContext.application(), equalTo(this.componentsFromContext.application()));
+    }
+
+    @Test
+    public void langsMustBeASingleton() {
+        assertThat(this.componentsFromContext.langs(), equalTo(this.componentsFromContext.langs()));
+    }
+
+    @Test
+    public void fileMimeTypesMustBeASingleton() {
+        assertThat(this.componentsFromContext.fileMimeTypes(), equalTo(this.componentsFromContext.fileMimeTypes()));
+    }
+
+    @Test
+    public void httpRequestHandlerMustBeASingleton() {
+        assertThat(this.componentsFromContext.httpRequestHandler(), equalTo(this.componentsFromContext.httpRequestHandler()));
+    }
+
+    @Test
+    public void cookieSignerMustBeASingleton() {
+        assertThat(this.componentsFromContext.cookieSigner(), equalTo(this.componentsFromContext.cookieSigner()));
+    }
+
+    @Test
+    public void csrfTokenSignerMustBeASingleton() {
+        assertThat(this.componentsFromContext.csrfTokenSigner(), equalTo(this.componentsFromContext.csrfTokenSigner()));
+    }
+
+    @Test
+    public void temporaryFileCreatorMustBeASingleton() {
+        assertThat(this.componentsFromContext.tempFileCreator(), equalTo(this.componentsFromContext.tempFileCreator()));
     }
 }

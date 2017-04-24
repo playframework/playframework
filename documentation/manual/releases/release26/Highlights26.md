@@ -346,7 +346,7 @@ public class MyApplicationLoader implements ApplicationLoader {
 }
 ```
 
-And configure `MyApplicationLoader` as explained in [[JavaCompileTimeDependencyInjection#Application-entry-point]].
+And configure `MyApplicationLoader` as explained in [[Java Compile-Time Dependency Injection docs|JavaCompileTimeDependencyInjection#Application-entry-point]].
 
 ## Improved Form Handling I18N support
 

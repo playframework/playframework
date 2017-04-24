@@ -32,6 +32,7 @@ import play.mvc.FileMimeTypes;
 import scala.collection.immutable.Map$;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Helper that provides all the built in Java components dependencies from the application loader context.
@@ -41,33 +42,56 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private final ApplicationLoader.Context context;
 
     // Class instances to emulate singleton behavior
-    private final Application _application;
-    private final Langs _langs;
-    private final FileMimeTypes _fileMimeTypes;
-    private final HttpRequestHandler _httpRequestHandler;
-    private final ActorSystem _actorSystem;
-    private final CookieSigner _cookieSigner;
-    private final CSRFTokenSigner _csrfTokenSigner;
-    private final Files.TemporaryFileCreator _tempFileCreator;
+    private final Supplier<Application> _application;
+    private final Supplier<Langs> _langs;
+    private final Supplier<FileMimeTypes> _fileMimeTypes;
+    private final Supplier<HttpRequestHandler> _httpRequestHandler;
+    private final Supplier<ActorSystem> _actorSystem;
+    private final Supplier<CookieSigner> _cookieSigner;
+    private final Supplier<CSRFTokenSigner> _csrfTokenSigner;
+    private final Supplier<Files.TemporaryFileCreator> _tempFileCreator;
 
-    private final Injector _injector;
+    private final Supplier<Injector> _injector;
 
     public BuiltInComponentsFromContext(ApplicationLoader.Context context) {
         // The order here matters
         this.context = context;
 
-        this._injector = createInjector();
-        this._actorSystem = createActorSystem();
-        this._langs = createLangs();
+        this._injector = lazy(this::createInjector);
+        this._actorSystem = lazy(this::createActorSystem);
+        this._langs = lazy(this::createLangs);
 
-        this._cookieSigner = createCookieSigner();
-        this._csrfTokenSigner = createCsrfTokenSigner();
+        this._cookieSigner = lazy(this::createCookieSigner);
+        this._csrfTokenSigner = lazy(this::createCsrfTokenSigner);
 
-        this._fileMimeTypes = createFileMimeTypes();
-        this._tempFileCreator = createTempFileCreator();
-        this._httpRequestHandler = createHttpRequestHandler();
+        this._fileMimeTypes = lazy(this::createFileMimeTypes);
+        this._tempFileCreator = lazy(this::createTempFileCreator);
+        this._httpRequestHandler = lazy(this::createHttpRequestHandler);
 
-        this._application = createApplication();
+        this._application = lazy(this::createApplication);
+    }
+
+    private class LazySupplier<T> implements Supplier<T> {
+
+        private T value;
+
+        private final Supplier<T> instantiator;
+
+        private LazySupplier(Supplier<T> instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public T get() {
+            if (this.value == null) {
+                this.value = instantiator.get();
+            }
+            return this.value;
+        }
+    }
+
+    private <T> Supplier<T> lazy(Supplier<T> creator) {
+        return new LazySupplier<>(creator);
     }
 
     @Override
@@ -92,7 +116,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Application application() {
-        return this._application;
+        return this._application.get();
     }
 
     private Application createApplication() {
@@ -112,7 +136,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Langs langs() {
-        return this._langs;
+        return this._langs.get();
     }
 
     private Langs createLangs() {
@@ -121,7 +145,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public FileMimeTypes fileMimeTypes() {
-        return this._fileMimeTypes;
+        return this._fileMimeTypes.get();
     }
 
     private FileMimeTypes createFileMimeTypes() {
@@ -132,7 +156,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public HttpRequestHandler httpRequestHandler() {
-        return this._httpRequestHandler;
+        return this._httpRequestHandler.get();
     }
 
     private HttpRequestHandler createHttpRequestHandler() {
@@ -162,7 +186,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public ActorSystem actorSystem() {
-        return this._actorSystem;
+        return this._actorSystem.get();
     }
 
     private ActorSystem createActorSystem() {
@@ -176,7 +200,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public CookieSigner cookieSigner() {
-        return this._cookieSigner;
+        return this._cookieSigner.get();
     }
 
     private CookieSigner createCookieSigner() {
@@ -186,7 +210,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public CSRFTokenSigner csrfTokenSigner() {
-        return this._csrfTokenSigner;
+        return this._csrfTokenSigner.get();
     }
 
     private CSRFTokenSigner createCsrfTokenSigner() {
@@ -199,7 +223,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Files.TemporaryFileCreator tempFileCreator() {
-        return this._tempFileCreator;
+        return this._tempFileCreator.get();
     }
 
     private Files.TemporaryFileCreator createTempFileCreator() {
@@ -217,7 +241,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Injector injector() {
-        return this._injector;
+        return this._injector.get();
     }
 
     private Injector createInjector() {
