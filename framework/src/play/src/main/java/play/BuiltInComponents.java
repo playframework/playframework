@@ -3,29 +3,19 @@
  */
 package play;
 
-import akka.actor.ActorSystem;
 import play.api.OptionalSourceMapper;
-import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.HttpConfiguration;
-import play.api.http.JavaCompatibleHttpRequestHandler;
-import play.api.i18n.DefaultLangsProvider;
 import play.api.i18n.DefaultMessagesApiProvider;
 import play.api.inject.RoutesProvider;
-import play.api.libs.concurrent.ActorSystemProvider;
-import play.api.mvc.request.DefaultRequestFactory;
-import play.api.mvc.request.RequestFactory;
 import play.components.*;
-import play.core.j.*;
-import play.http.*;
+import play.core.j.JavaContextComponents;
+import play.core.j.JavaHelpers$;
+import play.http.ActionCreator;
+import play.http.DefaultActionCreator;
+import play.http.DefaultHttpErrorHandler;
+import play.http.HttpErrorHandler;
 import play.i18n.I18nComponents;
-import play.i18n.Langs;
 import play.i18n.MessagesApi;
-import play.libs.Files;
-import play.libs.crypto.CSRFTokenSigner;
-import play.libs.crypto.CookieSigner;
-import play.libs.crypto.DefaultCSRFTokenSigner;
-import play.libs.crypto.DefaultCookieSigner;
-import play.mvc.FileMimeTypes;
 import scala.compat.java8.OptionConverters;
 
 import javax.inject.Provider;
@@ -45,22 +35,6 @@ public interface BuiltInComponents extends BaseComponents,
         TemporaryFileComponents {
 
     @Override
-    default Application application() {
-        RequestFactory requestFactory = new DefaultRequestFactory(httpConfiguration());
-        return new play.api.DefaultApplication(
-            environment().asScala(),
-            applicationLifecycle().asScala(),
-            injector().asScala(),
-            configuration(),
-            requestFactory,
-            httpRequestHandler().asScala(),
-            scalaHttpErrorHandler(),
-            actorSystem(),
-            materializer()
-        ).asJava();
-    }
-
-    @Override
     default JavaContextComponents javaContextComponents() {
         return JavaHelpers$.MODULE$.createContextComponents(
                 messagesApi().asScala(),
@@ -71,11 +45,6 @@ public interface BuiltInComponents extends BaseComponents,
     }
 
     @Override
-    default Langs langs() {
-        return new DefaultLangsProvider(configuration()).get().asJava();
-    }
-
-    @Override
     default MessagesApi messagesApi() {
         return new DefaultMessagesApiProvider(
                 environment().asScala(),
@@ -83,13 +52,6 @@ public interface BuiltInComponents extends BaseComponents,
                 langs().asScala(),
                 httpConfiguration()
         ).get().asJava();
-    }
-
-    @Override
-    default FileMimeTypes fileMimeTypes() {
-        return new DefaultFileMimeTypesProvider(httpConfiguration().fileMimeTypes())
-                .get()
-                .asJava();
     }
 
     @Override
@@ -116,70 +78,5 @@ public interface BuiltInComponents extends BaseComponents,
                 new OptionalSourceMapper(OptionConverters.toScala(sourceMapper())),
                 provider
         );
-    }
-
-    @Override
-    default HttpRequestHandler httpRequestHandler() {
-        DefaultHttpFilters filters = new DefaultHttpFilters(httpFilters());
-
-        JavaHandlerComponents javaHandlerComponents = new DefaultJavaHandlerComponents(
-                injector().asScala(),
-                actionCreator(),
-                httpConfiguration(),
-                executionContext(),
-                javaContextComponents()
-        );
-
-        play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(
-            httpErrorHandler(),
-            javaContextComponents()
-        );
-
-        return new JavaCompatibleHttpRequestHandler(
-                router().asScala(),
-                scalaErrorHandler,
-                httpConfiguration(),
-                filters.asScala(),
-                javaHandlerComponents
-        ).asJava();
-    }
-
-    @Override
-    default ActorSystem actorSystem() {
-        // TODO do we need a Java version for this provider?
-        return new ActorSystemProvider(
-                environment().asScala(),
-                configuration(),
-                applicationLifecycle().asScala()
-        ).get();
-    }
-
-    @Override
-    default CookieSigner cookieSigner() {
-        play.api.libs.crypto.CookieSigner scalaCookieSigner = new play.api.libs.crypto.DefaultCookieSigner(httpConfiguration().secret());
-        return new DefaultCookieSigner(scalaCookieSigner);
-    }
-
-    @Override
-    default CSRFTokenSigner csrfTokenSigner() {
-        play.api.libs.crypto.CSRFTokenSigner scalaTokenSigner = new play.api.libs.crypto.DefaultCSRFTokenSigner(
-                cookieSigner().asScala(),
-                clock()
-        );
-        return new DefaultCSRFTokenSigner(scalaTokenSigner);
-    }
-
-    @Override
-    default Files.TemporaryFileCreator tempFileCreator() {
-        play.api.libs.Files.DefaultTemporaryFileReaper temporaryFileReaper =
-                new play.api.libs.Files.DefaultTemporaryFileReaper(
-                        actorSystem(),
-                        play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(configuration())
-                );
-
-        return new play.api.libs.Files.DefaultTemporaryFileCreator(
-                applicationLifecycle().asScala(),
-                temporaryFileReaper
-        ).asJava();
     }
 }
