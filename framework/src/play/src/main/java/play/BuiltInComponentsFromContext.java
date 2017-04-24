@@ -5,6 +5,7 @@ package play;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.Config;
+
 import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.JavaCompatibleHttpRequestHandler;
 import play.api.i18n.DefaultLangsProvider;
@@ -13,26 +14,34 @@ import play.api.inject.SimpleInjector;
 import play.api.libs.concurrent.ActorSystemProvider;
 import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
+
 import play.core.SourceMapper;
 import play.core.j.DefaultJavaHandlerComponents;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaHttpErrorHandlerAdapter;
+
 import play.http.DefaultHttpFilters;
 import play.http.HttpRequestHandler;
+
 import play.i18n.Langs;
+
 import play.inject.ApplicationLifecycle;
 import play.inject.DelegateInjector;
 import play.inject.Injector;
+
 import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
 import play.libs.crypto.DefaultCookieSigner;
+
 import play.mvc.FileMimeTypes;
 import scala.collection.immutable.Map$;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import static play.libs.F.LazySupplier.lazy;
 
 /**
  * Helper that provides all the built in Java components dependencies from the application loader context.
@@ -42,56 +51,19 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private final ApplicationLoader.Context context;
 
     // Class instances to emulate singleton behavior
-    private final Supplier<Application> _application;
-    private final Supplier<Langs> _langs;
-    private final Supplier<FileMimeTypes> _fileMimeTypes;
-    private final Supplier<HttpRequestHandler> _httpRequestHandler;
-    private final Supplier<ActorSystem> _actorSystem;
-    private final Supplier<CookieSigner> _cookieSigner;
-    private final Supplier<CSRFTokenSigner> _csrfTokenSigner;
-    private final Supplier<Files.TemporaryFileCreator> _tempFileCreator;
+    private final Supplier<Application> _application = lazy(this::createApplication);
+    private final Supplier<Langs> _langs = lazy(this::createLangs);
+    private final Supplier<FileMimeTypes> _fileMimeTypes = lazy(this::createFileMimeTypes);
+    private final Supplier<HttpRequestHandler> _httpRequestHandler = lazy(this::createHttpRequestHandler);
+    private final Supplier<ActorSystem> _actorSystem = lazy(this::createActorSystem);
+    private final Supplier<CookieSigner> _cookieSigner = lazy(this::createCookieSigner);
+    private final Supplier<CSRFTokenSigner> _csrfTokenSigner = lazy(this::createCsrfTokenSigner);
+    private final Supplier<Files.TemporaryFileCreator> _tempFileCreator = lazy(this::createTempFileCreator);
 
-    private final Supplier<Injector> _injector;
+    private final Supplier<Injector> _injector = lazy(this::createInjector);
 
     public BuiltInComponentsFromContext(ApplicationLoader.Context context) {
-        // The order here matters
         this.context = context;
-
-        this._injector = lazy(this::createInjector);
-        this._actorSystem = lazy(this::createActorSystem);
-        this._langs = lazy(this::createLangs);
-
-        this._cookieSigner = lazy(this::createCookieSigner);
-        this._csrfTokenSigner = lazy(this::createCsrfTokenSigner);
-
-        this._fileMimeTypes = lazy(this::createFileMimeTypes);
-        this._tempFileCreator = lazy(this::createTempFileCreator);
-        this._httpRequestHandler = lazy(this::createHttpRequestHandler);
-
-        this._application = lazy(this::createApplication);
-    }
-
-    private class LazySupplier<T> implements Supplier<T> {
-
-        private T value;
-
-        private final Supplier<T> instantiator;
-
-        private LazySupplier(Supplier<T> instantiator) {
-            this.instantiator = instantiator;
-        }
-
-        @Override
-        public T get() {
-            if (this.value == null) {
-                this.value = instantiator.get();
-            }
-            return this.value;
-        }
-    }
-
-    private <T> Supplier<T> lazy(Supplier<T> creator) {
-        return new LazySupplier<>(creator);
     }
 
     @Override
