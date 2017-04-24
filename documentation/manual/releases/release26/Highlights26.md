@@ -294,7 +294,7 @@ or use [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/F
 ```scala
 import play.api.libs.concurrent.Futures._
 
-class MyClass @Inject()(implicit futures: Futures) {
+class MyController @Inject()(cc: ControllerComponents)(implicit futures: Futures) extends AbstractController(cc) {
 
   def index = Action.async {
     // withTimeout is an implicit type enrichment provided by importing Futures._
