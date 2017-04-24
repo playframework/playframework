@@ -307,6 +307,47 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
 
 > **Note**: this implementation is fully compatible with Scala version `LoggerConfigurator` and can even be used in Scala projects if necessary, which means that module creators can provide a Java or Scala implementation of LoggerConfigurator and they will be usable in both Java and Scala projects.
 
+## Java Compile Time Components
+
+Just as Scala, Play now has components to enable [[Java Compile Time Dependency Injection|JavaCompileTimeDependencyInjection]]. The components were created as interfaces that you should `implements` and they provide default implementations. There are components for all the types that could be injected when using [[Runtime Dependency Injection|JavaDependencyInjection]]. To create an application using Compile Time Dependency Injection, you just need to provide an implementation of `play.ApplicationLoader` that uses a custom implementation of `play.BuiltInComponents`, for example:
+
+```java
+import play.routing.Router;
+import play.ApplicationLoader;
+import play.BuiltInComponentsFromContext;
+import play.filters.components.HttpFiltersComponents;
+
+public class MyComponents extends BuiltInComponentsFromContext
+        implements HttpFiltersComponents {
+
+    public MyComponents(ApplicationLoader.Context context) {
+        super(context);
+    }
+
+    @Override
+    public Router router() {
+        return Router.empty();
+    }
+}
+```
+
+The `play.ApplicationLoader`:
+ 
+```java
+import play.ApplicationLoader;
+
+public class MyApplicationLoader implements ApplicationLoader {
+
+    @Override
+    public Application load(Context context) {
+        return new MyComponents(context).application();
+    }
+
+}
+```
+
+And configure `MyApplicationLoader` as explained in [[JavaCompileTimeDependencyInjection#Application-entry-point]].
+
 ## Improved Form Handling I18N support
 
 The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms.
