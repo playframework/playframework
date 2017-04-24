@@ -99,24 +99,29 @@ For convenience, there is an implicit conversion available from a `Marker` to a 
 
 @[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
 
-Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
 
+@[logging-request-context-trait](code/ScalaLoggingSpec.scala)
+
+And then used in a controller and carried through `Future` that may use different execution contexts:
+
+@[logging-log-info-with-request-context](code/ScalaLoggingSpec.scala)
+
+Note that marker contexts are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
+
+@[logging-log-trace-with-tracer-controller](code/ScalaLoggingSpec.scala)
+
+And then trigger logging with the following TurboFilter in `logback.xml`: 
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+  <Name>TRACER_FILTER</Name>
+  <Marker>TRACER</Marker>
+  <OnMatch>ACCEPT</OnMatch>
+</turboFilter>
 ```
-implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
-  import net.logstash.logback.marker.LogstashMarker
-  import net.logstash.logback.marker.Markers._
 
-  val requestMarkers: LogstashMarker = append("host", request.host)
-    .and(append("path", request.path))
-
-  MarkerContext(requestMarkers)
-}
-
-def index = Action { request =>  
-  logger.debug("index: ")(request)
-  Ok("testing")
-}
-```
+For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
 ### Logging patterns
 

@@ -3,16 +3,21 @@
  */
 package scalaguide.logging
 
-import play.api.http._
+import javax.inject.Inject
+
 import org.junit.runner.RunWith
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import org.slf4j._
 import play.api._
 import play.api.libs.Files.SingletonTemporaryFileCreator
+import play.api.mvc._
+
+import play.api.test._
+import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
 class ScalaLoggingSpec extends Specification with Mockito {
@@ -247,6 +252,75 @@ class ScalaLoggingSpec extends Specification with Mockito {
       success
     }
 
+    "implicitly pass marker context in controller" in new WithApplication() with Injecting {
+      val controller = inject[ImplicitRequestController]
+
+      val result = controller.asyncIndex()(FakeRequest())
+      contentAsString(result) must be_==("testing")
+    }
   }
 
 }
+
+//#logging-request-context-trait
+trait RequestMarkerContext {
+
+  implicit def requestHeaderToMarkerContext(request: RequestHeader): MarkerContext = {
+    import net.logstash.logback.marker.LogstashMarker
+    import net.logstash.logback.marker.Markers._
+
+    val requestMarkers: LogstashMarker = append("host", request.host)
+      .and(append("path", request.path))
+
+    MarkerContext(requestMarkers)
+  }
+
+}
+//#logging-request-context-trait
+
+class ImplicitRequestController @Inject()(cc: ControllerComponents)(implicit otherExecutionContext: ExecutionContext)
+  extends AbstractController(cc) with RequestMarkerContext {
+  private val logger = play.api.Logger(getClass)
+
+  //#logging-log-info-with-request-context
+  def asyncIndex = Action.async { implicit request =>
+    Future {
+      methodInOtherExecutionContext()
+    }(otherExecutionContext)
+  }
+
+  def methodInOtherExecutionContext()(implicit mc: MarkerContext): Result = {
+    logger.debug("index: ") // same as above
+    Ok("testing")
+  }
+  //#logging-log-info-with-request-context
+}
+
+//#logging-log-trace-with-tracer-controller
+trait TracerMarker {
+  import TracerMarker._
+
+  implicit def requestHeaderToMarkerContext(implicit request: RequestHeader): MarkerContext = {
+    val marker = org.slf4j.MarkerFactory.getDetachedMarker("dynamic") // base do-nothing marker...
+    if (request.getQueryString("trace").nonEmpty) {
+      marker.add(tracerMarker)
+    }
+    marker
+  }
+}
+
+object TracerMarker {
+  private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
+}
+
+class TracerBulletController @Inject()(cc: ControllerComponents)
+  extends AbstractController(cc) with TracerMarker {
+  private val logger = play.api.Logger("application")
+
+  def index = Action { implicit request: Request[AnyContent] =>
+    logger.trace("Only logged if queryString contains trace=true")
+
+    Ok("hello world")
+  }
+}
+//#logging-log-trace-with-tracer-controller
