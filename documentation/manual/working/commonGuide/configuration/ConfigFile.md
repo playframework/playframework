@@ -415,6 +415,6 @@ For powers of two, exactly these strings are supported:
 
 ## Conventional override by system properties
 
-Java system properties override settings found in the `application.conf` and `reference.conf` files. This supports specifying config options on the command line. ie. `play -Dkey=value run`
+Java system properties override settings found in the `application.conf` and `reference.conf` files. This supports specifying config options on the command line, for example `sbt -Dkey=value run`.
 
-Note : Play forks the JVM for tests - and so to use command line overrides in tests you must add `Keys.fork in Test := false` in `build.sbt` before you can use them for a test.
+> **Note**: Play forks the JVM for tests - and so to use command line overrides in tests you must add `Keys.fork in Test := false` in `build.sbt` before you can use them for a test.
