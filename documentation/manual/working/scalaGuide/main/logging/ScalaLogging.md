@@ -99,7 +99,7 @@ For convenience, there is an implicit conversion available from a `Marker` to a 
 
 @[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
 
-Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a marker as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
 
 ```
 implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
@@ -115,6 +115,17 @@ implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
 def index = Action { request =>  
   logger.debug("index: ")(request)
   Ok("testing")
+}
+
+def asyncIndex = Action.async { implicit request =>    
+  Future {
+     methodInDifferentExecutionContext()
+  }(otherExecutionContext)
+}
+
+def methodInDifferentExecutionContext()(implicit mc: MarkerContext) = { 
+ logger.debug("index: ") // same as above 
+ Ok("testing")
 }
 ```
 
