@@ -48,16 +48,52 @@ class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) exte
  * This class is an ActionBuilder that provides a MessagesRequest to the block:
  *
  * {{{
- * class Controller @Inject()(messagesAction: MessagesAction, cc: ControllerComponents) extends AbstractController(cc) {
+ * class MyController @Inject()(
+ *   messagesAction: MessagesActionBuilder,
+ *   cc: ControllerComponents
+ * ) extends AbstractController(cc) {
  *   def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
- *
+ *      Ok(views.html.formTemplate(form)) // twirl template with form builders
  *   }
  * }
  * }}}
  *
- * This is useful when you don't want to have to extend I18nSupport.
+ * This is useful when you don't want to have to add I18nSupport to a controller for form processing.
+ *
+ * You can also replace AbstractController completely and use an Action which uses MessagesRequest by default:
+ *
+ * {{{
+ * abstract class FormAwareController @Inject()(
+ *   protected val controllerComponents: MyControllerComponents
+ * ) extends ControllerHelpers {
+ *
+ *   def Action: ActionBuilder[MessagesRequest, AnyContent] = {
+ *     controllerComponents.messagesActionBuilder.compose(controllerComponents.actionBuilder)
+ *   }
+ *
+ *   def parse: PlayBodyParsers = controllerComponents.parsers
+ *
+ *   def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
+ *
+ *   implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
+ *
+ *   implicit def supportedLangs: Langs = controllerComponents.langs
+ *
+ *   implicit def fileMimeTypes: FileMimeTypes = controllerComponents.fileMimeTypes
+ * }
+ *
+ * case class MyControllerComponents @Inject()(
+ *   messagesActionBuilder: MessagesAction,
+ *   actionBuilder: DefaultActionBuilder,
+ *   parsers: PlayBodyParsers,
+ *   messagesApi: MessagesApi,
+ *   langs: Langs,
+ *   fileMimeTypes: FileMimeTypes,
+ *   executionContext: scala.concurrent.ExecutionContext
+ * ) extends ControllerComponents
+ * }}}
  */
-class MessagesAction @Inject() (parsers: PlayBodyParsers, messagesApi: MessagesApi) extends ActionBuilder[MessagesRequest, AnyContent] {
+class MessagesActionBuilder @Inject() (parsers: PlayBodyParsers, messagesApi: MessagesApi) extends ActionBuilder[MessagesRequest, AnyContent] {
   override def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
     block(new MessagesRequest[A](request, messagesApi))
   }

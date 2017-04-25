@@ -171,7 +171,7 @@ The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api
 
 @[messages-controller](code/ScalaForms.scala)
 
-The second way is to dependency inject a [`MessagesAction`](api/scala/play/api/mvc/MessagesAction.html).  
+The second way is to dependency inject a [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html), which provides a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html):
 
 @[messages-request-controller](code/ScalaForms.scala)
 
