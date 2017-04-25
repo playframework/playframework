@@ -51,7 +51,7 @@ If you want to grab the available source jars (this will take longer and it's po
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
-or from the play console, type:
+or from the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -168,7 +168,7 @@ Start SBT:
 $ sbt
 ```
 
-Enter 'gen-ensime' at the play console. The plugin should generate a .ensime file in the root of your Play project.
+Enter 'gen-ensime' at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
 [MYPROJECT] $ gen-ensime
