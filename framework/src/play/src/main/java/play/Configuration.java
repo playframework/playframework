@@ -45,7 +45,7 @@ public class Configuration {
      * @return the created config
      */
     public static Configuration load(Environment env) {
-        return new Configuration(play.api.Configuration.load(env.underlying()));
+        return new Configuration(play.api.Configuration.load(env.asScala()));
     }
 
     /**

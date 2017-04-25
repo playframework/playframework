@@ -3,7 +3,6 @@
  */
 package play.api.http
 
-import javax.inject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +36,6 @@ trait HttpFilters {
  *     extends DefaultHttpFilters(defaultFilters.filters :+ corsFilter: _*)
  * }}}
  */
-@Singleton
 class DefaultHttpFilters @Inject() (val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {

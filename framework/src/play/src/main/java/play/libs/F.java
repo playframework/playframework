@@ -5,6 +5,8 @@ package play.libs;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
+
 import scala.concurrent.ExecutionContext;
 
 /**
@@ -347,6 +349,29 @@ public class F {
             return (Executor) prepared;
         } else {
             return prepared::execute;
+        }
+    }
+
+    public static class LazySupplier<T> implements Supplier<T> {
+
+        private T value;
+
+        private final Supplier<T> instantiator;
+
+        private LazySupplier(Supplier<T> instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public T get() {
+            if (this.value == null) {
+                this.value = instantiator.get();
+            }
+            return this.value;
+        }
+
+        public static <T> Supplier<T> lazy(Supplier<T> creator) {
+            return new LazySupplier<>(creator);
         }
     }
 

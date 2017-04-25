@@ -222,6 +222,132 @@ The security marker also allows security failures to be triggered or filtered di
 
 In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SEIM) engine for further processing.
 
+## Configuring a Custom Logging Framework in Java
+
+Before, if you want to [[use a custom logging framework|SettingsLogger#Using-a-Custom-Logging-Framework]], you had to configure it using Scala, even if the you have a Java project. Now it is possible to create custom `LoggerConfigurator` in both Java and Scala. To create a `LoggerConfigurator` in Java, you need to implement the given interface, for example, to configure Log4J:
+
+```java
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import org.slf4j.ILoggerFactory;
+import play.Environment;
+import play.LoggerConfigurator;
+import play.Mode;
+import play.api.PlayException;
+
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.*;
+import org.apache.logging.log4j.core.config.Configurator;
+
+public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
+
+    private ILoggerFactory factory;
+
+    @Override
+    public void init(File rootPath, Mode mode) {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("application.home", rootPath.getAbsolutePath());
+
+        String resourceName = "log4j2.xml";
+        URL resourceUrl = this.getClass().getClassLoader().getResource(resourceName);
+        configure(properties, Optional.ofNullable(resourceUrl));
+    }
+
+    @Override
+    public void configure(Environment env) {
+        Map<String, String> properties = LoggerConfigurator.generateProperties(env, ConfigFactory.empty(), Collections.emptyMap());
+        URL resourceUrl = env.resource("log4j2.xml");
+        configure(properties, Optional.ofNullable(resourceUrl));
+    }
+
+    @Override
+    public void configure(Environment env, Config configuration, Map<String, String> optionalProperties) {
+        // LoggerConfigurator.generateProperties enables play.logger.includeConfigProperties=true
+        Map<String, String> properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties);
+        URL resourceUrl = env.resource("log4j2.xml");
+        configure(properties, Optional.ofNullable(resourceUrl));
+    }
+
+    @Override
+    public void configure(Map<String, String> properties, Optional<URL> config) {
+        try {
+            LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
+            loggerContext.setConfigLocation(config.get().toURI());
+
+            factory = org.slf4j.impl.StaticLoggerBinder.getSingleton().getLoggerFactory();
+        } catch (URISyntaxException ex) {
+            throw new PlayException(
+                "log4j2.xml resource was not found",
+                "Could not parse the location for log4j2.xml resource",
+                ex
+            );
+        }
+    }
+
+    @Override
+    public ILoggerFactory loggerFactory() {
+        return factory;
+    }
+
+    @Override
+    public void shutdown() {
+        LoggerContext loggerContext = (LoggerContext) LogManager.getContext();
+        Configurator.shutdown(loggerContext);
+    }
+}
+```
+
+> **Note**: this implementation is fully compatible with Scala version `LoggerConfigurator` and can even be used in Scala projects if necessary, which means that module creators can provide a Java or Scala implementation of LoggerConfigurator and they will be usable in both Java and Scala projects.
+
+## Java Compile Time Components
+
+Just as Scala, Play now has components to enable [[Java Compile Time Dependency Injection|JavaCompileTimeDependencyInjection]]. The components were created as interfaces that you should `implements` and they provide default implementations. There are components for all the types that could be injected when using [[Runtime Dependency Injection|JavaDependencyInjection]]. To create an application using Compile Time Dependency Injection, you just need to provide an implementation of `play.ApplicationLoader` that uses a custom implementation of `play.BuiltInComponents`, for example:
+
+```java
+import play.routing.Router;
+import play.ApplicationLoader;
+import play.BuiltInComponentsFromContext;
+import play.filters.components.HttpFiltersComponents;
+
+public class MyComponents extends BuiltInComponentsFromContext
+        implements HttpFiltersComponents {
+
+    public MyComponents(ApplicationLoader.Context context) {
+        super(context);
+    }
+
+    @Override
+    public Router router() {
+        return Router.empty();
+    }
+}
+```
+
+The `play.ApplicationLoader`:
+ 
+```java
+import play.ApplicationLoader;
+
+public class MyApplicationLoader implements ApplicationLoader {
+
+    @Override
+    public Application load(Context context) {
+        return new MyComponents(context).application();
+    }
+
+}
+```
+
+And configure `MyApplicationLoader` as explained in [[Java Compile-Time Dependency Injection docs|JavaCompileTimeDependencyInjection#Application-entry-point]].
+
 ## Improved Form Handling I18N support
 
 The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms.

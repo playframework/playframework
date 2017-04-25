@@ -89,7 +89,7 @@ import java.util.stream.StreamSupport;
  */
 public class RoutingDsl {
 
-    private final Logger.ALogger logger = Logger.of(RoutingDsl.class);
+    private static final Logger.ALogger logger = Logger.of(RoutingDsl.class);
 
     private final BodyParser<AnyContent> bodyParser;
     private final JavaContextComponents contextComponents;

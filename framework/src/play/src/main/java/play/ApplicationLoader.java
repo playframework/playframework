@@ -6,11 +6,15 @@ package play;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
 import play.core.SourceMapper;
 import play.core.DefaultWebCommands;
+import play.inject.ApplicationLifecycle;
 import play.libs.Scala;
+import scala.compat.java8.OptionConverters;
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -74,10 +78,10 @@ public interface ApplicationLoader {
          */
         public Context(Environment environment, Map<String, Object> initialSettings) {
             this.underlying = new play.api.ApplicationLoader.Context(
-                    environment.underlying(),
+                    environment.asScala(),
                     scala.Option.empty(),
                     new play.core.DefaultWebCommands(),
-                    play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)),
+                    play.api.Configuration.load(environment.asScala(), play.libs.Scala.asScala(initialSettings)),
                     new DefaultApplicationLifecycle());
         }
 
@@ -135,6 +139,24 @@ public interface ApplicationLoader {
         }
 
         /**
+         * Get the application lifecycle from the context.
+         *
+         * @return the application lifecycle
+         */
+        public ApplicationLifecycle applicationLifecycle() {
+           return underlying.lifecycle().asJava();
+        }
+
+        /**
+         * Get the source mapper from the context.
+         *
+         * @return an optional source mapper
+         */
+        public Optional<SourceMapper> sourceMapper() {
+            return OptionConverters.toJava(underlying.sourceMapper());
+        }
+
+        /**
          * Create a new context with a different environment.
          *
          * @param environment the environment this context should use
@@ -142,7 +164,7 @@ public interface ApplicationLoader {
          */
         public Context withEnvironment(Environment environment) {
             play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
-                    environment.underlying(),
+                    environment.asScala(),
                     underlying.sourceMapper(),
                     underlying.webCommands(),
                     underlying.initialConfiguration(),
@@ -236,7 +258,7 @@ public interface ApplicationLoader {
      */
     static Context create(Environment environment, Map<String, Object> initialSettings) {
         play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader$.MODULE$.createContext(
-                environment.underlying(),
+                environment.asScala(),
                 Scala.asScala(initialSettings),
                 Scala.<SourceMapper>None(),
                 new DefaultWebCommands(),
