@@ -146,61 +146,24 @@ logger.info("some info message")(MarkerContext(someMarker))
 
 This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  In particular, see what you can do with the [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#event-specific-custom-fields):
 
-```scala
-implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
-  import net.logstash.logback.marker.LogstashMarker
-  import net.logstash.logback.marker.Markers._
+@[logging-request-context-trait](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 
-  val requestMarkers: LogstashMarker = append("host", request.host)
-    .and(append("path", request.path))
+And then used in a controller and carried through `Future` that may use different execution contexts:
 
-  MarkerContext(requestMarkers)
-}
+@[logging-log-info-with-request-context](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 
-def index = Action { request =>
-  logger.debug("index: ")(request)
-  Ok("testing")
-}
-```
+Note that marker contexts are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
 
-Note that markers are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels:
+@[logging-log-trace-with-tracer-controller](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 
-```scala
-package controllers
+And then trigger logging with the following TurboFilter in `logback.xml`: 
 
-import javax.inject._
-import play.api.mvc._
-
-@Singleton
-class TracerBulletController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-  private val logger = org.slf4j.LoggerFactory.getLogger("application")
-
-  // in logback.xml
-  /*
-  <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-    <Name>TRACER_FILTER</Name>
-    <Marker>TRACER</Marker>
-    <OnMatch>ACCEPT</OnMatch>
-  </turboFilter>
-   */
-  private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
-
-  private def generateMarker(implicit request: RequestHeader): org.slf4j.Marker = {
-    val marker = org.slf4j.MarkerFactory.getDetachedMarker("dynamic") // base do-nothing marker...
-    if (request.getQueryString("trace").nonEmpty) {
-        marker.add(tracerMarker)
-    }
-    marker
-  }
-
-  def index = Action { implicit request =>
-    val marker = generateMarker
-    if (logger.isTraceEnabled(marker)) {
-      logger.trace(marker, "Hello world!")
-    }
-    Ok("hello world")
-  }
-}
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+  <Name>TRACER_FILTER</Name>
+  <Marker>TRACER</Marker>
+  <OnMatch>ACCEPT</OnMatch>
+</turboFilter>
 ```
 
 For more information, please see [[ScalaLogging]] or [[JavaLogging]].
