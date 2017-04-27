@@ -38,10 +38,10 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.25")
 
   val guava = "com.google.guava" % "guava" % "21.0"
-  val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
+  val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.194"
+  val h2database = "com.h2database" % "h2" % "1.4.195"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
   val acolyteVersion = "1.0.43-j7p"
@@ -59,7 +59,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.2.9.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "5.2.10.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -68,7 +68,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.7.RELEASE"
+  val springFrameworkVersion = "4.3.8.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -190,8 +190,8 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.3.0"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.0"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.4")
     ) ++ specsBuild.map(_ % Test)
   }
 
@@ -200,7 +200,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
-  val playDocVersion = "1.8.0"
+  val playDocVersion = "1.8.1"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -215,14 +215,14 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.13.4"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.13.5"     % Test
   )
 
   val playServerDependencies = Seq(
     guava % Test
   ) ++ specsBuild.map(_ % Test)
 
-  val seleniumVersion = "3.3.1"
+  val seleniumVersion = "3.4.0"
   val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
