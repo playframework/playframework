@@ -6,7 +6,6 @@ package play.api.test
 import play.api.http.{ SecretConfiguration, SessionConfiguration }
 import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider, DefaultCookieSigner }
 import play.api.mvc.{ Request }
-import play.filters.csrf.CSRF.{ Token, TokenProvider, TokenProviderProvider }
 import play.filters.csrf.{ CSRFActionHelper, CSRFConfig }
 
 /**
@@ -26,8 +25,6 @@ object CSRFTokenHelper {
     tokenSigner = csrfTokenSigner
   )
 
-  private val tokenProvider: TokenProvider = new TokenProviderProvider(csrfConfig, csrfTokenSigner).get
-
   /**
    * Adds a CSRF token to the request, using the Scala Request API.
    *
@@ -36,16 +33,14 @@ object CSRFTokenHelper {
    * @return a request with a CSRF token attached.
    */
   def addCSRFToken[A](request: Request[A]): Request[A] = {
-    val newToken = tokenProvider.generateToken
-    csrfActionHelper.tagRequest(request, Token(csrfConfig.tokenName, newToken))
+    csrfActionHelper.tagRequestWithNewToken(request)
   }
 
   /**
    * Adds a CSRF token to the request, using the Java RequestBuilder API.
    */
   def addCSRFToken(requestBuilder: play.mvc.Http.RequestBuilder): play.mvc.Http.RequestBuilder = {
-    val newToken = tokenProvider.generateToken
-    csrfActionHelper.tagRequest(requestBuilder, Token(csrfConfig.tokenName, newToken))
+    csrfActionHelper.tagRequestWithNewToken(requestBuilder)
   }
 
   /**

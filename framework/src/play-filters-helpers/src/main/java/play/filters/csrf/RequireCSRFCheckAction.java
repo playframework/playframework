@@ -38,7 +38,8 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
 
-        CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
+        CSRFActionHelper csrfActionHelper =
+            new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
         RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader());
         // Check for bypass

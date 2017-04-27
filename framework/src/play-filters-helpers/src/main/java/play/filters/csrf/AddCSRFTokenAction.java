@@ -40,30 +40,32 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
 
-        CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
+        CSRFActionHelper helper =
+            new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
         play.api.mvc.Request<RequestBody> request =
-                csrfActionHelper.tagRequestFromHeader(ctx.request().asScala());
+                helper.tagRequestFromHeader(ctx.request().asScala());
 
-        if (csrfActionHelper.getTokenToValidate(request).isEmpty()) {
+        if (helper.getTokenToValidate(request).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
-            String newToken = tokenProvider.generateToken();
+            CSRF.Token newToken = helper.generateToken();
 
             // Place this token into the context
-            ctx.args.put(CSRF_TOKEN, newToken);
-            ctx.args.put(CSRF_TOKEN_NAME, config.tokenName());
+            ctx.args.put(CSRF_TOKEN, newToken.value());
+            ctx.args.put(CSRF_TOKEN_NAME, newToken.name());
 
             // Create a new Scala RequestHeader with the token
-            request = csrfActionHelper.tagRequest(request, new CSRF.Token(config.tokenName(), newToken));
+            request = helper.tagRequest(request, newToken);
 
             // Also add it to the response
             if (config.cookieName().isDefined()) {
                 scala.Option<String> domain = Session.domain();
-                Http.Cookie cookie = new Http.Cookie(config.cookieName().get(), newToken, null, sessionConfiguration.path(),
-                        domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
+                Http.Cookie cookie = new Http.Cookie(
+                    config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
+                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
                 ctx.response().setCookie(cookie);
             } else {
-                ctx.session().put(config.tokenName(), newToken);
+                ctx.session().put(newToken.name(), newToken.value());
             }
         }
 

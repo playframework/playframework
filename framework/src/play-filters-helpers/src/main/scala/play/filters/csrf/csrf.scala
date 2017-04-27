@@ -168,22 +168,27 @@ object CSRF {
   /**
    * INTERNAL API: used for storing tokens on the request
    */
-  case class TokenInfo(name: String, value: String, reSignedValue: Option[String] = None) {
-    def toToken = {
-      // Try to get the re-signed token first, then get the "new" token.
-      Token(name, reSignedValue getOrElse value)
+  class TokenInfo private (token: => Token) {
+
+    private[this] var _rendered = false
+    private[csrf] def wasRendered: Boolean = _rendered
+
+    /**
+     * Call this method to render the token.
+     *
+     * @return the generated token
+     */
+    lazy val toToken: Token = {
+      _rendered = true
+      token
     }
   }
   object TokenInfo {
-    def apply(token: Token): TokenInfo = {
-      val Token(name, value) = token
-      TokenInfo(name, value)
-    }
-    def apply(token: Token, reSignedToken: String): TokenInfo = apply(token).copy(reSignedValue = Some(reSignedToken))
+    def apply(token: => Token): TokenInfo = new TokenInfo(token)
   }
 
   object Token {
-    val InfoAttr = TypedKey[TokenInfo]("TOKEN_INFO")
+    val InfoAttr: TypedKey[TokenInfo] = TypedKey("TOKEN_INFO")
   }
 
   /**
