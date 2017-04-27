@@ -14,6 +14,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 import akka.actor.{ ActorSystem, Cancellable }
 import com.google.common.base.{ FinalizablePhantomReference, FinalizableReferenceQueue }
 import com.google.common.collect.Sets
+import org.slf4j.LoggerFactory
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 
@@ -27,6 +28,8 @@ import scala.concurrent.duration._
  * FileSystem utilities.
  */
 object Files {
+
+  lazy val logger = LoggerFactory.getLogger("play.api.libs.Files")
 
   /**
    * Logic for creating a temporary file. Users should try to clean up the
@@ -91,15 +94,45 @@ object Files {
      */
     def moveTo(to: Path, replace: Boolean): TemporaryFile = {
       try {
-        if (replace)
-          JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
-        else
-          JFiles.move(path, to)
+        moveToWithOptions(to, replace)
       } catch {
         case ex: FileAlreadyExistsException => to
       }
 
       temporaryFileCreator.create(to)
+    }
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * @param to the path to the destination file
+     * @param replace true if an existing file should be replaced, false otherwise.
+     */
+    // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
+    def atomicMoveWithFallback(to: Path, replace: Boolean): TemporaryFile = {
+      try {
+        moveToWithOptions(to, replace, StandardCopyOption.ATOMIC_MOVE)
+      } catch {
+        case outer: IOException =>
+          try {
+            logger.debug(s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}")
+            moveToWithOptions(to, replace)
+          } catch {
+            case ex: FileAlreadyExistsException => to
+            case inner: IOException =>
+              inner.addSuppressed(outer)
+              throw inner
+          }
+      }
+
+      temporaryFileCreator.create(to)
+    }
+
+    private def moveToWithOptions(to: Path, replace: Boolean, additionalOptions: CopyOption*) = {
+      if (replace)
+        JFiles.move(path, to, additionalOptions :+ StandardCopyOption.REPLACE_EXISTING: _*)
+      else
+        JFiles.move(path, to, additionalOptions: _*)
     }
   }
 

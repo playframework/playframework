@@ -84,6 +84,36 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
     }
 
+    "move a file atomically with replace enabled" in new WithScope() {
+      val lifecycle = new DefaultApplicationLifecycle
+      val reaper = mock[TemporaryFileReaper]
+      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+      val file = parentDirectory.resolve("move.txt")
+      writeFile(file, "file to be moved")
+
+      val destination = parentDirectory.resolve("destination.txt")
+      creator.create(file).atomicMoveWithFallback(destination, replace = true)
+
+      JFiles.exists(file) must beFalse
+      JFiles.exists(destination) must beTrue
+    }
+
+    "move a file atomically without replacing" in new WithScope() {
+      val lifecycle = new DefaultApplicationLifecycle
+      val reaper = mock[TemporaryFileReaper]
+      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+      val file = parentDirectory.resolve("do-not-replace.txt")
+      val destination = parentDirectory.resolve("already-exists.txt")
+
+      writeFile(file, "file that won't be replaced")
+      writeFile(destination, "already exists")
+
+      val to = creator.create(file).atomicMoveWithFallback(destination, replace = false)
+      new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+    }
+
     "works when using compile time dependency injection" in {
       val context = ApplicationLoader.createContext(
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))

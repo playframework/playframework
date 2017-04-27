@@ -44,6 +44,18 @@ public final class Files {
         File file();
 
         TemporaryFileCreator temporaryFileCreator();
+
+        default TemporaryFile moveTo(File to) {
+            return moveTo(to, false);
+        }
+
+        TemporaryFile moveTo(File to, boolean replace);
+
+        default TemporaryFile atomicMoveWithFallback(File to) {
+            return atomicMoveWithFallback(to, false);
+        }
+
+        TemporaryFile atomicMoveWithFallback(File to, boolean replace);
     }
 
     /**
@@ -93,6 +105,11 @@ public final class Files {
             this.temporaryFileCreator = new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
         }
 
+        private DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile, TemporaryFileCreator temporaryFileCreator) {
+            this.temporaryFile = temporaryFile;
+            this.temporaryFileCreator = temporaryFileCreator;
+        }
+
         @Override
         public Path path() {
             return temporaryFile.path();
@@ -106,6 +123,16 @@ public final class Files {
         @Override
         public TemporaryFileCreator temporaryFileCreator() {
             return temporaryFileCreator;
+        }
+
+        @Override
+        public TemporaryFile moveTo(File to, boolean replace) {
+            return new DelegateTemporaryFile(temporaryFile.moveTo(to, replace), this.temporaryFileCreator);
+        }
+
+        @Override
+        public TemporaryFile atomicMoveWithFallback(File to, boolean replace) {
+            return new DelegateTemporaryFile(temporaryFile.atomicMoveWithFallback(to.toPath(), replace), this.temporaryFileCreator);
         }
     }
 
