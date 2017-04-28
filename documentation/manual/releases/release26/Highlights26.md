@@ -170,6 +170,12 @@ For more information, please see [[ScalaLogging]] or [[JavaLogging]].
 
 For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
+## Configuration improvements
+
+In the Java API, we have moved to the standard `Config` object from Lightbend's Config library instead of `play.Configuration`. This brings the behavior in line with standard config behavior, as the methods now expect all keys to exist. See [[the Java config migration guide|JavaConfigMigration26]] for migration details.
+
+In the Scala API, we have introduced new methods to the `play.api.Configuration` class to simplify the API and allow loading of custom types. You can now use an implicit `ConfigLoader` to load any custom type you want. Like the `Config` API, the new `Configuration#get[T]` expects the key to exist by default and returns a value of type `T`, but there is also a `ConfigLoader[Option[T]]` that allows `null` config values. See the [[Scala configuration docs|ScalaConfig]] for more details.
+
 ## Security Logging
 
 A security marker has been added for security related operations in Play, and failed security checks now log  at WARN level, with the security marker set.  This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
@@ -272,7 +278,7 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
 
 ## Java Compile Time Components
 
-Just as Scala, Play now has components to enable [[Java Compile Time Dependency Injection|JavaCompileTimeDependencyInjection]]. The components were created as interfaces that you should `implements` and they provide default implementations. There are components for all the types that could be injected when using [[Runtime Dependency Injection|JavaDependencyInjection]]. To create an application using Compile Time Dependency Injection, you just need to provide an implementation of `play.ApplicationLoader` that uses a custom implementation of `play.BuiltInComponents`, for example:
+Just as in Scala, Play now has components to enable [[Java Compile Time Dependency Injection|JavaCompileTimeDependencyInjection]]. The components were created as interfaces that you should `implements` and they provide default implementations. There are components for all the types that could be injected when using [[Runtime Dependency Injection|JavaDependencyInjection]]. To create an application using Compile Time Dependency Injection, you just need to provide an implementation of `play.ApplicationLoader` that uses a custom implementation of `play.BuiltInComponents`, for example:
 
 ```java
 import play.routing.Router;

@@ -31,4 +31,4 @@ Then you can use `config.get` as we did above:
 
 ### Optional configuration keys
 
-Play's `Configuration` supports getting optional configuration keys using the `getOptional[A]` method. It works just like `get[A]` but will return `None` if the key does not exist. Instead of using this method, we recommend setting optional keys to `null` in your configuration file and using `get[Option[A]]`. But we provide this method for convenience in case you need to interface with libraries that use `Config` in a non-standard way.
+Play's `Configuration` supports getting optional configuration keys using the `getOptional[A]` method. It works just like `get[A]` but will return `None` if the key does not exist. Instead of using this method, we recommend setting optional keys to `null` in your configuration file and using `get[Option[A]]`. But we provide this method for convenience in case you need to interface with libraries that use configuration in a non-standard way.
