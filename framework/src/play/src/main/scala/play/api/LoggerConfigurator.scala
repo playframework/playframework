@@ -73,7 +73,7 @@ object LoggerConfigurator {
     val mutableMap = new scala.collection.mutable.HashMap[String, String]()
     mutableMap.put("application.home", env.rootPath.getAbsolutePath)
 
-    if (config.get[Boolean]("play.logger.includeConfigProperties")) {
+    if (config.getOptional[Boolean]("play.logger.includeConfigProperties").contains(true)) {
       val entrySet = config.underlying.entrySet.asScala
       for (entry <- entrySet) {
         val value = entry.getValue

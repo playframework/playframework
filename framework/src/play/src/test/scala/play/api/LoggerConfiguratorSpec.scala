@@ -80,6 +80,13 @@ class LoggerConfiguratorSpec extends Specification {
       properties must havePair("some.property" -> "BBB")
     }
 
+    "generate empty properties when configuration is empty" in {
+      val env = Environment.simple()
+      val config = Configuration.empty
+      val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
+      properties must size(1)
+    }
+
   }
 
 }
