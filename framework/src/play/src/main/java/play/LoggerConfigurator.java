@@ -13,6 +13,7 @@ import scala.compat.java8.OptionConverters;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional ;
 
@@ -43,6 +44,21 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
 
     /**
      * Configures the logger with the environment and the application configuration.
+     * <p>
+     * This is what full applications will run, and the place to put extra properties,
+     * either through optionalProperties or by setting configuration properties and
+     * having "play.logger.includeConfigProperties=true" in the config.
+     *
+     * @param env                the application environment
+     * @param configuration      the application's configuration
+     */
+    default void configure(Environment env, Config configuration) {
+        configure(env, configuration, Collections.emptyMap());
+    }
+
+    /**
+     * Configures the logger with the environment, the application configuration and
+     * additional properties.
      * <p>
      * This is what full applications will run, and the place to put extra properties,
      * either through optionalProperties or by setting configuration properties and
