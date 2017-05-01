@@ -102,6 +102,11 @@ object DevServerStart {
 
           override def current: Option[Application] = lastState.toOption
 
+          /**
+           * Returns a Try, which is either a Success with new application or Failure with exception.
+           * When a Failure is returned, the server handles it by returning an error page, so that the error
+           * can be displayed in the user's browser. Failure is usually the result of a compilation error.
+           */
           def get: Try[Application] = {
 
             synchronized {
