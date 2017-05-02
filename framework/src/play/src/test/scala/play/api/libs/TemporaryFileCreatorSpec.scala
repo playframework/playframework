@@ -99,7 +99,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       JFiles.exists(destination) must beTrue
     }
 
-    "move a file atomically without replacing" in new WithScope() {
+    "do not replace file when moving atomically with replace disabled" in new WithScope() {
       val lifecycle = new DefaultApplicationLifecycle
       val reaper = mock[TemporaryFileReaper]
       val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)

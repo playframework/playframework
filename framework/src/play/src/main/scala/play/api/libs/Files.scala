@@ -131,8 +131,9 @@ object Files {
     private def moveToWithOptions(to: Path, replace: Boolean, additionalOptions: CopyOption*) = {
       if (replace)
         JFiles.move(path, to, additionalOptions :+ StandardCopyOption.REPLACE_EXISTING: _*)
-      else
+      else if (!to.toFile.exists())
         JFiles.move(path, to, additionalOptions: _*)
+      else to
     }
   }
 
