@@ -108,10 +108,6 @@ object Reloader {
 
   def urls(cp: Classpath): Array[URL] = cp.map(_.toURI.toURL).toArray
 
-  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new NamedURLClassLoader(name, urls, parent)
-
-  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new DelegatedResourcesClassLoader(name, urls, parent)
-
   def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader = new AssetsClassLoader(parent, allAssets)
 
   def commonClassLoader(classpath: Classpath) = {
@@ -137,9 +133,8 @@ object Reloader {
    * @return A closeable that can be closed to stop the server
    */
   def startDevMode(runHooks: Seq[RunHook], javaOptions: Seq[String],
-    dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
-    reloadCompile: () => CompileResult, reloaderClassLoader: ClassLoaderCreator,
-    assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
+    commonClassLoader: ClassLoader, dependencyClasspath: Classpath,
+    reloadCompile: () => CompileResult, assetsClassLoader: ClassLoader => ClassLoader,
     monitoredFiles: Seq[File], fileWatchService: FileWatchService,
     generatedSourceHandlers: Map[String, GeneratedSourceMapping],
     defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
@@ -207,10 +202,10 @@ object Reloader {
       def get: ClassLoader = { reloader.getClassLoader.orNull }
     })
 
-    lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
+    lazy val applicationLoader = new NamedURLClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers)
+    lazy val reloader = new Reloader(reloadCompile, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -271,7 +266,6 @@ import Reloader._
 
 class Reloader(
     reloadCompile: () => CompileResult,
-    createClassLoader: ClassLoaderCreator,
     baseLoader: ClassLoader,
     val projectPath: File,
     devSettings: Seq[(String, String)],
@@ -346,7 +340,7 @@ class Reloader(
                 val version = classLoaderVersion.incrementAndGet
                 val name = "ReloadableClassLoader(v" + version + ")"
                 val urls = Reloader.urls(classpath)
-                val loader = createClassLoader(name, urls, baseLoader)
+                val loader = new DelegatedResourcesClassLoader(name, urls, baseLoader)
                 currentApplicationClassLoader = Some(loader)
                 loader
               } else {
