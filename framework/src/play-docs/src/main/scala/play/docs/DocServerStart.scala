@@ -22,7 +22,7 @@ import scala.util.Success
 class DocServerStart {
 
   def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
-    forceTranslationReport: Callable[File], port: java.lang.Integer): ServerWithStop = {
+    forceTranslationReport: Callable[File], port: java.lang.Integer): ReloadableServer = {
 
     val application: Application = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)

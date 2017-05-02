@@ -36,7 +36,7 @@ class FakeServerProcess(
 
 // A family of fake servers for us to test
 
-class FakeServer(context: ServerProvider.Context) extends Server with ServerWithStop {
+class FakeServer(context: ServerProvider.Context) extends Server with ReloadableServer {
   def config = context.config
   def applicationProvider = context.appProvider
   def mode = config.mode

@@ -32,7 +32,7 @@ object DevServerStart {
   def mainDevOnlyHttpsMode(
     buildLink: BuildLink,
     httpsPort: Int,
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String): ReloadableServer = {
     mainDev(buildLink, None, Some(httpsPort), httpAddress)
   }
 
@@ -45,7 +45,7 @@ object DevServerStart {
   def mainDevHttpMode(
     buildLink: BuildLink,
     httpPort: Int,
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String): ReloadableServer = {
     mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
   }
 
@@ -53,7 +53,7 @@ object DevServerStart {
     buildLink: BuildLink,
     httpPort: Option[Int],
     httpsPort: Option[Int],
-    httpAddress: String): ServerWithStop = {
+    httpAddress: String): ReloadableServer = {
     val classLoader = getClass.getClassLoader
     Threads.withContextClassLoader(classLoader) {
       try {
@@ -103,7 +103,10 @@ object DevServerStart {
           override def current: Option[Application] = lastState.toOption
 
           /**
-           * Returns a Try, which is either a Success with new application or Failure with exception.
+           * Calls the BuildLink to recompile the application if files have changed and constructs a new application
+           * using the new classloader. Returns the existing application if nothing has changed.
+           *
+           * @return a Try, which is either a Success containing the application or Failure with exception.
            * When a Failure is returned, the server handles it by returning an error page, so that the error
            * can be displayed in the user's browser. Failure is usually the result of a compilation error.
            */
