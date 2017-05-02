@@ -35,7 +35,7 @@ trait LoggerConfigurator {
    * @param configuration the application's configuration
    * @param optionalProperties any optional properties (you can use Map.empty otherwise)
    */
-  def configure(env: Environment, configuration: Configuration, optionalProperties: Map[String, String] = Map.empty): Unit
+  def configure(env: Environment, configuration: Configuration, optionalProperties: Map[String, String]): Unit
 
   /**
    * Configures the logger with a list of properties and an optional URL.
