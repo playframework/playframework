@@ -9,7 +9,7 @@ import java.util.concurrent.Callable
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ ValidationConfig, CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.PlayVersion
-import play.core.server.ServerWithStop
+import play.core.server.ReloadableServer
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.TemplateImports
 import play.sbt.Colors
@@ -230,8 +230,8 @@ object PlayDocsPlugin extends AutoPlugin {
       def call() = Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
     val docServerStart = constructor.newInstance()
-    val server: ServerWithStop = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
-      new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+    val server: ReloadableServer = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
+      new java.lang.Integer(port)).asInstanceOf[ReloadableServer]
 
     println()
     println(Colors.green("Documentation server started, you can now view the docs by going to http://" + server.mainAddress()))

@@ -30,7 +30,7 @@ object ProdServerStart {
    * @param process The process (real or abstract) to use for starting the
    * server.
    */
-  def start(process: ServerProcess): ServerWithStop = {
+  def start(process: ServerProcess): ReloadableServer = {
     try {
 
       // Read settings

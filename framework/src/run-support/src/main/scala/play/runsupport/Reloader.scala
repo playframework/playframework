@@ -220,10 +220,10 @@ object Reloader {
         val mainClass = applicationLoader.loadClass(mainClassName)
         if (httpPort.isDefined) {
           val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev.invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ServerWithStop]
+          mainDev.invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ReloadableServer]
         } else {
           val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev.invoke(null, reloader, httpsPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ServerWithStop]
+          mainDev.invoke(null, reloader, httpsPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ReloadableServer]
         }
       }
 

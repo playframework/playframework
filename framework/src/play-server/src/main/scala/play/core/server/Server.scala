@@ -28,7 +28,7 @@ trait WebSocketable {
 /**
  * Provides generic server behaviour for Play applications.
  */
-trait Server extends ServerWithStop {
+trait Server extends ReloadableServer {
 
   def mode: Mode
 
@@ -82,7 +82,9 @@ trait Server extends ServerWithStop {
 
   def applicationProvider: ApplicationProvider
 
-  def stop() {
+  def reload(): Unit = applicationProvider.get
+
+  def stop(): Unit = {
     applicationProvider.current.foreach { app =>
       LoggerConfigurator(app.classloader).foreach(_.shutdown())
     }
