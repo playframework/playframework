@@ -21,7 +21,7 @@ class ScalaResultsSpec extends PlaySpecification {
   }
 
   def cookies(result: Result)(implicit app: Application): Seq[Cookie] = {
-    Cookies.decodeSetCookieHeader(bake(result).header.headers("Set-Cookie"))
+    cookieHeaderEncoding.decodeSetCookieHeader(bake(result).header.headers("Set-Cookie"))
   }
 
   "support session helper" in withApplication() { implicit app =>
@@ -42,7 +42,7 @@ class ScalaResultsSpec extends PlaySpecification {
         .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
     }
 
-    val setCookies = Cookies.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
+    val setCookies = cookieHeaderEncoding.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
     setCookies.size must be_==(5)
     setCookies("session").value must be_==("items2")
     setCookies("preferences").value must be_==("blue")
@@ -51,6 +51,10 @@ class ScalaResultsSpec extends PlaySpecification {
     setCookies("logged").maxAge must beSome(Cookie.DiscardedMaxAge)
     val playSession = sessionBaker.decodeFromCookie(setCookies.get(sessionBaker.COOKIE_NAME))
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
+  }
+
+  "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) { implicit app =>
+    Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(beNull) // we are interested just that it executes without global state
   }
 
   "support a custom application context" in {
