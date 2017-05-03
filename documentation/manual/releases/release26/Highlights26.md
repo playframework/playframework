@@ -319,10 +319,10 @@ In the past, putting together a form in Play has required [multiple steps](https
 
 In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
 
-The [`MessagesAction`](api/scala/play/api/mvc/MessagesAction.html) has been added.  This action exposes a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates, and you don't need to extend `Controller` with `I18nSupport`.  This is also useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.
+The [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) has been added.  This action builder provides a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates, and you don't need to extend `Controller` with `I18nSupport`.  This is also useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.
 
 ```scala
-class FormController @Inject()(messagesAction: MessagesAction, components: ControllerComponents)
+class FormController @Inject()(messagesAction: MessagesActionBuilder, components: ControllerComponents)
   extends AbstractController(components) {
 
   import play.api.data.Form
@@ -357,7 +357,7 @@ where `displayForm.scala.html` is defined as:
 }
 ```
 
-For more information, please see [[ScalaI18N]] or [[JavaI18N]].
+For more information, please see [[ScalaI18N]].
 
 ## Future Timeout and Delayed Support
 
