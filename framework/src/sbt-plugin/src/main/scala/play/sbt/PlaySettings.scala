@@ -125,10 +125,6 @@ object PlaySettings {
 
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
 
-    playDependencyClassLoader := PlayRun.createURLClassLoader,
-
-    playReloaderClassLoader := PlayRun.createDelegatedResourcesClassLoader,
-
     playCompileEverything := PlayCommands.playCompileEverythingTask.value,
 
     playReload := PlayCommands.playReloadTask.value,
