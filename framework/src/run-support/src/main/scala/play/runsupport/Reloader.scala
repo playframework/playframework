@@ -6,6 +6,9 @@ package play.runsupport
 import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
 import java.security.{ AccessController, PrivilegedAction }
+import java.time.Instant
+import java.util.{ Timer, TimerTask }
+import java.util.concurrent.atomic.AtomicReference
 import java.util.jar.JarFile
 
 import play.api.PlayException
@@ -13,22 +16,20 @@ import play.core.{ Build, BuildLink }
 import play.dev.filewatch.{ FileWatchService, SourceModificationWatch, WatchState }
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
 
+import scala.collection.JavaConverters._
 import better.files.{ File => _, _ }
 
 object Reloader {
 
   sealed trait CompileResult
-  case class CompileSuccess(sources: SourceMap, classpath: Classpath) extends CompileResult
+  case class CompileSuccess(sources: Map[String, Source], classpath: Seq[File]) extends CompileResult
   case class CompileFailure(exception: PlayException) extends CompileResult
 
   trait GeneratedSourceMapping {
     def getOriginalLine(generatedSource: File, line: Integer): Integer
   }
 
-  type SourceMap = Map[String, Source]
   case class Source(file: File, original: Option[File])
-
-  type Classpath = Seq[File]
 
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
@@ -106,11 +107,11 @@ object Reloader {
     (properties, httpPort, httpsPort, httpAddress)
   }
 
-  def urls(cp: Classpath): Array[URL] = cp.map(_.toURI.toURL).toArray
+  def urls(cp: Seq[File]): Array[URL] = cp.map(_.toURI.toURL).toArray
 
   def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader = new AssetsClassLoader(parent, allAssets)
 
-  def commonClassLoader(classpath: Classpath) = {
+  def commonClassLoader(classpath: Seq[File]) = {
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -121,25 +122,36 @@ object Reloader {
   }
 
   /**
-   * Play dev server
+   * Dev server
    */
-  trait PlayDevServer extends Closeable {
+  trait DevServer extends Closeable {
     val buildLink: BuildLink
+
+    /** Allows to register a listener that will be triggered a monitored file is changed. */
+    def addChangeListener(f: () => Unit): Unit
+
+    /** Reloads the application.*/
+    def reload(): Unit
+
+    /** URL at which the application is running (if started) */
+    def url(): String
   }
 
   /**
-   * Start the Play server in dev mode
+   * Start the server in dev mode
    *
    * @return A closeable that can be closed to stop the server
    */
-  def startDevMode(runHooks: Seq[RunHook], javaOptions: Seq[String],
-    commonClassLoader: ClassLoader, dependencyClasspath: Classpath,
+  def startDevMode(
+    runHooks: Seq[RunHook], javaOptions: Seq[String],
+    commonClassLoader: ClassLoader, dependencyClasspath: Seq[File],
     reloadCompile: () => CompileResult, assetsClassLoader: ClassLoader => ClassLoader,
     monitoredFiles: Seq[File], fileWatchService: FileWatchService,
     generatedSourceHandlers: Map[String, GeneratedSourceMapping],
     defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
-    mainClassName: String): PlayDevServer = {
+    mainClassName: String, reloadLock: AnyRef
+  ): DevServer = {
 
     val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val systemProperties = extractSystemProperties(javaOptions)
@@ -154,11 +166,11 @@ object Reloader {
     println()
 
     /*
-     * We need to do a bit of classloader magic to run the Play application.
+     * We need to do a bit of classloader magic to run the application.
      *
      * There are six classloaders:
      *
-     * 1. buildLoader, the classloader of sbt and the Play sbt plugin.
+     * 1. buildLoader, the classloader of sbt and the sbt plugin.
      * 2. commonLoader, a classloader that persists across calls to run.
      *    This classloader is stored inside the
      *    PlayInternalKeys.playCommonClassloader task. This classloader will
@@ -202,10 +214,10 @@ object Reloader {
       def get: ClassLoader = { reloader.getClassLoader.orNull }
     })
 
-    lazy val applicationLoader = new NamedURLClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
+    lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers)
+    lazy val reloader = new Reloader(reloadCompile, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers, reloadLock)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -225,10 +237,11 @@ object Reloader {
       // Notify hooks
       runHooks.run(_.afterStarted(server.mainAddress))
 
-      new PlayDevServer {
+      new DevServer {
         val buildLink = reloader
-
-        def close() = {
+        def addChangeListener(f: () => Unit): Unit = reloader.addChangeListener(f)
+        def reload(): Unit = server.reload()
+        def close(): Unit = {
           server.stop()
           reloader.close()
 
@@ -240,6 +253,7 @@ object Reloader {
             case (key, _) => System.clearProperty(key)
           }
         }
+        def url(): String = server.mainAddress().getHostName + ":" + server.mainAddress().getPort
       }
     } catch {
       case e: Throwable =>
@@ -260,6 +274,56 @@ object Reloader {
     }
   }
 
+  /**
+   * Start the server without hot reloading
+   */
+  def startNoReload(parentClassLoader: ClassLoader, dependencyClasspath: Seq[File], buildProjectPath: File,
+    devSettings: Seq[(String, String)], httpPort: Int, mainClassName: String): DevServer = {
+    val buildLoader = this.getClass.getClassLoader
+
+    lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
+      parentClassLoader,
+      Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
+      def get: ClassLoader = { applicationLoader }
+    })
+
+    lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath),
+      delegatingLoader)
+
+    val _buildLink = new BuildLink {
+      private val initialized = new java.util.concurrent.atomic.AtomicBoolean(false)
+      override def reload(): AnyRef = {
+        if (initialized.compareAndSet(false, true)) applicationLoader
+        else null // this means nothing to reload
+      }
+      override def projectPath(): File = buildProjectPath
+      override def settings(): java.util.Map[String, String] = devSettings.toMap.asJava
+      override def forceReload(): Unit = ()
+      override def findSource(className: String, line: Integer): Array[AnyRef] = null
+    }
+
+    val mainClass = applicationLoader.loadClass(mainClassName)
+    val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int])
+    val server = mainDev.invoke(null, _buildLink, httpPort: java.lang.Integer).asInstanceOf[play.core.server.ReloadableServer]
+
+    server.reload() // it's important to initialize the server
+
+    new Reloader.DevServer {
+      val buildLink: BuildLink = _buildLink
+
+      /** Allows to register a listener that will be triggered a monitored file is changed. */
+      def addChangeListener(f: () => Unit): Unit = ()
+
+      /** Reloads the application.*/
+      def reload(): Unit = ()
+
+      /** URL at which the application is running (if started) */
+      def url(): String = server.mainAddress().getHostName + ":" + server.mainAddress().getPort
+
+      def close(): Unit = server.stop()
+    }
+  }
+
 }
 
 import Reloader._
@@ -271,7 +335,8 @@ class Reloader(
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
-    generatedSourceHandlers: Map[String, GeneratedSourceMapping]) extends BuildLink {
+    generatedSourceHandlers: Map[String, GeneratedSourceMapping],
+    reloadLock: AnyRef) extends BuildLink {
 
   // The current classloader for the application
   @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
@@ -282,16 +347,44 @@ class Reloader(
   // Whether any source files have changed since the last request.
   @volatile private var changed = false
   // The last successful compile results. Used for rendering nice errors.
-  @volatile private var currentSourceMap = Option.empty[SourceMap]
+  @volatile private var currentSourceMap = Option.empty[Map[String, Source]]
   // Last time the classpath was modified in millis. Used to determine whether anything on the classpath has
   // changed as a result of compilation, and therefore a new classloader is needed and the app needs to be reloaded.
   @volatile private var lastModified: Long = 0L
+
+  // Stores the most recent time that a file was changed
+  private val fileLastChanged = new AtomicReference[Instant]()
 
   // Create the watcher, updates the changed boolean when a file has changed.
   private val watcher = fileWatchService.watch(monitoredFiles, () => {
     changed = true
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
+
+  private val quietTimeTimer = new Timer("reloader-timer", true)
+
+  private val listeners = new java.util.concurrent.CopyOnWriteArrayList[() => Unit]()
+
+  private val quietPeriodMs: Long = 200L
+  private def onChange(): Unit = {
+    val now = Instant.now()
+    fileLastChanged.set(now)
+    // set timer task
+    quietTimeTimer.schedule(new TimerTask {
+      override def run(): Unit = quietPeriodFinished(now)
+    }, quietPeriodMs)
+  }
+
+  private def quietPeriodFinished(start: Instant): Unit = {
+    // If our start time is equal to the most recent start time stored, then execute the handlers and set the most
+    // recent time to null, otherwise don't do anything.
+    if (fileLastChanged.compareAndSet(start, null)) {
+      import scala.collection.JavaConverters._
+      listeners.iterator().asScala.foreach(listener => listener())
+    }
+  }
+
+  def addChangeListener(f: () => Unit): Unit = listeners.add(f)
 
   /**
    * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
@@ -306,7 +399,7 @@ class Reloader(
    * - null - If nothing changed.
    */
   def reload: AnyRef = {
-    Reloader.synchronized {
+    reloadLock.synchronized {
       if (changed || forceReloadNextTime || currentSourceMap.isEmpty || currentApplicationClassLoader.isEmpty) {
 
         val shouldReload = forceReloadNextTime
@@ -388,6 +481,7 @@ class Reloader(
     currentApplicationClassLoader = None
     currentSourceMap = None
     watcher.stop()
+    quietTimeTimer.cancel()
   }
 
   def getClassLoader = currentApplicationClassLoader

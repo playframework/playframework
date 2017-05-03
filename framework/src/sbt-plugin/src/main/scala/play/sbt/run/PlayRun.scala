@@ -89,7 +89,8 @@ object PlayRun {
       baseDirectory.value,
       devSettings.value,
       args,
-      (mainClass in (Compile, Keys.run)).value.get
+      (mainClass in (Compile, Keys.run)).value.get,
+      PlayRun
     )
 
     interaction match {
