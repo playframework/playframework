@@ -867,7 +867,7 @@ or by replacing `EnabledFilters`:
 play.http.filters=play.api.http.NoHttpFilters
 ```
 
-If you are writing functional tests involving `GuiceApplicationBuilder` and the AllowedHostsFilter is interfering with tests and causing `400` status errors, then you can disable it using `configure`:
+If you are writing functional tests involving `GuiceApplicationBuilder` and you want to disable default filters, then you can disable all or some of the filters through configuration by using `configure`:
 
 ```scala
 GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters")
