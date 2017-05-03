@@ -567,7 +567,7 @@ class MessagesController @Inject()(cc: ControllerComponents)
 
 //#messages-request-controller
 // Example form that uses a MessagesRequest, which is also a MessagesProvider
-class FormController @Inject()(messagesAction: MessagesAction, components: ControllerComponents)
+class FormController @Inject()(messagesAction: MessagesActionBuilder, components: ControllerComponents)
   extends AbstractController(components) {
 
   import play.api.data.Form
