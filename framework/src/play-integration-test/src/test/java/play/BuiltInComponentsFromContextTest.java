@@ -31,7 +31,7 @@ public class BuiltInComponentsFromContextTest {
 
         @Override
         public Router router() {
-            return new RoutingDsl(defaultScalaParser(), javaContextComponents())
+            return new RoutingDsl(defaultScalaBodyParser(), javaContextComponents())
                     .GET("/").routeTo(() -> Results.ok("index"))
                     .build();
         }

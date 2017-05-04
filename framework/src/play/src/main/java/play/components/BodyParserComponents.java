@@ -18,7 +18,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
         AkkaComponents,
         TemporaryFileComponents {
 
-    default PlayBodyParsers scalaParsers() {
+    default PlayBodyParsers scalaBodyParsers() {
         return PlayBodyParsers$.MODULE$.apply(
                 httpConfiguration().parser(),
                 scalaHttpErrorHandler(),
@@ -27,8 +27,8 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
         );
     }
 
-    default play.api.mvc.BodyParser<AnyContent> defaultScalaParser() {
-        return scalaParsers().defaultBodyParser();
+    default play.api.mvc.BodyParser<AnyContent> defaultScalaBodyParser() {
+        return scalaBodyParsers().defaultBodyParser();
     }
 
     /**
@@ -36,11 +36,11 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Default
      */
-    default BodyParser.Default defaultParser() {
+    default BodyParser.Default defaultBodyParser() {
         return new BodyParser.Default(
                 httpErrorHandler(),
                 httpConfiguration(),
-                scalaParsers()
+                scalaBodyParsers()
         );
     }
 
@@ -49,11 +49,11 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.AnyContent
      */
-    default BodyParser.AnyContent anyContentParser() {
+    default BodyParser.AnyContent anyContentBodyParser() {
         return new BodyParser.AnyContent(
                 httpErrorHandler(),
                 httpConfiguration(),
-                scalaParsers()
+                scalaBodyParsers()
         );
     }
 
@@ -62,7 +62,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Json
      */
-    default BodyParser.Json jsonParser() {
+    default BodyParser.Json jsonBodyParser() {
         return new BodyParser.Json(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -74,7 +74,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.TolerantJson
      */
-    default BodyParser.TolerantJson tolerantJsonParser() {
+    default BodyParser.TolerantJson tolerantJsonBodyParser() {
         return new BodyParser.TolerantJson(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -86,11 +86,11 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Xml
      */
-    default BodyParser.Xml xmlParser() {
+    default BodyParser.Xml xmlBodyParser() {
         return new BodyParser.Xml(
                 httpConfiguration(),
                 httpErrorHandler(),
-                scalaParsers()
+                scalaBodyParsers()
         );
     }
 
@@ -99,7 +99,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.TolerantXml
      */
-    default BodyParser.TolerantXml tolerantXmlParser() {
+    default BodyParser.TolerantXml tolerantXmlBodyParser() {
         return new BodyParser.TolerantXml(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -111,7 +111,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Text
      */
-    default BodyParser.Text textParser() {
+    default BodyParser.Text textBodyParser() {
         return new BodyParser.Text(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -123,7 +123,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.TolerantText
      */
-    default BodyParser.TolerantText tolerantTextParser() {
+    default BodyParser.TolerantText tolerantTextBodyParser() {
         return new BodyParser.TolerantText(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -135,7 +135,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Bytes
      */
-    default BodyParser.Bytes bytesParser() {
+    default BodyParser.Bytes bytesBodyParser() {
         return new BodyParser.Bytes(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -147,8 +147,8 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Raw
      */
-    default BodyParser.Raw rawParser() {
-        return new BodyParser.Raw(scalaParsers());
+    default BodyParser.Raw rawBodyParser() {
+        return new BodyParser.Raw(scalaBodyParsers());
     }
 
     /**
@@ -156,7 +156,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.FormUrlEncoded
      */
-    default BodyParser.FormUrlEncoded formUrlEncodedParser() {
+    default BodyParser.FormUrlEncoded formUrlEncodedBodyParser() {
         return new BodyParser.FormUrlEncoded(
                 httpConfiguration(),
                 httpErrorHandler()
@@ -168,8 +168,8 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.MultipartFormData
      */
-    default BodyParser.MultipartFormData multipartFormDataParser() {
-        return new BodyParser.MultipartFormData(scalaParsers());
+    default BodyParser.MultipartFormData multipartFormDataBodyParser() {
+        return new BodyParser.MultipartFormData(scalaBodyParsers());
     }
 
     /**
@@ -177,7 +177,7 @@ public interface BodyParserComponents extends HttpErrorHandlerComponents,
      *
      * @see BodyParser.Empty
      */
-    default BodyParser.Empty emptyParser() {
+    default BodyParser.Empty emptyBodyParser() {
         return new BodyParser.Empty();
     }
 }
