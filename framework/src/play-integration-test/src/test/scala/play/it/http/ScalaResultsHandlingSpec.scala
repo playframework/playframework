@@ -29,7 +29,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
   sequential
 
-  "scala body handling" should {
+  "scala result handling" should {
 
     def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
       val response = Try(await(wsUrl("/").get()))
@@ -53,6 +53,11 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
     "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(DATE) must beSome
+    }
+
+    "work with non-standard HTTP response codes" in makeRequest(Result(ResponseHeader(498), HttpEntity.NoEntity)) { response =>
+      response.status must_== 498
+      response.body must beEmpty
     }
 
     "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
