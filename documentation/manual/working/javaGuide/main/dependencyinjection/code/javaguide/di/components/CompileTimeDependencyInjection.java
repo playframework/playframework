@@ -56,7 +56,10 @@ public class CompileTimeDependencyInjection {
 
             LoggerConfigurator.apply(context.environment().classLoader())
                 .ifPresent(loggerConfigurator ->
-                        loggerConfigurator.configure(context.environment().asScala())
+                    loggerConfigurator.configure(
+                        context.environment(),
+                        context.initialConfig()
+                    )
                 );
 
             return new MyComponents(context).application();

@@ -65,7 +65,7 @@ class MyComponents(context: Context)
 class MyApplicationLoaderWithInitialization extends ApplicationLoader {
   def load(context: Context) = {
     LoggerConfigurator(context.environment.classLoader).foreach {
-      _.configure(context.environment)
+      _.configure(context.environment, context.initialConfiguration, Map.empty)
     }
     new MyComponents(context).application
   }
