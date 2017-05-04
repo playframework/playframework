@@ -120,7 +120,8 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
     config.get[Option[String]]("poolName").foreach(hikariConfig.setPoolName)
 
     // Infrequently used
-    hikariConfig.setInitializationFailFast(config.get[Boolean]("initializationFailFast"))
+    // Use getOptional here so the runtime warning is only triggered if it is not null
+    config.getOptional[Boolean]("initializationFailFast").foreach(hikariConfig.setInitializationFailFast)
     hikariConfig.setInitializationFailTimeout(config.get[Long]("initializationFailTimeout"))
     hikariConfig.setIsolateInternalQueries(config.get[Boolean]("isolateInternalQueries"))
     hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))
