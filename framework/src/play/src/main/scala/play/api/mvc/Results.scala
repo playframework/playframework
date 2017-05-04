@@ -277,7 +277,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     requestHasFlash: Boolean = false): Result = {
 
     val allCookies = {
-      val setCookieCookies = Cookies.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
+      val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
       val session = newSession.map { data =>
         if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
       }
@@ -292,7 +292,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     if (allCookies.isEmpty) {
       this
     } else {
-      withHeaders(SET_COOKIE -> Cookies.encodeSetCookieHeader(allCookies))
+      withHeaders(SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
     }
   }
 }
