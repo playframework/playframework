@@ -15,7 +15,7 @@ Update the Play version number in project/plugins.sbt to upgrade Play:
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.x")
 ```
 
-Where the "x" in `2.6.x` is the minor version of Play you want to use, per instance `2.6.0`.
+Where the "x" in `2.6.x` is the minor version of Play you want to use, for instance `2.6.0`.
 
 ### sbt upgrade to 0.13.15
 
@@ -315,6 +315,29 @@ See [[Cache APIs Migration|CacheMigration26]].
 ## Java Configuration API Migration Notes
 
 See [[Java Configuration Migration|JavaConfigMigration26]].
+
+## Scala Configuration API
+
+The Scala `play.api.Configuration` API now has new methods that allow loading any type using a `ConfigLoader`. These new methods expect configuration keys to exist in the configuration file. For example, the following old code:
+
+```scala
+val myConfig: String = configuration.getString("my.config.key").getOrElse("default")
+```
+should be changed to
+```scala
+val myConfig: String = configuration.get[String]("my.config.key")
+```
+and the value "default" should be set in configuration as `my.config.key = default`.
+
+Alternatively, if custom logic is required in the code to obtain the default value, you can set the default to null in your config file (`my.config.key = null`), and read an `Option[T]`:
+```scala
+val myConfigOption: Option[String] = configuration.get[Option[String]]("my.config.key")
+val myConfig: String = myConfigOption.getOrElse(computeDefaultValue())
+```
+
+Also, there are several methods in the old `Configuration` that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
+
+The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of `play.api.Configuration`.
 
 ## Removed APIs
 
