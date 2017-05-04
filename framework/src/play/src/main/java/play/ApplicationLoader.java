@@ -81,7 +81,8 @@ public interface ApplicationLoader {
                     environment.asScala(),
                     scala.Option.empty(),
                     new play.core.DefaultWebCommands(),
-                    play.api.Configuration.load(environment.asScala(), play.libs.Scala.asScala(initialSettings)),
+                    play.api.Configuration.load(environment.asScala(),
+                    play.libs.Scala.asScala(initialSettings)),
                     new DefaultApplicationLifecycle());
         }
 

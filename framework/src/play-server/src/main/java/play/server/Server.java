@@ -4,7 +4,7 @@
 package play.server;
 
 import play.Mode;
-import play.api.BuiltInComponents;
+import play.BuiltInComponents;
 import play.routing.Router;
 import play.core.j.JavaModeConverter;
 import play.core.server.JavaServerHelper;
@@ -303,10 +303,10 @@ public class Server {
             Server.Config config = _buildConfig();
             return new Server(
                     JavaServerHelper.forRouter(
-                            JavaModeConverter.asScalaMode(config.mode()),
-                            OptionConverters.toScala(config.maybeHttpPort()),
-                            OptionConverters.toScala(config.maybeHttpsPort()),
-                            (components) -> block.apply(components).asScala()
+                        JavaModeConverter.asScalaMode(config.mode()),
+                        OptionConverters.toScala(config.maybeHttpPort()),
+                        OptionConverters.toScala(config.maybeHttpsPort()),
+                        block
                     )
             );
         }

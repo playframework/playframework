@@ -23,15 +23,17 @@ import javax.inject.Provider;
 /**
  * Helper to provide the Play built in components.
  */
-public interface BuiltInComponents extends BaseComponents,
-        ApplicationComponents,
+public interface BuiltInComponents extends
         AkkaComponents,
+        ApplicationComponents,
+        BaseComponents,
+        BodyParserComponents,
         ConfigurationComponents,
+        CryptoComponents,
+        FileMimeTypesComponents,
         HttpComponents,
         HttpErrorHandlerComponents,
-        FileMimeTypesComponents,
         I18nComponents,
-        CryptoComponents,
         TemporaryFileComponents {
 
     @Override
