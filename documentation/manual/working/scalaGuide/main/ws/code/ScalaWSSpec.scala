@@ -500,7 +500,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       //#async-result
     }
 
-    "allow timeout" in new WithServer() with Injecting {
+    "allow timeout across futures" in new WithServer() with Injecting {
+      val url2 = url
       //#ws-futures-timeout
       implicit val futures = inject[Futures]
       val ws = inject[WSClient]
@@ -508,9 +509,12 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       // Adds withTimeout as type enrichment on Future[WSResponse]
       import play.api.libs.concurrent.Futures._
 
-      val result =
-        ws.url(url).get().withTimeout(1 second).map { response =>
-          Ok(response.body)
+      val result: Future[Result] =
+        ws.url(url).get().withTimeout(1 second).flatMap { response =>
+          // val url2 = response.json \ "url"
+          ws.url(url2).get().map { response2 =>
+            Ok(response.body)
+          }
         }.recover {
           case e: scala.concurrent.TimeoutException =>
             GatewayTimeout
