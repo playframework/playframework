@@ -359,6 +359,19 @@ where `displayForm.scala.html` is defined as:
 
 For more information, please see [[ScalaI18N]].
 
+### Testing Support
+
+Support for creating `MessagesApi` instances has been improved.  Now, when you want to create a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance, you can create [`DefaultMessagesApi()`](api/scala/play/api/i18n/DefaultMessagesApi.html) or [`DefaultLangs()`](api/scala/play/api/i18n/DefaultLangs.html) with default arguments.  If you want to specify test messages from configuration or from another source, you can pass in those values:
+
+```scala
+val messagesApi: MessagesApi = {
+    val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+    val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
+    val langs = new DefaultLangsProvider(config).get
+    new DefaultMessagesApi(testMessages, langs)
+  }
+```
+
 ## Future Timeout and Delayed Support
 
 Play's support for futures in asynchronous operations has been improved, using the `Futures` trait.
