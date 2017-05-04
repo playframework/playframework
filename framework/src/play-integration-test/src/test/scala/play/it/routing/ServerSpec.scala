@@ -68,7 +68,7 @@ class ServerSpec extends Specification with BeforeAll {
       "with the given router" in {
         withServer(
           Server.forRouter(JavaMode.DEV, asJavaFunction { components: JBuiltInComponents =>
-            new RoutingDsl(components.defaultScalaParser(), components.javaContextComponents)
+            RoutingDsl.fromComponents(components)
               .GET("/something").routeTo(
                 new Supplier[Result] {
                   override def get() = Results.ok("You got something")
