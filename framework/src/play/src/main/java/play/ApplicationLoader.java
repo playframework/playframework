@@ -34,6 +34,16 @@ import scala.compat.java8.OptionConverters;
  */
 public interface ApplicationLoader {
 
+    static ApplicationLoader apply(Context context) {
+        final play.api.ApplicationLoader loader = play.api.ApplicationLoader$.MODULE$.apply(context.asScala());
+        return new ApplicationLoader() {
+            @Override
+            public Application load(Context context) {
+                return loader.load(context.asScala()).asJava();
+            }
+        };
+    }
+
     /**
      * Load an application given the context.
      *

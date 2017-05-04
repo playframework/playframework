@@ -85,7 +85,7 @@ object ApplicationLoader {
           override def load(context: ApplicationLoader.Context): Application = {
             val javaContext = new play.ApplicationLoader.Context(context)
             val javaApplication = javaApplicationLoader.load(javaContext)
-            javaApplication.getWrappedApplication
+            javaApplication.asScala()
           }
         }
         new JavaApplicationLoaderAdapter
