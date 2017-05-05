@@ -51,11 +51,7 @@ public final class Files {
 
         TemporaryFile moveTo(File to, boolean replace);
 
-        default TemporaryFile atomicMoveWithFallback(File to) {
-            return atomicMoveWithFallback(to, false);
-        }
-
-        TemporaryFile atomicMoveWithFallback(File to, boolean replace);
+        TemporaryFile atomicMoveWithFallback(File to);
     }
 
     /**
@@ -131,8 +127,8 @@ public final class Files {
         }
 
         @Override
-        public TemporaryFile atomicMoveWithFallback(File to, boolean replace) {
-            return new DelegateTemporaryFile(temporaryFile.atomicMoveWithFallback(to.toPath(), replace), this.temporaryFileCreator);
+        public TemporaryFile atomicMoveWithFallback(File to) {
+            return new DelegateTemporaryFile(temporaryFile.atomicMoveWithFallback(to.toPath()), this.temporaryFileCreator);
         }
     }
 
