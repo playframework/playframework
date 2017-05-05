@@ -5,10 +5,8 @@ package play.api.libs
 
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.{ FileSystems, Path, StandardWatchEventKinds, WatchEvent, Files => JFiles }
+import java.nio.file.{ Path, Files => JFiles }
 
-import akka.actor.ActorSystem
-import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ After, Specification }
 import org.specs2.specification.Scope
@@ -22,7 +20,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
 
   sequential
 
-  val utf8 = Charset.forName("UTF8")
+  val utf8: Charset = Charset.forName("UTF8")
 
   "DefaultTemporaryFileCreator" should {
 
@@ -82,6 +80,21 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
 
       val to = creator.create(file).moveTo(destination, replace = false)
       new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+    }
+
+    "move a file atomically with replace enabled" in new WithScope() {
+      val lifecycle = new DefaultApplicationLifecycle
+      val reaper = mock[TemporaryFileReaper]
+      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+      val file = parentDirectory.resolve("move.txt")
+      writeFile(file, "file to be moved")
+
+      val destination = parentDirectory.resolve("destination.txt")
+      creator.create(file).atomicMoveWithFallback(destination)
+
+      JFiles.exists(file) must beFalse
+      JFiles.exists(destination) must beTrue
     }
 
     "works when using compile time dependency injection" in {
