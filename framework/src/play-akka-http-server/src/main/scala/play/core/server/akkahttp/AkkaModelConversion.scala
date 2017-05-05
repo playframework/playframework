@@ -13,7 +13,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Logger
-import play.api.http.{ HttpChunk, HttpErrorHandler, Status, HttpEntity => PlayHttpEntity }
+import play.api.http.{ HttpChunk, HttpErrorHandler, HttpEntity => PlayHttpEntity }
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
@@ -43,7 +43,7 @@ private[server] class AkkaModelConversion(
       convertRequestBody(request)
     )
 
-    //    // FIXME this is if you want to try out avoiding conversion 
+    //    // FIXME this is if you want to try out avoiding conversion
     //    (
     //      new RequestHeaderImpl(
     //        forwardedHeaderHandler.forwardedConnection(
@@ -179,8 +179,17 @@ private[server] class AkkaModelConversion(
       resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
         val convertedHeaders = convertHeaders(validated.header.headers)
         val entity = convertResultBody(requestHeaders, validated, protocol)
+        val intStatus = validated.header.status
+        val statusCode = StatusCodes.getForKey(intStatus).getOrElse {
+          val reasonPhrase = validated.header.reasonPhrase.getOrElse("")
+          if (intStatus >= 600 || intStatus < 100) {
+            StatusCodes.custom(intStatus, reasonPhrase, defaultMessage = "", isSuccess = false, allowsEntity = true)
+          } else {
+            StatusCodes.custom(intStatus, reasonPhrase)
+          }
+        }
         val response = HttpResponse(
-          status = validated.header.status,
+          status = statusCode,
           headers = convertedHeaders,
           entity = entity,
           protocol = protocol
@@ -190,7 +199,7 @@ private[server] class AkkaModelConversion(
     } {
       // Fallback response in case an exception is thrown during normal error handling
       HttpResponse(
-        status = Status.INTERNAL_SERVER_ERROR,
+        status = StatusCodes.InternalServerError,
         headers = immutable.Seq(Connection("close")),
         entity = HttpEntity.Empty,
         protocol = protocol
