@@ -2,8 +2,6 @@
 
 There are a number of changes to the I18N API to make working with messages and languages easier to use, particularly with forms and templates.
 
-> **If you are seeing an error message like `could not find implicit value for parameter messages: play.api.i18n.Messages` then you need to explicitly add the request as an implicit.  See [More Correct I18nSupport](#More-Correct-I18nSupport).**
-
 ## Java API
 
 ### Refactored Messages API to interfaces
@@ -24,9 +22,23 @@ The static deprecated methods in [`play.i18n.Messages`](api/java/play/i18n/Messa
 
 [`Messages`](api/scala/play/api/i18n/Messages.html) is now a trait (rather than a case class).  The case class is now [`MessagesImpl`](api/scala/play/api/i18n/MessagesImpl.html), which implements [`Messages`](api/scala/play/api/i18n/Messages.html).
 
-### More Correct I18nSupport
+### I18nSupport Implicit Conversion
 
-The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) implicits will no longer assume a default locale or language if the request is not found, and now requires an implicit request or request header in the action in order to correctly determine the preferred locale and language for the request.
+If you are upgrading directly from Play 2.4 to Play 2.5, you should know that `I18nSupport` support changed in 2.5.x.  In 2.5.x, it was possible through a series of implicits to use a "language default" `Messages` instance if the request was not declared to be in implicit scope:
+
+```scala
+  def listWidgets = Action {
+    val lang = implicitly[Lang] // Uses Lang.defaultLang
+    val messages = implicitly[Messages] // Uses I18NSupport.lang2messages
+    // implicit parameter messages: Messages in requiresMessages template, but no request!
+    val content = views.html.requiresMessages(form)
+    Ok(content)
+  }
+```
+
+The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) implicit conversion now requires an implicit request or request header in scope in order to correctly determine the preferred locale and language for the request.
+
+> **If you are seeing an error message like `could not find implicit value for parameter messages: play.api.i18n.Messages` then you need to explicitly add the request as an implicit.**
 
 This means if you have the following:
 
@@ -108,7 +120,7 @@ All the template helpers now take [`MessagesProvider`](api/scala/play/api/i18n/M
 
 The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is that otherwise, if you used implicit `Messages`, you would have to introduce implicit conversions from other types like `Request` in places where those implicits could be confusing.
 
-To assist, there's [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`Request`](api/scala/play/api/mvc/Request.html) that implements [`MessagesProvider`](api/scala/play/api/mvc/MessagesProvider.html) and provides the preferred language.
+To assist, there's [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that implements [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) and provides the preferred language.
 
 You can access a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html) by using a [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html):
 
@@ -125,7 +137,7 @@ class MyController @Inject()(
 
 ```
 
-Or you can even replace the default `Action` with `MessagesActionBuilder` by swapping out the components:
+Or you can even replace the default `Action` with [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) by swapping out the components:
 
 ```scala
 
