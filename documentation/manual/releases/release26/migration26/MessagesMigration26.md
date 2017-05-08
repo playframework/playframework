@@ -2,6 +2,8 @@
 
 There are a number of changes to the I18N API to make working with messages and languages easier to use, particularly with forms and templates.
 
+> **If you are seeing an error message like `could not find implicit value for parameter messages: play.api.i18n.Messages` then you need to explicitly add the request as an implicit.  See [More Correct I18nSupport](#More-Correct-I18nSupport).**
+
 ## Java API
 
 ### Refactored Messages API to interfaces
@@ -22,9 +24,31 @@ The static deprecated methods in [`play.i18n.Messages`](api/java/play/i18n/Messa
 
 [`Messages`](api/scala/play/api/i18n/Messages.html) is now a trait (rather than a case class).  The case class is now [`MessagesImpl`](api/scala/play/api/i18n/MessagesImpl.html), which implements [`Messages`](api/scala/play/api/i18n/Messages.html).
 
+### More Correct I18nSupport
+
+The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) implicits will no longer assume a default locale or language if the request is not found, and now requires an implicit request or request header in the action in order to correctly determine the preferred locale and language for the request.
+
+This means if you have the following:
+
+```scala
+def index = Action {
+
+}
+```
+
+You need to change it to:
+
+```scala
+def index = Action { implicit request =>
+
+}
+```
+
+This will allow i18n support to see the request's locale and provide error messages and validation alerts in the user's language.
+
 ### Smoother I18nSupport
 
-Using a form inside a controller is a smoother experience in 2.6.x.   [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) contains a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance, which is exposed by [`AbstractController`](api/scala/play/api/mvc/AbstractController.html).  This means that the [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait does not require an explicit `val messagesApi: MessagesApi` declaration.
+Using a form inside a controller is a smoother experience in 2.6.x.   [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) contains a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance, which is exposed by [`AbstractController`](api/scala/play/api/mvc/AbstractController.html).  This means that the [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait does not require an explicit `val messagesApi: MessagesApi` declaration, as it did in Play 2.5.x.
 
 ```scala
 class FormController @Inject()(components: ControllerComponents)
@@ -65,7 +89,7 @@ class FormController @Inject()(components: ControllerComponents)
 Note there is now also type enrichment in [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) which adds `request.messages` and `request.lang`.  This can be added either by extending from [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), or by `import I18nSupport._`.  The import version does not contain the `request2messages` implicit conversion.
  
 ### MessagesProvider trait
- 
+
 A new [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) trait is available, which exposes a [`Messages`](api/scala/play/api/i18n/Messages.html) instance.
 
 ```scala
@@ -78,37 +102,68 @@ trait MessagesProvider {
 
 All the template helpers now take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter, rather than a straight `Messages` object, i.e. `inputText.scala.html` takes the following:
 
-```twirl
+```scala
 @(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messagesProvider: play.api.i18n.MessagesProvider)
 ```
- 
-The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is that otherwise, if you used implicit `Messages`, you would have to introduce implicit conversions from other types like `Request` in places where those implicits could be confusing:
+
+The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is that otherwise, if you used implicit `Messages`, you would have to introduce implicit conversions from other types like `Request` in places where those implicits could be confusing.
+
+To assist, there's [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`Request`](api/scala/play/api/mvc/Request.html) that implements [`MessagesProvider`](api/scala/play/api/mvc/MessagesProvider.html) and provides the preferred language.
+
+You can access a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html) by using a [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html):
 
 ```scala
-class MessagesRequest[A](request: Request[A], val messages: Messages)
-  extends WrappedRequest(request) with play.api.i18n.MessagesProvider {
-    def lang: Lang = messages.lang
-  }
 
-abstract class AbstractMessagesController(cc: ControllerComponents)
-  extends AbstractController(cc) {
-
-  def MessagesAction: ActionBuilder[MessagesRequest, AnyContent] = {
-    cc.actionBuilder.andThen(new ActionTransformer[Request, MessagesRequest] {
-      def transform[A](request: Request[A]) = Future.successful {
-        val messages = cc.messagesApi.preferred(request)
-        new MessagesRequest(request, messages)
-      }
-      override protected def executionContext: ExecutionContext = cc.executionContext
-    })
-  }
+class MyController @Inject()(
+    messagesAction: MessagesActionBuilder,
+    cc: ControllerComponents
+  ) extends AbstractController(cc) {
+    def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
+       Ok(views.html.formTemplate(form)) // twirl template with form builders
+    }
 }
 
-class MessagesController @Inject() (
+```
+
+Or you can even replace the default `Action` with `MessagesActionBuilder` by swapping out the components:
+
+```scala
+
+case class MyControllerComponents @Inject()(
+  messagesActionBuilder: MessagesAction,
+  actionBuilder: DefaultActionBuilder,
+  parsers: PlayBodyParsers,
+  messagesApi: MessagesApi,
+  langs: Langs,
+  fileMimeTypes: FileMimeTypes,
+  executionContext: scala.concurrent.ExecutionContext
+) extends ControllerComponents
+
+abstract class MyAbstractController @Inject()(
+  protected val controllerComponents: MyControllerComponents
+) extends ControllerHelpers {
+  // Same as AbstractController, but MessagesRequest instead of Request
+  def Action: ActionBuilder[MessagesRequest, AnyContent] = {
+    controllerComponents.messagesActionBuilder.compose(controllerComponents.actionBuilder)
+  }
+  def parse: PlayBodyParsers = controllerComponents.parsers
+  def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
+  implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
+  implicit def supportedLangs: Langs = controllerComponents.langs
+  implicit def fileMimeTypes: FileMimeTypes = controllerComponents.fileMimeTypes
+}
+
+```
+
+By setting up your own abstract controller as a base and extending your controllers from it, you can provide richer functionality without having to inject functionality directly.  This is a direct replacement for [`AbstractController`](api/scala/play/api/mvc/AbstractController.html), and lets you redefine `Action` with your own types:
+
+```scala
+
+class MyController @Inject() (
   addToken: CSRFAddToken,
   checkToken: CSRFCheck,
-  components: ControllerComponents
-) extends AbstractMessagesController(components) {
+  components: MyControllerComponents
+) extends MyAbstractController(components) {
 
   import play.api.data.Form
   import play.api.data.Forms._
@@ -121,13 +176,14 @@ class MessagesController @Inject() (
   )
 
   def index = addToken {
-    MessagesAction { implicit request =>
+    Action { implicit request =>
       Ok(views.html.formpage(userForm))
     }
   }
 
   def userPost = checkToken {
-    MessagesAction { implicit request =>
+    // Same as AbstractController, only using MessagesRequest[AnyContent]
+    Action { implicit request =>
       userForm.bindFromRequest.fold(
         formWithErrors => {
           play.api.Logger.info(s"unsuccessful user submission")
@@ -141,28 +197,32 @@ class MessagesController @Inject() (
     }
   }
 }
+
 ```
 
 This is also useful for passing around a single implicit request, especially when CSRF checks are involved:
 
-```twirl
-@(userForm: Form[UserData])(implicit request: MessagesRequest[_])
+```scala
 
-@helper.form(action = routes.MessagesController.userPost()) {
+@(userForm: Form[UserData])(implicit request: MessagesRequestHeader)
+
+@helper.form(action = routes.MyController.userPost()) {
     @views.html.helper.CSRF.formField
     @helper.inputText(userForm("name"))
     @helper.inputText(userForm("age"))
     <input type="submit" value="SUBMIT"/>
 }
+
 ```
 
 Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] for more details.
 
-### DefaultMessagesApi component 
+### DefaultMessagesApi component
 
 The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) used to take [`Configuration`](api/scala/play/api/Configuration.html) and [`Environment`](api/scala/play/api/Environment.html) directly, which made it awkward to deal with in forms.  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
-  
+
 ```scala
+
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n._
@@ -188,11 +248,13 @@ def successFunc(userData: UserData) = {
 
 val result = Future.successful(form.bindFromRequest().fold(errorFunc, successFunc))
 Json.parse(contentAsString(result)) must beEqualTo(Json.obj("age" -> Json.arr("minimum!")))
+
 ```
 
 For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
 
 ```scala
+
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.api.mvc.Controller
 import play.api.i18n._
@@ -222,6 +284,7 @@ class MessagesSpec extends PlaySpecification with Controller {
     }
   }
 }
+
 ```
 
 If you need to customize the configuration, it's better to add configuration values into the GuiceApplicationBuilder rather than use the DefaultMessagesApiProvider directly.
