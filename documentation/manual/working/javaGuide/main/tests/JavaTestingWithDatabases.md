@@ -7,6 +7,10 @@ Play provides a number of utilities for helping to test database access code tha
 
 ## Using a database
 
+To test with a database backend, you only need:
+
+@[content](code/javaguide.tests.databases.sbt)
+
 To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Database`](api/java/play/db/Database.html) static factory methods.  For example, to connect to MySQL, you might use the following:
 
 @[database](code/javaguide/tests/JavaTestingWithDatabases.java)

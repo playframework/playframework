@@ -7,6 +7,10 @@ Play provides a number of utilities for helping to test database access code tha
 
 ## Using a database
 
+To test with a database backend, you only need:
+
+@[content](code/database/databases.sbt)
+
 To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Databases`](api/scala/play/api/db/Databases$.html) companion object.  For example, to connect to MySQL, you might use the following:
 
 @[database](code/database/ScalaTestingWithDatabases.scala)
