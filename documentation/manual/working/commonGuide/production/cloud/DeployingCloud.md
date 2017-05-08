@@ -5,5 +5,6 @@ Many third party cloud services have built in support for deploying Play applica
 
 - [[Deploying to Heroku|ProductionHeroku]]
 - [[Deploying to Cloud Foundry|Deploying-CloudFoundry]]
+- [[Deploying to Scalingo|Deploying-Scalingo]]
 - [[Deploying to Clever Cloud|Deploying-CleverCloud]]
 - [[Deploying to Boxfuse and AWS|Deploying-Boxfuse]]
