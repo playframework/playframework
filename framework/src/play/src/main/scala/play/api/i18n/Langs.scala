@@ -78,9 +78,14 @@ object Lang {
   implicit val jsonTagReads: Reads[Lang] = Reads.localeReads.map(Lang(_))
 
   /**
-   * The default Lang to use if nothing matches (platform default)
+   * The default Lang to use if nothing matches (platform default).
+   *
+   * Pre 2.6.x, defaultLang was an implicit value, meaning that it could be used in implicit scope
+   * resolution if no Lang was found in local scope.  This setting was too general and resulted
+   * in bugs where the defaultLang was being used instead of a request.lang, if request was not
+   * declared as implicit.
    */
-  implicit lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
+  lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
