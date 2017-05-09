@@ -57,6 +57,8 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[BodyParsers.Default].toSelf,
     bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
     bind[ControllerComponents].to[DefaultControllerComponents],
+    bind[MessagesActionBuilder].to[DefaultMessagesActionBuilderImpl],
+    bind[MessagesControllerComponents].to[DefaultMessagesControllerComponents],
     bind[Futures].to[DefaultFutures],
 
     // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
