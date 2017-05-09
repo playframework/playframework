@@ -16,6 +16,28 @@ The static deprecated methods in [`play.i18n.Messages`](api/java/play/i18n/Messa
 
 ## Scala API
 
+### Removed Implicit Default Lang
+
+The [`Lang`](api/scala/play/api/i18n/Lang.html) singleton object has a `defaultLang` that points to the JVM default Locale. Pre 2.6.x, `defaultLang` was an implicit value, with the result that it could be used in implicit scope resolution if no `Lang` was found in local scope.  This setting was too general and resulted in bugs where `defaultLang` was being used instead of a request's locale, if the request was not declared as implicit.
+
+As a result, the implicit has been removed, and so what was:
+
+```scala
+object Lang {
+  implicit lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
+}
+```
+
+is now:
+
+```scala
+object Lang {
+  lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
+}
+```
+
+Any code that was relying on this implicit should use `Lang.defaultLang` explicitly.
+
 ### Refactored Messages API to traits
 
  The `play.api.i18n` package has changed to make access to [`Messages`](api/scala/play/api/i18n/Messages.html) instances easier and reduce the number of implicits in play.  These changes should be transparent to the user, but are provided here for teams extending the I18N API.
@@ -39,13 +61,13 @@ class FormController @Inject()(components: ControllerComponents)
     )(UserData.apply)(UserData.unapply)
   )
 
-  def index = Action { implicit request =>    
+  def index = Action { implicit request =>
     // use request2messages implicit conversion method
     Ok(views.html.user(userForm))
   }
-  
+
   def showMessage = Action { request =>
-    // uses type enrichment 
+    // uses type enrichment
     Ok(request.messages("hello.world"))
   }
 
@@ -63,9 +85,9 @@ class FormController @Inject()(components: ControllerComponents)
 ```
 
 Note there is now also type enrichment in [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) which adds `request.messages` and `request.lang`.  This can be added either by extending from [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), or by `import I18nSupport._`.  The import version does not contain the `request2messages` implicit conversion.
- 
+
 ### MessagesProvider trait
- 
+
 A new [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) trait is available, which exposes a [`Messages`](api/scala/play/api/i18n/Messages.html) instance.
 
 ```scala
@@ -81,7 +103,7 @@ All the template helpers now take [`MessagesProvider`](api/scala/play/api/i18n/M
 ```twirl
 @(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messagesProvider: play.api.i18n.MessagesProvider)
 ```
- 
+
 The benefit to using a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is that otherwise, if you used implicit `Messages`, you would have to introduce implicit conversions from other types like `Request` in places where those implicits could be confusing:
 
 ```scala
@@ -158,10 +180,10 @@ This is also useful for passing around a single implicit request, especially whe
 
 Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] for more details.
 
-### DefaultMessagesApi component 
+### DefaultMessagesApi component
 
 The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) used to take [`Configuration`](api/scala/play/api/Configuration.html) and [`Environment`](api/scala/play/api/Environment.html) directly, which made it awkward to deal with in forms.  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
-  
+
 ```scala
 import play.api.data.Forms._
 import play.api.data._
