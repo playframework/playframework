@@ -5,7 +5,7 @@ package play.api.test
 
 import play.api.http.{ SecretConfiguration, SessionConfiguration }
 import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider, DefaultCookieSigner }
-import play.api.mvc.{ Request }
+import play.api.mvc.{ Request, RequestHeader }
 import play.filters.csrf.{ CSRFActionHelper, CSRFConfig }
 
 /**
@@ -37,6 +37,16 @@ object CSRFTokenHelper {
   }
 
   /**
+   * Adds a CSRF token to the request, using the Scala RequestHeader.
+   *
+   * @param requestHeader a request header
+   * @return a request with a CSRF token attached.
+   */
+  def addCSRFToken(requestHeader: RequestHeader): RequestHeader = {
+    csrfActionHelper.tagRequestHeaderWithNewToken(requestHeader)
+  }
+
+  /**
    * Adds a CSRF token to the request, using the Java RequestBuilder API.
    */
   def addCSRFToken(requestBuilder: play.mvc.Http.RequestBuilder): play.mvc.Http.RequestBuilder = {
@@ -44,14 +54,22 @@ object CSRFTokenHelper {
   }
 
   /**
-   * Implicit class for enriching fakeRequest
+   * Implicit class for enriching request
    *
-   * @param fakeRequest the fake request
-   * @tparam T
+   * @param request the request
+   * @tparam T the request body
    */
-  implicit class CSRFFakeRequest[T](fakeRequest: FakeRequest[T]) {
-    def withCSRFToken: FakeRequest[T] = {
-      CSRFTokenHelper.addCSRFToken(fakeRequest).asInstanceOf[FakeRequest[T]]
-    }
+  implicit class CSRFRequest[T](request: Request[T]) {
+    def withCSRFToken: Request[T] = CSRFTokenHelper.addCSRFToken(request)
   }
+
+  /**
+   * Implicit class for enriching request header
+   *
+   * @param requestHeader the requestheader
+   */
+  implicit class CSRFFRequestHeader(requestHeader: RequestHeader) {
+    def withCSRFToken: RequestHeader = CSRFTokenHelper.addCSRFToken(requestHeader)
+  }
+
 }
