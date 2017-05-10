@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.5.1"
-  val akkaHttpVersion = "10.0.6"
+  val akkaHttpVersion = "10.0.6+7-e2ba6752"
   val playJsonVersion = "2.6.0-M7"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -190,6 +190,7 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.2"),
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.0"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.0")
     ) ++ specsBuild.map(_ % Test)

@@ -5,7 +5,6 @@ package play.sbt
 
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
-import play.sbt.PlayAkkaHttpServer.allRequirements
 import play.sbt.PlayImport.PlayKeys
 import play.sbt.routes.RoutesCompiler
 import play.twirl.sbt.SbtTwirl
@@ -102,5 +101,18 @@ object PlayAkkaHttpServer extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http-server" % play.core.PlayVersion.current
+  )
+}
+
+object PlayAkkaHttp2Support extends AutoPlugin {
+  import com.lightbend.sbt.javaagent.JavaAgent
+
+  override def requires = PlayAkkaHttpServer && JavaAgent
+
+  import JavaAgent.JavaAgentKeys._
+
+  override def projectSettings = Seq(
+    libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % play.core.PlayVersion.current,
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.6" % "compile;test"
   )
 }
