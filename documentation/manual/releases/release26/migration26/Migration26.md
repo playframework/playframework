@@ -168,7 +168,7 @@ class FooController @Inject() () extends InjectedController {
 
 `InjectedController` gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using `InjectedController` with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding `InjectedController` since it hides the dependency.
 
-If you prefer to pass the individial dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
+If you prefer to pass the individual dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
 
 ```scala
 class Controller @Inject() (

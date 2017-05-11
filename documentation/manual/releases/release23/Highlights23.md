@@ -54,7 +54,7 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The above will order the RequireJs optimizer (sbt-rjs), the digester (sbt-digest) and then compression (sbt-gzip). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
 
-One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expiries when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
+One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expires when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
 
 ### Default ivy cache and local repository
 
@@ -85,7 +85,7 @@ We've worked on Java performance. Compared to Play 2.2, throughput of simple Jav
 
 Some of these changes also improved Scala performance, but Java had the biggest performance gains and was the main focus of our work.
 
-Thankyou to [YourKit](https://www.yourkit.com/) for supplying the Play team with licenses to make this work possible.
+Thank you to [YourKit](https://www.yourkit.com/) for supplying the Play team with licenses to make this work possible.
 
 ## Scala 2.11
 

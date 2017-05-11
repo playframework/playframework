@@ -91,7 +91,7 @@ database.dispatcher {
 }
 ```
 
-### Running JPA transctions
+### Running JPA transactions
 
 The following methods are available to execute arbitrary code inside a JPA transaction, but 
 

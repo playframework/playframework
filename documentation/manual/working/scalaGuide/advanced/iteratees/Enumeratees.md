@@ -123,7 +123,7 @@ val toIntOrEnd: Enumeratee[String,Int ] = Enumeratee.mapInput[String] {
 def filter[E](predicate: E => Boolean): Enumeratee[E, E]
 ```
 
-The signature is pretty obvious, `Enumeratee.filter` creates an `Enumeratee[E,E]` and it will test each chunk of input using the provided `predicate: E => Boolean` and it passes it along to the inner (adapted) iteratee if it statisfies the predicate:
+The signature is pretty obvious, `Enumeratee.filter` creates an `Enumeratee[E,E]` and it will test each chunk of input using the provided `predicate: E => Boolean` and it passes it along to the inner (adapted) iteratee if it satisfies the predicate:
 
 ```scala
 val numbers = Enumerator(1,2,3,4,5,6,7,8,9,10)
