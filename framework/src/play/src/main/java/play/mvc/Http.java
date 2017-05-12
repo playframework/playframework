@@ -122,14 +122,36 @@ public class Http {
          * @param args any arbitrary data to associate with this request context.
          * @param components the context components.
          */
-        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args, JavaContextComponents components) {
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request,
+                Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args,
+                JavaContextComponents components) {
+            this(id, header, request, new Response(), new Session(sessionData), new Flash(flashData),
+                new HashMap<>(args), components);
+        }
+
+        /**
+         * Creates a new HTTP context, using the references provided.
+         *
+         * Use this constructor (or withRequest) to copy a context within a Java Action to be passed to a delegate.
+         *
+         * @param id the unique context ID
+         * @param header the request header
+         * @param request the request with body
+         * @param response the response instance to use
+         * @param session the session instance to use
+         * @param flash the flash instance to use
+         * @param args any arbitrary data to associate with this request context.
+         * @param components the context components.
+         */
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
+                Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
             this.id = id;
             this.header = header;
             this.request = request;
-            this.response = new Response();
-            this.session = new Session(sessionData);
-            this.flash = new Flash(flashData);
-            this.args = new HashMap<>(args);
+            this.response = response;
+            this.session = session;
+            this.flash = flash;
+            this.args = args;
             this.components = components;
         }
 
@@ -411,11 +433,13 @@ public class Http {
          *
          * The id, Scala RequestHeader, session, flash and args remain unchanged.
          *
+         * This method is intended for use within a Java action, to create a new Context to pass to a delegate action.
+         *
          * @param request The request to create the new header from.
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, header, request, session, flash, args, components);
+            return new Context(id, header, request, response, session, flash, args, components);
         }
     }
 

@@ -9,6 +9,7 @@ import play.api.libs.ws.WSResponse
 import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
 import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
 import play.mvc.{ Result, Results }
+import play.mvc.Http.Cookie
 
 class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
@@ -69,6 +70,39 @@ class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @WithUsername("foo")
       def action = Results.ok(request.username())
     }) { response =>
+      response.body must_== "foo"
+    }
+    "ensure context.withRequest in an Action maintains Session" in makeRequest(new MockController {
+      @WithUsername("foo")
+      def action = {
+        session.clear()
+        Results.ok(request.username())
+      }
+    }) { response =>
+      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      setCookie must contain("PLAY_SESSION=; Max-Age=-86400")
+      response.body must_== "foo"
+    }
+    "ensure context.withRequest in an Action maintains Flash" in makeRequest(new MockController {
+      @WithUsername("foo")
+      def action = {
+        flash.clear()
+        Results.ok(request.username())
+      }
+    }) { response =>
+      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      setCookie must contain("PLAY_FLASH=; Max-Age=-86400")
+      response.body must_== "foo"
+    }
+    "ensure context.withRequest in an Action maintains Response" in makeRequest(new MockController {
+      @WithUsername("foo")
+      def action = {
+        response.setCookie(Cookie.builder("foo", "bar").build())
+        Results.ok(request.username())
+      }
+    }) { response =>
+      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      setCookie must contain("foo=bar")
       response.body must_== "foo"
     }
   }
