@@ -113,28 +113,6 @@ object Lang {
   def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
   private val langsCache = Application.instanceCache[Langs]
-
-  /**
-   * Retrieve Lang availables from the application configuration.
-   *
-   * {{{
-   * play.i18n.langs = ["fr", "en", "de"]
-   * }}}
-   */
-  @deprecated("Inject Langs into your component", "2.5.0")
-  def availables(implicit app: Application): Seq[Lang] = {
-    langsCache(app).availables
-  }
-
-  /**
-   * Guess the preferred lang in the langs set passed as argument.
-   * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
-   */
-  @deprecated("Inject Langs into your component", "2.5.0")
-  def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
-    langsCache(app).preferred(langs)
-  }
-
 }
 
 /**
