@@ -114,7 +114,7 @@ class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val 
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
-@deprecated("Inject [[play.api.mvc.SessionCookieBaker]] instead", "2.6.0")
+@deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
 object Session extends SessionCookieBaker with FallbackCookieDataCodec {
   def config: SessionConfiguration = HttpConfiguration.current.session
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)

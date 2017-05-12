@@ -9,7 +9,7 @@ import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.util.{ ByteString, Timeout }
-import org.openqa.selenium._
+import org.openqa.selenium.{ Cookie => SeleniumCookie, _ }
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
@@ -380,7 +380,14 @@ trait ResultExtractors {
    * different because the Play server automatically adds those cookies and merges the headers.
    */
   def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = {
-    Await.result(of.map(result => Cookies(result.newCookies))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map { result =>
+      val cookies = result.newCookies
+      new Cookies {
+        lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+        override def get(name: String) = cookiesByName.get(name)
+        override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+      }
+    }(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -392,7 +399,7 @@ trait ResultExtractors {
    * Extracts the Flash values set by this Result value.
    */
   def flash(of: Future[Result])(implicit timeout: Timeout): Flash = {
-    Await.result(of.map(_.newFlash.getOrElse(Flash.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newFlash.getOrElse(new Flash()))(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -404,7 +411,7 @@ trait ResultExtractors {
    * Extracts the Session values set by this Result value.
    */
   def session(of: Future[Result])(implicit timeout: Timeout): Session = {
-    Await.result(of.map(_.newSession.getOrElse(Session.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newSession.getOrElse(new Session()))(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
