@@ -132,10 +132,10 @@ trait Cookies extends Traversable[Cookie] {
 /**
  * Helper utilities to encode Cookies.
  */
-@deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
 object Cookies extends CookieHeaderEncoding {
 
   // Use global state for cookie header configuration
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
   override protected def config: CookiesConfiguration = HttpConfiguration.current.cookies
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {

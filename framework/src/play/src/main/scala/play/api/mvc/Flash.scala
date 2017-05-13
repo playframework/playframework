@@ -108,10 +108,16 @@ class LegacyFlashCookieBaker @Inject() (
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
-@deprecated("Inject [[play.api.mvc.FlashCookieBaker]] instead", "2.6.0")
 object Flash extends FlashCookieBaker with UrlEncodedCookieDataCodec {
+
+  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   def config: FlashConfiguration = HttpConfiguration.current.flash
+
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
+
+  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   override def path: String = HttpConfiguration.current.context
+
+  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   override def cookieSigner: CookieSigner = play.api.libs.Crypto.cookieSigner
 }

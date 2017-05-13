@@ -114,12 +114,19 @@ class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val 
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
-@deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
 object Session extends SessionCookieBaker with FallbackCookieDataCodec {
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   def config: SessionConfiguration = HttpConfiguration.current.session
+
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   override def path: String = HttpConfiguration.current.context
 
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   override lazy val signedCodec = DefaultUrlEncodedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)
 }
