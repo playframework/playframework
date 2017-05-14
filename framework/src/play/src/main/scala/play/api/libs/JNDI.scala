@@ -16,33 +16,35 @@ object JNDI {
 
   /**
    * An in memory JNDI implementation.
+   *
+   * Returns a new InitialContext on every call, and sets the relevant system properties for the in-memory JNDI
+   * implementation. InitialContext is NOT thread-safe so instances cannot be shared between threads.
    */
-  lazy val initialContext = {
+  def initialContext: InitialContext = synchronized {
 
     val env = new java.util.Hashtable[String, String]
 
     env.put(INITIAL_CONTEXT_FACTORY, {
-      val initialContextFactory = System.getProperty(INITIAL_CONTEXT_FACTORY)
-      if (initialContextFactory != null) {
+      val icf = System.getProperty(INITIAL_CONTEXT_FACTORY)
+      if (icf == null) {
         System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
         IN_MEMORY_JNDI
       } else {
-        initialContextFactory
+        icf
       }
     })
 
     env.put(PROVIDER_URL, {
-      val providerUrl = System.getProperty(PROVIDER_URL)
-      if (providerUrl != null) {
+      val url = System.getProperty(PROVIDER_URL)
+      if (url == null) {
         System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
         IN_MEMORY_URL
       } else {
-        providerUrl
+        url
       }
     })
 
     new InitialContext(env)
-
   }
 
 }
