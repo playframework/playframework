@@ -39,6 +39,35 @@ case class CORSConfig(
     supportsCredentials: Boolean = true,
     preflightMaxAge: Duration = 1.hour,
     serveForbiddenOrigins: Boolean = false) {
+
+  def this(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration) =
+    this(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, false)
+
+  def copy(
+    allowedOrigins: Origins = allowedOrigins,
+    isHttpMethodAllowed: String => Boolean = isHttpMethodAllowed,
+    isHttpHeaderAllowed: String => Boolean = isHttpHeaderAllowed,
+    exposedHeaders: Seq[String] = exposedHeaders,
+    supportsCredentials: Boolean = supportsCredentials,
+    preflightMaxAge: Duration = preflightMaxAge,
+    serveForbiddenOrigins: Boolean = serveForbiddenOrigins): CORSConfig =
+    new CORSConfig(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, serveForbiddenOrigins)
+
+  def copy(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration): CORSConfig =
+    copy(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, false)
+
   def anyOriginAllowed: Boolean = allowedOrigins == Origins.All
   def withAnyOriginAllowed = withOriginsAllowed(Origins.All)
 
@@ -142,4 +171,13 @@ object CORSConfig {
         config.get[Boolean]("serveForbiddenOrigins")
     )
   }
+
+  def apply(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration) =
+    new CORSConfig(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge)
 }
