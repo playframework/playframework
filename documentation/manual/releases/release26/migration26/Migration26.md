@@ -1058,7 +1058,8 @@ HikariCP was updated and a new configuration was introduced: `initializationFail
 
 There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
 
-| Old key                   | New key                            |
-| ------------------------- | ---------------------------------- |
-| `play.crypto.secret`      | `play.http.secret.key`             |
-| `play.crypto.provider`    | `play.http.secret.provider`        |
+| Old key                       | New key                                 |
+|-------------------------------|-----------------------------------------|
+| `play.crypto.secret`          | `play.http.secret.key`                  |
+| `play.crypto.provider`        | `play.http.secret.provider`             |
+| `play.websocket.buffer.limit` | `play.server.websocket.frame.maxLength` |
