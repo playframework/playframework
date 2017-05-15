@@ -88,3 +88,13 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
 
 @[streams3](code/javaguide/async/JavaWebSockets.java)
+
+## Configuring WebSocket Frame Length
+
+You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.server.websocket.frame.maxLength` or passing `-Dwebsocket.frame.maxLength` system property when running your application. For example:
+
+```
+sbt -Dwebsocket.frame.maxLength=64k run
+```
+
+This configuration gives you more control of WebSocket frame length and can be adjusted to your application requirements. It may also reduce denial of service attacks using long data frames.

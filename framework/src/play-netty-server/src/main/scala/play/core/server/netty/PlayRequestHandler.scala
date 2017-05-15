@@ -110,7 +110,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val bufferLimit = app.configuration.getOptional[ConfigMemorySize]("play.websocket.buffer.limit").map(_.toBytes).getOrElse(65536L).asInstanceOf[Int]
+        val bufferLimit = app.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
         val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
 
         val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
