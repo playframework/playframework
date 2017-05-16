@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package scala
+package scalaguide
 
 // #scalaexample
 import javax.net.ssl._
