@@ -139,6 +139,18 @@ You can test it like:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
+### StubControllerComponents
+
+The [`StubControllerComponentsFactory`](api/scala/play/api/test/StubControllerComponentsFactory.html) creates a stub [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be used for unit testing a controller:
+
+@[scalatest-stubcontrollercomponents](code/specs2/ExampleHelpersSpec.scala)
+
+### StubBodyParser
+
+The [`StubBodyParserFactory`](api/scala/play/api/test/StubBodyParserFactory.html) creates a stub [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) that can be used for unit testing content:
+
+@[scalatest-stubbodyparser](code/specs2/ExampleHelpersSpec.scala)
+
 ## Unit Testing Forms
 
 Forms are also just regular classes, and can unit tested using Play's Test Helpers. Using [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html), you can call `form.bindFromRequest` and test for errors against any custom constraints.
