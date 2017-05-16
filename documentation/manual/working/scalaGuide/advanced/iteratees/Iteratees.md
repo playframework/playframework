@@ -1,6 +1,8 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
 
+> **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].
+
 Progressive Stream Processing and manipulation is an important task in modern Web Programming, starting from chunked upload/download to Live Data Streams consumption, creation, composition and publishing through different technologies including Comet and WebSockets.
 
 Iteratees provide a paradigm and an API allowing this manipulation, while focusing on several important aspects:
