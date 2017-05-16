@@ -10,11 +10,15 @@ public class MyBuiltInComponentsFromContext
         extends BuiltInComponentsFromContext
         implements NoHttpFiltersComponents {
 
-    // Task is initialize here
-    private final CodeBlockTask task = new CodeBlockTask(actorSystem(), executionContext());
-
     public MyBuiltInComponentsFromContext(ApplicationLoader.Context context) {
         super(context);
+
+        this.initialize();
+    }
+
+    private void initialize() {
+        // Task is initialize here
+        new CodeBlockTask(actorSystem(), executionContext());
     }
 
     @Override

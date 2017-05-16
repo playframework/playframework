@@ -12,5 +12,9 @@ class MyBuiltInComponentsFromContext(context: Context)
   override def router: Router = Router.empty
 
   // Task is initialize here
-  val task: CodeBlockTask = new CodeBlockTask(actorSystem)
+  initialize()
+
+  private def initialize(): Unit = {
+    new CodeBlockTask(actorSystem)
+  }
 }

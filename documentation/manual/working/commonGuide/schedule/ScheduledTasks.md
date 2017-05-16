@@ -56,7 +56,7 @@ As the task definitions are completely integrated with the Dependency Injection 
 
 ### Using compile-time Dependency Injection
 
-When using compile-time Dependency Injection, you just need to have them as `val` definitions in your implementation of `BuiltInComponents`:
+When using compile-time Dependency Injection, you just need to start them in your implementation of `BuiltInComponents`:
 
 Scala
 : @[](code/scalaguide/scheduling/MyBuiltInComponentsFromContext.scala)
