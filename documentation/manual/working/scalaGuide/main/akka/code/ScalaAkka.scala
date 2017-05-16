@@ -87,34 +87,6 @@ class ScalaAkkaSpec extends PlaySpecification {
       } yield config
       await(futureConfig) must_== "foo"
     }
-
-    "allow using the scheduler" in withActorSystem { system =>
-      import akka.actor._
-      val testActor = system.actorOf(Props(new Actor() {
-        def receive = { case _: String => }
-      }), name = "testActor")
-      //#schedule-actor
-      import scala.concurrent.duration._
-
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val cancellable = system.scheduler.schedule(
-        0.microseconds, 300.microseconds, testActor, "tick")
-      //#schedule-actor
-      ok
-    }
-
-    "actor scheduler" in withActorSystem { system =>
-      val file = new File("/tmp/nofile")
-      file.mkdirs()
-      import scala.concurrent.ExecutionContext.Implicits.global
-      //#schedule-callback
-      system.scheduler.scheduleOnce(10.milliseconds) {
-        file.delete()
-      }
-      //#schedule-callback
-      Thread.sleep(200)
-      file.exists() must beFalse
-    }
   }
 }
 

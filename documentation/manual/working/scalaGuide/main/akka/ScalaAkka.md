@@ -122,20 +122,6 @@ play.akka.actor-system = "custom-name"
 
 > **Note:** This feature is useful if you want to put your play application ActorSystem in an Akka cluster.
 
-## Scheduling asynchronous tasks
-
-You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
-
-For example, to send a message to the `testActor` every 300 microseconds:
-
-@[schedule-actor](code/ScalaAkka.scala)
-
-> **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
-
-Similarly, to run a block of code 10 milliseconds from now:
-
-@[schedule-callback](code/ScalaAkka.scala)
-
 ## Using your own Actor system
 
 While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:

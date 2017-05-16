@@ -105,60 +105,6 @@ public class JavaAkka {
             }, fakeRequest(), app.getWrappedApplication().materializer());
             assertThat(contentAsString(result), equalTo("Got 2"));
         });
-    }
-
-    @Test
-    public void scheduleActor() throws Exception {
-        Application app = fakeApplication();
-        running(app, () -> {
-            ActorSystem system = app.injector().instanceOf(ActorSystem.class);
-            latch = new CountDownLatch(1);
-            ActorRef testActor = system.actorOf(Props.create(MyActor.class));
-            //#schedule-actor
-            system.scheduler().schedule(
-                Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
-                Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
-                testActor,
-                "tick",
-                system.dispatcher(),
-                null
-            );
-            //#schedule-actor
-            try {
-                assertTrue(latch.await(5, TimeUnit.SECONDS));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    @Test
-    public void scheduleCode() throws Exception {
-        Application app = fakeApplication();
-        running(app, () -> {
-
-            ActorSystem system = app.getWrappedApplication().injector().instanceOf(ActorSystem.class);
-            final CountDownLatch latch = new CountDownLatch(1);
-            class MockFile {
-                void delete() {
-                    latch.countDown();
-                }
-            }
-            final MockFile file = new MockFile();
-            //#schedule-code
-            system.scheduler().scheduleOnce(
-                Duration.create(10, TimeUnit.MILLISECONDS),
-                () -> file.delete(),
-                system.dispatcher()
-            );
-            //#schedule-code
-            try {
-                assertTrue(latch.await(5, TimeUnit.SECONDS));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
 
     }
-
 }
