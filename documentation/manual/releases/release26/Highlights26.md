@@ -499,3 +499,43 @@ public class JPAPersonRepository implements PersonRepository {
     ...
 }
 ```
+
+## Testing Improvements
+
+Some utility classes have been added to the `play.api.test` package to make functional testing easier with dependency injected components.  
+
+### Injecting
+
+There are methods defined in [ScalaTestingWithGuice](ScalaTestingWithGuice##Overriding-bindings-in-a-functional-test) to override bindings, but there are times when it's easier to use the injector directly through the implicit `app`:
+
+```scala
+"test" in new WithApplication() {
+  val executionContext = app.injector.instanceOf[ExecutionContext]
+  ...
+}
+```
+
+Now with the [`Injecting`](api/scala/play/api/test/Injecting.html) trait, you can elide this:
+
+```scala
+"test" in new WithApplication() with Injecting {
+  val executionContext = inject[ExecutionContext]
+  ...
+}
+```
+
+### StubControllerComponents
+
+The [`StubControllerComponentsFactory`](api/scala/play/api/test/StubControllerComponentsFactory.html) creates a stub [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be used for unit testing a controller:
+
+```scala
+val controller = new MyController(stubControllerComponents())
+```
+
+### StubBodyParser
+
+The [`StubBodyParserFactory`](api/scala/play/api/test/StubBodyParserFactory.html) creates a stub [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) that can be used for unit testing content:
+
+```
+val stubParser = stubBodyParser(AnyContent("hello"))
+```
