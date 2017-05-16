@@ -224,6 +224,20 @@ This will only affect you if you happen to be using these prefixes for cookie na
 
 ## Assets
 
+### Binding Assets with compile-time DI
+
+If you are using compile-time DI, you should mix in `controllers.AssetsComponents` and use that to obtain the `assets: Assets` controller instance:
+
+```scala
+class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) with AssetsComponents {
+  lazy val router = new Routes(httpErrorHandler, assets)
+}
+```
+
+If you have an existing `lazy val assets: Assets` you can remove it.
+
+### Assets configuration
+
 Existing user-facing APIs have not changed, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
 
 ```
