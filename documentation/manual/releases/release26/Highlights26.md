@@ -502,7 +502,7 @@ public class JPAPersonRepository implements PersonRepository {
 
 ## Testing Improvements
 
-Some utility classes have been added to the `play.api.test` packagein 2.6.x to make functional testing easier with dependency injected components.  
+Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.  
 
 ### Injecting
 
