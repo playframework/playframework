@@ -566,7 +566,7 @@ class MessagesController @Inject()(cc: ControllerComponents)
 //#messages-controller
 
 //#messages-request-controller
-// Example form that uses a MessagesRequest, which is also a MessagesProvider
+// Example form injecting a messagesAction
 class FormController @Inject()(messagesAction: MessagesActionBuilder, components: ControllerComponents)
   extends AbstractController(components) {
 
@@ -587,6 +587,30 @@ class FormController @Inject()(messagesAction: MessagesActionBuilder, components
   def post() = TODO
 }
 //#messages-request-controller
+
+
+  //#messages-abstract-controller
+  // Form with Action extending MessagesAbstractController
+  class MessagesFormController @Inject()(components: MessagesControllerComponents)
+    extends MessagesAbstractController(components) {
+
+    import play.api.data.Form
+    import play.api.data.Forms._
+
+    val userForm = Form(
+      mapping(
+        "name" -> text,
+        "age" -> number
+      )(views.html.UserData.apply)(views.html.UserData.unapply)
+    )
+
+    def index = Action { implicit request: MessagesRequest[AnyContent] =>
+      Ok(views.html.messages(userForm))
+    }
+
+    def post() = TODO
+  }
+  //#messages-abstract-controller
 
 }
 
