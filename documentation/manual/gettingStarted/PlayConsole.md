@@ -51,7 +51,7 @@ $ sbt
 
 --- (Running the application, auto-reloading is enabled) ---
 
-[info] p.c.s.NettyServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```

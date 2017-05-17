@@ -7,7 +7,7 @@ You can easily deploy your application as a stand-alone server by setting the ap
 $ /path/to/bin/<project-name> -Dhttp.port=80
 ```
 
-> Note that you probably need root permissions to bind a process on this port.
+> **Note**: you probably need root permissions to bind a process on this port.
 
 However, if you plan to host several applications in the same server or load balance several instances of your application for scalability or fault tolerance, you can use a front end HTTP server.
 
@@ -103,7 +103,7 @@ http {
 }
 ```
 
-> *Note* Make sure you are using version 1.2 or greater of Nginx otherwise chunked responses won't work properly.
+> **Note**: make sure you are using version 1.2 or greater of Nginx otherwise chunked responses won't work properly.
 
 ## Set up with Apache
 
@@ -186,7 +186,7 @@ Apache also provides a way to view the status of your cluster. Simply point your
 
 Because Play is completely stateless you don’t have to manage sessions between the 2 clusters. You can actually easily scale to more than 2 Play instances.
 
-To use websockets, you must use [mod_proxy_wstunnel](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html), which was introduced in Apache 2.4.
+To use WebSockets, you must use [mod_proxy_wstunnel](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html), which was introduced in Apache 2.4.
 
 Note that [ProxyPassReverse might rewrite incorrectly headers](https://issues.apache.org/bugzilla/show_bug.cgi?id=51982) adding an extra / to the URIs, so you may wish to use this workaround:
 ```

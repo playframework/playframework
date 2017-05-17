@@ -4,6 +4,8 @@
 package scalaguide.tests.specs2
 
 // #scalatest-examplecontrollerspec
+import javax.inject.Inject
+
 import play.api.mvc._
 import play.api.test._
 
@@ -13,7 +15,7 @@ class ExampleControllerSpec extends PlaySpecification with Results {
 
   "Example Page#index" should {
     "should be valid" in {
-      val controller = new ExampleController()
+      val controller = new ExampleController(Helpers.stubControllerComponents())
       val result: Future[Result] = controller.index().apply(FakeRequest())
       val bodyText: String = contentAsString(result)
       bodyText must be equalTo "ok"
@@ -68,7 +70,8 @@ class ExampleFormSpec extends PlaySpecification with Results {
 // #scalatest-exampleformspec
 
 // #scalatest-examplecontroller
-class ExampleController extends Controller {
+class ExampleController @Inject()(cc: ControllerComponents)
+  extends AbstractController(cc) {
   def index() = Action {
     Ok("ok")
   }

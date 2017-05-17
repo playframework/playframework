@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package java;
+package javaguide;
 
 // #javaexample
 import play.server.ApplicationProvider;

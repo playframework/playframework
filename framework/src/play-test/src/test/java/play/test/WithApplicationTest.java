@@ -14,8 +14,18 @@ import static org.junit.Assert.assertNotNull;
 public class WithApplicationTest extends WithApplication {
 
     @Test
-    public void withInject() {
-        MessagesApi messagesApi = inject(MessagesApi.class);
+    public void shouldHaveAnAppInstantiated() {
+        assertNotNull(app);
+    }
+
+    @Test
+    public void shouldHaveAMaterializerInstantiated() {
+        assertNotNull(mat);
+    }
+
+    @Test
+    public void withInstanceOf() {
+        MessagesApi messagesApi = instanceOf(MessagesApi.class);
         assertNotNull(messagesApi);
     }
 }

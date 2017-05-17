@@ -5,7 +5,8 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.i18n.{ Messages, MessagesApi, MessagesProvider }
+import play.api.http.FileMimeTypes
+import play.api.i18n.{ Langs, Messages, MessagesApi, MessagesProvider }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -45,7 +46,7 @@ class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) exte
   with PreferredMessagesProvider with MessagesRequestHeader
 
 /**
- * This class is an ActionBuilder that provides a MessagesRequest to the block:
+ * This trait is an [[ActionBuilder]] that provides a [[MessagesRequest]] to the block:
  *
  * {{{
  * class MyController @Inject()(
@@ -58,47 +59,71 @@ class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) exte
  * }
  * }}}
  *
- * This is useful when you don't want to have to add I18nSupport to a controller for form processing.
- *
- * You can also replace AbstractController completely and use an Action which uses MessagesRequest by default:
- *
- * {{{
- * abstract class FormAwareController @Inject()(
- *   protected val controllerComponents: MyControllerComponents
- * ) extends ControllerHelpers {
- *
- *   def Action: ActionBuilder[MessagesRequest, AnyContent] = {
- *     controllerComponents.messagesActionBuilder.compose(controllerComponents.actionBuilder)
- *   }
- *
- *   def parse: PlayBodyParsers = controllerComponents.parsers
- *
- *   def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
- *
- *   implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
- *
- *   implicit def supportedLangs: Langs = controllerComponents.langs
- *
- *   implicit def fileMimeTypes: FileMimeTypes = controllerComponents.fileMimeTypes
- * }
- *
- * case class MyControllerComponents @Inject()(
- *   messagesActionBuilder: MessagesAction,
- *   actionBuilder: DefaultActionBuilder,
- *   parsers: PlayBodyParsers,
- *   messagesApi: MessagesApi,
- *   langs: Langs,
- *   fileMimeTypes: FileMimeTypes,
- *   executionContext: scala.concurrent.ExecutionContext
- * ) extends ControllerComponents
- * }}}
+ * This is useful when you don't want to have to add [[play.api.i18n.I18nSupport]] to a controller for form processing.
  */
-class MessagesActionBuilder @Inject() (parsers: PlayBodyParsers, messagesApi: MessagesApi) extends ActionBuilder[MessagesRequest, AnyContent] {
-  override def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
+trait MessagesActionBuilder extends ActionBuilder[MessagesRequest, AnyContent]
+
+class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: MessagesApi)(implicit val executionContext: ExecutionContext)
+    extends ActionBuilder[MessagesRequest, B] {
+
+  def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
     block(new MessagesRequest[A](request, messagesApi))
   }
-
-  override protected def executionContext: ExecutionContext = play.core.Execution.trampoline
-
-  override def parser: BodyParser[AnyContent] = parsers.anyContent
 }
+
+class DefaultMessagesActionBuilderImpl(parser: BodyParser[AnyContent], messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+    extends MessagesActionBuilderImpl(parser, messagesApi) with MessagesActionBuilder {
+  @Inject
+  def this(parser: BodyParsers.Default, messagesApi: MessagesApi)(implicit ec: ExecutionContext) = {
+    this(parser: BodyParser[AnyContent], messagesApi)
+  }
+}
+
+/**
+ * Controller components with a [[MessagesActionBuilder]].
+ */
+trait MessagesControllerComponents extends ControllerComponents {
+  def messagesActionBuilder: MessagesActionBuilder
+}
+
+case class DefaultMessagesControllerComponents @Inject() (
+  messagesActionBuilder: MessagesActionBuilder,
+  actionBuilder: DefaultActionBuilder,
+  parsers: PlayBodyParsers,
+  messagesApi: MessagesApi,
+  langs: Langs,
+  fileMimeTypes: FileMimeTypes,
+  executionContext: scala.concurrent.ExecutionContext
+) extends MessagesControllerComponents
+
+/**
+ * A base controller that returns a [[MessagesRequest]] as the base Action.
+ */
+trait MessagesBaseController extends BaseControllerHelpers {
+
+  /**
+   * The components needed to use the controller methods
+   */
+  protected def controllerComponents: MessagesControllerComponents
+
+  def Action: ActionBuilder[MessagesRequest, AnyContent] = {
+    controllerComponents.messagesActionBuilder.compose(controllerComponents.actionBuilder)
+  }
+}
+
+/**
+ * An abstract controller class that returns a [[MessagesRequest]] as the default Action.
+ *
+ * An abstract implementation of [[MessagesBaseController]] to make it slightly easier to use.
+ *
+ * {{{
+ *   class MyController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
+ *     def index = Action { implicit request: MessagesRequest[AnyContent] =>
+ *       Ok(views.html.formTemplate(form)) // twirl template with form builders
+ *     }
+ *   }
+ * }}}
+ */
+abstract class MessagesAbstractController @Inject() (
+  protected val controllerComponents: MessagesControllerComponents
+) extends MessagesBaseController

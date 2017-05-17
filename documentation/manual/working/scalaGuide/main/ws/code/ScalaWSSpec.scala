@@ -3,10 +3,6 @@
  */
 package scalaguide.ws.scalaws
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import play.api.{Environment, Mode}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc._
 import play.api.test._
@@ -16,8 +12,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
 import play.api.libs.concurrent.Futures
-
-import scala.concurrent.TimeoutException
 
 //#dependency
 import javax.inject.Inject
@@ -506,18 +500,25 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       //#async-result
     }
 
-    "allow timeout" in new WithServer() with Injecting {
-      val futures = inject[Futures]
-      val ws = inject[WSClient]
+    "allow timeout across futures" in new WithServer() with Injecting {
+      val url2 = url
       //#ws-futures-timeout
-      val result = futures.timeout(1 second) {
-        ws.url(url).get().map { response =>
-          Ok(response.body)
+      implicit val futures = inject[Futures]
+      val ws = inject[WSClient]
+
+      // Adds withTimeout as type enrichment on Future[WSResponse]
+      import play.api.libs.concurrent.Futures._
+
+      val result: Future[Result] =
+        ws.url(url).get().withTimeout(1 second).flatMap { response =>
+          // val url2 = response.json \ "url"
+          ws.url(url2).get().map { response2 =>
+            Ok(response.body)
+          }
+        }.recover {
+          case e: scala.concurrent.TimeoutException =>
+            GatewayTimeout
         }
-      }.recover {
-        case e: scala.concurrent.TimeoutException =>
-          GatewayTimeout
-      }
       //#ws-futures-timeout
       status(result) must_== OK
     }

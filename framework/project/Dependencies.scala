@@ -142,7 +142,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.8.Final"
+  val nettyVersion = "4.1.10.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
@@ -191,7 +191,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.0"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.4")
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.0")
     ) ++ specsBuild.map(_ % Test)
   }
 

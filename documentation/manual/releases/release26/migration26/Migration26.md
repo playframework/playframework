@@ -168,7 +168,7 @@ class FooController @Inject() () extends InjectedController {
 
 `InjectedController` gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using `InjectedController` with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding `InjectedController` since it hides the dependency.
 
-If you prefer to pass the individial dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
+If you prefer to pass the individual dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
 
 ```scala
 class Controller @Inject() (
@@ -223,6 +223,20 @@ This will only affect you if you happen to be using these prefixes for cookie na
  - Cookies named with `__Secure-` should set the `Secure` attribute.
 
 ## Assets
+
+### Binding Assets with compile-time DI
+
+If you are using compile-time DI, you should mix in `controllers.AssetsComponents` and use that to obtain the `assets: Assets` controller instance:
+
+```scala
+class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) with AssetsComponents {
+  lazy val router = new Routes(httpErrorHandler, assets)
+}
+```
+
+If you have an existing `lazy val assets: Assets` you can remove it.
+
+### Assets configuration
 
 Existing user-facing APIs have not changed, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
 
@@ -1058,7 +1072,8 @@ HikariCP was updated and a new configuration was introduced: `initializationFail
 
 There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
 
-| Old key                   | New key                            |
-| ------------------------- | ---------------------------------- |
-| `play.crypto.secret`      | `play.http.secret.key`             |
-| `play.crypto.provider`    | `play.http.secret.provider`        |
+| Old key                       | New key                                 |
+|-------------------------------|-----------------------------------------|
+| `play.crypto.secret`          | `play.http.secret.key`                  |
+| `play.crypto.provider`        | `play.http.secret.provider`             |
+| `play.websocket.buffer.limit` | `play.server.websocket.frame.maxLength` |

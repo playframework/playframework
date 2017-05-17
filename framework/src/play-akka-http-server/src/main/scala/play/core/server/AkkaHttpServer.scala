@@ -19,7 +19,7 @@ import akka.http.scaladsl.util.FastFuture._
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ ConfigFactory, ConfigMemorySize }
 import play.api.{ Configuration, _ }
 import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
 import play.api.inject.DefaultApplicationLifecycle
@@ -210,11 +210,13 @@ class AkkaHttpServer(
       case (websocket: WebSocket, Some(upgrade)) =>
         import play.core.Execution.Implicits.trampoline
 
+        val bufferLimit = config.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
+
         websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, 16384))
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
         }
 
       case (websocket: WebSocket, None) =>
