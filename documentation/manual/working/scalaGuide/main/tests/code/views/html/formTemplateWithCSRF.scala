@@ -14,7 +14,7 @@ object formTemplateWithCSRF extends Results {
 
   def apply[T](form: Form[T])(implicit header: MessagesRequestHeader) : Future[Result] = {
     Future(
-      Ok("Hello Coco") as("text/html")
+      Ok("ok") as("text/html")
     )
   }
 }

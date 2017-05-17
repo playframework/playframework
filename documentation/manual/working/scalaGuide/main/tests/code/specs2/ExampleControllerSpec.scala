@@ -88,7 +88,7 @@ class ExampleTemplateSpec extends PlaySpecification {
     "be valid" in {
       val form: Form[UserData] = FormData.form
       implicit val messages: Messages = Helpers.stubMessages()
-      views.html.formTemplate(form)
+      contentAsString(views.html.formTemplate(form)) must contain("ok")
     }
   }
 }
@@ -104,7 +104,7 @@ class ExampleTemplateWithCSRFSpec extends PlaySpecification {
     "be valid" in {
       val form: Form[UserData] = FormData.form
       implicit val messageRequestHeader: MessagesRequestHeader = Helpers.stubMessagesRequest()
-      views.html.formTemplateWithCSRF(form)
+      contentAsString(views.html.formTemplateWithCSRF(form)) must contain("ok")
     }
   }
 }
