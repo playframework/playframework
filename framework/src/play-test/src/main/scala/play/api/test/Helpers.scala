@@ -14,7 +14,7 @@ import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
 import play.api.http._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
+import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
 import play.api.libs.json.{ JsValue, Json }
@@ -468,6 +468,65 @@ trait StubPlayBodyParsersFactory {
 
 }
 
+trait StubMessagesFactory {
+
+  /**
+   * @return a stub Langs
+   * @param availables default as Seq(Lang.defaultLang).
+   */
+  def stubLangs(availables: Seq[Lang] = Seq(Lang.defaultLang)): Langs = {
+    new DefaultLangs(availables)
+  }
+
+  /**
+   * Returns a stub DefaultMessagesApi with default values and an empty map.
+   *
+   * @param messages map of languages to map of messages, empty by default.
+   * @param langs stubLangs() by default
+   * @param langCookieName "PLAY_LANG" by default
+   * @param langCookieSecure false by default
+   * @param langCookieHttpOnly false by default
+   * @param httpConfiguration configuration, HttpConfiguration() by default.
+   * @return the messagesApi with minimal configuration.
+   */
+  def stubMessagesApi(
+    messages: Map[String, Map[String, String]] = Map.empty,
+    langs: Langs = stubLangs(),
+    langCookieName: String = "PLAY_LANG",
+    langCookieSecure: Boolean = false,
+    langCookieHttpOnly: Boolean = false,
+    httpConfiguration: HttpConfiguration = HttpConfiguration()): MessagesApi = {
+    new DefaultMessagesApi(messages, langs, langCookieName, langCookieSecure, langCookieHttpOnly, httpConfiguration)
+  }
+
+  /**
+   * Stub method that returns a [[play.api.i18n.Messages]] instance.
+   *
+   * @param messagesApi the messagesApi to use, uses stubMessagesApi by default.
+   * @param requestHeader the request to use, FakeRequest by default.
+   * @return the Messages instance
+   */
+  def stubMessages(
+    messagesApi: MessagesApi = stubMessagesApi(),
+    requestHeader: RequestHeader = FakeRequest()): Messages = {
+    messagesApi.preferred(requestHeader)
+  }
+
+  /**
+   * Stub method that returns a [[play.api.mvc.MessagesRequest]] instance.
+   *
+   * @param messagesApi the messagesApi to use, uses stubMessagesApi by default.
+   * @param request the request to use, FakeRequest by default.
+   * @return the Messages instance
+   */
+  def stubMessagesRequest(
+    messagesApi: MessagesApi = stubMessagesApi(),
+    request: Request[AnyContentAsEmpty.type] = FakeRequest()): MessagesRequest[AnyContentAsEmpty.type] = {
+    new MessagesRequest[AnyContentAsEmpty.type](request, messagesApi)
+  }
+
+}
+
 trait StubBodyParserFactory {
   /**
    * Stub method that returns the content immediately.  Useful for unit testing.
@@ -484,7 +543,7 @@ trait StubBodyParserFactory {
   }
 }
 
-trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory {
+trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory with StubMessagesFactory {
 
   /**
    * Create a minimal controller components, useful for unit testing.
@@ -512,8 +571,8 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
   def stubControllerComponents(
     bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
     playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
-    messagesApi: MessagesApi = new DefaultMessagesApi(),
-    langs: Langs = new DefaultLangs(),
+    messagesApi: MessagesApi = stubMessagesApi(),
+    langs: Langs = stubLangs(),
     fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
     executionContent: ExecutionContext = ExecutionContext.global): ControllerComponents = {
     DefaultControllerComponents(
