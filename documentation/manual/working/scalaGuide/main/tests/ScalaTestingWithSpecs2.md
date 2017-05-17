@@ -165,7 +165,7 @@ When rendering a template that takes form helpers, you can pass in a Messages th
 
 @[scalatest-exampletemplatespec](code/specs2/ExampleControllerSpec.scala)
 
-Or, if you are using a form that uses CRSF, you can use [`MessagesRequest`] in the template and use `Helpers.stubMessagesRequest`:
+Or, if you are using a form that uses `CSRF.formField` and requires an implicit request, you can use [`MessagesRequest`] in the template and use `Helpers.stubMessagesRequest`:
 
 @[scalatest-examplecsrftemplatespec](code/specs2/ExampleControllerSpec.scala)
 
