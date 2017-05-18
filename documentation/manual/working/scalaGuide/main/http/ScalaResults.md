@@ -9,11 +9,11 @@ For example:
 
 @[content-type_text](code/ScalaResults.scala)
 
-Will automatically set the `Content-Type` header to `text/plain`, while:
+Will automatically set the `Content-Type` header to `text/plain; charset=utf-8`, while:
 
 @[content-type_xml](code/ScalaResults.scala)
 
-will set the Content-Type header to `application/xml`.
+will set the Content-Type header to `application/xml; charset=utf-8`.
 
 > **Tip:** this is done via the `play.api.http.ContentTypeOf` type class.
 
