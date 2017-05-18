@@ -64,7 +64,7 @@ object Cookie {
    * Same-Site enumeration,
    *
    * @see <a href="https://tools.ietf.org/html/draft-west-first-party-cookies-07">draft-west-first-party-cookies-07
-</a>
+   * </a>
    */
   object SameSite {
     def parse(value: String): Option[SameSite] = Seq(Strict, Lax).find(_ matches value)
