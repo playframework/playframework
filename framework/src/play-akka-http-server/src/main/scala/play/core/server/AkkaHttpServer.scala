@@ -9,27 +9,26 @@ import javax.net.ssl._
 
 import akka.actor.ActorSystem
 import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers
+import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.settings.ServerSettings
-import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.http.scaladsl.util.FastFuture._
+import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.{ ConfigFactory, ConfigMemorySize }
-import play.api.{ Configuration, _ }
+import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
+import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
@@ -57,23 +56,26 @@ class AkkaHttpServer(
   def mode = config.mode
 
   // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
-  implicit val system = actorSystem
-  implicit val mat = materializer
+  implicit private val system: ActorSystem = actorSystem
+  implicit private val mat: Materializer = materializer
+
+  private val http2Enabled: Boolean = akkaConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
   private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
-    val initialSettings = ServerSettings(system)
-    val idleTimeout = if (secure) {
-      serverConfig.get[Duration]("https.idleTimeout")
-    } else {
-      serverConfig.get[Duration]("http.idleTimeout")
-    }
+
+    val initialConfig = (Configuration(system.settings.config) ++ Configuration(
+      "akka.http.server.preview.enable-http2" -> http2Enabled
+    )).underlying
+    val initialSettings = ServerSettings(initialConfig)
+
+    val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
     val requestTimeoutOption = akkaConfig.getOptional[Duration]("requestTimeout")
 
     // all akka settings that are applied to the server needs to be set here
-    val serverSettings = initialSettings.withTimeouts {
+    val serverSettings: ServerSettings = initialSettings.withTimeouts {
       val timeouts = initialSettings.timeouts.withIdleTimeout(idleTimeout)
-      requestTimeoutOption.foreach { requestTimeout => timeouts.withRequestTimeout(requestTimeout) }
+      requestTimeoutOption.foreach(timeouts.withRequestTimeout)
       timeouts
     }
       // Play needs Raw Request Uri's to match Netty
@@ -84,13 +86,20 @@ class AkkaHttpServer(
       .withDefaultHostHeader(headers.Host(akkaConfig.get[String]("default-host-header")))
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
-    val bindingFuture: Future[Http.ServerBinding] =
+    val bindingFuture: Future[Http.ServerBinding] = try {
       Http()
         .bindAndHandleAsync(
           handler = handleRequest(_, connectionContext.isSecure),
           interface = config.address, port = port,
           connectionContext = connectionContext,
           settings = serverSettings)
+    } catch {
+      // Http2SupportNotPresentException is private[akka] so we need to match the name
+      case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
+        throw new RuntimeException(
+          "HTTP/2 enabled but akka-http2-support not found. " +
+            "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt", e)
+    }
 
     val bindTimeout = akkaConfig.get[FiniteDuration]("bindTimeout")
     Await.result(bindingFuture, bindTimeout)
@@ -113,6 +122,18 @@ class AkkaHttpServer(
         ConnectionContext.noEncryption()
     }
     createServerBinding(port, connectionContext, secure = true)
+  }
+
+  if (http2Enabled) {
+    logger.info(s"Enabling HTTP/2 on Akka HTTP server...")
+    if (httpsServerBinding.isEmpty) {
+      val logMessage = s"No HTTPS server bound. Only binding HTTP. Many user agents only support HTTP/2 over HTTPS."
+      // warn in dev/test mode, since we are likely accessing the server directly, but debug otherwise
+      mode match {
+        case Mode.Dev | Mode.Test => logger.warn(logMessage)
+        case _ => logger.debug(logMessage)
+      }
+    }
   }
 
   // Each request needs an id
@@ -157,12 +178,13 @@ class AkkaHttpServer(
     responseFuture
   }
 
-  def remoteAddressOfRequest(req: HttpRequest): InetSocketAddress =
+  def remoteAddressOfRequest(req: HttpRequest): InetSocketAddress = {
     req.header[headers.`Remote-Address`] match {
       case Some(headers.`Remote-Address`(RemoteAddress.IP(ip, Some(port)))) =>
         new InetSocketAddress(ip, port)
       case _ => throw new IllegalStateException("`Remote-Address` header was missing")
     }
+  }
 
   private def getHandler(requestHeader: RequestHeader): (RequestHeader, Handler, Try[Application]) = {
     getHandlerFor(requestHeader) match {
