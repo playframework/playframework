@@ -2129,6 +2129,8 @@ public class Http {
 
         /**
          * The cookie SameSite attribute
+         *
+         * @see <a href="https://tools.ietf.org/html/draft-west-first-party-cookies-07">Same-site Cookies</a>
          */
         public enum SameSite {
             STRICT("Strict"), LAX("Lax");
@@ -2171,12 +2173,13 @@ public class Http {
         private String domain;
         private boolean secure = false;
         private boolean httpOnly = false;
-        private SameSite sameSite;
+        private SameSite sameSite = SameSite.LAX;
 
         /**
+         * Creates a cookie builder with the specified name and value
+         *
          * @param name the cookie builder name
          * @param value the cookie builder value
-         * @return the cookie builder with the specified name and value
          */
         private CookieBuilder(String name, String value){
             this.name = name;
