@@ -14,7 +14,6 @@ import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
@@ -201,27 +200,27 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public StandaloneWSRequest addQueryParameter(String name, String value) {
-        return null;
+        return converter.apply(request.addQueryParameter(name, value));
     }
 
     @Override
     public StandaloneWSRequest setQueryString(Map<String, List<String>> params) {
-        return null;
+        return converter.apply(request.setQueryString(params));
     }
 
     @Override
     public StandaloneWSRequest addCookie(WSCookie cookie) {
-        return null;
+        return converter.apply(request.addCookie(cookie));
     }
 
     @Override
     public StandaloneWSRequest addCookies(WSCookie... cookies) {
-        return null;
+        return converter.apply(request.addCookies(cookies));
     }
 
     @Override
     public StandaloneWSRequest setCookies(List<WSCookie> cookies) {
-        return null;
+        return converter.apply(request.setCookies(cookies));
     }
 
     @Override

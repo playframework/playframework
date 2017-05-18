@@ -245,7 +245,7 @@ object Dependencies {
 
   val jcacheApi = Seq(
     "javax.cache" % "cache-api" % "1.0.0"
-  ) ++ specsBuild.map(_ % Test)
+  )
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val ehcacheVersion = "2.10.4"
@@ -254,6 +254,7 @@ object Dependencies {
     "org.ehcache" % "jcache" % "1.0.1"
   ) ++ jcacheApi
 
+  val caffeineVersion = "2.5.0"
   val playWsStandaloneVersion = "1.0.0-M10"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion
@@ -264,7 +265,8 @@ object Dependencies {
   val playAhcWsDeps = Seq(
     "com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" % "shaded-asynchttpclient" % playWsStandaloneVersion,
-    "com.typesafe.play" % "shaded-oauth" % playWsStandaloneVersion
+    "com.typesafe.play" % "shaded-oauth" % playWsStandaloneVersion,
+    "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion % Test
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(

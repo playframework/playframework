@@ -204,7 +204,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
     parallelExecution in Test := false,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-  ).dependsOn(PlayWsProject)
+  ).dependsOn(PlayWsProject, PlayEhcacheProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayTestProject % "test->test")
 
