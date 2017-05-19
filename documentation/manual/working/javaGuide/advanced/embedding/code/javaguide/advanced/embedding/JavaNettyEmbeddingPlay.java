@@ -7,6 +7,8 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import play.Mode;
+import play.core.server.NettyServer;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 
@@ -23,7 +25,7 @@ import static play.mvc.Controller.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-public class JavaEmbeddingPlay {
+public class JavaNettyEmbeddingPlay {
 
     @Test
     public void simple() throws Exception {
@@ -58,7 +60,7 @@ public class JavaEmbeddingPlay {
     @Test
     public void config() throws Exception {
         //#config
-        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
+        Server server = Server.forRouter(Mode.TEST, (components) -> RoutingDsl.fromComponents(components)
                 .GET("/hello/:to").routeTo(to ->
                         ok("Hello " + to)
                 )

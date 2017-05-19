@@ -1,1 +1,3 @@
 JavaEmbeddingPlay:Embedding Play
+JavaEmbeddingPlayAkkaHttp:Embedding Play with Akka HTTP Server
+JavaEmbeddingPlayNetty:Embedding Play with Netty Server
