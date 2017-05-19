@@ -81,6 +81,11 @@ object Dependencies {
     "net.jodah" % "typetools" % "0.4.9"
   ) ++ specsBuild.map(_ % Test)
 
+  val joda = Seq(
+    "joda-time" % "joda-time" % "2.9.9",
+    "org.joda" % "joda-convert" % "1.8.1"
+  )
+
   val javaFormsDeps = Seq(
 
     "org.hibernate" % "hibernate-validator" % "5.4.1.Final",

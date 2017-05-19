@@ -412,21 +412,27 @@ In order to make the default play distribution a bit smaller we removed some lib
 
 #### Joda-Time removal
 
-If you can, you could migrate all occurrences to Java8 `java.time`.
+We recommend using the `java.time` APIs, so we are removing joda-time support from the core of Play.
 
-If you can't and still need to use Joda-Time in Play Forms and Play-Json you can just add the `play-joda` project:
+Play's Scala forms library had some Joda formats. If you don't wish to migrate, you can add the `jodaForms` module in your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.typesafe.play" % "play-joda" % "1.0.0"
+libraryDependencies += jodaForms
 ```
 
-And then import the corresponding Object for Forms:
+And then import the corresponding object:
 
 ```scala
 import play.api.data.JodaForms._
 ```
 
-or for Play-Json
+If you need Joda support in play-json, you can add the following dependency:
+
+```scala
+libraryDependencies += "com.typesafe.play" % "play-json-joda" % playJsonVersion
+```
+
+where `playJsonVersion` is the play-json version you wish to use. Play 2.6.x should be compatible with play-json 2.6.x. Note that play-json is now a separate project (described later).
 
 ```scala
 import play.api.data.JodaWrites._
