@@ -124,15 +124,3 @@ play.akka.actor-system = "custom-name"
 A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
 @[async](code/javaguide/akka/async/Application.java)
-
-## Scheduling asynchronous tasks
-
-You can schedule sending messages to actors and executing tasks (functions or `Runnable` instances). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
-
-For example, to send a message to the `testActor` every 30 minutes:
-
-@[schedule-actor](code/javaguide/akka/JavaAkka.java)
-
-Alternatively, to run a block of code ten milliseconds from now:
-
-@[schedule-code](code/javaguide/akka/JavaAkka.java)
