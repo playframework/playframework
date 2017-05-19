@@ -23,6 +23,16 @@ To add only the API, add `cacheApi` to your dependencies list.
 
 The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on Ehcache. If you're writing a custom cache module you should use this.
 
+## JCache Support
+
+Ehcache implements the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, but Play does not bind `javax.caching.CacheManager` by default.  To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
+
+@[jcache-sbt-dependencies](code/cache.sbt)
+
+If you are using Guice, you can add the following for Java annotations:
+
+@[jcache-guice-annotation-sbt-dependencies](code/cache.sbt)
+
 ## Accessing the Cache API
 
 The cache API is defined by the [AsyncCacheApi](api/scala/play/api/cache/AsyncCacheApi.html) and [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) traits, depending on whether you want an asynchronous or synchronous implementation, and can be injected into your component like any other dependency.  For example:

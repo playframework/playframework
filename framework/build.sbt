@@ -286,6 +286,17 @@ lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcach
       PlaySpecs2Project % "test"
     )
 
+// JSR 107 cache bindings (note this does not depend on ehcache)
+lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "play-jcache")
+    .settings(
+      libraryDependencies ++= jcacheApi
+    )
+    .dependsOn(
+      PlayProject,
+      PlayEhcacheProject % "test", // provide a cachemanager implementation
+      PlaySpecs2Project % "test"
+    )
+
 lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
     .enablePlugins(SbtTwirl)
     .settings(
@@ -302,6 +313,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
   PlayEhcacheProject,
+  PlayJCacheProject,
   PlayJdbcApiProject,
   PlayJdbcProject,
   PlayJdbcEvolutionsProject,
