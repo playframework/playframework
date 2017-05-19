@@ -46,12 +46,12 @@ Any code that was relying on this implicit should use `Lang.defaultLang` explici
 
 ### I18nSupport Implicit Conversion
 
-If you are upgrading directly from Play 2.4 to Play 2.5, you should know that `I18nSupport` support changed in 2.5.x.  In 2.5.x, it was possible through a series of implicits to use a "language default" `Messages` instance if the request was not declared to be in implicit scope:
+If you are upgrading directly from Play 2.5 to Play 2.6, you should know that `I18nSupport` support has changed in 2.6.x.  In 2.5.x, it was possible through a series of implicits to use a "language default" `Messages` instance if the request was not declared to be in implicit scope:
 
 ```scala
   def listWidgets = Action {
     val lang = implicitly[Lang] // Uses Lang.defaultLang
-    val messages = implicitly[Messages] // Uses I18NSupport.lang2messages
+    val messages = implicitly[Messages] // Uses I18nSupport.lang2messages(Lang.defaultLang)
     // implicit parameter messages: Messages in requiresMessages template, but no request!
     val content = views.html.requiresMessages(form)
     Ok(content)
@@ -59,8 +59,6 @@ If you are upgrading directly from Play 2.4 to Play 2.5, you should know that `I
 ```
 
 The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) implicit conversion now requires an implicit request or request header in scope in order to correctly determine the preferred locale and language for the request.
-
-> **If you are seeing an error message like `could not find implicit value for parameter messages: play.api.i18n.Messages` then you need to explicitly add the request as an implicit.**
 
 This means if you have the following:
 
