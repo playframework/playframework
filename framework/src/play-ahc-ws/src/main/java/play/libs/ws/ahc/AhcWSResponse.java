@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A Play WS response backed by an AsyncHttpClient response.
@@ -25,14 +26,40 @@ public class AhcWSResponse implements WSResponse {
         this.underlying = response;
     }
 
+    /**
+     * @deprecated  Deprecated since 2.6.0. Use {@link #getHeaders()} instead.
+     * @return the headers
+     */
+    @Deprecated
     @Override
     public Map<String, List<String>> getAllHeaders() {
-        return underlying.getAllHeaders();
+        return underlying.getHeaders();
     }
 
+    /**
+     * @deprecated Deprecated since 2.6.0.  Use {@link #getSingleHeader(String)} instead.
+     * @param key the header name
+     * @return the header value, or null if no header is defined
+     */
+    @Deprecated
     @Override
     public String getHeader(String key) {
         return underlying.getHeader(key);
+    }
+
+    @Override
+    public Map<String, List<String>> getHeaders() {
+        return underlying.getHeaders();
+    }
+
+    @Override
+    public List<String> getHeaderValues(String name) {
+        return underlying.getHeaderValues(name);
+    }
+
+    @Override
+    public Optional<String> getSingleHeader(String name) {
+        return underlying.getSingleHeader(name);
     }
 
     @Override

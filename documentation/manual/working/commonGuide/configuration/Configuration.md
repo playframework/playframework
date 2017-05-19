@@ -12,3 +12,4 @@ This section explains how to configure your Play application.
 - [[Configuring Netty Server Backend|SettingsNetty]]
 - [[Configuring logging|SettingsLogger]]
 - [[Configuring WS SSL|WsSSL]]
+- [[Configuring WS Cache|WsCache]]

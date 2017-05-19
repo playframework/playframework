@@ -13,6 +13,21 @@ To use WS, first add `ws` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
 
+
+## Enabling HTTP Caching in Play WS
+
+Play WS supports [HTTP caching](https://tools.ietf.org/html/rfc7234), but requires a JSR-107 cache implementation to enable this feature.  You can add `ehcache`:
+
+```scala
+libraryDependencies += ehcache
+```
+
+Or you can use another JSR-107 compatible cache such as [Caffeine](https://github.com/ben-manes/caffeine/wiki/JCache).
+
+Once you have the library dependencies, then enable the HTTP cache as shown on [[WS Cache Configuration|WsCache]] page.
+
+Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
+
 ## Making a Request
 
 Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
@@ -257,6 +272,10 @@ The request timeout can be overridden for a specific connection with `setTimeout
 ### Configuring WS with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring WS with Caching
+
+To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsCache]].
 
 ### Configuring AsyncClientConfig
 

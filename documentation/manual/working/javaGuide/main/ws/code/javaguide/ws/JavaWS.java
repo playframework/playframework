@@ -7,7 +7,6 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
-import play.Application;
 import play.api.Configuration;
 import play.core.j.HttpExecutionContext;
 import play.core.j.JavaHandlerComponents;

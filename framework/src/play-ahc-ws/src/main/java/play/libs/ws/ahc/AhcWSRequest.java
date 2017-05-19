@@ -14,7 +14,7 @@ import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -179,6 +179,16 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public StandaloneWSRequest setHeaders(Map<String, List<String>> headers) {
+        return converter.apply(request.setHeaders(headers));
+    }
+
+    @Override
+    public StandaloneWSRequest addHeader(String name, String value) {
+        return converter.apply(request.addHeader(name, value));
+    }
+
+    @Override
     public WSRequest setQueryString(String query) {
         return converter.apply(request.setQueryString(query));
     }
@@ -186,6 +196,31 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public WSRequest setQueryParameter(String name, String value) {
         return converter.apply(request.setQueryParameter(name, value));
+    }
+
+    @Override
+    public StandaloneWSRequest addQueryParameter(String name, String value) {
+        return converter.apply(request.addQueryParameter(name, value));
+    }
+
+    @Override
+    public StandaloneWSRequest setQueryString(Map<String, List<String>> params) {
+        return converter.apply(request.setQueryString(params));
+    }
+
+    @Override
+    public StandaloneWSRequest addCookie(WSCookie cookie) {
+        return converter.apply(request.addCookie(cookie));
+    }
+
+    @Override
+    public StandaloneWSRequest addCookies(WSCookie... cookies) {
+        return converter.apply(request.addCookies(cookies));
+    }
+
+    @Override
+    public StandaloneWSRequest setCookies(List<WSCookie> cookies) {
+        return converter.apply(request.setCookies(cookies));
     }
 
     @Override
@@ -239,12 +274,12 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public Map<String, Collection<String>> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return request.getHeaders();
     }
 
     @Override
-    public Map<String, Collection<String>> getQueryParameters() {
+    public Map<String, List<String>> getQueryParameters() {
         return request.getQueryParameters();
     }
 

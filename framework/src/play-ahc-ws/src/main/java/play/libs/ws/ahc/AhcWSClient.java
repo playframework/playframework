@@ -5,8 +5,9 @@ package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
-import play.api.libs.ws.ahc.cache.EffectiveURIKey;
-import play.api.libs.ws.ahc.cache.ResponseEntry;
+import play.api.libs.ws.ahc.cache.AhcHttpCache;
+import play.api.libs.ws.ahc.cache.Cache;
+import play.api.libs.ws.ahc.cache.CachingAsyncHttpClient;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
@@ -48,7 +49,7 @@ public class AhcWSClient implements WSClient {
      * @return a new instance of AhcWSClient.
      */
     public static AhcWSClient create(AhcWSClientConfig config,
-                                     javax.cache.Cache<EffectiveURIKey, ResponseEntry> cache,
+                                     AhcHttpCache cache,
                                      Materializer materializer) {
         final StandaloneAhcWSClient client = StandaloneAhcWSClient.create(config, cache, materializer);
         return new AhcWSClient(client, materializer);

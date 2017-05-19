@@ -47,6 +47,11 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
   override def headers: Map[String, Seq[String]] = underlying.headers
 
   /**
+   * The cookies for this request
+   */
+  override def cookies: Seq[WSCookie] = underlying.cookies
+
+  /**
    * The query string for this request
    */
   override def queryString: Map[String, Seq[String]] = underlying.queryString
@@ -86,12 +91,24 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
     underlying.sign(calc)
   }
 
+  override def withCookies(cookies: WSCookie*): WSRequest = toWSRequest {
+    underlying.withCookies(cookies: _*)
+  }
+
+  override def withQueryStringParameters(parameters: (String, String)*): WSRequest = toWSRequest {
+    underlying.withQueryStringParameters(parameters: _*)
+  }
+
   override def withAuth(username: String, password: String, scheme: WSAuthScheme): Self = toWSRequest {
     underlying.withAuth(username, password, scheme)
   }
 
   override def withHeaders(hdrs: (String, String)*): Self = toWSRequest {
     underlying.withHeaders(hdrs: _*)
+  }
+
+  override def withHttpHeaders(headers: (String, String)*): WSRequest = toWSRequest {
+    underlying.withHttpHeaders(headers: _*)
   }
 
   override def withQueryString(parameters: (String, String)*): Self = toWSRequest {
@@ -178,13 +195,10 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
   }
 
   override def execute(): Future[Response] = {
-    implicit val ec = underlying.client.executionContext
-    require(ec != null)
-
     val futureResponse: Future[StandaloneWSResponse] = underlying.execute()
     futureResponse.map { f =>
       AhcWSResponse(f.asInstanceOf[StandaloneAhcWSResponse])
-    }
+    }(play.core.Execution.trampoline)
   }
 
   private def toWSRequest(request: StandaloneWSRequest): Self = {
