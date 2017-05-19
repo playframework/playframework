@@ -46,6 +46,12 @@ lazy val PlayNettyUtilsProject = PlayNonCrossBuiltProject("Play-Netty-Utils", "p
       libraryDependencies ++= nettyUtilsDependencies
     )
 
+lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-joda-forms")
+    .settings(
+      libraryDependencies ++= joda
+    )
+    .dependsOn(PlayProject, PlaySpecs2Project % "test")
+
 lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
@@ -301,6 +307,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayJdbcEvolutionsProject,
   PlayJavaProject,
   PlayJavaFormsProject,
+  PlayJodaFormsProject,
   PlayJavaJdbcProject,
   PlayJpaProject,
   PlayNettyUtilsProject,

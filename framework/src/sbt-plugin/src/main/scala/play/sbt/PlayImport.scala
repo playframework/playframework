@@ -35,6 +35,8 @@ object PlayImport {
 
   val javaForms = component("play-java-forms")
 
+  val jodaForms = component("play-joda-forms")
+
   val javaJdbc = component("play-java-jdbc")
 
   def javaEbean = movedExternal(
