@@ -809,6 +809,8 @@ public class Http {
          */
         public RequestBuilder() {
             this(new DefaultRequestFactory(HttpConfiguration.createWithDefaults()));
+            // Add a host of "localhost" to validate against the AllowedHostsFilter.
+            this.host("localhost");
         }
 
         /**
