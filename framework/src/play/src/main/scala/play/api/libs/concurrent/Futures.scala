@@ -12,26 +12,25 @@ import scala.concurrent.{ Future, TimeoutException }
 import scala.language.implicitConversions
 
 /**
- * This trait is used to provide a non-blocking timeout on an operation that returns a Future.
+ * This trait is used to provide non-blocking timeouts and delays on an operation that returns a Future.
  *
- * Please note that the [[play.api.Application]] default ActorSystem should
- * be used as input here, as the actorSystem.scheduler is responsible for scheduling
- * the timeout, using <a href="http://doc.akka.io/docs/akka/2.5/scala/futures.html#After">akka.pattern.actor</a> under the hood.
- *
- * You can dependency inject the ActorSystem as follows to create a Future that will
+ * You can dependency inject the Futures as follows to create a Future that will
  * timeout after a certain period of time:
  *
  * {{{
- * class MyService @Inject()(actorSystem: ActorSystem) extends Timeout {
- *
+ * class MyService @Inject()(futures: Futures, piCalculator: PiCalculator) extends Timeout {
  *   def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
- *     timeout(actorSystem, timeoutDuration)(rawCalculation())
+ *     futures.timeout(timeoutDuration)(piCalculator.rawCalculation())
  *   }
+ * }
+ * }}}
  *
+ * And you can also use a delay to return data after a given period of time.
+ *
+ * {{{
+ * class PiCalculator @Inject()(futures: Futures) {
  *   def rawCalculation(): Future[Int] = {
- *     import akka.pattern.after
- *     implicit val ec = actorSystem.dispatcher
- *     akka.pattern.after(300 millis, actorSystem.scheduler)(Future(42))(actorSystem.dispatcher)
+ *     futures.delay(300 millis) { Future.successful(42) }
  *   }
  * }
  * }}}
@@ -105,17 +104,10 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
  * timeout after a certain period of time:
  *
  * {{{
- * class MyService @Inject()(actorSystem: ActorSystem)(implicit futures: Futures) {
- *   import play.api.libs.concurrent.Implicits._
+ * class MyService @Inject()(piCalculator: PiCalculator)(implicit futures: Futures) {
  *
  *   def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
- *      rawCalculation().withTimeout(timeoutDuration)
- *   }
- *
- *   def rawCalculation(): Future[Int] = {
- *     import akka.pattern.after
- *     implicit val ec = actorSystem.dispatcher
- *     akka.pattern.after(300 millis, actorSystem.scheduler)(Future(42))
+ *      piCalculator.rawCalculation().withTimeout(timeoutDuration)
  *   }
  * }
  * }}}
