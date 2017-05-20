@@ -8,6 +8,17 @@ Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.ht
 
 The Netty backend is still available, and has been upgraded to use Netty 4.1.  You can explicitly configure your project to use Netty [[on the NettyServer page|NettyServer]].
 
+## HTTP/2 support (experimental)
+
+Play now has HTTP/2 support on the Akka HTTP server using the `PlayAkkaHttp2Support` module:
+
+```
+lazy val root = (project in file("."))
+  .enablePlugins(PlayJava, PlayAkkaHttp2Support)
+```
+
+This automates most of the process of setting up HTTP/2. However, it does not work with the `run` command by default. See the [[the Akka HTTP Server page|AkkaHttpServer]] for more details.
+
 ## Request attributes
 
 Requests in Play 2.6 now contain *attributes*. Attributes allow you to store extra information inside request objects. For example, you can write a filter that sets an attribute in the request and then access the attribute value later from within your actions.
@@ -156,7 +167,7 @@ Note that marker contexts are also very useful for "tracer bullet" style logging
 
 @[logging-log-trace-with-tracer-controller](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 
-And then trigger logging with the following TurboFilter in `logback.xml`: 
+And then trigger logging with the following TurboFilter in `logback.xml`:
 
 ```xml
 <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
@@ -301,7 +312,7 @@ public class MyComponents extends BuiltInComponentsFromContext
 ```
 
 The `play.ApplicationLoader`:
- 
+
 ```java
 import play.ApplicationLoader;
 
@@ -321,7 +332,7 @@ And configure `MyApplicationLoader` as explained in [[Java Compile-Time Dependen
 
 The `MessagesApi` and `Lang` classes are used for internationalization in Play, and are required to display error messages in forms.
 
-In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling. 
+In the past, putting together a form in Play has required [multiple steps](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application), and the creation of a `Messages` instance from a request was not discussed in the context of form handling.
 
 In addition, it was inconvenient to have a `Messages` instance passed through all template fragments when form handling was required, and `Messages` implicit support was provided directly through the controller trait.  The I18N API has been refined with the addition of a `MessagesProvider` trait, implicits that are tied directly to requests, and the forms documentation has been improved.
 
@@ -343,9 +354,9 @@ class FormController @Inject()(messagesAction: MessagesActionBuilder, components
 
   def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
     Ok(views.html.displayForm(userForm))
-  } 
-  
-  def post = ...  
+  }
+
+  def post = ...
 }
 ```
 
@@ -503,14 +514,14 @@ public class JPAPersonRepository implements PersonRepository {
 ## Play WS Improvements
 
 There are substantial improvements to Play WS.  Play WS is now a wrapper around a standalone Play WS implementation, which can be used outside of Play.  In addition, the underlying libraries involved in Play WS have been [shaded](https://github.com/sbt/sbt-assembly#shading), so that the Netty implementation used in Play WS does not conflict with Spark or Play.
-  
-Finally, Play WS now supports [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).  
+
+Finally, Play WS now supports [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 For more details, please see [[WsCache]] and the [[WS Migration Guide|WSMigration26]].
 
 ## Testing Improvements
 
-Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.  
+Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.
 
 ### Injecting
 
