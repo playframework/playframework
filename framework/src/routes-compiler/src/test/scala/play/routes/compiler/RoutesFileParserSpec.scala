@@ -38,6 +38,10 @@ class RoutesFileParserSpec extends Specification {
       parseRoute("GET /s p.c.m").verb must_== HttpVerb("GET")
     }
 
+    "parse the HTTP method with leading whitespace" in {
+      parseRoute("  GET /s p.c.m").verb must_== HttpVerb("GET")
+    }
+
     "parse a static path" in {
       parseRoute("GET /s p.c.m").path must_== PathPattern(Seq(StaticPart("s")))
     }
@@ -127,8 +131,41 @@ class RoutesFileParserSpec extends Specification {
       rule.asInstanceOf[Include].prefix must_== "s"
     }
 
+    "parse an include with leading whitespace" in {
+      val rule = parseRule(" \t-> /s someFile")
+      rule must beAnInstanceOf[Include]
+      rule.asInstanceOf[Include].router must_== "someFile"
+      rule.asInstanceOf[Include].prefix must_== "s"
+    }
+
     "parse a comment with a route" in {
       parseRoute("# some comment\nGET /s p.c.m").comments must containTheSameElementsAs(Seq(Comment(" some comment")))
+    }
+
+    "parse a modifier tag with a route" in {
+      parseRoute("+nocsrf\nGET /s p.c.m").modifiers must containTheSameElementsAs(Seq(Modifier("nocsrf")))
+    }
+
+    "parse multiple modifiers with a route" in {
+      parseRoute("+ nocsrf foo=bar\nGET /s p.c.m").modifiers must containTheSameElementsAs(
+        Seq(Modifier("nocsrf"), Modifier("foo=bar")))
+    }
+
+    "parse multiple modifiers where the only separator is whitespace" in {
+      parseRoute("+ no+csrf foo=bar\nGET /s p.c.m").modifiers must containTheSameElementsAs(
+        Seq(Modifier("no+csrf"), Modifier("foo=bar")))
+    }
+
+    "parse modifiers followed by comments" in {
+      val route = parseRoute("+ nocsrf api # turn off csrf check\nGET /s p.c.m")
+      route.modifiers must containTheSameElementsAs(Seq(Modifier("nocsrf"), Modifier("api")))
+      route.comments must containTheSameElementsAs(Seq(Comment(" turn off csrf check")))
+    }
+
+    "parse multiple modifier lines mixed with comments on a route" in {
+      val route = parseRoute("+nocsrf\n # set foo to bar \n +foo=bar\nGET /s p.c.m")
+      route.modifiers must containTheSameElementsAs(Seq(Modifier("nocsrf"), Modifier("foo=bar")))
+      route.comments must containTheSameElementsAs(Seq(Comment(" set foo to bar ")))
     }
 
     "throw an error for an unexpected line" in parseError("foo")

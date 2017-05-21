@@ -20,7 +20,8 @@ sealed trait Rule extends Positional
  * @param call The call to make
  * @param comments The comments above the route
  */
-case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall, comments: List[Comment] = List()) extends Rule
+case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall,
+  comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
 
 /**
  * An include for another router
@@ -69,6 +70,11 @@ case class Parameter(name: String, typeName: String, fixed: Option[String], defa
  * A comment from the routes file.
  */
 case class Comment(comment: String)
+
+/**
+ * A modifier tag in the routes file
+ */
+case class Modifier(value: String)
 
 /**
  * A part of the path

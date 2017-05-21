@@ -304,7 +304,7 @@ trait WebSocketSpec extends PlaySpecification
       implicit def toHandler[J <: AnyRef](javaHandler: => J)(implicit factory: HandlerInvokerFactory[J], ct: ClassTag[J]): Handler = {
         val invoker = factory.createInvoker(
           javaHandler,
-          new HandlerDef(ct.runtimeClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
+          HandlerDef(ct.runtimeClass.getClassLoader, "package", "controller", "method", Nil, "GET", "/stream")
         )
         invoker.call(javaHandler)
       }

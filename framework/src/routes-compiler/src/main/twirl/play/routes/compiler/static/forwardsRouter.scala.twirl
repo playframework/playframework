@@ -40,8 +40,8 @@ class Routes extends GeneratedRouter {
 
   def documentation: Seq[(String, String, String)] = List(@for((rule, index) <- rules.zipWithIndex) {
     @rule match {
-      case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, prefix, @tq@call@tq)}
-      case Route(verb, path, call, _) => {(@tq@verb@tq, prefix + (if(prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
+      case Route(verb, path, call, _, _) if path.parts.isEmpty => {(@tq@verb@tq, prefix, @tq@call@tq)}
+      case Route(verb, path, call, _, _) => {(@tq@verb@tq, prefix + (if(prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
       case include: Include => {@(routerIdentifier(include, index)).router.documentation}
   },}
     Nil
@@ -51,7 +51,7 @@ class Routes extends GeneratedRouter {
   }}
 
 @for(rule <- rules.zipWithIndex){@rule match {
-case (route @ Route(verb, path, call, comments), index) => {
+case (route @ Route(verb, path, call, comments, modifiers), index) => {
   @markLines(route)
   private[this] lazy val @routeIdentifier(route, index): Route.ParamsExtractor = Route("@verb.value",
     PathPattern(List(StaticPart(this.prefix)@if(path.parts.nonEmpty) {, StaticPart(this.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
@@ -64,8 +64,9 @@ case (route @ Route(verb, path, call, comments), index) => {
       "@call.method",
       @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
       "@verb",
+      this.prefix + @encodeStringConstant(path.toString),
       @encodeStringConstant(comments.map(_.comment).mkString("\n")),
-      this.prefix + @encodeStringConstant(path.toString)
+      Seq(@modifiers.map(_.value).map(encodeStringConstant).mkString(", "))
     )
   )
 }
@@ -82,7 +83,7 @@ case (include @ Include(path, router), index) => {
     @markLines(include)
     case @(routerIdentifier(include, index))(handler) => handler
   }
-  case (route @ Route(_, _, _, _), index) => {
+  case (route: Route, index) => {
     @markLines(route)
     case @(routeIdentifier(route, index))(params) =>
       call@(routeBinding(route)) @ob @localNames(route)

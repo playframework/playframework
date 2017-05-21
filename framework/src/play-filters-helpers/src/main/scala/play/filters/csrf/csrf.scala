@@ -90,8 +90,6 @@ object CSRFConfig {
     (request.method == "GET" || request.method == "HEAD") && (request.accepts(HTML) || request.accepts(XHTML))
   }
 
-  private[play] val HeaderNoCheck = "nocheck"
-
   def fromConfiguration(conf: Configuration): CSRFConfig = {
     val config = conf.getDeprecatedWithFallback("play.filters.csrf", "csrf")
 
@@ -121,19 +119,30 @@ object CSRFConfig {
       }
     }
 
+    val whitelistModifiers = config.get[Seq[String]]("routeModifiers.whiteList")
+    val blacklistModifiers = config.get[Seq[String]]("routeModifiers.blackList")
+    @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
+      import play.api.routing.Router.RequestImplicits._
+      if (whitelistModifiers.isEmpty) {
+        blacklistModifiers.exists(rh.hasRouteModifier)
+      } else {
+        !whitelistModifiers.exists(rh.hasRouteModifier)
+      }
+    }
+
     val protectHeaders = config.get[Option[Map[String, String]]]("header.protectHeaders").getOrElse(Map.empty)
     val bypassHeaders = config.get[Option[Map[String, String]]]("header.bypassHeaders").getOrElse(Map.empty)
-
-    val shouldProtect: RequestHeader => Boolean = { rh =>
-      def foundHeaderValues(headersToCheck: Map[String, String]) = {
+    @inline def checkHeaders(rh: RequestHeader): Boolean = {
+      @inline def foundHeaderValues(headersToCheck: Map[String, String]) = {
         headersToCheck.exists {
           case (name, "*") => rh.headers.get(name).isDefined
           case (name, value) => rh.headers.get(name).contains(value)
         }
       }
-
       (protectHeaders.isEmpty || foundHeaderValues(protectHeaders)) && !foundHeaderValues(bypassHeaders)
     }
+
+    val shouldProtect: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) && checkHeaders(rh) }
 
     CSRFConfig(
       tokenName = config.get[String]("token.name"),
