@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.ws;
 
 import akka.stream.javadsl.Source;
@@ -12,16 +15,16 @@ import java.io.InputStream;
  */
 public interface WSBodyFactory {
 
-    public WSBody<String> string(String body);
+    WSBody<String> string(String body);
 
-    public WSBody<JsonNode> json(JsonNode body);
+    WSBody<JsonNode> json(JsonNode body);
 
-    public WSBody<Source<ByteString, ?>> source(Source<ByteString, ?> body);
+    WSBody<Source<ByteString, ?>> source(Source<ByteString, ?> body);
 
-    public WSBody<File> file(File body);
+    WSBody<File> file(File body);
 
     @Deprecated
     public WSBody<InputStream> inputStream(InputStream body);
 
-    public WSBody<Object> empty();
+    WSBody<Object> empty();
 }
