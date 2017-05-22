@@ -1,6 +1,8 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
 
+> **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].
+
 ## The realm of Enumeratees
 
 ‘Enumeratee’ is a very important component in the iteratees API. It provides a way to adapt and transform streams of data. An `Enumeratee` that might sound familiar is the `Enumeratee.map`.
