@@ -14,6 +14,7 @@ import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
@@ -259,6 +260,11 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public WSRequest setRequestTimeout(Duration timeout) {
+        return converter.apply(request.setRequestTimeout(timeout));
+    }
+
+    @Override
     public WSRequest setRequestFilter(WSRequestFilter filter) {
         return converter.apply(request.setRequestFilter(filter));
     }
@@ -306,6 +312,11 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public long getRequestTimeout() {
         return request.getRequestTimeout();
+    }
+
+    @Override
+    public Duration getRequestTimeoutDuration() {
+        return request.getRequestTimeoutDuration();
     }
 
     @Override
