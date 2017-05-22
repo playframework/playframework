@@ -3,6 +3,9 @@
  */
 package play.api.libs.ws.ahc
 
+import java.net.URI
+
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
 import play.api.libs.json.JsValue
@@ -10,34 +13,18 @@ import play.api.libs.ws._
 
 import scala.xml.Elem
 
+object AhcWSResponse extends WSBodyReadables
+
 /**
  * A WS HTTP Response backed by an AsyncHttpClient response.
  *
  * @param underlying
  */
-case class AhcWSResponse(underlying: StandaloneAhcWSResponse) extends WSResponse {
+case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse with WSBodyReadables {
 
   def this(ahcResponse: AHCResponse) = {
     this(StandaloneAhcWSResponse(ahcResponse))
   }
-
-  /**
-   * The response body as String.
-   */
-  override def body: String = underlying.body
-
-  /**
-   * The response body as Xml.
-   */
-  override lazy val xml: Elem = underlying.xml
-
-  /**
-   * Return the current headers of the request being constructed
-   *
-   * @deprecated Please use the headers method
-   */
-  @deprecated("Please use request.headers", since = "2.6.0")
-  override def allHeaders: Map[String, Seq[String]] = underlying.headers
 
   /**
    * Return the current headers of the request being constructed
@@ -78,13 +65,31 @@ case class AhcWSResponse(underlying: StandaloneAhcWSResponse) extends WSResponse
    */
   override def cookie(name: String): Option[WSCookie] = underlying.cookie(name)
 
-  /**
-   * The response body as Json.
-   */
-  override def json: JsValue = underlying.json
+  override def body: String = underlying.body
 
   /**
    * The response body as a byte string.
    */
   override def bodyAsBytes: ByteString = underlying.bodyAsBytes
+
+  override def bodyAsSource: Source[ByteString, _] = underlying.bodyAsSource
+
+  /**
+   * Return the current headers of the request being constructed
+   */
+  @deprecated("Please use request.headers", since = "2.6.0")
+  override def allHeaders: Map[String, Seq[String]] = underlying.headers
+
+  /**
+   * The response body as Xml.
+   */
+  @deprecated("Use response.body[Elem]", since = "2.6.0")
+  override def xml: Elem = underlying.body[Elem]
+
+  /**
+   * The response body as Json.
+   */
+  @deprecated("Use response.body[JsValue]", since = "2.6.0")
+  override def json: JsValue = underlying.body[JsValue]
+
 }

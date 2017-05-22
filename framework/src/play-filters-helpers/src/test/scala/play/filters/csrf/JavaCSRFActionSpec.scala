@@ -70,7 +70,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   "The Java CSRF filter support" should {
     "allow adding things to the session when a token is also added to the session" in {
       buildCsrfWithSession()(_.get()) { response =>
-        val session = response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)).flatMap(_.value).map(Session.decode)
+        val session = response.cookie(Session.COOKIE_NAME).map(_.value).map(Session.decode)
         session must beSome.which { s =>
           s.get(TokenName) must beSome[String]
           s.get("hello") must beSome("world")

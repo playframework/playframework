@@ -10,13 +10,14 @@ import play.libs.ws.*;
 import play.libs.ws.StandaloneWSRequest;
 import play.libs.ws.StandaloneWSResponse;
 import play.mvc.Http;
-import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
@@ -24,6 +25,7 @@ import java.util.function.Function;
  * A Play WS request backed by AsyncHTTPClient implementation.
  */
 public class AhcWSRequest implements WSRequest {
+    private static WSBodyWritables writables = new WSBodyWritables() {};
 
     private final AhcWSClient client;
     private final StandaloneAhcWSRequest request;
@@ -41,76 +43,99 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
-        String boundary = MultipartFormatter.randomBoundary();
-        this.request.setBody(MultipartFormatter.transform(body, boundary));
-        setHeader("Content-Type", MultipartFormatter.boundaryToContentType(boundary));
-        return this;
-    }
-
-    @Override
     public CompletionStage<WSResponse> get() {
         return request.get().thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> patch(String body) {
+    public CompletionStage<WSResponse> patch(BodyWritable body) {
         return request.patch(body).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> patch(JsonNode body) {
-        return request.patch(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> patch(String string) {
+        return request.patch(writables.body(string)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> patch(InputStream body) {
-        return request.patch(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> patch(JsonNode jsonNode) {
+        return request.patch(writables.body(jsonNode)).thenApply(responseFunction);
+    }
+
+    @Deprecated
+    @Override
+    public CompletionStage<WSResponse> patch(InputStream inputStream) {
+        return request.patch(writables.body(() -> inputStream)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> patch(File body) {
-        return request.patch(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> patch(File file) {
+        return request.patch(writables.body(file)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> post(String body) {
+    public CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> bodyPartSource) {
+        return request.patch(writables.multipartBody(bodyPartSource)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> post(BodyWritable body) {
         return request.post(body).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> post(JsonNode body) {
-        return request.post(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> post(String string) {
+        return request.post(writables.body(string)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> post(InputStream body) {
-        return request.post(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> post(JsonNode json) {
+        return request.post(writables.body(json)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> post(File body) {
-        return request.post(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> post(InputStream is) {
+        return request.post(writables.body(() -> is)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> put(String body) {
+    public CompletionStage<WSResponse> post(File file) {
+        return request.post(writables.body(file)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> bodyPartSource) {
+        return request.post(writables.multipartBody(bodyPartSource)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> put(BodyWritable body) {
         return request.put(body).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> put(JsonNode body) {
-        return request.put(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> put(String string) {
+        return request.put(writables.body(string)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> put(InputStream body) {
-        return request.put(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> put(JsonNode json) {
+        return request.put(writables.body(json)).thenApply(responseFunction);
     }
 
     @Override
-    public CompletionStage<WSResponse> put(File body) {
-        return request.put(body).thenApply(responseFunction);
+    public CompletionStage<WSResponse> put(InputStream is) {
+        return request.put(writables.body(() -> is)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> put(File file) {
+        return request.put(writables.body(file)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> bodyPartSource) {
+        return request.put(writables.multipartBody(bodyPartSource)).thenApply(responseFunction);
     }
 
     @Override
@@ -139,8 +164,8 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public CompletionStage<? extends StreamedResponse> stream() {
-        return request.stream();
+    public CompletionStage<WSResponse> stream() {
+        return request.stream().thenApply(responseFunction);
     }
 
     @Override
@@ -149,43 +174,52 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public WSRequest setBody(String body) {
-        return converter.apply(request.setBody(body));
+    public WSRequest setBody(BodyWritable bodyWritable) {
+        return converter.apply(request.setBody(bodyWritable));
     }
 
     @Override
-    public WSRequest setBody(JsonNode body) {
-        return converter.apply(request.setBody(body));
+    public WSRequest setBody(String string) {
+        return converter.apply(request.setBody(writables.body(string)));
+    }
+
+    @Override
+    public WSRequest setBody(JsonNode json) {
+        return converter.apply(request.setBody(writables.body(json)));
     }
 
     @Deprecated
     @Override
-    public WSRequest setBody(InputStream body) {
-        return converter.apply(request.setBody(body));
+    public WSRequest setBody(InputStream is) {
+        return converter.apply(request.setBody(writables.body(() -> is)));
     }
 
     @Override
-    public WSRequest setBody(File body) {
-        return converter.apply(request.setBody(body));
+    public WSRequest setBody(File file) {
+        return converter.apply(request.setBody(writables.body(file)));
     }
 
     @Override
-    public <U> WSRequest setBody(Source<ByteString, U> body) {
-        return converter.apply(request.setBody(body));
+    public <U> WSRequest setBody(Source<ByteString, U> source) {
+        return converter.apply(request.setBody(writables.body(source)));
     }
 
+    /**
+     * @deprecated use addHeader(name, value)
+     */
+    @Deprecated
     @Override
     public WSRequest setHeader(String name, String value) {
-        return converter.apply(request.setHeader(name, value));
+        return converter.apply(request.addHeader(name, value));
     }
 
     @Override
-    public StandaloneWSRequest setHeaders(Map<String, List<String>> headers) {
+    public WSRequest setHeaders(Map<String, List<String>> headers) {
         return converter.apply(request.setHeaders(headers));
     }
 
     @Override
-    public StandaloneWSRequest addHeader(String name, String value) {
+    public WSRequest addHeader(String name, String value) {
         return converter.apply(request.addHeader(name, value));
     }
 
@@ -194,33 +228,51 @@ public class AhcWSRequest implements WSRequest {
         return converter.apply(request.setQueryString(query));
     }
 
+    /**
+     * @deprecated Use addQueryParameter
+     */
+    @Deprecated
     @Override
     public WSRequest setQueryParameter(String name, String value) {
-        return converter.apply(request.setQueryParameter(name, value));
-    }
-
-    @Override
-    public StandaloneWSRequest addQueryParameter(String name, String value) {
         return converter.apply(request.addQueryParameter(name, value));
     }
 
     @Override
-    public StandaloneWSRequest setQueryString(Map<String, List<String>> params) {
+    public WSRequest addQueryParameter(String name, String value) {
+        return converter.apply(request.addQueryParameter(name, value));
+    }
+
+    @Override
+    public WSRequest setQueryString(Map<String, List<String>> params) {
         return converter.apply(request.setQueryString(params));
     }
 
     @Override
-    public StandaloneWSRequest addCookie(WSCookie cookie) {
+    public WSRequest addCookie(WSCookie cookie) {
         return converter.apply(request.addCookie(cookie));
     }
 
     @Override
-    public StandaloneWSRequest addCookies(WSCookie... cookies) {
+    public WSRequest addCookie(Http.Cookie cookie) {
+        return converter.apply(request.addCookie(asCookie(cookie)));
+    }
+
+    public WSCookie asCookie(Http.Cookie cookie) {
+        return new DefaultWSCookie(cookie.name(), cookie.value(),
+                cookie.domain(),
+                cookie.path(),
+                Optional.ofNullable(cookie.maxAge()).map(c -> c.longValue()).filter(f -> f > -1L).orElse(null),
+                cookie.secure(),
+                cookie.httpOnly());
+    }
+
+    @Override
+    public WSRequest addCookies(WSCookie... cookies) {
         return converter.apply(request.addCookies(cookies));
     }
 
     @Override
-    public StandaloneWSRequest setCookies(List<WSCookie> cookies) {
+    public WSRequest setCookies(List<WSCookie> cookies) {
         return converter.apply(request.setCookies(cookies));
     }
 
@@ -254,9 +306,20 @@ public class AhcWSRequest implements WSRequest {
         return converter.apply(request.setVirtualHost(virtualHost));
     }
 
+    /**
+     * @deprecated Use {@link #setRequestTimeout(Duration timeout)}
+     * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
+     */
+    @Deprecated
     @Override
     public WSRequest setRequestTimeout(long timeout) {
-        return converter.apply(request.setRequestTimeout(timeout));
+        Duration d;
+        if (timeout == -1) {
+            d = Duration.of(1, ChronoUnit.YEARS);
+        } else {
+            d = Duration.ofMillis(timeout);
+        }
+        return converter.apply(request.setRequestTimeout(d));
     }
 
     @Override
@@ -285,6 +348,16 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public List<String> getHeaderValues(String name) {
+        return request.getHeaderValues(name);
+    }
+
+    @Override
+    public Optional<String> getHeader(String name) {
+        return request.getHeader(name);
+    }
+
+    @Override
     public Map<String, List<String>> getQueryParameters() {
         return request.getQueryParameters();
     }
@@ -309,9 +382,12 @@ public class AhcWSRequest implements WSRequest {
         return request.getCalculator();
     }
 
-    @Override
+    /**
+     * @deprecated use {@link #getRequestTimeoutDuration()}
+     */
+    @Deprecated
     public long getRequestTimeout() {
-        return request.getRequestTimeout();
+        return request.getRequestTimeoutDuration().get(ChronoUnit.MILLIS);
     }
 
     @Override
@@ -327,27 +403,6 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public String getContentType() {
         return request.getContentType();
-    }
-
-    @Override
-    public CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
-        setMethod("PATCH");
-        setMultipartBody(body);
-        return execute();
-    }
-
-    @Override
-    public CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
-        setMethod("POST");
-        setMultipartBody(body);
-        return execute();
-    }
-
-    @Override
-    public CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
-        setMethod("PUT");
-        setMultipartBody(body);
-        return execute();
     }
 
 }
