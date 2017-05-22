@@ -139,22 +139,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
     underlying.withMethod(method)
   }
 
-  override def withBody(body: WSBody): Self = toWSRequest {
-    underlying.withBody(body)
-  }
-
-  override def withBody(file: java.io.File): Self = toWSRequest(underlying.withBody(file))
-
   override def withBody[T: BodyWritable](body: T): Self = toWSRequest(underlying.withBody(body))
-
-  /**
-   * Sets a multipart body for this request
-   */
-  override def withBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Self = {
-    val boundary = Multipart.randomBoundary()
-    val contentType = s"multipart/form-data; boundary=$boundary"
-    withBody(StreamedBody(Multipart.transform(body, boundary))).withHeaders("Content-Type" -> contentType)
-  }
 
   override def delete(): Future[Response] = execute("DELETE")
 
@@ -164,29 +149,11 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest {
 
   override def options(): Future[Response] = execute("OPTIONS")
 
-  /**
-   * Perform a PATCH on the request asynchronously.
-   */
-  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] = {
-    withBody(body).execute("PATCH")
-  }
-  override def patch(file: java.io.File): Future[Response] = withBody(file).execute("PATCH")
   override def patch[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PATCH")
 
-  /**
-   * Perform a POST on the request asynchronously.
-   */
-  override def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] =
-    withBody(body).execute("POST")
-  override def post(body: java.io.File): Future[Response] = withBody(body).execute("POST")
   override def post[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("POST")
 
-  /**
-   * Perform a PUT on the request asynchronously.
-   */
-  override def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] = withBody(body).execute("PUT")
   override def put[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PUT")
-  override def put(body: java.io.File): Future[Response] = withBody(body).execute("PUT")
 
   def stream(): Future[StreamedResponse] = underlying.stream()
 

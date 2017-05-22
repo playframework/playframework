@@ -9,20 +9,23 @@ import java.nio.charset.{ Charset, StandardCharsets }
 import java.util
 import java.util.concurrent.TimeUnit
 
+import akka.NotUsed
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
+import com.fasterxml.jackson.databind.JsonNode
 import play.shaded.ahc.org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
 import play.api.http.Port
 import play.api.libs.json.JsString
 import play.api.libs.oauth._
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.WSBody
 import play.api.mvc.Results.Ok
 import play.api.mvc._
 import play.api.test._
 import play.core.server.Server
 import play.it._
 import play.it.tools.HttpBinApplication
+import play.libs.ws.WSBody
+import play.libs.ws.ahc.AhcWSBody
 import play.mvc.Http
 
 import scala.concurrent.duration._
@@ -33,6 +36,7 @@ class NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 class AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
 trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "Web service client" title
@@ -194,8 +198,11 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
     }
 
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
-      val source = Source.single(ByteString("abc")).asJava
-      val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(source).execute()
+      val source = akka.stream.javadsl.Source.single(ByteString("abc"))
+      val wsBody = new WSBody[akka.stream.javadsl.Source[ByteString, NotUsed]]() {
+        override val body = source
+      }
+      val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(wsBody).execute()
       val body = res.toCompletableFuture.get().getBody
 
       body must_== s"Content-Length: 3; Transfer-Encoding: -1"

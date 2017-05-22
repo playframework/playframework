@@ -14,8 +14,10 @@ import play.mvc.MultipartFormatter;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
@@ -26,6 +28,7 @@ public class AhcWSRequest implements WSRequest {
 
     private final AhcWSClient client;
     private final StandaloneAhcWSRequest request;
+    private final AhcWSBodyFactory bodyFactory = new AhcWSBodyFactory();
     private final Function<StandaloneWSResponse, WSResponse> responseFunction = AhcWSResponse::new;
     private final Function<StandaloneWSRequest, WSRequest> converter = new Function<StandaloneWSRequest, WSRequest>() {
         public WSRequest apply(StandaloneWSRequest standaloneWSRequest) {
@@ -42,7 +45,7 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
         String boundary = MultipartFormatter.randomBoundary();
-        this.request.setBody(MultipartFormatter.transform(body, boundary));
+        this.request.setBody(() -> MultipartFormatter.transform(body, boundary));
         setHeader("Content-Type", MultipartFormatter.boundaryToContentType(boundary));
         return this;
     }
@@ -53,63 +56,79 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public CompletionStage<WSResponse> patch(String body) {
+    public CompletionStage<? extends StandaloneWSResponse> patch(WSBody body) {
         return request.patch(body).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<? extends StandaloneWSResponse> post(WSBody body) {
+        return request.post(body).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<? extends StandaloneWSResponse> put(WSBody body) {
+        return request.put(body).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> patch(String body) {
+        return request.patch(bodyFactory.string(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> patch(JsonNode body) {
-        return request.patch(body).thenApply(responseFunction);
+        return request.patch(bodyFactory.json(body)).thenApply(responseFunction);
     }
 
+    @Deprecated
     @Override
     public CompletionStage<WSResponse> patch(InputStream body) {
-        return request.patch(body).thenApply(responseFunction);
+        return request.patch(bodyFactory.inputStream(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> patch(File body) {
-        return request.patch(body).thenApply(responseFunction);
+        return request.patch(bodyFactory.file(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> post(String body) {
-        return request.post(body).thenApply(responseFunction);
+        return request.post(bodyFactory.string(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> post(JsonNode body) {
-        return request.post(body).thenApply(responseFunction);
+        return request.post(bodyFactory.json(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> post(InputStream body) {
-        return request.post(body).thenApply(responseFunction);
+        return request.post(() -> body).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> post(File body) {
-        return request.post(body).thenApply(responseFunction);
+        return request.post(bodyFactory.file(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> put(String body) {
-        return request.put(body).thenApply(responseFunction);
+        return request.put(bodyFactory.string(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> put(JsonNode body) {
-        return request.put(body).thenApply(responseFunction);
+        return request.put(bodyFactory.json(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> put(InputStream body) {
-        return request.put(body).thenApply(responseFunction);
+        return request.put(bodyFactory.inputStream(body)).thenApply(responseFunction);
     }
 
     @Override
     public CompletionStage<WSResponse> put(File body) {
-        return request.put(body).thenApply(responseFunction);
+        return request.put(bodyFactory.file(body)).thenApply(responseFunction);
     }
 
     @Override
@@ -148,29 +167,34 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
-    public WSRequest setBody(String body) {
+    public WSRequest setBody(WSBody body) {
         return converter.apply(request.setBody(body));
     }
 
     @Override
+    public WSRequest setBody(String body) {
+        return converter.apply(request.setBody(() -> body));
+    }
+
+    @Override
     public WSRequest setBody(JsonNode body) {
-        return converter.apply(request.setBody(body));
+        return converter.apply(request.setBody(() -> body));
     }
 
     @Deprecated
     @Override
     public WSRequest setBody(InputStream body) {
-        return converter.apply(request.setBody(body));
+        return converter.apply(request.setBody(() -> body));
     }
 
     @Override
     public WSRequest setBody(File body) {
-        return converter.apply(request.setBody(body));
+        return converter.apply(request.setBody(() -> body));
     }
 
     @Override
     public <U> WSRequest setBody(Source<ByteString, U> body) {
-        return converter.apply(request.setBody(body));
+        return converter.apply(request.setBody(() -> body));
     }
 
     @Override
@@ -259,6 +283,11 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public StandaloneWSRequest setRequestTimeout(Duration timeout) {
+        return converter.apply(request.setRequestTimeout(timeout));
+    }
+
+    @Override
     public WSRequest setRequestFilter(WSRequestFilter filter) {
         return converter.apply(request.setRequestFilter(filter));
     }
@@ -276,6 +305,16 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public Map<String, List<String>> getHeaders() {
         return request.getHeaders();
+    }
+
+    @Override
+    public List<String> getHeaderValues(String name) {
+        return request.getHeaderValues(name);
+    }
+
+    @Override
+    public Optional<String> getHeader(String name) {
+        return request.getHeader(name);
     }
 
     @Override
@@ -306,6 +345,11 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public long getRequestTimeout() {
         return request.getRequestTimeout();
+    }
+
+    @Override
+    public Duration getRequestTimeoutDuration() {
+        return request.getRequestTimeoutDuration();
     }
 
     @Override
