@@ -3,7 +3,7 @@
  */
 package play.libs.concurrent;
 
-import scala.concurrent.Future;
+import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 import static scala.compat.java8.FutureConverters.toJava;
-import static scala.compat.java8.FutureConverters.toScala;
 
 /**
  * The default implementation of the Futures trait.  This provides an
@@ -46,9 +45,8 @@ public class DefaultFutures implements Futures {
         requireNonNull(stage, "Null stage");
         requireNonNull(unit, "Null unit");
 
-        Future<A> future = toScala(stage);
         FiniteDuration duration = FiniteDuration.apply(amount, unit);
-        return toJava(delegate.timeout(duration, future));
+        return toJava(delegate.timeout(duration, Scala.asScalaWithFuture(() -> stage)));
     }
 
     /**
@@ -64,9 +62,8 @@ public class DefaultFutures implements Futures {
         requireNonNull(stage, "Null stage");
         requireNonNull(duration, "Null duration");
 
-        Future<A> future = toScala(stage);
         FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-        return toJava(delegate.timeout(finiteDuration, future));
+        return toJava(delegate.timeout(finiteDuration, Scala.asScalaWithFuture(() -> stage)));
     }
 
     /**
@@ -85,9 +82,8 @@ public class DefaultFutures implements Futures {
         requireNonNull(amount, "Null amount");
         requireNonNull(unit, "Null unit");
 
-        Future<A> future = toScala(stage);
         FiniteDuration duration = FiniteDuration.apply(amount, unit);
-        return toJava(delegate.delayed(duration, future));
+        return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(() -> stage)));
     }
 
     /**
@@ -104,9 +100,8 @@ public class DefaultFutures implements Futures {
         requireNonNull(stage, "Null stage");
         requireNonNull(duration, "Null duration");
 
-        Future<A> future = toScala(stage);
         FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-        return toJava(delegate.delayed(finiteDuration, future));
+        return toJava(delegate.delayed(finiteDuration, Scala.asScalaWithFuture(() -> stage)));
     }
 
 }
