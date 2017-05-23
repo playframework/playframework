@@ -62,7 +62,7 @@ trait Futures {
    * @param f a call by value Future[A]
    * @return the future that completes first, either the failed future, or the operation.
    */
-  def timeout[A](timeoutDuration: FiniteDuration)(f: Future[A]): Future[A]
+  def timeout[A](timeoutDuration: FiniteDuration)(f: => Future[A]): Future[A]
 
   /**
    * Creates a future which will be completed after the specified duration.
@@ -71,7 +71,7 @@ trait Futures {
    * @param duration the duration to delay the future by.
    * @param f the future to delay
    */
-  def delayed[A](duration: FiniteDuration)(f: Future[A]): Future[A]
+  def delayed[A](duration: FiniteDuration)(f: => Future[A]): Future[A]
 
 }
 
@@ -82,7 +82,7 @@ trait Futures {
  */
 class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
 
-  override def timeout[A](timeoutDuration: FiniteDuration)(f: Future[A]): Future[A] = {
+  override def timeout[A](timeoutDuration: FiniteDuration)(f: => Future[A]): Future[A] = {
     implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher
     val timeoutFuture = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
       val msg = s"Timeout after $timeoutDuration"
@@ -91,7 +91,7 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
     Future.firstCompletedOf(Seq(f, timeoutFuture))
   }
 
-  override def delayed[A](duration: FiniteDuration)(f: Future[A]): Future[A] = {
+  override def delayed[A](duration: FiniteDuration)(f: => Future[A]): Future[A] = {
     implicit val ec = actorSystem.dispatcher
     akka.pattern.after(duration, actorSystem.scheduler)(f)
   }
