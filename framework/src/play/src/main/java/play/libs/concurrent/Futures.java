@@ -63,6 +63,23 @@ public interface Futures {
     <A> CompletionStage<A> delayed(Callable<CompletionStage<A>> callable, long amount, TimeUnit unit);
 
     /**
+     * Creates a completion stage which is only completed after the delay.
+     *
+     * @param duration the duration after which the completion stage is run.
+     * @return the completion stage.
+     */
+    CompletionStage<Void> delay(Duration duration);
+
+    /**
+     * Creates a completion stage which is only completed after the delay.
+     *
+     * @param amount The time to wait.
+     * @param unit The units to use for the amount.
+     * @return the delayed CompletionStage.
+     */
+    CompletionStage<Void> delay(long amount, TimeUnit unit);
+
+    /**
      * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a
      * given supplier. The completion stage will be called after the delay.
      *

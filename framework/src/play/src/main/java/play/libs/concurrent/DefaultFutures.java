@@ -5,10 +5,12 @@ package play.libs.concurrent;
 
 import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
+import scala.runtime.BoxedUnit;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
@@ -85,6 +87,20 @@ public class DefaultFutures implements Futures {
 
         FiniteDuration duration = FiniteDuration.apply(amount, unit);
         return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(callable)));
+    }
+
+    @Override
+    public CompletionStage<Void> delay(Duration duration) {
+        FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
+        CompletionStage<BoxedUnit> boxedUnitCompletionStage = toJava(delegate.delay(finiteDuration));
+        // This is a horrible kludge between Void / BoxedUnit, but it's a no-op after delay, so...
+        return boxedUnitCompletionStage.thenRun(() -> { });
+    }
+
+    @Override
+    public CompletionStage<Void> delay(long amount, TimeUnit unit) {
+        FiniteDuration duration = FiniteDuration.apply(amount, unit);
+        return delay(Duration.ofNanos(duration.toNanos()));
     }
 
     /**

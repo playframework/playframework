@@ -73,6 +73,17 @@ trait Futures {
    */
   def delayed[A](duration: FiniteDuration)(f: => Future[A]): Future[A]
 
+  /**
+   * Creates a delayed future that is used as a supplier to other futures.
+   *
+   * {{{
+   * val future: Future[String] = futures.delay(1 second).map(_ => "hello world!")
+   * }}}
+   * @param duration
+   * @return
+   */
+  def delay(duration: FiniteDuration): Future[Unit]
+
 }
 
 /**
@@ -95,6 +106,12 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
     implicit val ec = actorSystem.dispatcher
     akka.pattern.after(duration, actorSystem.scheduler)(f)
   }
+
+  override def delay(duration: FiniteDuration): Future[Unit] = {
+    implicit val ec = actorSystem.dispatcher
+    akka.pattern.after(duration, actorSystem.scheduler)(Future.unit)
+  }
+
 }
 
 /**
