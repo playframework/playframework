@@ -13,8 +13,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * Defines several security helpers.
@@ -41,15 +43,23 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
 
-        private final Injector injector;
+        private Authenticator authenticator;
+        private Injector injector;
 
         @Inject
         public AuthenticatedAction(Injector injector) {
             this.injector = injector;
         }
 
+        public AuthenticatedAction(Authenticator authenticator) {
+            this.authenticator = authenticator;
+        }
+
         public CompletionStage<Result> call(final Context ctx) {
-            Authenticator authenticator = injector.instanceOf(configuration.value());
+            Authenticator authenticator = Optional
+                    .ofNullable(this.injector)
+                    .map((Function<Injector, Authenticator>) inj -> inj.instanceOf(configuration.value()))
+                    .orElse(this.authenticator);
             String username = authenticator.getUsername(ctx);
             if(username == null) {
                 Result unauthorized = authenticator.onUnauthorized(ctx);
