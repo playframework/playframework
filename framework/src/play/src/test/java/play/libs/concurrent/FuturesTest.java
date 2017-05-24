@@ -6,7 +6,6 @@ package play.libs.concurrent;
 import akka.actor.ActorSystem;
 import org.junit.*;
 
-import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +67,7 @@ public class FuturesTest {
         final CompletionStage<Long> stage = renderAfter(expected);
 
         Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
-        assertTrue( format("Expected duration {0} is smaller than actual duration {1}!", expected, actual), actual.compareTo(expected) > 1);
+        assertTrue( format("Expected duration {0} is smaller than actual duration {1}!", expected, actual), actual.compareTo(expected) > 0);
     }
 
     @Test
@@ -77,7 +76,7 @@ public class FuturesTest {
         final CompletionStage<Long> stage = renderAfter(Duration.ofSeconds(1));
 
         Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
-        assertTrue(format("Expected duration {0} is larger from actual duration {1}!", expected, actual), actual.compareTo(expected) < 1);
+        assertTrue(format("Expected duration {0} is larger from actual duration {1}!", expected, actual), actual.compareTo(expected) < 0);
     }
 
     private CompletionStage<Double> computePIAsynchronously() {
