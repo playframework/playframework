@@ -65,6 +65,15 @@ public interface Futures {
     /**
      * Creates a completion stage which is only completed after the delay.
      *
+     * <pre>@{code
+     * Duration expected = Duration.ofSeconds(2);
+     * long start = System.currentTimeMillis();
+     * CompletionStage<Long> stage = futures.delay(expected).thenApply((v) -> {
+     *     long end = System.currentTimeMillis();
+     *     return (end - start);
+     * });
+     * }</pre>
+     *
      * @param duration the duration after which the completion stage is run.
      * @return the completion stage.
      */
