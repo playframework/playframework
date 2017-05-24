@@ -47,11 +47,11 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
             override def get(): ActionCompositionOrderTest.ActionComposition = new ActionCompositionOrderTest.ActionComposition()
           })
           .addAction(classOf[ActionCompositionOrderTest.ControllerComposition], new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
-          override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
-        })
+            override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
+          })
           .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
-          override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
-        })
+            override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
+          })
       }
 
       override def router(): JRouter = {
