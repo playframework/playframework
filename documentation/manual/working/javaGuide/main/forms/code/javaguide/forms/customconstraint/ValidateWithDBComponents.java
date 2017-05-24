@@ -27,11 +27,6 @@ public class ValidateWithDBComponents extends BuiltInComponentsFromContext
     }
 
     @Override
-    public ConnectionPool connectionPool() {
-        return null;
-    }
-
-    @Override
     public StaticConstraintValidatorFactory constraintValidatorFactory() {
         return new StaticConstraintValidatorFactory()
                 .addConstraintValidator(
