@@ -4,6 +4,7 @@
 package play.filters.csrf;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 import javax.inject.Inject;
@@ -24,7 +25,9 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final SessionConfiguration sessionConfiguration;
     private final CSRF.TokenProvider tokenProvider;
     private final CSRFTokenSigner tokenSigner;
-    private final Injector injector;
+
+    private CSRFErrorHandler errorHandler;
+    private Injector injector;
 
     @Inject
     public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
@@ -33,6 +36,14 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         this.tokenProvider = tokenProvider;
         this.tokenSigner = csrfTokenSigner;
         this.injector = injector;
+    }
+
+    public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, CSRFErrorHandler errorHandler) {
+        this.config = config;
+        this.sessionConfiguration = sessionConfiguration;
+        this.tokenProvider = tokenProvider;
+        this.tokenSigner = csrfTokenSigner;
+        this.errorHandler = errorHandler;
     }
 
     @Override
@@ -99,7 +110,10 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
             }
         }
 
-        CSRFErrorHandler handler = injector.instanceOf(configuration.error());
+        CSRFErrorHandler handler = Optional
+                .ofNullable(injector)
+                .map(injctr -> (CSRFErrorHandler)injctr.instanceOf(configuration.error()))
+                .orElse(this.errorHandler);
         return handler.handle(new play.core.j.RequestHeaderImpl(request), msg);
     }
 }
