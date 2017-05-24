@@ -131,6 +131,21 @@ class RoutesFileParserSpec extends Specification {
       parseRoute("# some comment\nGET /s p.c.m").comments must containTheSameElementsAs(Seq(Comment(" some comment")))
     }
 
+    "parse the HTTP method with white spaces occurred in the start of line" in {
+      parseRoute(" GET /s p.c.m").verb must_== HttpVerb("GET")
+    }
+
+    "parse an include with white spaces occurred in the start of line" in {
+      val rule = parseRule(" -> /s someFile")
+      rule must beAnInstanceOf[Include]
+      rule.asInstanceOf[Include].router must_== "someFile"
+      rule.asInstanceOf[Include].prefix must_== "s"
+    }
+
+    "parse a comment with white spaces occurred in the start of line" in {
+      parseRoute(" # some comment\nGET /s p.c.m").comments must containTheSameElementsAs(Seq(Comment(" some comment")))
+    }
+
     "throw an error for an unexpected line" in parseError("foo")
     "throw an error for an invalid path" in parseError("GET s p.c.m")
     "throw an error for no path" in parseError("GET")

@@ -182,7 +182,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   def end: util.matching.Regex = """\s*""".r
 
-  def comment: Parser[Comment] = "#" ~> ".*".r ^^ {
+  def comment: Parser[Comment] = """\s*#""".r ~> ".*".r ^^ {
     case c => Comment(c)
   }
 
@@ -304,11 +304,11 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case parts => parts.mkString(".")
   }
 
-  def route = httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
-    case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
+  def route = """\s*""".r ~ httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
+    case _ ~ v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
   }
 
-  def include = "->" ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
+  def include = """\s*->""".r ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
     case _ ~ _ ~ p ~ _ ~ r ~ _ => Include(p.toString, r)
   }
 
