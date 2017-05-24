@@ -14,12 +14,10 @@ import javax.validation.Validator;
  */
 public interface ValidatorsComponents {
 
-    Injector injector();
-
     ApplicationLifecycle applicationLifecycle();
 
     default ConstraintValidatorFactory constraintValidatorFactory() {
-        return new DefaultConstraintValidatorFactory(injector());
+        return new StaticConstraintValidatorFactory();
     }
 
     default Validator validator() {

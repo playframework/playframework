@@ -11,34 +11,52 @@ import javax.validation.groups.Default
 
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultFileMimeTypesProvider, HttpConfiguration }
-import play.api.i18n._
+import play.{ ApplicationLoader, BuiltInComponentsFromContext }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
-import play.api.{ Configuration, Environment }
-import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.data.format.Formatters
+import play.api.Application
+import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
+import play.mvc.EssentialFilter
 import play.mvc.Http.{ Context, Request, RequestBuilder }
+import play.routing.Router
 import play.twirl.api.Html
 
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
 
-class FormSpec extends Specification {
+class RuntimeDependencyInjectionFormSpec extends FormSpec {
+  override def defaultContextComponents: JavaContextComponents = application.injector.instanceOf[JavaContextComponents]
 
-  val environment = Environment.simple()
-  val config = Configuration.load(environment)
-  val httpConfiguration = HttpConfiguration.fromConfiguration(config, environment)
+  override def formFactory: FormFactory = application.injector.instanceOf[FormFactory]
 
-  val langs = new DefaultLangsProvider(config).get
-  val messagesApi = new DefaultMessagesApiProvider(environment, config, langs, httpConfiguration).get
-  val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
+  override def application: Application = GuiceApplicationBuilder().build()
+}
 
-  val defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
-  val defaultContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, defaultFileMimeTypes, httpConfiguration)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator())
+class CompileTimeDependencyInjection extends FormSpec {
+
+  class MyComponents(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context)
+      with FormFactoryComponents {
+    override def router(): Router = Router.empty()
+
+    override def httpFilters(): Array[EssentialFilter] = Array.empty
+  }
+
+  private lazy val components: MyComponents = new MyComponents(ApplicationLoader.create(play.Environment.simple()))
+
+  override def formFactory: FormFactory = components.formFactory()
+
+  override def application: Application = components.application().asScala()
+
+  override def defaultContextComponents: JavaContextComponents = components.javaContextComponents()
+}
+
+trait FormSpec extends Specification {
+
+  def formFactory: FormFactory
+  def application: Application
+  def defaultContextComponents: JavaContextComponents
 
   "a java form" should {
 
@@ -50,7 +68,7 @@ class FormSpec extends Specification {
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
         myForm hasErrors () must beEqualTo(false)
       }
-      "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication() {
+      "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(application) {
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("notAnInt"), "task.name" -> Array("peter"), "task.done" -> Array("true"), "task.dueDate" -> Array("15/12/2009")))
         Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
@@ -59,7 +77,7 @@ class FormSpec extends Specification {
         myForm hasErrors () must beEqualTo(true)
         myForm.field("task.name").getValue.asScala must beSome("peter")
       }
-      "have an error due to missing required value" in new WithApplication() {
+      "have an error due to missing required value" in new WithApplication(application) {
         val contextComponents = app.injector.instanceOf[JavaContextComponents]
 
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
@@ -153,7 +171,7 @@ class FormSpec extends Specification {
       myForm.value().get().getId() must beEqualTo(55555)
     }
 
-    "have an error due to badly formatted date" in new WithApplication() {
+    "have an error due to badly formatted date" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
@@ -169,7 +187,7 @@ class FormSpec extends Specification {
       myForm.value().get().getId() must beEqualTo(1234567891)
       myForm.value().get().getName() must beEqualTo("peter")
     }
-    "throws an exception when trying to access value of invalid form via get()" in new WithApplication() {
+    "throws an exception when trying to access value of invalid form via get()" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
@@ -177,7 +195,7 @@ class FormSpec extends Specification {
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm.get must throwAn[IllegalStateException]
     }
-    "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication() {
+    "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
       val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
@@ -218,7 +236,7 @@ class FormSpec extends Specification {
       myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
       myForm.errors("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
-    "have an error due to missing required value" in new WithApplication() {
+    "have an error due to missing required value" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
 
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
@@ -228,7 +246,7 @@ class FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
-    "have an error due to bad value in Id field" in new WithApplication() {
+    "have an error due to bad value in Id field" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
 
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
@@ -239,7 +257,7 @@ class FormSpec extends Specification {
       myForm.errors("id").get(0).messages().asScala must contain("error.invalid")
     }
 
-    "have an error due to badly formatted date for default date binder" in new WithApplication() {
+    "have an error due to badly formatted date for default date binder" in new WithApplication(application) {
       val contextComponents = app.injector.instanceOf[JavaContextComponents]
 
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
