@@ -3,6 +3,7 @@
  */
 package play.components;
 
+import play.core.j.JavaHandlerComponents;
 import play.http.ActionCreator;
 import play.http.HttpRequestHandler;
 import play.mvc.EssentialFilter;
@@ -60,6 +61,8 @@ public interface HttpComponents extends HttpConfigurationComponents {
      * @see EssentialFilter
      */
     EssentialFilter[] httpFilters();
+
+    JavaHandlerComponents javaHandlerComponents();
 
     HttpRequestHandler httpRequestHandler();
 }

@@ -7,7 +7,13 @@ import org.junit.Before;
 import org.junit.Test;
 import play.api.http.HttpConfiguration;
 import play.components.BodyParserComponents;
+import play.core.j.JavaContextComponents;
 import play.filters.components.HttpFiltersComponents;
+import play.i18n.Langs;
+import play.i18n.MessagesApi;
+import play.libs.Files;
+import play.libs.crypto.CSRFTokenSigner;
+import play.libs.crypto.CookieSigner;
 import play.mvc.*;
 import play.routing.Router;
 import play.routing.RoutingDsl;
@@ -149,41 +155,115 @@ public class BuiltInComponentsFromContextTest {
 
     @Test
     public void actorSystemMustBeASingleton() {
-        assertThat(this.componentsFromContext.actorSystem(), equalTo(this.componentsFromContext.actorSystem()));
+        assertThat(this.componentsFromContext.actorSystem(), sameInstance(this.componentsFromContext.actorSystem()));
     }
 
     @Test
     public void applicationMustBeASingleton() {
-        assertThat(this.componentsFromContext.application(), equalTo(this.componentsFromContext.application()));
+        assertThat(this.componentsFromContext.application(), sameInstance(this.componentsFromContext.application()));
     }
 
     @Test
     public void langsMustBeASingleton() {
-        assertThat(this.componentsFromContext.langs(), equalTo(this.componentsFromContext.langs()));
+        assertThat(this.componentsFromContext.langs(), sameInstance(this.componentsFromContext.langs()));
     }
 
     @Test
     public void fileMimeTypesMustBeASingleton() {
-        assertThat(this.componentsFromContext.fileMimeTypes(), equalTo(this.componentsFromContext.fileMimeTypes()));
+        assertThat(this.componentsFromContext.fileMimeTypes(), sameInstance(this.componentsFromContext.fileMimeTypes()));
     }
 
     @Test
     public void httpRequestHandlerMustBeASingleton() {
-        assertThat(this.componentsFromContext.httpRequestHandler(), equalTo(this.componentsFromContext.httpRequestHandler()));
+        assertThat(this.componentsFromContext.httpRequestHandler(), sameInstance(this.componentsFromContext.httpRequestHandler()));
     }
 
     @Test
     public void cookieSignerMustBeASingleton() {
-        assertThat(this.componentsFromContext.cookieSigner(), equalTo(this.componentsFromContext.cookieSigner()));
+        assertThat(this.componentsFromContext.cookieSigner(), sameInstance(this.componentsFromContext.cookieSigner()));
     }
 
     @Test
     public void csrfTokenSignerMustBeASingleton() {
-        assertThat(this.componentsFromContext.csrfTokenSigner(), equalTo(this.componentsFromContext.csrfTokenSigner()));
+        assertThat(this.componentsFromContext.csrfTokenSigner(), sameInstance(this.componentsFromContext.csrfTokenSigner()));
     }
 
     @Test
     public void temporaryFileCreatorMustBeASingleton() {
-        assertThat(this.componentsFromContext.tempFileCreator(), equalTo(this.componentsFromContext.tempFileCreator()));
+        assertThat(this.componentsFromContext.tempFileCreator(), sameInstance(this.componentsFromContext.tempFileCreator()));
+    }
+
+    // Injector tests
+
+    @Test
+    public void shouldBeAbleToInjectHttpConfiguration() {
+        assertThat(this.componentsFromContext.injector().instanceOf(HttpConfiguration.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectJavaContextComponents() {
+        assertThat(this.componentsFromContext.injector().instanceOf(JavaContextComponents.class), notNullValue());
+    }
+
+
+    @Test
+    public void shouldBeAbleToInjectCookieSigner() {
+        assertThat(this.componentsFromContext.injector().instanceOf(CookieSigner.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectCSRFTokenSigner() {
+        assertThat(this.componentsFromContext.injector().instanceOf(CSRFTokenSigner.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectTemporaryFileCreator() {
+        assertThat(this.componentsFromContext.injector().instanceOf(Files.TemporaryFileCreator.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectFileMimeTypes() {
+        assertThat(this.componentsFromContext.injector().instanceOf(FileMimeTypes.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectMessagesApi() {
+        assertThat(this.componentsFromContext.injector().instanceOf(MessagesApi.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectLangs() {
+        assertThat(this.componentsFromContext.injector().instanceOf(Langs.class), notNullValue());
+    }
+
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfCookieSigner() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.libs.crypto.CookieSigner.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfCSRFTokenSigner() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.libs.crypto.CSRFTokenSigner.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfTemporaryFileCreator() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.libs.Files.TemporaryFileCreator.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfFileMimeTypes() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.http.FileMimeTypes.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfMessagesApi() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.i18n.MessagesApi.class), notNullValue());
+    }
+
+    @Test
+    public void shouldBeAbleToInjectScalaVersionOfLangs() {
+        assertThat(this.componentsFromContext.injector().instanceOf(play.api.i18n.Langs.class), notNullValue());
     }
 }

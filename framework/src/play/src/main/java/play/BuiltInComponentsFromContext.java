@@ -6,7 +6,9 @@ package play;
 import akka.actor.ActorSystem;
 import com.typesafe.config.Config;
 
+import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
+import play.api.http.HttpConfiguration;
 import play.api.http.JavaCompatibleHttpRequestHandler;
 import play.api.i18n.DefaultLangsProvider;
 import play.api.inject.NewInstanceInjector$;
@@ -16,15 +18,16 @@ import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
 
 import play.core.SourceMapper;
-import play.core.j.DefaultJavaHandlerComponents;
-import play.core.j.JavaHandlerComponents;
-import play.core.j.JavaHttpErrorHandlerAdapter;
+import play.core.j.*;
 
+import play.http.DefaultHttpErrorHandler;
 import play.http.DefaultHttpFilters;
+import play.http.HttpErrorHandler;
 import play.http.HttpRequestHandler;
 
 import play.i18n.Langs;
 
+import play.i18n.MessagesApi;
 import play.inject.ApplicationLifecycle;
 import play.inject.DelegateInjector;
 import play.inject.Injector;
@@ -35,8 +38,11 @@ import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
 import play.libs.crypto.DefaultCookieSigner;
 
+import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
+import play.routing.Router;
 import scala.collection.immutable.Map$;
+import scala.compat.java8.OptionConverters;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -59,6 +65,9 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private final Supplier<CookieSigner> _cookieSigner = lazy(this::createCookieSigner);
     private final Supplier<CSRFTokenSigner> _csrfTokenSigner = lazy(this::createCsrfTokenSigner);
     private final Supplier<Files.TemporaryFileCreator> _tempFileCreator = lazy(this::createTempFileCreator);
+
+    private final Supplier<HttpErrorHandler> _httpErrorHandler = lazy(this::createHttpErrorHandler);
+    private final Supplier<StaticJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
 
     private final Supplier<Injector> _injector = lazy(this::createInjector);
 
@@ -127,20 +136,55 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     }
 
     @Override
+    public StaticJavaHandlerComponents javaHandlerComponents() {
+        return this._javaHandlerComponents.get();
+    }
+
+    private StaticJavaHandlerComponents createJavaHandlerComponents() {
+        StaticJavaHandlerComponents javaHandlerComponents = new StaticJavaHandlerComponents(
+                actionCreator(),
+                httpConfiguration(),
+                executionContext(),
+                javaContextComponents()
+        );
+
+        return javaHandlerComponents
+                .addBodyParser(BodyParser.Default.class, this::defaultBodyParser)
+                .addBodyParser(BodyParser.AnyContent.class, this::anyContentBodyParser)
+                .addBodyParser(BodyParser.Json.class, this::jsonBodyParser)
+                .addBodyParser(BodyParser.TolerantJson.class, this::tolerantJsonBodyParser)
+                .addBodyParser(BodyParser.Xml.class, this::xmlBodyParser)
+                .addBodyParser(BodyParser.TolerantXml.class, this::tolerantXmlBodyParser)
+                .addBodyParser(BodyParser.Text.class, this::textBodyParser)
+                .addBodyParser(BodyParser.TolerantText.class, this::tolerantTextBodyParser)
+                .addBodyParser(BodyParser.Bytes.class, this::bytesBodyParser)
+                .addBodyParser(BodyParser.Raw.class, this::rawBodyParser)
+                .addBodyParser(BodyParser.FormUrlEncoded.class, this::formUrlEncodedBodyParser)
+                .addBodyParser(BodyParser.MultipartFormData.class, this::multipartFormDataBodyParser)
+                .addBodyParser(BodyParser.Empty.class, this::emptyBodyParser);
+    }
+
+    @Override
+    public HttpErrorHandler httpErrorHandler() {
+        return this._httpErrorHandler.get();
+    }
+
+    private HttpErrorHandler createHttpErrorHandler() {
+        return new DefaultHttpErrorHandler(
+                config(),
+                environment(),
+                new OptionalSourceMapper(OptionConverters.toScala(sourceMapper())),
+                () -> router().asScala()
+        );
+    }
+
+    @Override
     public HttpRequestHandler httpRequestHandler() {
         return this._httpRequestHandler.get();
     }
 
     private HttpRequestHandler createHttpRequestHandler() {
         DefaultHttpFilters filters = new DefaultHttpFilters(httpFilters());
-
-        JavaHandlerComponents javaHandlerComponents = new DefaultJavaHandlerComponents(
-                injector().asScala(),
-                actionCreator(),
-                httpConfiguration(),
-                executionContext(),
-                javaContextComponents()
-        );
 
         play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(
                 httpErrorHandler(),
@@ -152,7 +196,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
                 scalaErrorHandler,
                 httpConfiguration(),
                 filters.asScala(),
-                javaHandlerComponents
+                javaHandlerComponents()
         ).asJava();
     }
 
@@ -162,7 +206,6 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     }
 
     private ActorSystem createActorSystem() {
-        // TODO do we need a Java version for this provider?
         return new ActorSystemProvider(
                 environment().asScala(),
                 configuration(),
@@ -217,8 +260,33 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     }
 
     private Injector createInjector() {
-        // TODO do we need to register components like the scala version?
-        SimpleInjector scalaInjector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
+        CookieSigner cookieSigner = cookieSigner();
+        CSRFTokenSigner csrfTokenSigner = csrfTokenSigner();
+        Files.TemporaryFileCreator tempFileCreator = tempFileCreator();
+        FileMimeTypes fileMimeTypes = fileMimeTypes();
+        MessagesApi messagesApi = messagesApi();
+        Langs langs = langs();
+        SimpleInjector scalaInjector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty())
+                // Add shared components
+                .add(HttpConfiguration.class, httpConfiguration())
+                .add(JavaContextComponents.class, javaContextComponents())
+                // Add Scala Components
+                .add(play.api.libs.crypto.CookieSigner.class, cookieSigner.asScala())
+                .add(play.api.libs.crypto.CSRFTokenSigner.class, csrfTokenSigner.asScala())
+                .add(play.api.libs.Files.TemporaryFileCreator.class, tempFileCreator.asScala())
+                .add(play.api.http.FileMimeTypes.class, fileMimeTypes.asScala())
+                .add(play.api.i18n.MessagesApi.class, messagesApi.asScala())
+                .add(play.api.i18n.Langs.class, langs.asScala())
+                // Add Java Components
+                .add(CookieSigner.class, cookieSigner)
+                .add(CSRFTokenSigner.class, csrfTokenSigner)
+                .add(Files.TemporaryFileCreator.class, tempFileCreator)
+                .add(FileMimeTypes.class, fileMimeTypes)
+                .add(MessagesApi.class, messagesApi)
+                .add(Langs.class, langs)
+                .add(JavaHandlerComponents.class, javaHandlerComponents())
+                .add(Router.class, router());
+
         return new DelegateInjector(scalaInjector);
     }
 }
