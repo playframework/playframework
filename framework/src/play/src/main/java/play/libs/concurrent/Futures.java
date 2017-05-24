@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.concurrent;
+import akka.Done;
 import play.Play;
 import play.libs.F;
 import play.libs.Scala;
@@ -26,11 +27,13 @@ public interface Futures {
      * the given completion stage will still complete, even though that completed value
      * is not returned.
      *
-     * <pre>{@code
+     * <pre>
+     * {@code
      * CompletionStage<Double> callWithTimeout() {
      *     return futures.timeout(delayByOneSecond(), Duration.ofMillis(300));
      * }
-     * }</pre>
+     * }
+     * </pre>
      *
      * @param stage the input completion stage that may time out.
      * @param amount The amount (expressed with the corresponding unit).
@@ -63,12 +66,41 @@ public interface Futures {
     <A> CompletionStage<A> delayed(Callable<CompletionStage<A>> callable, long amount, TimeUnit unit);
 
     /**
+     * Creates a completion stage which is only completed after the delay.
+     *
+     * <pre>
+     * {@code
+     * Duration expected = Duration.ofSeconds(2);
+     * long start = System.currentTimeMillis();
+     * CompletionStage<Long> stage = futures.delay(expected).thenApply((v) -> {
+     *     long end = System.currentTimeMillis();
+     *     return (end - start);
+     * });
+     * }
+     * </pre>
+     *
+     * @param duration the duration after which the completion stage is run.
+     * @return the completion stage.
+     */
+    CompletionStage<Done> delay(Duration duration);
+
+    /**
+     * Creates a completion stage which is only completed after the delay.
+     *
+     * @param amount The time to wait.
+     * @param unit The units to use for the amount.
+     * @return the delayed CompletionStage.
+     */
+    CompletionStage<Done> delay(long amount, TimeUnit unit);
+
+    /**
      * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a
      * given supplier. The completion stage will be called after the delay.
      *
      * For example, to render a number indicating the delay, you can use the following method:
      *
-     * <pre>{@code
+     * <pre>
+     * {@code
      * private CompletionStage<Long> renderAfter(Duration duration) {
      *     long start = System.currentTimeMillis();
      *     return futures.delayed(() -> {
@@ -76,7 +108,8 @@ public interface Futures {
      *          return CompletableFuture.completedFuture(end - start);
      *     }, duration);
      * }
-     * }</pre>
+     * }
+     * </pre>
      *
      * @param callable the input completion stage that is called after the delay.
      * @param duration to wait.

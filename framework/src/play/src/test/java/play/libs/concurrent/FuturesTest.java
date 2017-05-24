@@ -8,6 +8,7 @@ import org.junit.*;
 
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static java.text.MessageFormat.*;
@@ -62,7 +63,7 @@ public class FuturesTest {
     }
 
     @Test
-    public void successfulDelay() throws Exception {
+    public void successfulDelayed() throws Exception {
         Duration expected = Duration.ofSeconds(3);
         final CompletionStage<Long> stage = renderAfter(expected);
 
@@ -71,12 +72,25 @@ public class FuturesTest {
     }
 
     @Test
-    public void failedDelay() throws Exception {
+    public void failedDelayed() throws Exception {
         Duration expected = Duration.ofSeconds(3);
         final CompletionStage<Long> stage = renderAfter(Duration.ofSeconds(1));
 
         Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
         assertTrue(format("Expected duration {0} is larger from actual duration {1}!", expected, actual), actual.compareTo(expected) < 0);
+    }
+
+    @Test
+    public void testDelay() throws Exception{
+        Duration expected = Duration.ofSeconds(2);
+        long start = System.currentTimeMillis();
+        CompletionStage<Long> stage = futures.delay(expected).thenApply((v) -> {
+            long end = System.currentTimeMillis();
+            return (end - start);
+        });
+
+        Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
+        assertTrue( format("Expected duration {0} is smaller than actual duration {1}!", expected, actual), actual.compareTo(expected) > 0);
     }
 
     private CompletionStage<Double> computePIAsynchronously() {

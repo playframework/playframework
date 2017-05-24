@@ -3,12 +3,15 @@
  */
 package play.libs.concurrent;
 
+import akka.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
+import scala.runtime.BoxedUnit;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
@@ -85,6 +88,18 @@ public class DefaultFutures implements Futures {
 
         FiniteDuration duration = FiniteDuration.apply(amount, unit);
         return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(callable)));
+    }
+
+    @Override
+    public CompletionStage<Done> delay(Duration duration) {
+        FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
+        return toJava(delegate.delay(finiteDuration));
+    }
+
+    @Override
+    public CompletionStage<Done> delay(long amount, TimeUnit unit) {
+        FiniteDuration finiteDuration = FiniteDuration.apply(amount, unit);
+        return toJava(delegate.delay(finiteDuration));
     }
 
     /**

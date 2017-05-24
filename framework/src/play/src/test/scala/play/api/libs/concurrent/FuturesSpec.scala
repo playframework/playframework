@@ -13,16 +13,15 @@ import Futures._
 // testOnly play.api.libs.concurrent.FuturesSpec
 class FuturesSpec extends Specification {
 
-  class MyService()(implicit actorSystem: ActorSystem) {
+  class MyService()(implicit futures: Futures) {
 
-    def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
+    def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Long] = {
       rawCalculation().withTimeout(timeoutDuration)
     }
 
-    def rawCalculation(): Future[Int] = {
-      import akka.pattern.after
-      implicit val ec = actorSystem.dispatcher
-      after(300 millis, actorSystem.scheduler)(Future(42))(actorSystem.dispatcher)
+    def rawCalculation(): Future[Long] = {
+      val start = System.currentTimeMillis()
+      futures.delayed(300 millis)(Future.successful(System.currentTimeMillis() - start))
     }
   }
 
@@ -35,7 +34,7 @@ class FuturesSpec extends Specification {
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(100 millis).recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
       val result = Await.result(future, timeoutDuration) must be_==(-1)
       actorSystem.terminate()
@@ -47,9 +46,9 @@ class FuturesSpec extends Specification {
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().rawCalculation().recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(42)
+      val result = Await.result(future, timeoutDuration) must be_>(300L)
       actorSystem.terminate()
       result
     }
@@ -59,9 +58,20 @@ class FuturesSpec extends Specification {
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(600 millis).recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(42)
+      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      actorSystem.terminate()
+      result
+    }
+
+    "succeed with delay" in {
+      implicit val actorSystem = ActorSystem()
+      implicit val ec = actorSystem.dispatcher
+      val futures: Futures = Futures.actorSystemToFutures
+      val future: Future[String] = futures.delay(1 second).map(_ => "hello world")
+
+      val result = Await.result(future, timeoutDuration) must be_==("hello world")
       actorSystem.terminate()
       result
     }
@@ -75,9 +85,9 @@ class FuturesSpec extends Specification {
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().rawCalculation().withTimeout(100 millis).recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(-1)
+      val result = Await.result(future, timeoutDuration) must be_==(-1L)
       actorSystem.terminate()
       result
     }
@@ -87,9 +97,9 @@ class FuturesSpec extends Specification {
       implicit val ec = actorSystem.dispatcher
       val future = new MyService().rawCalculation().withTimeout(500 millis).recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(42)
+      val result = Await.result(future, timeoutDuration) must be_>(300L)
       actorSystem.terminate()
       result
     }
@@ -100,9 +110,9 @@ class FuturesSpec extends Specification {
       implicit val implicitTimeout = akka.util.Timeout(100 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(-1)
+      val result = Await.result(future, timeoutDuration) must be_==(-1L)
       actorSystem.terminate()
       result
     }
@@ -113,9 +123,9 @@ class FuturesSpec extends Specification {
       implicit val implicitTimeout = akka.util.Timeout(500 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
-          -1
+          -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_==(42)
+      val result = Await.result(future, timeoutDuration) must be_>(300L)
       actorSystem.terminate()
       result
     }

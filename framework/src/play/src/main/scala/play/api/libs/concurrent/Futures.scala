@@ -5,6 +5,7 @@ package play.api.libs.concurrent
 
 import javax.inject.Inject
 
+import akka.Done
 import akka.actor.ActorSystem
 
 import scala.concurrent.duration.FiniteDuration
@@ -73,6 +74,17 @@ trait Futures {
    */
   def delayed[A](duration: FiniteDuration)(f: => Future[A]): Future[A]
 
+  /**
+   * Creates a delayed future that is used as a supplier to other futures.
+   *
+   * {{{
+   * val future: Future[String] = futures.delay(1 second).map(_ => "hello world!")
+   * }}}
+   * @param duration
+   * @return a future completed successfully after a delay of duration.
+   */
+  def delay(duration: FiniteDuration): Future[Done]
+
 }
 
 /**
@@ -95,6 +107,12 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
     implicit val ec = actorSystem.dispatcher
     akka.pattern.after(duration, actorSystem.scheduler)(f)
   }
+
+  override def delay(duration: FiniteDuration): Future[Done] = {
+    implicit val ec = actorSystem.dispatcher
+    akka.pattern.after(duration, actorSystem.scheduler)(Future.successful(akka.Done))
+  }
+
 }
 
 /**
