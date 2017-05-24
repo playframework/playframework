@@ -34,7 +34,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
   override def application: Application = GuiceApplicationBuilder().build()
 }
 
-class CompileTimeDependencyInjection extends FormSpec {
+class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context)
       with FormFactoryComponents {

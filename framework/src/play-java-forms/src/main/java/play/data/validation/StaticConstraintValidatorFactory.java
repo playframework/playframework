@@ -47,7 +47,7 @@ public class StaticConstraintValidatorFactory implements ConstraintValidatorFact
     @Override
     @SuppressWarnings("unchecked")
     public <T extends ConstraintValidator<?, ?>> T getInstance(Class<T> key) {
-        return (T) validators.computeIfAbsent(key, clazz -> () -> newInstance(clazz));
+        return (T) validators.computeIfAbsent(key, clazz -> () -> newInstance(clazz)).get();
     }
 
     @Override
