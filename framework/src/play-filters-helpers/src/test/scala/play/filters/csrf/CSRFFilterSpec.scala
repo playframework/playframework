@@ -12,7 +12,9 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.libs.json.Json
 import play.api.libs.ws._
-import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Results }
+import play.api.mvc.Handler.Stage
+import play.api.mvc.{ DefaultActionBuilder, Handler, RequestHeader, Results }
+import play.api.routing.{ HandlerDef, Router }
 import play.api.test._
 import play.api.{ Configuration, Environment, Mode }
 import play.core.DefaultWebCommands
@@ -93,6 +95,41 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
         val token = signedTokenProvider.generateToken
         await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
+      }
+    }
+
+    "allow bypassing the CSRF filter using a route modifier tag" in {
+      withActionServer(Seq(
+        "play.http.filters" -> classOf[CsrfFilters].getName
+      ))(implicit app => {
+        case _ =>
+          val env = inject[Environment]
+          val Action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (requestHeader.addAttr(Router.Attrs.HandlerDef, HandlerDef(
+                env.classLoader,
+                "routes",
+                "FooController",
+                "foo",
+                Seq.empty,
+                "POST",
+                "/foo",
+                "comments",
+                Seq("NOCSRF", "api")
+              )), Action { request =>
+                request.body.asFormUrlEncoded
+                  .flatMap(_.get("foo"))
+                  .flatMap(_.headOption)
+                  .map(Results.Ok(_))
+                  .getOrElse(Results.NotFound)
+              })
+            }
+          }
+      }){ ws =>
+        val token = signedTokenProvider.generateToken
+        await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
+          .post(Map("foo" -> "bar"))).body must_== "bar"
       }
     }
 

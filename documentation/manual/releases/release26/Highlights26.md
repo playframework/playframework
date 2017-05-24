@@ -55,6 +55,38 @@ Attributes are stored in a `TypedMap`. You can read more about attributes in the
 
 Request tags have now been deprecated and you should migrate to use attributes instead. See the [[tags section|Migration26#Request-tags-deprecation]] in the migration docs for more information.
 
+## Route modifier tags
+
+The routes file syntax now allows you to add "modifiers" to each route that provide custom behavior. We have implemented one such tag in the CSRF filter, the "nocsrf" tag. By default, the following route will not have the CSRF filter applied.
+
+```
++ nocsrf # Don't CSRF protect this route 
+POST /api/foo/bar ApiController.foobar
+```
+
+You can also create your own modifiers: the `+` symbol can be followed by any number of whitespace-separated tags.
+
+These are made available in the `HandlerDef` request attribute (which also contains other metadata on the handler definition in the routes file):
+
+Java:
+```java
+import java.util.List;
+import play.routing.HandlerDef;
+import play.routing.Router;
+
+HandlerDef handler = req.attrs().get(Router.Attrs.HANDLER_DEF);
+List<String> modifiers = handler.getModifiers();
+```
+
+Scala:
+```scala
+import play.api.routing.{ HandlerDef, Router }
+import play.api.mvc.RequestHeader
+
+val handler = request.attrs(Router.Attrs.HandlerDef)
+val modifiers = handler.modifiers
+```
+
 ## Injectable Twirl Templates
 
 Twirl templates can now be created with a constructor annotation using `@this`.  The constructor annotation means that Twirl templates can be injected into templates directly and can manage their own dependencies, rather than the controller having to manage dependencies not only for itself, but also for the templates it has to render.

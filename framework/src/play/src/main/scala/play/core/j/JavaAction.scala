@@ -68,7 +68,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
     val rootAction = new JAction[Any] {
       def call(ctx: JContext): CompletionStage[JResult] = {
-        // The context may have changed, set it again
+        // The context may have changed, set it again;
         val oldContext = JContext.current.get()
         try {
           JContext.current.set(ctx)
