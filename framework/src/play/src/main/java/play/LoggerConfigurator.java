@@ -24,6 +24,8 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
 
     /**
      * Initialize the Logger when there's no application ClassLoader available.
+     * @param rootPath the root path
+     * @param mode the ode
      */
     void init(File rootPath, Mode mode);
 
@@ -34,6 +36,7 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
 
     /**
      * This is a convenience method that adds no extra properties.
+     * @param env the environment.
      */
     void configure(Environment env);
 
@@ -83,6 +86,8 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
      * Configures the logger with a list of properties and an optional URL.
      * <p>
      * This is the engine's entrypoint method that has all the properties pre-assembled.
+     * @param properties the properties
+     * @param config the configuration URL
      */
     void configure(Map<String, String> properties, Optional<URL> config);
 
