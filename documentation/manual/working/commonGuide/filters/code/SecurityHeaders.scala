@@ -3,23 +3,23 @@
  */
 package detailedtopics.configuration.securityheaders
 
-object SecurityHeaders {
+//#filters
+import javax.inject.Inject
 
-  //#filters
-  import javax.inject.Inject
+import play.api.http.DefaultHttpFilters
+import play.filters.headers.SecurityHeadersFilter
+import play.api.mvc.{ BaseController, ControllerComponents }
+//#filters
 
-  import play.api.http.DefaultHttpFilters
-  import play.filters.headers.SecurityHeadersFilter
+class SecurityHeaders @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
 
-  import play.api.mvc.Action
-  //#filters
-
-  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends DefaultHttpFilters(securityHeadersFilter)
-
-  import play.api.mvc.Results.Ok
   def index = Action {
   //#allowActionSpecificHeaders
   	Ok("Index").withHeaders(SecurityHeadersFilter.CONTENT_SECURITY_POLICY_HEADER -> "my page-specific header")
   //#allowActionSpecificHeaders
   }
+}
+
+object SecurityHeaders {
+  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends DefaultHttpFilters(securityHeadersFilter)
 }

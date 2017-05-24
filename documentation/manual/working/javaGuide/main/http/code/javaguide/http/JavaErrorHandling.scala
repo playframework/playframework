@@ -31,5 +31,4 @@ class JavaErrorHandling extends PlaySpecification with WsTestClient {
       await(wsUrl("/error").get()).body must not startWith("A server error occurred: ")
     }
   }
-
 }
