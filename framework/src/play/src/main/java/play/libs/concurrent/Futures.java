@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs.concurrent;
+import akka.Done;
 import play.Play;
 import play.libs.F;
 import play.libs.Scala;
@@ -77,7 +78,7 @@ public interface Futures {
      * @param duration the duration after which the completion stage is run.
      * @return the completion stage.
      */
-    CompletionStage<Void> delay(Duration duration);
+    CompletionStage<Done> delay(Duration duration);
 
     /**
      * Creates a completion stage which is only completed after the delay.
@@ -86,7 +87,7 @@ public interface Futures {
      * @param unit The units to use for the amount.
      * @return the delayed CompletionStage.
      */
-    CompletionStage<Void> delay(long amount, TimeUnit unit);
+    CompletionStage<Done> delay(long amount, TimeUnit unit);
 
     /**
      * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a

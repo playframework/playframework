@@ -3,6 +3,7 @@
  */
 package play.libs.concurrent;
 
+import akka.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
 import scala.runtime.BoxedUnit;
@@ -90,17 +91,15 @@ public class DefaultFutures implements Futures {
     }
 
     @Override
-    public CompletionStage<Void> delay(Duration duration) {
+    public CompletionStage<Done> delay(Duration duration) {
         FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-        CompletionStage<BoxedUnit> boxedUnitCompletionStage = toJava(delegate.delay(finiteDuration));
-        // This is a horrible kludge between Void / BoxedUnit, but it's a no-op after delay, so...
-        return boxedUnitCompletionStage.thenRun(() -> { });
+        return toJava(delegate.delay(finiteDuration));
     }
 
     @Override
-    public CompletionStage<Void> delay(long amount, TimeUnit unit) {
-        FiniteDuration duration = FiniteDuration.apply(amount, unit);
-        return delay(Duration.ofNanos(duration.toNanos()));
+    public CompletionStage<Done> delay(long amount, TimeUnit unit) {
+        FiniteDuration finiteDuration = FiniteDuration.apply(amount, unit);
+        return toJava(delegate.delay(finiteDuration));
     }
 
     /**
