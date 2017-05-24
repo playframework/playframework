@@ -8,6 +8,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
@@ -70,38 +71,38 @@ public class DefaultFutures implements Futures {
      * Create a CompletionStage which, after a delay, will be redeemed with the result of a
      * given supplier. The supplier will be called after the delay.
      *
-     * @param stage the input completion stage that is delayed.
+     * @param callable the input completion stage that is delayed.
      * @param amount The time to wait.
      * @param unit The units to use for the amount.
      * @param <A> the type of the completion's result.
      * @return the delayed CompletionStage wrapping supplier.
      */
     @Override
-    public <A> CompletionStage<A> delayed(final CompletionStage<A> stage, long amount, TimeUnit unit) {
-        requireNonNull(stage, "Null stage");
+    public <A> CompletionStage<A> delayed(final Callable<CompletionStage<A>> callable, long amount, TimeUnit unit) {
+        requireNonNull(callable, "Null callable");
         requireNonNull(amount, "Null amount");
         requireNonNull(unit, "Null unit");
 
         FiniteDuration duration = FiniteDuration.apply(amount, unit);
-        return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(() -> stage)));
+        return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(callable)));
     }
 
     /**
      * Create a CompletionStage which, after a delay, will be redeemed with the result of a
      * given supplier. The supplier will be called after the delay.
      *
-     * @param stage the input completion stage that is delayed.
+     * @param callable the input completion stage that is delayed.
      * @param duration to wait.
      * @param <A> the type of the completion's result.
      * @return the delayed CompletionStage wrapping supplier.
      */
     @Override
-    public <A> CompletionStage<A> delayed(CompletionStage<A> stage, Duration duration) {
-        requireNonNull(stage, "Null stage");
+    public <A> CompletionStage<A> delayed(final Callable<CompletionStage<A>> callable, Duration duration) {
+        requireNonNull(callable, "Null callable");
         requireNonNull(duration, "Null duration");
 
         FiniteDuration finiteDuration = FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-        return toJava(delegate.delayed(finiteDuration, Scala.asScalaWithFuture(() -> stage)));
+        return toJava(delegate.delayed(finiteDuration, Scala.asScalaWithFuture(callable)));
     }
 
 }

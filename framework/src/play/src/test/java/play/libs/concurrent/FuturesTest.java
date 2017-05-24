@@ -7,13 +7,14 @@ import akka.actor.ActorSystem;
 import org.junit.*;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import static java.text.MessageFormat.*;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FuturesTest {
 
@@ -48,7 +49,7 @@ public class FuturesTest {
     public void failedTimeout() throws Exception {
         class MyClass {
             CompletionStage<Double> callWithTimeout() {
-                return futures.timeout(delayedFuture(), Duration.ofMillis(300));
+                return futures.timeout(delayByOneSecond(), Duration.ofMillis(300));
             }
         }
         final Double actual = new MyClass()
@@ -60,12 +61,38 @@ public class FuturesTest {
         assertThat(actual, equalTo(expected));
     }
 
-    private CompletionStage<Double> computePIAsynchronously() {
-        return CompletableFuture.completedFuture(Math.PI);
+    @Test
+    public void successfulDelay() throws Exception {
+        Duration expected = Duration.ofSeconds(3);
+        final CompletionStage<Long> stage = renderAfter(expected);
+
+        Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
+        assertTrue( format("Expected duration {0} is smaller than actual duration {1}!", expected, actual), actual.compareTo(expected) > 0);
     }
 
-    private CompletionStage<Double> delayedFuture() {
-        return futures.delayed(CompletableFuture.supplyAsync(() -> Math.PI, ForkJoinPool.commonPool()), 1, TimeUnit.SECONDS);
+    @Test
+    public void failedDelay() throws Exception {
+        Duration expected = Duration.ofSeconds(3);
+        final CompletionStage<Long> stage = renderAfter(Duration.ofSeconds(1));
+
+        Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
+        assertTrue(format("Expected duration {0} is larger from actual duration {1}!", expected, actual), actual.compareTo(expected) < 0);
+    }
+
+    private CompletionStage<Double> computePIAsynchronously() {
+        return completedFuture(Math.PI);
+    }
+
+    private CompletionStage<Double> delayByOneSecond() {
+        return futures.delayed(this::computePIAsynchronously, Duration.ofSeconds(1));
+    }
+
+    private CompletionStage<Long> renderAfter(Duration duration) {
+        long start = System.currentTimeMillis();
+        return futures.delayed(() -> {
+            long end = System.currentTimeMillis();
+            return completedFuture(end - start);
+        }, duration);
     }
 
 }

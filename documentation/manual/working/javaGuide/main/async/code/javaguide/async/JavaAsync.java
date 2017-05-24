@@ -6,11 +6,13 @@ package javaguide.async;
 import org.junit.Test;
 import play.libs.concurrent.*;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.*;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -27,6 +29,7 @@ public class JavaAsync {
         class MyClass {
 
             private final Futures futures;
+            private final Executor customExecutor = ForkJoinPool.commonPool();
 
             @Inject
             public MyClass(Futures futures) {
@@ -37,10 +40,15 @@ public class JavaAsync {
                 return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
             }
 
-            CompletionStage<Double> callDelayedByOneSecond() {
-                final Executor executor = ForkJoinPool.commonPool();
-                return futures.delayed(CompletableFuture.supplyAsync(() -> Math.PI, executor), 1, TimeUnit.SECONDS);
+            public CompletionStage<String> delayedResult() {
+                long start = System.currentTimeMillis();
+                return futures.delayed(() -> CompletableFuture.supplyAsync(() -> {
+                    long end = System.currentTimeMillis();
+                    long seconds = end - start;
+                    return "rendered after " + seconds + " seconds";
+                }, customExecutor), Duration.of(3, SECONDS));
             }
+
         }
         //#timeout
         Futures futures = mock(Futures.class);
