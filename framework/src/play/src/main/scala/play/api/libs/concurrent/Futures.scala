@@ -9,7 +9,7 @@ import akka.Done
 import akka.actor.ActorSystem
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, TimeoutException}
+import scala.concurrent.{ Future, TimeoutException }
 import scala.language.implicitConversions
 
 /**
