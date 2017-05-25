@@ -52,7 +52,8 @@ public interface Application {
     Config config();
 
     /**
-     * Get the injector for this application.
+     * Get the runtime injector for this application. In a runtime dependency injection based application, this can be
+     * used to obtain components as bound by the DI framework.
      *
      * @return the injector
      */

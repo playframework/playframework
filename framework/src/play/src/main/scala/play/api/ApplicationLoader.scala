@@ -129,8 +129,5 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
     defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
   )
-
-  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
-    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
 

@@ -185,7 +185,8 @@ trait Application {
   def stop(): Future[_]
 
   /**
-   * Get the injector for this application.
+   * Get the runtime injector for this application. In a runtime dependency injection based application, this can be
+   * used to obtain components as bound by the DI framework.
    *
    * @return The injector.
    */
@@ -261,7 +262,18 @@ trait BuiltInComponents extends I18nComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
+  /**
+   * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
+   * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
+   */
+  lazy val injector: Injector = {
+    new SimpleInjector(NewInstanceInjector) +
+      cookieSigner + // play.api.libs.Crypto (for cookies)
+      httpConfiguration + // play.api.mvc.BodyParsers trait
+      tempFileCreator + // play.api.libs.TemporaryFileCreator object
+      messagesApi + // play.api.i18n.Messages object
+      langs // play.api.i18n.Langs object
+  }
 
   lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer, tempFileCreator)
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
