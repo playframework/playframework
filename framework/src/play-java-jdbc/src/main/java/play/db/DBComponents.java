@@ -7,7 +7,7 @@ import play.Environment;
 import play.api.db.DBApiProvider;
 import play.components.ConfigurationComponents;
 import play.inject.ApplicationLifecycle;
-import play.inject.Injector;
+import scala.Option;
 
 import java.util.List;
 
@@ -31,8 +31,6 @@ import java.util.List;
  * @see ConnectionPoolComponents
  */
 public interface DBComponents extends ConfigurationComponents, ConnectionPoolComponents {
-
-    Injector injector();
 
     Environment environment();
 
@@ -63,7 +61,7 @@ public interface DBComponents extends ConfigurationComponents, ConnectionPoolCom
             configuration(),
             connectionPool().asScala(),
             applicationLifecycle().asScala(),
-            injector().asScala()
+            Option.empty()
         ).get();
         return new DefaultDBApi(scalaDbApi);
     }

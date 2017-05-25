@@ -41,7 +41,7 @@ class DefaultDBApi(
   def connect(logConnection: Boolean = false): Unit = {
     databases foreach { db =>
       try {
-        db.getConnection.close()
+        db.getConnection().close()
         if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>

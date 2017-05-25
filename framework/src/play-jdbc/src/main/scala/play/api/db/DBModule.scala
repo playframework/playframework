@@ -46,22 +46,38 @@ trait DBComponents {
   def connectionPool: ConnectionPool
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val dbApi: DBApi = new DBApiProvider(environment, configuration, connectionPool, applicationLifecycle).get
+  lazy val dbApi: DBApi = new DBApiProvider(environment, configuration, connectionPool, applicationLifecycle, None).get
 }
 
 /**
  * Inject provider for DB implementation of DB API.
  */
 @Singleton
-class DBApiProvider @Inject() (environment: Environment, configuration: Configuration,
-    defaultConnectionPool: ConnectionPool, lifecycle: ApplicationLifecycle,
-    injector: Injector = NewInstanceInjector) extends Provider[DBApi] {
+class DBApiProvider(
+    environment: Environment,
+    configuration: Configuration,
+    defaultConnectionPool: ConnectionPool,
+    lifecycle: ApplicationLifecycle,
+    maybeInjector: Option[Injector]
+) extends Provider[DBApi] {
+
+  @Inject
+  def this(
+    environment: Environment,
+    configuration: Configuration,
+    defaultConnectionPool: ConnectionPool,
+    lifecycle: ApplicationLifecycle,
+    injector: Injector = NewInstanceInjector
+  ) = {
+    this(environment, configuration, defaultConnectionPool, lifecycle, Option(injector))
+  }
 
   lazy val get: DBApi = {
     val config = configuration.underlying
     val dbKey = config.getString("play.db.config")
-    val pool = ConnectionPool.fromConfig(config.getString("play.db.pool"), injector,
-      environment, defaultConnectionPool)
+    val pool = maybeInjector
+      .map(injector => ConnectionPool.fromConfig(config.getString("play.db.pool"), injector, environment, defaultConnectionPool))
+      .getOrElse(ConnectionPool.fromConfig(config.getString("play.db.pool"), environment, defaultConnectionPool))
     val configs = if (config.hasPath(dbKey)) {
       Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
     } else Map.empty[String, Config]

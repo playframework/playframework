@@ -48,6 +48,18 @@ object ConnectionPool {
     }
   }
 
+  /**
+   * Load a connection pool from a configured connection pool. This is intended to be used with compile-time
+   * dependency injection and then it does not accepts an Injector.
+   */
+  def fromConfig(config: String, environment: Environment, default: ConnectionPool): ConnectionPool = {
+    config match {
+      case "bonecp" => new BoneConnectionPool(environment)
+      case "hikaricp" => new HikariCPConnectionPool(environment)
+      case _ => default
+    }
+  }
+
   private val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
   private val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
   private val MysqlCustomProperties = ".*\\?(.*)".r
