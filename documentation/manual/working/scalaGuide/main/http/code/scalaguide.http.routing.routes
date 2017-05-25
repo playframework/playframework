@@ -30,3 +30,8 @@ GET   /:page                controllers.Application.show(page)
 # The version parameter is optional. E.g. /api/list-all?version=3.0
 GET   /api/list-all         controllers.Api.list(version: Option[String])
 # #optional
+
+# #nocsrf
++ nocsrf
+POST  /api/new              controllers.Api.newThing
+# #nocsrf

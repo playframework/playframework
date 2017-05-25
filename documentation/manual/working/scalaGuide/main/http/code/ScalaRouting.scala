@@ -51,6 +51,7 @@ package controllers {
 
   class Api extends Controller {
     def list(version: Option[String]) = Action(Ok("version " + version))
+    def newThing = Action(parse.json) { request => Ok(request.body) }
   }
 }
 

@@ -87,6 +87,10 @@ You can also define your own regular expression for a dynamic part, using the `$
 
 Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
 
+It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
+
+@[nocsrf](code/javaguide.http.routing.routes)
+
 ## Call to action generator method
 
 The last part of a route definition is the call. This part must define a valid call to an action method.
