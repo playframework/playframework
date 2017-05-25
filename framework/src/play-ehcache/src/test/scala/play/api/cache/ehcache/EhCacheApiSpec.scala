@@ -49,7 +49,7 @@ class EhCacheApiSpec extends PlaySpecification {
 class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
-    mgr.removalAll()
+    mgr.removeAllCaches()
     mgr.addCache("custom")
     mgr
   }

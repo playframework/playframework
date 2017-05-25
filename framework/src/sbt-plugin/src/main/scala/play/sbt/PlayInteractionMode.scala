@@ -54,7 +54,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
 
   private def withConsoleReader[T](f: ConsoleReader => T): T = {
     val consoleReader = new ConsoleReader
-    try f(consoleReader) finally consoleReader.shutdown()
+    try f(consoleReader) finally consoleReader.close()
   }
   private def waitForKey(): Unit = {
     withConsoleReader { consoleReader =>

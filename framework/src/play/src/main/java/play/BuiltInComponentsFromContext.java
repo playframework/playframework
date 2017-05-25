@@ -8,7 +8,6 @@ import com.typesafe.config.Config;
 
 import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
-import play.api.http.HttpConfiguration;
 import play.api.http.JavaCompatibleHttpRequestHandler;
 import play.api.i18n.DefaultLangsProvider;
 import play.api.inject.NewInstanceInjector$;
@@ -27,10 +26,7 @@ import play.http.HttpRequestHandler;
 
 import play.i18n.Langs;
 
-import play.i18n.MessagesApi;
 import play.inject.ApplicationLifecycle;
-import play.inject.DelegateInjector;
-import play.inject.Injector;
 
 import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
@@ -40,7 +36,6 @@ import play.libs.crypto.DefaultCookieSigner;
 
 import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
-import play.routing.Router;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
 
@@ -68,8 +63,6 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     private final Supplier<HttpErrorHandler> _httpErrorHandler = lazy(this::createHttpErrorHandler);
     private final Supplier<StaticJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
-
-    private final Supplier<Injector> _injector = lazy(this::createInjector);
 
     public BuiltInComponentsFromContext(ApplicationLoader.Context context) {
         this.context = context;
@@ -102,10 +95,11 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     private Application createApplication() {
         RequestFactory requestFactory = new DefaultRequestFactory(httpConfiguration());
+        SimpleInjector injector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
         return new play.api.DefaultApplication(
                 environment().asScala(),
                 applicationLifecycle().asScala(),
-                injector().asScala(),
+                injector,
                 configuration(),
                 requestFactory,
                 httpRequestHandler().asScala(),
@@ -252,41 +246,5 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
                 applicationLifecycle().asScala(),
                 temporaryFileReaper
         ).asJava();
-    }
-
-    @Override
-    public Injector injector() {
-        return this._injector.get();
-    }
-
-    private Injector createInjector() {
-        CookieSigner cookieSigner = cookieSigner();
-        CSRFTokenSigner csrfTokenSigner = csrfTokenSigner();
-        Files.TemporaryFileCreator tempFileCreator = tempFileCreator();
-        FileMimeTypes fileMimeTypes = fileMimeTypes();
-        MessagesApi messagesApi = messagesApi();
-        Langs langs = langs();
-        SimpleInjector scalaInjector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty())
-                // Add shared components
-                .add(HttpConfiguration.class, httpConfiguration())
-                .add(JavaContextComponents.class, javaContextComponents())
-                // Add Scala Components
-                .add(play.api.libs.crypto.CookieSigner.class, cookieSigner.asScala())
-                .add(play.api.libs.crypto.CSRFTokenSigner.class, csrfTokenSigner.asScala())
-                .add(play.api.libs.Files.TemporaryFileCreator.class, tempFileCreator.asScala())
-                .add(play.api.http.FileMimeTypes.class, fileMimeTypes.asScala())
-                .add(play.api.i18n.MessagesApi.class, messagesApi.asScala())
-                .add(play.api.i18n.Langs.class, langs.asScala())
-                // Add Java Components
-                .add(CookieSigner.class, cookieSigner)
-                .add(CSRFTokenSigner.class, csrfTokenSigner)
-                .add(Files.TemporaryFileCreator.class, tempFileCreator)
-                .add(FileMimeTypes.class, fileMimeTypes)
-                .add(MessagesApi.class, messagesApi)
-                .add(Langs.class, langs)
-                .add(JavaHandlerComponents.class, javaHandlerComponents())
-                .add(Router.class, router());
-
-        return new DelegateInjector(scalaInjector);
     }
 }

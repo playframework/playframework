@@ -56,7 +56,7 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
 
       override def router(): JRouter = {
         Router.from {
-          case _ => JAction(application().asScala(), controller)
+          case _ => JAction(application().asScala(), controller, javaHandlerComponents())
         }.asJava
       }
 
