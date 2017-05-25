@@ -97,16 +97,10 @@ import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
-    .settings(
-      resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
-    )
     .addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
     .dependsOn(PlayAkkaHttpServerProject)
-    .settings(
-      resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
-    )
     .addAkkaModuleDependency("akka-http2-support")
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "play-jdbc-api")
