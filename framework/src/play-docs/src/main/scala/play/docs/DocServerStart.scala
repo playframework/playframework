@@ -24,20 +24,20 @@ class DocServerStart {
   def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
     forceTranslationReport: Callable[File], port: java.lang.Integer): ReloadableServer = {
 
-    val application: Application = {
+    val components = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
       val context = ApplicationLoader.createContext(environment)
-      val components = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
+      new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         lazy val router = Router.empty
       }
-      components.application
     }
+    val application: Application = components.application
 
     Play.start(application)
 
     val applicationProvider = new ApplicationProvider {
       implicit val ec = application.actorSystem.dispatcher
-      implicit val fileMimeTypes = application.injector.instanceOf[FileMimeTypes]
+      implicit val fileMimeTypes = components.fileMimeTypes
       override def get = Success(application)
       override def handleWebCommand(request: RequestHeader) =
         buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
