@@ -17,6 +17,7 @@ import scala.concurrent.duration._
  *  - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
  *  - disable/enable support for credentials (by default credentials support is enabled)
  *  - set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)
+ *  - enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)
  *
  * @param  allowedOrigins
  *   [[http://www.w3.org/TR/cors/#resource-requests §6.1.2]]
@@ -36,7 +37,37 @@ case class CORSConfig(
     isHttpHeaderAllowed: String => Boolean = _ => true,
     exposedHeaders: Seq[String] = Seq.empty,
     supportsCredentials: Boolean = true,
-    preflightMaxAge: Duration = 1.hour) {
+    preflightMaxAge: Duration = 1.hour,
+    serveForbiddenOrigins: Boolean = false) {
+
+  def this(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration) =
+    this(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, false)
+
+  def copy(
+    allowedOrigins: Origins = allowedOrigins,
+    isHttpMethodAllowed: String => Boolean = isHttpMethodAllowed,
+    isHttpHeaderAllowed: String => Boolean = isHttpHeaderAllowed,
+    exposedHeaders: Seq[String] = exposedHeaders,
+    supportsCredentials: Boolean = supportsCredentials,
+    preflightMaxAge: Duration = preflightMaxAge,
+    serveForbiddenOrigins: Boolean = serveForbiddenOrigins): CORSConfig =
+    new CORSConfig(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, serveForbiddenOrigins)
+
+  def copy(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration): CORSConfig =
+    copy(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge, false)
+
   def anyOriginAllowed: Boolean = allowedOrigins == Origins.All
   def withAnyOriginAllowed = withOriginsAllowed(Origins.All)
 
@@ -46,6 +77,7 @@ case class CORSConfig(
   def withExposedHeaders(headers: Seq[String]): CORSConfig = copy(exposedHeaders = headers)
   def withCredentialsSupport(supportsCredentials: Boolean): CORSConfig = copy(supportsCredentials = supportsCredentials)
   def withPreflightMaxAge(maxAge: Duration): CORSConfig = copy(preflightMaxAge = maxAge)
+  def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig = copy(serveForbiddenOrigins = serveForbiddenOrigins)
 
   import scala.collection.JavaConverters._
   import scala.compat.java8.FunctionConverters._
@@ -87,7 +119,8 @@ object CORSConfig {
       isHttpHeaderAllowed = _ => false,
       exposedHeaders = Seq.empty,
       supportsCredentials = true,
-      preflightMaxAge = 0.seconds)
+      preflightMaxAge = 0.seconds,
+      serveForbiddenOrigins = false)
 
   /**
    * Build a [[CORSConfig]] from a [[play.api.Configuration]]
@@ -102,6 +135,7 @@ object CORSConfig {
    *     exposedHeaders = [...]  # empty by default
    *     supportsCredentials = true  # true by default
    *     preflightMaxAge = 1 hour  # 1 hour by default
+   *     serveForbiddenOrigins = false  # false by default
    * }
    *
    * }}}
@@ -132,7 +166,18 @@ object CORSConfig {
       supportsCredentials =
         config.get[Boolean]("supportsCredentials"),
       preflightMaxAge =
-        config.get[Duration]("preflightMaxAge")
+        config.get[Duration]("preflightMaxAge"),
+      serveForbiddenOrigins =
+        config.get[Boolean]("serveForbiddenOrigins")
     )
   }
+
+  def apply(
+    allowedOrigins: Origins,
+    isHttpMethodAllowed: String => Boolean,
+    isHttpHeaderAllowed: String => Boolean,
+    exposedHeaders: Seq[String],
+    supportsCredentials: Boolean,
+    preflightMaxAge: Duration) =
+    new CORSConfig(allowedOrigins, isHttpMethodAllowed, isHttpHeaderAllowed, exposedHeaders, supportsCredentials, preflightMaxAge)
 }

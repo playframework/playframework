@@ -38,6 +38,7 @@ The available options include:
 * `play.filters.cors.exposedHeaders` - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
 * `play.filters.cors.supportsCredentials` - disable/enable support for credentials (by default credentials support is enabled)
 * `play.filters.cors.preflightMaxAge` - set how long the results of a preflight request can be cached in a preflight result cache (by default 1 hour)
+* `play.filters.cors.serveForbiddenOrigins` - enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)
 
 For example:
 
