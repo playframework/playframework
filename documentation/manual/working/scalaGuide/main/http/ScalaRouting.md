@@ -50,6 +50,10 @@ You can tell the routes file to use a different router under a specific prefix b
 
 This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
 
+It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|ScalaCsrf]]:
+
+@[nocsrf](code/scalaguide.http.routing.routes)
+
 ## The HTTP method
 
 The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).

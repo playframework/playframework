@@ -49,6 +49,10 @@ Play provides a global CSRF filter that can be applied to all requests.  This is
 play.filters.enabled += play.filters.csrf.CsrfFilter
 ```
 
+It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
+
+@[nocsrf](../http/code/scalaguide.http.routing.routes)
+
 ### Using an implicit request
 
 All CSRF functionality assumes that a `RequestHeader` or a `Request` is available in implicit scope, and will not compile without one available. 

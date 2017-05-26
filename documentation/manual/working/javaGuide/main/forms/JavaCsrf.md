@@ -49,6 +49,10 @@ Play provides a global CSRF filter that can be applied to all requests.  This is
 play.filters.enabled += play.filters.csrf.CsrfFilter
 ```
 
+It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
+
+@[nocsrf](../http/code/javaguide.http.routing.routes)
+
 ### Getting the current token
 
 The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:
