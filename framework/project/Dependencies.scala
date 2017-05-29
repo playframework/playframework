@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.1"
+  val akkaVersion = "2.5.2"
   val akkaHttpVersion = "10.0.7"
   val playJsonVersion = "2.6.0-RC1"
 
@@ -37,21 +37,21 @@ object Dependencies {
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.25")
 
-  val guava = "com.google.guava" % "guava" % "21.0"
+  val guava = "com.google.guava" % "guava" % "22.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
   val h2database = "com.h2database" % "h2" % "1.4.195"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.43-j7p"
+  val acolyteVersion = "1.0.44-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.6.1",
+    "com.zaxxer" % "HikariCP" % "2.6.2",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -64,7 +64,7 @@ object Dependencies {
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5")
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6")
     case _ => Nil
   }
 
@@ -78,7 +78,7 @@ object Dependencies {
       .classifier(""),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.9"
+    "net.jodah" % "typetools" % "0.5.0"
   ) ++ specsBuild.map(_ % Test)
 
   val joda = Seq(
@@ -112,7 +112,7 @@ object Dependencies {
   val javaTestDeps = Seq(
     junit,
     junitInterface,
-    "org.easytesting" % "fest-assert"     % "1.4",
+    "org.easytesting" % "fest-assert" % "1.4",
     mockitoAll,
     logback
   ).map(_ % Test)
@@ -147,7 +147,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.10.Final"
+  val nettyVersion = "4.1.11.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
@@ -196,14 +196,14 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.2"),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.0"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.0")
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.1"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")
     ) ++ specsBuild.map(_ % Test)
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.2.4"    % "webjars",
-    "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
+    "org.webjars" % "jquery"   % "3.2.0"    % "webjars",
+    "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
   val playDocVersion = "1.8.1"
@@ -260,7 +260,7 @@ object Dependencies {
     "org.ehcache" % "jcache" % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.5.0"
+  val caffeineVersion = "2.5.1"
   val playWsStandaloneVersion = "1.0.0-RC1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion
