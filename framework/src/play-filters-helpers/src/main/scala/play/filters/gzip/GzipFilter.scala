@@ -209,18 +209,17 @@ object GzipFilterConfig {
       bufferSize = config.get[ConfigMemorySize]("bufferSize").toBytes.toInt,
       chunkedThreshold = config.get[ConfigMemorySize]("chunkedThreshold").toBytes.toInt,
       shouldGzip = (req, res) => {
-        val contentType = res.body.contentType.getOrElse("").toLowerCase;
+      val contentType = res.body.contentType.getOrElse("").toLowerCase;
 
-        val whiteList = config.get[Seq[String]]("whiteList").toSet
-        val blackList = config.get[Seq[String]]("blackList").toSet
+      val whiteList = config.get[Seq[String]]("whiteList").toSet
+      val blackList = config.get[Seq[String]]("blackList").toSet
 
-        if (whiteList.nonEmpty) {
-          whiteList.exists(contentType.startsWith(_))
-        } else {
-          !blackList.exists(contentType.startsWith(_))
-        }
+      if (whiteList.nonEmpty) {
+        whiteList.exists(contentType.startsWith(_))
+      } else {
+        !blackList.exists(contentType.startsWith(_))
       }
-    )
+    })
   }
 }
 
