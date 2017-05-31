@@ -67,9 +67,8 @@ import client._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 import play.api.routing.Router
-import play.api.{BuiltInComponents, BuiltInComponentsFromContext}
+import play.api.BuiltInComponentsFromContext
 import play.api.routing.sird._
 import play.filters.HttpFiltersComponents
 
@@ -105,8 +104,7 @@ class ScalaTestingWebServiceClients extends Specification {
       Server.withApplicationFromContext() { context =>
         new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
           override def router: Router = Router.from {
-            case GET(p"/repositories") =>
-              this.defaultActionBuilder { req =>
+            case GET(p"/repositories") => Action { req =>
                 Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
               }
           }
@@ -128,10 +126,9 @@ class ScalaTestingWebServiceClients extends Specification {
 
       def withGitHubClient[T](block: GitHubClient => T): T = {
         Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) with HttpFiltersComponents{
+          new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
             override def router: Router = Router.from {
-              case GET(p"/repositories") =>
-                this.defaultActionBuilder { req =>
+              case GET(p"/repositories") => Action { req =>
                   Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
                 }
             }

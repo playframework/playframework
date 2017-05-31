@@ -335,6 +335,42 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+
+  /**
+   * This can be used to create Action for [[play.api.routing.Router]]s:
+   *
+   * {{{
+   * class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) {
+   *    lazy val router = Router.from {
+   *      case GET(p"/hello/$to") => Action {
+   *        Ok(s"Hello $to")
+   *      }
+   *    }
+   * }
+   * }}}
+   *
+   * @return the action builder.
+   * @see [[ActionBuilder]]
+   */
+  def Action: ActionBuilder[Request, AnyContent] = defaultActionBuilder
+
+  /**
+   * Parsers that can be combined with Action builder to create [[play.api.mvc.Action]]s:
+   *
+   * {{{
+   * class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) {
+   *    lazy val router = Router.from {
+   *      case GET(p"/hello/$to") => Action(parse.json) { request =>
+   *        Ok(request.body)
+   *      }
+   *    }
+   * }
+   * }}}
+   *
+   * @return the body parsers
+   * @see [[PlayBodyParsers]]
+   */
+  def parse: PlayBodyParsers = playBodyParsers
 }
 
 /**

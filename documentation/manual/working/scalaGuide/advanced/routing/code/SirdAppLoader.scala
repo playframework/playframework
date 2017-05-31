@@ -4,7 +4,6 @@
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.mvc.Results._
-import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
 
