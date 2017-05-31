@@ -111,6 +111,46 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       checkNotGzipped(makeGzipRequest(app), "")(app.materializer)
     }
 
+    "gzip content type which is on the whiteList" in withApplication(Ok("hello").as("text/css"), whiteList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "gzip uppercase content type which is on the whiteList" in withApplication(Ok("hello").as("TEXT/CSS"), whiteList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "gzip content type with charset which is on the whiteList" in withApplication(Ok("hello").as("text/css; charset=utf-8"), whiteList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "don't gzip content type which is not on the whiteList" in withApplication(Ok("hello").as("text/plain"), whiteList = contentTypes) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "don't gzip content type with charset which is not on the whiteList" in withApplication(Ok("hello").as("text/plain; charset=utf-8"), whiteList = contentTypes) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "don't gzip content type which is on the blackList" in withApplication(Ok("hello").as("text/css"), blackList = contentTypes) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "don't gzip content type with charset which is on the blackList" in withApplication(Ok("hello").as("text/css; charset=utf-8"), blackList = contentTypes) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "gzip content type which is not on the blackList" in withApplication(Ok("hello").as("text/plain"), blackList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "gzip content type with charset which is not on the blackList" in withApplication(Ok("hello").as("text/plain; charset=utf-8"), blackList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "ignore blackList if there is a whiteList" in withApplication(Ok("hello").as("text/css; charset=utf-8"), whiteList = contentTypes, blackList = contentTypes) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
     "gzip chunked responses" in withApplication(Ok.chunked(Source(List("foo", "bar")))) { implicit app =>
       val result = makeGzipRequest(app)
       checkGzippedBody(result, "foobar")(app.materializer)
@@ -227,11 +267,13 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
 
   }
 
-  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024, whiteList: List[String] = List(), blackList: List[String] = List())(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
-        "play.filters.gzip.bufferSize" -> 512
+        "play.filters.gzip.bufferSize" -> 512,
+        "play.filters.gzip.whiteList" -> whiteList,
+        "play.filters.gzip.blackList" -> blackList
       ).overrides(
           bind[Result].to(result),
           bind[Router].to[ResultRouter],
@@ -239,6 +281,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         ).build
     running(application)(block(application))
   }
+
+  val contentTypes = List("text/html", "text/css", "application/javascript")
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
 
