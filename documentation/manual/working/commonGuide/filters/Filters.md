@@ -106,7 +106,7 @@ If you are writing functional tests involving `GuiceApplicationBuilder`, then yo
 
 If you are using compile time dependency injection, then the default filters are resolved at compile time, rather than through runtime.
 
-This means that the [`play.api.BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) trait (for Scala) and [`play.BuiltInComponents`](api/java/play/BuiltInComponents.html) interface (for Java) now contains an `httpFilters` method which is left abstract. The default list of filters is defined in [`play.filters.HttpFiltersComponents`](api/scala/play.filters/HttpFiltersComponents.html) for Scala and [`play.filters.components.HttpFiltersComponents`](api/java/play/filters/components/HttpFiltersComponents.html) for Java. So, for most cases you will want to mixin `HttpFiltersComponents` and append your own filters:
+This means that the [`play.api.BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) trait (for Scala) and [`play.BuiltInComponents`](api/java/play/BuiltInComponents.html) interface (for Java) now contains an `httpFilters` method which is left abstract. The default list of filters is defined in [`play.filters.HttpFiltersComponents`](api/scala/play/filters/HttpFiltersComponents.html) for Scala and [`play.filters.components.HttpFiltersComponents`](api/java/play/filters/components/HttpFiltersComponents.html) for Java. So, for most cases you will want to mixin `HttpFiltersComponents` and append your own filters:
 
 Java
 : @[appending-filters-compile-time-di](code/javaguide/detailed/filters/AddHttpFiltersComponents.java)
