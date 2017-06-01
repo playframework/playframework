@@ -211,8 +211,8 @@ object GzipFilterConfig {
       shouldGzip = (req, res) => {
       val contentType = res.body.contentType.getOrElse("").toLowerCase;
 
-      val whiteList = config.get[Seq[String]]("whiteList").toSet
-      val blackList = config.get[Seq[String]]("blackList").toSet
+      val whiteList = config.get[Seq[String]]("contentType.whiteList").toSet
+      val blackList = config.get[Seq[String]]("contentType.blackList").toSet
 
       if (whiteList.nonEmpty) {
         whiteList.exists(contentType.startsWith(_))

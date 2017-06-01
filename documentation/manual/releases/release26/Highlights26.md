@@ -174,12 +174,16 @@ If you have the gzip filter enabled you can now also control which responses are
 
 ```
 play.filters.gzip {
-    # If non empty, then a response will only be compressed if its content type is in this list.
-    whiteList = [ "text/html", "text/plain"]
 
-    # The black list is only used if the white list is empty.
-    # Compress all responses except the ones whose content type is in this list.
-    blackList = []
+    contentType {
+
+        # If non empty, then a response will only be compressed if its content type is in this list.
+        whiteList = [ "text/html", "text/plain"]
+
+        # The black list is only used if the white list is empty.
+        # Compress all responses except the ones whose content type is in this list.
+        blackList = []
+    }
 }
 ```
 

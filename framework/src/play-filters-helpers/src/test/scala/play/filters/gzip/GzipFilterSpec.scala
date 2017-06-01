@@ -272,8 +272,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       .configure(
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
         "play.filters.gzip.bufferSize" -> 512,
-        "play.filters.gzip.whiteList" -> whiteList,
-        "play.filters.gzip.blackList" -> blackList
+        "play.filters.gzip.contentType.whiteList" -> whiteList,
+        "play.filters.gzip.contentType.blackList" -> blackList
       ).overrides(
           bind[Result].to(result),
           bind[Router].to[ResultRouter],
