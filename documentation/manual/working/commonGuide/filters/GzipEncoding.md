@@ -17,7 +17,7 @@ The gzip filter supports a small number of tuning configuration options, which c
 
 ## Controlling which responses are gzipped
 
-You can control which responses are and aren't implemented via `application.conf`:
+You can control which responses are and aren't gzipped based on their content types via `application.conf`:
 
 ```
 play.filters.gzip {
@@ -30,7 +30,7 @@ play.filters.gzip {
 }
 ```
 
-As a more flexible alternative you can use the `shouldGzip` parameter, which accepts a function of a request header and a response header to a boolean.
+As a more flexible alternative you can use the `shouldGzip` parameter of the gzip filter itself, which accepts a function of a request header and a response header to a boolean.
 
 For example, the code below only gzips HTML responses:
 

@@ -168,6 +168,23 @@ Please see [[the Filters page|Filters]] for more details.
 
 > **NOTE**: If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests, from the CSRF filter.  To check this behavior, please add `<logger name="play.filters.csrf" value="TRACE"/>` to your `logback.xml`.  Likewise, if you are running a Play application on something other than localhost, you must configure the [[AllowedHostsFilter]] to specifically allow the hostname/ip you are connecting from.
 
+### gzip filter
+
+If you have the gzip filter enabled you can now also control which responses are and aren't gzipped based on their content types via `application.conf` (instead of writing you own `Filters` class):
+
+```
+play.filters.gzip {
+    # If non empty, then a response will only be compressed if its content type is in this list.
+    whiteList = [ "text/html", "text/plain"]
+
+    # The black list is only used if the white list is empty.
+    # Compress all responses except the ones whose content type is in this list.
+    blackList = []
+}
+```
+
+Please see [[the gzip filter page|GzipEncoding]] for more details.
+
 ## JWT Cookies
 
 Play now uses [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration (making replay attacks harder) and more flexibility in signing cookies.

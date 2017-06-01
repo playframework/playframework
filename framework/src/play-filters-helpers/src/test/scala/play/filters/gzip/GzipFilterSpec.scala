@@ -267,7 +267,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
 
   }
 
-  def withApplication[T](result: Result, chunkedThreshold: Int = 1024, whiteList: List[String] = List(), blackList: List[String] = List())(block: Application => T): T = {
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024, whiteList: List[String] = List.empty, blackList: List[String] = List.empty)(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
