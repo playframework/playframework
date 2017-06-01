@@ -28,7 +28,7 @@ class UserControllerSpec extends Specification {
 
 // #test-disabling-filters
 class UserControllerWithoutFiltersSpec extends Specification {
-  "UserController GET" should {
+  "UserControllerWithoutFiltersSpec GET" should {
 
     "render the index page from the application" in new WithApplication(
       GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters").build()
@@ -50,6 +50,6 @@ import play.api.mvc.{BaseController, ControllerComponents}
 
 class UserController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
   def userGet = Action {
-    Ok
+    Ok("success").as(HTML)
   }
 }
