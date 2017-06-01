@@ -77,7 +77,7 @@ And then you can define your action with the dependencies injected:
 
 ### Compile-time Dependency Injection
 
-When using [[compile-time Dependency Injection|JavaCompileTimeDependencyInjection]], you need to manually add your actions or an Action supplier to [`JavaHandlerComponents`](api/scala/play/core/j/JavaHandlerComponents.html). You do that by overriding method `javaHandlerComponents` in [`BuiltInComponents`](api/java/play/BuiltInComponents.html):
+When using [[compile-time Dependency Injection|JavaCompileTimeDependencyInjection]], you need to manually add your `Action` supplier to [`JavaHandlerComponents`](api/scala/play/core/j/JavaHandlerComponents.html). You do that by overriding method `javaHandlerComponents` in [`BuiltInComponents`](api/java/play/BuiltInComponents.html):
 
 @[action-composition-compile-time-di](code/javaguide/http/JavaActionsComposition.java)
 
