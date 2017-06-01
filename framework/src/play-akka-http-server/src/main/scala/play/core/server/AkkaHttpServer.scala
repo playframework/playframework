@@ -78,9 +78,10 @@ class AkkaHttpServer(
       requestTimeoutOption.foreach(timeouts.withRequestTimeout)
       timeouts
     }
-      // Play needs Raw Request Uri's to match Netty
+      // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
+      // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
       .withTransparentHeadRequests(akkaConfig.get[Boolean]("transparent-head-requests"))
       .withServerHeader(akkaConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
       .withDefaultHostHeader(headers.Host(akkaConfig.get[String]("default-host-header")))
