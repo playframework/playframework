@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package scalaguide.sql
 
 import javax.inject.Inject

@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 //#default
 import play.mvc.Action;
 import play.mvc.Http;
