@@ -7,13 +7,13 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
-import play.api.test.{PlaySpecification, TestServer, WsTestClient}
+import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
 import play.core.j.MappedJavaHandlerComponents
-import play.http.{ActionCreator, DefaultActionCreator}
-import play.it.http.ActionCompositionOrderTest.{ActionAnnotation, ControllerAnnotation, WithUsername}
-import play.mvc.{EssentialFilter, Result, Results}
+import play.http.{ ActionCreator, DefaultActionCreator }
+import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
+import play.mvc.{ EssentialFilter, Result, Results }
 import play.mvc.Http.Cookie
-import play.routing.{Router => JRouter}
+import play.routing.{ Router => JRouter }
 
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
   override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
