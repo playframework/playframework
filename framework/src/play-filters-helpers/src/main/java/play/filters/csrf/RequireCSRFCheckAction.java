@@ -4,8 +4,8 @@
 package play.filters.csrf;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -25,25 +25,23 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final SessionConfiguration sessionConfiguration;
     private final CSRF.TokenProvider tokenProvider;
     private final CSRFTokenSigner tokenSigner;
-
-    private CSRFErrorHandler errorHandler;
-    private Injector injector;
+    private Function<RequireCSRFCheck, CSRFErrorHandler> configurator;
 
     @Inject
     public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
-        this.config = config;
-        this.sessionConfiguration = sessionConfiguration;
-        this.tokenProvider = tokenProvider;
-        this.tokenSigner = csrfTokenSigner;
-        this.injector = injector;
+        this(config, sessionConfiguration, tokenProvider, csrfTokenSigner, configAnnotation -> injector.instanceOf(configAnnotation.error()));
     }
 
     public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, CSRFErrorHandler errorHandler) {
+        this(config, sessionConfiguration, tokenProvider, csrfTokenSigner, configAnnotation -> errorHandler);
+    }
+
+    public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Function<RequireCSRFCheck, CSRFErrorHandler> configurator) {
         this.config = config;
         this.sessionConfiguration = sessionConfiguration;
         this.tokenProvider = tokenProvider;
         this.tokenSigner = csrfTokenSigner;
-        this.errorHandler = errorHandler;
+        this.configurator = configurator;
     }
 
     @Override
@@ -110,10 +108,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
             }
         }
 
-        CSRFErrorHandler handler = Optional
-                .ofNullable(injector)
-                .map(injctr -> (CSRFErrorHandler)injctr.instanceOf(configuration.error()))
-                .orElse(this.errorHandler);
+        CSRFErrorHandler handler = configurator.apply(this.configuration);
         return handler.handle(new play.core.j.RequestHeaderImpl(request), msg);
     }
 }
