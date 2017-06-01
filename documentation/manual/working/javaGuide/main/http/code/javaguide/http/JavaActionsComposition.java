@@ -9,7 +9,7 @@ import play.Logger;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
 import play.cache.ehcache.EhCacheComponents;
-import play.core.j.StaticJavaHandlerComponents;
+import play.core.j.MappedJavaHandlerComponents;
 import play.filters.components.NoHttpFiltersComponents;
 import play.libs.Json;
 import play.mvc.*;
@@ -22,7 +22,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import java.util.concurrent.CompletionStage;
-import java.util.function.Supplier;
 
 public class JavaActionsComposition extends Controller {
 
@@ -146,7 +145,7 @@ public class JavaActionsComposition extends Controller {
         }
 
         @Override
-        public StaticJavaHandlerComponents javaHandlerComponents() {
+        public MappedJavaHandlerComponents javaHandlerComponents() {
             return super.javaHandlerComponents()
                     // Add action that does not depends on any other component
                     .addAction(VerboseAction.class, VerboseAction::new)

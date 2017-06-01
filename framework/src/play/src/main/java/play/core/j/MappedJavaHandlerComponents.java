@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  * {@link play.mvc.BodyParser} must be added here manually. This is way we avoid mixing runtime dependency
  * injector components with compile time injected ones.
  */
-public class StaticJavaHandlerComponents implements JavaHandlerComponents {
+public class MappedJavaHandlerComponents implements JavaHandlerComponents {
 
     private final ActionCreator actionCreator;
     private final HttpConfiguration httpConfiguration;
@@ -30,7 +30,7 @@ public class StaticJavaHandlerComponents implements JavaHandlerComponents {
     private final Map<Class<? extends Action<?>>, Supplier<Action<?>>> actions = new HashMap<>();
     private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyPasers = new HashMap<>();
 
-    public StaticJavaHandlerComponents(ActionCreator actionCreator, HttpConfiguration httpConfiguration, ExecutionContext executionContext, JavaContextComponents contextComponents) {
+    public MappedJavaHandlerComponents(ActionCreator actionCreator, HttpConfiguration httpConfiguration, ExecutionContext executionContext, JavaContextComponents contextComponents) {
         this.actionCreator = actionCreator;
         this.httpConfiguration = httpConfiguration;
         this.executionContext = executionContext;
@@ -67,12 +67,12 @@ public class StaticJavaHandlerComponents implements JavaHandlerComponents {
         return this.contextComponents;
     }
 
-    public <A extends Action<?>> StaticJavaHandlerComponents addAction(Class<A> clazz, Supplier<A> actionSupplier) {
+    public <A extends Action<?>> MappedJavaHandlerComponents addAction(Class<A> clazz, Supplier<A> actionSupplier) {
         this.actions.put(clazz, (Supplier<Action<?>>) actionSupplier);
         return this;
     }
 
-    public <B extends BodyParser<?>> StaticJavaHandlerComponents addBodyParser(Class<B> clazz, Supplier<B> bodyParserSupplier) {
+    public <B extends BodyParser<?>> MappedJavaHandlerComponents addBodyParser(Class<B> clazz, Supplier<B> bodyParserSupplier) {
         this.bodyPasers.put(clazz, (Supplier<BodyParser<?>>) bodyParserSupplier);
         return this;
     }

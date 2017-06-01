@@ -62,7 +62,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private final Supplier<Files.TemporaryFileCreator> _tempFileCreator = lazy(this::createTempFileCreator);
 
     private final Supplier<HttpErrorHandler> _httpErrorHandler = lazy(this::createHttpErrorHandler);
-    private final Supplier<StaticJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
+    private final Supplier<MappedJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
 
     public BuiltInComponentsFromContext(ApplicationLoader.Context context) {
         this.context = context;
@@ -130,12 +130,12 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     }
 
     @Override
-    public StaticJavaHandlerComponents javaHandlerComponents() {
+    public MappedJavaHandlerComponents javaHandlerComponents() {
         return this._javaHandlerComponents.get();
     }
 
-    private StaticJavaHandlerComponents createJavaHandlerComponents() {
-        StaticJavaHandlerComponents javaHandlerComponents = new StaticJavaHandlerComponents(
+    private MappedJavaHandlerComponents createJavaHandlerComponents() {
+        MappedJavaHandlerComponents javaHandlerComponents = new MappedJavaHandlerComponents(
                 actionCreator(),
                 httpConfiguration(),
                 executionContext(),
