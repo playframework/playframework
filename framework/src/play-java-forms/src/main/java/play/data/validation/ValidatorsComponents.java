@@ -4,7 +4,6 @@
 package play.data.validation;
 
 import play.inject.ApplicationLifecycle;
-import play.inject.Injector;
 
 import javax.validation.ConstraintValidatorFactory;
 import javax.validation.Validator;
@@ -17,7 +16,7 @@ public interface ValidatorsComponents {
     ApplicationLifecycle applicationLifecycle();
 
     default ConstraintValidatorFactory constraintValidatorFactory() {
-        return new StaticConstraintValidatorFactory();
+        return new MappedConstraintValidatorFactory();
     }
 
     default Validator validator() {

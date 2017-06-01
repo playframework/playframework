@@ -7,8 +7,7 @@ package javaguide.forms.customconstraint;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.data.FormFactoryComponents;
-import play.data.validation.StaticConstraintValidatorFactory;
-import play.db.ConnectionPool;
+import play.data.validation.MappedConstraintValidatorFactory;
 import play.db.DBComponents;
 import play.db.HikariCPComponents;
 import play.filters.components.NoHttpFiltersComponents;
@@ -27,8 +26,8 @@ public class ValidateWithDBComponents extends BuiltInComponentsFromContext
     }
 
     @Override
-    public StaticConstraintValidatorFactory constraintValidatorFactory() {
-        return new StaticConstraintValidatorFactory()
+    public MappedConstraintValidatorFactory constraintValidatorFactory() {
+        return new MappedConstraintValidatorFactory()
                 .addConstraintValidator(
                         ValidateWithDBValidator.class,
                         new ValidateWithDBValidator(database("default"))

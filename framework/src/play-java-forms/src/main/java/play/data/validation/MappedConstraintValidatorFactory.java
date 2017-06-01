@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 /**
  * ConstraintValidatorFactory to be used with compile-time Dependency Injection.
  */
-public class StaticConstraintValidatorFactory implements ConstraintValidatorFactory {
+public class MappedConstraintValidatorFactory implements ConstraintValidatorFactory {
 
     // This is a Map<Class, Supplier> so that we can have both
     // singletons and non-singletons validators.
@@ -24,9 +24,9 @@ public class StaticConstraintValidatorFactory implements ConstraintValidatorFact
      * @param key the constraint validator type
      * @param constraintValidator the constraint validator instance
      * @param <T> the type of constraint validator implementation
-     * @return {@link StaticConstraintValidatorFactory} with the given constraint validator added.
+     * @return {@link MappedConstraintValidatorFactory} with the given constraint validator added.
      */
-    public <T extends ConstraintValidator<?, ?>> StaticConstraintValidatorFactory addConstraintValidator(Class<T> key, T constraintValidator) {
+    public <T extends ConstraintValidator<?, ?>> MappedConstraintValidatorFactory addConstraintValidator(Class<T> key, T constraintValidator) {
         validators.put(key, () -> constraintValidator);
         return this;
     }
@@ -37,9 +37,9 @@ public class StaticConstraintValidatorFactory implements ConstraintValidatorFact
      * @param key the constraint validator type
      * @param constraintValidator the constraint validator instance
      * @param <T> the type of constraint validator implementation
-     * @return {@link StaticConstraintValidatorFactory} with the given constraint validator added.
+     * @return {@link MappedConstraintValidatorFactory} with the given constraint validator added.
      */
-    public <T extends ConstraintValidator<?, ?>> StaticConstraintValidatorFactory addConstraintValidator(Class<T> key, Supplier<T> constraintValidator) {
+    public <T extends ConstraintValidator<?, ?>> MappedConstraintValidatorFactory addConstraintValidator(Class<T> key, Supplier<T> constraintValidator) {
         validators.put(key, constraintValidator::get);
         return this;
     }
