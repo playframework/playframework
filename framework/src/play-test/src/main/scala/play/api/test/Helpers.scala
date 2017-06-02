@@ -3,7 +3,7 @@
  */
 package play.api.test
 
-import java.nio.file.Path
+import java.nio.file.{ Path, Files => JFiles }
 
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
@@ -17,8 +17,10 @@ import play.api.http._
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
+import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
@@ -169,6 +171,9 @@ trait Writeables {
 
   implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
     Writeable(_ => ByteString.empty, None)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {

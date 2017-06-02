@@ -4,9 +4,14 @@
 package play.api.http
 
 import akka.util.ByteString
+import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.mvc.MultipartFormData.FilePart
+
 import scala.annotation._
+
+import java.nio.file.{ Files => JFiles }
 
 /**
  * Transform a value of type A to a Byte Array.
@@ -39,7 +44,7 @@ object Writeable extends DefaultWriteables {
 }
 
 /**
- * Default Writeable with lowwe priority.
+ * Default Writeable with lower priority.
  */
 trait LowPriorityWriteables {
 
@@ -84,7 +89,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
     import java.net.URLEncoder
     Writeable(formData =>
-      codec.encode(formData.map(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).flatten.mkString("&"))
+      codec.encode(formData.flatMap(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).mkString("&"))
     )
   }
 
@@ -100,6 +105,59 @@ trait DefaultWriteables extends LowPriorityWriteables {
    */
   def writeableOf_JsValue(codec: Codec, contentType: Option[String] = None): Writeable[JsValue] = {
     Writeable(a => codec.encode(Json.stringify(a)), contentType)
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData` when using [[TemporaryFile]]s.
+   */
+  def writeableOf_MultipartFormData(codec: Codec, contentType: Option[String]): Writeable[MultipartFormData[TemporaryFile]] = {
+    writeableOf_MultipartFormData(
+      codec,
+      Writeable[FilePart[TemporaryFile]](
+        (f: FilePart[TemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
+        contentType
+      )
+    )
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData`.
+   */
+  def writeableOf_MultipartFormData[A](
+    codec: Codec,
+    aWriteable: Writeable[FilePart[A]]
+  ): Writeable[MultipartFormData[A]] = {
+
+    val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
+
+    def formatDataParts(data: Map[String, Seq[String]]) = {
+      val dataParts = data.flatMap {
+        case (name, values) =>
+          values.map { value =>
+            s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+          }
+      }.mkString("")
+      Codec.utf_8.encode(dataParts)
+    }
+
+    def filePartHeader(file: FilePart[A]) = {
+      val name = s""""${file.key}""""
+      val filename = s""""${file.filename}""""
+      val contentType = file.contentType.map { ct =>
+        s"${HeaderNames.CONTENT_TYPE}: $ct\r\n"
+      }.getOrElse("")
+      Codec.utf_8.encode(s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n")
+    }
+
+    Writeable[MultipartFormData[A]](
+      transform = { form: MultipartFormData[A] =>
+      formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
+        val fileBytes = aWriteable.transform(file)
+        filePartHeader(file) ++ fileBytes ++ Codec.utf_8.encode("\r\n")
+      } ++ Codec.utf_8.encode(s"--$boundary--")
+    },
+      contentType = Some(s"multipart/form-data; boundary=$boundary")
+    )
   }
 
   /**
@@ -123,4 +181,3 @@ trait DefaultWriteables extends LowPriorityWriteables {
   implicit val wBytes: Writeable[ByteString] = Writeable(identity)
 
 }
-
