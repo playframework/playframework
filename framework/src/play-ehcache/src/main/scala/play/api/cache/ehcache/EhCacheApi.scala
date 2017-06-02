@@ -12,7 +12,7 @@ import net.sf.ehcache.{ CacheManager, Ehcache, Element, ObjectExistsException }
 import play.api.cache._
 import play.api.inject._
 import play.api.{ Configuration, Environment }
-import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => DefaultJavaAsyncCacheApi, DefaultSyncCacheApi => JavaDefaultSyncCacheApi, NamedCacheImpl }
+import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, DefaultSyncCacheApi => JavaDefaultSyncCacheApi, NamedCacheImpl }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -56,6 +56,16 @@ class EhCacheModule extends SimpleModule((environment, configuration) => {
     new NamedCacheImpl(name)
   }
 
+  // bind wrapper classes
+  def wrapperBindings(cacheApiKey: BindingKey[AsyncCacheApi], namedCache: NamedCache): Seq[Binding[_]] = Seq(
+    bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
+    bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
+    bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
+    bind[CacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
+    bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey)),
+    bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
+  )
+
   // bind a cache with the given name
   def bindCache(name: String) = {
     val namedCache = named(name)
@@ -63,25 +73,23 @@ class EhCacheModule extends SimpleModule((environment, configuration) => {
     val cacheApiKey = bind[AsyncCacheApi].qualifiedWith(namedCache)
     Seq(
       ehcacheKey.to(new NamedEhCacheProvider(name, createBoundCaches)),
-      cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
-      bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
-      bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
-      bind[SyncCacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
-      bind[CacheApi].qualifiedWith(namedCache).to[DefaultSyncCacheApi],
-      bind[JavaCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi],
-      bind[JavaSyncCacheApi].qualifiedWith(namedCache).to[JavaDefaultSyncCacheApi]
-    )
+      cacheApiKey.to(new NamedAsyncCacheApiProvider(ehcacheKey))
+    ) ++ wrapperBindings(cacheApiKey, namedCache)
+  }
+
+  def bindDefault[T: ClassTag]: Binding[T] = {
+    bind[T].to(bind[T].qualifiedWith(named(defaultCacheName)))
   }
 
   Seq(
     bind[CacheManager].toProvider[CacheManagerProvider],
     // alias the default cache to the unqualified implementation
-    bind[AsyncCacheApi].to(bind[AsyncCacheApi].qualifiedWith(named(defaultCacheName))),
-    bind[JavaAsyncCacheApi].to[DefaultJavaAsyncCacheApi],
-    bind[SyncCacheApi].to[DefaultSyncCacheApi],
-    bind[CacheApi].to[DefaultSyncCacheApi],
-    bind[JavaCacheApi].to[JavaDefaultSyncCacheApi],
-    bind[JavaSyncCacheApi].to[JavaDefaultSyncCacheApi]
+    bindDefault[AsyncCacheApi],
+    bindDefault[JavaAsyncCacheApi],
+    bindDefault[SyncCacheApi],
+    bindDefault[CacheApi],
+    bindDefault[JavaCacheApi],
+    bindDefault[JavaSyncCacheApi]
   ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
 })
 
@@ -117,31 +125,42 @@ private[play] object NamedEhCacheProvider {
   }
 }
 
-private[play] class NamedCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
+private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: AsyncCacheApi = {
+  lazy val get: AsyncCacheApi =
     new EhCacheApi(injector.instanceOf(key))(injector.instanceOf[ExecutionContext])
-  }
+}
+
+private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
+    extends Provider[SyncCacheApi with CacheApi] {
+  @Inject private var injector: Injector = _
+  lazy val get: SyncCacheApi with CacheApi =
+    new DefaultSyncCacheApi(injector.instanceOf(key))
 }
 
 private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaAsyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaAsyncCacheApi = {
-    new DefaultJavaAsyncCacheApi(injector.instanceOf(key))
-  }
+  lazy val get: JavaAsyncCacheApi =
+    new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
+}
+
+private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
+    extends Provider[JavaSyncCacheApi with JavaCacheApi] {
+  @Inject private var injector: Injector = _
+  lazy val get: JavaSyncCacheApi with JavaCacheApi =
+    new JavaDefaultSyncCacheApi(new JavaDefaultAsyncCacheApi(injector.instanceOf(key)))
 }
 
 private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
   @Inject private var injector: Injector = _
-  lazy val get: Cached = {
+  lazy val get: Cached =
     new Cached(injector.instanceOf(key))(injector.instanceOf[Materializer])
-  }
 }
 
 private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
 @Singleton
-class EhCacheApi @Inject() (cache: Ehcache)(implicit context: ExecutionContext) extends AsyncCacheApi {
+class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit context: ExecutionContext) extends AsyncCacheApi {
 
   def set(key: String, value: Any, expiration: Duration): Future[Done] = {
     val element = new Element(key, value)

@@ -6,14 +6,13 @@ package play.api.cache.ehcache
 import javax.inject.{ Inject, Provider }
 
 import net.sf.ehcache.CacheManager
-import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
-import play.api.cache.ehcache.CacheManagerProvider
+import play.api.cache.{ AsyncCacheApi, DefaultSyncCacheApi, SyncCacheApi }
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.cache.NamedCache
-import scala.concurrent.duration._
 
-import scala.concurrent.{ Future, Await }
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class EhCacheApiSpec extends PlaySpecification {
   sequential
@@ -24,7 +23,14 @@ class EhCacheApiSpec extends PlaySpecification {
         "play.cache.bindCaches" -> Seq("custom")
       )
     ) {
-      app.injector.instanceOf[NamedCacheController]
+      val controller = app.injector.instanceOf[NamedCacheController]
+      val syncCacheName =
+        controller.cache.asInstanceOf[DefaultSyncCacheApi].cacheApi.asInstanceOf[EhCacheApi].cache.getName
+      val asyncCacheName =
+        controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
+
+      syncCacheName must_== "custom"
+      asyncCacheName must_== "custom"
     }
     "bind already created named caches" in new WithApplication(
       _.overrides(
@@ -56,4 +62,6 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
 }
 
 class NamedCacheController @Inject() (
-  @NamedCache("custom") val cache: SyncCacheApi)
+  @NamedCache("custom") val cache: SyncCacheApi,
+  @NamedCache("custom") val asyncCache: AsyncCacheApi
+)

@@ -87,7 +87,7 @@ trait CacheApi {
 /**
  * A SyncCacheApi that wraps an AsyncCacheApi
  */
-class DefaultSyncCacheApi @Inject() (cacheApi: AsyncCacheApi) extends SyncCacheApi with CacheApi {
+class DefaultSyncCacheApi @Inject() (val cacheApi: AsyncCacheApi) extends SyncCacheApi with CacheApi {
 
   protected val awaitTimeout: Duration = 5.seconds
 
