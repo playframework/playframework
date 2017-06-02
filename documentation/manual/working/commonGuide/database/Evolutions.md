@@ -19,6 +19,9 @@ libraryDependencies += evolutions
 
 If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. Since `applicationEvolutions` is a lazy val, you either need to explicitly access that val, for example in your `ApplicationLoader`, or have an explicit dependency from another component to make sure the evolutions run.
 
+#### Running evolutions with Slick using compile-time DI
+If you are using Slick, you will also need to mix in the `SlickEvolutionsComponents` trait in addition to the `EvolutionsComponents` trait to `ApplicationComponents`. Else evolutions will not recognize the Slick database configurations in the configuration files.
+
 ## Evolutions scripts
 
 Play tracks your database evolutions using several evolutions script. These scripts are written in plain old SQL and should be located in the `conf/evolutions/{database name}` directory of your application. If the evolutions apply to your default database, this path is `conf/evolutions/default`.
