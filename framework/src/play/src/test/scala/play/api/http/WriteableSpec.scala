@@ -40,7 +40,7 @@ class WriteableSpec extends Specification {
 
         val writeable = Writeable.writeableOf_MultipartFormData(
           codec,
-          Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType),
+          Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)
         )
         val transformed: ByteString = writeable.transform(multipartFormData)
 
