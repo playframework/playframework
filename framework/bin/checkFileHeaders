@@ -6,4 +6,4 @@
 
 cd $FRAMEWORK
 
-build checkHeaders
+build checkHeaders test:checkHeaders
