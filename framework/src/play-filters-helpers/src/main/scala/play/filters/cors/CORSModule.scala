@@ -20,11 +20,10 @@ class CORSConfigProvider @Inject() (configuration: Configuration) extends Provid
 /**
  * Provider for CORSFilter.
  */
-class CORSFilterProvider @Inject() (configuration: Configuration, errorHandler: HttpErrorHandler, corsConfig: CORSConfig,
-    materializer: Materializer) extends Provider[CORSFilter] {
+class CORSFilterProvider @Inject() (configuration: Configuration, errorHandler: HttpErrorHandler, corsConfig: CORSConfig) extends Provider[CORSFilter] {
   lazy val get = {
     val pathPrefixes = configuration.get[Seq[String]]("play.filters.cors.pathPrefixes")
-    new CORSFilter(corsConfig, errorHandler, pathPrefixes)(materializer)
+    new CORSFilter(corsConfig, errorHandler, pathPrefixes)
   }
 }
 

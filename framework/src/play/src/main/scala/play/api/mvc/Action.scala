@@ -519,7 +519,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
   protected def refine[A](request: R[A]): Future[Either[Result, P[A]]]
 
   final def invokeBlock[A](request: R[A], block: P[A] => Future[Result]) =
-    refine(request).flatMap(_.fold(Future.successful _, block))(executionContext)
+    refine(request).flatMap(_.fold(Future.successful, block))(executionContext)
 }
 
 /**
