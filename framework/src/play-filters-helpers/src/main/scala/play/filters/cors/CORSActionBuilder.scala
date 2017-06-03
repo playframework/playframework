@@ -8,7 +8,9 @@ import akka.util.ByteString
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, ParserConfiguration }
 import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFileCreator }
 import play.api.libs.streams.Accumulator
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
+import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.api.{ Configuration, Logger }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -28,6 +30,21 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
     val action = new EssentialAction {
       override def apply(req: RequestHeader): Accumulator[ByteString, Result] = {
+        req match {
+          case r: Request[A] => Accumulator.done(block(r))
+          case _ =>
+            Accumulator.done(block(
+              new Request[A] {
+                override lazy val body: A = request.body
+                override lazy val connection: RemoteConnection = req.connection
+                override lazy val method: String = req.method
+                override lazy val version: String = req.version
+                override lazy val attrs: TypedMap = req.attrs
+                override lazy val headers: Headers = req.headers
+                override lazy val target: RequestTarget = req.target
+              }
+            ))
+        }
         Accumulator.done(block(req.asInstanceOf[Request[A]]))
       }
     }
