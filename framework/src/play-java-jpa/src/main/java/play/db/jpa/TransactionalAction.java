@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
 /**
- * Wraps an action in am JPA transaction.
+ * Wraps an action in a JPA transaction.
  */
 public class TransactionalAction extends Action<Transactional> {
 

@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @see ConnectionPoolComponents
  */
-public interface DBComponents extends ConfigurationComponents, ConnectionPoolComponents {
+public interface DBComponents extends ConfigurationComponents, AsyncConnectionPoolComponents, ConnectionPoolComponents {
 
     Injector injector();
 
@@ -61,7 +61,7 @@ public interface DBComponents extends ConfigurationComponents, ConnectionPoolCom
         play.api.db.DBApi scalaDbApi = new DBApiProvider(
             environment().asScala(),
             configuration(),
-            connectionPool().asScala(),
+            asyncConnectionPool().asScala(),
             applicationLifecycle().asScala(),
             injector().asScala()
         ).get();

@@ -6,6 +6,8 @@ package play.api.db
 import java.sql.Connection
 import javax.sql.DataSource
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 /**
  * Database API.
  */
@@ -27,6 +29,8 @@ trait Database {
    */
   def url: String
 
+  def getConnectionAsync(): Future[Connection]
+
   /**
    * Get a JDBC connection from the underlying data source.
    * Autocommit is enabled by default.
@@ -36,6 +40,8 @@ trait Database {
    * @return a JDBC connection
    */
   def getConnection(): Connection
+
+  def getConnectionAsync(autocommit: Boolean): Future[Connection]
 
   /**
    * Get a JDBC connection from the underlying data source.
@@ -47,6 +53,8 @@ trait Database {
    */
   def getConnection(autocommit: Boolean): Connection
 
+  def withConnectionAsync[A](block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A]
+
   /**
    * Execute a block of code, providing a JDBC connection.
    * The connection and all created statements are automatically released.
@@ -55,6 +63,8 @@ trait Database {
    * @return the result of the code block
    */
   def withConnection[A](block: Connection => A): A
+
+  def withConnectionAsync[A](autocommit: Boolean)(block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A]
 
   /**
    * Execute a block of code, providing a JDBC connection.
@@ -66,6 +76,7 @@ trait Database {
    */
   def withConnection[A](autocommit: Boolean)(block: Connection => A): A
 
+  def withTransactionAsync[A](block: Connection => Future[A])(implicit ec: ExecutionContext): Future[A]
   /**
    * Execute a block of code in the scope of a JDBC transaction.
    * The connection and all created statements are automatically released.

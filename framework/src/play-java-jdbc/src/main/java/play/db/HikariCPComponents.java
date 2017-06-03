@@ -9,11 +9,16 @@ import play.api.db.HikariCPConnectionPool;
 /**
  * HikariCP Java components (for compile-time injection).
  */
-public interface HikariCPComponents extends ConnectionPoolComponents {
+public interface HikariCPComponents extends AsyncConnectionPoolComponents, ConnectionPoolComponents {
 
     Environment environment();
 
-    default ConnectionPool connectionPool() {
-        return new DefaultConnectionPool(new HikariCPConnectionPool(environment().asScala()));
+    default AsyncConnectionPool asyncConnectionPool() {
+        return new HikariCPConnectionPool(environment().asScala()).asJava();
     }
+
+    default ConnectionPool connectionPool() {
+        return asyncConnectionPool().asScala().toConnectionPool().asJava();
+    }
+
 }

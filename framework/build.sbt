@@ -6,6 +6,7 @@ import Dependencies._
 import Generators._
 import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
 import interplay.PlayBuildBase.autoImport._
+import pl.project13.scala.sbt.JmhPlugin.JmhKeys
 import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
@@ -253,10 +254,17 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
     .enablePlugins(JmhPlugin)
     .settings(
+      libraryDependencies ++= Seq(h2database, logback),
+      libraryDependencies ++= slf4j,
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject, PlaySpecs2Project)
+    .dependsOn(
+      PlayProject % "test->test",
+      PlayLogback % "test->test",
+      PlayAhcWsProject,
+      PlayJdbcProject,
+      PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayNettyServerProject)

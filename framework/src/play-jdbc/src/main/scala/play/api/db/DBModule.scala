@@ -6,12 +6,11 @@ package play.api.db
 import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.Config
+import play.api._
+import play.api.inject._
+import play.db.NamedDatabaseImpl
 
 import scala.concurrent.Future
-
-import play.api.inject._
-import play.api._
-import play.db.NamedDatabaseImpl
 
 /**
  * DB runtime inject module.
@@ -43,7 +42,7 @@ final class DBModule extends SimpleModule((environment, configuration) => {
 trait DBComponents {
   def environment: Environment
   def configuration: Configuration
-  def connectionPool: ConnectionPool
+  def connectionPool: AsyncConnectionPool
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val dbApi: DBApi = new DBApiProvider(environment, configuration, connectionPool, applicationLifecycle).get
@@ -54,18 +53,18 @@ trait DBComponents {
  */
 @Singleton
 class DBApiProvider @Inject() (environment: Environment, configuration: Configuration,
-    defaultConnectionPool: ConnectionPool, lifecycle: ApplicationLifecycle,
+    defaultConnectionPool: AsyncConnectionPool, lifecycle: ApplicationLifecycle,
     injector: Injector = NewInstanceInjector) extends Provider[DBApi] {
 
   lazy val get: DBApi = {
-    val config = configuration.underlying
-    val dbKey = config.getString("play.db.config")
-    val pool = ConnectionPool.fromConfig(config.getString("play.db.pool"), injector,
+    val config: Config = configuration.underlying
+    val dbKey: String = config.getString("play.db.config")
+    val pool: AsyncConnectionPool = AsyncConnectionPool.fromConfig(config.getString("play.db.pool"), injector,
       environment, defaultConnectionPool)
-    val configs = if (config.hasPath(dbKey)) {
+    val configs: Map[String, Config] = if (config.hasPath(dbKey)) {
       Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
     } else Map.empty[String, Config]
-    val db = new DefaultDBApi(configs, pool, environment)
+    val db: DefaultDBApi = new DefaultDBApi(configs, pool, environment)
     lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)
     db
