@@ -444,7 +444,7 @@ class CSRFActionHelper(
   }
 
   def requiresCsrfCheck(request: RequestHeader): Boolean = {
-    if (csrfConfig.bypassCorsTrustedOrigins && request.attrs.contains(CORSFilter.RequestAttr)) {
+    if (csrfConfig.bypassCorsTrustedOrigins && request.attrs.contains(CORSFilter.Attrs.Origin)) {
       filterLogger.trace("[CSRF] Bypassing check because CORSFilter request tag found")
       false
     } else {
