@@ -3,13 +3,13 @@
  */
 package play.api.test
 
-import java.nio.file.{ Path, Files => JFiles }
+import java.nio.file.Path
 
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.util.{ ByteString, Timeout }
-import org.openqa.selenium.{ Cookie => SeleniumCookie, _ }
+import org.openqa.selenium.WebDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
@@ -17,10 +17,8 @@ import play.api.http._
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
-import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
-import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
@@ -174,6 +172,9 @@ trait Writeables {
 
   implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
     Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(contentType: Option[String])(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {
@@ -388,9 +389,9 @@ trait ResultExtractors {
     Await.result(of.map { result =>
       val cookies = result.newCookies
       new Cookies {
-        lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
-        override def get(name: String) = cookiesByName.get(name)
-        override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head)
+        override def get(name: String): Option[Cookie] = cookiesByName.get(name)
+        override def foreach[U](f: Cookie => U): Unit = cookies.foreach(f)
       }
     }(play.core.Execution.trampoline), timeout.duration)
   }
