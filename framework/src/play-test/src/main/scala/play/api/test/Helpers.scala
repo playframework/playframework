@@ -9,7 +9,7 @@ import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.util.{ ByteString, Timeout }
-import org.openqa.selenium.{ Cookie => SeleniumCookie, _ }
+import org.openqa.selenium.WebDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
@@ -169,6 +169,12 @@ trait Writeables {
 
   implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
     Writeable(_ => ByteString.empty, None)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(contentType: Option[String])(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {
@@ -383,9 +389,9 @@ trait ResultExtractors {
     Await.result(of.map { result =>
       val cookies = result.newCookies
       new Cookies {
-        lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
-        override def get(name: String) = cookiesByName.get(name)
-        override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head)
+        override def get(name: String): Option[Cookie] = cookiesByName.get(name)
+        override def foreach[U](f: Cookie => U): Unit = cookies.foreach(f)
       }
     }(play.core.Execution.trampoline), timeout.duration)
   }
