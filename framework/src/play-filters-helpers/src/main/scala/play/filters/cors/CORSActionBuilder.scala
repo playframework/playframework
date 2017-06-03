@@ -32,18 +32,7 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
       override def apply(req: RequestHeader): Accumulator[ByteString, Result] = {
         req match {
           case r: Request[A] => Accumulator.done(block(r))
-          case _ =>
-            Accumulator.done(block(
-              new Request[A] {
-                override lazy val body: A = request.body
-                override lazy val connection: RemoteConnection = req.connection
-                override lazy val method: String = req.method
-                override lazy val version: String = req.version
-                override lazy val attrs: TypedMap = req.attrs
-                override lazy val headers: Headers = req.headers
-                override lazy val target: RequestTarget = req.target
-              }
-            ))
+          case _ => Accumulator.done(block(req.withBody(request.body)))
         }
         Accumulator.done(block(req.asInstanceOf[Request[A]]))
       }
