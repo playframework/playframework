@@ -137,7 +137,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
             s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
           }
       }.mkString("")
-      Codec.utf_8.encode(dataParts)
+      codec.encode(dataParts)
     }
 
     def filePartHeader(file: FilePart[A]) = {
@@ -146,15 +146,15 @@ trait DefaultWriteables extends LowPriorityWriteables {
       val contentType = file.contentType.map { ct =>
         s"${HeaderNames.CONTENT_TYPE}: $ct\r\n"
       }.getOrElse("")
-      Codec.utf_8.encode(s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n")
+      codec.encode(s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n")
     }
 
     Writeable[MultipartFormData[A]](
       transform = { form: MultipartFormData[A] =>
       formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
         val fileBytes = aWriteable.transform(file)
-        filePartHeader(file) ++ fileBytes ++ Codec.utf_8.encode("\r\n")
-      } ++ Codec.utf_8.encode(s"--$boundary--")
+        filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
+      } ++ codec.encode(s"--$boundary--")
     },
       contentType = Some(s"multipart/form-data; boundary=$boundary")
     )
