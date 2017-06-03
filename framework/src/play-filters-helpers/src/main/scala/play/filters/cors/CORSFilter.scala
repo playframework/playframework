@@ -64,7 +64,10 @@ class CORSFilter(
 object CORSFilter {
 
   val RequestTag = "CORS_REQUEST"
-  val RequestAttr: TypedKey[String] = TypedKey("CORS_REQUEST")
+
+  object Attrs {
+    val Origin: TypedKey[String] = TypedKey("CORS_ORIGIN")
+  }
 
   def apply(corsConfig: CORSConfig = CORSConfig(), errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
     pathPrefixes: Seq[String] = Seq("/"))(implicit mat: Materializer) =
