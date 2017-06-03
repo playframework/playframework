@@ -6,16 +6,17 @@ package play.it.http
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
+import play.api.routing.Router
 import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
+import play.core.j.MappedJavaHandlerComponents
+import play.http.{ ActionCreator, DefaultActionCreator }
 import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
-import play.mvc.{ Result, Results }
+import play.mvc.{ EssentialFilter, Result, Results }
 import play.mvc.Http.Cookie
+import play.routing.{ Router => JRouter }
 
-class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
-
-  sequential
-
-  def makeRequest[T](controller: MockController, configuration: Map[String, _ <: Any] = Map.empty)(block: WSResponse => T) = {
+class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
+  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
     implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
       case _ => JAction(app, controller)
@@ -26,6 +27,59 @@ class JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       block(response)
     }
   }
+}
+
+class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSpec {
+
+  def context(initialSettings: Map[String, AnyRef]): play.ApplicationLoader.Context = {
+    import scala.collection.JavaConverters._
+    play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
+  }
+
+  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef])(block: (WSResponse) => T): T = {
+    implicit val port = testServerPort
+    val components = new play.BuiltInComponentsFromContext(context(configuration)) {
+
+      override def javaHandlerComponents(): MappedJavaHandlerComponents = {
+        import java.util.function.{ Supplier => JSupplier }
+        super.javaHandlerComponents()
+          .addAction(classOf[ActionCompositionOrderTest.ActionComposition], new JSupplier[ActionCompositionOrderTest.ActionComposition] {
+            override def get(): ActionCompositionOrderTest.ActionComposition = new ActionCompositionOrderTest.ActionComposition()
+          })
+          .addAction(classOf[ActionCompositionOrderTest.ControllerComposition], new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
+            override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
+          })
+          .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
+            override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
+          })
+      }
+
+      override def router(): JRouter = {
+        Router.from {
+          case _ => JAction(application().asScala(), controller, javaHandlerComponents())
+        }.asJava
+      }
+
+      override def httpFilters(): Array[EssentialFilter] = Array.empty
+
+      override def actionCreator(): ActionCreator = {
+        configuration.get[Option[String]]("play.http.actionCreator")
+          .map(Class.forName)
+          .map(c => c.newInstance().asInstanceOf[ActionCreator])
+          .getOrElse(new DefaultActionCreator)
+      }
+    }
+
+    running(TestServer(port, components.application().asScala())) {
+      val response = await(wsUrl("/").get())
+      block(response)
+    }
+  }
+}
+
+trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
+
+  def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T
 
   "When action composition is configured to invoke controller first" should {
     "execute controller composition before action composition" in makeRequest(new ComposedController {

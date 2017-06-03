@@ -37,7 +37,7 @@ A rendered field does not only consist of an `<input>` tag, but may also need a 
     
 All input helpers take an implicit `FieldConstructor` that handles this part. The default one (used if there are no other field constructors available in the scope), generates HTML like:
 
-```
+```html
 <dl class="error" id="email_field">
     <dt><label for="email">Email:</label></dt>
     <dd><input type="text" name="email" id="email" value=""></dd>

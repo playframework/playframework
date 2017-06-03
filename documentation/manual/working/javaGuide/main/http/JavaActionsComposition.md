@@ -61,7 +61,11 @@ Then in an action you can get the arg like this:
 
 ## Using Dependency Injection
 
-You can use [[Dependency Injection|JavaDependencyInjection]] together with action composition. For example, if you want to define your own result cache solution, first define the annotation:
+You can use [[runtime Dependency Injection|JavaDependencyInjection]] or [[compile-time Dependency Injection|JavaCompileTimeDependencyInjection]]together with action composition. 
+
+### Runtime Dependency Injection
+
+For example, if you want to define your own result cache solution, first define the annotation:
 
 @[action-composition-dependency-injection-annotation](code/javaguide/http/JavaActionsComposition.java)
 
@@ -69,4 +73,12 @@ And then you can define your action with the dependencies injected:
 
 @[action-composition-dependency-injection](code/javaguide/http/JavaActionsComposition.java)
 
-As stated above, every request **must** be served by a distinct instance of your `play.mvc.Action` and you **must not** annotate your action as a `@Singleton`.
+> **Note:** As stated above, every request **must** be served by a distinct instance of your `play.mvc.Action` and you **must not** annotate your action as a `@Singleton`.
+
+### Compile-time Dependency Injection
+
+When using [[compile-time Dependency Injection|JavaCompileTimeDependencyInjection]], you need to manually add your `Action` supplier to [`JavaHandlerComponents`](api/scala/play/core/j/JavaHandlerComponents.html). You do that by overriding method `javaHandlerComponents` in [`BuiltInComponents`](api/java/play/BuiltInComponents.html):
+
+@[action-composition-compile-time-di](code/javaguide/http/JavaActionsComposition.java)
+
+> **Note:** As stated above, every request **must** be served by a distinct instance of your `play.mvc.Action` and that is why you add a `java.util.function.Supplier<Action>` instead of the instance itself. Of course, you can have a `Supplier` returning the same instance every time, but this is not encouraged.

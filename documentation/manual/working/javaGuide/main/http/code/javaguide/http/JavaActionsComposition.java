@@ -3,11 +3,17 @@
  */
 package javaguide.http;
 
+import play.ApplicationLoader;
+import play.BuiltInComponentsFromContext;
 import play.Logger;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
+import play.cache.ehcache.EhCacheComponents;
+import play.core.j.MappedJavaHandlerComponents;
+import play.filters.components.NoHttpFiltersComponents;
 import play.libs.Json;
 import play.mvc.*;
+import play.routing.Router;
 
 import javax.inject.Inject;
 import java.lang.annotation.ElementType;
@@ -125,4 +131,27 @@ public class JavaActionsComposition extends Controller {
     }
     // #action-composition-dependency-injection
 
+    // #action-composition-compile-time-di
+    public class MyComponents extends BuiltInComponentsFromContext
+            implements NoHttpFiltersComponents, EhCacheComponents {
+
+        public MyComponents(ApplicationLoader.Context context) {
+            super(context);
+        }
+
+        @Override
+        public Router router() {
+            return Router.empty();
+        }
+
+        @Override
+        public MappedJavaHandlerComponents javaHandlerComponents() {
+            return super.javaHandlerComponents()
+                    // Add action that does not depends on any other component
+                    .addAction(VerboseAction.class, VerboseAction::new)
+                    // Add action that depends on the cache api
+                    .addAction(MyOwnCachedAction.class, () -> new MyOwnCachedAction(defaultCacheApi()));
+        }
+    }
+    // #action-composition-compile-time-di
 }
