@@ -24,20 +24,4 @@ public interface ActionCreator {
      * @return The default implementation returns a raw Action calling the method.
      */
     Action createAction(Request request, Method actionMethod);
-
-    /**
-     * Call to wrap the outer action of a Java application.
-     *
-     * This method is passed a fully composed action, allowing a last final global interceptor to be added to the
-     * action if required.
-     *
-     * @deprecated Use createAction and set play.http.actionComposition.executeActionCreatorActionFirst = true
-     *
-     * @param action The action to wrap.
-     * @return A wrapped action.
-     */
-    @Deprecated
-    default Action wrapAction(Action action) {
-        return action;
-    }
 }
