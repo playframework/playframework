@@ -10,7 +10,7 @@ object Dependencies {
 
   val akkaVersion = "2.5.2"
   val akkaHttpVersion = "10.0.7"
-  val playJsonVersion = "2.6.0-RC1"
+  val playJsonVersion = "2.6.0-RC2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
