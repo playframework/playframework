@@ -10,7 +10,7 @@ import play.api.mvc.{BaseController, ControllerComponents}
 
 class UserController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
   def userGet = Action {
-    Ok("success")
+    Ok("success").as("text/html")
   }
 }
 
