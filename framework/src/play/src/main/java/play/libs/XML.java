@@ -60,6 +60,31 @@ public class XML {
         return fromInputSource(is);
     }
 
+    private static final ThreadLocal<DocumentBuilder> localDocumentBuilder = new ThreadLocal<DocumentBuilder>();
+    //Use thread local document builder to avoid class loading lock
+    private static DocumentBuilder documentBuilder() {
+        DocumentBuilder local = localDocumentBuilder.get();
+        if(local == null) {
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+                factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+                factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
+                factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                factory.setNamespaceAware(true);
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                localDocumentBuilder.set(builder);
+                return builder;
+            }  catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            local.reset();
+            return local;
+        }
+    }
+
+
     /**
      * Parses the input source as DOM.
      *
@@ -68,19 +93,9 @@ public class XML {
      */
     public static Document fromInputSource(InputSource source) {
         try {
-
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-            factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-            factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-
+            DocumentBuilder builder = documentBuilder();
             return builder.parse(source);
 
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
         } catch (SAXException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
