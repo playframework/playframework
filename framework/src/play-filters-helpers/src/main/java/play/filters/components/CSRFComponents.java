@@ -60,12 +60,10 @@ public interface CSRFComponents extends ConfigurationComponents,
         );
     }
 
-    // TODO do we need this?
     default CSRFCheck csrfCheck() {
         return new CSRFCheck(csrfConfig(), csrfTokenSigner().asScala(), sessionConfiguration());
     }
 
-    // TODO do we need this?
     default CSRFAddToken csrfAddToken() {
         return new CSRFAddToken(csrfConfig(), csrfTokenSigner().asScala(), sessionConfiguration());
     }
