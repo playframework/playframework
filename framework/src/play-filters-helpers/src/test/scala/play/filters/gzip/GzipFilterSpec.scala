@@ -150,6 +150,12 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     "ignore blackList if there is a whiteList" in withApplication(Ok("hello").as("text/css; charset=utf-8"), whiteList = contentTypes, blackList = contentTypes) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
+    "gzip 'text/html' content type when using media range 'text/*' in the whiteList" in withApplication(Ok("hello").as("text/css"), whiteList = List("text/*")) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+    "don't gzip 'application/javascript' content type when using media range 'text/*' in the whiteList" in withApplication(Ok("hello").as("application/javascript"), whiteList = List("text/*")) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
 
     "gzip chunked responses" in withApplication(Ok.chunked(Source(List("foo", "bar")))) { implicit app =>
       val result = makeGzipRequest(app)

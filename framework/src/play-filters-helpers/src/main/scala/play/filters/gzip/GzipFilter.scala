@@ -11,7 +11,7 @@ import akka.stream.{ FlowShape, Materializer, OverflowStrategy }
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
 import play.api.Configuration
-import play.api.http.{ HttpChunk, HttpEntity, Status }
+import play.api.http.{ HttpChunk, HttpEntity, MediaRange, MediaType, Status }
 import play.api.inject._
 import play.api.libs.streams.GzipFlow
 import play.api.mvc.RequestHeader.acceptHeader
@@ -209,16 +209,17 @@ object GzipFilterConfig {
       bufferSize = config.get[ConfigMemorySize]("bufferSize").toBytes.toInt,
       chunkedThreshold = config.get[ConfigMemorySize]("chunkedThreshold").toBytes.toInt,
       shouldGzip = (req, res) => {
-      val contentType = res.body.contentType.getOrElse("").toLowerCase;
+      res.body.contentType.flatMap(ct => MediaType.parse(ct.toLowerCase)).map(mt => mt.mediaType + "/" + mt.mediaSubType).map(mimeType => {
 
-      val whiteList = config.get[Seq[String]]("contentType.whiteList").toSet
-      val blackList = config.get[Seq[String]]("contentType.blackList").toSet
+        val whiteList = config.get[Seq[String]]("contentType.whiteList").toSet
+        val blackList = config.get[Seq[String]]("contentType.blackList").toSet
 
-      if (whiteList.nonEmpty) {
-        whiteList.exists(contentType.startsWith(_))
-      } else {
-        !blackList.exists(contentType.startsWith(_))
-      }
+        if (whiteList.nonEmpty) {
+          MediaRange.parse(whiteList.mkString(", ")).exists(_.accepts(mimeType))
+        } else {
+          !MediaRange.parse(blackList.mkString(", ")).exists(_.accepts(mimeType))
+        }
+      }).getOrElse(true)
     })
   }
 }
