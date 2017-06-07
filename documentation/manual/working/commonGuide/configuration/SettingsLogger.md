@@ -90,7 +90,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/application.log</file>
+        <file>${application.home:-.}/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
             <fileNamePattern>application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -103,7 +103,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
     </appender>
 
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/access.log</file>
+        <file>${application.home:-.}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with compression -->
             <fileNamePattern>access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -135,7 +135,7 @@ This demonstrates a few useful features:
 - It uses `RollingFileAppender` which can help manage growing log files.
 - It writes log files to a directory external to the application so they aren't affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
-- The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
+- The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.
 
 ## Akka logging configuration
