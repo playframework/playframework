@@ -578,7 +578,7 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
    * @param messagesApi: the messages api, new DefaultMessagesApi() by default.
    * @param langs the langs instance for messaging, new DefaultLangs() by default.
    * @param fileMimeTypes the mime type associated with file extensions, new DefaultFileMimeTypes(FileMimeTypesConfiguration() by default.
-   * @param executionContent an execution context, defaults to ExecutionContext.global
+   * @param executionContext an execution context, defaults to ExecutionContext.global
    * @return a fully configured ControllerComponents instance.
    */
   def stubControllerComponents(
@@ -587,14 +587,14 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
     messagesApi: MessagesApi = stubMessagesApi(),
     langs: Langs = stubLangs(),
     fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
-    executionContent: ExecutionContext = ExecutionContext.global): ControllerComponents = {
+    executionContext: ExecutionContext = ExecutionContext.global): ControllerComponents = {
     DefaultControllerComponents(
-      DefaultActionBuilder(bodyParser)(executionContent),
+      DefaultActionBuilder(bodyParser)(executionContext),
       playBodyParsers,
       messagesApi,
       langs,
       fileMimeTypes,
-      executionContent)
+      executionContext)
   }
 }
 
