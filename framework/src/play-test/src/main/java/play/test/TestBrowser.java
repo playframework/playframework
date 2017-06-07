@@ -83,7 +83,7 @@ public class TestBrowser extends FluentAdapter {
      * @return the return value.
      */
     public <T>T waitUntil(Function<WebDriver, T> f) {
-        FluentWait<WebDriver> wait = fluentWait().withTimeout(3000, TimeUnit.MILLISECONDS);
+        FluentWait<WebDriver> wait = fluentWait().withTimeout(3000L, TimeUnit.MILLISECONDS);
         return waitUntil(wait,f);
     }
 
