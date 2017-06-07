@@ -63,6 +63,8 @@ For all the actions that need to access the CSRF token, the request must be expo
 
 @[some-csrf-action](code/ScalaCsrfController.scala)
 
+That is because the helper methods like `CSRF.getToken` access receives the request as an implicit parameter to retrieve CSRF token.
+
 #### Passing an implicit Request between methods
 
 If you have broken up your code into methods that CSRF functionality is used in, then you can pass through the implicit request from the action:
