@@ -1,17 +1,14 @@
-@()
-
-@import scalaguide.forms.csrf.routes
 
 @* #csrf-call *@
 @import helper._
 
-@form(CSRF(routes.ItemsController.save())) {
+@form(CSRF(scalaguide.forms.csrf.routes.ItemsController.save())) {
     ...
 }
 @* #csrf-call *@
 
 @* #csrf-input *@
-@form(routes.ItemsController.save()) {
+@form(scalaguide.forms.csrf.routes.ItemsController.save()) {
     @CSRF.formField
     ...
 }

@@ -1,51 +1,40 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Installing Play
+
+This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
+
+Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [SBT](http://www.scala-sbt.org/). In this guide we describe how to install Play with SBT.
 
 ## Prerequisites
 
-To run the Play framework, you need [JDK 6 or later](http://www.oracle.com/technetwork/java/javase/downloads/index.html). 
-
-> If you are using MacOS, Java is built-in. If you are using Linux, make sure to use either the Sun JDK or OpenJDK (and not gcj, which is the default Java command on many Linux distros). If you are using Windows, just download and install the latest JDK package.
-
-Be sure to have the `java` and `javac` commands in the current path (you can check this by typing `java -version` and `javac -version` at the shell prompt). 
-
-## Install Activator
-
-Play is distributed through a tool called [Typesafe Activator](http://typesafe.com/activator).  Typesafe Activator provides the build tool (sbt) that Play is built on, and also provides many templates and tutorials to help get you started with writing new applications.
-
-Download the latest [Activator distribution](https://typesafe.com/platform/getstarted) and extract the archive to a location where you have both read **and write** access. (Running `activator` writes some files to directories within the distribution, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.)
-
-## Add the activator script to your PATH
-
-For convenience, you should add the Activator installation directory to your system `PATH`. On UNIX systems, this means doing something like:
+Play requires Java 1.8.  To check that you have the latest JDK, please run:
 
 ```bash
-export PATH=/path/to/activator:$PATH
+java -version
 ```
 
-On Windows you’ll need to set it in the global environment variables. This means update the `PATH` in the environment variables and don't use a path with spaces.
+You should see something like:
 
-> If you’re on UNIX, make sure that the `activator` script is executable.
-> 
-> Otherwise do a:
-> ```bash
-> chmod a+x /path/to/activator
-> ```
-
-> If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
-
-> If your proxy requires user/password for authentication, you need to add system properties when invoking activator instead: `activator -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
-
-## Check that the activator command is available
-
-From a shell, launch the `activator -help` command. 
-
-```bash
-$ activator -help
+```
+java version "1.8.0_121"
+Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
 ```
 
-If everything is properly installed, you should see the basic help:
+If you don't have the JDK, you have to install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
-[[images/activator.png]]
+## Installing Play with SBT
 
-You are now ready to create a new Play application.
+We provide a number of sample projects that have an `./sbt` launcher in the local directory. These can be found on our [download page](https://playframework.com/download#examples). This launcher will automatically download dependencies without you having to install SBT ahead of time.
+
+Refer to the [SBT download page](http://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
+
+If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
+
+### Running Play with SBT
+
+SBT provides all the necessary commands to run your application. You can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]] for more details.
+
+## Congratulations!
+
+You are now ready to work with Play!  The next page will show you how to create projects from the command line and some more detail about creating new applications.

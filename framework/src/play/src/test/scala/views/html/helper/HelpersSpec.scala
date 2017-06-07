@@ -1,17 +1,24 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package views.html.helper
 
 import org.specs2.mutable.Specification
+import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.Lang
+import play.api.http.HttpConfiguration
+import play.api.i18n._
 import play.twirl.api.Html
-import scala.beans.BeanProperty
 
-object HelpersSpec extends Specification {
+class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
+
+  val conf = Configuration.reference
+  val langs = new DefaultLangsProvider(conf).get
+  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, Environment.simple())
+  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {
 
@@ -86,7 +93,7 @@ object HelpersSpec extends Specification {
       body must contain("name=\"foo\"")
 
       body must contain("""<option value="0" selected="selected">""")
-      body must contain("""<option value="1" >""")
+      body must contain("""<option value="1">""")
     }
 
     "Work as a multiple select" in {
@@ -99,6 +106,20 @@ object HelpersSpec extends Specification {
 
       body must contain("""<option value="0" selected="selected">""")
       body must contain("""<option value="1" selected="selected">""")
+    }
+
+    "allow disabled options" in {
+      val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
+      val body = select.apply(form("foo"), Seq(
+        "0" -> "test0",
+        "1" -> "test1",
+        "2" -> "test2"),
+        '_disabled -> Seq("0", "2")
+      ).body
+
+      body must contain("""<option value="0" disabled>test0</option>""")
+      body must contain("""<option value="1">test1</option>""")
+      body must contain("""<option value="2" disabled>test2</option>""")
     }
   }
 
@@ -159,6 +180,25 @@ object HelpersSpec extends Specification {
       }.mkString("")
 
       body must contain("""label for="bar_0">bar.0""")
+    }
+  }
+
+  "helpers" should {
+    "correctly lookup constraint, error and format messages" in {
+
+      val field = Field(
+        Form(single("foo" -> Forms.text)),
+        "foo",
+        Seq(("constraint.custom", Seq("constraint.customarg"))),
+        Some("format.custom", Seq("format.customarg")),
+        Seq(FormError("foo", "error.custom", Seq("error.customarg"))),
+        None)
+
+      val body = inputText.apply(field).body
+
+      body must contain("""<dd class="error">This is a custom error</dd>""")
+      body must contain("""<dd class="info">I am a custom constraint</dd>""")
+      body must contain("""<dd class="info">Look at me! I am a custom format pattern</dd>""")
     }
   }
 }

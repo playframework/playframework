@@ -1,8 +1,7 @@
 BuildingFromSource:Building Play from source
-ThirdPartyTools:3rd party tools
 Repositories:Repositories
 Issues:Issue tracker
-Guidelines:Contributor guidelines
 Documentation:Documentation guidelines
 Translations:Translating documentation
 WorkingWithGit:Working with git
+ThirdPartyTools:3rd party tools

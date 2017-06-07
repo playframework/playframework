@@ -1,78 +1,71 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
-import play.api.libs.iteratee._
-import play.api.http._
-import play.api.http.HeaderNames._
-import play.api.http.HttpProtocol._
-import play.api.{ Application, Play }
-import play.api.i18n.{ Messages, Lang }
+import java.nio.charset.StandardCharsets
+import java.nio.file.{ Files, Path }
+import java.time.format.DateTimeFormatter
+import java.time.{ ZoneOffset, ZonedDateTime }
 
-import play.core.Execution.Implicits._
-import play.api.libs.concurrent.Execution.defaultContext
+import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
+import akka.util.ByteString
+import play.api.http.HeaderNames._
+import play.api.http.{ FileMimeTypes, _ }
+import play.api.i18n.{ Lang, MessagesApi }
+import play.api.{ Logger, Mode }
 import play.core.utils.CaseInsensitiveOrdered
+import play.utils.UriEncoding
+
+import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
+import scala.concurrent.ExecutionContext
 
 /**
  * A simple HTTP response header, used for standard responses.
  *
- * @param status the response status, e.g. ‘200 OK’
+ * @param status the response status, e.g. 200
  * @param _headers the HTTP headers
+ * @param reasonPhrase the human-readable description of status, e.g. "Ok";
+ *   if None, the default phrase for the status will be used
  */
-final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty) {
+final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
+  private[play] def this(status: Int, _headers: java.util.Map[String, String], reasonPhrase: Option[String]) =
+    this(status, _headers.asScala.toMap, reasonPhrase)
+
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
-  def copy(status: Int = status, headers: Map[String, String] = headers): ResponseHeader =
-    new ResponseHeader(status, headers)
+  // validate headers so we know this response header is well formed
+  for ((name, value) <- headers) {
+    if (name eq null) throw new NullPointerException("Response header names cannot be null!")
+    if (value eq null) throw new NullPointerException(s"Response header '$name' has null value!")
+  }
+
+  def copy(status: Int = status, headers: Map[String, String] = headers, reasonPhrase: Option[String] = reasonPhrase): ResponseHeader =
+    new ResponseHeader(status, headers, reasonPhrase)
 
   override def toString = s"$status, $headers"
   override def hashCode = (status, headers).hashCode
   override def equals(o: Any) = o match {
-    case ResponseHeader(s, h) => (s, h).equals((status, headers))
+    case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _ => false
+  }
+
+  def asJava: play.mvc.ResponseHeader = {
+    new play.mvc.ResponseHeader(status, headers.asJava, reasonPhrase.orNull)
   }
 }
 object ResponseHeader {
-  def apply(status: Int, headers: Map[String, String] = Map.empty): ResponseHeader =
+  val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
+  val httpDateFormat: DateTimeFormatter =
+    DateTimeFormatter.ofPattern(basicDateFormatPattern + " 'GMT'")
+      .withLocale(java.util.Locale.ENGLISH)
+      .withZone(ZoneOffset.UTC)
+
+  def apply(status: Int, headers: Map[String, String] = Map.empty, reasonPhrase: Option[String] = None): ResponseHeader =
     new ResponseHeader(status, headers)
-  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String])] =
-    if (rh eq null) None else Some((rh.status, rh.headers))
-}
-
-/**
- * The connection semantics for the result.
- */
-object HttpConnection extends Enumeration {
-  type Connection = Value
-
-  /**
-   * Prefer to keep the connection alive.
-   *
-   * If no `Content-Length` header is present, and no `Transfer-Encoding` header is present, then the body will be
-   * buffered for a maximum of one chunk from the enumerator, in an attempt to calculate the content length.  If the
-   * enumerator contains more than one chunk, then the body will be sent chunked if the client is using HTTP 1.1,
-   * or the body will be sent as is, but the connection will be closed after the body is sent.
-   *
-   * There are cases where the connection won't be kept alive.  These are as follows:
-   *
-   * - The protocol the client is using is HTTP 1.0 and the client hasn't sent a `Connection: keep-alive` header.
-   * - The client has sent a `Connection: close` header.
-   * - There is no `Content-Length` or `Transfer-Encoding` header present, the enumerator contains more than one chunk,
-   *   and the protocol the client is using is HTTP 1.0, hence chunked encoding can't be used as a fallback.
-   */
-  val KeepAlive = Value
-
-  /**
-   * Close the connection once the response body has been sent.
-   *
-   * This will take precedence to any `Connection` header specified in the request.
-   *
-   * No buffering of the response will be attempted.  This means if the result contains no `Content-Length` header,
-   * none will be calculated.
-   */
-  val Close = Value
+  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
+    if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
 /**
@@ -80,10 +73,9 @@ object HttpConnection extends Enumeration {
  *
  * @param header the response header, which contains status code and HTTP headers
  * @param body the response body
- * @param connection the connection semantics to use
  */
-case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
-    connection: HttpConnection.Connection = HttpConnection.KeepAlive) {
+case class Result(header: ResponseHeader, body: HttpEntity,
+    newSession: Option[Session] = None, newFlash: Option[Flash] = None, newCookies: Seq[Cookie] = Seq.empty) {
 
   /**
    * Adds headers to this result.
@@ -101,7 +93,19 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
   }
 
   /**
-   * Adds cookies to this result.
+   * Add a header with a DateTime formatted using the default http date format
+   * @param headers the headers with a DateTime to add to this result.
+   * @return the new result.
+   */
+  def withDateHeaders(headers: (String, ZonedDateTime)*): Result = {
+    copy(header = header.copy(headers = header.headers ++ headers.map {
+      case (name, dateTime) => (name, dateTime.format(ResponseHeader.httpDateFormat))
+    }))
+  }
+
+  /**
+   * Adds cookies to this result. If the result already contains cookies then cookies with the same name in the new
+   * list will override existing ones.
    *
    * For example:
    * {{{
@@ -112,7 +116,8 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+    val filteredCookies = newCookies.filter(cookie => !cookies.exists(_.name == cookie.name))
+    if (cookies.isEmpty) this else copy(newCookies = filteredCookies ++ cookies)
   }
 
   /**
@@ -127,7 +132,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+    withCookies(cookies.map(_.toCookie): _*)
   }
 
   /**
@@ -141,9 +146,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param session the session to set with this result
    * @return the new result
    */
-  def withSession(session: Session): Result = {
-    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
-  }
+  def withSession(session: Session): Result = copy(newSession = Some(session))
 
   /**
    * Sets a new session for this result, discarding the existing session.
@@ -182,10 +185,8 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    if (shouldWarnIfNotRedirect(flash)) {
-      logRedirectWarning("flashing")
-    }
-    withCookies(Flash.encodeAsCookie(flash))
+    warnFlashingIfNotRedirect(flash)
+    copy(newFlash = Some(flash))
   }
 
   /**
@@ -212,17 +213,13 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param contentType the new content type.
    * @return the new result
    */
-  def as(contentType: String): Result = withHeaders(CONTENT_TYPE -> contentType)
+  def as(contentType: String): Result = copy(body = body.as(contentType))
 
   /**
    * @param request Current request
    * @return The session carried by this result. Reads the request’s session if this result does not modify the session.
    */
-  def session(implicit request: RequestHeader): Session =
-    Cookies(header.headers.get(SET_COOKIE)).get(Session.COOKIE_NAME) match {
-      case Some(cookie) => Session.decodeFromCookie(Some(cookie))
-      case None => request.session
-    }
+  def session(implicit request: RequestHeader): Session = newSession getOrElse request.session
 
   /**
    * Example:
@@ -248,54 +245,56 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
   def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
 
-  /**
-   * Sets the user's language permanently for future requests by storing it in a cookie.
-   *
-   * For example:
-   * {{{
-   * implicit val lang = Lang("fr-FR")
-   * Ok(Messages("hello.world")).withLang(lang)
-   * }}}
-   *
-   * @param lang the language to store for the user
-   * @return the new result
-   */
-  def withLang(lang: Lang)(implicit app: Application): Result =
-    Messages.messagesApiCache(app).setLang(this, lang)
-
-  /**
-   * Clears the user's language by discarding the language cookie set by withLang
-   *
-   * For example:
-   * {{{
-   * Ok(Messages("hello.world")).clearingLang
-   * }}}
-   *
-   * @return the new result
-   */
-  def clearingLang(implicit app: Application): Result =
-    discardingCookies(DiscardingCookie(Play.langCookieName))
-
   override def toString = {
     "Result(" + header + ")"
   }
 
   /**
-   * Returns true if the status code is not 3xx and the application is in Dev mode.
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
-  private def shouldWarnIfNotRedirect(flash: Flash): Boolean = {
-    play.api.Play.maybeApplication.exists(app =>
-      (app.mode == play.api.Mode.Dev) && (!flash.isEmpty) && (header.status < 300 || header.status > 399))
+  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
   }
 
   /**
-   * Logs a redirect warning.
+   * Convert this result to a Java result.
    */
-  private def logRedirectWarning(methodName: String) {
-    val status = header.status
-    play.api.Logger("play").warn(s"You are using status code '$status' with $methodName, which should only be used with a redirect status!")
-  }
+  def asJava: play.mvc.Result = new play.mvc.Result(header.asJava, body.asJava,
+    newSession.map(_.asJava).orNull, newFlash.map(_.asJava).orNull, newCookies.map(_.asJava).asJava)
 
+  /**
+   * Encode the cookies into the Set-Cookie header. The session is always baked first, followed by the flash cookie,
+   * followed by all the other cookies in order.
+   */
+  def bakeCookies(
+    cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
+    sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
+    flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
+    requestHasFlash: Boolean = false): Result = {
+
+    val allCookies = {
+      val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
+      val session = newSession.map { data =>
+        if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
+      }
+      val flash = newFlash.map { data =>
+        if (data.isEmpty) flashBaker.discard.toCookie else flashBaker.encodeAsCookie(data)
+      }.orElse {
+        if (requestHasFlash) Some(flashBaker.discard.toCookie) else None
+      }
+      setCookieCookies ++ session ++ flash ++ newCookies
+    }
+
+    if (allCookies.isEmpty) {
+      this
+    } else {
+      withHeaders(SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
+    }
+  }
 }
 
 /**
@@ -304,7 +303,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
  * @param charset The charset to be sent to the client.
  * @param encode The transformation function.
  */
-case class Codec(val charset: String)(val encode: String => Array[Byte], val decode: Array[Byte] => String)
+case class Codec(charset: String)(val encode: String => ByteString, val decode: ByteString => String)
 
 /**
  * Default Codec support.
@@ -314,7 +313,7 @@ object Codec {
   /**
    * Create a Codec from an encoding already supported by the JVM.
    */
-  def javaSupported(charset: String) = Codec(charset)(str => str.getBytes(charset), bytes => new String(bytes, charset))
+  def javaSupported(charset: String) = Codec(charset)(str => ByteString.apply(str, charset), bytes => bytes.decodeString(charset))
 
   /**
    * Codec for UTF-8
@@ -328,8 +327,49 @@ object Codec {
 
 }
 
+trait LegacyI18nSupport {
+
+  /**
+   * Adds convenient methods to handle the client-side language.
+   *
+   * This class exists only for backward compatibility.
+   */
+  implicit class ResultWithLang(result: Result)(implicit messagesApi: MessagesApi) {
+
+    /**
+     * Sets the user's language permanently for future requests by storing it in a cookie.
+     *
+     * For example:
+     * {{{
+     * implicit val lang = Lang("fr-FR")
+     * Ok(Messages("hello.world")).withLang(lang)
+     * }}}
+     *
+     * @param lang the language to store for the user
+     * @return the new result
+     */
+    def withLang(lang: Lang): Result =
+      messagesApi.setLang(result, lang)
+
+    /**
+     * Clears the user's language by discarding the language cookie set by withLang
+     *
+     * For example:
+     * {{{
+     * Ok(Messages("hello.world")).clearingLang
+     * }}}
+     *
+     * @return the new result
+     */
+    def clearingLang: Result =
+      messagesApi.clearLang(result)
+
+  }
+
+}
+
 /** Helper utilities to generate results. */
-object Results extends Results {
+object Results extends Results with LegacyI18nSupport {
 
   /** Empty result, i.e. nothing to send. */
   case class EmptyContent()
@@ -346,8 +386,7 @@ trait Results {
    *
    * @param status the HTTP response status, e.g ‘200 OK’
    */
-  class Status(status: Int) extends Result(header = ResponseHeader(status), body = Enumerator.empty,
-    connection = HttpConnection.KeepAlive) {
+  class Status(status: Int) extends Result(header = ResponseHeader(status), body = HttpEntity.NoEntity) {
 
     /**
      * Set the result's content.
@@ -356,8 +395,27 @@ trait Results {
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): Result = {
       Result(
-        ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        Enumerator(writeable.transform(content))
+        header,
+        writeable.toEntity(content)
+      )
+    }
+
+    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(implicit fileMimeTypes: FileMimeTypes): Result = {
+      Result(
+        ResponseHeader(
+          status,
+          Map(
+            CONTENT_DISPOSITION -> {
+              val dispositionType = if (inline) "inline" else "attachment"
+              s"""$dispositionType; filename="$name"; filename*=utf-8''${UriEncoding.encodePathSegment(name, StandardCharsets.UTF_8)}"""
+            }
+          )
+        ),
+        HttpEntity.Streamed(
+          file,
+          Some(length),
+          fileMimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
+        )
       )
     }
 
@@ -366,17 +424,37 @@ trait Results {
      *
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment).
+     * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
-      val name = fileName(content)
-      Result(
-        ResponseHeader(status, Map(
-          CONTENT_LENGTH -> content.length.toString,
-          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> s"""attachment; filename="$name""""))),
-        Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
-      )
+    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
+      sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
+    }
+
+    /**
+     * Send a file.
+     *
+     * @param content The file to send.
+     * @param inline Use Content-Disposition inline or attachment.
+     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     */
+    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
+      val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
+        onClose()
+      })
+      streamFile(io, fileName(content), Files.size(content), inline)(fileMimeTypes)
+    }
+
+    /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resource The path of the resource to load.
+     * @param classLoader The classloader to load it from, defaults to the classloader for this class.
+     * @param inline Whether it should be served as an inline file, or as an attachment.
+     */
+    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true)(implicit fileMimeTypes: FileMimeTypes): Result = {
+      val stream = classLoader.getResourceAsStream(resource)
+      val fileName = resource.split('/').last
+      streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
     }
 
     /**
@@ -388,195 +466,31 @@ trait Results {
      * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
      * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
      *
-     * @param content Enumerator providing the content to stream.
+     * @param content Source providing the content to stream.
      */
-    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
-      Result(header = ResponseHeader(status,
-        writeable.contentType.map(ct => Map(
-          CONTENT_TYPE -> ct,
-          TRANSFER_ENCODING -> CHUNKED
-        )).getOrElse(Map(
-          TRANSFER_ENCODING -> CHUNKED
-        ))
-      ),
-        body = content &> writeable.toEnumeratee &> chunk,
-        connection = HttpConnection.KeepAlive)
-    }
-
-    /**
-     * Feed the content as the response.
-     *
-     * The connection will be closed after the response is sent, regardless of whether there is a content length or
-     * transfer encoding defined.
-     *
-     * @param content Enumerator providing the content to stream.
-     */
-    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
+    def chunked[C](content: Source[C, _])(implicit writeable: Writeable[C]): Result = {
       Result(
-        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        body = content &> writeable.toEnumeratee,
-        connection = HttpConnection.Close
+        header = header,
+        body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
       )
     }
 
     /**
-     * Stream the content as the response.
-     *
-     * If a content length is set, this will send the body as is, otherwise it may chunk or may not chunk depending on
-     * whether HTTP/1.1 is used or not.
-     *
-     * @param content Enumerator providing the content to stream.
+     * Send an HTTP entity with this status.
      */
-    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
+    def sendEntity(entity: HttpEntity): Result = {
       Result(
-        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        body = content &> writeable.toEnumeratee,
-        connection = HttpConnection.KeepAlive
+        header = header,
+        body = entity
       )
     }
   }
 
-  /**
-   * Implements HTTP chunked transfer encoding.
-   */
-  def chunk: Enumeratee[Array[Byte], Array[Byte]] = chunk(None)
+  /** Generates a ‘100 Continue’ result. */
+  val Continue = Result(header = ResponseHeader(CONTINUE), body = HttpEntity.NoEntity)
 
-  /**
-   * Implements HTTP chunked transfer encoding.
-   *
-   * @param trailers An optional trailers iteratee.  If supplied, this will be zipped with the output iteratee, so that
-   *                 it can calculate some trailing headers, which will be included with the last chunk.
-   */
-  def chunk(trailers: Option[Iteratee[Array[Byte], Seq[(String, String)]]] = None): Enumeratee[Array[Byte], Array[Byte]] = {
-
-    // Enumeratee that formats each chunk.
-    val formatChunks = Enumeratee.map[Array[Byte]] { data =>
-      // This will be much nicer if we ever move to ByteString
-      val chunkSize = Integer.toHexString(data.length).getBytes("UTF-8")
-      // Length of chunk is the digits in chunk size, plus the data length, plus 2 CRLF pairs
-      val chunk = new Array[Byte](chunkSize.length + data.length + 4)
-      System.arraycopy(chunkSize, 0, chunk, 0, chunkSize.length)
-      chunk(chunkSize.length) = '\r'
-      chunk(chunkSize.length + 1) = '\n'
-      System.arraycopy(data, 0, chunk, chunkSize.length + 2, data.length)
-      chunk(chunk.length - 2) = '\r'
-      chunk(chunk.length - 1) = '\n'
-      chunk
-    }
-
-    // The actual enumeratee, which applies the formatting enumeratee maybe zipped with the trailers iteratee, and also
-    // adds the last chunk.
-    new Enumeratee[Array[Byte], Array[Byte]] {
-      def applyOn[A](inner: Iteratee[Array[Byte], A]) = {
-
-        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] =
-          // First filter out empty chunks - an empty chunk signifies end of stream in chunked transfer encoding
-          Enumeratee.filterNot[Array[Byte]](_.isEmpty) ><>
-            // Apply the chunked encoding
-            formatChunks ><>
-            // Don't feed EOF into the iteratee - so we can feed the last chunk ourselves later
-            Enumeratee.passAlong &>
-            // And apply the inner iteratee
-            inner
-
-        trailers match {
-          case Some(trailersIteratee) => {
-            // Zip the trailers iteratee with the inner iteratee
-            Enumeratee.zipWith(chunkedInner, trailersIteratee) { (it, trailers) =>
-              // Create last chunk
-              val lastChunk = trailers.map(t => t._1 + ": " + t._2 + "\r\n").mkString("0\r\n", "", "\r\n").getBytes("UTF-8")
-              Iteratee.flatten(Enumerator(lastChunk) >>> Enumerator.eof |>> it)
-            }
-          }
-          case None => {
-            chunkedInner.map { it =>
-              // Feed last chunk with no trailers
-              Iteratee.flatten(Enumerator("0\r\n\r\n".getBytes("UTF-8")) >>> Enumerator.eof |>> it)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Dechunks a chunked transfer encoding stream.
-   *
-   * Chunks may span multiple elements in the stream.
-   */
-  def dechunk: Enumeratee[Array[Byte], Array[Byte]] = {
-
-    // convenience method
-    def elOrEmpty(data: Array[Byte]) = {
-      if (data.length == 0) Input.Empty else Input.El(data)
-    }
-
-    // Read a line. Is quite permissive, a line is anything terminated by LF, and trims the result.
-    def readLine(line: List[Array[Byte]] = Nil): Iteratee[Array[Byte], String] = Cont {
-      case Input.El(data) => {
-        val s = data.takeWhile(_ != '\n')
-        if (s.length == data.length) {
-          readLine(s :: line)
-        } else {
-          Done(new String(Array.concat((s :: line).reverse: _*), "UTF-8").trim(), elOrEmpty(data.drop(s.length + 1)))
-        }
-      }
-      case Input.EOF => {
-        Error("EOF found while reading line", Input.Empty)
-      }
-      case Input.Empty => readLine(line)
-    }
-
-    // Read the data part of a chunk of the given size
-    def readChunkData(size: Int, chunk: List[Array[Byte]] = Nil): Iteratee[Array[Byte], Array[Byte]] = Cont {
-      case Input.El(data) => {
-        if (data.length >= size) {
-          Done(Array.concat((data.take(size) :: chunk).reverse: _*), elOrEmpty(data.drop(size)))
-        } else {
-          readChunkData(size - data.length, data :: chunk)
-        }
-      }
-      case Input.EOF => {
-        Error("EOF found while reading chunk", Input.Empty)
-      }
-      case Input.Empty => readChunkData(size, chunk)
-    }
-
-    // Read a chunk of the given size
-    def readChunk(size: Int) = for {
-      chunk <- readChunkData(size)
-      // Following every chunk data is a newline - read it
-      _ <- readLine()
-    } yield chunk
-
-    // Read the last chunk. Produces the trailers.
-    def readLastChunk: Iteratee[Array[Byte], List[(String, String)]] = for {
-      trailer <- readLine(Nil)
-      trailers <- if (trailer.length > 0) readLastChunk else Done[Array[Byte], List[(String, String)]](List.empty[(String, String)])
-    } yield {
-      trailer.split("""\s*:\s*""", 2) match {
-        case Array(key, value) => (key -> value) :: trailers
-        case Array(key) => (key -> "") :: trailers
-      }
-    }
-
-    // A chunk parser, produces elements that are either chunks or the last chunk trailers
-    val chunkParser: Iteratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = for {
-      size <- readLine().map { line =>
-        def isHexDigit(c: Char) = Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
-        // Parse the size. Ignore any extensions.
-        Integer.parseInt(line.takeWhile(isHexDigit), 16)
-      }
-      chunk <- if (size > 0) readChunk(size).map(Left.apply) else readLastChunk.map(Right.apply)
-    } yield chunk
-
-    Enumeratee.grouped(chunkParser) ><>
-      Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><>
-      Enumeratee.map {
-        case Left(data) => data
-        case Right(_) => Array.empty
-      }
-  }
+  /** Generates a ‘101 Switching Protocols’ result. */
+  val SwitchingProtocols = Result(header = ResponseHeader(SWITCHING_PROTOCOLS), body = HttpEntity.NoEntity)
 
   /** Generates a ‘200 OK’ result. */
   val Ok = new Status(OK)
@@ -591,12 +505,10 @@ trait Results {
   val NonAuthoritativeInformation = new Status(NON_AUTHORITATIVE_INFORMATION)
 
   /** Generates a ‘204 NO_CONTENT’ result. */
-  val NoContent = Result(header = ResponseHeader(NO_CONTENT), body = Enumerator.empty,
-    connection = HttpConnection.KeepAlive)
+  val NoContent = Result(header = ResponseHeader(NO_CONTENT), body = HttpEntity.NoEntity)
 
   /** Generates a ‘205 RESET_CONTENT’ result. */
-  val ResetContent = Result(header = ResponseHeader(RESET_CONTENT), body = Enumerator.empty,
-    connection = HttpConnection.KeepAlive)
+  val ResetContent = Result(header = ResponseHeader(RESET_CONTENT), body = HttpEntity.NoEntity)
 
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
   val PartialContent = new Status(PARTIAL_CONTENT)
@@ -626,8 +538,7 @@ trait Results {
   def SeeOther(url: String): Result = Redirect(url, SEE_OTHER)
 
   /** Generates a ‘304 NOT_MODIFIED’ result. */
-  val NotModified = Result(header = ResponseHeader(NOT_MODIFIED), body = Enumerator.empty,
-    connection = HttpConnection.KeepAlive)
+  val NotModified = Result(header = ResponseHeader(NOT_MODIFIED), body = HttpEntity.NoEntity)
 
   /**
    * Generates a ‘307 TEMPORARY_REDIRECT’ simple result.
@@ -636,11 +547,21 @@ trait Results {
    */
   def TemporaryRedirect(url: String): Result = Redirect(url, TEMPORARY_REDIRECT)
 
+  /**
+   * Generates a ‘308 PERMANENT_REDIRECT’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def PermanentRedirect(url: String): Result = Redirect(url, PERMANENT_REDIRECT)
+
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
 
   /** Generates a ‘401 UNAUTHORIZED’ result. */
   val Unauthorized = new Status(UNAUTHORIZED)
+
+  /** Generates a ‘402 PAYMENT_REQUIRED’ result. */
+  val PaymentRequired = new Status(PAYMENT_REQUIRED)
 
   /** Generates a ‘403 FORBIDDEN’ result. */
   val Forbidden = new Status(FORBIDDEN)
@@ -678,6 +599,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘418 IM_A_TEAPOT’ result. */
+  val ImATeapot = new Status(IM_A_TEAPOT)
+
   /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
   val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
 
@@ -687,8 +611,12 @@ trait Results {
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
+  /** Generates a ‘429 TOO_MANY_REQUESTS’ result. */
+  val TooManyRequests = new Status(TOO_MANY_REQUESTS)
+
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  val TooManyRequest = new Status(TOO_MANY_REQUEST)
+  @deprecated("Use TooManyRequests instead", "2.6.0")
+  val TooManyRequest = TooManyRequests
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
@@ -748,7 +676,7 @@ trait Results {
    *
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    */
-  def Redirect(call: Call): Result = Redirect(call.url)
+  def Redirect(call: Call): Result = Redirect(call.path)
 
   /**
    * Generates a redirect simple result.
@@ -756,6 +684,6 @@ trait Results {
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
+  def Redirect(call: Call, status: Int): Result = Redirect(call.path, Map.empty, status)
 
 }

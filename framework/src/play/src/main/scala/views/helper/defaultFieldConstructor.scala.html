@@ -17,15 +17,15 @@
 
 <dl class="@elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
     @if(elements.hasName) {
-    <dt>@elements.name(elements.lang)</dt>
+    <dt>@elements.name</dt>
     } else {
-    <dt><label for="@elements.id">@elements.label(elements.lang)</label></dt>
+    <dt><label for="@elements.id">@elements.label</label></dt>
     }
     <dd>@elements.input</dd>
-    @elements.errors(elements.lang).map { error =>
+    @elements.errors.map { error =>
         <dd class="error">@error</dd>
     }
-    @elements.infos(elements.lang).map { info =>
+    @elements.infos.map { info =>
         <dd class="info">@info</dd>
     }
 </dl>

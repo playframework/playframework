@@ -1,8 +1,0 @@
-Configuration:Configuration file syntax and features
-ApplicationSecret:Configuring the application secret
-SettingsJDBC:Configuring the JDBC connection pool
-ThreadPools:Configuring Play's thread pools
-SettingsLogger:Configuring logging
-GzipEncoding:Configuring gzip encoding
-SecurityHeaders:Configuring security headers
-ws:Configuring WS SSL

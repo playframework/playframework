@@ -1,11 +1,16 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf
 
+import javax.inject.{ Inject, Provider }
+
+import akka.stream.Materializer
+import play.api.http.SessionConfiguration
+import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc._
-import play.filters.csrf.CSRF.{ TokenProvider, ErrorHandler }
-import play.api.Play
+import play.core.j.JavaContextComponents
+import play.filters.csrf.CSRF._
 
 /**
  * A filter that provides CSRF protection.
@@ -14,42 +19,28 @@ import play.api.Play
  * happens before the application is started.  Since the default values for the parameters are loaded from config
  * and hence depend on a started application, they must be by name.
  *
- * @param tokenName The key used to store the token in the Play session.  Defaults to csrfToken.
- * @param cookieName If defined, causes the filter to store the token in a Cookie with this name instead of the session.
- * @param secureCookie If storing the token in a cookie, whether this Cookie should set the secure flag.  Defaults to
- *                     whether the session cookie is configured to be secure.
- * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
- *                         a GET request that accepts HTML.
+ * @param config A csrf configuration object
+ * @param tokenSigner the CSRF token signer.
  * @param tokenProvider A token provider to use.
  * @param errorHandler handling failed token error.
  */
-class CSRFFilter(tokenName: => String = CSRFConf.TokenName,
-    cookieName: => Option[String] = CSRFConf.CookieName,
-    secureCookie: => Boolean = CSRFConf.SecureCookie,
-    createIfNotFound: (RequestHeader) => Boolean = CSRFConf.defaultCreateIfNotFound,
-    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider,
-    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialFilter {
+class CSRFFilter(
+    config: => CSRFConfig,
+    tokenSigner: => CSRFTokenSigner,
+    sessionConfiguration: => SessionConfiguration,
+    val tokenProvider: TokenProvider,
+    val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialFilter {
 
-  /**
-   * Default constructor, useful from Java
-   */
-  def this() = {
-    this(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie, CSRFConf.defaultCreateIfNotFound,
-      CSRFConf.defaultTokenProvider, CSRFConf.defaultJavaErrorHandler)
+  @Inject
+  def this(config: Provider[CSRFConfig], tokenSignerProvider: Provider[CSRFTokenSigner], sessionConfiguration: SessionConfiguration, tokenProvider: TokenProvider, errorHandler: ErrorHandler)(mat: Materializer) = {
+    this(config.get, tokenSignerProvider.get, sessionConfiguration, tokenProvider, errorHandler)(mat)
   }
 
-  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, tokenName, cookieName, secureCookie,
-    createIfNotFound, tokenProvider, errorHandler)
-}
-
-object CSRFFilter {
-  def apply(tokenName: => String = CSRFConf.TokenName,
-    cookieName: => Option[String] = CSRFConf.CookieName,
-    secureCookie: => Boolean = CSRFConf.SecureCookie,
-    createIfNotFound: (RequestHeader) => Boolean = CSRFConf.defaultCreateIfNotFound,
-    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider,
-    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) = {
-    new CSRFFilter(tokenName, cookieName, secureCookie, createIfNotFound, tokenProvider, errorHandler)
+  // Java constructor for manually constructing the filter
+  def this(config: CSRFConfig, tokenSigner: play.libs.crypto.CSRFTokenSigner, sessionConfiguration: SessionConfiguration, tokenProvider: TokenProvider, errorHandler: CSRFErrorHandler, contextComponents: JavaContextComponents)(mat: Materializer) = {
+    this(config, tokenSigner.asScala, sessionConfiguration, tokenProvider, new JavaCSRFErrorHandlerAdapter(errorHandler, contextComponents))(mat)
   }
+
+  def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenSigner, tokenProvider, sessionConfiguration, errorHandler)
 
 }

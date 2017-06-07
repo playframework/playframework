@@ -1,5 +1,7 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
+
+> **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].
 
 ## Enumerators
 
@@ -46,7 +48,7 @@ eventuallyResult.onSuccess { case x => println(x) }
 // Prints "GuillaumeSadekPeterErwan"
 ```
 
-You might notice here that an `Iteratee` will eventually produce a result (returning a promise when calling fold and passing appropriate calbacks), and a `Future` eventually produces a result. Then a `Future[Iteratee[E,A]]` can be viewed as `Iteratee[E,A]`. Indeed this is what `Iteratee.flatten` does, Let’s apply it to the previous example:
+You might notice here that an `Iteratee` will eventually produce a result (returning a promise when calling fold and passing appropriate callbacks), and a `Future` eventually produces a result. Then a `Future[Iteratee[E,A]]` can be viewed as `Iteratee[E,A]`. Indeed this is what `Iteratee.flatten` does, Let’s apply it to the previous example:
 
 ```scala
 //Apply the enumerator and flatten then run the resulting iteratee
@@ -68,7 +70,7 @@ val eventuallyResult: Future[String] = {
 }
 ```
 
-Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Future`s or more simply by combining `Enumerator` instancess using the `andThen` method, as follows:
+Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Future`s or more simply by combining `Enumerator` instances using the `andThen` method, as follows:
 
 ```scala
 val colors = Enumerator("Red","Blue","Green")
@@ -113,18 +115,19 @@ This method defined on the `Enumerator` object is one of the most important meth
 It can be easily used to create an `Enumerator` that represents a stream of time values every 100 millisecond using the opportunity that we can return a promise, like the following:
 
 ```scala
+import akka.pattern.after
 Enumerator.generateM {
-  Promise.timeout(Some(new Date), 100 milliseconds)
+  after(100.milliseconds, actorSystem.scheduler)(Future(Some(new Date)))
 }
 ```
 
-In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not suprisingly a `Future`
+In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not surprisingly a `Future`
 
 Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we can println a stream of time values periodically:
 
 ```scala
 val timeStream = Enumerator.generateM {
-  Promise.timeout(Some(new Date), 100 milliseconds)
+  after(100.milliseconds, actorSystem.scheduler)(Future(Some(new Date)))
 }
 
 val printlnSink = Iteratee.foreach[Date](date => println(date))
@@ -145,7 +148,7 @@ enumerator |>> Iteratee.foreach(println)
 
 The `onStart` function will be called each time the `Enumerator` is applied to an `Iteratee`. In some applications, a chatroom for instance, it makes sense to assign the `enumerator` to a synchronized global value (using STMs for example) that will contain a list of listeners. `Concurrent.unicast` accepts two other functions, `onComplete` and `onError`.
 
-One more interesting method is the `interleave` or `>-` method which as the name says, itrerleaves two Enumerators. For reactive `Enumerator`s Input will be passed as it happens from any of the interleaved `Enumerator`s
+One more interesting method is the `interleave` or `>-` method which as the name says, interleaves two Enumerators. For reactive `Enumerator`s Input will be passed as it happens from any of the interleaved `Enumerator`s
 
 ## Enumerators à la carte
 

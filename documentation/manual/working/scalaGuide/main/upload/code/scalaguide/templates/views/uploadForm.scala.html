@@ -1,6 +1,6 @@
 @import scalaguide.upload.fileupload.controllers._
 @* #file-upload-form *@
-@helper.form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
+@helper.form(action = routes.ScalaFileUploadController.upload, 'enctype -> "multipart/form-data") {
     
     <input type="file" name="picture">
     

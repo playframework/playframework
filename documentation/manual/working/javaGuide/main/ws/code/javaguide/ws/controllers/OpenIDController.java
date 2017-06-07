@@ -1,92 +1,92 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package javaguide.ws.controllers;
 
-//#ws-openid-controller
-import java.util.HashMap;
-import java.util.Map;
+import play.twirl.api.Html;
 
-import play.data.DynamicForm;
-import play.data.Form;
-import play.libs.F.Function;
-import play.libs.F.Promise;
+//#ws-openid-controller
+import java.util.*;
+import java.util.concurrent.CompletionStage;
+
+import play.data.*;
 import play.libs.openid.*;
-import play.mvc.Controller;
-import play.mvc.Result;
+import play.mvc.*;
 
 import javax.inject.Inject;
 
 public class OpenIDController extends Controller {
 
-  @Inject OpenIdClient openIdClient;
+    @Inject
+    OpenIdClient openIdClient;
 
-  public Result login() {
-    //###replace:     return ok(views.html.login.render(""));
-    return ok(javaguide.ws.html.login.render(""));
-  }
+    @Inject
+    FormFactory formFactory;
 
-  public Promise<Result> loginPost() {
-    DynamicForm requestData = Form.form().bindFromRequest();
-    String openID = requestData.get("openID");
+    public Result login() {
+        return ok(views.html.login.render(""));
+    }
 
-    final Promise<String> redirectUrlPromise =
-        openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
+    public CompletionStage<Result> loginPost() {
 
-    final Promise<Result> resultPromise = redirectUrlPromise.map(new Function<String, Result>() {
-      @Override
-      public Result apply(String url) {
-        return redirect(url);
-      }
-    }).recover(new Function<Throwable, Result>() {
-      @Override
-      public Result apply(Throwable throwable) throws Throwable {
-        //###replace:         return badRequest(views.html.login.render(throwable.getMessage()));
-        return badRequest(javaguide.ws.html.login.render(throwable.getMessage()));
-      }
-    });
+        // Form data
+        DynamicForm requestData = formFactory.form().bindFromRequest();
+        String openID = requestData.get("openID");
 
-    return resultPromise;
-  }
+        CompletionStage<String> redirectUrlPromise =
+                openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
 
-  public Promise<Result> openIDCallback() {
+        return redirectUrlPromise
+                .thenApply(Controller::redirect)
+                .exceptionally(throwable ->
+                                badRequest(views.html.login.render(throwable.getMessage()))
+                );
+    }
 
-    final Promise<UserInfo> userInfoPromise = openIdClient.verifiedId();
+    public CompletionStage<Result> openIDCallback() {
 
-    final Promise<Result> resultPromise = userInfoPromise.map(new Function<UserInfo, Result>() {
-      @Override
-      public Result apply(UserInfo userInfo) {
-        return ok(userInfo.id() + "\n" + userInfo.attributes());
-      }
-    }).recover(new Function<Throwable, Result>() {
-      @Override
-      public Result apply(Throwable throwable) throws Throwable {
-        //###replace:         return badRequest(views.html.login.render(throwable.getMessage()));
-        return badRequest(javaguide.ws.html.login.render(throwable.getMessage()));
-      }
-    });
+        CompletionStage<UserInfo> userInfoPromise = openIdClient.verifiedId();
 
-    return resultPromise;
-  }
+        CompletionStage<Result> resultPromise = userInfoPromise.thenApply(userInfo ->
+                        ok(userInfo.id() + "\n" + userInfo.attributes())
+        ).exceptionally(throwable ->
+                        badRequest(views.html.login.render(throwable.getMessage()))
+        );
+
+        return resultPromise;
+    }
+
+    public static class views {
+        public static class html {
+            public static class login {
+                public static Html render(String msg) {
+                    return javaguide.ws.html.login.render(msg);
+                }
+            }
+        }
+    }
 
 }
 //#ws-openid-controller
 
 class OpenIDSamples extends Controller {
 
-  static OpenIdClient openIdClient;
+    static OpenIdClient openIdClient;
 
-  public static void extendedAttributes() {
-    
-    final String openID = "";
-    
-    //#ws-openid-extended-attributes
-    final Map<String, String> attributes = new HashMap<String, String>();
-    attributes.put("email", "http://schema.openid.net/contact/email");
-    
-    final Promise<String> redirectUrlPromise = openIdClient.redirectURL(
-      openID, 
-      routes.OpenIDController.openIDCallback().absoluteURL(request()), 
-      attributes
-    );
-    //#ws-openid-extended-attributes
-  }
-  
+    public static void extendedAttributes() {
+
+        String openID = "";
+
+        //#ws-openid-extended-attributes
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("email", "http://schema.openid.net/contact/email");
+
+        CompletionStage<String> redirectUrlPromise = openIdClient.redirectURL(
+                openID,
+                routes.OpenIDController.openIDCallback().absoluteURL(request()),
+                attributes
+        );
+        //#ws-openid-extended-attributes
+    }
+
 }

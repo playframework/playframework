@@ -1,10 +1,11 @@
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Custom Field Constructors
 
 A field rendering is not only composed of the `<input>` tag, but it also needs a `<label>` and possibly other tags used by your CSS framework to decorate the field.
 
-All input helpers take an implicit [`FieldConstructor`](api/scala/index.html#views.html.helper.FieldConstructor) that handles this part. The [default one](api/scala/index.html#views.html.helper.defaultFieldConstructor$) (used if there are no other field constructors available in the scope), generates HTML like:
+All input helpers take an implicit [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) that handles this part. The [default one](api/scala/views/html/helper/defaultFieldConstructor$.html) (used if there are no other field constructors available in the scope), generates HTML like:
 
-```
+```html
 <dl class="error" id="username_field">
     <dt><label for="username">Username:</label></dt>
     <dd><input type="text" name="username" id="username" value=""></dd>
@@ -34,7 +35,7 @@ Often you will need to write your own field constructor. Start by writing a temp
 
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
 
-Now create a [`FieldConstructor`](api/scala/index.html#views.html.helper.FieldConstructor) using this template function:
+Now create a [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) using this template function:
 
 @[form-myfield-helper](code/ScalaFieldConstructor.scala)
 
@@ -46,7 +47,7 @@ And to make the form helpers use it, just import it in your templates:
 
 It will then use your field constructor to render the input text.
 
-You can also set an implicit value for your [`FieldConstructor`](api/scala/index.html#views.html.helper.FieldConstructor) inline:
+You can also set an implicit value for your [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) inline:
 
 @[declare-implicit](code/scalaguide/forms/scalafieldconstructor/userDeclare.scala.html)
 

@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.specs2
 
 import play.api.test._
 
 // #scalafunctionaltest-playspecification
-object ExamplePlaySpecificationSpec extends PlaySpecification {
+class ExamplePlaySpecificationSpec extends PlaySpecification {
   "The specification" should {
 
     "have access to HeaderNames" in {

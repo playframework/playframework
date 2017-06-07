@@ -1,15 +1,14 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.inject
 
 import java.lang.annotation.Annotation
-import javax.inject.{ Named, Provider }
-import com.google.inject.internal.util.$SourceProvider
-import com.google.inject.name.Names
-
+import javax.inject.Provider
 import scala.language.existentials
 import scala.reflect.ClassTag
+
+import play.inject.SourceProvider
 
 /**
  * A binding.
@@ -17,7 +16,7 @@ import scala.reflect.ClassTag
  * Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to instances, providers or
  * implementation classes.
  *
- * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[javax.inject.Singleton]], then the
+ * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[$javadoc/javax/inject/Singleton javax.inject.Singleton]], then the
  * binding may declare itself to be eagerly instantiated.  In which case, it should be eagerly instantiated when Play
  * starts up.
  *
@@ -26,6 +25,9 @@ import scala.reflect.ClassTag
  * @param scope The JSR-330 scope.
  * @param eager Whether the binding should be eagerly instantiated.
  * @param source Where this object was bound. Used in error reporting.
+ * @see The [[Module]] class for information on how to provide bindings.
+ *
+ * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
 
@@ -52,14 +54,26 @@ final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]]
 }
 
 /**
+ * Constructor for a binding Key that doesn't have a qualifier.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
+ */
+object BindingKey {
+  def apply[T](clazz: Class[T]): BindingKey[T] = new BindingKey(clazz)
+}
+
+/**
  * A binding key.
  *
  * A binding key consists of a class and zero or more JSR-330 qualifiers.
  *
  * @param clazz The class to bind.
  * @param qualifier An optional qualifier.
+ * @see The [[Module]] class for information on how to provide bindings.
  */
-final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation] = None) {
+final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
+
+  def this(clazz: Class[T]) = this(clazz, None)
 
   /**
    * Qualify this binding key with the given instance of an annotation.
@@ -191,8 +205,8 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[T]](provider: Class[P]): Binding[T] =
-    Binding(this, Some(ProviderConstructionTarget(provider)), None, false, SourceLocator.source)
+  def toProvider[P <: Provider[_ <: T]](provider: Class[P]): Binding[T] =
+    Binding(this, Some(ProviderConstructionTarget[T](provider)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given provider class.
@@ -200,7 +214,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[T]: ClassTag]: Binding[T] =
+  def toProvider[P <: Provider[_ <: T]: ClassTag]: Binding[T] =
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
 
   /**
@@ -222,21 +236,29 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
  * A binding target.
  *
  * This trait captures the four possible types of targets.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait BindingTarget[T]
 
 /**
  * A binding target that is provided by a provider instance.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTarget[T]
 
 /**
  * A binding target that is provided by a provider class.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
-final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[T]]) extends BindingTarget[T]
+final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <: T]]) extends BindingTarget[T]
 
 /**
  * A binding target that is provided by a class.
+ *
+ * @see The [[play.api.inject.Module]] class for information on how to provide bindings.
  */
 final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T]
 
@@ -250,23 +272,27 @@ final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTar
  *
  * Since bindings may specify either annotations, or instances of annotations, this abstraction captures either of
  * those two possibilities.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait QualifierAnnotation
 
 /**
  * A qualifier annotation instance.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierInstance[T <: Annotation](instance: T) extends QualifierAnnotation
 
 /**
  * A qualifier annotation class.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation
 
 private object SourceLocator {
-  // SourceProvider is an internal Guice API, not intended to be used as we are using it here. If they change/remove it, we
-  // just have to reimplement it for ourselves - it's pretty simple.
-  val provider = $SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+  val provider = SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
 
   def source = provider.get()
 }

@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
 
 import org.specs2.mutable.Specification
 import scala.collection.JavaConverters._
 
-object XPathSpec extends Specification {
+class XPathSpec extends Specification {
   //XPathFactory.newInstance() used internally by XPath is not thread safe so forcing sequential execution
   sequential
 

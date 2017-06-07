@@ -4,5 +4,5 @@ JavaResponse:Manipulating the HTTP response
 JavaSessionFlash:Session and Flash scopes
 JavaBodyParsers:Body parsers
 JavaActionsComposition:Actions composition
+JavaActionCreator:HTTP Request Handlers / ActionCreator
 JavaContentNegotiation:Content negotiation
-JavaErrorHandling:Error handling

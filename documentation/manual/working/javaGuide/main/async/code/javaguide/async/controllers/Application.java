@@ -1,62 +1,37 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async.controllers;
 
 import play.mvc.Result;
-import play.libs.F.Function;
-import play.libs.F.Function0;
-import play.libs.F.Promise;
 import play.mvc.Controller;
+
 //#async-explicit-ec-imports
-import play.libs.HttpExecution;
-import scala.concurrent.ExecutionContext;
+import play.libs.concurrent.HttpExecution;
+
+import javax.inject.Inject;
+import java.util.concurrent.Executor;
+import java.util.concurrent.CompletionStage;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 //#async-explicit-ec-imports
 
+//#async-explicit-ec
 public class Application extends Controller {
-    //#async
-    public Promise<Result> index() {
-      Promise<Integer> promiseOfInt = Promise.promise(
-        new Function0<Integer>() {
-          public Integer apply() {
-            return intensiveComputation();
-          }
-        }
-      );
-      return promiseOfInt.map(
-        new Function<Integer, Result>() {
-          public Result apply(Integer i) {
-            return ok("Got result: " + i);
-          } 
-        }
-      );
-    }
-    //#async
 
-    private ExecutionContext myThreadPool = null;
+    private MyExecutionContext myExecutionContext;
 
-    //#async-explicit-ec
-    public Promise<Result> index2() {
-      // Wrap an existing thread pool, using the context from the current thread
-      ExecutionContext myEc = HttpExecution.fromThread(myThreadPool);
-      Promise<Integer> promiseOfInt = Promise.promise(
-        new Function0<Integer>() {
-          public Integer apply() {
-            return intensiveComputation();
-          }
-        },
-        myEc
-      );
-      return promiseOfInt.map(
-        new Function<Integer, Result>() {
-          public Result apply(Integer i) {
-            return ok("Got result: " + i);
-          } 
-        },
-        myEc
-      );
+    @Inject
+    public Application(MyExecutionContext myExecutionContext) {
+        this.myExecutionContext = myExecutionContext;
     }
-    //#async-explicit-ec
+
+    public CompletionStage<Result> index() {
+        // Wrap an existing thread pool, using the context from the current thread
+        Executor myEc = HttpExecution.fromThread((Executor) myExecutionContext);
+        return supplyAsync(() -> intensiveComputation(), myEc)
+                .thenApplyAsync(i -> ok("Got result: " + i), myEc);
+    }
 
     public int intensiveComputation() { return 2;}
 }
+//#async-explicit-ec

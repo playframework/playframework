@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it
 
@@ -46,7 +46,8 @@ class LogBuffer extends AppenderBase[ILoggingEvent] {
     buffer.append(eventObject)
   }
 
-  def find(level: Option[Level] = None,
+  def find(
+    level: Option[Level] = None,
     logger: Option[String] = None,
     messageContains: Option[String] = None): List[ILoggingEvent] = buffer.synchronized {
     val byLevel = level.fold(buffer) { l => buffer.filter(_.getLevel == l) }

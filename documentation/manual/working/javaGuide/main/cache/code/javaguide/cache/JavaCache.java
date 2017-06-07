@@ -1,22 +1,26 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.cache;
 
+import akka.Done;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
-import play.cache.CacheApi;
+import play.Application;
+import play.cache.AsyncCacheApi;
 import play.cache.Cached;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.*;
-import play.test.FakeApplication;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
 
-import java.util.Arrays;
-import java.util.concurrent.Callable;
+import java.lang.Throwable;
+import java.util.Collections;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
@@ -24,54 +28,65 @@ import static play.test.Helpers.*;
 public class JavaCache extends WithApplication {
 
     @Override
-    protected FakeApplication provideFakeApplication() {
-        return fakeApplication(ImmutableMap.of("play.modules.cache.bindCaches", Arrays.asList("session-cache")));
+    protected Application provideApplication() {
+        return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
     }
 
-    public class News {}
+    private class News {}
 
     @Test
     public void inject() {
         // Check that we can instantiate it
-        app.getWrappedApplication().injector().instanceOf(javaguide.cache.inject.Application.class);
+        app.injector().instanceOf(javaguide.cache.inject.Application.class);
         // Check that we can instantiate the qualified one
-        app.getWrappedApplication().injector().instanceOf(javaguide.cache.qualified.Application.class);
+        app.injector().instanceOf(javaguide.cache.qualified.Application.class);
     }
 
     @Test
     public void simple() {
-        CacheApi cache = app.getWrappedApplication().injector().instanceOf(CacheApi.class);
+        AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
         News frontPageNews = new News();
+        {
         //#simple-set
-        cache.set("item.key", frontPageNews);
+        CompletionStage<Done> result = cache.set("item.key", frontPageNews);
         //#simple-set
+        block(result);
         //#time-set
+        }
+        {
         // Cache for 15 minutes
-        cache.set("item.key", frontPageNews, 60 * 15);
+        CompletionStage<Done> result = cache.set("item.key", frontPageNews, 60 * 15);
         //#time-set
+        block(result);
+        }
         //#get
-        News news = cache.get("item.key");
+        CompletionStage<News> news = cache.get("item.key");
         //#get
-        assertThat(news, equalTo(frontPageNews));
+        assertThat(block(news), equalTo(frontPageNews));
         //#get-or-else
-        News maybeCached = cache.getOrElse("item.key", new Callable<News>() {
-            public News call() {
-                return lookUpFrontPageNews();
-            }
-        });
+        CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
         //#get-or-else
+        assertThat(block(maybeCached), equalTo(frontPageNews));
+        {
         //#remove
-        cache.remove("item.key");
+        CompletionStage<Done> result = cache.remove("item.key");
         //#remove
-        assertThat(cache.get("item.key"), nullValue());
+        block(result);
+        }
+        assertThat(cache.sync().get("item.key"), nullValue());
     }
 
-    private News lookUpFrontPageNews() {
-        return new News();
+    private CompletionStage<News> lookUpFrontPageNews() {
+        return CompletableFuture.completedFuture(new News());
     }
 
     public static class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#http
         @Cached(key = "homePage")
         public Result index() {
@@ -82,11 +97,19 @@ public class JavaCache extends WithApplication {
 
     @Test
     public void http() {
-        CacheApi cache = app.getWrappedApplication().injector().instanceOf(CacheApi.class);
+        AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest())), equalTo("Hello world"));
-        assertThat(cache.get("homePage"), notNullValue());
+        assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("Hello world"));
+        assertThat(cache.sync().get("homePage"), notNullValue());
         cache.set("homePage", Results.ok("something else"));
-        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest())), equalTo("something else"));
+        assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("something else"));
+    }
+
+    private static <T> T block(CompletionStage<T> stage) {
+        try {
+            return stage.toCompletableFuture().get();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

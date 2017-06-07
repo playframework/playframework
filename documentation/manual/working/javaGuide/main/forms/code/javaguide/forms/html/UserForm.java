@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms.html;
 
@@ -7,8 +7,26 @@ import java.util.List;
 
 //#code
 public class UserForm {
-    public String name;
-    public List<String> emails;
+
+    private String name;
+    private List<String> emails;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setEmails(List<String> emails) {
+        this.emails = emails;
+    }
+
+    public List<String> getEmails() {
+        return emails;
+    }
+
 }
 //#code
 

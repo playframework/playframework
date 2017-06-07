@@ -1,5 +1,7 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Accessing an SQL database
+
+> **NOTE**: JDBC is a blocking operation that will cause threads to wait.  You can negatively impact the performance of your Play application by running JDBC queries directly in your controller!  Please see the "Configuring a CustomExecutionContext" section.
 
 ## Configuring JDBC connection pools
 
@@ -74,34 +76,47 @@ db.default.url="jdbc:postgresql://database.example.com/playdb"
 # Connect to playdb as playdbuser
 db.default.driver=com.mysql.jdbc.Driver
 db.default.url="jdbc:mysql://localhost/playdb"
-db.default.user=playdbuser
+db.default.username=playdbuser
 db.default.password="a strong password"
-```
-
-## How to see SQL Statement in the console?
-
-```properties
-db.default.logStatements=true
-logger.com.jolbox=DEBUG // for EBean
 ```
 
 ## Accessing the JDBC datasource
 
-The `play.db` package provides access to the configured data sources:
+The `play.db` package provides access to the default datasource, primarily through the [`play.db.Database`](api/java/play/db/Database.html) class.
 
-```java
-import play.db.*;
+@[](code/JavaApplicationDatabase.java)
 
-DataSource ds = DB.getDatasource();
+For a database other than the default:
+
+@[](code/JavaNamedDatabase.java)
+
+## Configuring a CustomExecutionContext
+
+You should always use a custom execution context when using JDBC, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) class to configure a custom execution context dedicated to serving JDBC operations.  See [[JavaAsync]] and [[ThreadPools]] for more details.
+
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+
+For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
+
+```
+# db connections = ((physical_core_count * 2) + effective_spindle_count)
+fixedConnectionPool = 9
+
+database.dispatcher {
+  executor = "thread-pool-executor"
+  throughput = 1
+  thread-pool-executor {
+    fixed-pool-size = ${fixedConnectionPool}
+  }
+}
 ```
 
 ## Obtaining a JDBC connection
 
 You can retrieve a JDBC connection the same way:
 
-```
-Connection connection = DB.getConnection();
-```
+@[](code/JavaJdbcConnection.java)
+
 It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 
 ## Exposing the datasource through JNDI
@@ -114,12 +129,53 @@ db.default.url="jdbc:h2:mem:play"
 db.default.jndiName=DefaultDS
 ```
 
-## Importing a Database Driver
+## How to configure SQL log statement
 
-Other than for the h2 in-memory database, useful mostly in development mode, Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
+Not all connection pools offer (out of the box) a way to log SQL statements. HikariCP, per instance, suggests that you use the log capacities of your database vendor. From [HikariCP docs](https://github.com/brettwooldridge/HikariCP/tree/dev#log-statement-text--slow-query-logging):
+
+#### *Log Statement Text / Slow Query Logging*
+
+*Like Statement caching, most major database vendors support statement logging through properties of their own driver. This includes Oracle, MySQL, Derby, MSSQL, and others. Some even support slow query logging. We consider this a "development-time" feature. For those few databases that do not support it, jdbcdslog-exp is a good option. Great stuff during development and pre-Production.*
+
+Because of that, Play uses [jdbcdslog-exp](https://github.com/jdbcdslog/jdbcdslog) to enable consistent SQL log statement support for supported pools. The SQL log statement can be configured by database, using `logSql` property:
+
+```properties
+# Default database configuration using PostgreSQL database engine
+db.default.driver=org.postgresql.Driver
+db.default.url="jdbc:postgresql://database.example.com/playdb"
+db.default.logSql=true
+```
+
+After that, you can configure the jdbcdslog-exp [log level as explained in their manual](https://code.google.com/p/jdbcdslog/wiki/UserGuide#Setup_logging_engine). Basically, you need to configure your root logger to `INFO` and then decide what jdbcdslog-exp will log (connections, statements and result sets). Here is an example using `logback.xml` to configure the logs:
+
+@[](/confs/play-logback/logback-play-logSql.xml)
+
+> **Warning**: Keep in mind that this is intended to be used just in development environments and you should not configure it in production, since there is a performance degradation and it will pollute your logs.
+
+## Configuring the JDBC Driver dependency
+
+Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 
 ```
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"
 ```
+
+## Selecting and configuring the connection pool
+
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://www.jolbox.com/).  The default is HikariCP, but this can be changed by setting the `play.db.pool` property:
+
+```
+play.db.pool=bonecp
+```
+
+The full range of configuration options for connection pools can be found by inspecting the `play.db.prototype` property in Play's JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
+
+## Testing
+
+For information on testing with databases, including how to setup in-memory databases and, see [[Testing With Databases|JavaTestingWithDatabases]].
+
+## Enabling Play database evolutions
+
+Read [[Evolutions]] to find out what Play database evolutions are useful for, and follow the instructions for using it.

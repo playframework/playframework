@@ -1,46 +1,56 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms
 
-import org.specs2.mutable.Specification
-import play.data.Form
-import javaguide.forms.html.{UserForm, User}
+import play.api.Application
+import play.api.test.{PlaySpecification, WithApplication}
+import javaguide.forms.html.{User, UserForm}
+
+import play.mvc.Http.{Context => JContext}
 import java.util
 
-object JavaFormHelpers extends Specification {
+import play.core.j.JavaContextComponents
+import play.mvc.Http
+
+class JavaFormHelpers extends PlaySpecification {
 
   "java form helpers" should {
     {
-      val form = Form.form(classOf[User])
-      val u = new UserForm
-      u.name = "foo"
-      u.emails = util.Arrays.asList("a@a", "b@b")
-      val userForm = Form.form(classOf[UserForm]).fill(u)
-      val body = html.helpers(form, userForm).body
-      def segment(name: String) = {
+      def segment(name: String)(implicit app: Application) = {
+        val requestBuilder = new Http.RequestBuilder()
+        val components: JavaContextComponents = app.injector.instanceOf[JavaContextComponents]
+        val ctx = new JContext(requestBuilder, components)
+        JContext.current.set(ctx)
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
+        val u = new UserForm
+        u.setName("foo")
+        u.setEmails(util.Arrays.asList("a@a", "b@b"))
+        val userForm = formFactory.form(classOf[UserForm]).fill(u)
+        val body = html.helpers(form, userForm).body
         body.lines.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
       }
 
-      "allow rendering a form" in {
+      "allow rendering a form" in new WithApplication() {
         val form = segment("form")
         form must contain("<form")
         form must contain("""action="/form"""")
       }
 
-      "allow rendering a form with an id" in {
+      "allow rendering a form with an id" in new WithApplication() {
         val form = segment("form-with-id")
         form must contain("<form")
         form must contain("""id="myForm"""")
       }
 
-      "allow passing extra parameters to an input" in {
+      "allow passing extra parameters to an input" in new WithApplication() {
         val input = segment("extra-params")
         input must contain("""id="email"""")
         input must contain("""size="30"""")
       }
 
-      "allow repeated form fields" in {
+      "allow repeated form fields" in new WithApplication() {
         val input = segment("repeat")
         input must contain("emails.0")
         input must contain("emails.1")
@@ -48,8 +58,9 @@ object JavaFormHelpers extends Specification {
     }
 
     {
-      "allow rendering input fields" in {
-        val form = Form.form(classOf[User])
+      "allow rendering input fields" in new WithApplication() {
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
         val body = html.fullform(form).body
         body must contain("""type="text"""")
         body must contain("""type="password"""")
@@ -57,8 +68,9 @@ object JavaFormHelpers extends Specification {
         body must contain("""name="password"""")
       }
 
-      "allow custom field constructors" in {
-        val form = Form.form(classOf[User])
+      "allow custom field constructors" in new WithApplication() {
+        val formFactory = app.injector.instanceOf[play.data.FormFactory]
+        val form = formFactory.form(classOf[User])
         val body = html.withFieldConstructor(form).body
         body must contain("foobar")
       }

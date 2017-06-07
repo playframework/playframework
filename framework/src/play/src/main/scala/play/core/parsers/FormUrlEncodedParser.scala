@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.parsers
 
-import scala.collection.immutable.ListMap
+import java.net.URLDecoder
 
 /** An object for parsing application/x-www-form-urlencoded data */
 object FormUrlEncodedParser {
@@ -38,25 +38,52 @@ object FormUrlEncodedParser {
   }
 
   /**
+   * Parse the content type "application/x-www-form-urlencoded", mapping to a Java compatible format.
+   * @param data The body content of the request, or whatever needs to be so parsed
+   * @param encoding The character encoding of data
+   * @return A Map of keys to the sequence of values for that key
+   */
+  def parseAsJava(data: String, encoding: String): java.util.Map[String, java.util.List[String]] = {
+    import scala.collection.JavaConverters._
+    parse(data, encoding).map {
+      case (key, values) =>
+        key -> values.asJava
+    }.asJava
+  }
+
+  /**
+   * Parse the content type "application/x-www-form-urlencoded", mapping to a Java compatible format.
+   * @param data The body content of the request, or whatever needs to be so parsed
+   * @param encoding The character encoding of data
+   * @return A Map of keys to the sequence of array values for that key
+   */
+  def parseAsJavaArrayValues(data: String, encoding: String): java.util.Map[String, Array[String]] = {
+    import scala.collection.JavaConverters._
+    parse(data, encoding).map {
+      case (key, values) =>
+        key -> values.toArray
+    }.asJava
+  }
+
+  private[this] val parameterDelimiter = "[&;]".r
+
+  /**
    * Do the basic parsing into a sequence of key/value pairs
    * @param data The data to parse
    * @param encoding The encoding to use for interpreting the data
    * @return The sequence of key/value pairs
    */
   private def parseToPairs(data: String, encoding: String): Seq[(String, String)] = {
-
-    import java.net._
-
-    // Generate all the pairs, with potentially redundant key values, by parsing the body content.
-    data.split('&').flatMap { param =>
-      if (param.contains("=") && !param.startsWith("=")) {
-        val parts = param.split("=")
-        val key = URLDecoder.decode(parts.head, encoding)
-        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), encoding)
-        Seq(key -> value)
-      } else {
-        Nil
+    val split = parameterDelimiter.split(data)
+    if (split.length == 1 && split(0).isEmpty) {
+      Seq.empty
+    } else {
+      split.map { param =>
+        val parts = param.split("=", -1)
+        val key = URLDecoder.decode(parts(0), encoding)
+        val value = URLDecoder.decode(parts.lift(1).getOrElse(""), encoding)
+        key -> value
       }
-    }.toSeq
+    }
   }
 }

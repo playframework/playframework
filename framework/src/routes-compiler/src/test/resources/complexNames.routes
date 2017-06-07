@@ -1,0 +1,1 @@
+GET    /foo     controllers.FooController.foo(`bar[]`: List[String])

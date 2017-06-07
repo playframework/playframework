@@ -1,182 +1,402 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.libs
 
-import play.it.tools.HttpBinApplication
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.charset.{ Charset, StandardCharsets }
+import java.util
+import java.util.concurrent.TimeUnit
 
-import play.api.test._
+import akka.stream.scaladsl.{ FileIO, Sink, Source }
+import akka.util.ByteString
+import play.shaded.ahc.org.asynchttpclient.{ RequestBuilderBase, SignatureCalculator }
+import play.api.http.Port
+import play.api.libs.json.JsString
+import play.api.libs.oauth._
+import play.api.libs.streams.Accumulator
+import play.api.libs.ws.WSBody
+import play.api.mvc.Results.Ok
 import play.api.mvc._
+import play.api.test._
+import play.core.server.Server
+import play.it._
+import play.it.tools.HttpBinApplication
+import play.mvc.Http
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import play.api.libs.iteratee._
-import play.api.libs.concurrent.Promise
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.io.IOException
+import scala.concurrent.{ Await, Future }
 
-object WSSpec extends PlaySpecification {
+class NettyWSSpec extends WSSpec with NettyIntegrationSpecification
+
+class AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
+
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   "Web service client" title
 
   sequential
 
   def app = HttpBinApplication.app
 
-  def withServer[T](block: Port => T) = {
-    val port = testServerPort
-    running(TestServer(port, app)) { block(port) }
-  }
+  val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
 
-  def withResult[T](result: Result)(block: Port => T) = {
-    val port = testServerPort
-    running(TestServer(port, FakeApplication(withRoutes = {
-      case _ => Action(result)
-    }))) { block(port) }
+  val isoString = {
+    // Converts the String "Hello €" to the ISO Counterparty
+    val sourceCharset = StandardCharsets.UTF_8
+    val buffer = ByteBuffer.wrap("Hello €".getBytes(sourceCharset))
+    val data = sourceCharset.decode(buffer)
+    val targetCharset = Charset.forName("Windows-1252")
+    new String(targetCharset.encode(data).array(), targetCharset)
   }
 
   "WS@java" should {
-    import play.libs.ws.{ WS, WSRequest, WSSignatureCalculator }
 
-    "make GET Requests" in withServer { port =>
-      val req = WS.url(s"http://localhost:$port/get").get
-      val rep = req.get(1000) // AWait result
+    def withServer[T](block: play.libs.ws.WSClient => T) = {
+      Server.withApplication(app) { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withEchoServer[T](block: play.libs.ws.WSClient => T) = {
+      def echo = BodyParser { req =>
+        Accumulator.source[ByteString].mapFuture { source =>
+          Future.successful(source).map(Right.apply)
+        }
+      }
+
+      Server.withRouterFromComponents()(components => {
+        case _ => components.defaultActionBuilder(echo) { req =>
+          Ok.chunked(req.body)
+        }
+      }) { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withResult[T](result: Result)(block: play.libs.ws.WSClient => T) = {
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder(result)
+        }
+      } { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withClient[T](block: play.libs.ws.WSClient => T)(implicit port: Port): T = {
+      val wsClient = play.test.WSTestClient.newClient(port.value)
+      try {
+        block(wsClient)
+      } finally {
+        wsClient.close()
+      }
+    }
+
+    def withHeaderCheck[T](block: play.libs.ws.WSClient => T) = {
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder { req =>
+            val contentLength = req.headers.get(CONTENT_LENGTH)
+            val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+            Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+          }
+        }
+      } { implicit port =>
+        withClient(block)
+      }
+    }
+
+    def withXmlServer[T](block: play.libs.ws.WSClient => T) = {
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder { req =>
+            val elem = <name>{ isoString }</name>.toString()
+            Ok(elem).as("application/xml;charset=Windows-1252")
+          }
+        }
+      } { implicit port =>
+        withClient(block)
+      }
+    }
+
+    import play.libs.ws.WSSignatureCalculator
+
+    "make GET Requests" in withServer { ws =>
+      val req = ws.url("/get").get
+      val rep = req.toCompletableFuture.get(10, TimeUnit.SECONDS) // AWait result
 
       rep.getStatus aka "status" must_== 200 and (
         rep.asJson.path("origin").textValue must not beNull)
     }
 
-    "use queryString in url" in withServer { port =>
-      val rep = WS.url(s"http://localhost:$port/get?foo=bar").get().get(1000)
+    "use queryString in url" in withServer { ws =>
+      val rep = ws.url("/get?foo=bar").get().toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       rep.getStatus aka "status" must_== 200 and (
         rep.asJson().path("args").path("foo").textValue() must_== "bar")
     }
 
-    "use user:password in url" in withServer { port =>
-      val rep = WS.url(s"http://user:password@localhost:$port/basic-auth/user/password").get().get(1000)
+    "use user:password in url" in Server.withApplication(app) { implicit port =>
+      withClient { ws =>
+        val rep = ws.url(s"http://user:password@localhost:$port/basic-auth/user/password").get()
+          .toCompletableFuture.get(10, TimeUnit.SECONDS)
 
-      rep.getStatus aka "status" must_== 200 and (
-        rep.asJson().path("authenticated").booleanValue() must beTrue)
+        rep.getStatus aka "status" must_== 200 and (
+          rep.asJson().path("authenticated").booleanValue() must beTrue)
+      }
     }
 
-    "reject invalid query string" in withServer { port =>
+    "reject invalid query string" in withServer { ws =>
       import java.net.MalformedURLException
 
-      WS.url("http://localhost/get?=&foo").
+      ws.url("/get?=&foo").
         aka("invalid request") must throwA[RuntimeException].like {
           case e: RuntimeException =>
             e.getCause must beAnInstanceOf[MalformedURLException]
         }
     }
 
-    "reject invalid user password string" in withServer { port =>
+    "reject invalid user password string" in withServer { ws =>
       import java.net.MalformedURLException
 
-      WS.url("http://@localhost/get").
+      ws.url("http://@localhost/get").
         aka("invalid request") must throwA[RuntimeException].like {
           case e: RuntimeException =>
             e.getCause must beAnInstanceOf[MalformedURLException]
         }
     }
 
-    "consider query string in JSON conversion" in withServer { port =>
-      val empty = WS.url(s"http://localhost:$port/get?foo").get.get(1000)
-      val bar = WS.url(s"http://localhost:$port/get?foo=bar").get.get(1000)
+    "consider query string in JSON conversion" in withServer { ws =>
+      val empty = ws.url("/get?foo").get.toCompletableFuture.get(10, TimeUnit.SECONDS)
+      val bar = ws.url("/get?foo=bar").get.toCompletableFuture.get(10, TimeUnit.SECONDS)
 
       empty.asJson.path("args").path("foo").textValue() must_== "" and (
         bar.asJson.path("args").path("foo").textValue() must_== "bar")
     }
 
-    "not throw an exception while signing requests" in withServer { _ =>
-      object CustomSigner extends WSSignatureCalculator {
-        override def sign(request: WSRequest): Unit = {
-          val url = request.getUrl
-        }
+    "get a streamed response" in withResult(
+      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
+        val res = ws.url("/get").stream().toCompletableFuture.get()
+
+        await(res.getBody().runWith(foldingSink, app.materializer)).decodeString("utf-8").
+          aka("streamed response") must_== "abc"
       }
 
-      WS.url("http://localhost").sign(CustomSigner).
+    "streaming a request body" in withEchoServer { ws =>
+      val source = Source(List("a", "b", "c").map(ByteString.apply)).asJava
+      val res = ws.url("/post").setMethod("POST").setBody(source).execute()
+      val body = res.toCompletableFuture.get().getBody
+
+      body must_== "abc"
+    }
+
+    "streaming a request body with manual content length" in withHeaderCheck { ws =>
+      val source = Source.single(ByteString("abc")).asJava
+      val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(source).execute()
+      val body = res.toCompletableFuture.get().getBody
+
+      body must_== s"Content-Length: 3; Transfer-Encoding: -1"
+    }
+
+    "sending a simple multipart form body" in withServer { ws =>
+      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava
+      val res = ws.url("/post").post(source)
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+    }
+
+    "sending a multipart form body" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
+      val dp = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava)
+      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+
+      val res = ws.url("/post").post(source)
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+      body.path("file").textValue() must_== "This is a test asset."
+    }
+
+    "response asXml with correct contentType" in withXmlServer { ws =>
+      val body = ws.url("/xml").get().toCompletableFuture.get().asXml()
+      new String(body.getElementsByTagName("name").item(0).getTextContent.getBytes("Windows-1252")) must_== isoString
+    }
+
+    "send a multipart request body via setMultipartBody" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
+      val dp = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
+      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+
+      val res = ws.url("/post").setMultipartBody(source).setMethod("POST").execute()
+      val body = res.toCompletableFuture.get().asJson()
+
+      body.path("form").path("hello").textValue() must_== "world"
+      body.path("file").textValue() must_== "This is a test asset."
+    }
+
+    class CustomSigner extends WSSignatureCalculator with play.shaded.ahc.org.asynchttpclient.SignatureCalculator {
+      def calculateAndAddSignature(request: play.shaded.ahc.org.asynchttpclient.Request, requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[_]) = {
+        // do nothing
+      }
+    }
+
+    "not throw an exception while signing requests" in withServer { ws =>
+      val key = "12234"
+      val secret = "asbcdef"
+      val token = "token"
+      val tokenSecret = "tokenSecret"
+      (ConsumerKey(key, secret), RequestToken(token, tokenSecret))
+
+      val calc: WSSignatureCalculator = new CustomSigner
+
+      ws.url("/").sign(calc).
         aka("signed request") must not(throwA[Exception])
     }
   }
 
   "WS@scala" should {
-    import play.api.libs.ws.{ WS, WSSignatureCalculator, WSRequest }
-    import play.api.Play.current
 
-    "make GET Requests" in withServer { port =>
-      val req = WS.url(s"http://localhost:$port/get").get
+    import play.api.libs.ws.{ StreamedBody, WSSignatureCalculator }
+
+    implicit val materializer = app.materializer
+
+    val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+
+    def withServer[T](block: play.api.libs.ws.WSClient => T) = {
+      Server.withApplication(app) { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
+    def withEchoServer[T](block: play.api.libs.ws.WSClient => T) = {
+      def echo = BodyParser { req =>
+        Accumulator.source[ByteString].mapFuture { source =>
+          Future.successful(source).map(Right.apply)
+        }
+      }
+
+      Server.withRouterFromComponents() { components =>
+        {
+          case _ => components.defaultActionBuilder(echo) { req =>
+            Ok.chunked(req.body)
+          }
+        }
+      } { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
+    def withResult[T](result: Result)(block: play.api.libs.ws.WSClient => T) = {
+      Server.withRouterFromComponents() { c =>
+        {
+          case _ => c.defaultActionBuilder(result)
+        }
+      } { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
+    def withHeaderCheck[T](block: play.api.libs.ws.WSClient => T) = {
+      Server.withRouterFromComponents() { c =>
+        {
+          case _ => c.defaultActionBuilder { req =>
+
+            val contentLength = req.headers.get(CONTENT_LENGTH)
+            val transferEncoding = req.headers.get(TRANSFER_ENCODING)
+            Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
+
+          }
+        }
+      } { implicit port =>
+        WsTestClient.withClient(block)
+      }
+    }
+
+    "make GET Requests" in withServer { ws =>
+      val req = ws.url("/get").get()
 
       Await.result(req, Duration(1, SECONDS)).status aka "status" must_== 200
     }
 
-    "Get 404 errors" in withServer { port =>
-      val req = WS.url(s"http://localhost:$port/post").get
+    "Get 404 errors" in withServer { ws =>
+      val req = ws.url("/post").get()
 
       Await.result(req, Duration(1, SECONDS)).status aka "status" must_== 404
     }
 
     "get a streamed response" in withResult(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))) { port =>
+      Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
 
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
+        val res = ws.url("/get").stream()
+        val body = await(res).body
 
-        new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8").
+        await(body.runWith(foldingSink)).decodeString("utf-8").
           aka("streamed response") must_== "abc"
       }
 
-    def slow[E](ms: Long): Enumeratee[E, E] =
-      Enumeratee.mapM { i => Promise.timeout(i, ms) }
+    "streaming a request body" in withEchoServer { ws =>
+      val source = Source(List("a", "b", "c").map(ByteString.apply))
+      val res = ws.url("/post").withMethod("POST").withBody(StreamedBody(source)).execute()
+      val body = await(res).body
 
-    "get a streamed response when the server is slow" in withResult(
-      Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(50))) { port =>
+      body must_== "abc"
+    }
 
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
+    "streaming a request body with manual content length" in withHeaderCheck { ws =>
+      val source = Source.single(ByteString("abc"))
+      val res = ws.url("/post").withMethod("POST").withHeaders(CONTENT_LENGTH -> "3").withBody(StreamedBody(source)).execute()
+      val body = await(res).body
 
-        (new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8")).
-          aka("streamed response") must_== "abc"
+      body must_== s"Content-Length: 3; Transfer-Encoding: -1"
+    }
+
+    "send a multipart request body" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI).toPath
+      val dp = MultipartFormData.DataPart("hello", "world")
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file))
+      val source = Source(List(dp, fp))
+      val res = ws.url("/post").post(source)
+      val body = await(res).json
+
+      (body \ "form" \ "hello").toOption must beSome(JsString("world"))
+      (body \ "file").toOption must beSome(JsString("This is a test asset."))
+    }
+
+    "send a multipart request body via withBody" in withServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
+      val dp = MultipartFormData.DataPart("hello", "world")
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file.toPath))
+      val source = Source(List(dp, fp))
+      val res = ws.url("/post").withBody(source).withMethod("POST").execute()
+      val body = await(res).json
+
+      (body \ "form" \ "hello").toOption must beSome(JsString("world"))
+      (body \ "file").toOption must beSome(JsString("This is a test asset."))
+    }
+
+    class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
+      def calculateAndAddSignature(request: play.shaded.ahc.org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {
+        // do nothing
       }
-
-    "get a streamed response when the consumer is slow" in withResult(
-      Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(10))) { port =>
-
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
-
-        new String(await(body &> slow(50) |>>>
-          Iteratee.consume[Array[Byte]]()), "utf-8").
-          aka("streamed response") must_== "abc"
-      }
-
-    "propagate errors from the stream" in withResult(
-      Results.Ok.feed(Enumerator.unfold(0) {
-        case i if i < 3 => Some((i + 1, "chunk".getBytes("utf-8")))
-        case _ => throw new Exception()
-      } &> slow(50)).withHeaders("Content-Length" -> "100000")) { port =>
-
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
-
-        await(body |>>> Iteratee.consume[Array[Byte]]()).
-          aka("streamed response") must throwAn[IOException]
-      }
+    }
 
     "not throw an exception while signing requests" >> {
-      object CustomSigner extends WSSignatureCalculator {
-        override def sign(request: WSRequest): Unit = {
-          val queryString = request.queryString
-        }
-      }
+      val calc = new CustomSigner
 
-      "without query string" in withServer { port =>
-        WS.url("http://localhost:" + port).sign(CustomSigner).get().
+      "without query string" in withServer { ws =>
+        ws.url("/").sign(calc).get().
           aka("signed request") must not(throwA[NullPointerException])
       }
 
-      "with query string" in withServer { port =>
-        WS.url("http://localhost:" + port).withQueryString("lorem" -> "ipsum").
-          sign(CustomSigner) aka "signed request" must not(throwA[Exception])
+      "with query string" in withServer { ws =>
+        ws.url("/").withQueryString("lorem" -> "ipsum").
+          sign(calc) aka "signed request" must not(throwA[Exception])
       }
     }
   }

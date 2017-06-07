@@ -1,67 +1,89 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf;
 
-import play.api.mvc.RequestHeader;
+import java.util.concurrent.CompletionStage;
+
+import javax.inject.Inject;
+
+import play.api.http.SessionConfiguration;
+import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.Session;
-import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
+import play.mvc.Http.Request;
+import play.mvc.Http.RequestBody;
+import play.mvc.Http.RequestImpl;
 import play.mvc.Result;
-import scala.Option;
-import scala.Tuple2;
 
 public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
-    private final String tokenName = CSRFConf$.MODULE$.TokenName();
-    private final Option<String> cookieName = CSRFConf$.MODULE$.CookieName();
-    private final boolean secureCookie = CSRFConf$.MODULE$.SecureCookie();
-    private final String requestTag = CSRF.Token$.MODULE$.RequestTag();
-    private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
-    private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
+    private final CSRFConfig config;
+    private final SessionConfiguration sessionConfiguration;
+    private final CSRF.TokenProvider tokenProvider;
+    private final CSRFTokenSigner tokenSigner;
+
+    @Inject
+    public AddCSRFTokenAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner tokenSigner) {
+        this.config = config;
+        this.sessionConfiguration = sessionConfiguration;
+        this.tokenProvider = tokenProvider;
+        this.tokenSigner = tokenSigner;
+    }
+
+    private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
+
+    private static final String CSRF_TOKEN = "CSRF_TOKEN";
+    private static final String CSRF_TOKEN_NAME = "CSRF_TOKEN_NAME";
 
     @Override
-    public F.Promise<Result> call(Http.Context ctx) throws Throwable {
-        RequestHeader request = ctx._requestHeader();
+    public CompletionStage<Result> call(Http.Context ctx) {
 
-        if (CSRFAction.getTokenFromHeader(request, tokenName, cookieName).isEmpty()) {
+        CSRFActionHelper helper =
+            new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
+
+        play.api.mvc.Request<RequestBody> request =
+                helper.tagRequestFromHeader(ctx.request().asScala());
+
+        if (helper.getTokenToValidate(request).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
-            String newToken = tokenProvider.generateToken();
+            CSRF.Token newToken = helper.generateToken();
 
             // Place this token into the context
-            ctx.args.put(requestTag, newToken);
+            ctx.args.put(CSRF_TOKEN, newToken.value());
+            ctx.args.put(CSRF_TOKEN_NAME, newToken.name());
 
             // Create a new Scala RequestHeader with the token
-            final RequestHeader newRequest = request.copy(request.id(),
-                    request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
-                    request.uri(), request.path(), request.method(), request.version(), request.queryString(),
-                    request.headers(), request.remoteAddress(), request.secure());
-
-            // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
-            // used in templates will find the token.
-            Http.Context newCtx = new Http.WrappedContext(ctx) {
-                @Override
-                public RequestHeader _requestHeader() {
-                    return newRequest;
-                }
-            };
-
-            Http.Context.current.set(newCtx);
+            request = helper.tagRequest(request, newToken);
 
             // Also add it to the response
-            if (cookieName.isDefined()) {
-                Option<String> domain = Session.domain();
-                ctx.response().setCookie(cookieName.get(), newToken, null, Session.path(),
-                        domain.isDefined() ? domain.get() : null, secureCookie, false);
+            if (config.cookieName().isDefined()) {
+                scala.Option<String> domain = Session.domain();
+                Http.Cookie cookie = new Http.Cookie(
+                    config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
+                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
+                ctx.response().setCookie(cookie);
             } else {
-                ctx.session().put(tokenName, newToken);
+                ctx.session().put(newToken.name(), newToken.value());
             }
-
-            return delegate.call(newCtx);
-        } else {
-            return delegate.call(ctx);
         }
 
+        final play.api.mvc.Request<RequestBody> newRequest = request;
+        // Methods returning requests should return the tagged request
+        Http.Context newCtx = new Http.WrappedContext(ctx) {
+            @Override
+            public Request request() {
+                return new RequestImpl(newRequest);
+            }
+
+            @Override
+            public play.api.mvc.RequestHeader _requestHeader() {
+                return newRequest;
+            }
+        };
+
+        Http.Context.current.set(newCtx);
+        return delegate.call(newCtx);
     }
 }

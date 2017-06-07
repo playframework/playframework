@@ -1,28 +1,32 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.parsing
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.test._
-import play.api.mvc.{ BodyParser, BodyParsers }
-import play.api.libs.iteratee.Enumerator
+import play.api.mvc.BodyParsers
 
-object EmptyBodyParserSpec extends PlaySpecification {
+class EmptyBodyParserSpec extends PlaySpecification {
 
   "The empty body parser" should {
 
-    def parse(bytes: Seq[Byte], contentType: Option[String], encoding: String) = {
-      await(Enumerator(bytes.to[Array]) |>>>
-        BodyParsers.parse.empty(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse(bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer) = {
+      await(
+        BodyParsers.parse.empty(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(bytes))
+      )
     }
 
     "parse empty bodies" in new WithApplication() {
-      parse(Array[Byte](), Some("text/plain"), "utf-8") must beRight(())
+      parse(ByteString.empty, Some("text/plain"), "utf-8") must beRight(())
     }
 
     "parse non-empty bodies" in new WithApplication() {
-      parse(Array[Byte](1), Some("application/xml"), "utf-8") must beRight(())
-      parse(Array[Byte](1, 2, 3), None, "utf-8") must beRight(())
+      parse(ByteString(1), Some("application/xml"), "utf-8") must beRight(())
+      parse(ByteString(1, 2, 3), None, "utf-8") must beRight(())
     }
 
   }

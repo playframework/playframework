@@ -1,27 +1,31 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
 import org.junit.Test;
-import play.Play;
+import play.i18n.MessagesApi;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests WithApplication functionality.
+ */
 public class WithApplicationTest extends WithApplication {
 
     @Test
-    public void withApplicationShouldProvideAnApplication() {
+    public void shouldHaveAnAppInstantiated() {
         assertNotNull(app);
-        assertNotNull(Play.application());
     }
 
     @Test
-    public void withApplicationShouldCleanUpApplication() {
-        stopPlay();
-        assertNull(app);
-        assertTrue(play.api.Play.maybeApplication().isEmpty());
+    public void shouldHaveAMaterializerInstantiated() {
+        assertNotNull(mat);
+    }
+
+    @Test
+    public void withInstanceOf() {
+        MessagesApi messagesApi = instanceOf(MessagesApi.class);
+        assertNotNull(messagesApi);
     }
 }

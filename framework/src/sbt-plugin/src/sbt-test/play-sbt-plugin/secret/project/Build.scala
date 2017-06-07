@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
+
+import play.sbt.PlayScala
+import sbt.Keys._
 import sbt._
-import Keys._
 
 object ApplicationBuild extends Build {
 
   val appName = "secret-sample"
   val appVersion = "1.0-SNAPSHOT"
 
-  val Secret = """(?s).*application.secret="(.*)".*""".r
+  val Secret = """(?s).*play.http.secret.key="(.*)".*""".r
 
-  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
-    TaskKey[Unit]("check-secret") := {
+    TaskKey[Unit]("checkSecret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")
       file match {
         case Secret("changeme") => throw new RuntimeException("secret not changed!!\n" + file)

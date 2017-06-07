@@ -1,16 +1,15 @@
-package javaguide.json;
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
+package javaguide.json;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.Result;
 import play.libs.Json;
 
@@ -21,7 +20,6 @@ import play.test.WithApplication;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
-import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
 import static javaguide.testhelpers.MockJavaActionHelper.call;
 
@@ -29,7 +27,7 @@ public class JavaJsonActions extends WithApplication {
 
     //#person-class
     // Note: can use getters/setters as well; here we just use public fields directly.
-    // if using getters/setters, you can keep keep the fields `protected` or `private`
+    // if using getters/setters, you can keep the fields `protected` or `private`
     public static class Person {
         public String firstName;
         public String lastName;
@@ -65,47 +63,39 @@ public class JavaJsonActions extends WithApplication {
     }
 
     @Test
-    public void customObjectMapper() {
-        //#custom-object-mapper
-        ObjectMapper mapper = new ObjectMapper()
-            // enable features and customize the object mapper here ...
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            // etc.
-        Json.setObjectMapper(mapper);
-        //#custom-object-mapper
-        assertThat(Json.mapper(), equalTo(mapper));
-    }
-
-    @Test
     public void requestAsAnyContentAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().withJsonBody(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsAnyContentAction(instanceOf(JavaHandlerComponents.class)), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")), mat)
         ), equalTo("Hello Greg"));
     }
 
     @Test
     public void requestAsJsonAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().withJsonBody(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsJsonAction(instanceOf(JavaHandlerComponents.class)), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")), mat)
         ), equalTo("Hello Greg"));
     }
 
     @Test
     public void responseAction() {
         assertThat(contentAsString(
-            call(new JsonResponseAction(), fakeRequest())
+            call(new JsonResponseAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)
         ), equalTo("{\"exampleField1\":\"foobar\",\"exampleField2\":\"Hello world!\"}"));
     }
 
     @Test
     public void responseDaoAction() {
         assertThat(contentAsString(
-            call(new JsonResponseDaoAction(), fakeRequest())
+            call(new JsonResponseDaoAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)
         ), equalTo("[{\"firstName\":\"Foo\",\"lastName\":\"Bar\",\"age\":30}]"));
     }
 
     static class JsonRequestAsAnyContentAction extends MockJavaAction {
+
+        JsonRequestAsAnyContentAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#json-request-as-anycontent
         public Result sayHello() {
             JsonNode json = request().body().asJson();
@@ -124,6 +114,11 @@ public class JavaJsonActions extends WithApplication {
     }
 
     static class JsonRequestAsJsonAction extends MockJavaAction {
+
+        JsonRequestAsJsonAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#json-request-as-json
         @BodyParser.Of(BodyParser.Json.class)
         public Result sayHello() {
@@ -139,6 +134,10 @@ public class JavaJsonActions extends WithApplication {
     }
 
     static class JsonResponseAction extends MockJavaAction {
+        JsonResponseAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#json-response
         public Result sayHello() {
             ObjectNode result = Json.newObject();
@@ -150,9 +149,13 @@ public class JavaJsonActions extends WithApplication {
     }
 
     static class JsonResponseDaoAction extends MockJavaAction {
+        JsonResponseDaoAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         static class PersonDao {
             public List<Person> findAll() {
-                List<Person> people = new ArrayList<Person>();
+                List<Person> people = new ArrayList<>();
 
                 Person person = new Person();
                 person.firstName = "Foo";

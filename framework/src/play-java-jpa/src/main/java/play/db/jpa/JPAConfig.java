@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
@@ -10,9 +10,9 @@ import java.util.Set;
  */
 public interface JPAConfig {
 
-    public Set<PersistenceUnit> persistenceUnits();
+    Set<PersistenceUnit> persistenceUnits();
 
-    public static class PersistenceUnit {
+    class PersistenceUnit {
         public String name;
         public String unitName;
         
@@ -21,5 +21,4 @@ public interface JPAConfig {
             this.unitName = unitName;
         }
     }
-
 }

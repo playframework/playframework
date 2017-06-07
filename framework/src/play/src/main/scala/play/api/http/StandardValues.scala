@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
@@ -24,9 +24,9 @@ trait ContentTypes {
   def HTML(implicit codec: Codec) = withCharset(MimeTypes.HTML)
 
   /**
-   * Content-Type of json.
+   * Content-Type of xhtml.
    */
-  def JSON(implicit codec: Codec) = withCharset(MimeTypes.JSON)
+  def XHTML(implicit codec: Codec) = withCharset(MimeTypes.XHTML)
 
   /**
    * Content-Type of xml.
@@ -44,11 +44,6 @@ trait ContentTypes {
   def JAVASCRIPT(implicit codec: Codec) = withCharset(MimeTypes.JAVASCRIPT)
 
   /**
-   * Content-Type of form-urlencoded.
-   */
-  def FORM(implicit codec: Codec) = withCharset(MimeTypes.FORM)
-
-  /**
    * Content-Type of server sent events.
    */
   def EVENT_STREAM(implicit codec: Codec) = withCharset(MimeTypes.EVENT_STREAM)
@@ -59,6 +54,16 @@ trait ContentTypes {
   val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
 
   /**
+   * Content-Type of json. This content type does not define a charset parameter.
+   */
+  val JSON = MimeTypes.JSON
+
+  /**
+   * Content-Type of form-urlencoded. This content type does not define a charset parameter.
+   */
+  val FORM = MimeTypes.FORM
+
+  /**
    * Content-Type of binary data.
    */
   val BINARY = MimeTypes.BINARY
@@ -66,7 +71,7 @@ trait ContentTypes {
   /**
    * @return the `codec` charset appended to `mimeType`
    */
-  def withCharset(mimeType: String)(implicit codec: Codec) = mimeType + "; charset=" + codec.charset
+  def withCharset(mimeType: String)(implicit codec: Codec) = s"$mimeType; charset=${codec.charset}"
 
 }
 
@@ -115,6 +120,11 @@ trait MimeTypes {
   val XML = "application/xml"
 
   /**
+   * Content-Type of xml.
+   */
+  val XHTML = "application/xhtml+xml"
+
+  /**
    * Content-Type of css.
    */
   val CSS = "text/css"
@@ -147,9 +157,15 @@ trait MimeTypes {
 }
 
 /**
- * Defines all standard HTTP Status.
+ * Defines all standard HTTP status codes, with additional helpers for determining the type of status.
  */
-object Status extends Status
+object Status extends Status {
+  def isInformational(status: Int): Boolean = status / 100 == 1
+  def isSuccessful(status: Int): Boolean = status / 100 == 2
+  def isRedirect(status: Int): Boolean = status / 100 == 3
+  def isClientError(status: Int): Boolean = status / 100 == 4
+  def isServerError(status: Int): Boolean = status / 100 == 5
+}
 
 /**
  * Defines all standard HTTP status codes.
@@ -175,6 +191,7 @@ trait Status {
   val NOT_MODIFIED = 304
   val USE_PROXY = 305
   val TEMPORARY_REDIRECT = 307
+  val PERMANENT_REDIRECT = 308
 
   val BAD_REQUEST = 400
   val UNAUTHORIZED = 401
@@ -194,10 +211,14 @@ trait Status {
   val UNSUPPORTED_MEDIA_TYPE = 415
   val REQUESTED_RANGE_NOT_SATISFIABLE = 416
   val EXPECTATION_FAILED = 417
+  val IM_A_TEAPOT = 418
   val UNPROCESSABLE_ENTITY = 422
   val LOCKED = 423
   val FAILED_DEPENDENCY = 424
-  val TOO_MANY_REQUEST = 429
+  val UPGRADE_REQUIRED = 426
+  val TOO_MANY_REQUESTS = 429
+  @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
+  val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
   val INTERNAL_SERVER_ERROR = 500
   val NOT_IMPLEMENTED = 501
@@ -253,6 +274,7 @@ trait HeaderNames {
   val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
 
   val LAST_MODIFIED = "Last-Modified"
+  val LINK = "Link"
   val LOCATION = "Location"
 
   val MAX_FORWARDS = "Max-Forwards"
@@ -289,6 +311,8 @@ trait HeaderNames {
   val X_FORWARDED_PORT = "X-Forwarded-Port"
   val X_FORWARDED_PROTO = "X-Forwarded-Proto"
 
+  val X_REQUESTED_WITH = "X-Requested-With"
+
   val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
   val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
   val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
@@ -299,6 +323,8 @@ trait HeaderNames {
   val ORIGIN = "Origin"
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
   val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
+
+  val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
 }
 
 /**

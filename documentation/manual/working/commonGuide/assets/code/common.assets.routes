@@ -1,0 +1,13 @@
+#assets-wildcard
+GET  /assets/*file        controllers.Assets.at(path="/public", file)
+#assets-wildcard
+
+#assets-single-static-file
+GET  /favicon.ico        controllers.Assets.at(path="/public", file="favicon.ico")
+#assets-single-static-file
+
+#assets-two-mappings
+GET  /javascripts/*file        controllers.Assets.at(path="/public/javascripts", file)
+GET  /images/*file             controllers.Assets.at(path="/public/images", file)
+#assets-two-mappings
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalatest.tests.specs2
 
@@ -10,7 +10,7 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 
-object FunctionalTemplateSpec extends Specification {
+class FunctionalTemplateSpec extends Specification {
 
   // #scalatest-functionaltemplatespec
   "render index template" in new WithApplication {

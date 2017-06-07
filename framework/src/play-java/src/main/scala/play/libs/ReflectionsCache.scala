@@ -1,15 +1,13 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
-
-import org.reflections.util.FilterBuilder
 
 /**
  * Provides a cache for reflections, so that classloader scanning over the same classloader for the same package
  * multiple times doesn't need to be done.
  *
- * This is most useful in tests, when each test starts a new FakeApplication, and so things like Ebean scan the
+ * This is most useful in tests, when each test starts a new Application, and so things like Ebean scan the
  * classloader for @Entity annotated classes in a given package.  Profiling shows that without this cache, over 90%
  * of a tests time might be spent in classpath scanning.
  */
@@ -32,10 +30,7 @@ object ReflectionsCache {
     }
     reflectionsMap.get(pkg).getOrElse {
 
-      val reflections = new Reflections(new util.ConfigurationBuilder()
-        .addUrls(util.ClasspathHelper.forPackage(pkg, classLoader))
-        .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(pkg + ".")))
-        .setScanners(new scanners.TypeAnnotationsScanner, new scanners.TypesScanner))
+      val reflections = new Reflections(Classpath.getReflectionsConfiguration(pkg, classLoader))
 
       reflectionsMap.putIfAbsent(pkg, reflections).getOrElse(reflections)
     }

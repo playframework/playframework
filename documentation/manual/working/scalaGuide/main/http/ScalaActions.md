@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Actions, Controllers and Results
 
 ## What is an Action?
 
-Most of the requests received by a Play application are handled by an `Action`. 
+Most of the requests received by a Play application are handled by an `Action`.
 
 A `play.api.mvc.Action` is basically a `(play.api.mvc.Request => play.api.mvc.Result)` function that handles a request and generates a result to be sent to the client.
 
@@ -13,13 +13,13 @@ An action returns a `play.api.mvc.Result` value, representing the HTTP response 
 
 ## Building an Action
 
-The `play.api.mvc.Action` companion object offers several helper methods to construct an Action value. 
+Within any controller extending `BaseController`, the `Action` value is the default action builder. This action builder contains several helpers for creating `Action`s.
 
 The first simplest one just takes as argument an expression block returning a `Result`:
 
 @[zero-arg-action](code/ScalaActions.scala)
 
-This is the simplest way to create an Action, but we don't get a reference to the incoming request. It is often useful to access the HTTP request calling this Action. 
+This is the simplest way to create an Action, but we don't get a reference to the incoming request. It is often useful to access the HTTP request calling this Action.
 
 So there is another Action builder that takes as an argument a function `Request => Result`:
 
@@ -37,9 +37,11 @@ Body parsers will be covered later in this manual.  For now you just need to kno
 
 ## Controllers are action generators
 
-A `Controller` is nothing more than a singleton object that generates `Action` values. 
+A controller in Play is nothing more than an object that generates `Action` values. Controllers are typically defined as classes to take advantage of [[Dependency Injection|ScalaDependencyInjection]].
 
-The simplest use case for defining an action generator is a method with no parameters that returns an `Action` value	:
+> **Note:** Keep in mind that defining controllers as objects will not be supported in future versions of Play. Using classes is the recommended approach.
+
+The simplest use case for defining an action generator is a method with no parameters that returns an `Action` value:
 
 @[full-controller](code/ScalaActions.scala)
 
@@ -49,7 +51,7 @@ Of course, the action generator method can have parameters, and these parameters
 
 ## Simple results
 
-For now we are just interested in simple results: An HTTP result with a status code, a set of HTTP headers and a body to be sent to the web client.
+For now we are just interested in simple results: an HTTP result with a status code, a set of HTTP headers and a body to be sent to the web client.
 
 These results are defined by `play.api.mvc.Result`:
 
@@ -79,7 +81,7 @@ The default is to use a `303 SEE_OTHER` response type, but you can also set a mo
 
 @[moved-permanently-action](code/ScalaActions.scala)
 
-## "TODO" dummy page
+## `TODO` dummy page
 
 You can use an empty `Action` implementation defined as `TODO`: the result is a standard ‘Not implemented yet’ result page:
 

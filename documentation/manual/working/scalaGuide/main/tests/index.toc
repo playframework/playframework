@@ -3,3 +3,6 @@ ScalaTestingWithScalaTest:Testing with ScalaTest
 ScalaFunctionalTestingWithScalaTest:Writing functional tests with ScalaTest
 ScalaTestingWithSpecs2:Testing with specs2
 ScalaFunctionalTestingWithSpecs2:Writing functional tests with specs2
+ScalaTestingWithGuice:Testing with Guice
+ScalaTestingWithDatabases:Testing with databases
+ScalaTestingWebServiceClients:Testing web service clients

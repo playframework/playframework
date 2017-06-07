@@ -1,0 +1,16 @@
+@* #select-form-define *@
+@(
+addressData: Form[AddressData], 
+cityOptions: List[(String, String)] = List("New York" -> "U.S. Office", "London" -> "U.K. Office", "Brussels" -> "E.U. Office")
+)(implicit messages: Messages)
+@* #select-form-define *@
+
+@import scalaguide.forms.scalaforms.controllers._
+@import scalaguide.forms.scalaforms.controllers.routes
+
+@helper.form(action = routes.Application.submit) {
+    @* #addressSelectForm-options-usage *@
+    @helper.select(addressData("city"), options = cityOptions) @* Will render the selected city to be the filled value *@
+    @helper.inputText(addressData("street"))
+    @* #addressSelectForm-options-usage *@
+})

@@ -1,17 +1,23 @@
+//
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
+libraryDependencies += guice
 
-PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
+
+PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
 // Start by using the sbt watcher
-PlayKeys.playWatchService := play.sbtplugin.run.PlayWatchService.sbt(pollInterval.value)
+PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.sbt(pollInterval.value)
 
-TaskKey[Unit]("reset-reloads") := {
+TaskKey[Unit]("resetReloads") := {
   (target.value / "reload.log").delete()
 }
 
-InputKey[Unit]("verify-reloads") := {
+InputKey[Unit]("verifyReloads") := {
   val expected = Def.spaceDelimited().parsed.head.toInt
   val actual = IO.readLines(target.value / "reload.log").count(_.nonEmpty)
   if (expected == actual) {
@@ -21,7 +27,7 @@ InputKey[Unit]("verify-reloads") := {
   }
 }
 
-InputKey[Unit]("verify-resource-contains") := {
+InputKey[Unit]("verifyResourceContains") := {
   val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
   val path = args.head
   val status = args.tail.head.toInt

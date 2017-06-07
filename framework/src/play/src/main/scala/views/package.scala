@@ -1,8 +1,6 @@
-
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 /**
  * Contains ready to use built-in templates and template helpers.
  */

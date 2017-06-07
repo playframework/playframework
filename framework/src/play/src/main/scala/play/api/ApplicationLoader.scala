@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
-import play.api.inject.Injector
-import play.api.inject.guice.GuiceApplicationLoader
-import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
-import play.utils.{ Threads, Reflect }
+import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
+import play.utils.Reflect
+import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -18,10 +18,12 @@ import play.utils.{ Threads, Reflect }
  * During dev mode, an ApplicationLoader will be instantiated once, and called once, each time the application is
  * reloaded. In prod mode, the ApplicationLoader will be instantiated and called once when the application is started.
  *
- * Out of the box Play provides one default implementation, the [[play.api.inject.guice.GuiceApplicationLoader]].
+ * Out of the box Play provides a Guice module that defines a Java and Scala default implementation based on Guice,
+ * as well as various helpers like GuiceApplicationBuilder.  This can be used simply by adding the "PlayImport.guice"
+ * dependency in build.sbt.
  *
- * A custom application loader can be configured using the `application.loader` configuration property.
- * Implementations must define a noarg constructor.
+ * A custom application loader can be configured using the `play.application.loader` configuration property.
+ * Implementations must define a no-arg constructor.
  */
 trait ApplicationLoader {
 
@@ -30,18 +32,22 @@ trait ApplicationLoader {
    */
   def load(context: ApplicationLoader.Context): Application
 
-  /**
-   * Create an injector for runtime DI.
-   *
-   * This can be used by runtime DI providers to provide an injector during testing. The injector should contain all
-   * the components specified by the modules, and should also bind itself.
-   *
-   * If this method is not implemented, FakeApplication will use a NewInstanceInjector instead.
-   */
-  def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]): Option[Injector] = None
 }
 
 object ApplicationLoader {
+
+  import play.api.inject.DefaultApplicationLifecycle
+
+  // Method to call if we cannot find a configured ApplicationLoader
+  private def loaderNotFound(): Nothing = {
+    sys.error("No application loader is configured. Please configure an application loader either using the " +
+      "play.application.loader configuration property, or by depending on a module that configures one. " +
+      "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt.")
+  }
+
+  private[play] final class NoApplicationLoader extends ApplicationLoader {
+    override def load(context: Context) = loaderNotFound()
+  }
 
   /**
    * The context for loading an application.
@@ -53,14 +59,36 @@ object ApplicationLoader {
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration)
+  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration, lifecycle: DefaultApplicationLifecycle)
 
   /**
    * Locate and instantiate the ApplicationLoader.
    */
   def apply(context: Context): ApplicationLoader = {
-    context.initialConfiguration.getString("play.application.loader").fold[ApplicationLoader](new GuiceApplicationLoader) { loaderClass =>
-      Reflect.createInstance[ApplicationLoader](loaderClass, context.environment.classLoader)
+    val LoaderKey = "play.application.loader"
+    if (!context.initialConfiguration.has(LoaderKey)) {
+      loaderNotFound()
+    }
+
+    Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, NoApplicationLoader](
+      context.environment, context.initialConfiguration, LoaderKey, classOf[NoApplicationLoader].getName
+    ) match {
+      case None =>
+        loaderNotFound()
+      case Some(Left(scalaClass)) =>
+        scalaClass.newInstance
+      case Some(Right(javaClass)) =>
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+        // effectively anonymous, but let's give it a name to make debugging easier.
+        class JavaApplicationLoaderAdapter extends ApplicationLoader {
+          override def load(context: ApplicationLoader.Context): Application = {
+            val javaContext = new play.ApplicationLoader.Context(context)
+            val javaApplication = javaApplicationLoader.load(javaContext)
+            javaApplication.getWrappedApplication
+          }
+        }
+        new JavaApplicationLoaderAdapter
     }
   }
 
@@ -76,16 +104,16 @@ object ApplicationLoader {
    *                        into the application.
    * @param sourceMapper An optional source mapper.
    */
-  def createContext(environment: Environment,
-    initialSettings: Map[String, String] = Map.empty[String, String],
+  def createContext(
+    environment: Environment,
+    initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
-    webCommands: WebCommands = new DefaultWebCommands) = {
-    val configuration = Threads.withContextClassLoader(environment.classLoader) {
-      Configuration.load(environment.rootPath, environment.mode, initialSettings)
-    }
-
-    Context(environment, sourceMapper, webCommands, configuration)
+    webCommands: WebCommands = new DefaultWebCommands,
+    lifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle()) = {
+    val configuration = Configuration.load(environment, initialSettings)
+    Context(environment, sourceMapper, webCommands, configuration, lifecycle)
   }
+
 }
 
 /**
@@ -96,5 +124,10 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
+  lazy val applicationLifecycle: DefaultApplicationLifecycle = context.lifecycle
+
+  lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
+    defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
+  )
 }
 

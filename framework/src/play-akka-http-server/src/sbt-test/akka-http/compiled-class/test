@@ -1,9 +1,0 @@
-# Start dev mode with an overridden server - AkkaHttpServer
-> run -Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider
-> verify-resource-contains / 200 akka-http
-> play-stop
-
-# Check tests work an explicit ServerProvider
-> test
-
-# TODO: Test dist main class

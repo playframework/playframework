@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.http.scalaresults {
 
@@ -54,8 +54,9 @@ package scalaguide.http.scalaresults {
 
       "Setting and discarding cookies" in {
         //#set-cookies
-        val result = Ok("Hello world").withCookies(
-          Cookie("theme", "blue"))
+        val result = Ok("Hello world")
+          .withCookies(Cookie("theme", "blue"))
+          .bakeCookies()
         //#set-cookies
         testHeader(result, SET_COOKIE, "theme=blue")
         //#discarding-cookies
@@ -67,7 +68,7 @@ package scalaguide.http.scalaresults {
         //#setting-discarding-cookies
         testHeader(result3, SET_COOKIE, "skin=;")
         testHeader(result3, SET_COOKIE, "theme=blue;")
-        
+
       }
 
       "Changing the charset for text based HTTP responses" in {
@@ -82,11 +83,12 @@ package scalaguide.http.scalaresults {
     }
 
     def testContentType(results: Result, contentType: String) = {
-      testHeader(results, HeaderNames.CONTENT_TYPE, contentType)
+      results.body.contentType must beSome.which { _ must contain(contentType) }
     }
 
     def testHeader(results: Result, key: String, value: String) = {
-      results.header.headers.get(key).get must contain(value)
+      results.bakeCookies() // bake cookies with default configuration
+        .header.headers.get(key).get must contain(value)
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
@@ -94,7 +96,7 @@ package scalaguide.http.scalaresults {
     }
 
     def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
-      running(FakeApplication()) {
+      running() { app =>
         val result = action(request)
         status(result) must_== expectedResponse
         assertions(result)
@@ -114,7 +116,7 @@ package scalaguide.http.scalaresults {
 
     }
     //#full-application-set-myCustomCharset
- 
+
 
   object CodeShow {
     //#Source-Code-HTML

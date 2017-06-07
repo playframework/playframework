@@ -1,49 +1,60 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
+
+import play.api.inject.guice.GuiceApplicationBuilder
+
+import scala.concurrent.duration._
 
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
-import play.api.test.FakeApplication
+import play.it._
 
-object FormFieldOrderSpec extends PlaySpecification {
+class NettyFormFieldOrderSpec extends FormFieldOrderSpec with NettyIntegrationSpecification
+class AkkaHttpFormFieldOrderSpec extends FormFieldOrderSpec with AkkaHttpIntegrationSpecification
+
+trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play' form URL Decoding " should {
 
     val urlEncoded = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 
-    val fakeApp = FakeApplication(withRoutes = {
-      case ("POST", "/") => Action {
-        request: Request[AnyContent] =>
-          // Check precondition. This needs to be an x-www-form-urlencoded request body
-          request.headers.get("Content-Type") must beSome(contentType)
-          // The following just ingests the request body and converts it to a sequnce of strings of the form name=value
-          val pairs: Seq[String] = {
-            request.body.asFormUrlEncoded map {
-              params: Map[String, Seq[String]] =>
-                {
-                  for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
-                }.toSeq
-            }
-          }.getOrElse(Seq.empty[String])
-          // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the
-          // original url_encoded string
-          val reencoded = pairs.mkString("&")
-          // Return the re-encoded body as the result body for comparison below
-          Results.Ok(reencoded)
-      }
-    })
+    val fakeApp = GuiceApplicationBuilder().appRoutes { implicit app =>
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
+      ({
+        case ("POST", "/") => Action {
+          request: Request[AnyContent] =>
+            // Check precondition. This needs to be an x-www-form-urlencoded request body
+            request.contentType must beSome(contentType)
+            // The following just ingests the request body and converts it to a sequence of strings of the form name=value
+            val pairs: Seq[String] = {
+              request.body.asFormUrlEncoded map {
+                params: Map[String, Seq[String]] =>
+                  {
+                    for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
+                  }.toSeq
+              }
+            }.getOrElse(Seq.empty[String])
+            // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the
+            // original url_encoded string
+            val reencoded = pairs.mkString("&")
+            // Return the re-encoded body as the result body for comparison below
+            Results.Ok(reencoded)
+        }
+      })
+    }.build()
 
     "preserve form field order" in new WithServer(fakeApp) {
 
       import scala.concurrent.Future
 
-      val future: Future[WSResponse] = WS.url("http://localhost:" + port + "/").
+      val ws = app.injector.instanceOf[WSClient]
+      val future: Future[WSResponse] = ws.url("http://localhost:" + port + "/").
         withHeaders("Content-Type" -> contentType).
-        withRequestTimeout(10000).post(urlEncoded)
+        withRequestTimeout(10000.millis).post(urlEncoded)
 
       val response = await(future)
       response.status must equalTo(OK)

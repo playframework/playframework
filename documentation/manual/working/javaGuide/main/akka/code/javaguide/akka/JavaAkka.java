@@ -1,30 +1,33 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.akka;
 
 import akka.actor.*;
+import static akka.pattern.Patterns.ask;
 import com.typesafe.config.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
-import play.libs.F.Promise;
+import play.Application;
+import play.core.j.JavaHandlerComponents;
+import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
-import play.test.WithApplication;
-import play.test.Helpers;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.*;
 import scala.concurrent.duration.Duration;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static play.test.Helpers.*;
 
-public class JavaAkka extends WithApplication {
+public class JavaAkka {
 
     private static volatile CountDownLatch latch;
-    public static class MyActor extends UntypedActor {
+    public static class MyActor extends UntypedAbstractActor {
         @Override
         public void onReceive(Object msg) throws Exception {
             latch.countDown();
@@ -32,69 +35,76 @@ public class JavaAkka extends WithApplication {
     }
 
     @Test
-    public void ask() throws Exception {
-        javaguide.akka.ask.Application controller = app.getWrappedApplication().injector().instanceOf(javaguide.akka.ask.Application.class);
+    public void testask() throws Exception {
+        Application app = fakeApplication();
+        running(app, () -> {
+            javaguide.akka.ask.Application controller = app.injector().instanceOf(javaguide.akka.ask.Application.class);
 
-        String message = Helpers.contentAsString(controller.sayHello("world").get(1000));
-        assertThat(message, equalTo("Hello, world"));
+            try {
+                String message = contentAsString(controller.sayHello("world").toCompletableFuture().get(1, TimeUnit.SECONDS));
+                assertThat(message, equalTo("Hello, world"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    public void injected() throws Exception {
+        Application app = new GuiceApplicationBuilder()
+            .bindings(new javaguide.akka.modules.MyModule())
+            .configure("my.config", "foo")
+            .build();
+        running(app, () -> {
+            javaguide.akka.inject.Application controller = app.injector().instanceOf(javaguide.akka.inject.Application.class);
+
+            try {
+                String message = contentAsString(controller.getConfig().toCompletableFuture().get(1, TimeUnit.SECONDS));
+                assertThat(message, equalTo("foo"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    public void factoryinjected() throws Exception {
+        Application app = new GuiceApplicationBuilder()
+            .bindings(new javaguide.akka.factorymodules.MyModule())
+            .configure("my.config", "foo")
+            .build();
+        running(app, () -> {
+            ActorRef parent = app.injector().instanceOf(play.inject.Bindings.bind(ActorRef.class).qualifiedWith("parent-actor"));
+
+            try {
+                String message = (String) FutureConverters.toJava(ask(parent, new ParentActorProtocol.GetChild("my.config"), 1000)).thenCompose(child ->
+                        FutureConverters.toJava(ask((ActorRef) child, new ConfiguredChildActorProtocol.GetConfig(), 1000))
+                ).toCompletableFuture().get(5, TimeUnit.SECONDS);
+                assertThat(message, equalTo("foo"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Test
     public void conf() throws Exception {
         Config config = ConfigFactory.parseURL(getClass().getResource("akka.conf"));
-        ActorSystem.create("conf", config).shutdown();
+        scala.concurrent.Future<Terminated> future = ActorSystem.create("conf", config).terminate();
+        Await.ready(future, Duration.create("10s"));
     }
 
     @Test
     public void async() throws Exception {
-        Result result = MockJavaActionHelper.call(new MockJavaAction() {
-            public Promise<Result> index() {
-                return new javaguide.akka.async.Application().index();
-            }
-        }, Helpers.fakeRequest());
-        assertThat(Helpers.contentAsString(result), equalTo("Got 2"));
-    }
+        Application app = fakeApplication();
+        running(app, () -> {
+            Result result = MockJavaActionHelper.call(new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
+                public CompletionStage<Result> index() {
+                    return new javaguide.akka.async.Application().index();
+                }
+            }, fakeRequest(), app.getWrappedApplication().materializer());
+            assertThat(contentAsString(result), equalTo("Got 2"));
+        });
 
-    @Test
-    public void scheduleActor() throws Exception {
-        ActorSystem system = app.getWrappedApplication().injector().instanceOf(ActorSystem.class);
-        latch = new CountDownLatch(1);
-        ActorRef testActor = system.actorOf(Props.create(MyActor.class));
-        //#schedule-actor
-        system.scheduler().schedule(
-                Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
-                Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
-                testActor,
-                "tick",
-                system.dispatcher(),
-                null
-        );
-        //#schedule-actor
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
-
-    @Test
-    public void scheduleCode() throws Exception {
-        ActorSystem system = app.getWrappedApplication().injector().instanceOf(ActorSystem.class);
-        final CountDownLatch latch = new CountDownLatch(1);
-        class MockFile {
-            void delete() {
-                latch.countDown();
-            }
-        }
-        final MockFile file = new MockFile();
-        //#schedule-code
-        system.scheduler().scheduleOnce(
-                Duration.create(10, TimeUnit.MILLISECONDS),
-                new Runnable() {
-                    public void run() {
-                        file.delete();
-                    }
-                },
-                system.dispatcher()
-        );
-        //#schedule-code
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
 }

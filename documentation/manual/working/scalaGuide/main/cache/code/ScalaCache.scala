@@ -1,36 +1,36 @@
-
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.cache {
 
+import akka.Done
+import akka.stream.ActorMaterializer
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import org.specs2.execute.AsResult
 
 import play.api.Play.current
 import play.api.test._
 import play.api.mvc._
 import play.api.libs.json.Json
-import scala.concurrent.Future
-import org.specs2.execute.AsResult
-
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
 class ScalaCacheSpec extends PlaySpecification with Controller {
 
-  import play.api.cache.CacheApi
+  import play.api.cache.AsyncCacheApi
   import play.api.cache.Cached
 
-  def withCache[T](block: CacheApi => T) = {
-    val app = FakeApplication()
-    running(app)(block(app.injector.instanceOf[CacheApi]))
+  def withCache[T](block: AsyncCacheApi => T) = {
+    running()(app => block(app.injector.instanceOf[AsyncCacheApi]))
   }
 
   "A scala Cache" should {
 
     "be injectable" in {
-      val app = FakeApplication()
-      running(app) {
+      running() { app =>
         app.injector.instanceOf[inject.Application]
         ok
       }
@@ -39,29 +39,34 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
     "a cache" in withCache { cache =>
       val connectedUser = User("xf")
       //#set-value
-      cache.set("item.key", connectedUser)
+      val result: Future[Done] = cache.set("item.key", connectedUser)
       //#set-value
+      Await.result(result, 1.second)
 
       //#get-value
-      val maybeUser: Option[User] = cache.get[User]("item.key")
+      val futureMaybeUser: Future[Option[User]] = cache.get[User]("item.key")
       //#get-value
 
+      val maybeUser = Await.result(futureMaybeUser, 1.second)
       maybeUser must beSome(connectedUser)
 
       //#remove-value
-      cache.remove("item.key")
+      val removeResult: Future[Done] = cache.remove("item.key")
       //#remove-value
-      cache.get[User]("item.key") must beNone
+      Await.result(removeResult, 1.second)
+
+      cache.sync.get[User]("item.key") must beNone
     }
 
 
     "a cache or get user" in withCache { cache =>
       val connectedUser = "xf"
       //#retrieve-missing
-      val user: User = cache.getOrElse[User]("item.key") {
+      val futureUser: Future[User] = cache.getOrElseUpdate[User]("item.key") {
         User.findById(connectedUser)
       }
       //#retrieve-missing
+      val user = Await.result(futureUser, 1.second)
       user must beEqualTo(User(connectedUser))
     }
 
@@ -70,97 +75,57 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
       //#set-value-expiration
       import scala.concurrent.duration._
 
-      cache.set("item.key", connectedUser, 5.minutes)
+      val result: Future[Done] = cache.set("item.key", connectedUser, 5.minutes)
       //#set-value-expiration
+      Await.result(result, 1.second)
       ok
     }
 
     "bind multiple" in {
-      val app = FakeApplication(additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("session-cache")))
-      running(app) {
+      running(_.configure("play.cache.bindCaches" -> Seq("session-cache"))) { app =>
         app.injector.instanceOf[qualified.Application]
         ok
       }
     }
 
     "cached page" in {
-      running(FakeApplication()) {
-        //#cached-action
-        def index = Cached("homePage") {
-          Action {
-            Ok("Hello world")
-          }
-        }
-        //#cached-action
-        val result = index(FakeRequest()).run
+      running() { app =>
+        implicit val mat = ActorMaterializer()(app.actorSystem)
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        val result = cachedApp.index(FakeRequest()).run()
         status(result) must_== 200
       }
     }
 
     "composition cached page" in {
-      import play.api.mvc.Security.Authenticated
-
-      //#composition-cached-action
-      def userProfile = Authenticated {
-        user =>
-          Cached(req => "profile." + user) {
-            Action {
-              Ok(views.html.profile(User.find(user)))
-            }
-          }
+      running() { app =>
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        testAction(action=cachedApp.userProfile,expectedResponse=UNAUTHORIZED)
       }
-      //#composition-cached-action
-      testAction(action=userProfile,expectedResponse=UNAUTHORIZED)
     }
 
     "control cache" in {
-      running(FakeApplication()) {
-        //#cached-action-control
-        def get(index: Int) = Cached.status(_ => "/resource/"+ index, 200) {
-          Action {
-            if (index > 0) {
-              Ok(Json.obj("id" -> index))
-            } else {
-              NotFound
-            }
-          }
-        }
-        //#cached-action-control
-        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+      running() { app =>
+        implicit val mat = ActorMaterializer()(app.actorSystem)
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        val result0 = cachedApp.get(1)(FakeRequest("GET", "/resource/1")).run()
         status(result0) must_== 200
-        val result1 = get(-1)(FakeRequest("GET", "/resource/-1")).run
+        val result1 = cachedApp.get(-1)(FakeRequest("GET", "/resource/-1")).run()
         status(result1) must_== 404
       }
 
     }
 
     "control cache" in {
-      running(FakeApplication()) {
-        //#cached-action-control-404
-        def get(index: Int) = {
-          val caching = Cached
-            .status(_ => "/resource/"+ index, 200)
-            .includeStatus(404, 600)
-
-          caching {
-            Action {
-              if (index % 2 == 1) {
-                Ok(Json.obj("id" -> index))
-              } else {
-                NotFound
-              }
-            }
-          }
-        }
-        //#cached-action-control-404
-        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+      running() { app =>
+        implicit val mat = ActorMaterializer()(app.actorSystem)
+        val cachedApp = app.injector.instanceOf[cachedaction.Application2]
+        val result0 = cachedApp.get(1)(FakeRequest("GET", "/resource/1")).run()
         status(result0) must_== 200
-        val result1 = get(2)(FakeRequest("GET", "/resource/2")).run
+        val result1 = cachedApp.get(2)(FakeRequest("GET", "/resource/2")).run()
         status(result1) must_== 404
       }
-
     }
-
 
   }
 
@@ -172,8 +137,9 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
   }
 
   def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-    running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
-      val result = action(request).run
+    running() { app =>
+      implicit val mat = ActorMaterializer()(app.actorSystem)
+      val result = action(request).run()
       status(result) must_== expectedResponse
       assertions(result)
     }
@@ -198,7 +164,7 @@ import play.api.cache._
 import play.api.mvc._
 import javax.inject.Inject
 
-class Application @Inject() (cache: CacheApi) extends Controller {
+class Application @Inject() (cache: AsyncCacheApi) extends Controller {
 
 }
 //#inject
@@ -211,20 +177,85 @@ import play.api.mvc._
 import javax.inject.Inject
 
 class Application @Inject()(
-    @NamedCache("session-cache") sessionCache: CacheApi
+    @NamedCache("session-cache") sessionCache: AsyncCacheApi
 ) extends Controller {
 
 }
 //#qualified
 }
 
+package cachedaction {
+//#cached-action-app
+import play.api.cache.Cached
+import javax.inject.Inject
+
+class Application @Inject() (cached: Cached) extends Controller {
+
+}
+//#cached-action-app
+
+class Application1 @Inject() (cached: Cached)(implicit ec: ExecutionContext) extends Controller {
+  //#cached-action
+  def index = cached("homePage") {
+    Action {
+      Ok("Hello world")
+    }
+  }
+  //#cached-action
+
+  import play.api.mvc.Security._
+
+  //#composition-cached-action
+  def userProfile = WithAuthentication(_.session.get("username")) { userId =>
+    cached(req => "profile." + userId) {
+      Action.async {
+        User.find(userId).map { user =>
+          Ok(views.html.profile(user))
+        }
+      }
+    }
+  }
+  //#composition-cached-action
+  //#cached-action-control
+  def get(index: Int) = cached.status(_ => "/resource/"+ index, 200) {
+    Action {
+      if (index > 0) {
+        Ok(Json.obj("id" -> index))
+      } else {
+        NotFound
+      }
+    }
+  }
+  //#cached-action-control
+}
+class Application2 @Inject() (cached: Cached) extends Controller {
+  //#cached-action-control-404
+  def get(index: Int) = {
+    val caching = cached
+      .status(_ => "/resource/"+ index, 200)
+      .includeStatus(404, 600)
+
+    caching {
+      Action {
+        if (index % 2 == 1) {
+          Ok(Json.obj("id" -> index))
+        } else {
+          NotFound
+        }
+      }
+    }
+  }
+  //#cached-action-control-404
+}
+
+}
 
 case class User(name: String)
 
 object User {
-  def findById(userId: String) = User(userId)
+  def findById(userId: String) = Future.successful(User(userId))
 
-  def find(user: String) = User(user)
+  def find(user: String) = Future.successful(User(user))
 }
 
 }

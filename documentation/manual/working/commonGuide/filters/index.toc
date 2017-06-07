@@ -1,0 +1,6 @@
+Filters:Play HTTP filters
+GzipEncoding:Configuring gzip encoding
+SecurityHeaders:Configuring security headers
+CorsFilter:Configuring CORS
+AllowedHostsFilter:Configuring allowed hosts
+RedirectHttpsFilter:Configuring HTTPS redirect

@@ -1,100 +1,76 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
-import org.junit.Before;
 import org.junit.Test;
+
+//#comet-imports
+import akka.stream.javadsl.Source;
+import play.core.j.JavaHandlerComponents;
 import play.libs.Comet;
+import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
+//#comet-imports
+
 import play.test.WithApplication;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
+import static play.test.Helpers.contentAsString;
+import static play.test.Helpers.fakeRequest;
 
 public class JavaComet extends WithApplication {
 
-    @Test
-    public void manual() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest()));
-        assertThat(content, containsString("<script>console.log('kiki')</script>"));
-        assertThat(content, containsString("<script>console.log('foo')</script>"));
-        assertThat(content, containsString("<script>console.log('bar')</script>"));
-    }
-
     public static class Controller1 extends MockJavaAction {
-        //#manual
-        public Result index() {
-            // Prepare a chunked text stream
-            Chunks<String> chunks = new StringChunks() {
 
-                // Called when the stream is ready
-                public void onReady(Chunks.Out<String> out) {
-                    out.write("<script>console.log('kiki')</script>");
-                    out.write("<script>console.log('foo')</script>");
-                    out.write("<script>console.log('bar')</script>");
-                    out.close();
-                }
-
-            };
-
-            response().setContentType("text/html");
-            return ok(chunks);
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
         }
-        //#manual
-    }
 
-    @Test
-    public void comet() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller2(), fakeRequest()));
-        assertThat(content, containsString("<script type=\"text/javascript\">console.log('kiki');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">console.log('foo');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">console.log('bar');</script>"));
+        //#comet-string
+        public static Result index() {
+            final Source source = Source.from(Arrays.asList("kiki", "foo", "bar"));
+            return ok().chunked(source.via(Comet.string("parent.cometMessage"))).as(Http.MimeTypes.HTML);
+        }
+        //#comet-string
     }
 
     public static class Controller2 extends MockJavaAction {
-        //#comet
-        public Result index() {
-            Comet comet = new Comet("console.log") {
-                public void onConnected() {
-                    sendMessage("kiki");
-                    sendMessage("foo");
-                    sendMessage("bar");
-                    close();
-                }
-            };
 
-            return ok(comet);
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
         }
-        //#comet
+
+        //#comet-json
+        public static Result index() {
+            final ObjectNode objectNode = Json.newObject();
+            objectNode.put("foo", "bar");
+            final Source source = Source.from(Collections.singletonList(objectNode));
+            return ok().chunked(source.via(Comet.json("parent.cometMessage"))).as(Http.MimeTypes.HTML);
+        }
+        //#comet-json
     }
 
     @Test
     public void foreverIframe() {
-        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('kiki');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('foo');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('bar');</script>"));
     }
 
-    public static class Controller3 extends MockJavaAction {
-        //#forever-iframe
-        public Result index() {
-            Comet comet = new Comet("parent.cometMessage") {
-                public void onConnected() {
-                    sendMessage("kiki");
-                    sendMessage("foo");
-                    sendMessage("bar");
-                    close();
-                }
-            };
-
-            return ok(comet);
-        }
-        //#forever-iframe
+    @Test
+    public void foreverIframeWithJson() {
+        String content = contentAsString(MockJavaActionHelper.call(new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
+        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage({\"foo\":\"bar\"});</script>"));
     }
 
 }

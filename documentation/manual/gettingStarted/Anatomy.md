@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Anatomy of a Play application
 
-## The standard application layout
+## The Play application layout
 
-The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a standard Play application looks like this:
+The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a Play application looks like this:
 
 ```
 app                      → Application sources
@@ -17,6 +17,7 @@ build.sbt                → Application build script
 conf                     → Configurations files and other non-compiled resources (on classpath)
  └ application.conf      → Main configuration file
  └ routes                → Routes definition
+dist                     → Arbitrary files to be included in your projects distribution
 public                   → Public assets
  └ stylesheets           → CSS files
  └ javascripts           → Javascript files
@@ -25,23 +26,25 @@ project                  → sbt configuration files
  └ build.properties      → Marker for sbt project
  └ plugins.sbt           → sbt plugins including the declaration for Play itself
 lib                      → Unmanaged libraries dependencies
-logs                     → Standard logs folder
+logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
- └ scala-2.10.0            
-    └ cache              
+ └ resolution-cache      → Info about dependencies
+ └ scala-2.11
+    └ api                → Generated API docs
     └ classes            → Compiled class files
-    └ classes_managed    → Managed class files (templates, ...)
-    └ resource_managed   → Managed resources (less, ...)
-    └ src_managed        → Generated sources (templates, ...)
+    └ routes             → Sources generated from routes
+    └ twirl              → Sources generated from templates
+ └ universal             → Application packaging
+ └ web                   → Compiled web assets
 test                     → source folder for unit or functional tests
 ```
 
-## The app/ directory
+## The `app/` directory
 
 The `app` directory contains all executable artifacts: Java and Scala source code, templates and compiled assets’ sources.
 
-There are three standard packages in the `app` directory, one for each component of the MVC architectural pattern: 
+There are three packages in the `app` directory, one for each component of the MVC architectural pattern:
 
 - `app/controllers`
 - `app/models`
@@ -53,41 +56,41 @@ You can of course add your own packages, for example an `app/utils` package.
 
 There is also an optional directory called `app/assets` for compiled assets such as [LESS sources](http://lesscss.org/) and [CoffeeScript sources](http://coffeescript.org/).
 
-## The public/ directory
+## The `public/` directory
 
 Resources stored in the `public` directory are static assets that are served directly by the Web server.
 
-This directory is split into three standard sub-directories for images, CSS stylesheets and JavaScript files. You should organize your static assets like this to keep all Play applications consistent.
+This directory is split into three sub-directories for images, CSS stylesheets and JavaScript files. You should organize your static assets like this to keep all Play applications consistent.
 
 > In a newly-created application, the `/public` directory is mapped to the `/assets` URL path, but you can easily change that, or even use several directories for your static assets.
 
-## The conf/ directory
+## The `conf/` directory
 
 The `conf` directory contains the application’s configuration files. There are two main configuration files:
 
-- `application.conf`, the main configuration file for the application, which contains standard configuration parameters
+- `application.conf`, the main configuration file for the application, which contains configuration parameters
 - `routes`, the routes definition file.
 
 If you need to add configuration options that are specific to your application, it’s a good idea to add more options to the `application.conf` file.
 
 If a library needs a specific configuration file, try to file it under the `conf` directory.
 
-## The lib/ directory
+## The `lib/` directory
 
 The `lib` directory is optional and contains unmanaged library dependencies, ie. all JAR files you want to manually manage outside the build system. Just drop any JAR files here and they will be added to your application classpath.
 
-## The build.sbt file
+## The `build.sbt` file
 
 Your project's main build declarations are generally found in `build.sbt` at the root of the project. `.scala` files in the `project/` directory can also be used to declare your project's build.
 
-## The project/ directory
+## The `project/` directory
 
 The `project` directory contains the sbt build definitions:
 
 - `plugins.sbt` defines sbt plugins used by this project
 - `build.properties` contains the sbt version to use to build your app.
 
-## The target/ directory
+## The `target/` directory
 
 The `target` directory contains everything generated by the build system. It can be useful to know what is generated here.
 
@@ -97,7 +100,7 @@ The `target` directory contains everything generated by the build system. It can
 - `src_managed/` contains generated sources, such as the Scala sources generated by the template system.
 - `web/` contains assets processed by [sbt-web](https://github.com/sbt/sbt-web#sbt-web) such as those from the `app/assets` and `public` folders.
 
-## Typical .gitignore file
+## Typical `.gitignore` file
 
 Generated folders should be ignored by your version control system. Here is the typical `.gitignore` file for a Play application:
 
@@ -109,4 +112,57 @@ target
 tmp
 dist
 .cache
+```
+
+## Default SBT layout
+
+You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
+
+```
+disablePlugins(PlayLayoutPlugin)
+PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value
+```
+
+This will stop Play from overriding the default SBT layout, which looks like this:
+
+```
+build.sbt                  → Application build script
+src                        → Application sources
+ └ main                    → Compiled asset sources
+    └ java                 → Java sources
+       └ controllers       → Java controllers
+       └ models            → Java business layer
+    └ scala                → Scala sources
+       └ controllers       → Scala controllers
+       └ models            → Scala business layer
+    └ resources            → Configurations files and other non-compiled resources (on classpath)
+       └ application.conf  → Main configuration file
+       └ routes            → Routes definition
+    └ twirl
+       └ views             → Templates
+    └ assets               → Compiled asset sources
+       └ css               → Typically LESS CSS sources
+       └ js                → Typically CoffeeScript sources
+    └ public               → Public assets
+       └ css               → CSS files
+       └ js                → Javascript files
+       └ images            → Image files
+ └ test                    → Unit or functional tests
+    └ java                 → Java source folder for unit or functional tests
+    └ scala                → Scala source folder for unit or functional tests
+    └ resources            → Resource folder for unit or functional tests
+ └ universal               → Arbitrary files to be included in your projects distribution
+project                    → sbt configuration files
+ └ build.properties        → Marker for sbt project
+ └ plugins.sbt             → sbt plugins including the declaration for Play itself
+lib                        → Unmanaged libraries dependencies
+logs                       → Logs folder
+ └ application.log         → Default log file
+target                     → Generated stuff
+ └ scala-2.11.11
+    └ cache
+    └ classes              → Compiled class files
+    └ classes_managed      → Managed class files (templates, ...)
+    └ resource_managed     → Managed resources (less, ...)
+    └ src_managed          → Generated sources (templates, ...)
 ```

@@ -1,9 +1,9 @@
 Home:Home
+LatestRelease:Latest release
 gettingStarted:Getting started
 working:Working with Play
-detailedTopics:Detailed topics
+hacking:Contributing to Play
 experimental:Experimental libraries
-hacking:Hacking Play
 about:About Play
 releases:Play releases
-ModuleDirectory:Temporary module directory
+ModuleDirectory:Module directory

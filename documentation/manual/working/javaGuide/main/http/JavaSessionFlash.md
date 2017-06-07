@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Session and Flash scopes
 
 ## How it is different in Play
@@ -9,7 +9,13 @@ It’s important to understand that Session and Flash data are not stored in the
 
 Cookies are signed with a secret key so the client can’t modify the cookie data (or it will be invalidated). The Play session is not intended to be used as a cache. If you need to cache some data related to a specific session, you can use the Play built-in cache mechanism and use the session to store a unique ID to associate the cached data with a specific user.
 
-> There is no technical timeout for the session, which expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maxmimum inactivity duration, etc.).
+## Session Configuration
+
+Please see [[Configuring Session Cookies|SettingsSession]] for more information for how to configure the session cookie parameters in `application.conf`.
+
+### Session Timeout / Expiration
+
+By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, you set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` in `application.conf`, and this will also set `play.http.session.jwt.expiresAfter` to the same value.  The `maxAge` property will remove the cookie from the browser, and the JWT `exp` claim will be set in the cookie, and will make it invalid after the given duration.  Please see [[Configuring Session Cookies|SettingsSession]] for more information.
 
 ## Storing data into the Session
 
@@ -46,7 +52,7 @@ So for example, after saving an item, you might want to redirect the user back t
 
 @[store-flash](code/javaguide/http/JavaSessionFlash.java)
 
-Then in the index action, you could check if the success message existed in the flash scope, and if so, render it:
+Then in the index action, you could check if the success message exists in the flash scope, and if so, render it:
 
 @[read-flash](code/javaguide/http/JavaSessionFlash.java)
 

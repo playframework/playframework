@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
 
@@ -8,7 +8,7 @@ import org.scalacheck.{ Arbitrary, Gen }
 import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck
 
-object FTupleSpec extends Specification with ScalaCheck {
+class FTupleSpec extends Specification with ScalaCheck {
 
   import ArbitraryTuples._
 

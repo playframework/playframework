@@ -1,4 +1,0 @@
-DeployingCloud:Deploying to a cloud service
-ProductionHeroku:Deploying to Heroku
-Deploying-CloudFoundry:Deploying to Cloud Foundry
-Deploying-CleverCloud:Deploying to Clever Cloud

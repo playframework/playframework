@@ -1,68 +1,26 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
-import play.api.libs.iteratee._
+import javax.inject.Inject
+
+import akka.util.ByteString
 import play.api._
-import play.core.Router.{ HandlerInvoker, HandlerInvokerFactory }
+import play.api.libs.streams.Accumulator
+
 import scala.concurrent._
 import scala.language.higherKinds
 
 /**
- * An Handler handles a request. Play understands several types of handlers,
- * for example `EssentialAction`s and `WebSocket`s.
- *
- * The `Handler` used to handle the request is controlled by `GlobalSetting`s's
- * `onRequestReceived` method. The default implementation of
- * `onRequestReceived` delegates to `onRouteRequest` which calls the default
- * `Router`.
- */
-trait Handler
-
-/**
- * A handler that is able to tag requests. Usually mixed in to other handlers.
- */
-trait RequestTaggingHandler extends Handler {
-  def tagRequest(request: RequestHeader): RequestHeader
-}
-
-/**
- * Reference to a Handler, useful for contructing handlers from Java code.
- */
-class HandlerRef[T](call: => T, handlerDef: play.core.Router.HandlerDef)(implicit hif: play.core.Router.HandlerInvokerFactory[T]) extends play.mvc.HandlerRef {
-
-  lazy val invoker: HandlerInvoker[T] = hif.createInvoker(call, handlerDef)
-
-  /**
-   * Retrieve a real handler behind this ref.
-   */
-  def handler: play.api.mvc.Handler = {
-    invoker.call(call)
-  }
-
-  /**
-   * String representation of this Handler.
-   */
-  lazy val sym = {
-    handlerDef.controller + "." + handlerDef.method + "(" + handlerDef.parameterTypes.map(_.getName).mkString(", ") + ")"
-  }
-
-  override def toString = {
-    "HandlerRef[" + sym + ")]"
-  }
-
-}
-
-/**
  * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an
- * `EssentialAction` consumes the request body (an `Array[Byte]`) and returns
+ * `EssentialAction` consumes the request body (an `ByteString`) and returns
  * a `Result`.
  *
  * An `EssentialAction` is a `Handler`, which means it is one of the objects
  * that Play uses to handle requests.
  */
-trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler { self =>
 
   /**
    * Returns itself, for better support in the routes file.
@@ -71,6 +29,14 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
    */
   def apply() = this
 
+  def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
+    def apply(rh: play.mvc.Http.RequestHeader) = {
+      import play.core.Execution.Implicits.trampoline
+      self(rh.asScala).map(_.asJava).asJava
+    }
+    override def apply(rh: RequestHeader) = self(rh)
+  }
+
 }
 
 /**
@@ -78,7 +44,7 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
  */
 object EssentialAction {
 
-  def apply(f: RequestHeader => Iteratee[Array[Byte], Result]): EssentialAction = new EssentialAction {
+  def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader) = f(rh)
   }
 }
@@ -98,7 +64,7 @@ object EssentialAction {
  */
 trait Action[A] extends EssentialAction {
 
-  import Action._
+  private lazy val logger = Logger(getClass)
 
   /**
    * Type of the request body.
@@ -120,20 +86,14 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Future[Result]
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM {
+  def apply(rh: RequestHeader): Accumulator[ByteString, Result] = parser(rh).mapFuture {
     case Left(r) =>
       logger.trace("Got direct result from the BodyParser: " + r)
       Future.successful(r)
     case Right(a) =>
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
-      Play.maybeApplication.map { app =>
-        play.utils.Threads.withContextClassLoader(app.classloader) {
-          apply(request)
-        }
-      }.getOrElse {
-        apply(request)
-      }
+      apply(request)
   }(executionContext)
 
   /**
@@ -141,7 +101,7 @@ trait Action[A] extends EssentialAction {
    *
    * @return The execution context to run the action in
    */
-  def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
+  def executionContext: ExecutionContext
 
   /**
    * Returns itself, for better support in the routes file.
@@ -161,8 +121,9 @@ trait Action[A] extends EssentialAction {
  *
  * @tparam A the body content type
  */
-trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
-  self =>
+trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Result, A]]) {
+  // "with Any" because we need to prevent 2.12 SAM inference here
+  self: BodyParser[A] with Any =>
 
   /**
    * Uses the provided function to transform the BodyParser's computed result
@@ -172,7 +133,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * @param ec The context to execute the supplied function with.
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
-   * @see [[play.api.libs.iteratee.Iteratee#map]]
+   * @see play.api.libs.streams.Accumulator.map
    */
   def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
@@ -192,71 +153,18 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    *        The context prepared on the calling thread.
    * @return the transformed body parser
    * @see [[map]]
-   * @see [[play.api.libs.iteratee.Iteratee#mapM]]
+   * @see play.api.libs.streams.Accumulator.mapFuture[B]
    */
   def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).mapM {
+      def apply(request: RequestHeader) = self(request).mapFuture {
         case Right(a) =>
           // safe to execute `Right.apply` in same thread
-          f(a).map(Right.apply)(Execution.trampoline)
+          f(a).map(Right.apply)(play.core.Execution.trampoline)
         case left =>
           Future.successful(left.asInstanceOf[Either[Result, B]])
-      }(pec)
-      override def toString = self.toString
-    }
-  }
-
-  /**
-   * Uses the provided function to transform the BodyParser’s computed result
-   * into another BodyParser to continue with.
-   *
-   * On Done of the Iteratee produced by this BodyParser, the result is passed
-   * to the provided function, and the resulting BodyParser is given the same
-   * RequestHeader and the Iteratee produced is used to continue consuming
-   * input.
-   *
-   * @param f the function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
-   *        The context is prepared on the calling thread.
-   * @return the transformed body parser
-   * @see [[play.api.libs.iteratee.Iteratee#flatMap]]
-   */
-  def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
-    new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMap {
-        case Left(e) => Done(Left(e))
-        case Right(a) => f(a)(request)
-      }(pec)
-      override def toString = self.toString
-    }
-  }
-
-  /**
-   * Like flatMap but allows the flatMap function to execute asynchronously.
-   *
-   * @param f the async function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
-   *        The context is prepared on the calling thread.
-   * @return the transformed body parser
-   * @see [[flatMap]]
-   * @see [[play.api.libs.iteratee.Iteratee#flatMapM]]
-   */
-  def flatMapM[B](f: A => Future[BodyParser[B]])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
-    new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMapM {
-        case Right(a) =>
-          f(a).map { _.apply(request) }(pec)
-        case left =>
-          Future.successful {
-            Done[Array[Byte], Either[Result, B]](left.asInstanceOf[Either[Result, B]])
-          }
       }(pec)
       override def toString = self.toString
     }
@@ -272,7 +180,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Example:
    * {{{
    *   def validateJson[A : Reads] = parse.json.validate(
-   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
    *   )
    * }}}
    *
@@ -285,9 +193,9 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMap {
-        case Left(e) => Done(Left(e), Input.Empty)
-        case Right(a) => Done(f(a), Input.Empty)
+      def apply(request: RequestHeader) = self(request).map {
+        case Left(e) => Left(e)
+        case Right(a) => f(a)
       }(pec)
       override def toString = self.toString
     }
@@ -306,14 +214,12 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMapM {
+      def apply(request: RequestHeader) = self(request).mapFuture {
         case Right(a) =>
           // safe to execute `Done.apply` in same thread
-          f(a).map(Done.apply[Array[Byte], Either[Result, B]](_))(Execution.trampoline)
-        case left =>
-          Future.successful {
-            Done[Array[Byte], Either[Result, B]](left.asInstanceOf[Either[Result, B]])
-          }
+          f(a)
+        case Left(e) =>
+          Future.successful(Left(e))
       }(pec)
       override def toString = self.toString
     }
@@ -325,31 +231,11 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
  */
 object BodyParser {
 
-  /**
-   * Create an anonymous BodyParser
-   *
-   * Example:
-   * {{{
-   * val bodySize = BodyParser { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
-   * }
-   * }}}
-   */
-  def apply[T](f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = {
+  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = {
     apply("(no name)")(f)
   }
 
-  /**
-   * Create a BodyParser
-   *
-   * Example:
-   * {{{
-   * val bodySize = BodyParser("Body size") { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
-   * }
-   * }}}
-   */
-  def apply[T](debugName: String)(f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+  def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
     override def toString = "BodyParser(" + debugName + ")"
   }
@@ -379,11 +265,12 @@ trait ActionFunction[-R[_], +P[_]] {
   def invokeBlock[A](request: R[A], block: P[A] => Future[Result]): Future[Result]
 
   /**
-   * Get the execution context to run the request in.  Override this if you want a custom execution context
+   * Get the execution context to run the request in.
    *
    * @return The execution context
    */
-  protected def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
+
+  protected def executionContext: ExecutionContext
 
   /**
    * Compose this ActionFunction with another, with this one applied first.
@@ -392,6 +279,7 @@ trait ActionFunction[-R[_], +P[_]] {
    * @return The new ActionFunction
    */
   def andThen[Q[_]](other: ActionFunction[P, Q]): ActionFunction[R, Q] = new ActionFunction[R, Q] {
+    def executionContext = self.executionContext
     def invokeBlock[A](request: R[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
   }
@@ -405,19 +293,24 @@ trait ActionFunction[-R[_], +P[_]] {
   def compose[Q[_]](other: ActionFunction[Q, R]): ActionFunction[Q, P] =
     other.andThen(this)
 
-  def compose(other: ActionBuilder[R]): ActionBuilder[P] =
+  def compose[B](other: ActionBuilder[R, B]): ActionBuilder[P, B] =
     other.andThen(this)
 
 }
 
 /**
- * Provides helpers for creating `Action` values.
+ * Provides helpers for creating [[Action]] values.
  */
-trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
+trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
   self =>
 
   /**
-   * Constructs an `Action`.
+   * @return The BodyParser to be used by this ActionBuilder if no other is specified
+   */
+  def parser: BodyParser[B]
+
+  /**
+   * Constructs an [[ActionBuilder]] with the given [[BodyParser]]. The result can then be applied directly to a block.
    *
    * For example:
    * {{{
@@ -428,11 +321,14 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    *
    * @tparam A the type of the request body
    * @param bodyParser the `BodyParser` to use to parse the request body
-   * @param block the action code
    * @return an action
    */
-  final def apply[A](bodyParser: BodyParser[A])(block: R[A] => Result): Action[A] = async(bodyParser) { req: R[A] =>
-    Future.successful(block(req))
+  final def apply[A](bodyParser: BodyParser[A]): ActionBuilder[R, A] = new ActionBuilder[R, A] {
+    override def parser = bodyParser
+    override protected def executionContext = self.executionContext
+    override protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
+    override protected def composeAction[A](action: Action[A]): Action[A] = self.composeAction(action)
+    override def invokeBlock[A](request: Request[A], block: R[A] => Future[Result]) = self.invokeBlock(request, block)
   }
 
   /**
@@ -448,7 +344,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def apply(block: R[AnyContent] => Result): Action[AnyContent] = apply(BodyParsers.parse.default)(block)
+  final def apply(block: R[B] => Result): Action[B] = async(block andThen Future.successful)
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -463,7 +359,8 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+  final def apply(block: => Result): Action[AnyContent] =
+    apply(BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content, and no request parameter.
@@ -471,7 +368,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async {
-   *   WS.url("http://www.playframework.com").get().map { r =>
+   *   ws.url("http://www.playframework.com").get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
@@ -480,7 +377,8 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def async(block: => Future[Result]): Action[AnyContent] = async(_ => block)
+  final def async(block: => Future[Result]): Action[AnyContent] =
+    async(BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -488,7 +386,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async { request =>
-   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *   ws.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
@@ -497,7 +395,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @param block the action code
    * @return an action
    */
-  final def async(block: R[AnyContent] => Future[Result]): Action[AnyContent] = async(BodyParsers.parse.default)(block)
+  final def async(block: R[B] => Future[Result]): Action[B] = async(parser)(block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -505,7 +403,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * For example:
    * {{{
    * val hello = Action.async { request =>
-   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *   ws.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
    * }
@@ -515,6 +413,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * @return an action
    */
   final def async[A](bodyParser: BodyParser[A])(block: R[A] => Future[Result]): Action[A] = composeAction(new Action[A] {
+    def executionContext = self.executionContext
     def parser = composeParser(bodyParser)
     def apply(request: Request[A]) = try {
       invokeBlock(request, block)
@@ -524,7 +423,6 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
       // LinkageError is similarly harmless in Play Framework, since automatic reloading could easily trigger it
       case e: LinkageError => throw new RuntimeException(e)
     }
-    override def executionContext = ActionBuilder.this.executionContext
   })
 
   /**
@@ -543,7 +441,9 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    */
   protected def composeAction[A](action: Action[A]): Action[A] = action
 
-  override def andThen[Q[_]](other: ActionFunction[R, Q]): ActionBuilder[Q] = new ActionBuilder[Q] {
+  override def andThen[Q[_]](other: ActionFunction[R, Q]): ActionBuilder[Q, B] = new ActionBuilder[Q, B] {
+    def executionContext = self.executionContext
+    def parser = self.parser
     def invokeBlock[A](request: Request[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
     override protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
@@ -551,13 +451,52 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
   }
 }
 
+object ActionBuilder {
+  class IgnoringBody()(implicit ec: ExecutionContext)
+    extends ActionBuilderImpl(BodyParsers.utils.ignore[AnyContent](AnyContentAsEmpty))(ec)
+
+  /**
+   * An ActionBuilder that ignores the body passed into it. This uses the trampoline execution context, which
+   * executes in the current thread. Since using this execution context in user code can cause unexpected
+   * consequences, this method is private[play].
+   */
+  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] =
+    new IgnoringBody()(play.core.Execution.trampoline)
+}
+
+/**
+ * A trait representing the default action builder used by Play's controllers.
+ *
+ * This trait is used for binding, since some dependency injection frameworks doesn't deal
+ * with types very well.
+ */
+trait DefaultActionBuilder extends ActionBuilder[Request, AnyContent]
+
+object DefaultActionBuilder {
+  def apply(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext): DefaultActionBuilder =
+    new DefaultActionBuilderImpl(parser)
+}
+
+class ActionBuilderImpl[B](val parser: BodyParser[B])(implicit val executionContext: ExecutionContext)
+    extends ActionBuilder[Request, B] {
+  def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
+}
+
+class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
+    extends ActionBuilderImpl(parser) with DefaultActionBuilder {
+  @Inject
+  def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = this(parser: BodyParser[AnyContent])
+}
+
 /**
  * Helper object to create `Action` values.
  */
-object Action extends ActionBuilder[Request] {
-  private val logger = Logger(Action.getClass)
-
-  def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
+@deprecated("Inject an ActionBuilder (e.g. DefaultActionBuilder)" +
+  " or extend BaseController/AbstractController/InjectedController", "2.6.0")
+object Action extends DefaultActionBuilder {
+  override def executionContext: ExecutionContext = play.core.Execution.internalContext
+  override def parser: BodyParser[AnyContent] = BodyParsers.parse.default
+  override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
 }
 
 /* NOTE: the following are all example uses of ActionFunction, each subtly
@@ -580,7 +519,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
   protected def refine[A](request: R[A]): Future[Either[Result, P[A]]]
 
   final def invokeBlock[A](request: R[A], block: P[A] => Future[Result]) =
-    refine(request).flatMap(_.fold(Future.successful _, block))(executionContext)
+    refine(request).flatMap(_.fold(Future.successful, block))(executionContext)
 }
 
 /**
@@ -609,7 +548,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
  */
 trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
   /**
-   * Determine whether to process a request.  This is the main method than an ActionFilter has to implement.
+   * Determine whether to process a request.  This is the main method that an ActionFilter has to implement.
    * It can decide to immediately intercept the request and return a Result (Some), or continue processing (None).
    *
    * @param request the input request

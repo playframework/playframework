@@ -1,4 +1,9 @@
+//
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+//
+
 import java.net.URLClassLoader
+import com.typesafe.sbt.packager.Keys.executableScriptName
 
 name := "assets-sample"
 
@@ -10,15 +15,15 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
 
-TaskKey[Unit]("unzip-assets-jar") := {
+TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
 }
 
-InputKey[Unit]("check-on-classpath") := {
+InputKey[Unit]("checkOnClasspath") := {
   val args = Def.spaceDelimited("<resource>*").parsed
-  val creator: ClassLoader => ClassLoader = play.Play.playAssetsClassLoader.value
+  val creator: ClassLoader => ClassLoader = play.sbt.PlayInternalKeys.playAssetsClassLoader.value
   val classloader = creator(null)
   args.foreach { resource =>
     if (classloader.getResource(resource) == null) {
@@ -29,7 +34,7 @@ InputKey[Unit]("check-on-classpath") := {
   }
 }
 
-InputKey[Unit]("check-on-test-classpath") := {
+InputKey[Unit]("checkOnTestClasspath") := {
   val args = Def.spaceDelimited("<resource>*").parsed
   val classpath: Classpath = (fullClasspath in Test).value
   val classloader = new URLClassLoader(classpath.map(_.data.toURI.toURL).toArray)
@@ -43,7 +48,7 @@ InputKey[Unit]("check-on-test-classpath") := {
 }
 
 TaskKey[Unit]("check-assets-jar-on-classpath") := {
-  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / normalizedName.value)
+  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / executableScriptName.value)
   val assetsJar = s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar"
   if (startScript.contains(assetsJar)) {
     println("Found reference to " + assetsJar + " in start script")

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -58,7 +58,7 @@ trait AcceptExtractors {
  * }
  * }}}
  */
-case class Accepting(val mimeType: String) {
+case class Accepting(mimeType: String) {
   def unapply(request: RequestHeader): Boolean = request.accepts(mimeType)
   def unapply(mediaRange: play.api.http.MediaRange): Boolean = mediaRange.accepts(mimeType)
 }

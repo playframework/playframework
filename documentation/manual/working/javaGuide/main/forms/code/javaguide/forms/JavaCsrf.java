@@ -1,74 +1,86 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms;
 
-import com.google.common.collect.ImmutableMap;
-import javaguide.forms.csrf.Global;
+import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import play.core.j.JavaHandlerComponents;
 import play.filters.csrf.AddCSRFToken;
-import play.filters.csrf.CSRFFilter;
+import play.filters.csrf.CSRF;
 import play.filters.csrf.RequireCSRFCheck;
-import play.libs.Crypto;
+import play.libs.crypto.CSRFTokenSigner;
 import play.mvc.Result;
 import play.test.WithApplication;
-import play.test.FakeApplication;
 
-import static play.test.Helpers.*;
-
-import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
-import javaguide.forms.html.form;
-
+import java.util.Collections;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JavaCsrf extends WithApplication {
-    @Override
-    public FakeApplication provideFakeApplication() {
-        return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
-    }
+import static javaguide.testhelpers.MockJavaActionHelper.call;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static play.test.Helpers.*;
 
-    public Crypto crypto() {
-      return app.getWrappedApplication().injector().instanceOf(Crypto.class);
+public class JavaCsrf extends WithApplication {
+
+    private CSRFTokenSigner tokenSigner() {
+      return app.injector().instanceOf(CSRFTokenSigner.class);
     }
 
     @Test
-    public void global() {
-        assertThat(new Global().filters()[0], equalTo((Class) CSRFFilter.class));
+    public void getToken() {
+        String token = tokenSigner().generateSignedToken();
+        String body = contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            @AddCSRFToken
+            public Result index() {
+                //#get-token
+                Optional<CSRF.Token> token = CSRF.getToken(request());
+                //#get-token
+                return ok(token.map(CSRF.Token::value).orElse(""));
+            }
+        }, fakeRequest("GET", "/").session("csrfToken", token), mat));
+
+        assertTrue(tokenSigner().compareSignedTokens(body, token));
     }
 
     @Test
     public void templates() {
-        String token = crypto().generateSignedToken();
-        String body = contentAsString(MockJavaActionHelper.call(new MockJavaAction() {
+        CSRF.Token token = new CSRF.Token("csrfToken", tokenSigner().generateSignedToken());
+        String body = contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            @AddCSRFToken
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
             }
-        }, fakeRequest("GET", "/").withSession("csrfToken", token)));
+        }, fakeRequest("GET", "/").session("csrfToken", token.value()), mat));
 
         Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
 
         matcher = Pattern.compile("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
     }
 
     @Test
     public void csrfCheck() {
-        assertThat(status(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-                .withHeader(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
+        assertThat(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+            .header("Cookie", "foo=bar")
+            .bodyForm(Collections.singletonMap("foo", "bar")), mat).status(), equalTo(FORBIDDEN));
     }
 
     public static class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#csrf-check
         @RequireCSRFCheck
         public Result save() {
@@ -80,16 +92,21 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void csrfAddToken() {
-        assertThat(crypto().extractSignedToken(contentAsString(
-                MockJavaActionHelper.call(new Controller2(), fakeRequest("GET", "/"))
+        assertThat(tokenSigner().extractSignedToken(contentAsString(
+                call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat)
         )), notNullValue());
     }
 
     public static class Controller2 extends MockJavaAction {
+
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#csrf-add-token
         @AddCSRFToken
         public Result get() {
-            return ok(form.render());
+            return ok(CSRF.getToken(request()).map(CSRF.Token::value).orElse("no token"));
         }
         //#csrf-add-token
     }

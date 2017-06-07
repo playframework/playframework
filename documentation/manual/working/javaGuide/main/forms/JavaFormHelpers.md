@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Form template helpers
 
 Play provides several helpers to help you render form fields in HTML templates.
@@ -37,7 +37,7 @@ A rendered field does not only consist of an `<input>` tag, but may also need a 
     
 All input helpers take an implicit `FieldConstructor` that handles this part. The default one (used if there are no other field constructors available in the scope), generates HTML like:
 
-```
+```html
 <dl class="error" id="email_field">
     <dt><label for="email">Email:</label></dt>
     <dd><input type="text" name="email" id="email" value=""></dd>
@@ -84,3 +84,7 @@ Now you have to generate as many inputs for the `emails` field as the form conta
 @[repeat](code/javaguide/forms/helpers.scala.html)
 
 Use the `min` parameter to display a minimum number of fields, even if the corresponding form data are empty.
+
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[repeat-with-index](code/javaguide/forms/helpers.scala.html)

@@ -1,16 +1,18 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.i18n
 
 import java.io.File
 
 import org.specs2.mutable._
-import play.api.mvc.{ Cookies, Results }
-import play.api.{ Mode, Environment, Configuration }
+import play.api.http.HttpConfiguration
 import play.api.i18n.Messages.MessageSource
+import play.api.mvc.{ Cookie, Results }
+import play.api.{ Configuration, Environment, Mode, PlayException }
+import play.core.test.FakeRequest
 
-object MessagesSpec extends Specification {
+class MessagesSpec extends Specification {
   val testMessages = Map(
     "default" -> Map(
       "title" -> "English Title",
@@ -21,18 +23,16 @@ object MessagesSpec extends Specification {
       "foo" -> "foo francais"),
     "fr-CH" -> Map(
       "title" -> "Titre suisse"))
-  val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-    Configuration.from(Map("play.modules.i18n.langCookieName" -> "PLAY_LANG")), new Langs() {
-      def availables = Nil
-      def preferred(candidates: Seq[Lang]) = Lang.defaultLang
-    }
-  ) {
-
-    override protected def loadAllMessages = testMessages
+  val api = {
+    val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+    val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
+    val langs = new DefaultLangsProvider(config).get
+    new DefaultMessagesApi(testMessages, langs)
   }
 
-  def translate(msg: String, lang: String, reg: String): Option[String] =
+  def translate(msg: String, lang: String, reg: String): Option[String] = {
     api.translate(msg, Nil)(Lang(lang, reg))
+  }
 
   def isDefinedAt(msg: String, lang: String, reg: String): Boolean =
     api.isDefinedAt(msg)(Lang(lang, reg))
@@ -65,9 +65,36 @@ object MessagesSpec extends Specification {
     }
 
     "support setting the language on a result" in {
-      val cookie = Cookies.decode(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
+      val cookie = api.setLang(Results.Ok, Lang("en-AU")).newCookies.head
       cookie.name must_== "PLAY_LANG"
       cookie.value must_== "en-AU"
+    }
+
+    "support getting a preferred lang from a Scala request" in {
+      "when an accepted lang is available" in {
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")
+      }
+      "when an accepted lang is not available" in {
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "de")).lang must_== Lang("en")
+      }
+      "when the lang cookie available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))).lang must_== Lang("fr")
+      }
+      "when the lang cookie is not available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "de"))).lang must_== Lang("en")
+      }
+      "when a cookie and an acceptable lang are available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))
+          .withHeaders("Accept-Language" -> "en")).lang must_== Lang("fr")
+      }
+
+    }
+
+    "report error for invalid lang" in {
+      {
+        val langs = new DefaultLangsProvider(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))).get
+        val messagesApi = new DefaultMessagesApiProvider(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev), Configuration.reference, langs, HttpConfiguration()).get
+      } must throwA[PlayException]
     }
   }
 

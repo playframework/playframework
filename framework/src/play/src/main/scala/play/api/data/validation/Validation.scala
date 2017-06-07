@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.validation
 
-import play.api.data._
+import play.api.libs.json.JsonValidationError
 
 /**
  * A form constraint.
@@ -64,33 +64,49 @@ object Constraints extends Constraints
 
 /**
  * Defines a set of built-in constraints.
+ *
+ * @define emailAddressDoc Defines an ‘emailAddress’ constraint for `String` values which will validate email addresses.
+ *
+ * '''name'''[constraint.email]
+ * '''error'''[error.email]
+ *
+ * @define nonEmptyDoc Defines a ‘required’ constraint for `String` values, i.e. one in which empty strings are invalid.
+ *
+ * '''name'''[constraint.required]
+ * '''error'''[error.required]
  */
 trait Constraints {
 
+  private val emailRegex = """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
   /**
-   * Defines an ‘emailAddress’ constraint for `String` values which will validate email addresses.
-   *
-   * '''name'''[constraint.email]
-   * '''error'''[error.email]
+   * $emailAddressDoc
    */
-  private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
-  def emailAddress: Constraint[String] = Constraint[String]("constraint.email") { e =>
-    if (e == null) Invalid(ValidationError("error.email"))
-    else if (e.trim.isEmpty) Invalid(ValidationError("error.email"))
+  def emailAddress(errorMessage: String = "error.email"): Constraint[String] = Constraint[String]("constraint.email") { e =>
+    if (e == null) Invalid(ValidationError(errorMessage))
+    else if (e.trim.isEmpty) Invalid(ValidationError(errorMessage))
     else emailRegex.findFirstMatchIn(e)
       .map(_ => Valid)
-      .getOrElse(Invalid(ValidationError("error.email")))
+      .getOrElse(Invalid(ValidationError(errorMessage)))
   }
 
   /**
-   * Defines a ‘required’ constraint for `String` values, i.e. one in which empty strings are invalid.
+   * $emailAddressDoc
    *
-   * '''name'''[constraint.required]
-   * '''error'''[error.required]
    */
-  def nonEmpty: Constraint[String] = Constraint[String]("constraint.required") { o =>
-    if (o == null) Invalid(ValidationError("error.required")) else if (o.trim.isEmpty) Invalid(ValidationError("error.required")) else Valid
+  def emailAddress: Constraint[String] = emailAddress()
+
+  /**
+   * $nonEmptyDoc
+   */
+  def nonEmpty(errorMessage: String = "error.required"): Constraint[String] = Constraint[String]("constraint.required") { o =>
+    if (o == null) Invalid(ValidationError(errorMessage)) else if (o.trim.isEmpty) Invalid(ValidationError(errorMessage)) else Valid
   }
+
+  /**
+   * $nonEmptyDoc
+   *
+   */
+  def nonEmpty: Constraint[String] = nonEmpty()
 
   /**
    * Defines a minimum value for `Ordered` values, by default the value must be greater than or equal to the constraint parameter
@@ -98,11 +114,11 @@ trait Constraints {
    * '''name'''[constraint.min(minValue)]
    * '''error'''[error.min(minValue)] or [error.min.strict(minValue)]
    */
-  def min[T](minValue: T, strict: Boolean = false)(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.min", minValue) { o =>
+  def min[T](minValue: T, strict: Boolean = false, errorMessage: String = "error.min", strictErrorMessage: String = "error.min.strict")(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.min", minValue) { o =>
     (ordering.compare(o, minValue).signum, strict) match {
       case (1, _) | (0, false) => Valid
-      case (_, false) => Invalid(ValidationError("error.min", minValue))
-      case (_, true) => Invalid(ValidationError("error.min.strict", minValue))
+      case (_, false) => Invalid(ValidationError(errorMessage, minValue))
+      case (_, true) => Invalid(ValidationError(strictErrorMessage, minValue))
     }
   }
 
@@ -112,11 +128,11 @@ trait Constraints {
    * '''name'''[constraint.max(maxValue)]
    * '''error'''[error.max(maxValue)] or [error.max.strict(maxValue)]
    */
-  def max[T](maxValue: T, strict: Boolean = false)(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.max", maxValue) { o =>
+  def max[T](maxValue: T, strict: Boolean = false, errorMessage: String = "error.max", strictErrorMessage: String = "error.max.strict")(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.max", maxValue) { o =>
     (ordering.compare(o, maxValue).signum, strict) match {
       case (-1, _) | (0, false) => Valid
-      case (_, false) => Invalid(ValidationError("error.max", maxValue))
-      case (_, true) => Invalid(ValidationError("error.max.strict", maxValue))
+      case (_, false) => Invalid(ValidationError(errorMessage, maxValue))
+      case (_, true) => Invalid(ValidationError(strictErrorMessage, maxValue))
     }
   }
 
@@ -126,9 +142,9 @@ trait Constraints {
    * '''name'''[constraint.minLength(length)]
    * '''error'''[error.minLength(length)]
    */
-  def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.minLength", length) { o =>
+  def minLength(length: Int, errorMessage: String = "error.minLength"): Constraint[String] = Constraint[String]("constraint.minLength", length) { o =>
     require(length >= 0, "string minLength must not be negative")
-    if (o == null) Invalid(ValidationError("error.minLength", length)) else if (o.size >= length) Valid else Invalid(ValidationError("error.minLength", length))
+    if (o == null) Invalid(ValidationError(errorMessage, length)) else if (o.size >= length) Valid else Invalid(ValidationError(errorMessage, length))
   }
 
   /**
@@ -137,9 +153,9 @@ trait Constraints {
    * '''name'''[constraint.maxLength(length)]
    * '''error'''[error.maxLength(length)]
    */
-  def maxLength(length: Int): Constraint[String] = Constraint[String]("constraint.maxLength", length) { o =>
+  def maxLength(length: Int, errorMessage: String = "error.maxLength"): Constraint[String] = Constraint[String]("constraint.maxLength", length) { o =>
     require(length >= 0, "string maxLength must not be negative")
-    if (o == null) Invalid(ValidationError("error.maxLength", length)) else if (o.size <= length) Valid else Invalid(ValidationError("error.maxLength", length))
+    if (o == null) Invalid(ValidationError(errorMessage, length)) else if (o.size <= length) Valid else Invalid(ValidationError(errorMessage, length))
   }
 
   /**
@@ -178,7 +194,7 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
   /**
    * Combines these validation errors with another validation failure.
    *
-   * @param another validation failure
+   * @param other validation failure
    * @return a new merged `Invalid`
    */
   def ++(other: Invalid): Invalid = Invalid(this.errors ++ other.errors)
@@ -224,4 +240,29 @@ object ParameterValidator {
         (a, b) => a ++ b
       }
     }
+}
+
+/**
+ * A validation error.
+ *
+ * @param messages the error message, if more then one message is passed it will use the last one
+ * @param args the error message arguments
+ */
+case class ValidationError(messages: Seq[String], args: Any*) {
+
+  lazy val message = messages.last
+
+}
+
+object ValidationError {
+
+  /**
+   * Conversion from a JsonValidationError to a Play ValidationError.
+   */
+  def fromJsonValidationError(jve: JsonValidationError): ValidationError = {
+    ValidationError(jve.message, jve.args)
+  }
+
+  def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)
+
 }

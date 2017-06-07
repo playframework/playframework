@@ -1,5 +1,7 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
+
+> **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].
 
 Progressive Stream Processing and manipulation is an important task in modern Web Programming, starting from chunked upload/download to Live Data Streams consumption, creation, composition and publishing through different technologies including Comet and WebSockets.
 
@@ -173,6 +175,6 @@ One common case is to create an iteratee that does some imperative operation for
 val printlnIteratee = Iteratee.foreach[String](s => println(s))
 ```
 
-More interesting methods exist like `repeat`, `ignore`, and `fold1` - which is different from the preceding `fold` in that it gives one the opportunity to treat input chunks asychronously.
+More interesting methods exist like `repeat`, `ignore`, and `fold1` - which is different from the preceding `fold` in that it gives one the opportunity to treat input chunks asynchronously.
 
 Of course one should be worried now about how hard it would be to manually push input into an iteratee by folding over iteratee states over and over again. Indeed each time one has to push input into an iteratee, one has to use the `fold` function to check on its state, if it is a `Cont` then push the input and get the new state, or otherwise return the computed result. That's when `Enumerator`s come in handy.

@@ -1,19 +1,23 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.parsing
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.test._
 import play.api.mvc.{ BodyParser, BodyParsers }
-import play.api.libs.iteratee.Enumerator
 
-object TextBodyParserSpec extends PlaySpecification {
+class TextBodyParserSpec extends PlaySpecification {
 
   "The text body parser" should {
 
-    def parse(text: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[String] = BodyParsers.parse.tolerantText) = {
-      await(Enumerator(text.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse(text: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[String] = BodyParsers.parse.tolerantText)(implicit mat: Materializer) = {
+      await(
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(ByteString(text, encoding)))
+      )
     }
 
     "parse text bodies" in new WithApplication() {

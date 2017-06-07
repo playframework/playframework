@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server
 
@@ -8,9 +8,9 @@ import java.util.Properties
 import org.specs2.mutable.Specification
 import play.core.ApplicationProvider
 
-object ServerConfigSpec extends Specification {
+class ServerConfigSpec extends Specification {
 
-  "ServerConfig" should {
+  "ServerConfig construction" should {
     "fail when both http and https ports are missing" in {
       ServerConfig(
         rootDir = new File("/asdasd"),

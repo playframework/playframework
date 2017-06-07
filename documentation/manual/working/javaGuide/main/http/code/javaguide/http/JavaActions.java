@@ -1,13 +1,16 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
 import org.junit.Test;
-import play.libs.F;
+import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.test.Helpers;
 
 import javaguide.testhelpers.MockJavaAction;
 import play.test.WithApplication;
@@ -20,50 +23,50 @@ import static javaguide.testhelpers.MockJavaActionHelper.call;
 public class JavaActions extends WithApplication {
     @Test
     public void simpleAction() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#simple-action
             public Result index() {
                 return ok("Got request " + request() + "!");
             }
             //#simple-action
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
     public void fullController() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             public Result index() {
                 return new javaguide.http.full.Application().index();
             }
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
     public void withParams() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#params-action
             public Result index(String name) {
                 return ok("Hello " + name);
             }
             //#params-action
 
-            public F.Promise<Result> invocation() {
-                return F.Promise.pure(index("world"));
+            public CompletionStage<Result> invocation() {
+                return CompletableFuture.completedFuture(index("world"));
             }
-        }, fakeRequest());
-        assertThat(status(result), equalTo(200));
+        }, fakeRequest(), mat);
+        assertThat(result.status(), equalTo(200));
         assertThat(contentAsString(result), equalTo("Hello world"));
     }
 
     @Test
     public void simpleResult() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#simple-result
             public Result index() {
                 return ok("Hello world!");
             }
             //#simple-result
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest(), mat).status(), equalTo(200));
     }
 
     @Test
@@ -82,7 +85,7 @@ public class JavaActions extends WithApplication {
                 Result anyStatus = status(488, "Strange response type");
                 //#other-results
 
-                assertThat(Helpers.status(anyStatus), equalTo(488));
+                assertThat(anyStatus.status(), equalTo(488));
             }
         }
 
@@ -102,28 +105,28 @@ public class JavaActions extends WithApplication {
 
     @Test
     public void redirectAction() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#redirect-action
             public Result index() {
                 return redirect("/user/home");
             }
             //#redirect-action
-        }, fakeRequest());
-        assertThat(status(result), equalTo(SEE_OTHER));
-        assertThat(header(LOCATION, result), equalTo("/user/home"));
+        }, fakeRequest(), mat);
+        assertThat(result.status(), equalTo(SEE_OTHER));
+        assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }
 
     @Test
     public void temporaryRedirectAction() {
-        Result result = call(new MockJavaAction() {
+        Result result = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#temporary-redirect-action
             public Result index() {
                 return temporaryRedirect("/user/home");
             }
             //#temporary-redirect-action
-        }, fakeRequest());
-        assertThat(status(result), equalTo(TEMPORARY_REDIRECT));
-        assertThat(header(LOCATION, result), equalTo("/user/home"));
+        }, fakeRequest(), mat);
+        assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
+        assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }
 
 }

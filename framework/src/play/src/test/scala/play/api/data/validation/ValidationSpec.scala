@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.validation
 
@@ -10,7 +10,7 @@ import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.validation.Constraints._
 
-object ValidationSpec extends Specification {
+class ValidationSpec extends Specification {
 
   "text" should {
     "throw an IllegalArgumentException if maxLength is negative" in {
@@ -82,9 +82,7 @@ object ValidationSpec extends Specification {
 
   "Email constraint" should {
     val valid = Seq(
-      """"Fred Bloggs"@example.com""",
-      """"Joe\\Blow"@example.com""",
-      """"Abc@def"@example.com""",
+      """simple@example.com""",
       """customer/department=shipping@example.com""",
       """$A12345@example.com""",
       """!def!xyz%abc@example.com""",
@@ -106,10 +104,6 @@ object ValidationSpec extends Specification {
       "\"\"test\blah\"\"@example.com",
       "\"test\rblah\"@example.com",
       "\"\"test\"\"blah\"\"@example.com",
-      ".wooly@example.com",
-      "wo..oly@example.com",
-      "pootietang.@example.com",
-      ".@example.com",
       "Ima Fool@example.com"
     )
     "invalidate invalid addresses" in {

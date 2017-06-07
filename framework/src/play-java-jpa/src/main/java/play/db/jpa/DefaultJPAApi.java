@@ -1,16 +1,15 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
-import play.*;
 import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
-import play.libs.F;
 
-import java.io.*;
 import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -24,10 +23,13 @@ public class DefaultJPAApi implements JPAApi {
 
     private final JPAConfig jpaConfig;
 
-    private final Map<String, EntityManagerFactory> emfs = new HashMap<String, EntityManagerFactory>();
+    private final Map<String, EntityManagerFactory> emfs = new HashMap<>();
 
-    public DefaultJPAApi(JPAConfig jpaConfig) {
+    private final JPAEntityManagerContext entityManagerContext;
+
+    public DefaultJPAApi(JPAConfig jpaConfig, JPAEntityManagerContext entityManagerContext) {
         this.jpaConfig = jpaConfig;
+        this.entityManagerContext = entityManagerContext;
     }
 
     @Singleton
@@ -35,16 +37,13 @@ public class DefaultJPAApi implements JPAApi {
         private final JPAApi jpaApi;
 
         @Inject
-        public JPAApiProvider(JPAConfig jpaConfig, DBApi dbApi, ApplicationLifecycle lifecycle) {
+        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
-            jpaApi = new DefaultJPAApi(jpaConfig);
-            lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
-                @Override
-                    public F.Promise<Void> call() throws Exception {
-                        jpaApi.shutdown();
-                        return F.Promise.pure(null);
-                    }
-                });
+            jpaApi = new DefaultJPAApi(jpaConfig, context);
+            lifecycle.addStopHook(() -> {
+                jpaApi.shutdown();
+                return CompletableFuture.completedFuture(null);
+            });
             jpaApi.start();
         }
 
@@ -58,9 +57,9 @@ public class DefaultJPAApi implements JPAApi {
      * Initialise JPA entity manager factories.
      */
     public JPAApi start() {
-        for (JPAConfig.PersistenceUnit persistenceUnit : jpaConfig.persistenceUnits()) {
-            emfs.put(persistenceUnit.name, Persistence.createEntityManagerFactory(persistenceUnit.unitName));
-        }
+        jpaConfig.persistenceUnits().forEach(persistenceUnit ->
+                emfs.put(persistenceUnit.name, Persistence.createEntityManagerFactory(persistenceUnit.unitName))
+        );
         return this;
     }
 
@@ -78,70 +77,65 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Run a block of code in a JPA transaction.
+     * Get the EntityManager for a particular persistence unit for this thread.
+     *
+     * @return EntityManager for the specified persistence unit name
+     */
+    public EntityManager em() {
+        return entityManagerContext.em();
+    }
+
+    /**
+     * Run a block of code with the EntityManager for the named Persistence Unit.
      *
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
-    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
+    public <T> T withTransaction(Function<EntityManager, T> block) {
         return withTransaction("default", false, block);
     }
 
     /**
-     * Run a block of asynchronous code in a JPA transaction.
+     * Run a block of code with the EntityManager for the named Persistence Unit.
      *
+     * @param name The persistence unit name
      * @param block Block of code to execute
-     *
-     * @deprecated This may cause deadlocks
+     * @param <T> type of result
+     * @return code execution result
      */
-    @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
-        return withTransactionAsync("default", false, block);
+    public <T> T withTransaction(String name, Function<EntityManager, T> block) {
+        return withTransaction(name, false, block);
     }
 
     /**
-     * Run a block of code in a JPA transaction.
-     *
-     * @param block Block of code to execute
-     */
-    public void withTransaction(final play.libs.F.Callback0 block) {
-        try {
-            withTransaction("default", false, new play.libs.F.Function0<Void>() {
-                public Void apply() throws Throwable {
-                    block.invoke();
-                    return null;
-                }
-            });
-        } catch (Throwable t) {
-            throw new RuntimeException("JPA transaction failed", t);
-        }
-    }
-
-    /**
-     * Run a block of code in a JPA transaction.
+     * Run a block of code with the EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
+     * @param <T> type of result
+     * @return code execution result
      */
-    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
-        EntityManager em = null;
+    public <T> T withTransaction(String name, boolean readOnly, Function<EntityManager, T> block) {
+        EntityManager entityManager = null;
         EntityTransaction tx = null;
 
         try {
-            em = em(name);
+            entityManager = em(name);
 
-            if (em == null) {
+            if (entityManager == null) {
                 throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
             }
 
-            JPA.bindForCurrentThread(em);
+            entityManagerContext.push(entityManager, true);
 
             if (!readOnly) {
-                tx = em.getTransaction();
+                tx = entityManager.getTransaction();
                 tx.begin();
             }
 
-            T result = block.apply();
+            T result = block.apply(entityManager);
 
             if (tx != null) {
                 if(tx.getRollbackOnly()) {
@@ -159,91 +153,56 @@ public class DefaultJPAApi implements JPAApi {
             }
             throw t;
         } finally {
-            JPA.bindForCurrentThread(null);
-            if (em != null) {
-                em.close();
+            if (entityManager != null) {
+                entityManagerContext.pop(true);
+                entityManager.close();
             }
         }
     }
 
     /**
-     * Run a block of asynchronous code in a JPA transaction.
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public <T> T withTransaction(Supplier<T> block) {
+        return withTransaction("default", false, block);
+    }
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public void withTransaction(final Runnable block) {
+        try {
+            withTransaction("default", false, () -> {
+                block.run();
+                return null;
+            });
+        } catch (Throwable t) {
+            throw new RuntimeException("JPA transaction failed", t);
+        }
+    }
+
+    /**
+     * Run a block of code in a JPA transaction.
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
-     * @param block Block of code to execute.
-     *
-     * @deprecated This may cause deadlocks
+     * @param block Block of code to execute
      */
-    @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
-        EntityManager em = null;
-        EntityTransaction tx = null;
-        try {
-
-            em = em(name);
-            JPA.bindForCurrentThread(em);
-
-            if (!readOnly) {
-                tx = em.getTransaction();
-                tx.begin();
-            }
-
-            F.Promise<T> result = block.apply();
-
-            final EntityManager fem = em;
-            final EntityTransaction ftx = tx;
-
-            F.Promise<T> committedResult = result.map(new F.Function<T, T>() {
-                @Override
-                public T apply(T t) throws Throwable {
-                    try {
-                        if (ftx != null) {
-                            if (ftx.getRollbackOnly()) {
-                                ftx.rollback();
-                            } else {
-                                ftx.commit();
-                            }
-                        }
-                    } finally {
-                        fem.close();
-                    }
-                    return t;
-                }
-            });
-
-            committedResult.onFailure(new F.Callback<Throwable>() {
-                @Override
-                public void invoke(Throwable t) {
-                    if (ftx != null) {
-                        try { if (ftx.isActive()) ftx.rollback(); } catch (Throwable e) {}
-                    }
-                    fem.close();
-                }
-            });
-
-            return committedResult;
-
-        } catch (Throwable t) {
-            if (tx != null) {
-                try { tx.rollback(); } catch (Throwable e) {}
-            }
-            if (em != null) {
-                em.close();
-            }
-            throw t;
-        } finally {
-            JPA.bindForCurrentThread(null);
-        }
+    public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
+        return withTransaction(name, readOnly, entityManager -> {
+            return block.get();
+        });
     }
 
     /**
      * Close all entity manager factories.
      */
     public void shutdown() {
-        for (EntityManagerFactory emf : emfs.values()) {
-            emf.close();
-        }
+        emfs.values().forEach(EntityManagerFactory::close);
     }
 
 }

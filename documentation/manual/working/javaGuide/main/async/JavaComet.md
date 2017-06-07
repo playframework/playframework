@@ -1,45 +1,37 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Comet sockets
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+# Comet
 
-## Using chunked responses to create Comet sockets
+## Using chunked responses with Comet
 
-An useful usage of **Chunked responses** is to create Comet sockets. A Comet socket is just a chunked `text/html` response containing only `<script>` elements. For each chunk, we write a `<script>` tag containing JavaScript that is immediately executed by the web browser. This way we can send events live to the web browser from the server: for each message, wrap it into a `<script>` tag that calls a JavaScript callback function, and write it to the chunked response.
-    
-Let’s write a first proof-of-concept: create an enumerator generating `<script>` tags calling the browser `console.log` function:
+A common use of **chunked responses** is to create Comet sockets.
 
-Java
-: @[manual](code/javaguide/async/JavaComet.java)
+A Comet socket is a chunked `text/html` response containing only `<script>` elements. For each chunk, we write a `<script>` tag containing JavaScript that is immediately executed by the web browser. This way we can send events live to the web browser from the server: for each message, wrap it into a `<script>` tag that calls a JavaScript callback function, and write it to the chunked response.
 
-Java 8
-: @[manual](java8code/java8guide/async/JavaComet.java)
+Because `ok().chunked` leverages [Akka Streams](http://doc.akka.io/docs/akka/2.5/java/stream/index.html) to take a `Flow<ByteString>`, we can send a `Flow` of elements and transform it so that each element is escaped and wrapped in the Javascript method. The Comet helper automates Comet sockets, pushing an initial blank buffer data for browser compatibility, and supporting both String and JSON messages.
 
-If you run this action from a web browser, you will see the three events logged in the browser console.
+## Comet Imports
 
-## Using the `play.libs.Comet` helper
+To use the Comet helper, import the following classes:
 
-We provide a Comet helper to handle these comet chunked streams that does almost the same as what we just wrote.
+@[comet-imports](code/javaguide/async/JavaComet.java)
 
-> **Note:** Actually it does more, such as pushing an initial blank buffer data for browser compatibility, and supporting both String and JSON messages.
+You will also need a materializer, which is best done by pulling `akka.stream.Materializer` from your [[DI system|JavaDependencyInjection]].    
 
-Let’s just rewrite the previous example to use it:
+## Using Comet with String Flow
 
-Java
-: @[comet](code/javaguide/async/JavaComet.java)
+To push string messages through a Flow, do the following:
 
-Java 8
-: @[comet](java8code/java8guide/async/JavaComet.java)
+@[comet-string](code/javaguide/async/JavaComet.java)
 
-## The forever iframe technique
+## Using Comet with JSON Flow
 
-The standard technique to write a Comet socket is to load an infinite chunked comet response in an iframe and to specify a callback calling the parent frame:
+To push JSON messages through a Flow, do the following:
 
-Java
-: @[forever-iframe](code/javaguide/async/JavaComet.java)
+@[comet-json](code/javaguide/async/JavaComet.java)
 
-Java 8
-: @[forever-iframe](java8code/java8guide/async/JavaComet.java)
+## Using Comet with iframe
 
-With an HTML page like:
+The comet helper should typically be used with a `forever-iframe` technique, with an HTML page like:
 
 ```
 <script type="text/javascript">
@@ -50,3 +42,16 @@ With an HTML page like:
 
 <iframe src="/comet"></iframe>
 ```
+
+For an example of a Comet helper, see the [Play 2.5 Clock Template](https://github.com/typesafehub/play-2.5-clock/).
+
+## Debugging Comet
+
+The easiest way to debug a Comet stream that is not working is to use the [`log()`](http://doc.akka.io/docs/akka/2.5/java/stream/stream-cookbook.html#Logging_elements_of_a_stream) operation to show any errors involved in mapping data through the stream.
+
+## Legacy Comet Functionality
+
+Previously existing Comet functionality is still available through `play.libs.Comet`, but it is deprecated and you are encouraged to move to the Akka Streams based version.
+
+Because the Java Comet helper is based around callbacks, it may be easier to turn the callback based functionality into a `org.reactivestreams.Publisher` directly and use `Source.fromPublisher` to create a source.
+

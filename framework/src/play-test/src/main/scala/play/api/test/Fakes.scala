@@ -1,163 +1,151 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
-import javax.inject.{ Inject, Provider }
+import java.net.URI
+import java.security.cert.X509Certificate
 
-import play.api._
-import play.api.http._
-import play.api.inject.guice.GuiceApplicationLoader
-import play.api.inject._
-import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
-import play.api.mvc._
+import akka.util.ByteString
+import play.api.http.{ HeaderNames, HttpConfiguration }
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
-import play.core.{ DefaultWebCommands, WebCommands }
-import play.utils.{ Reflect, Threads }
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc._
+import play.api.mvc.request._
+import play.core.parsers.FormUrlEncodedParser
+
 import scala.concurrent.Future
-import xml.NodeSeq
-import play.core.Router
-import scala.runtime.AbstractPartialFunction
-import play.api.libs.Files.TemporaryFile
+import scala.xml.NodeSeq
 
 /**
  * Fake HTTP headers implementation.
  *
  * @param data Headers data.
  */
-case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
 /**
- * Fake HTTP request implementation.
+ * A `Request` with a few extra methods that are useful for testing.
  *
- * @tparam A The body type.
- * @param method The request HTTP method.
- * @param uri The request uri.
- * @param headers The request HTTP headers.
- * @param body The request body.
- * @param remoteAddress The client IP.
+ * @param request The original request that this `FakeRequest` wraps.
+ * @tparam A the body content type.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+class FakeRequest[A](request: Request[A]) extends Request[A] {
+  override def connection: RemoteConnection = request.connection
+  override def method: String = request.method
+  override def target: RequestTarget = request.target
+  override def version: String = request.version
+  override def headers: Headers = request.headers
+  override def body: A = request.body
+  override def attrs: TypedMap = request.attrs
 
-  private def _copy[B](
-    id: Long = this.id,
-    tags: Map[String, String] = this.tags,
-    uri: String = this.uri,
-    path: String = this.path,
-    method: String = this.method,
-    version: String = this.version,
-    headers: FakeHeaders = this.headers,
-    remoteAddress: String = this.remoteAddress,
-    secure: Boolean = this.secure,
-    body: B = this.body): FakeRequest[B] = {
+  override def withConnection(newConnection: RemoteConnection): FakeRequest[A] =
+    new FakeRequest(request.withConnection(newConnection))
+  override def withMethod(newMethod: String): FakeRequest[A] =
+    new FakeRequest(request.withMethod(newMethod))
+  override def withTarget(newTarget: RequestTarget): FakeRequest[A] =
+    new FakeRequest(request.withTarget(newTarget))
+  override def withVersion(newVersion: String): FakeRequest[A] =
+    new FakeRequest(request.withVersion(newVersion))
+  override def withHeaders(newHeaders: Headers): FakeRequest[A] =
+    new FakeRequest(request.withHeaders(newHeaders))
+  override def withAttrs(attrs: TypedMap): FakeRequest[A] =
+    new FakeRequest(request.withAttrs(attrs))
+  override def withBody[B](body: B): FakeRequest[B] =
+    new FakeRequest(request.withBody(body))
+
+  @deprecated("Use with* methods instead.", "2.6.0")
+  def copyFakeRequest[B](
+    id: java.lang.Long = null,
+    tags: Map[String, String] = null,
+    uri: String = null,
+    path: String = null,
+    method: String = null,
+    version: String = null,
+    headers: Headers = null,
+    remoteAddress: String = null,
+    secure: java.lang.Boolean = null,
+    clientCertificateChain: Option[Seq[X509Certificate]] = null,
+    body: B = body): FakeRequest[B] = {
+
     new FakeRequest[B](
-      method, uri, headers, body, remoteAddress, version, id, tags, secure
-    )
+      request.copy(id, tags, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
+        .withBody(body))
   }
-
-  /**
-   * The request path.
-   */
-  lazy val path = uri.split('?').take(1).mkString
-
-  /**
-   * The request query String
-   */
-  lazy val queryString: Map[String, Seq[String]] =
-    play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = FakeHeaders({
-      val newData = newHeaders.map {
-        case (k, v) => (k, Seq(v))
-      }
-      (Map() ++ (headers.data ++ newData)).toSeq
-    }))
+    withHeaders(headers.replace(newHeaders: _*))
   }
 
   /**
    * Constructs a new request with additional Flash.
    */
   def withFlash(data: (String, String)*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-        Seq(Flash.encodeAsCookie(new Flash(flash.data ++ data)))
-      )
-    )
+    val newFlash = new Flash(flash.data ++ data)
+    withAttrs(attrs.updated(RequestAttrKey.Flash, Cell(newFlash)))
   }
 
   /**
    * Constructs a new request with additional Cookies.
    */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies)
-    )
+    val newCookies: Cookies = Cookies(CookieHeaderMerging.mergeCookieHeaderCookies(this.cookies ++ cookies))
+    withAttrs(attrs.updated(RequestAttrKey.Cookies, Cell(newCookies)))
   }
 
   /**
    * Constructs a new request with additional session.
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-        Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
-      )
-    )
+    val newSession = Session(this.session.data ++ newSessions)
+    withAttrs(attrs.updated(RequestAttrKey.Session, Cell(newSession)))
   }
 
   /**
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
+    withBody(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
-
-  def certs = Future.successful(IndexedSeq.empty)
 
   /**
    * Adds a JSON body to the request.
    */
   def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
-    _copy(body = AnyContentAsJson(json))
+    withBody(body = AnyContentAsJson(json))
   }
 
   /**
    * Adds an XML body to the request.
    */
   def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
-    _copy(body = AnyContentAsXml(xml))
+    withBody(body = AnyContentAsXml(xml))
   }
 
   /**
    * Adds a text body to the request.
    */
   def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
-    _copy(body = AnyContentAsText(text))
+    withBody(body = AnyContentAsText(text))
   }
 
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+    val temporaryFileCreator = SingletonTemporaryFileCreator
+    withBody(body = AnyContentAsRaw(RawBuffer(bytes.size, temporaryFileCreator, bytes)))
   }
 
   /**
    * Adds a multipart form data body to the request
    */
-  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
-    _copy(body = AnyContentAsMultipartFormData(form))
-  }
-
-  /**
-   * Adds a body to the request.
-   */
-  def withBody[B](body: B): FakeRequest[B] = {
-    _copy(body = body)
+  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]): FakeRequest[AnyContentAsMultipartFormData] = {
+    withBody(body = AnyContentAsMultipartFormData(form))
   }
 
   /**
@@ -167,146 +155,74 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
 }
 
 /**
- * Helper utilities to build FakeRequest values.
+ * Object with helper methods for building [[FakeRequest]] values. This object uses a
+ * [[play.api.mvc.request.DefaultRequestFactory]] with default configuration to build
+ * the requests.
  */
-object FakeRequest {
+object FakeRequest extends FakeRequestFactory(new DefaultRequestFactory(HttpConfiguration()))
+
+/**
+ * Helper methods for building [[FakeRequest]] values.
+ *
+ * @param requestFactory Used to construct the wrapped requests.
+ */
+class FakeRequestFactory(requestFactory: RequestFactory) {
 
   /**
    * Constructs a new GET / fake request.
    */
   def apply(): FakeRequest[AnyContentAsEmpty.type] = {
-    FakeRequest("GET", "/", FakeHeaders(), AnyContentAsEmpty)
+    apply(method = "GET", uri = "/", headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
   /**
    * Constructs a new request.
    */
   def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
-    FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
+    apply(method = method, uri = path, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
   def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(call.method, call.url)
-  }
-}
-
-/**
- * A Fake application.
- *
- * @param path The application path
- * @param classloader The application classloader
- * @param additionalPlugins Additional plugins class names loaded by this application
- * @param withoutPlugins Plugins class names to disable
- * @param additionalConfiguration Additional configuration
- * @param withRoutes A partial function of method name and path to a handler for handling the request
- */
-
-import play.api.Application
-case class FakeApplication(
-    override val path: java.io.File = new java.io.File("."),
-    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-    val additionalPlugins: Seq[String] = Nil,
-    val withoutPlugins: Seq[String] = Nil,
-    val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    val withGlobal: Option[play.api.GlobalSettings] = None,
-    val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
-
-  private val environment = Environment(path, classloader, Mode.Test)
-  private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
-    Configuration.load(environment.rootPath, environment.mode)
-  }
-  override val global = withGlobal.getOrElse(GlobalSettings(initialConfiguration, environment))
-  private val config =
-    global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++
-      play.api.Configuration.from(additionalConfiguration)
-
-  Logger.configure(environment, configuration)
-
-  val applicationLifecycle = new DefaultApplicationLifecycle
-
-  override val injector = {
-    // Load all modules, and filter out the built in module
-    val modules = Modules.locate(environment, configuration)
-      .filterNot(_.getClass == classOf[BuiltinModule])
-    val webCommands = new DefaultWebCommands
-
-    val loader = config.getString("play.application.loader").fold[ApplicationLoader](
-      new GuiceApplicationLoader
-    ) { className =>
-        Reflect.createInstance[ApplicationLoader](className, classloader)
-      }
-
-    loader.createInjector(environment, configuration,
-      modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands, withRoutes)
-    ).getOrElse(NewInstanceInjector)
+    apply(method = call.method, uri = call.url, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
   }
 
-  def configuration = config
+  /**
+   * @tparam A The body type.
+   * @param method The request HTTP method.
+   * @param uri The request uri.
+   * @param headers The request HTTP headers.
+   * @param body The request body.
+   * @param remoteAddress The client IP.
+   */
+  def apply[A](
+    method: String,
+    uri: String,
+    headers: Headers,
+    body: A,
+    remoteAddress: String = "127.0.0.1",
+    version: String = "HTTP/1.1",
+    id: Long = 666,
+    tags: Map[String, String] = Map.empty[String, String],
+    secure: Boolean = false,
+    clientCertificateChain: Option[Seq[X509Certificate]] = None,
+    attrs: TypedMap = TypedMap.empty): FakeRequest[A] = {
 
-  def mode = environment.mode
-
-  def stop() = applicationLifecycle.stop()
-
-  override val errorHandler = injector.instanceOf[HttpErrorHandler]
-
-  override val plugins = {
-    Plugins.loadPlugins(
-      additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(withoutPlugins),
-      environment, injector
+    val _uri = uri
+    val request: Request[A] = requestFactory.createRequest(
+      RemoteConnection(remoteAddress, secure, clientCertificateChain),
+      method,
+      new RequestTarget {
+        override lazy val uri: URI = new URI(uriString)
+        override def uriString: String = _uri
+        override lazy val path: String = uriString.split('?').take(1).mkString
+        override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
+      },
+      version,
+      headers,
+      attrs + (RequestAttrKey.Id -> id, RequestAttrKey.Tags -> tags),
+      body
     )
+    new FakeRequest(request)
   }
 
-  override lazy val requestHandler = injector.instanceOf[HttpRequestHandler]
-}
-
-private class FakeRoutes(override val errorHandler: HttpErrorHandler,
-    injected: PartialFunction[(String, String), Handler], fallback: Router.Routes) extends Router.Routes {
-  def documentation = fallback.documentation
-  // Use withRoutes first, then delegate to the parentRoutes if no route is defined
-  val routes = new AbstractPartialFunction[RequestHeader, Handler] {
-    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-      injected.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
-    def isDefinedAt(rh: RequestHeader) = injected.isDefinedAt((rh.method, rh.path))
-  } orElse new AbstractPartialFunction[RequestHeader, Handler] {
-    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-      fallback.routes.applyOrElse(rh, default)
-    def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
-  }
-  def withPrefix(prefix: String) = {
-    new FakeRoutes(errorHandler, injected, fallback.withPrefix(prefix))
-  }
-}
-
-private class FakeBuiltinModule(environment: Environment,
-    configuration: Configuration,
-    app: Application,
-    global: GlobalSettings,
-    appLifecycle: ApplicationLifecycle,
-    webCommands: WebCommands,
-    withRoutes: PartialFunction[(String, String), Handler]) extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[Environment] to environment,
-    bind[Configuration] to configuration,
-    bind[HttpConfiguration].toProvider[HttpConfiguration.HttpConfigurationProvider],
-    bind[Application] to app,
-    bind[GlobalSettings] to global,
-    bind[ApplicationLifecycle] to appLifecycle,
-    bind[WebCommands] to webCommands,
-    bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
-    bind[play.inject.Injector].to[play.inject.DelegateInjector],
-    bind[CryptoConfig].toProvider[CryptoConfigParser],
-    bind[Crypto].toSelf,
-    bind[Router.Routes].to(new FakeRoutesProvider(withRoutes))
-  ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration) ++
-    HttpFilters.bindingsFromConfiguration(environment, configuration) ++
-    HttpRequestHandler.bindingsFromConfiguration(environment, configuration)
-}
-
-private class FakeRoutesProvider(withRoutes: PartialFunction[(String, String), Handler]) extends Provider[Router.Routes] {
-  @Inject
-  var injector: Injector = _
-  lazy val get = {
-    val parent = injector.instanceOf[RoutesProvider].get
-    new FakeRoutes(injector.instanceOf[HttpErrorHandler], withRoutes, parent)
-  }
 }

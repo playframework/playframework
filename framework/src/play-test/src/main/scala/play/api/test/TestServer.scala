@@ -1,26 +1,24 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.test
 
 import play.api._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._
 import scala.util.control.NonFatal
 
 /**
  * A test web server.
  *
- * @param port HTTP port to bind on.
- * @param application The FakeApplication to load in this server.
- * @param sslPort HTTPS port to bind on.
- * @param serverProvider *Experimental API; subject to change* The type of
- * server to use. Defaults to providing a Netty server.
+ * @param config The server configuration.
+ * @param application The Application to load in this server.
+ * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
  */
 case class TestServer(
-    port: Int,
-    application: Application = FakeApplication(),
-    sslPort: Option[Int] = None,
-    serverProvider: ServerProvider = NettyServer.defaultServerProvider) {
+    config: ServerConfig,
+    application: Application,
+    serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
 
@@ -33,11 +31,6 @@ case class TestServer(
     }
 
     try {
-      val config = ServerConfig(
-        rootDir = application.path,
-        port = Option(port), sslPort = sslPort, mode = Mode.Test,
-        properties = System.getProperties
-      )
       testServerProcess = TestServer.start(serverProvider, config, application)
     } catch {
       case NonFatal(t) =>
@@ -57,25 +50,47 @@ case class TestServer(
     }
   }
 
+  /**
+   * The port that the server is running on.
+   */
+  def port: Int = config.port.getOrElse(throw new IllegalStateException("No HTTP port defined"))
 }
 
 object TestServer {
+
+  /**
+   * A test web server.
+   *
+   * @param port HTTP port to bind on.
+   * @param application The Application to load in this server.
+   * @param sslPort HTTPS port to bind on.
+   * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
+   */
+  def apply(
+    port: Int,
+    application: Application = GuiceApplicationBuilder().build(),
+    sslPort: Option[Int] = None,
+    serverProvider: Option[ServerProvider] = None) = new TestServer(
+    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test,
+      rootDir = application.path), application, serverProvider
+  )
 
   /**
    * Start a TestServer with the given config and application. To stop it,
    * call `shutdown` on the returned TestServerProcess.
    */
   private[play] def start(
-    testServerProvider: ServerProvider,
+    testServerProvider: Option[ServerProvider],
     config: ServerConfig,
     application: Application): TestServerProcess = {
     val process = new TestServerProcess
-    val serverStart: ServerStart = new ServerStart {
-      def defaultServerProvider = testServerProvider
+    val serverProvider: ServerProvider = {
+      testServerProvider
+    } getOrElse {
+      ServerProvider.fromConfiguration(process.classLoader, config.configuration)
     }
-    val configuredServerProvider = serverStart.readServerProviderSetting(process)
-    val appProvider = new play.core.TestApplication(application)
-    val server = configuredServerProvider.createServer(config, appProvider)
+    Play.start(application)
+    val server = serverProvider.createServer(config, application)
     process.addShutdownHook { server.stop() }
     process
   }

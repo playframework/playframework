@@ -1,16 +1,23 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data
 
+import play.api.{ Configuration, Environment }
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.data.format.Formats._
+import play.api.i18n._
+import play.api.libs.json.Json
 import org.specs2.mutable.Specification
-import org.joda.time.{ DateTime, LocalDate }
+import play.api.http.HttpConfiguration
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.MultipartFormData
+import play.core.test.FakeRequest
 
-object FormSpec extends Specification {
+class FormSpec extends Specification {
   "A form" should {
+
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate(("john@", "John"))
       f5.errors must haveSize(1)
@@ -32,6 +39,76 @@ object FormSpec extends Specification {
       f9.errors must beEmpty
 
       ScalaForms.emailForm.fillAndValidate(("o'flynn@example.com", "O'Flynn")).errors must beEmpty
+    }
+
+    "bind params when POSTing a multipart body" in {
+      val multipartBody = MultipartFormData[TemporaryFile](
+        dataParts = Map("email" -> Seq("michael@jackson.com")),
+        files = Seq.empty,
+        badParts = Seq.empty
+      )
+
+      implicit val request = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using POST" in {
+      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PUT" in {
+      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PATCH" in {
+      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params NOT ignored when using GET" in {
+      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using DELETE" in {
+      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using HEAD" in {
+      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using OPTIONS" in {
+      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
     }
 
     "support mapping 22 fields" in {
@@ -173,6 +250,11 @@ object FormSpec extends Specification {
       f4.errors must beEmpty
     }
 
+    "apply constraints on char fields" in {
+      val f = ScalaForms.charForm.fillAndValidate('M')
+      f.errors must beEmpty
+    }
+
     "not even attempt to validate on fill" in {
       val failingValidatorForm = Form(
         "foo" -> Forms.text.verifying("isEmpty", s =>
@@ -222,24 +304,6 @@ object FormSpec extends Specification {
     ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
   }
 
-  "render form using jodaDate" in {
-    val dateForm = Form(("date" -> jodaDate))
-    val data = Map("date" -> "2012-01-01")
-    dateForm.bind(data).get mustEqual (new DateTime(2012, 1, 1, 0, 0))
-  }
-
-  "render form using jodaDate with format(30/1/2012)" in {
-    val dateForm = Form(("date" -> jodaDate("dd/MM/yyyy")))
-    val data = Map("date" -> "30/1/2012")
-    dateForm.bind(data).get mustEqual (new DateTime(2012, 1, 30, 0, 0))
-  }
-
-  "render form using jodaLocalDate with format(30/1/2012)" in {
-    val dateForm = Form(("date" -> jodaLocalDate("dd/MM/yyyy")))
-    val data = Map("date" -> "30/1/2012")
-    dateForm.bind(data).get mustEqual (new LocalDate(2012, 1, 30))
-  }
-
   "reject input if it contains global errors" in {
     Form("value" -> nonEmptyText).withGlobalError("some.error")
       .bind(Map("value" -> "some value"))
@@ -268,9 +332,75 @@ object FormSpec extends Specification {
     result should beFalse
   }
 
+  "support boolean binding from json" in {
+    ScalaForms.booleanForm.bind(Json.obj("accepted" -> "true")).get must beTrue
+    ScalaForms.booleanForm.bind(Json.obj("accepted" -> "false")).get must beFalse
+  }
+
+  "reject boolean binding from an invalid json" in {
+    val f = ScalaForms.booleanForm.bind(Json.obj("accepted" -> "foo"))
+    f.errors must not be 'empty
+  }
+
+  "correctly lookup error messages when using errorsAsJson" in {
+    val messagesApi: MessagesApi = {
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      new DefaultMessagesApiProvider(Environment.simple(), config, langs, HttpConfiguration()).get
+    }
+    implicit val messages = messagesApi.preferred(Seq.empty)
+
+    val form = Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
+    (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This is a custom error")
+  }
+
+  "render form using java.time.LocalDate" in {
+    import java.time.LocalDate
+    val dateForm = Form("date" -> localDate)
+    val data = Map("date" -> "2012-01-01")
+    dateForm.bind(data).get mustEqual (LocalDate.of(2012, 1, 1))
+  }
+
+  "render form using java.time.LocalDate with format(15/6/2016)" in {
+    import java.time.LocalDate
+    val dateForm = Form("date" -> localDate("dd/MM/yyyy"))
+    val data = Map("date" -> "15/06/2016")
+    dateForm.bind(data).get mustEqual (LocalDate.of(2016, 6, 15))
+  }
+
+  "render form using java.time.LocalDateTime" in {
+    import java.time.LocalDateTime
+    val dateForm = Form("date" -> localDateTime)
+    val data = Map("date" -> "2012-01-01 10:10:10")
+    dateForm.bind(data).get mustEqual (LocalDateTime.of(2012, 1, 1, 10, 10, 10))
+  }
+
+  "render form using java.time.LocalDateTime with format(17/06/2016T17:15:33)" in {
+    import java.time.LocalDateTime
+    val dateForm = Form("date" -> localDateTime("dd/MM/yyyy HH:mm:ss"))
+    val data = Map("date" -> "17/06/2016 10:10:10")
+    dateForm.bind(data).get mustEqual (LocalDateTime.of(2016, 6, 17, 10, 10, 10))
+  }
+
+  "render form using java.time.LocalTime" in {
+    import java.time.LocalTime
+    val dateForm = Form("date" -> localTime)
+    val data = Map("date" -> "10:10:10")
+    dateForm.bind(data).get mustEqual (LocalTime.of(10, 10, 10))
+  }
+
+  "render form using java.time.LocalTime with format(HH-mm-ss)" in {
+    import java.time.LocalTime
+    val dateForm = Form("date" -> localTime("HH-mm-ss"))
+    val data = Map("date" -> "10-11-12")
+    dateForm.bind(data).get mustEqual (LocalTime.of(10, 11, 12))
+  }
+
 }
 
 object ScalaForms {
+
+  val booleanForm = Form("accepted" -> Forms.boolean)
 
   case class User(name: String, age: Int)
 
@@ -333,8 +463,8 @@ object ScalaForms {
   )
 
   val form = Form(
-    "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map { _ == '3' }) getOrElse false)
-      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
+    "foo" -> Forms.text.verifying("first.digit", s => s.headOption exists { _ == '3' })
+      .transform[Int](Integer.parseInt, _.toString).verifying("number.42", _ < 42)
   )
 
   val emailForm = Form(
@@ -344,9 +474,18 @@ object ScalaForms {
     )
   )
 
+  val updateForm = Form(
+    tuple(
+      "email" -> optional(text),
+      "name" -> optional(text)
+    )
+  )
+
   val longNumberForm = Form("longNumber" -> longNumber(10, 42))
 
   val shortNumberForm = Form("shortNumber" -> shortNumber(10, 42))
 
   val byteNumberForm = Form("byteNumber" -> shortNumber(10, 42))
+
+  val charForm = Form("gender" -> char)
 }

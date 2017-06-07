@@ -1,6 +1,0 @@
-Build:The Build System
-SBTSettings:About sbt settings
-SBTDependencies:Manage application dependencies
-SBTSubProjects:Working with sub-projects
-CompilationSpeed:Improving Compilation Times
-SBTCookbook:Cookbook

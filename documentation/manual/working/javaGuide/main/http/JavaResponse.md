@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Manipulating the response
 
 ## Changing the default Content-Type
@@ -18,10 +18,6 @@ will set the `Content-Type` header to `application/json`.
 This is pretty useful, but sometimes you want to change it. Just use the `as(newContentType)` method on a result to create a new similar result with a different `Content-Type` header:
 
 @[custom-content-type](code/javaguide/http/JavaResponse.java)
-
-You can also set the content type on the HTTP response context:
-
-@[context-content-type](code/javaguide/http/JavaResponse.java)
 
 ## Setting HTTP response headers
 
@@ -45,7 +41,7 @@ To discard a Cookie previously stored on the web browser:
 
 @[discard-cookie](code/javaguide/http/JavaResponse.java)
 
-Make sure, if you set a path or domain when setting the cookie, that you set the same path or domain when discarding the cookie, as the browser will only discard it if the name, path and domain matches.
+If you set a path or domain when setting the cookie, make sure that you set the same path or domain when discarding the cookie, as the browser will only discard it if the name, path and domain match.
 
 ## Specifying the character encoding for text results
 

@@ -1,61 +1,41 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
-import com.typesafe.config.ConfigFactory
+import org.slf4j.{ Marker, MarkerFactory }
 import org.specs2.mutable.Specification
 
-object LoggerSpec extends Specification {
+class LoggerSpec extends Specification {
 
-  val loggerConfig = Configuration(ConfigFactory.parseString("""
-    logger.root = ERROR
-    logger.play = INFO
-    logger.application = DEBUG
-    logger.org.springframework = INFO
+  "MarkerContext.apply" should {
 
-    logger."a.b" = "WARN"
-    logger."a.b.c" = "DEBUG"
-
-    logger {
-      "a.b.c.d" = "ERROR"
-      "a.b.c.d.e" = "DEBUG"
+    "return some marker" in {
+      val marker = MarkerFactory.getMarker("SOMEMARKER")
+      val mc = MarkerContext(marker)
+      mc.marker must beSome.which(_ must be_==(marker))
     }
 
-    logger {
-      x {
-        y = "WARN"
-        "y.z" = "INFO"
-      }
-    }
-  """))
-
-  def getLoggerLevel(name: String): String = {
-    org.slf4j.LoggerFactory.getLogger(name) match {
-      case logger: ch.qos.logback.classic.Logger => Option(logger.getLevel).fold("")(_.toString)
-      case _ => ""
+    "return a MarkerContext with None if passed null" in {
+      val mc = MarkerContext(null)
+      mc.marker must beNone
     }
   }
 
-  "Logger configuration" should {
+  "MarkerContext" should {
+    "implicitly convert a Marker to a MarkerContext" in {
+      val marker: Marker = MarkerFactory.getMarker("SOMEMARKER")
+      implicit val mc: MarkerContext = marker
 
-    "set logger levels correctly" in {
-      Logger.configure(Environment.simple(), loggerConfig)
+      mc.marker must beSome.which(_ must be_==(marker))
+    }
+  }
 
-      getLoggerLevel("root") must_== "ERROR"
-      getLoggerLevel("play") must_== "INFO"
-      getLoggerLevel("application") must_== "DEBUG"
-      getLoggerLevel("org.springframework") must_== "INFO"
-
-      getLoggerLevel("a.b") must_== "WARN"
-      getLoggerLevel("a.b.c") must_== "DEBUG"
-
-      getLoggerLevel("a.b.c.d") must_== "ERROR"
-      getLoggerLevel("a.b.c.d.e") must_== "DEBUG"
-
-      getLoggerLevel("x") must_== ""
-      getLoggerLevel("x.y") must_== "WARN"
-      getLoggerLevel("x.y.z") must_== "INFO"
+  "DefaultMarkerContext" should {
+    "define a case object" in {
+      val marker = MarkerFactory.getMarker("SOMEMARKER")
+      case object SomeMarkerContext extends DefaultMarkerContext(marker)
+      SomeMarkerContext.marker must beSome.which(_ must be_==(marker))
     }
 
   }

@@ -1,6 +1,12 @@
+//
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+//
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
+libraryDependencies ++= Seq(guice, specs2 % Test)
+
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.2")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"
@@ -15,7 +21,7 @@ generateJsRouter := {
   Seq(target.value / "web" / "jsrouter" / "jsRoutes.js")
 }
 
-resourceGenerators in TestAssets <+= generateJsRouter
+resourceGenerators in TestAssets += Def.task(generateJsRouter.value).taskValue
 
 managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
 
@@ -36,4 +42,25 @@ compile in Compile := {
       throw inc
     case Value(v) => v
   }
+}
+
+play.sbt.routes.RoutesKeys.routesImport := Seq()
+
+scalacOptions ++= {
+  Seq(
+    "-deprecation",
+    "-encoding", "UTF-8",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-unchecked",
+    "-Xfatal-warnings",
+    "-Xlint",
+    "-Yno-adapted-args",
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen",
+    "-Ywarn-value-discard",
+    "-Xfuture"
+  )
 }

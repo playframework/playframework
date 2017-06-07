@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.server;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 public interface SSLEngineProvider {

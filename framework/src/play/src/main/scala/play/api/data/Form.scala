@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data
 
@@ -7,6 +7,7 @@ import scala.language.existentials
 
 import format._
 import play.api.data.validation._
+import play.api.http.HttpVerbs
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -81,9 +82,13 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
         case body: play.api.mvc.AnyContent if body.asJson.isDefined => FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_))
         case body: Map[_, _] => body.asInstanceOf[Map[String, Seq[String]]]
         case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
+        case body: Either[_, play.api.mvc.MultipartFormData[_]] => body match {
+          case Right(b) => b.asFormUrlEncoded
+          case Left(_) => Map.empty[String, Seq[String]]
+        }
         case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
         case _ => Map.empty[String, Seq[String]]
-      }) ++ request.queryString
+      }) ++ (if (!request.method.equalsIgnoreCase(HttpVerbs.POST) && !request.method.equalsIgnoreCase(HttpVerbs.PUT) && !request.method.equalsIgnoreCase(HttpVerbs.PATCH)) { request.queryString } else { Nil })
     }
   }
 
@@ -216,23 +221,31 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns the concrete value, if the submission was a success.
    *
-   * Note that this method fails with an Exception if this form as errors.
+   * Note that this method fails with an Exception if this form has errors.
    */
   def get: T = value.get
 
   /**
    * Returns the form errors serialized as Json.
    */
-  def errorsAsJson(implicit lang: play.api.i18n.Lang): play.api.libs.json.JsValue = {
+  def errorsAsJson(implicit provider: play.api.i18n.MessagesProvider): play.api.libs.json.JsValue = {
 
     import play.api.libs.json._
-
+    val messages = provider.messages
     Json.toJson(
       errors.groupBy(_.key).mapValues { errors =>
-        errors.map(e => play.api.i18n.Messages(e.message, e.args: _*))
+        errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
       }
     )
 
+  }
+
+  private def translateMsgArg(msgArg: Any)(implicit provider: play.api.i18n.MessagesProvider) = msgArg match {
+    case key: String => provider.messages(key)
+    case keys: Seq[_] =>
+      val k = keys.asInstanceOf[Seq[String]]
+      k.map(key => provider.messages(key))
+    case _ => msgArg
   }
 
   /**
@@ -280,7 +293,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * The field ID - the same as the field name but with '.' replaced by '_'.
    */
-  lazy val id: String = name.replace('.', '_').replace('[', '_').replace("]", "")
+  lazy val id: String = Option(name).map(n => n.replace('.', '_').replace('[', '_').replace("]", "")).getOrElse("")
 
   /**
    * Returns the first error associated with this field, if it exists.
@@ -313,7 +326,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * The label for the field.  Transforms repeat names from foo[0] etc to foo.0.
    */
-  lazy val label: String = name.replaceAll("\\[(\\d+)\\]", ".$1")
+  lazy val label: String = Option(name).map(n => n.replaceAll("\\[(\\d+)\\]", ".$1")).getOrElse("")
 
 }
 
@@ -394,7 +407,8 @@ private[data] object FormUtils {
  * A form error.
  *
  * @param key The error key (should be associated with a field using the same key).
- * @param message The form message (often a simple message key needing to be translated).
+ * @param messages The form message (often a simple message key needing to be translated), if more than one message
+ *                 is passed the last one will be used.
  * @param args Arguments used to format the message.
  */
 case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
@@ -411,6 +425,13 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
    * @param message The new message.
    */
   def withMessage(message: String): FormError = FormError(key, message)
+
+  /**
+   * Displays the formatted message, for use in a template.
+   */
+  def format(implicit messages: play.api.i18n.Messages): String = {
+    messages.apply(message, args)
+  }
 }
 
 object FormError {
@@ -556,7 +577,7 @@ trait Mapping[T] {
   protected def collectErrors(t: T): Seq[FormError] = {
     constraints.map(_(t)).collect {
       case Invalid(errors) => errors.toSeq
-    }.flatten.map(ve => FormError(key, ve.message, ve.args))
+    }.flatten.map(ve => FormError(key, ve.messages, ve.args))
   }
 
 }
@@ -772,7 +793,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
-   * @param constraints the constraints to add
+   * @param addConstraints the constraints to add
    * @return the new mapping
    */
   def verifying(addConstraints: Constraint[Option[T]]*): Mapping[Option[T]] = {
@@ -853,7 +874,7 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
-   * @param constraints the constraints to add
+   * @param addConstraints the constraints to add
    * @return the new mapping
    */
   def verifying(addConstraints: Constraint[T]*): Mapping[T] = {

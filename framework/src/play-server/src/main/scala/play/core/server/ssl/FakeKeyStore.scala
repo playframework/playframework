@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.ssl
 
-import play.api.{ Logger, Application }
+import play.api.Logger
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
-import java.security.cert.{ CertPathValidatorException, X509Certificate }
-import java.io.{ File, FileInputStream, FileOutputStream }
+import java.security.cert.X509Certificate
+import java.io.File
 import javax.net.ssl.KeyManagerFactory
-import scala.util.control.NonFatal
 import scala.util.Properties.isJavaAtLeast
-import scala.util.{ Failure, Success, Try }
 import play.utils.PlayIO
 import java.security.interfaces.RSAPublicKey
 
@@ -24,6 +22,8 @@ object FakeKeyStore {
   private val logger = Logger(FakeKeyStore.getClass)
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+  val SignatureAlgorithmOID = AlgorithmId.sha256WithRSAEncryption_oid
+  val SignatureAlgorithmName = "SHA256withRSA"
 
   def shouldGenerate(keyStoreFile: File): Boolean = {
     import scala.collection.JavaConverters._
@@ -34,70 +34,60 @@ object FakeKeyStore {
 
     // Should regenerate if we find an unacceptably weak key in there.
     val store = KeyStore.getInstance("JKS")
-    val in = new FileInputStream(keyStoreFile)
+    val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
     try {
       store.load(in, "".toCharArray)
     } finally {
       PlayIO.closeQuietly(in)
     }
-    store.aliases().asScala.foreach {
-      alias =>
-        Option(store.getCertificate(alias)).map {
-          c =>
-            val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
-            if (key.getModulus.bitLength < 2048) {
-              return true
-            }
-        }
+    store.aliases().asScala.exists { alias =>
+      Option(store.getCertificate(alias)).exists(c => certificateTooWeak(c))
     }
-
-    false
   }
 
-  def keyManagerFactory(appPath: File): Try[KeyManagerFactory] = {
-    try {
-      val keyStore = KeyStore.getInstance("JKS")
-      val keyStoreFile = new File(appPath, GeneratedKeyStore)
-      if (shouldGenerate(keyStoreFile)) {
+  def certificateTooWeak(c: java.security.cert.Certificate): Boolean = {
+    val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
+    key.getModulus.bitLength < 2048 || c.asInstanceOf[X509CertImpl].getSigAlgName != SignatureAlgorithmName
+  }
 
-        logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+  def keyManagerFactory(appPath: File): KeyManagerFactory = {
+    val keyStore = KeyStore.getInstance("JKS")
+    val keyStoreFile = new File(appPath, GeneratedKeyStore)
+    if (shouldGenerate(keyStoreFile)) {
 
-        // Generate the key pair
-        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
-        val keyPair = keyPairGenerator.generateKeyPair()
+      logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
-        // Generate a self signed certificate
-        val cert = createSelfSignedCertificate(keyPair)
+      // Generate the key pair
+      val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+      keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
+      val keyPair = keyPairGenerator.generateKeyPair()
 
-        // Create the key store, first set the store pass
-        keyStore.load(null, "".toCharArray)
-        keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
-        keyStore.setCertificateEntry("playgeneratedtrusted", cert)
-        val out = new FileOutputStream(keyStoreFile)
-        try {
-          keyStore.store(out, "".toCharArray)
-        } finally {
-          PlayIO.closeQuietly(out)
-        }
-      } else {
-        val in = new FileInputStream(keyStoreFile)
-        try {
-          keyStore.load(in, "".toCharArray)
-        } finally {
-          PlayIO.closeQuietly(in)
-        }
+      // Generate a self signed certificate
+      val cert = createSelfSignedCertificate(keyPair)
+
+      // Create the key store, first set the store pass
+      keyStore.load(null, "".toCharArray)
+      keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+      keyStore.setCertificateEntry("playgeneratedtrusted", cert)
+      val out = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
+      try {
+        keyStore.store(out, "".toCharArray)
+      } finally {
+        PlayIO.closeQuietly(out)
       }
-
-      // Load the key and certificate into a key manager factory
-      val kmf = KeyManagerFactory.getInstance("SunX509")
-      kmf.init(keyStore, "".toCharArray)
-      Success(kmf)
-    } catch {
-      case NonFatal(e) => {
-        Failure(new Exception("Error loading fake key store", e))
+    } else {
+      val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
+      try {
+        keyStore.load(in, "".toCharArray)
+      } finally {
+        PlayIO.closeQuietly(in)
       }
     }
+
+    // Load the key and certificate into a key manager factory
+    val kmf = KeyManagerFactory.getInstance("SunX509")
+    kmf.init(keyStore, "".toCharArray)
+    kmf
   }
 
   def createSelfSignedCertificate(keyPair: KeyPair): X509Certificate = {
@@ -123,19 +113,19 @@ object FakeKeyStore {
 
     // Key and algorithm
     certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic))
-    val algorithm = new AlgorithmId(AlgorithmId.sha1WithRSAEncryption_oid)
+    val algorithm = new AlgorithmId(SignatureAlgorithmOID)
     certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm))
 
     // Create a new certificate and sign it
     val cert = new X509CertImpl(certInfo)
-    cert.sign(keyPair.getPrivate, "SHA1withRSA")
+    cert.sign(keyPair.getPrivate, SignatureAlgorithmName)
 
-    // Since the SHA1withRSA provider may have a different algorithm ID to what we think it should be,
+    // Since the signature provider may have a different algorithm ID to what we think it should be,
     // we need to reset the algorithm ID, and resign the certificate
     val actualAlgorithm = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
     certInfo.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, actualAlgorithm)
     val newCert = new X509CertImpl(certInfo)
-    newCert.sign(keyPair.getPrivate, "SHA1withRSA")
+    newCert.sign(keyPair.getPrivate, SignatureAlgorithmName)
     newCert
   }
 }

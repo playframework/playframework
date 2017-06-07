@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -17,7 +17,7 @@ import java.io.{ InputStream, File }
 case class Environment(
     rootPath: File,
     classLoader: ClassLoader,
-    mode: Mode.Mode) {
+    mode: Mode) {
 
   /**
    * Retrieves a file relative to the application root path.
@@ -50,7 +50,7 @@ case class Environment(
    * @param relativePath the relative path of the file to fetch
    * @return an existing file
    */
-  def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
+  def getExistingFile(relativePath: String): Option[File] = Some(getFile(relativePath)).filter(_.exists)
 
   /**
    * Scans the application classloader to retrieve a resource.
@@ -58,19 +58,17 @@ case class Environment(
    * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
    * directory.
    *
-   * For example, to retrieve the conf/logger.xml configuration file:
+   * For example, to retrieve the conf/logback.xml configuration file:
    * {{{
-   * val maybeConf = application.resource("logger.xml")
+   * val maybeConf = application.resource("logback.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
    * @return the resource URL, if found
    */
   def resource(name: String): Option[java.net.URL] = {
-    Option(classLoader.getResource(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classLoader.getResource(n))
   }
 
   /**
@@ -79,20 +77,23 @@ case class Environment(
    * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
    * directory.
    *
-   * For example, to retrieve the conf/logger.xml configuration file:
+   * For example, to retrieve the conf/logback.xml configuration file:
    * {{{
-   * val maybeConf = application.resourceAsStream("logger.xml")
+   * val maybeConf = application.resourceAsStream("logback.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
    * @return a stream, if found
    */
   def resourceAsStream(name: String): Option[InputStream] = {
-    Option(classLoader.getResourceAsStream(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classLoader.getResourceAsStream(n))
   }
+
+  /**
+   * @return Returns the Java version for this environment.
+   */
+  def asJava: play.Environment = new play.Environment(this)
 
 }
 
@@ -103,5 +104,5 @@ object Environment {
    * Uses the same classloader that the environment classloader is defined in, and the current working directory as the
    * path.
    */
-  def simple(mode: Mode.Mode = Mode.Test) = Environment(new File("."), Environment.getClass.getClassLoader, mode)
+  def simple(path: File = new File("."), mode: Mode = Mode.Test) = Environment(path, Environment.getClass.getClassLoader, mode)
 }

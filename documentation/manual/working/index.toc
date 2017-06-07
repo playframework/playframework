@@ -1,2 +1,3 @@
-!scalaGuide:Play for Scala developers
-!javaGuide:Play for Java developers
+javaGuide:Play for Java developers
+scalaGuide:Play for Scala developers
+commonGuide:Common topics

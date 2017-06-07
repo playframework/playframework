@@ -1,15 +1,13 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with Akka
 
 [Akka](http://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
 
 ## The application actor system
 
-Akka can work with several containers called actor systems. An actor system manages the resources it is configured to use in order to run the actors which it contains. 
+Akka can work with several containers called actor systems. An actor system manages the resources it is configured to use in order to run the actors which it contains.
 
 A Play application defines a special actor system to be used by the application. This actor system follows the application life-cycle and restarts automatically when the application restarts.
-
-> **Note:** Nothing prevents you from using another actor system from within a Play application. The provided default is convenient if you only need to start a few actors without bothering to set-up your own actor system.
 
 ### Writing actors
 
@@ -24,7 +22,7 @@ This actor follows a few Akka conventions:
 
 ### Creating and using actors
 
-To create and/or use an actor, you need an `ActorSystem`.  This can be obtained by declaring a dependency on an ActorSystem.  , like so:
+To create and/or use an actor, you need an `ActorSystem`.  This can be obtained by declaring a dependency on an ActorSystem, like so:
 
 @[controller](code/ScalaAkka.scala)
 
@@ -46,37 +44,88 @@ A few things to notice:
 * The return type of the ask is a `Future[Any]`, usually the first thing you will want to do after asking actor is map that to the type you are expecting, using the `mapTo` method.
 * An implicit timeout is needed in scope - the ask pattern must have a timeout.  If the actor takes longer than that to respond, the returned future will be completed with a timeout error.
 
+## Dependency injecting actors
+
+If you prefer, you can have Guice instantiate your actors and bind actor refs to them for your controllers and components to depend on.
+
+For example, if you wanted to have an actor that depended on the Play configuration, you might do this:
+
+@[injected](code/ScalaAkka.scala)
+
+Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|ScalaDependencyInjection#Play-applications]], then mix in the [`AkkaGuiceSupport`](api/scala/play/api/libs/concurrent/AkkaGuiceSupport.html) trait and use the `bindActor` method to bind the actor:
+
+@[binding](code/ScalaAkka.scala)
+
+This actor will both be named `configured-actor`, and will also be qualified with the `configured-actor` name for injection.  You can now depend on the actor in your controllers and other components:
+
+@[inject](code/ScalaAkka.scala)
+
+### Dependency injecting child actors
+
+The above is good for injecting root actors, but many of the actors you create will be child actors that are not bound to the lifecycle of the Play app, and may have additional state passed to them.
+
+In order to assist in dependency injecting child actors, Play utilises Guice's [AssistedInject](https://github.com/google/guice/wiki/AssistedInject) support.
+
+Let's say you have the following actor, which depends configuration to be injected, plus a key:
+
+@[injectedchild](code/ScalaAkka.scala)
+
+Note that the `key` parameter is declared to be `@Assisted`, this tells that it's going to be manually provided.
+
+We've also defined a `Factory` trait, this takes the `key`, and returns an `Actor`.  We won't implement this, Guice will do that for us, providing an implementation that not only passes our `key` parameter, but also locates the `Configuration` dependency and injects that.  Since the trait just returns an `Actor`, when testing this actor we can inject a factory that returns any actor, for example this allows us to inject a mocked child actor, instead of the actual one.
+
+Now, the actor that depends on this can extend [`InjectedActorSupport`](api/scala/play/api/libs/concurrent/InjectedActorSupport.html), and it can depend on the factory we created:
+
+@[injectedparent](code/ScalaAkka.scala)
+
+It uses the `injectedChild` to create and get a reference to the child actor, passing in the key. The second parameter (`key` in this example) will be used as the child actor's name.
+
+Finally, we need to bind our actors.  In our module, we use the `bindActorFactory` method to bind the parent actor, and also bind the child factory to the child implementation:
+
+@[factorybinding](code/ScalaAkka.scala)
+
+This will get Guice to automatically bind an instance of `ConfiguredChildActor.Factory`, which will provide an instance of `Configuration` to `ConfiguredChildActor` when it's instantiated.
+
 ## Configuration
 
 The default actor system configuration is read from the Play application configuration file. For example, to configure the default dispatcher of the application actor system, add these lines to the `conf/application.conf` file:
 
 ```
-akka.default-dispatcher.fork-join-executor.pool-size-max =64
+akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
 akka.actor.debug.receive = on
 ```
 
-> **Note:** You can also configure any other actor system from the same file; just provide a top configuration key.
-
 For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
-By default the name of the `ActorSystem` is `application`. You can change this via an entry in the `conf/application.conf`:
+### Changing configuration prefix
+
+In case you want to use the `akka.*` settings for another Akka actor system, you can tell Play to load its Akka settings from another location.
 
 ```
-play.modules.akka.actor-system = "custom-name"
+play.akka.config = "my-akka"
 ```
 
-> **Note:** This feature is useful if you want to put your play application ActorSystem in an akka cluster.
+Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
 
-## Scheduling asynchronous tasks
+```
+my-akka.actor.default-dispatcher.fork-join-executor.pool-size-max = 64
+my-akka.actor.debug.receive = on
+```
 
-You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
+### Built-in actor system name
 
-For example, to send a message to the `testActor` every 300 microseconds:
+By default the name of the Play actor system is `application`. You can change this via an entry in the `conf/application.conf`:
 
-@[schedule-actor](code/ScalaAkka.scala)
+```
+play.akka.actor-system = "custom-name"
+```
 
-> **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
+> **Note:** This feature is useful if you want to put your play application ActorSystem in an Akka cluster.
 
-Similarly, to run a block of code 10 milliseconds from now:
+## Using your own Actor system
 
-@[schedule-callback](code/ScalaAkka.scala)
+While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:
+
+* Register a [[stop hook|ScalaDependencyInjection#Stopping/cleaning-up]] to shut the actor system down when Play shuts down
+* Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Akka won't be able to find your applications classes
+* Ensure that either you change the location that Play reads it's akka configuration from using `play.akka.config`, or that you don't read your akka configuration from the default `akka` config, as this will cause problems such as when the systems try to bind to the same remote ports

@@ -1,0 +1,11 @@
+Configuration:Configuration
+ConfigFile:Configuration file syntax and features
+ApplicationSecret:Configuring the application secret
+SettingsSession:Configuring the session cookie
+SettingsJDBC:Configuring the JDBC connection pool
+ThreadPools:Configuring Play's thread pools
+SettingsAkkaHttp:Configuring Akka Http Server Backend
+SettingsNetty:Configuring Netty Server Backend
+SettingsLogger:Configuring logging
+WsSSL:Configuring WS SSL
+WsCache:Configuring WS Cache

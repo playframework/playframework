@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # OpenID Support in Play
 
 OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
@@ -14,15 +14,15 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenID, first add `ws`  to your `build.sbt` file:
+To use OpenID, first add `openid`  to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
-  ws
+  openId
 )
 ```
 
-Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/scala/index.html#play.api.libs.openid.OpenIdClient):
+Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/scala/play/api/libs/openid/OpenIdClient.html):
 
 @[dependency](code/ScalaOpenIdSpec.scala)
 
@@ -33,7 +33,7 @@ We've called the `OpenIdClient` instance `openIdClient`, all the following examp
 The OpenID API has two important functions:
 
 * `OpenIdClient.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Future[String]`. If the OpenID is invalid, the returned `Future` will fail.
-* `OpenIdClient.verifiedId` needs a `RequestHeader` and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a future of [UserInfo](api/scala/index.html#play.api.libs.openid.UserInfo). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Future` will fail.
+* `OpenIdClient.verifiedId` needs a `RequestHeader` and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a future of [UserInfo](api/scala/play/api/libs/openid/UserInfo.html). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Future` will fail.
 
 If the `Future` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
 

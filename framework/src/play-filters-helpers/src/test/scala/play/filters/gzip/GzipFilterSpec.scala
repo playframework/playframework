@@ -1,27 +1,49 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.gzip
 
+import javax.inject.Inject
+
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.Application
+import play.api.http.{ HttpChunk, HttpEntity, HttpFilters }
+import play.api.inject._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test._
-import play.api.mvc.{ HttpConnection, Action, Result }
+import play.api.mvc.{ Cookie, DefaultActionBuilder, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
+
 import org.apache.commons.io.IOUtils
+
 import scala.concurrent.Future
-import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import scala.util.Random
 import org.specs2.matcher.DataTables
 
-object GzipFilterSpec extends PlaySpecification with DataTables {
+object GzipFilterSpec {
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result) extends SimpleRouterImpl({ case _ => action(result) })
+
+  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
+    def filters = Seq(gzipFilter)
+  }
+
+}
+
+class GzipFilterSpec extends PlaySpecification with DataTables {
 
   sequential
 
+  import GzipFilterSpec._
+
   "The GzipFilter" should {
 
-    "gzip responses" in withApplication(Ok("hello")) {
-      checkGzippedBody(makeGzipRequest, "hello")
+    "gzip responses" in withApplication(Ok("hello")) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
 
     """gzip a response if (and only if) it is accepted and preferred by the request.
@@ -30,7 +52,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       |codings are assigned a qvalue of 0, except the identity coding which gets q=0.001,
       |which is the lowest possible acceptable qvalue.
       |This seems to be the most consistent behaviour with respect to the other "accept"
-      |header fields described in sect 14.1-5.""".stripMargin in withApplication(Ok("meep")) {
+      |header fields described in sect 14.1-5.""".stripMargin in withApplication(Ok("meep")) { implicit app =>
 
       val (plain, gzipped) = (None, Some("gzip"))
 
@@ -65,107 +87,186 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
         "" !! plain |> {
 
           (codings, expectedEncoding) =>
-            header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo (expectedEncoding)
+            header(CONTENT_ENCODING, requestAccepting(app, codings)) must be equalTo (expectedEncoding)
         }
     }
 
-    "not gzip responses when not requested" in withApplication(Ok("hello")) {
-      checkNotGzipped(route(FakeRequest()).get, "hello")
+    "not gzip empty responses" in withApplication(Ok) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "")(app.materializer)
     }
 
-    "not gzip HEAD requests" in withApplication(Ok) {
-      checkNotGzipped(route(FakeRequest("HEAD", "/").withHeaders(ACCEPT_ENCODING -> "gzip")).get, "")
+    "not gzip responses when not requested" in withApplication(Ok("hello")) { implicit app =>
+      checkNotGzipped(route(app, FakeRequest()).get, "hello")(app.materializer)
     }
 
-    "not gzip no content responses" in withApplication(NoContent) {
-      checkNotGzipped(makeGzipRequest, "")
+    "not gzip HEAD requests" in withApplication(Ok) { implicit app =>
+      checkNotGzipped(route(app, FakeRequest("HEAD", "/").withHeaders(ACCEPT_ENCODING -> "gzip")).get, "")(app.materializer)
     }
 
-    "not gzip not modified responses" in withApplication(NotModified) {
-      checkNotGzipped(makeGzipRequest, "")
+    "not gzip no content responses" in withApplication(NoContent) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "")(app.materializer)
     }
 
-    "not gzip chunked responses" in withApplication(Ok.chunked(Enumerator("foo", "bar"))) {
-      val result = makeGzipRequest
-      header(CONTENT_ENCODING, result) must beNone
-      header(CONTENT_LENGTH, result) must beNone
-      header(TRANSFER_ENCODING, result) must beSome("chunked")
-      new String(await(await(result).body &> dechunk |>>> Iteratee.consume[Array[Byte]]()), "UTF-8") must_== "foobar"
+    "not gzip not modified responses" in withApplication(NotModified) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "")(app.materializer)
     }
 
-    "not gzip event stream responses" in withApplication(Ok.feed(Enumerator("foo", "bar")).as("text/event-stream")) {
-      checkNotGzipped(makeGzipRequest, "foobar")
+    "gzip chunked responses" in withApplication(Ok.chunked(Source(List("foo", "bar")))) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzippedBody(result, "foobar")(app.materializer)
+      await(result).body must beAnInstanceOf[HttpEntity.Chunked]
     }
-
-    "filter content length headers" in withApplication(
-      Ok("hello")
-        .withHeaders(CONTENT_LENGTH -> Integer.toString(328974))
-        // http connection close will trigger the gzip filter not to buffer
-        .copy(connection = HttpConnection.Close)
-    ) {
-        val result = makeGzipRequest
-        checkGzipped(result)
-        header(CONTENT_LENGTH, result) must beNone
-      }
 
     val body = Random.nextString(1000)
 
-    "not buffer more than the configured threshold" in withApplication(Ok(body).withHeaders(CONTENT_LENGTH -> "1000")) {
-      val result = makeGzipRequest
-      checkGzipped(result)
-      header(CONTENT_LENGTH, result) must beNone
-      header(TRANSFER_ENCODING, result) must beSome("chunked")
-      gunzip(await(await(result).body &> dechunk |>>> Iteratee.consume[Array[Byte]]())) must_== body
+    "a streamed body" should {
+
+      val entity = HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)
+
+      "not buffer more than the configured threshold" in withApplication(
+        Ok.sendEntity(entity), chunkedThreshold = 512) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzippedBody(result, body)(app.materializer)
+          await(result).body must beAnInstanceOf[HttpEntity.Chunked]
+        }
+
+      "preserve original headers, cookies, flash and session values" in {
+
+        "when buffer is less than configured threshold" in withApplication(
+          Ok.sendEntity(entity)
+            .withHeaders(SERVER -> "Play")
+            .withCookies(Cookie("cookieName", "cookieValue"))
+            .flashing("flashName" -> "flashValue")
+            .withSession("sessionName" -> "sessionValue"),
+          chunkedThreshold = 2048 // body size is 1000
+        ) { implicit app =>
+            val result = makeGzipRequest(app)
+            checkGzipped(result)
+            header(SERVER, result) must beSome("Play")
+            cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+            flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+            session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          }
+
+        "when buffer more than configured threshold" in withApplication(
+          Ok.sendEntity(entity)
+            .withHeaders(SERVER -> "Play")
+            .withCookies(Cookie("cookieName", "cookieValue"))
+            .flashing("flashName" -> "flashValue")
+            .withSession("sessionName" -> "sessionValue"),
+          chunkedThreshold = 512
+        ) { implicit app =>
+            val result = makeGzipRequest(app)
+            checkGzippedBody(result, body)(app.materializer)
+            header(SERVER, result) must beSome("Play")
+            cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+            flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+            session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          }
+      }
     }
 
-    "buffer the first chunk even if it exceeds the threshold" in withApplication(Ok("foobarblah"), 15) {
-      checkGzippedBody(makeGzipRequest, "foobarblah")
+    "a chunked body" should {
+      val chunkedBody = Source.fromIterator(() =>
+        Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
+      )
+
+      val entity = HttpEntity.Chunked(chunkedBody, Some("text/plain"))
+
+      "preserve original headers, cookie, flash and session values" in withApplication(
+        Ok.sendEntity(entity)
+          .withHeaders(SERVER -> "Play")
+          .withCookies(Cookie("cookieName", "cookieValue"))
+          .flashing("flashName" -> "flashValue")
+          .withSession("sessionName" -> "sessionValue")
+      ) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzipped(result)
+          header(SERVER, result) must beSome("Play")
+          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        }
     }
 
-    "preserve original headers" in withApplication(Redirect("/foo")) {
-      val result = makeGzipRequest
-      checkGzipped(result)
-      header(LOCATION, result) must beSome("/foo")
+    "a strict body" should {
+
+      "zip a strict body even if it exceeds the threshold" in withApplication(Ok(body), 512) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzippedBody(result, body)(app.materializer)
+        await(result).body must beAnInstanceOf[HttpEntity.Strict]
+      }
+
+      "preserve original headers, cookie, flash and session values" in withApplication(
+        Ok("hello")
+          .withHeaders(SERVER -> "Play")
+          .withCookies(Cookie("cookieName", "cookieValue"))
+          .flashing("flashName" -> "flashValue")
+          .withSession("sessionName" -> "sessionValue")
+      ) { implicit app =>
+          val result = makeGzipRequest(app)
+          checkGzipped(result)
+          header(SERVER, result) must beSome("Play")
+          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        }
+
+      "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzipped(result)
+        header(VARY, result) must beSome.which(header => header contains "original,")
+      }
+
+      "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(Ok("hello").withHeaders(VARY -> "original,ACCEPT-encoding")) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzipped(result)
+        header(VARY, result) must beSome.which(header => header.split(",").count(_.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING.toLowerCase(java.util.Locale.ENGLISH)) == 1)
+      }
     }
 
-    "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) {
-      val result = makeGzipRequest
-      checkGzipped(result)
-      header(VARY, result) must beSome.which(header => header contains "original,")
-    }
   }
 
-  def withApplication[T](result: Result, buffer: Int = 1024)(block: => T): T = {
-    running(FakeApplication(withRoutes = {
-      case _ => new GzipFilter(gzip = Gzip.gzip(512), chunkedThreshold = buffer).apply(Action(result))
-    }))(block)
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: Application => T): T = {
+    val application = new GuiceApplicationBuilder()
+      .configure(
+        "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
+        "play.filters.gzip.bufferSize" -> 512
+      ).overrides(
+          bind[Result].to(result),
+          bind[Router].to[ResultRouter],
+          bind[HttpFilters].to[Filters]
+        ).build
+    running(application)(block(application))
   }
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
 
-  def makeGzipRequest = route(gzipRequest).get
+  def makeGzipRequest(app: Application) = route(app, gzipRequest).get
 
-  def requestAccepting(codings: String) = route(FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
+  def requestAccepting(app: Application, codings: String) = route(app, FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
 
-  def gunzip(bytes: Array[Byte]): String = {
-    val is = new GZIPInputStream(new ByteArrayInputStream(bytes))
+  def gunzip(bytes: ByteString): String = {
+    val is = new GZIPInputStream(new ByteArrayInputStream(bytes.toArray))
     val result = IOUtils.toString(is, "UTF-8")
     is.close()
     result
   }
 
   def checkGzipped(result: Future[Result]) = {
-    header(CONTENT_ENCODING, result) must beSome("gzip")
+    header(CONTENT_ENCODING, result) aka "Content encoding header" must beSome("gzip")
   }
 
-  def checkGzippedBody(result: Future[Result], body: String) = {
+  def checkGzippedBody(result: Future[Result], body: String)(implicit mat: Materializer) = {
     checkGzipped(result)
     val resultBody = contentAsBytes(result)
-    header(CONTENT_LENGTH, result) must beSome(Integer.toString(resultBody.length))
+    await(result).body.contentLength.foreach { cl =>
+      resultBody.length must_== cl
+    }
     gunzip(resultBody) must_== body
   }
 
-  def checkNotGzipped(result: Future[Result], body: String) = {
+  def checkNotGzipped(result: Future[Result], body: String)(implicit mat: Materializer) = {
     header(CONTENT_ENCODING, result) must beNone
     contentAsString(result) must_== body
   }

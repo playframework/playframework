@@ -1,11 +1,15 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
-import play.api._
+import javax.inject.Inject
+
 import play.api.mvc._
-import play.api.libs._
+import play.twirl.api.Html
+
+@deprecated("Use Default class instead", "2.6.0")
+object Default extends Default
 
 /**
  * Default actions ready to use as is from your routes file.
@@ -18,7 +22,9 @@ import play.api.libs._
  * GET   /xxx             controllers.Default.error
  * }}}
  */
-object Default extends Controller {
+class Default @Inject() () extends ControllerHelpers {
+
+  private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
 
   /**
    * Returns a 501 NotImplemented response.
@@ -43,7 +49,7 @@ object Default extends Controller {
   }
 
   /**
-   * Returns a 302 Redirect response.
+   * Returns a 303 SeeOther response.
    *
    * Example:
    * {{{

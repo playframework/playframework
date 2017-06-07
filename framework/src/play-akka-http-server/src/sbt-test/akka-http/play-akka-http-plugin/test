@@ -1,0 +1,9 @@
+# Start dev mode
+> run
+> verifyResourceContains / 200 akka-http
+> playStop
+
+# Check tests work an explicit ServerProvider
+> test
+
+# TODO: Test dist main class

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data
 
@@ -233,10 +233,20 @@ object Forms {
   val text: Mapping[String] = of[String]
 
   /**
+   * Constructs a simple mapping for a char field.
+   *
+   * For example:
+   * {{{
+   * Form("gender" -> char)
+   * }}}
+   */
+  val char: Mapping[Char] = of[Char]
+
+  /**
    * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
-   * there are marked as optional explicitely. But a nonEmptyText defines text
+   * there are marked as optional explicitly. But a nonEmptyText defines text
    * field that must not be empty, even if present in the form.
    *
    * Example:
@@ -407,8 +417,8 @@ object Forms {
    * {{{
    * Form("montant" -> bigDecimal(10, 2))
    * }}}
-   * @param precision The maximun total number of digits (including decimals)
-   * @param scale The maximun number of decimals
+   * @param precision The maximum total number of digits (including decimals)
+   * @param scale The maximum number of decimals
    */
   def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
 
@@ -540,51 +550,6 @@ object Forms {
   def sqlDate(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern, timeZone)
 
   /**
-   * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
-   *
-   * For example:
-   * {{{
-   *   Form("birthdate" -> jodaDate)
-   * }}}
-   */
-  val jodaDate: Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime]
-
-  /**
-   * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
-   *
-   * For example:
-   * {{{
-   *   Form("birthdate" -> jodaDate("dd-MM-yyyy"))
-   * }}}
-   *
-   * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
-   * @param timeZone the `org.joda.time.DateTimeZone` to use for parsing and formatting
-   */
-  def jodaDate(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern, timeZone)
-
-  /**
-   * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDatetype`).
-   *
-   * For example:
-   * {{{
-   * Form("birthdate" -> jodaLocalDate)
-   * }}}
-   */
-  val jodaLocalDate: Mapping[org.joda.time.LocalDate] = of[org.joda.time.LocalDate]
-
-  /**
-   * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDate type`).
-   *
-   * For example:
-   * {{{
-   * Form("birthdate" -> jodaLocalDate("dd-MM-yyyy"))
-   * }}}
-   *
-   * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
-   */
-  def jodaLocalDate(pattern: String): Mapping[org.joda.time.LocalDate] = of[org.joda.time.LocalDate] as jodaLocalDateFormat(pattern)
-
-  /**
    * Constructs a simple mapping for an e-mail field.
    *
    * @see http://www.w3.org/TR/html5/forms.html#e-mail-state-(type=email)
@@ -605,6 +570,72 @@ object Forms {
    * }}}
    */
   val boolean: Mapping[Boolean] = of[Boolean]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDate type`).
+   *
+   * For example:
+   * {{{
+   * Form("birthdate" -> localDate)
+   * }}}
+   */
+  val localDate: Mapping[java.time.LocalDate] = of[java.time.LocalDate]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDate type`).
+   *
+   * For example:
+   * {{{
+   * Form("birthdate" -> localDate("dd-MM-yyyy"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate] as localDateFormat(pattern)
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("dateTime" -> localDateTime)
+   * }}}
+   */
+  val localDateTime: Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("dateTime" -> localDateTime("dd-MM-yyyy HH:mm:ss"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime] as localDateTimeFormat(pattern)
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("time" -> localTime)
+   * }}}
+   */
+  val localTime: Mapping[java.time.LocalTime] = of[java.time.LocalTime]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
+   *
+   * For example:
+   * {{{
+   * Form("time" -> localTime("HH:mm:ss"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
+   */
+  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime] as localTimeFormat(pattern)
 
   def checked(msg: String): Mapping[Boolean] = boolean verifying (msg, _ == true)
 

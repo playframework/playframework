@@ -1,14 +1,14 @@
-<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/index.html#play.api.Logger$) object and uses [Logback](http://logback.qos.ch/) as the logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](https://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
 #### Logger
-Your application can define [`Logger`](api/scala/index.html#play.api.Logger) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  
+Your application can define [`Logger`](api/scala/play/api/Logger.html) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  The Logger API is based on SLF4J, and so `Logger` is based on the `org.slf4j.Logger` interface.
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
 
@@ -33,21 +33,22 @@ The logging API allows logging requests to print to one or many output destinati
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> Note: For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> Note: For further information on architecture, see the [Logback documentation](https://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
 First import the `Logger` class and companion object:
 
 @[logging-import](code/ScalaLoggingSpec.scala)
 
-#### The default Logger
+### The default Logger
+
 The `Logger` object is your default logger and uses the name "application." You can use it to write log request statements:
 
 @[logging-default-logger](code/ScalaLoggingSpec.scala)
 
 Using Play's default logging configuration, these statements will produce console output similar to this:
 
-```
+```text
 [debug] application - Attempting risky calculation.
 [error] application - Exception with riskyCalculation
 java.lang.ArithmeticException: / by zero
@@ -60,8 +61,9 @@ java.lang.ArithmeticException: / by zero
 
 Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
 
-#### Creating your own loggers
-Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexibile configuration, filtering of log output, and pinpointing the source of log messages.
+### Creating your own loggers
+
+Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
 You can create a new logger using the `Logger.apply` factory method with a name argument:
 
@@ -71,7 +73,58 @@ A common strategy for logging application events is to use a distinct logger per
 
 @[logging-create-logger-class](code/ScalaLoggingSpec.scala)
 
-#### Logging patterns
+### Using Markers and Marker Contexts
+
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+
+The Logger API provides access to markers through the `play.api.MarkerContext` trait.
+
+You can create a MarkerContext with the Logger by using the `MarkerContext.apply` method:
+
+@[logging-marker-context](code/ScalaLoggingSpec.scala)
+
+You can also provide a typed MarkerContext by extending from `DefaultMarkerContext`:
+
+@[logging-default-marker-context](code/ScalaLoggingSpec.scala)
+
+Once a MarkerContext has been created, it can be used with a logging statement, either explicitly:
+
+@[logging-log-info-with-explicit-markercontext](code/ScalaLoggingSpec.scala)
+
+Or implicitly:
+
+@[logging-log-info-with-implicit-markercontext](code/ScalaLoggingSpec.scala)
+
+For convenience, there is an implicit conversion available from a `Marker` to a `MarkerContext`:
+
+@[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
+
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+
+@[logging-request-context-trait](code/ScalaLoggingSpec.scala)
+
+And then used in a controller and carried through `Future` that may use different execution contexts:
+
+@[logging-log-info-with-request-context](code/ScalaLoggingSpec.scala)
+
+Note that marker contexts are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
+
+@[logging-log-trace-with-tracer-controller](code/ScalaLoggingSpec.scala)
+
+And then trigger logging with the following TurboFilter in `logback.xml`: 
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+  <Name>TRACER_FILTER</Name>
+  <Marker>TRACER</Marker>
+  <OnMatch>ACCEPT</OnMatch>
+</turboFilter>
+```
+
+For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
+
+### Logging patterns
+
 Effective use of loggers can help you achieve many goals with the same tool:
 
 @[logging-pattern-mix](code/ScalaLoggingSpec.scala)

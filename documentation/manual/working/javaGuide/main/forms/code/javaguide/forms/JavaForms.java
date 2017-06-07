@@ -1,86 +1,122 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
-import org.joda.time.LocalTime;
 import org.junit.Test;
+import play.Application;
+import play.core.j.JavaHandlerComponents;
 import play.data.DynamicForm;
 import play.data.Form;
+import play.data.FormFactory;
 import play.data.format.Formatters;
-import play.data.format.Formatters.SimpleFormatter;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
+import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
+import javaguide.forms.groups.LoginCheck;
+import javaguide.forms.groups.PartialUserForm;
+import javaguide.forms.groups.SignUpCheck;
+import javaguide.forms.groupsequence.OrderedChecks;
 import javaguide.forms.u1.User;
 
-import java.text.ParseException;
+import java.time.LocalTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import javax.validation.groups.Default;
+
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
+import static play.inject.Bindings.bind;
 
 public class JavaForms extends WithApplication {
 
+    private FormFactory formFactory() {
+        return app.injector().instanceOf(FormFactory.class);
+    }
+
     @Test
     public void usingForm() {
+        FormFactory formFactory = formFactory();
+
         final // sneaky final
         //#create
-        Form<User> userForm = Form.form(User.class);
+        Form<User> userForm = formFactory.form(User.class);
         //#create
 
         //#bind
-        Map<String,String> anyData = new HashMap();
+        Map<String,String> anyData = new HashMap<>();
         anyData.put("email", "bob@gmail.com");
         anyData.put("password", "secret");
 
         User user = userForm.bind(anyData).get();
         //#bind
 
-        assertThat(user.email, equalTo("bob@gmail.com"));
-        assertThat(user.password, equalTo("secret"));
+        assertThat(user.getEmail(), equalTo("bob@gmail.com"));
+        assertThat(user.getPassword(), equalTo("secret"));
     }
 
     @Test
     public void bindFromRequest() {
-        Result result = MockJavaActionHelper.call(new Controller1(),
-                fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("email", "e", "password", "p")));
+        Result result = call(new Controller1(instanceOf(JavaHandlerComponents.class)),
+                fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
         assertThat(contentAsString(result), equalTo("e"));
     }
 
-    public static class Controller1 extends MockJavaAction {
+    public class Controller1 extends MockJavaAction {
+
+        Controller1(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         public Result index() {
-            Form<User> userForm = Form.form(User.class);
+            Form<User> userForm = formFactory().form(User.class);
             //#bind-from-request
             User user = userForm.bindFromRequest().get();
             //#bind-from-request
 
-            return ok(user.email);
+            return ok(user.getEmail());
         }
     }
 
     @Test
-    public void constrants() {
-        Form<javaguide.forms.u2.User> userForm = Form.form(javaguide.forms.u2.User.class);
+    public void constraints() {
+        Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
         assertThat(userForm.bind(ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }
 
     @Test
     public void adhocValidation() {
-        Form<javaguide.forms.u3.User> userForm = Form.form(javaguide.forms.u3.User.class);
-        Form<javaguide.forms.u3.User> bound = userForm.bind(ImmutableMap.of("email", "e", "password", "p"));
-        assertThat(bound.hasGlobalErrors(), equalTo(true));
-        assertThat(bound.globalError().message(), equalTo("Invalid email or password"));
+        Result result = call(new U3UserController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
 
         // Run it through the template
-        assertThat(javaguide.forms.html.view.render(bound).toString(), containsString("Invalid email or password"));
+        assertThat(contentAsString(result), containsString("Invalid email or password"));
+    }
+
+    public class U3UserController extends MockJavaAction {
+
+        U3UserController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest();
+
+            if (userForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(userForm));
+            } else {
+                javaguide.forms.u3.User user = userForm.get();
+                return ok("Got user " + user);
+            }
+        }
     }
 
     public static String authenticate(String email, String password) {
@@ -89,56 +125,172 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void listValidation() {
-        Form<UserForm> userForm = Form.form(UserForm.class).bind(ImmutableMap.of("email", "e"));
-        assertThat(userForm.errors().get("email"), notNullValue());
-        assertThat(userForm.errors().get("email").get(0).message(), equalTo("This e-mail is already registered."));
+        Result result = call(new ListValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
-        assertThat(javaguide.forms.html.view.render(userForm).toString(), containsString("<p>This e-mail is already registered.</p>"));
+        assertThat(contentAsString(result), containsString("Access denied"));
+        assertThat(contentAsString(result), containsString("Form could not be submitted"));
     }
 
-    public static class UserForm {
-        public static class User {
-            public static String byEmail(String email) {
-                return email;
-            }
+    //#list-validate
+    //###insert: import play.data.validation.Constraints.Validate;
+    //###insert: import play.data.validation.Constraints.Validatable;
+    //###insert: import play.data.validation.ValidationError;
+    //###insert: import java.util.List;
+
+    @Validate
+    public static class SignUpForm implements Validatable<List<ValidationError>> {
+
+        // fields, getters, setters, etc.
+
+        //###skip: 19
+        private String email;
+        protected String password;
+
+        public void setEmail(String email) {
+            this.email = email;
         }
 
-        public String email;
+        public String getEmail() {
+            return email;
+        }
 
-        //#list-validate
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        @Override
         public List<ValidationError> validate() {
-            List<ValidationError> errors = new ArrayList<ValidationError>();
-            if (User.byEmail(email) != null) {
-                errors.add(new ValidationError("email", "This e-mail is already registered."));
+            final List<ValidationError> errors = new ArrayList<>();
+            if (authenticate(email, password) == null) {
+                // Add an error which will be displayed for the email field:
+                errors.add(new ValidationError("email", "Access denied"));
+                // Also add a global error:
+                errors.add(new ValidationError("", "Form could not be submitted"));
             }
-            return errors.isEmpty() ? null : errors;
+            return errors;
         }
-        //#list-validate
+    }
+    //#list-validate
+
+    public class ListValidationController extends MockJavaAction {
+
+        ListValidationController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest();
+
+            if (userForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(userForm));
+            } else {
+                SignUpForm user = userForm.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void objectValidation() {
+        Result result = call(new ObjectValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of("email", "e")), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("Invalid credentials"));
+    }
+
+    //#object-validate
+    //###insert: import play.data.validation.Constraints.Validate;
+    //###insert: import play.data.validation.Constraints.Validatable;
+    //###insert: import play.data.validation.ValidationError;
+
+    @Validate
+    public static class LoginForm implements Validatable<ValidationError> {
+
+        // fields, getters, setters, etc.
+
+        //###skip: 19
+        private String email;
+        private String password;
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        @Override
+        public ValidationError validate() {
+            if (authenticate(email, password) == null) {
+                // Error will be displayed for the email field:
+                return new ValidationError("email", "Invalid credentials");
+            }
+            return null;
+        }
+    }
+    //#object-validate
+
+    public class ObjectValidationController extends MockJavaAction {
+
+        ObjectValidationController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest();
+
+            if (adminForm.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(adminForm));
+            } else {
+                LoginForm user = adminForm.get();
+                return ok("Got user " + user);
+            }
+        }
     }
 
     @Test
     public void handleErrors() {
-        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
+        Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+            .bodyForm(ImmutableMap.of("email", "e")), mat);
         assertThat(contentAsString(result), startsWith("Got user"));
     }
 
-    public static class Controller2 extends MockJavaAction {
-        static Pviews views = new Pviews();
-        static class Pviews {
+    public class Controller2 extends MockJavaAction {
+        Pviews views = new Pviews();
+        class Pviews {
             Phtml html = new Phtml();
         }
-        static class Phtml {
+        class Phtml {
             Pform form = new Pform();
         }
-        static class Pform {
+        class Pform {
             String render(Form<?> form) {
                 return "rendered";
             }
         }
 
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         public Result index() {
-            Form<User> userForm = Form.form(User.class).bind(ImmutableMap.of("email", "e"));
+            Form<User> userForm = formFactory().form(User.class).bindFromRequest();
             //#handle-errors
             if (userForm.hasErrors()) {
                 return badRequest(views.html.form.render(userForm));
@@ -159,25 +311,31 @@ public class JavaForms extends WithApplication {
                 this.password = password;
             }
         }
-        Form<javaguide.forms.u1.User> userForm = Form.form(javaguide.forms.u1.User.class);
+        Form<javaguide.forms.u1.User> userForm = formFactory().form(javaguide.forms.u1.User.class);
         //#fill
         userForm = userForm.fill(new User("bob@gmail.com", "secret"));
         //#fill
-        assertThat(userForm.field("email").value(), equalTo("bob@gmail.com"));
-        assertThat(userForm.field("password").value(), equalTo("secret"));
+        assertThat(userForm.field("email").getValue().get(), equalTo("bob@gmail.com"));
+        assertThat(userForm.field("password").getValue().get(), equalTo("secret"));
     }
 
     @Test
     public void dynamicForm() {
-        Result result = MockJavaActionHelper.call(new Controller3(),
-                fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("firstname", "a", "lastname", "b")));
+        Result result = call(new Controller3(instanceOf(JavaHandlerComponents.class)),
+                fakeRequest("POST", "/").bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")), mat);
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }
 
-    public static class Controller3 extends MockJavaAction {
+    public class Controller3 extends MockJavaAction {
+        FormFactory formFactory = formFactory();
+
+        Controller3(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
         //#dynamic
         public Result hello() {
-            DynamicForm requestData = Form.form().bindFromRequest();
+            DynamicForm requestData = formFactory.form().bindFromRequest();
             String firstname = requestData.get("firstname");
             String lastname = requestData.get("lastname");
             return ok("Hello " + firstname + " " + lastname);
@@ -187,38 +345,186 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void registerFormatter() {
-        //#register-formatter
-        Formatters.register(LocalTime.class, new SimpleFormatter<LocalTime>() {
+        Application application = new GuiceApplicationBuilder()
+            .overrides(bind(Formatters.class).toProvider(FormattersProvider.class))
+            .build();
 
-            private Pattern timePattern = Pattern.compile(
-                    "([012]?\\d)(?:[\\s:\\._\\-]+([0-5]\\d))?"
-            );
-
-            @Override
-            public LocalTime parse(String input, Locale l) throws ParseException {
-                Matcher m = timePattern.matcher(input);
-                if (!m.find()) throw new ParseException("No valid Input", 0);
-                int hour = Integer.valueOf(m.group(1));
-                int min = m.group(2) == null ? 0 : Integer.valueOf(m.group(2));
-                return new LocalTime(hour, min);
-            }
-
-            @Override
-            public String print(LocalTime localTime, Locale l) {
-                return localTime.toString("HH:mm");
-            }
-
-        });
-        //#register-formatter
-
-        Form<WithLocalTime> form = Form.form(WithLocalTime.class);
+        Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
-        assertThat(obj.time, equalTo(new LocalTime(23, 45)));
-        assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));
+        assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
+        assertThat(form.fill(obj).field("time").getValue().get(), equalTo("23:45"));
     }
 
     public static class WithLocalTime {
-        public LocalTime time;
+        private LocalTime time;
+
+        public LocalTime getTime() {
+            return time;
+        }
+
+        public void setTime(LocalTime time) {
+            this.time = time;
+        }
+    }
+
+    public void validationErrorExamples() {
+        final String arg1 = "";
+        final String arg2 = "";
+        final String email = "";
+
+        //#validation-error-examples
+        // Global error without internationalization:
+        new ValidationError("", "Errors occured. Please check your input!");
+        // Global error; "validationFailed" should be defined in `conf/messages` - taking two arguments:
+        new ValidationError("", "validationFailed", Arrays.asList(arg1, arg2));
+        // Error for the email field; "emailUsedAlready" should be defined in `conf/messages` - taking the email as argument:
+        new ValidationError("email", "emailUsedAlready", Arrays.asList(email));
+        //#validation-error-examples
+    }
+
+    @Test
+    public void partialFormSignupValidation() {
+        Result result = call(new PartialFormSignupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormSignupController extends MockJavaAction {
+
+        PartialFormSignupController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-signup
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest();
+            //#partial-validate-signup
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormLoginValidation() {
+        Result result = call(new PartialFormLoginController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormLoginController extends MockJavaAction {
+
+        PartialFormLoginController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-login
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest();
+            //#partial-validate-login
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormDefaultValidation() {
+        Result result = call(new PartialFormDefaultController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormDefaultController extends MockJavaAction {
+
+        PartialFormDefaultController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-default
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest();
+            //#partial-validate-default
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void partialFormNoGroupValidation() {
+        Result result = call(new PartialFormNoGroupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class PartialFormNoGroupController extends MockJavaAction {
+
+        PartialFormNoGroupController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#partial-validate-nogroup
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest();
+            //#partial-validate-nogroup
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
+    }
+
+    @Test
+    public void OrderedGroupSequenceValidation() {
+        Result result = call(new OrderedGroupSequenceController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+                .bodyForm(ImmutableMap.of()), mat);
+
+        // Run it through the template
+        assertThat(contentAsString(result), containsString("This field is required"));
+    }
+
+    public class OrderedGroupSequenceController extends MockJavaAction {
+
+        OrderedGroupSequenceController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        public Result index() {
+            //#ordered-group-sequence-validate
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest();
+            //#ordered-group-sequence-validate
+
+            if (form.hasErrors()) {
+                return badRequest(javaguide.forms.html.view.render(form));
+            } else {
+                PartialUserForm user = form.get();
+                return ok("Got user " + user);
+            }
+        }
     }
 
 }

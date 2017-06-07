@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async;
 
 //#actor
 import akka.actor.*;
 
-public class MyWebSocketActor extends UntypedActor {
+public class MyWebSocketActor extends UntypedAbstractActor {
 
     public static Props props(ActorRef out) {
         return Props.create(MyWebSocketActor.class, out);

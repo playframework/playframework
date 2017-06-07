@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
@@ -25,8 +25,26 @@ public class Environment {
         this.env = environment;
     }
 
+    public Environment(File rootPath, ClassLoader classLoader, Mode mode) {
+        this(new play.api.Environment(rootPath, classLoader, mode.asScala()));
+    }
+
+    public Environment(File rootPath, Mode mode) {
+        this(rootPath, Environment.class.getClassLoader(), mode);
+    }
+
+    public Environment(File rootPath) {
+        this(rootPath, Environment.class.getClassLoader(), Mode.TEST);
+    }
+
+    public Environment(Mode mode) {
+        this(new File("."), Environment.class.getClassLoader(), mode);
+    }
+
     /**
      * The root path that the application is deployed at.
+     *
+     * @return the path
      */
     public File rootPath() {
         return env.rootPath();
@@ -34,6 +52,8 @@ public class Environment {
 
     /**
      * The classloader that all application classes and resources can be loaded from.
+     *
+     * @return the class loader
      */
     public ClassLoader classLoader() {
         return env.classLoader();
@@ -41,19 +61,17 @@ public class Environment {
 
     /**
      * The mode of the application.
+     *
+     * @return the mode
      */
     public Mode mode() {
-        if (env.mode().equals(play.api.Mode.Prod())) {
-            return Mode.PROD;
-        } else if (env.mode().equals(play.api.Mode.Dev())) {
-            return Mode.DEV;
-        } else {
-            return Mode.TEST;
-        }
+        return env.mode().asJava();
     }
 
     /**
      * Returns `true` if the application is `DEV` mode.
+     *
+     * @return `true` if the application is `DEV` mode.
      */
     public boolean isDev() {
         return mode().equals(Mode.DEV);
@@ -61,6 +79,8 @@ public class Environment {
 
     /**
      * Returns `true` if the application is `PROD` mode.
+     *
+     * @return `true` if the application is `PROD` mode.
      */
     public boolean isProd() {
         return mode().equals(Mode.PROD);
@@ -68,6 +88,8 @@ public class Environment {
 
     /**
      * Returns `true` if the application is `TEST` mode.
+     *
+     * @return `true` if the application is `TEST` mode.
      */
     public boolean isTest() {
         return mode().equals(Mode.TEST);
@@ -103,7 +125,38 @@ public class Environment {
         return Scala.orNull(env.resourceAsStream(relativePath));
     }
 
+    /**
+     * A simple environment.
+     *
+     * Uses the same classloader that the environment classloader is defined in,
+     * the current working directory as the path and test mode.
+     *
+     * @return the environment
+     */
+    public static Environment simple() {
+        return new Environment(new File("."), Environment.class.getClassLoader(), Mode.TEST);
+    }
+
+    /**
+     * The underlying Scala API Environment object that this Environment
+     * wraps.
+     *
+     * @return the environment
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
+     */
+    @Deprecated
     public play.api.Environment underlying() {
         return env;
+    }
+
+    /**
+     * The underlying Scala API Environment object that this Environment
+     * wraps.
+     *
+     * @return the environment
+     * @see play.api.Environment
+     */
+    public play.api.Environment asScala() {
+       return env;
     }
 }

@@ -5,3 +5,11 @@ GET         /contacts/:id    controllers.Application.showContact(id:Int)
 POST        /user            controllers.Application.userPost
 
 POST        /submit          controllers.Application.submit
+
+POST        /contact/save    controllers.Application.saveContact
+
+GET         /messages        controllers.FormController.index
+
+GET         /messageRequest  controllers.FormController.index
+
+POST        /messageRequest  controllers.FormController.post

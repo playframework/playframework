@@ -1,11 +1,14 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs
 
+import akka.stream.scaladsl._
 import org.specs2.mutable.Specification
-import play.api.http.{ ContentTypes, HeaderNames }
-import play.api.libs.iteratee.Enumerator
+import play.api.http.ContentTypes
 import play.api.mvc.Results
 
-object EventSourceSpec extends Specification {
+class EventSourceSpec extends Specification {
 
   import EventSource.Event
 
@@ -38,10 +41,14 @@ object EventSourceSpec extends Specification {
   }
 
   "EventSource.Event" should {
-    "be writeable as a response body" in {
-      val result = Results.Ok.chunked(Enumerator("foo", "bar", "baz") &> EventSource())
-      result.header.headers.get(HeaderNames.CONTENT_TYPE) must beSome(ContentTypes.EVENT_STREAM)
+
+    "be writeable as a response body using an Akka Source" in {
+      val stringSource = Source(Vector("foo", "bar", "baz"))
+      val flow = stringSource via EventSource.flow
+      val result = Results.Ok.chunked(flow)
+      result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
     }
+
   }
 
 }

@@ -1,7 +1,9 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.inject;
+
+import play.api.inject.BindingKey;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -18,5 +20,15 @@ public class DelegateInjector implements Injector {
     @Override
     public <T> T instanceOf(Class<T> clazz) {
         return injector.instanceOf(clazz);
+    }
+
+    @Override
+    public <T> T instanceOf(BindingKey<T> key) {
+        return injector.instanceOf(key);
+    }
+
+    @Override
+    public play.api.inject.Injector asScala() {
+        return injector;
     }
 }

@@ -3,13 +3,15 @@
 @* #global-errors *@
 @if(form.hasGlobalErrors) {
     <p class="error">
-        @form.globalError.message
+        @for(error <- form.globalErrors) {
+            <p>@error.format(messages())</p>
+        }
     </p>
 }
 @* #global-errors *@
 
 @* #field-errors *@
 @for(error <- form("email").errors) {
-    <p>@error.message</p>
+    <p>@error.format(messages())</p>
 }
 @* #field-errors *@

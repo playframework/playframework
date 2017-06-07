@@ -1,2 +1,5 @@
 JavaTest:Writing tests
 JavaFunctionalTest:Writing functional tests
+JavaTestingWithGuice:Testing with Guice
+JavaTestingWithDatabases:Testing with databases
+JavaTestingWebServiceClients:Testing web service clients

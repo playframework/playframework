@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
@@ -32,12 +31,7 @@ public class ConfigurationTest {
     public void beAccessibleAsAnEntrySet() {
         Set<Map.Entry<String, ConfigValue>> entrySet = exampleConfig().entrySet();
         assertThat(entrySet).hasSize(3);
-        List<String> keys = Lists.transform(Lists.newArrayList(entrySet), new Function<Map.Entry<String, ConfigValue>, String>() {
-            @Override
-            public String apply(Map.Entry<String, ConfigValue> input) {
-                return input.getKey();
-            }
-        });
+        List<String> keys = Lists.transform(Lists.newArrayList(entrySet), Map.Entry::getKey);
         assertThat(keys).containsOnly("foo.bar1", "foo.bar2", "blah");
     }
 
@@ -49,9 +43,15 @@ public class ConfigurationTest {
         Assert.assertEquals(underlying, config.underlying());
     }
 
+    @Test
+    public void stringConstructor() {
+        Configuration config = new Configuration("a = 1");
+        assertThat(config.getInt("a")).isEqualTo(1);
+    }
+
     public Configuration exampleConfig() {
-        return new Configuration(ConfigFactory.parseMap(ImmutableMap.of("foo.bar1", "value1",
+        return new Configuration(ImmutableMap.of("foo.bar1", "value1",
                 "foo.bar2", "value2",
-                "blah", "value3")));
+                "blah", "value3"));
     }
 }

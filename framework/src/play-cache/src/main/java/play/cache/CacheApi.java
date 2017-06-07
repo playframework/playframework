@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.cache;
 
@@ -7,18 +7,24 @@ import java.util.concurrent.Callable;
 
 /**
  * The Cache API.
+ *
+ * @deprecated Deprecated as of 2.6.0. Use {@link SyncCacheApi} or {@link AsyncCacheApi}.
  */
+@Deprecated
 public interface CacheApi {
     /**
      * Retrieves an object by key.
      *
-     * @return object
+     * @param <T> the type of the stored object
+     * @param key the key to look up
+     * @return the object or null
      */
     public <T> T get(String key);
 
     /**
      * Retrieve a value from the cache, or set it from a default Callable function.
      *
+     * @param <T> the type of the value
      * @param key Item key.
      * @param block block returning value to set if key does not exist
      * @param expiration expiration period in seconds.
@@ -31,6 +37,7 @@ public interface CacheApi {
      *
      * The value has no expiration.
      *
+     * @param <T> the type of the value
      * @param key Item key.
      * @param block block returning value to set if key does not exist
      * @return value

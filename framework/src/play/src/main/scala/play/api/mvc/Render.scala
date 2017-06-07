@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
@@ -7,7 +7,7 @@ import play.api.http.MediaRange
 import play.api.mvc.Results._
 import play.api.http.HeaderNames._
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.core.Execution.Implicits.trampoline
 
 trait Rendering {
 

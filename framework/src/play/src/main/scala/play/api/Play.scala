@@ -1,37 +1,50 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
+import akka.stream.Materializer
+import play.api.i18n.MessagesApi
 import play.utils.Threads
-
-import java.io._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
-import org.apache.xerces.impl.Constants
+
+import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
-/** Application mode, either `DEV`, `TEST`, or `PROD`. */
-object Mode extends Enumeration {
-  type Mode = Value
-  val Dev, Test, Prod = Value
+/**
+ * Application mode, either `Dev`, `Test`, or `Prod`.
+ *
+ * @see [[play.Mode]]
+ */
+sealed abstract class Mode(val asJava: play.Mode)
+
+object Mode {
+
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Mode", "2.6.0")
+  type Mode = play.api.Mode
+
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
+  type Value = play.api.Mode
+
+  case object Dev extends play.api.Mode(play.Mode.DEV)
+  case object Test extends play.api.Mode(play.Mode.TEST)
+  case object Prod extends play.api.Mode(play.Mode.PROD)
+
+  lazy val values: Set[play.api.Mode] = Set(Dev, Test, Prod)
 }
 
 /**
  * High-level API to access Play global features.
- *
- * Note that this API depends on a running application.
- * You can import the currently running application in a scope using:
- * {{{
- * import play.api.Play.current
- * }}}
  */
 object Play {
 
   private val logger = Logger(Play.getClass)
+
+  private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
 
   /*
    * We want control over the sax parser used so we specify the factory required explicitly. We know that
@@ -39,8 +52,7 @@ object Play {
    * no explicit doco stating this is the case. That said, there does not appear to be any other way than
    * declaring a factory in order to yield a parser of a specific type.
    */
-  private[play] val xercesSaxParserFactory =
-    SAXParserFactory.newInstance("org.apache.xerces.jaxp.SAXParserFactoryImpl", Play.getClass.getClassLoader)
+  private[play] val xercesSaxParserFactory = SAXParserFactory.newInstance()
   xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)
@@ -53,46 +65,73 @@ object Play {
 
   /**
    * Returns the currently running application, or `null` if not defined.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
-  def unsafeApplication: Application = _currentApp
+  @deprecated("This is a static reference to application, use DI", "2.5.0")
+  def unsafeApplication: Application = privateMaybeApplication.orNull
 
   /**
    * Optionally returns the current running application.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
-  def maybeApplication: Option[Application] = Option(_currentApp)
+  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
+  def maybeApplication: Option[Application] = privateMaybeApplication
+
+  private[play] def privateMaybeApplication: Option[Application] = {
+    Option(_currentApp) match {
+      case Some(app) if !app.globalApplicationEnabled =>
+        (new RuntimeException).printStackTrace()
+        sys.error(s"The global application is disabled. Set $GlobalAppConfigKey to allow global state here.")
+      case opt => opt
+    }
+  }
+
+  /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
+  def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication
 
   /**
    * Implicitly import the current running application in the context.
    *
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
+   *
+   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
-  implicit def current: Application = maybeApplication.getOrElse(sys.error("There is no started application"))
+  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
+  implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
 
-  @volatile private[play] var _currentApp: Application = _
+  @volatile private var _currentApp: Application = _
 
   /**
-   * Starts this application.
+   * Sets the global application instance.
+   *
+   * If another app was previously started using this API and the global application is enabled, Play.stop will be
+   * called on the existing application.
    *
    * @param app the application to start
    */
-  def start(app: Application) {
+  def start(app: Application): Unit = synchronized {
 
-    // First stop previous app if exists
-    stop(_currentApp)
+    val globalApp = app.globalApplicationEnabled
 
-    _currentApp = app
-
-    // Ensure routes are eagerly loaded, so that the reverse routers are correctly initialised before plugins are
-    // started.
-    app.routes
-    Threads.withContextClassLoader(classloader(app)) {
-      app.plugins.foreach(_.onStart())
+    // Stop the current app if the new app needs to replace the current app instance
+    if (globalApp && _currentApp != null && _currentApp.globalApplicationEnabled) {
+      logger.info("Stopping current application")
+      stop(_currentApp)
     }
 
     app.mode match {
       case Mode.Test =>
-      case mode => logger.info("Application started (" + mode + ")")
+      case mode =>
+        logger.info(s"Application started ($mode)${if (!globalApp) " (no global state)" else ""}")
+    }
+
+    // Set the current app if the global application is enabled
+    // Also set it if the current app is null, in order to display more useful errors if we try to use the app
+    if (globalApp || _currentApp == null) {
+      _currentApp = app
     }
 
   }
@@ -100,132 +139,39 @@ object Play {
   /**
    * Stops the given application.
    */
-  def stop(app: Application) {
+  def stop(app: Application): Unit = {
     if (app != null) {
-      Threads.withContextClassLoader(classloader(app)) {
-        app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => logger.warn("Error stopping plugin", e) }
-        }
+      Threads.withContextClassLoader(app.classloader) {
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
-    _currentApp = null
+    synchronized {
+      if (app == _currentApp) { // Don't bother un-setting the current app unless it's our app
+        _currentApp = null
+      }
+    }
   }
-
-  /**
-   * Scans the current application classloader to retrieve a resources contents as a stream.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
-   * }}}
-   *
-   * @param name Absolute name of the resource (from the classpath root).
-   * @return Maybe a stream if found.
-   */
-  def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
-    app.resourceAsStream(name)
-  }
-
-  /**
-   * Scans the current application classloader to retrieve a resource.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
-   * }}}
-   *
-   * @param name absolute name of the resource (from the classpath root)
-   * @return the resource URL, if found
-   */
-  def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
-    app.resource(name)
-  }
-
-  /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath the relative path of the file to fetch
-   * @return a file instance; it is not guaranteed that the file exists
-   */
-  def getFile(relativePath: String)(implicit app: Application): File = {
-    app.getFile(relativePath)
-  }
-
-  /**
-   * Retrieves a file relative to the current application root path.
-   *
-   * For example, to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath relative path of the file to fetch
-   * @return an existing file
-   */
-  def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
-    app.getExistingFile(relativePath)
-  }
-
-  /**
-   * Returns the current application.
-   */
-  def application(implicit app: Application): Application = app
-
-  /**
-   * Returns the current application classloader.
-   */
-  def classloader(implicit app: Application): ClassLoader = app.classloader
-
-  /**
-   * Returns the current application configuration.
-   */
-  def configuration(implicit app: Application): Configuration = app.configuration
-
-  /**
-   * Returns the current application router.
-   */
-  def routes(implicit app: Application): play.core.Router.Routes = app.routes
-
-  /**
-   * Returns the current application global settings.
-   */
-  def global(implicit app: Application): GlobalSettings = app.global
-
-  /**
-   * Returns the current application mode.
-   */
-  def mode(implicit app: Application): Mode.Mode = app.mode
-
-  /**
-   * Returns `true` if the current application is `DEV` mode.
-   */
-  def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
-
-  /**
-   * Returns `true` if the current application is `PROD` mode.
-   */
-  def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
-
-  /**
-   * Returns `true` if the current application is `TEST` mode.
-   */
-  def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
   /**
    * Returns the name of the cookie that can be used to permanently set the user's language.
    */
-  def langCookieName(implicit app: Application): String = {
-    app.configuration.getString("play.modules.i18n.langCookieName").orElse {
-      app.configuration.getString("application.lang.cookie").map { name =>
-        Logger.warn("application.lang.cookie is deprecated, use play.modules.i18n.langCookieName instead")
-        name
-      }
-    }.getOrElse("PLAY_LANG")
-  }
+  def langCookieName(implicit messagesApi: MessagesApi): String =
+    messagesApi.langCookieName
+
+  /**
+   * Returns whether the language cookie should have the secure flag set.
+   */
+  def langCookieSecure(implicit messagesApi: MessagesApi): Boolean =
+    messagesApi.langCookieSecure
+
+  /**
+   * Returns whether the language cookie should have the HTTP only flag set.
+   */
+  def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
+    messagesApi.langCookieHttpOnly
+
+  /**
+   * A convenient function for getting an implicit materializer from the current application
+   */
+  implicit def materializer(implicit app: Application): Materializer = app.materializer
 }

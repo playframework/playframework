@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
-import javax.inject.{ Provider, Inject }
+import javax.inject.Inject
 
-import play.api.inject.{ BindingKey, Binding }
-import play.api.libs.iteratee.Done
-import play.api.{ Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
+import play.api.inject.{ Binding, BindingKey }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.core.Router
-import play.core.actions.HeadAction
-import play.core.j.{ JavaHandler, JavaHandlerComponents }
+import play.api.routing.Router
+import play.api.{ Configuration, Environment }
+import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
 import play.utils.Reflect
 
 /**
@@ -35,31 +34,38 @@ trait HttpRequestHandler {
    * @return The possibly modified/tagged request, and a handler to handle it
    */
   def handlerForRequest(request: RequestHeader): (RequestHeader, Handler)
+
+  /**
+   * Adapt this to a Java HttpRequestHandler
+   */
+  def asJava = new JavaHttpRequestHandlerDelegate(this)
 }
 
 object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    val javaComponentsBinding = BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf
+    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](
+      environment,
+      configuration, "play.http.requestHandler", "RequestHandler")
 
-    Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
-      configuration, "play.http.requestHandler", "RequestHandler") match {
-        case None => Nil
-        case Some(Left(scalaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to(scalaImpl),
-            // Need to bind the default Java one in case the Scala one depends on JavaHandlerComponents
-            BindingKey(classOf[play.http.HttpRequestHandler]).to[play.http.GlobalSettingsHttpRequestHandler],
-            javaComponentsBinding
-          )
-        case Some(Right(javaImpl)) =>
-          Seq(
-            BindingKey(classOf[HttpRequestHandler]).to[JavaCompatibleHttpRequestHandler],
-            BindingKey(classOf[play.http.HttpRequestHandler]).to(javaImpl),
-            javaComponentsBinding
-          )
-      }
+    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+    val javaHandlerComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
+
+    fromConfiguration ++ javaContextComponentsBindings ++ javaHandlerComponentsBindings
+  }
+}
+
+object ActionCreator {
+  import play.http.{ ActionCreator, DefaultActionCreator }
+
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    Reflect.configuredClass[ActionCreator, ActionCreator, DefaultActionCreator](
+      environment,
+      configuration, "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
+      val impl = either.fold(identity, identity)
+      Seq(BindingKey(classOf[ActionCreator]).to(impl))
+    }
   }
 }
 
@@ -67,74 +73,115 @@ object HttpRequestHandler {
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results
  */
 object NotImplementedHttpRequestHandler extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) = request -> EssentialAction(_ => Done(Results.NotImplemented))
+  def handlerForRequest(request: RequestHeader) = request -> EssentialAction(_ => Accumulator.done(Results.NotImplemented))
 }
 
 /**
- * A default implementation of the [[HttpRequestHandler]].
+ * A base implementation of the [[HttpRequestHandler]] that handles Scala actions. If you use Java actions in your
+ * application, you should override [[JavaCompatibleHttpRequestHandler]]; otherwise you can override this for your
+ * custom handler.
  *
- * This can be conveniently overridden to plug in global interception or custom routing logic into Play's existing
- * request handling infrastructure.
- *
- * Technically, this is not the default request handler that Play uses, rather, the [[GlobalSettingsHttpRequestHandler]]
- * is the default one, in order to ensure that existing legacy implementations of global request interception still
- * work. In future, this will become the default request handler.
- *
- * The default implementations of method interception methods on [[play.api.GlobalSettings]] match the implementations
- * of this, so when not providing any custom logic, whether this is used or the global settings http request handler
- * is used is irrelevant.
+ * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
+ * is the default one, in order to provide support for Java actions.
  */
-class DefaultHttpRequestHandler(routes: Router.Routes, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
-    filters: EssentialFilter*) extends HttpRequestHandler {
+class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: EssentialFilter*) extends HttpRequestHandler {
 
   @Inject
-  def this(routes: Router.Routes, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
-    this(routes, errorHandler, configuration, filters.filters: _*)
-
-  private val context = if (configuration.context.endsWith("/")) {
-    configuration.context
-  } else {
-    configuration.context + "/"
+  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) = {
+    this(router, errorHandler, configuration, filters.filters: _*)
   }
 
-  def handlerForRequest(request: RequestHeader) = {
+  private val context = configuration.context.stripSuffix("/")
 
-    def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      errorHandler.onClientError(request, NOT_FOUND)
+  private def inContext(path: String): Boolean = {
+    // Assume context is a string without a trailing '/'.
+    // Handle four cases:
+    // * context.isEmpty
+    //   - There is no context, everything is in context, short circuit all other checks
+    // * !path.startsWith(context)
+    //   - Either path is shorter than context or starts with a different prefix.
+    // * path.startsWith(context) && path.length == context.length
+    //   - Path is equal to context.
+    // * path.startsWith(context) && path.charAt(context.length) == '/')
+    //   - Path starts with context followed by a '/' character.
+    context.isEmpty ||
+      (path.startsWith(context) && (path.length == context.length || path.charAt(context.length) == '/'))
+  }
+
+  override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
+
+    def handleWithStatus(status: Int) = ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
+      errorHandler.onClientError(req, status)
     )
 
-    val (routedRequest, handler) = routeRequest(request) map {
-      case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
-      case otherHandler => (request, otherHandler)
-    } getOrElse {
-
-      // We automatically permit HEAD requests against any GETs without the need to
-      // add an explicit mapping in Routes
-      val missingHandler: Handler = request.method match {
-        case HttpVerbs.HEAD =>
-          val headAction = routeRequest(request.copy(method = HttpVerbs.GET)) match {
-            case Some(action: EssentialAction) => action
-            case None => notFoundHandler
+    /**
+     * Call the router to get the handler, but with a couple of types of fallback.
+     * First, if a HEAD request isn't explicitly routed try routing it as a GET
+     * request. Second, if no routing information is present, fall back to a 404
+     * error.
+     */
+    def routeWithFallback(request: RequestHeader): Handler = {
+      routeRequest(request).getOrElse {
+        request.method match {
+          // We automatically permit HEAD requests against any GETs without the need to
+          // add an explicit mapping in Routes. Since we couldn't route the HEAD request,
+          // try to get a Handler for the equivalent GET request instead. Notes:
+          // 1. The handler returned will still be passed a HEAD request when it is
+          //    actually evaluated.
+          // 2. When the endpoint is to a WebSocket connection, the handler returned
+          //    will result in a Bad Request. That is because, while we can translate
+          //    GET requests to HEAD, we can't do that for WebSockets, since there is
+          //    no way (or reason) to Upgrade the connection. For more information see
+          //    https://tools.ietf.org/html/rfc6455#section-1.3
+          case HttpVerbs.HEAD => {
+            routeRequest(request.withMethod(HttpVerbs.GET)) match {
+              case Some(handler: Handler) => handler match {
+                case ws: WebSocket => handleWithStatus(BAD_REQUEST)
+                case _ => handler
+              }
+              case None => handleWithStatus(NOT_FOUND)
+            }
           }
-          new HeadAction(headAction)
-        case _ =>
-          notFoundHandler
+          case _ =>
+            // An Action for a 404 error
+            handleWithStatus(NOT_FOUND)
+        }
       }
-      (request, missingHandler)
     }
 
-    (routedRequest, filterHandler(rh => handler)(routedRequest))
+    // 1. Query the router to get a handler
+    // 2. Resolve handlers that preprocess the request
+    // 3. Modify the handler to do filtering, if necessary
+    // 4. Again resolve any handlers that do preprocessing
+    val routedHandler = routeWithFallback(request)
+    val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
+    val filteredHandler = filterHandler(preprocessedRequest, preprocessedHandler)
+    val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) = Handler.applyStages(preprocessedRequest, filteredHandler)
+    (preprocessedPreprocessedRequest, preprocessedFilteredHandler)
   }
 
   /**
    * Apply any filters to the given handler.
    */
+  @deprecated("Use filterHandler(RequestHeader, Handler) instead", "2.6.0")
   protected def filterHandler(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
       next(request) match {
-        case action: EssentialAction if request.path startsWith context => filterAction(action)
+        case action: EssentialAction if inContext(request.path) => filterAction(action)
         case handler => handler
       }
+  }
+
+  /**
+   * Update the given handler so that when the handler is run any filters will also be run. The
+   * default behavior is to wrap all [[play.api.mvc.EssentialAction]]s by calling `filterAction`, but to leave
+   * other kinds of handlers unchanged.
+   */
+  protected def filterHandler(request: RequestHeader, handler: Handler): Handler = {
+    handler match {
+      case action: EssentialAction if inContext(request.path) => filterAction(action)
+      case handler => handler
+    }
   }
 
   /**
@@ -156,20 +203,9 @@ class DefaultHttpRequestHandler(routes: Router.Routes, errorHandler: HttpErrorHa
    * @return A handler to handle the request, if one can be found
    */
   def routeRequest(request: RequestHeader): Option[Handler] = {
-    routes.handlerFor(request)
+    router.handlerFor(request)
   }
 
-}
-
-/**
- * An [[HttpRequestHandler]] that delegates to [[play.api.GlobalSettings]].
- *
- * This is the default request handler used by Play, in order to support legacy global settings request interception.
- *
- * Custom handlers need not extend this.
- */
-class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSettings]) extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) = global.get.onRequestReceived(request)
 }
 
 /**
@@ -182,15 +218,30 @@ class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSetting
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
-class JavaCompatibleHttpRequestHandler @Inject() (routes: Router.Routes, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(routes,
-  errorHandler, configuration, filters.filters: _*) {
+class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
+  configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
+    extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
+
+  // This is a Handler that, when evaluated, converts its underlying JavaHandler into
+  // another handler.
+  private class MapJavaHandler(nextHandler: Handler) extends Handler.Stage {
+    override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+      // First, preprocess the request and our handler so we can get the underlying handler
+      val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(requestHeader, nextHandler)
+
+      // Next, if the underlying handler is a JavaHandler, get its real handler
+      val mappedHandler: Handler = preprocessedHandler match {
+        case javaHandler: JavaHandler => javaHandler.withComponents(handlerComponents)
+        case other => other
+      }
+
+      (preprocessedRequest, mappedHandler)
+    }
+  }
 
   override def routeRequest(request: RequestHeader): Option[Handler] = {
-    super.routeRequest(request) match {
-      case Some(javaHandler: JavaHandler) =>
-        Some(javaHandler.withComponents(components))
-      case other => other
-    }
+    // Override the usual routing logic so that any JavaHandlers are
+    // rewritten.
+    super.routeRequest(request).map(new MapJavaHandler(_))
   }
 }

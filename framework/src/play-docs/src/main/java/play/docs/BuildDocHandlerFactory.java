@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.docs;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.JarFile;
 
-import play.api.mvc.RequestHeader;
 import play.core.BuildDocHandler;
 import play.doc.FileRepository;
 import play.doc.FilesystemRepository;
@@ -15,16 +17,53 @@ import scala.Option;
 
 /**
  * Provides a way for build code to create BuildDocHandler objects.
- * <p/>
+ *
  * <p>This class is used by the Play build plugin run command (to serve
  * documentation from a JAR) and by the Play documentation project (to
  * serve documentation from the filesystem).
- * <p/>
+ *
  * <p>This class is written in Java and uses only Java types so that
  * communication can work even when the build code and the play-docs project
  * are built with different versions of Scala.
  */
 public class BuildDocHandlerFactory {
+
+    /**
+     * Create a BuildDocHandler that serves documentation from the given files, which could either be directories
+     * or jar files.  The baseDir array must be the same length as the files array, and the corresponding entry in there
+     * for jar files is used as a base directory to use resources from in the jar.
+     *
+     * @param files The directories or jar files to serve documentation from.
+     * @param baseDirs The base directories for the jar files.  Entries may be null.
+     * @return a BuildDocHandler.
+     */
+    public static BuildDocHandler fromResources(File[] files, String[] baseDirs) throws IOException {
+        assert(files.length == baseDirs.length);
+
+        FileRepository[] repositories = new FileRepository[files.length];
+        List<JarFile> jarFiles = new ArrayList<>();
+
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            String baseDir = baseDirs[i];
+
+
+            if (file.isDirectory()) {
+                repositories[i] = new FilesystemRepository(file);
+            } else {
+                // Assume it's a jar file
+                JarFile jarFile = new JarFile(file);
+                jarFiles.add(jarFile);
+                repositories[i] = new JarRepository(jarFile, Option.apply(baseDir));
+            }
+        }
+
+        return new DocumentationHandler(new AggregateFileRepository(repositories), () -> {
+            for (JarFile jarFile: jarFiles) {
+                jarFile.close();
+            }
+        });
+    }
 
     /**
      * Create an BuildDocHandler that serves documentation from a given directory by
@@ -93,12 +132,7 @@ public class BuildDocHandlerFactory {
      * Used when the documentation jar file is not available.
      */
     public static BuildDocHandler empty() {
-        return new BuildDocHandler() {
-            @Override
-            public Object maybeHandleDocRequest(Object request) {
-                return Option.apply(null);
-            }
-        };
+        return request -> Option.apply(null);
     }
 
 }

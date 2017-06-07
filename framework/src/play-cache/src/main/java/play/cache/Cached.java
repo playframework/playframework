@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.cache;
 import play.mvc.With;
@@ -8,6 +8,8 @@ import java.lang.annotation.*;
 
 /**
  * Mark an action to be cached on server side.
+ *
+ * @see CachedAction
  */
 @With(CachedAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -15,11 +17,15 @@ import java.lang.annotation.*;
 public @interface Cached {
     /**
      * The cache key to store the result in
+     *
+     * @return the cache key
      */
     String key();
 
     /**
      * The duration the action should be cached for.  Defaults to 0.
+     *
+     * @return the duration
      */
     int duration() default 0;
 }

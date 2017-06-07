@@ -1,94 +1,127 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 package play.it.action
 
-import play.api.test._
-import scala.concurrent.ExecutionContext.Implicits.global
-import play.it.tools.HttpBinApplication._
-import play.api.libs.ws.WSResponse
-import com.ning.http.client.providers.netty.NettyResponse
+import akka.stream.scaladsl.Source
+import play.shaded.ahc.io.netty.handler.codec.http.HttpHeaders
+import org.specs2.mutable.Specification
+import play.api.http.HeaderNames._
+import play.api.http.Status._
+import play.api.libs.ws.{ WSClient, WSResponse }
 import play.api.mvc._
-import play.api.http.HeaderNames
-import play.api.libs.iteratee.Enumerator
-import java.util.concurrent.atomic.AtomicBoolean
-import play.api.test.TestServer
-import play.api.test.FakeApplication
+import play.api.routing.Router.Routes
+import play.api.routing.sird._
+import play.api.test._
+import play.core.server.Server
+import play.it._
+import play.it.tools.HttpBinApplication._
 
-object HeadActionSpec extends PlaySpecification with WsTestClient with Results with HeaderNames {
-  def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
-    case (v, p) if v == verb && p == path => handler
-  }
+import scala.concurrent.ExecutionContext.Implicits.global
+import play.shaded.ahc.org.asynchttpclient.netty.NettyResponse
+import play.api.libs.typedmap.TypedKey
+
+import scala.concurrent.Future
+
+class NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
+class AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+
+trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTimeout with ServerIntegrationSpecification {
+
+  sequential
 
   "HEAD requests" should {
-    implicit val port: Port = testServerPort
 
-    val manualContentSize = route("GET", "/manualContentSize") {
-      Action { request =>
-        Ok("The Itsy Bitsy Spider Went Up the Water Spout").withHeaders(CONTENT_LENGTH -> "5")
+    def webSocketResponse(implicit Action: DefaultActionBuilder): Routes = {
+      case GET(p"/ws") => WebSocket.acceptOrResult[String, String] { request =>
+        Future.successful(Left(Results.Forbidden))
       }
     }
 
-    val chunkedResponse = route("GET", "/chunked") {
-      Action { request =>
-        Ok.chunked(Enumerator("a", "b", "c"))
-      }
+    def chunkedResponse(implicit Action: DefaultActionBuilder): Routes = {
+      case GET(p"/chunked") =>
+        Action { request =>
+          Results.Ok.chunked(Source(List("a", "b", "c")))
+        }
     }
 
-    def withServer[T](block: => T): T = {
+    def routes(implicit Action: DefaultActionBuilder) =
+      get // GET /get
+        .orElse(patch) // PATCH /patch
+        .orElse(post) // POST /post
+        .orElse(put) // PUT /put
+        .orElse(delete) // DELETE /delete
+        .orElse(stream) // GET /stream/0
+        .orElse(chunkedResponse) // GET /chunked
+        .orElse(webSocketResponse) // GET /ws
+
+    def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
-      val routes =
-        get // GET /get
-          .orElse(patch) // PATCH /patch
-          .orElse(post) // POST /post
-          .orElse(put) // PUT /put
-          .orElse(delete) // DELETE /delete
-          .orElse(stream) // GET /stream/0
-          .orElse(manualContentSize) // GET /manualContentSize
-          .orElse(chunkedResponse) // GET /chunked
-      running(TestServer(port, FakeApplication(withRoutes = routes)))(block)
+      Server.withRouterFromComponents()(components => routes(components.defaultActionBuilder)) { implicit port =>
+        WsTestClient.withClient(block)
+      }
     }
 
-    def serverWithAction[T](action: EssentialAction)(block: => T): T = {
-      running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => action
-        })))(block)
+    def serverWithHandler[T](handler: Handler)(block: WSClient => T): T = {
+      Server.withRouter() {
+        case _ => handler
+      } { implicit port =>
+        WsTestClient.withClient(block)
+      }
     }
 
-    "return 200 in response to a URL with a GET handler" in withServer {
-      val result = await(wsUrl("/get").head())
+    "return 400 in response to a HEAD in a WebSocket handler" in withServer { client =>
+      val result = await(client.url("/ws").head())
+      result.status must_== BAD_REQUEST
+    }
+
+    "return 200 in response to a URL with a GET handler" in withServer { client =>
+      val result = await(client.url("/get").head())
 
       result.status must_== OK
     }
 
-    "return an empty body" in withServer {
-      val result = await(wsUrl("/get").head())
+    "return an empty body" in withServer { client =>
+      val result = await(client.url("/get").head())
 
       result.body.length must_== 0
     }
 
-    "match the headers of an equivalent GET" in withServer {
+    "match the headers of an equivalent GET" in withServer { client =>
       val collectedFutures = for {
-        headResponse <- wsUrl("/get").head()
-        getResponse <- wsUrl("/get").get()
+        headResponse <- client.url("/get").head()
+        getResponse <- client.url("/get").get()
       } yield List(headResponse, getResponse)
 
       val responses = await(collectedFutures)
 
       val headHeaders = responses(0).underlying[NettyResponse].getHeaders
-      val getHeaders = responses(1).underlying[NettyResponse].getHeaders
+      val getHeaders: HttpHeaders = responses(1).underlying[NettyResponse].getHeaders
 
-      headHeaders must_== getHeaders
+      // Exclude `Date` header because it can vary between requests
+      import scala.collection.JavaConverters._
+      val firstHeaders = headHeaders.remove(DATE)
+      val secondHeaders = getHeaders.remove(DATE)
+
+      // HTTPHeaders doesn't seem to be anything as simple as an equals method, so let's compare A !< B && B >! A
+      val notInFirst = secondHeaders.asScala.collectFirst {
+        case entry if !firstHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      val notInSecond = firstHeaders.asScala.collectFirst {
+        case entry if !secondHeaders.contains(entry.getKey, entry.getValue, true) =>
+          entry
+      }
+      notInFirst must beEmpty
+      notInSecond must beEmpty
     }
 
-    "return 404 in response to a URL without an associated GET handler" in withServer {
+    "return 404 in response to a URL without an associated GET handler" in withServer { client =>
       val collectedFutures = for {
-        putRoute <- wsUrl("/put").head()
-        patchRoute <- wsUrl("/patch").head()
-        postRoute <- wsUrl("/post").head()
-        deleteRoute <- wsUrl("/delete").head()
+        putRoute <- client.url("/put").head()
+        patchRoute <- client.url("/patch").head()
+        postRoute <- client.url("/post").head()
+        deleteRoute <- client.url("/delete").head()
       } yield List(putRoute, patchRoute, postRoute, deleteRoute)
 
       val responseList = await(collectedFutures)
@@ -96,30 +129,50 @@ object HeadActionSpec extends PlaySpecification with WsTestClient with Results w
       foreach(responseList)((_: WSResponse).status must_== NOT_FOUND)
     }
 
-    "clean up any onDoneEnumerating callbacks" in {
-      val wasCalled = new AtomicBoolean()
-
-      val action = Action {
-        Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
-      }
-      serverWithAction(action) {
-        await(wsUrl("/get").head())
-        wasCalled.get() must be_==(true).eventually
-      }
+    val CustomAttr = TypedKey[String]("CustomAttr")
+    def addCustomTagAndAttr(r: RequestHeader): RequestHeader = {
+      val withTags = r.copy(tags = Map("CustomTag" -> "x"))
+      val withAttrs = withTags.addAttr(CustomAttr, "y")
+      withAttrs
+    }
+    val tagAndAttrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
+      val tagComment = rh.tags.get("CustomTag")
+      val attrComment = rh.attrs.get(CustomAttr)
+      val headers = Array.empty[(String, String)] ++
+        rh.tags.get("CustomTag").map("CustomTag" -> _) ++
+        rh.attrs.get(CustomAttr).map("CustomAttr" -> _)
+      Results.Ok.withHeaders(headers: _*)
     }
 
-    "respect deliberately set Content-Length headers" in withServer {
-      val result = await(wsUrl("/manualContentSize").head())
-
-      result.header(CONTENT_LENGTH) must beSome("5")
+    "tag request with DefaultHttpRequestHandler" in serverWithHandler(new RequestTaggingHandler with EssentialAction {
+      def tagRequest(request: RequestHeader) = addCustomTagAndAttr(request)
+      def apply(rh: RequestHeader) = tagAndAttrAction(rh)
+    }) { client =>
+      val result = await(client.url("/get").head())
+      result.status must_== OK
+      result.header("CustomTag") must beSome("x")
+      result.header("CustomAttr") must beSome("y")
     }
 
-    "omit Content-Length for chunked responses" in withServer {
-      val response = await(wsUrl("/chunked").head())
+    "modify request with DefaultHttpRequestHandler" in serverWithHandler(
+      Handler.Stage.modifyRequest(
+        (rh: RequestHeader) => addCustomTagAndAttr(rh),
+        tagAndAttrAction
+      )
+    ) { client =>
+        val result = await(client.url("/get").head())
+        result.status must_== OK
+        result.header("CustomTag") must beSome("x")
+        result.header("CustomAttr") must beSome("y")
+      }
+
+    "omit Content-Length for chunked responses" in withServer { client =>
+      val response = await(client.url("/chunked").head())
 
       response.body must_== ""
       response.header(CONTENT_LENGTH) must beNone
     }
 
   }
+
 }

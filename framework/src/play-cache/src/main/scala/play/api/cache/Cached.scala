@@ -1,152 +1,37 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.cache
 
+import java.time.Instant
+import javax.inject.Inject
+
+import akka.stream.Materializer
 import play.api._
-import play.api.mvc._
+import play.api.http.HeaderNames.{ ETAG, EXPIRES, IF_NONE_MATCH }
 import play.api.libs.Codecs
-import play.api.libs.iteratee.{ Iteratee, Done }
-import play.api.http.HeaderNames.{ IF_NONE_MATCH, ETAG, EXPIRES }
+import play.api.libs.streams.Accumulator
 import play.api.mvc.Results.NotModified
+import play.api.mvc._
 
-import play.core.Execution.Implicits.internalContext
-
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /**
- * Cache an action.
- *
- * Uses both server and client caches:
- *
- *  - Adds an `Expires` header to the response, so clients can cache response content ;
- *  - Adds an `Etag` header to the response, so clients can cache response content and ask the server for freshness ;
- *  - Cache the result on the server, so the underlying action is not computed at each call.
- *
- * @param key Compute a key from the request header
- * @param caching A callback to get the number of seconds to cache results for
+ * A helper to add caching to an Action.
  */
-case class Cached(key: RequestHeader => String, caching: PartialFunction[ResponseHeader, Duration]) {
-  import Cached._
-
-  def apply(action: EssentialAction)(implicit app: Application) = build(action)
+class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materializer) {
 
   /**
-   * Compose the cache with an action
-   */
-  def build(action: EssentialAction)(implicit app: Application) = EssentialAction { request =>
-    val resultKey = key(request)
-    val etagKey = s"$resultKey-etag"
-
-    // Has the client a version of the resource as fresh as the last one we served?
-    val notModified = for {
-      requestEtag <- request.headers.get(IF_NONE_MATCH)
-      etag <- Cache.getAs[String](etagKey)
-      if requestEtag == "*" || etag == requestEtag
-    } yield Done[Array[Byte], Result](NotModified)
-
-    notModified.orElse {
-      // Otherwise try to serve the resource from the cache, if it has not yet expired
-      Cache.getAs[Result](resultKey).map(Done[Array[Byte], Result](_))
-    }.getOrElse {
-      // The resource was not in the cache, we have to run the underlying action
-      val iterateeResult = action(request)
-
-      // Add cache information to the response, so clients can cache its content
-      iterateeResult.map(handleResult(_, etagKey, resultKey, app))
-    }
-  }
-
-  /**
-   * Eternity is one year long. Duration zero means eternity.
-   */
-  private val cachingWithEternity = caching.andThen { duration =>
-    if (duration.zero) {
-      Duration(60 * 60 * 24 * 365, SECONDS)
-    } else {
-      duration
-    }
-  }
-
-  private def handleResult(result: Result, etagKey: String, resultKey: String, app: Application): Result = {
-    cachingWithEternity.andThen { duration =>
-      // Format expiration date according to http standard
-      val expirationDate = http.dateFormat.print(System.currentTimeMillis() + duration.toMillis)
-      // Generate a fresh ETAG for it
-      // Use quoted sha1 hash of expiration date as ETAG
-      val etag = s""""${Codecs.sha1(expirationDate)}""""
-
-      val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
-
-      // Cache the new ETAG of the resource
-      Cache.set(etagKey, etag, duration)(app)
-      // Cache the new Result of the resource
-      Cache.set(resultKey, resultWithHeaders, duration)(app)
-
-      resultWithHeaders
-    }.applyOrElse(result.header, (_: ResponseHeader) => result)
-  }
-
-  /**
-   * Whether this cache should cache the specified response if the status code match
-   * This method will cache the result forever
-   */
-  def includeStatus(status: Int): Cached = includeStatus(status, Duration.Zero)
-
-  /**
-   * Whether this cache should cache the specified response if the status code match
-   * This method will cache the result for duration seconds
+   * Cache an action.
    *
-   * @param status the status code to check
-   * @param duration the number of seconds to cache the result for
+   * @param key Compute a key from the request header
+   * @param caching Compute a cache duration from the resource header
    */
-  def includeStatus(status: Int, duration: Int): Cached = includeStatus(status, Duration(duration, SECONDS))
-
-  /**
-   * Whether this cache should cache the specified response if the status code match
-   * This method will cache the result for duration seconds
-   *
-   * @param status the status code to check
-   * @param duration how long should we cache the result for
-   */
-  def includeStatus(status: Int, duration: Duration): Cached = this.copy(caching = caching.orElse {
-    case e if e.status == status => {
-      duration
-    }
-  })
-
-  /**
-   * The returned cache will store all responses whatever they may contain
-   * @param duration how long we should store responses
-   */
-  def default(duration: Duration): Cached = compose(PartialFunction((_: ResponseHeader) => duration))
-
-  /**
-   * The returned cache will store all responses whatever they may contain
-   * @param duration the number of seconds we should store responses
-   */
-  def default(duration: Int): Cached = default(Duration(duration, SECONDS))
-
-  /**
-   * Compose the cache with new caching function
-   * @param alternative a closure getting the reponseheader and returning the duration
-   *        we should cache for
-   */
-  def compose(alternative: PartialFunction[ResponseHeader, Duration]): Cached = this.copy(caching = caching.orElse(alternative))
-
-}
-
-object Cached {
-
-  /**
-   * Convenient implicit class for adding a zero method to Duration
-   */
-  private implicit class DurationEmpty(d: Duration) {
-    /**
-     * This tests if the duration is currently zero
-     * @returns boolean checking whether the duration is zero or not
-     */
-    def zero(): Boolean = d.neg().equals(d)
+  def apply(
+    key: RequestHeader => String,
+    caching: PartialFunction[ResponseHeader, Duration]): CachedBuilder = {
+    new CachedBuilder(cache, key, caching)
   }
 
   /**
@@ -154,7 +39,7 @@ object Cached {
    *
    * @param key Compute a key from the request header
    */
-  def apply(key: RequestHeader => String): Cached = {
+  def apply(key: RequestHeader => String): CachedBuilder = {
     apply(key, duration = 0)
   }
 
@@ -163,7 +48,7 @@ object Cached {
    *
    * @param key Cache key
    */
-  def apply(key: String): Cached = {
+  def apply(key: String): CachedBuilder = {
     apply(_ => key, duration = 0)
   }
 
@@ -173,34 +58,189 @@ object Cached {
    * @param key Cache key
    * @param duration Cache duration (in seconds)
    */
-  def apply(key: RequestHeader => String, duration: Int): Cached = {
-    new Cached(key, { case (_: ResponseHeader) => Duration(duration, SECONDS) })
+  def apply(key: RequestHeader => String, duration: Int): CachedBuilder = {
+    new CachedBuilder(cache, key, { case (_: ResponseHeader) => Duration(duration, SECONDS) })
   }
 
   /**
    * A cached instance caching nothing
    * Useful for composition
    */
-  def empty(key: RequestHeader => String): Cached = new Cached(key, PartialFunction.empty)
+  def empty(key: RequestHeader => String): CachedBuilder =
+    new CachedBuilder(cache, key, PartialFunction.empty)
 
   /**
    * Caches everything, forever
    */
-  def everything(key: RequestHeader => String): Cached = empty(key).default(0)
+  def everything(key: RequestHeader => String): CachedBuilder =
+    empty(key).default(0)
 
   /**
    * Caches everything for the specified seconds
    */
-  def everything(key: RequestHeader => String, duration: Int): Cached = empty(key).default(duration)
+  def everything(key: RequestHeader => String, duration: Int): CachedBuilder =
+    empty(key).default(duration)
 
   /**
    * Caches the specified status, for the specified number of seconds
    */
-  def status(key: RequestHeader => String, status: Int, duration: Int): Cached = empty(key).includeStatus(status, Duration(duration, SECONDS))
+  def status(key: RequestHeader => String, status: Int, duration: Int): CachedBuilder =
+    empty(key).includeStatus(status, Duration(duration, SECONDS))
 
   /**
    * Caches the specified status forever
    */
-  def status(key: RequestHeader => String, status: Int): Cached = empty(key).includeStatus(status)
+  def status(key: RequestHeader => String, status: Int): CachedBuilder =
+    empty(key).includeStatus(status)
 }
 
+/**
+ * Builds an action with caching behavior. Typically created with one of the methods in the `Cached`
+ * class. Uses both server and client caches:
+ *
+ *  - Adds an `Expires` header to the response, so clients can cache response content ;
+ *  - Adds an `Etag` header to the response, so clients can cache response content and ask the server for freshness ;
+ *  - Cache the result on the server, so the underlying action is not computed at each call.
+ *
+ * @param cache The cache used for caching results
+ * @param key Compute a key from the request header
+ * @param caching A callback to get the number of seconds to cache results for
+ */
+final class CachedBuilder(
+    cache: AsyncCacheApi,
+    key: RequestHeader => String,
+    caching: PartialFunction[ResponseHeader, Duration])(implicit materializer: Materializer) {
+
+  /**
+   * Compose the cache with an action
+   */
+  def apply(action: EssentialAction): EssentialAction = build(action)
+
+  /**
+   * Compose the cache with an action
+   */
+  def build(action: EssentialAction): EssentialAction = EssentialAction { request =>
+    implicit val ec = materializer.executionContext
+
+    val resultKey = key(request)
+    val etagKey = s"$resultKey-etag"
+
+    def parseEtag(etag: String) = {
+      val Etag = """(?:W/)?("[^"]*")""".r
+      Etag.findAllMatchIn(etag).map(m => m.group(1)).toList
+    }
+
+    // Check if the client has a version as new as ours
+    Accumulator.flatten(Future.successful(request.headers.get(IF_NONE_MATCH)).flatMap {
+      case Some(requestEtag) =>
+        cache.get[String](etagKey).map {
+          case Some(etag) if requestEtag == "*" || parseEtag(requestEtag).contains(etag) => Some(Accumulator.done(NotModified))
+          case _ => None
+        }
+      case None => Future.successful(None)
+    }.flatMap {
+      case Some(result) =>
+        // The client has the most recent version
+        Future.successful(result)
+      case None =>
+        // Otherwise try to serve the resource from the cache, if it has not yet expired
+        cache.get[SerializableResult](resultKey).map { result =>
+          result collect {
+            case sr: SerializableResult => Accumulator.done(sr.result)
+          }
+        }.map {
+          case Some(cachedResource) => cachedResource
+          case None =>
+            // The resource was not in the cache, so we have to run the underlying action
+            val accumulatorResult = action(request)
+
+            // Add cache information to the response, so clients can cache its content
+            accumulatorResult.map(handleResult(_, etagKey, resultKey))
+        }
+    })
+  }
+
+  /**
+   * Eternity is one year long. Duration zero means eternity.
+   */
+  private val cachingWithEternity = caching.andThen { duration =>
+    // FIXME: Surely Duration.Inf is a better marker for eternity than 0?
+    val zeroDuration: Boolean = duration.neg().equals(duration)
+    if (zeroDuration) {
+      Duration(60 * 60 * 24 * 365, SECONDS)
+    } else {
+      duration
+    }
+  }
+
+  private def handleResult(result: Result, etagKey: String, resultKey: String): Result = {
+    cachingWithEternity.andThen { duration =>
+      // Format expiration date according to http standard
+      val expirationDate = http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
+      // Generate a fresh ETAG for it
+      // Use quoted sha1 hash of expiration date as ETAG
+      val etag = s""""${Codecs.sha1(expirationDate)}""""
+
+      val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
+
+      // Cache the new ETAG of the resource
+      cache.set(etagKey, etag, duration)
+      // Cache the new Result of the resource
+      cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
+
+      resultWithHeaders
+    }.applyOrElse(result.header, (_: ResponseHeader) => result)
+  }
+
+  /**
+   * Whether this cache should cache the specified response if the status code match
+   * This method will cache the result forever
+   */
+  def includeStatus(status: Int): CachedBuilder = includeStatus(status, Duration.Zero)
+
+  /**
+   * Whether this cache should cache the specified response if the status code match
+   * This method will cache the result for duration seconds
+   *
+   * @param status the status code to check
+   * @param duration the number of seconds to cache the result for
+   */
+  def includeStatus(status: Int, duration: Int): CachedBuilder = includeStatus(status, Duration(duration, SECONDS))
+
+  /**
+   * Whether this cache should cache the specified response if the status code match
+   * This method will cache the result for duration seconds
+   *
+   * @param status the status code to check
+   * @param duration how long should we cache the result for
+   */
+  def includeStatus(status: Int, duration: Duration): CachedBuilder = compose {
+    case e if e.status == status => {
+      duration
+    }
+  }
+
+  /**
+   * The returned cache will store all responses whatever they may contain
+   * @param duration how long we should store responses
+   */
+  def default(duration: Duration): CachedBuilder = compose(PartialFunction((_: ResponseHeader) => duration))
+
+  /**
+   * The returned cache will store all responses whatever they may contain
+   * @param duration the number of seconds we should store responses
+   */
+  def default(duration: Int): CachedBuilder = default(Duration(duration, SECONDS))
+
+  /**
+   * Compose the cache with new caching function
+   * @param alternative a closure getting the reponseheader and returning the duration
+   *        we should cache for
+   */
+  def compose(alternative: PartialFunction[ResponseHeader, Duration]): CachedBuilder = new CachedBuilder(
+    cache = cache,
+    key = key,
+    caching = caching.orElse(alternative)
+  )
+
+}

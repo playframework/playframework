@@ -1,15 +1,17 @@
 //
-// Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
 import scala.reflect._
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
+libraryDependencies += guice
 
-routesFiles in Compile := Seq(baseDirectory.value / "routes")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.2")
 
-InputKey[Unit]("all-problems-are-from") := {
+sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
+
+InputKey[Unit]("allProblemsAreFrom") := {
   val args = Def.spaceDelimited("<source> <line>").parsed
   val base: File = baseDirectory.value
   val source = base / args(0)

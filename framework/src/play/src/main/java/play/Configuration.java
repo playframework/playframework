@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 import scala.collection.JavaConverters;
@@ -17,10 +20,13 @@ import javax.inject.Singleton;
 
 /**
  * The current application configuration.
+ *
+ * @deprecated As of release 2.6.0. Use {@link Config} instead.
  */
 @Singleton
+@Deprecated
 public class Configuration {
-    
+
     /**
      * The root configuration.
      * <p>
@@ -31,20 +37,70 @@ public class Configuration {
             play.api.Play.unsafeApplication().configuration()
         );
     }
-    
+
+    /**
+     * Load a new configuration from an environment.
+     *
+     * @param env the environment used to initialize the created config
+     * @return the created config
+     */
+    public static Configuration load(Environment env) {
+        return new Configuration(play.api.Configuration.load(env.asScala()));
+    }
+
+    /**
+     * A new empty configuration.
+     *
+     * @return a new empty configuration
+     */
+    public static Configuration empty() {
+        return new Configuration(ConfigFactory.empty());
+    }
+
+    /**
+     * A new reference configuration.
+     *
+     * @return the configuration
+     */
+    public static Configuration reference() {
+        return new Configuration(ConfigFactory.defaultReference());
+    }
+
     // --
-    
+
     private final play.api.Configuration conf;
 
     /**
      * Creates a new configuration from a Typesafe Config object.
+     *
+     * @param conf the typesafe config
      */
     public Configuration(Config conf) {
         this(new play.api.Configuration(conf));
     }
 
     /**
+     * Creates a new configuration from a map.
+     *
+     * @param conf the configuration map
+     */
+    public Configuration(Map<String, Object> conf) {
+        this(ConfigFactory.parseMap(conf));
+    }
+
+    /**
+     * Creates a new configuration by parsing a string in HOCON format.
+     *
+     * @param s the HOCON-formatted string
+     */
+    public Configuration(String s) {
+        this(ConfigFactory.parseString(s));
+    }
+
+    /**
      * Creates a new configuration from a Scala-based configuration.
+     *
+     * @param conf the scala-based configuration
      */
     @Inject
     public Configuration(play.api.Configuration conf) {
@@ -66,7 +122,7 @@ public class Configuration {
         }
         return null;
     }
-    
+
     /**
      * Retrieves a configuration value as a <code>String</code>.
      *
@@ -74,7 +130,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public String getString(String key) {
-        return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
+        return Scala.orNull(conf.getString(key, scala.Option.empty()));
     }
 
     /**
@@ -85,9 +141,9 @@ public class Configuration {
      * @return a configuration value or the defaultString
      */
     public String getString(String key, String defaultString) {
-        return Scala.orElse(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()), defaultString);
+        return Scala.orElse(conf.getString(key, scala.Option.empty()), defaultString);
     }
-    
+
     /**
      * Retrieves a configuration value as a <code>Milliseconds</code>.
      *
@@ -108,7 +164,7 @@ public class Configuration {
     public Long getMilliseconds(String key, Long defaultMilliseconds) {
         return (Long)Scala.orElse(conf.getMilliseconds(key), defaultMilliseconds);
     }
-        
+
     /**
      * Retrieves a configuration value as a <code>Nanoseconds</code>.
      *
@@ -129,7 +185,7 @@ public class Configuration {
     public Long getNanoseconds(String key, Long defaultNanoseconds) {
         return (Long)Scala.orElse(conf.getNanoseconds(key), defaultNanoseconds);
     }
-    
+
     /**
      * Retrieves a configuration value as a <code>Bytes</code>.
      *
@@ -150,7 +206,7 @@ public class Configuration {
     public Long getBytes(String key, Long defaultBytes) {
         return (Long)Scala.orElse(conf.getBytes(key), defaultBytes);
     }
-    
+
     /**
      * Retrieves a configuration value as an <code>Double</code>.
      *
@@ -192,7 +248,7 @@ public class Configuration {
     public Integer getInt(String key, Integer defaultInteger) {
         return (Integer)Scala.orElse(conf.getInt(key), defaultInteger);
     }
-    
+
     /**
      * Retrieves a configuration value as an <code>Long</code>.
      *
@@ -213,7 +269,7 @@ public class Configuration {
     public Long getLong(String key, Long defaultLong) {
         return (Long)Scala.orElse(conf.getLong(key), defaultLong);
     }
-    
+
     /**
      * Retrieves a configuration value as an <code>Number</code>.
      *
@@ -244,7 +300,7 @@ public class Configuration {
     public Boolean getBoolean(String key) {
         return (Boolean)Scala.orNull(conf.getBoolean(key));
     }
-        
+
     /**
      * Retrieves a configuration value as a <code>Boolean</code>.
      *
@@ -255,7 +311,7 @@ public class Configuration {
     public Boolean getBoolean(String key, Boolean defaultBoolean) {
         return (Boolean)Scala.orElse(conf.getBoolean(key), defaultBoolean);
     }
-    
+
     /**
      * Retrieves the set of keys available in this configuration.
      *
@@ -264,7 +320,7 @@ public class Configuration {
     public Set<String> keys() {
         return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
     }
-    
+
     /**
      * Retrieves the set of direct sub-keys available in this configuration.
      *
@@ -294,7 +350,7 @@ public class Configuration {
 
     /**
      * Returns the config as a set of full paths to config values.  This is
-     * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
+     * different to {@link #asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
      * objects, and keys are recursively expanded to be pull path keys.
      *
      * @return The config as an entry set
@@ -302,7 +358,7 @@ public class Configuration {
     public Set<Map.Entry<String, ConfigValue>> entrySet() {
         return conf.underlying().entrySet();
     }
-    
+
     /**
      * Creates a configuration error for a specific configuration key.
      *
@@ -314,144 +370,140 @@ public class Configuration {
     public RuntimeException reportError(String key, String message, Throwable e) {
         return conf.reportError(key, message, scala.Option.apply(e));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Boolean>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */    
+     */
     public List<Boolean> getBooleanList(String key) {
         return (List<Boolean>)Scala.orNull(conf.getBooleanList(key));
     }
-  
+
     /**
      * Retrieves a configuration value as a {@code List<Boolean>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */    
+     */
     public List<Boolean> getBooleanList(String key, List<Boolean> defaultList) {
         return (List<Boolean>)Scala.orElse(conf.getBooleanList(key), defaultList);
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing bytes.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Long> getBytesList(String key) {
         return (List<Long>)Scala.orNull(conf.getBytesList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing bytes.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Long> getBytesList(String key, List<Long> defaultList) {
         return (List<Long>)Scala.orElse(conf.getBytesList(key), defaultList);
-    }    
+    }
 
     /**
      * Retrieves a configuration value as a {@code List<Configuration>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Configuration> getConfigList(String key) {
         if (conf.getConfigList(key).isDefined()) {
-          List<Configuration> out = new ArrayList<Configuration>();
-          for (play.api.Configuration c : conf.getConfigList(key).get()) {
-            out.add(new Configuration(c));
-          }
-          return out;
+            return conf.getConfigList(key).get().stream().map(Configuration::new).collect(Collectors.toList());
         }
 
-        return null;      
+        return null;
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Configuration>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Configuration> getConfigList(String key, List<Configuration> defaultList) {
         List<Configuration> out = getConfigList(key);
         if (out == null) {
           out = defaultList;
         }
         return out;
-    }    
+    }
 
     /**
      * Retrieves a configuration value as a {@code List<Double>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Double> getDoubleList(String key) {
         return (List<Double>)Scala.orNull(conf.getDoubleList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Double>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Double> getDoubleList(String key, List<Double> defaultList) {
         return (List<Double>)Scala.orElse(conf.getDoubleList(key), defaultList);
-    }    
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<Integer>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Integer> getIntList(String key) {
         return (List<Integer>)Scala.orNull(conf.getIntList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Integer>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Integer> getIntList(String key, List<Integer> defaultList) {
         return (List<Integer>)Scala.orElse(conf.getIntList(key), defaultList);
-    }    
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<Object>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Object> getList(String key) {
         if (conf.getList(key).isDefined()) {
           return conf.getList(key).get().unwrapped();
         }
         return null;
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Object>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Object> getList(String key, List<Object> defaultList) {
         List<Object> out = getList(key);
         if (out == null) {
@@ -459,170 +511,176 @@ public class Configuration {
         }
         return out;
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Long> getLongList(String key) {
         return (List<Long>)Scala.orNull(conf.getLongList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Long> getLongList(String key, List<Long> defaultList) {
         return (List<Long>)Scala.orElse(conf.getLongList(key), defaultList);
-    }            
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing Milliseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Long> getMillisecondsList(String key) {
         return (List<Long>)Scala.orNull(conf.getMillisecondsList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing Milliseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Long> getMillisecondsList(String key, List<Long> defaultList) {
         return (List<Long>)Scala.orElse(conf.getMillisecondsList(key), defaultList);
-    }            
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing Nanoseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Long> getNanosecondsList(String key) {
         return (List<Long>)Scala.orNull(conf.getNanosecondsList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Long>} representing Nanoseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Long> getNanosecondsList(String key, List<Long> defaultList) {
         return (List<Long>)Scala.orElse(conf.getNanosecondsList(key), defaultList);
-    }            
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Number> getNumberList(String key) {
         return (List<Number>)Scala.orNull(conf.getNumberList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Number> getNumberList(String key, List<Number> defaultList) {
         return (List<Number>)Scala.orElse(conf.getNumberList(key), defaultList);
-    }            
+    }
 
     /**
      * Retrieves a configuration value as a {@code List<Map<String, Object>>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<Map<String, Object>> getObjectList(String key) {
         if (conf.getObjectList(key).isDefined()) {
-          List<Map<String, Object>> out = new ArrayList<Map<String, Object>>();
-          for (ConfigObject c : conf.getObjectList(key).get()) {
-            out.add(c.unwrapped());
-          }
-          return out;
+            return conf.getObjectList(key).get().stream().map((Function<ConfigObject, Map<String, Object>>) ConfigObject::unwrapped).collect(Collectors.toList());
         }
         return null;
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Map<String, Object>>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<Map<String, Object>> getObjectList(String key, List<Map<String, Object>> defaultList) {
         List<Map<String, Object>> out = getObjectList(key);
         if (out == null) {
           out = defaultList;
         }
         return out;
-    }    
-    
+    }
+
     /**
      * Retrieves a configuration value as a {@code List<String>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public List<String> getStringList(String key) {
         return (List<String>)Scala.orNull(conf.getStringList(key));
     }
-    
+
     /**
      * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public List<String> getStringList(String key, List<String> defaultList) {
         return (List<String>)Scala.orElse(conf.getStringList(key), defaultList);
-    } 
-    
+    }
+
     /**
      * Retrieves a configuration value as a <code>Object</code>.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
-     */        
+     */
     public Object getObject(String key) {
         if (conf.getObject(key).isDefined()) {
           return conf.getObject(key).get().unwrapped();
         }
         return null;
     }
-    
+
     /**
      * Retrieves a configuration value as a <code>Object</code>.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultObject default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
-     */        
+     */
     public Object getObject(String key, Object defaultObject) {
         Object out = getObject(key);
         if (out == null) {
           out = defaultObject;
         }
         return out;
+    }
+
+    /**
+     * Extend this configuration with fallback configuration.
+     *
+     * @param fallback the configuration to fall back on if no value is found for a key
+     * @return a new configuration that falls back on the provided one
+     */
+    public Configuration withFallback(Configuration fallback) {
+        return new Configuration(underlying().withFallback(fallback.underlying()));
     }
 
     public play.api.Configuration getWrappedConfiguration() {

@@ -1,0 +1,13 @@
+# #defaultcontroller
+# Redirects to https://www.playframework.com/ with 303 See Other
+GET   /about      controllers.Default.redirect(to = "https://www.playframework.com/")
+
+# Responds with 404 Not Found
+GET   /orders     controllers.Default.notFound
+
+# Responds with 500 Internal Server Error
+GET   /clients    controllers.Default.error
+
+# Responds with 501 Not Implemented
+GET   /posts      controllers.Default.todo
+# #defaultcontroller

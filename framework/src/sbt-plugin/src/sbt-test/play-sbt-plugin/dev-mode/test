@@ -21,141 +21,177 @@
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/css/some.css 200 original
+> verifyResourceContains /assets/css/some.css 200 original
 $ copy-file changes/some.css.1 public/css/some.css
-> verify-resource-contains /assets/css/some.css 200 first
+> verifyResourceContains /assets/css/some.css 200 first
 $ delete public/css/some.css
-> verify-resource-contains /assets/css/some.css 404
+> verifyResourceContains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 $ copy-file changes/new.css public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 original
+> verifyResourceContains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
 $ copy-file changes/new.css.1 public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 first
+> verifyResourceContains /assets/new/new.css 200 first
 $ delete public/new/new.css
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 
-> play-stop
+# Two files with the same name change detection
+> verifyResourceContains /assets/a/some.txt 200 original
+> verifyResourceContains /assets/b/some.txt 200 original
+# These sleeps are necessary to ensure a full second has ticked by since the last modified timestamp was captured
+$ sleep 1000
+$ copy-file changes/some.txt.1 public/a/some.txt
+> verifyResourceContains /assets/a/some.txt 200 changed
+$ sleep 1000
+$ copy-file changes/some.txt.1 public/b/some.txt
+> verifyResourceContains /assets/b/some.txt 200 changed
+
+> playStop
 $ copy-file changes/some.css.0 public/css/some.css
+$ copy-file changes/some.txt.0 public/a/some.txt
+$ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # JDK7 watcher
 # - - - - - -
 
-> set PlayKeys.playWatchService <<= DevModeBuild.jdk7WatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jdk7WatchService.value
 
 # Start dev mode
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/css/some.css 200 original
+> verifyResourceContains /assets/css/some.css 200 original
 $ copy-file changes/some.css.1 public/css/some.css
-> verify-resource-contains /assets/css/some.css 200 first
+> verifyResourceContains /assets/css/some.css 200 first
 $ delete public/css/some.css
-> verify-resource-contains /assets/css/some.css 404
+> verifyResourceContains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 $ copy-file changes/new.css public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 original
+> verifyResourceContains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
 $ copy-file changes/new.css.1 public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 first
+> verifyResourceContains /assets/new/new.css 200 first
 $ delete public/new/new.css
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 
-> play-stop
+# Two files with the same name change detection
+> verifyResourceContains /assets/a/some.txt 200 original
+> verifyResourceContains /assets/b/some.txt 200 original
+$ copy-file changes/some.txt.1 public/a/some.txt
+> verifyResourceContains /assets/a/some.txt 200 changed
+$ copy-file changes/some.txt.1 public/b/some.txt
+> verifyResourceContains /assets/b/some.txt 200 changed
+
+> playStop
 $ copy-file changes/some.css.0 public/css/some.css
+$ copy-file changes/some.txt.0 public/a/some.txt
+$ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # JNotify watch service
 # - - - - - - - - - - -
 
-> set PlayKeys.playWatchService <<= DevModeBuild.jnotifyWatchService
+> set PlayKeys.fileWatchService := DevModeBuild.jnotifyWatchService.value
 
 # Start dev mode
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/css/some.css 200 original
+> verifyResourceContains /assets/css/some.css 200 original
 $ copy-file changes/some.css.1 public/css/some.css
-> verify-resource-contains /assets/css/some.css 200 first
+> verifyResourceContains /assets/css/some.css 200 first
 $ delete public/css/some.css
-> verify-resource-contains /assets/css/some.css 404
+> verifyResourceContains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 $ copy-file changes/new.css public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 original
+> verifyResourceContains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
 $ copy-file changes/new.css.1 public/new/new.css
-> verify-resource-contains /assets/new/new.css 200 first
+> verifyResourceContains /assets/new/new.css 200 first
 $ delete public/new/new.css
-> verify-resource-contains /assets/new/new.css 404
+> verifyResourceContains /assets/new/new.css 404
 
-> play-stop
+# Two files with the same name change detection
+> verifyResourceContains /assets/a/some.txt 200 original
+> verifyResourceContains /assets/b/some.txt 200 original
+$ copy-file changes/some.txt.1 public/a/some.txt
+> verifyResourceContains /assets/a/some.txt 200 changed
+$ copy-file changes/some.txt.1 public/b/some.txt
+> verifyResourceContains /assets/b/some.txt 200 changed
+
+> playStop
 $ copy-file changes/some.css.0 public/css/some.css
+$ copy-file changes/some.txt.0 public/a/some.txt
+$ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # Reloader tests
 # --------------
 
-> reset-reloads
+> resetReloads
 > run
 
 # Check various action types
-> verify-resource-contains / 200 original
-> verify-resource-contains /assets/css/some.css 200 original
-> verify-resource-contains /assets/main.css 200 original
-> verify-reloads 1
+> verifyResourceContains / 200 original
+> verifyResourceContains /assets/css/some.css 200 original
+> verifyResourceContains /assets/main.css 200 original
+> verifyReloads 1
 
 # Wait a while and ensure we still haven't reloaded
 $ sleep 1000
-> verify-resource-contains / 200
-> verify-reloads 1
+> verifyResourceContains / 200
+> verifyReloads 1
 
 # Change a scala file
-$ copy-file changes/Application.scala.1 app/controllers/Application.scala
 $ sleep 1000
-> verify-resource-contains / 200 first
-> verify-reloads 2
+$ copy-file changes/Application.scala.1 app/controllers/Application.scala
+> verifyResourceContains / 200 first
+> verifyReloads 2
 
 # Change a static asset
-$ copy-file changes/some.css.1 public/css/some.css
 $ sleep 1000
-> verify-resource-contains /assets/css/some.css 200 first
+$ copy-file changes/some.css.1 public/css/some.css
+> verifyResourceContains /assets/css/some.css 200 first
 # No reloads should have happened
-> verify-reloads 2
+> verifyReloads 2
 
 # Change a compiled asset
-$ copy-file changes/main.less.1 app/assets/main.less
 $ sleep 1000
-> verify-resource-contains /assets/main.css 200 first
+$ copy-file changes/main.less.1 app/assets/main.less
+> verifyResourceContains /assets/main.css 200 first
 # No reloads should have happened
-> verify-reloads 2
+> verifyReloads 2
 
 # Introduce a compile error
-$ copy-file changes/Application.scala.2 app/controllers/Application.scala
 $ sleep 1000
-> verify-resource-contains / 500
-> verify-reloads 2
+$ copy-file changes/Application.scala.2 app/controllers/Application.scala
+> verifyResourceContains / 500
+> verifyReloads 2
 
 # Fix the compile error
-$ copy-file changes/Application.scala.3 app/controllers/Application.scala
 $ sleep 1000
-> verify-resource-contains / 200 second
-> verify-reloads 3
+$ copy-file changes/Application.scala.3 app/controllers/Application.scala
+> verifyResourceContains / 200 second
+> verifyReloads 3
 
 # Change a resource (also introduces a startup failure)
-$ copy-file changes/application.conf.1 conf/application.conf
 $ sleep 1000
-> verify-resource-contains / 500
-> verify-reloads 4
+$ copy-file changes/application.conf.1 conf/application.conf
+> verifyResourceContains / 500
+> verifyReloads 4
 
-> play-stop
+> playStop
 

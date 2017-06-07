@@ -1,52 +1,88 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async;
 
 import org.junit.Test;
-import play.libs.F.Function;
-import play.libs.F.Function0;
-import play.libs.F.Promise;
+import play.libs.concurrent.*;
 import play.mvc.Result;
+import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.time.Duration;
+import java.util.concurrent.*;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static play.mvc.Results.ok;
-import static play.test.Helpers.*;
 
 public class JavaAsync {
 
     @Test
-    public void promisePi() {
-        //#promise-pi
-        Promise<Double> promiseOfPIValue = computePIAsynchronously();
-        Promise<Result> promiseOfResult = promiseOfPIValue.map(
-          new Function<Double,Result>() {
-            public Result apply(Double pi) {
-              return ok("PI value computed: " + pi);
+    public void promiseWithTimeout() throws Exception {
+        //#timeout
+        class MyClass {
+
+            private final Futures futures;
+            private final Executor customExecutor = ForkJoinPool.commonPool();
+
+            @Inject
+            public MyClass(Futures futures) {
+                this.futures = futures;
             }
-          }
-        );
-        //#promise-pi
-        assertThat(status(promiseOfResult.get(1000)), equalTo(200));
+
+            CompletionStage<Double> callWithOneSecondTimeout() {
+                return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
+            }
+
+            public CompletionStage<String> delayedResult() {
+                long start = System.currentTimeMillis();
+                return futures.delayed(() -> CompletableFuture.supplyAsync(() -> {
+                    long end = System.currentTimeMillis();
+                    long seconds = end - start;
+                    return "rendered after " + seconds + " seconds";
+                }, customExecutor), Duration.of(3, SECONDS));
+            }
+
+        }
+        //#timeout
+        Futures futures = mock(Futures.class);
+        when(futures.timeout(any(), any())).thenReturn(CompletableFuture.completedFuture(Math.PI));
+        final Double actual = new MyClass(futures).callWithOneSecondTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
+        final Double expected = Math.PI;
+        assertThat(actual, equalTo(expected));
     }
 
     @Test
-    public void promiseAsync() {
-        //#promise-async
-        Promise<Integer> promiseOfInt = Promise.promise(
-          new Function0<Integer>() {
-            public Integer apply() {
-              return intensiveComputation();
-            }
-          }
+    public void promisePi() throws Exception {
+        //#promise-pi
+        CompletionStage<Double> promiseOfPIValue = computePIAsynchronously();
+        // Runs in same thread
+        CompletionStage<Result> promiseOfResult = promiseOfPIValue.thenApply(pi ->
+                        ok("PI value computed: " + pi)
         );
-        //#promise-async
-        assertEquals(intensiveComputation(), promiseOfInt.get(1000));
+        //#promise-pi
+        assertThat(promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status(), equalTo(200));
     }
 
-    private static Promise<Double> computePIAsynchronously() {
-        return Promise.pure(Math.PI);
+    @Test
+    public void promiseAsync() throws Exception {
+        //#promise-async
+        // import static java.util.concurrent.CompletableFuture.supplyAsync;
+        // creates new task
+        CompletionStage<Integer> promiseOfInt = CompletableFuture.supplyAsync(() ->
+                intensiveComputation());
+        //#promise-async
+        assertEquals(intensiveComputation(), promiseOfInt.toCompletableFuture().get(1, TimeUnit.SECONDS));
+    }
+
+    private static CompletionStage<Double> computePIAsynchronously() {
+        return CompletableFuture.completedFuture(Math.PI);
     }
 
     private static Integer intensiveComputation() {

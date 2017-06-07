@@ -1,47 +1,61 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.filters.csrf
 
-import scala.concurrent.Future
-import play.api.libs.ws.{ WS, WSResponse, WSRequestHolder }
+import play.api.Application
+import play.api.libs.ws.{ WSClient, WSRequest, WSResponse }
 import play.api.mvc._
+
+import scala.concurrent.Future
 
 /**
  * Specs for the Scala per action CSRF actions
  */
-object ScalaCSRFActionSpec extends CSRFCommonSpecs {
+class ScalaCSRFActionSpec extends CSRFCommonSpecs {
+
+  def csrfAddToken(app: Application) = app.injector.instanceOf[CSRFAddToken]
+  def csrfCheck(app: Application) = app.injector.instanceOf[CSRFCheck]
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => if (sendUnauthorizedResult) {
-        CSRFCheck(Action(Results.Ok), new CustomErrorHandler())
-      } else {
-        CSRFCheck(Action(Results.Ok))
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withActionServer(configuration)(implicit app => {
+        case _ => if (sendUnauthorizedResult) {
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfCheck(app)
+          csrfAction(myAction(req => Results.Ok), new CustomErrorHandler())
+        } else {
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfCheck(app)
+          csrfAction(myAction(req => Results.Ok))
+        }
+      }){ ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
-    } {
-      import play.api.Play.current
-      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => CSRFAddToken(Action {
-        implicit req =>
-          CSRF.getToken(req).map {
-            token =>
-              Results.Ok(token.value)
-          } getOrElse Results.NotFound
-      })
-    } {
-      import play.api.Play.current
-      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withActionServer(configuration)(implicit app => {
+        case _ =>
+          val myAction = inject[DefaultActionBuilder]
+          val csrfAction = csrfAddToken(app)
+          csrfAction(myAction {
+            implicit req =>
+              CSRF.getToken.map {
+                token =>
+                  Results.Ok(token.value)
+              } getOrElse Results.NotFound
+          })
+      }){ ws =>
+        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
+      }
     }
   }
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Unauthorized(msg)
+    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
   }
 }

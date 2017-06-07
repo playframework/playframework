@@ -1,24 +1,28 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.parsing
 
-import play.api.libs.iteratee.Enumerator
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.libs.json.{ Json, JsError }
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{ BodyParser, BodyParsers }
 import play.api.test._
 
-object JsonBodyParserSpec extends PlaySpecification {
+class JsonBodyParserSpec extends PlaySpecification {
 
   private case class Foo(a: Int, b: String)
   private implicit val fooFormat = Json.format[Foo]
 
   "The JSON body parser" should {
 
-    def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
-      await(Enumerator(json.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson)(implicit mat: Materializer) = {
+      await(
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(ByteString(json.getBytes(encoding))))
+      )
     }
 
     "parse JSON bodies" in new WithApplication() {
@@ -67,7 +71,7 @@ object JsonBodyParserSpec extends PlaySpecification {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val fooParser = BodyParsers.parse.json.validate {
-        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toJson(e)))
       }
       parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8", fooParser) must beRight
       parse("""{"foo":"bar"}""", Some("application/json"), "utf-8", fooParser) must beLeft

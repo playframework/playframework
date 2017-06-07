@@ -1,49 +1,58 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.action
 
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, EssentialAction }
+import org.specs2.matcher.MatchResult
+import play.api.Environment
+import play.api.mvc.AnyContent
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.BodyParsers
 import play.api.mvc.Results._
-import play.api.test.{ FakeApplication, PlaySpecification, FakeRequest }
+import play.api.mvc.{ DefaultActionBuilder, EssentialAction }
+import play.api.test.{ FakeRequest, PlaySpecification }
+
 import scala.concurrent.Promise
 
-object EssentialActionSpec extends PlaySpecification {
+class EssentialActionSpec extends PlaySpecification {
 
   "an EssentialAction" should {
-    "be tested without any started FakeApplication" in {
-
-      val action: EssentialAction = Action { request =>
-        val value = (request.body.asJson.get \ "field").as[String]
-        Ok(value)
-      }
-
-      val request = FakeRequest(POST, "/").withJsonBody(Json.parse("""{ "field": "value" }"""))
-
-      val result = call(action, request)
-
-      status(result) mustEqual OK
-      contentAsString(result) mustEqual "value"
-    }
 
     "use the classloader of the running application" in {
 
-      val actionClassLoader = Promise[ClassLoader]()
-      val action: EssentialAction = Action {
-        actionClassLoader.success(Thread.currentThread.getContextClassLoader)
-        Ok("")
-      }
-
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
-      val fakeApplication = FakeApplication(classloader = applicationClassLoader)
 
-      running(fakeApplication) {
-        // run the test with the classloader of the current thread
-        Thread.currentThread.getContextClassLoader must not be applicationClassLoader
-        call(action, FakeRequest())
-        await(actionClassLoader.future) must be equalTo applicationClassLoader
+      running(_.in(Environment.simple().copy(classLoader = applicationClassLoader))) { app =>
+        import app.materializer
+
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+
+        def checkAction(actionCons: (ClassLoader => Unit) => EssentialAction): MatchResult[_] = {
+          val actionClassLoader = Promise[ClassLoader]()
+          val action = actionCons(cl => actionClassLoader.success(cl))
+          call(action, FakeRequest())
+          await(actionClassLoader.future) must be equalTo applicationClassLoader
+        }
+
+        // make sure running thread has applicationClassLoader set
+        Thread.currentThread.setContextClassLoader(applicationClassLoader)
+
+        // test with simple sync action
+        checkAction { reportCL =>
+          Action {
+            reportCL(Thread.currentThread.getContextClassLoader)
+            Ok("")
+          }
+        }
+
+        // test with async action
+        checkAction { reportCL =>
+          Action(BodyParsers.utils.maxLength(100, BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))) { _ =>
+            reportCL(Thread.currentThread.getContextClassLoader)
+            Ok("")
+          }
+        }
       }
     }
   }

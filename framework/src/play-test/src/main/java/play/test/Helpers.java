@@ -1,454 +1,620 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.test;
 
-import org.openqa.selenium.WebDriver;
-import play.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import play.api.test.PlayRunners$;
-import play.core.j.JavaAction;
+import akka.stream.Materializer;
+import akka.util.ByteString;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import play.Application;
+import play.Play;
+import play.api.test.Helpers$;
+import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
-import play.core.j.JavaResultExtractor;
-import play.mvc.*;
-import play.api.test.Helpers$;
-import play.libs.*;
-import play.libs.F.*;
+import play.core.j.JavaHelpers$;
+import play.http.HttpEntity;
+import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.Scala;
+import play.mvc.Call;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.routing.Router;
 import play.twirl.api.Content;
+import scala.compat.java8.FutureConverters;
+import scala.compat.java8.OptionConverters;
 
-import org.openqa.selenium.firefox.*;
-import org.openqa.selenium.htmlunit.*;
-
-
-import java.util.*;
-
-import static play.core.Router.Routes;
-import static play.mvc.Http.*;
+import static play.libs.Scala.asScala;
+import static play.mvc.Http.Context;
+import static play.mvc.Http.Request;
+import static play.mvc.Http.RequestBuilder;
 
 /**
  * Helper functions to run tests.
  */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
 
+    /**
+     * Default Timeout (milliseconds) for fake requests issued by these Helpers.
+     * This value is determined from System property <b>test.timeout</b>.
+     * The default value is <b>30000</b> (30 seconds).
+     */
+    public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
     public static String GET = "GET";
     public static String POST = "POST";
     public static String PUT = "PUT";
     public static String DELETE = "DELETE";
-    public static String HEAD = "HEAD";
 
     // --
-
+    public static String HEAD = "HEAD";
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
 
     // --
     @SuppressWarnings(value = "unchecked")
-    private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
-        if (handler instanceof JavaAction) {
+    private static Result invokeHandler(play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
+        if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
+            return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
         } else if (handler instanceof JavaHandler) {
+            final play.api.inject.Injector injector = app.injector();
+            final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
             return invokeHandler(
-                ((JavaHandler) handler).withComponents(Play.application().injector().instanceOf(JavaHandlerComponents.class)),
-                fakeRequest, timeout
+                    app,
+                    ((JavaHandler) handler).withComponents(handlerComponents),
+                    requestBuilder, timeout
             );
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
         }
     }
 
-    /** Default Timeout (milliseconds) for fake requests issued by these Helpers.
-     * This value is determined from System property <b>test.timeout</b>.
-     * The default value is <b>30000</b> (30 seconds).
-     */
-    public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
-
     private static Result wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.Result scalaResult = Promise.wrap(result).get(timeout);
-            return new Result() {
-                public play.api.mvc.Result toScala() {
-                    return scalaResult;
+            try {
+                final play.api.mvc.Result scalaResult = FutureConverters.toJava(result).toCompletableFuture().get(timeout, TimeUnit.MILLISECONDS);
+                return scalaResult.asJava();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new RuntimeException(e.getCause());
                 }
-            };
+            } catch (InterruptedException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     // --
 
     /**
-     * Call an action method while decorating it with the right @With interceptors.
+     * Calls a Callable which invokes a Controller or some other method with a Context.
+     *
+     * @param requestBuilder the request builder to invoke in this context.
+     * @param contextComponents the context components to run.
+     * @param callable the callable block to run.
+     * @param <V> the return type.
+     * @return the value from {@code callable}.
      */
-    public static Result callAction(HandlerRef actionReference) {
-        return callAction(actionReference, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, long timeout) {
-        return callAction(actionReference, fakeRequest(), timeout);
+    public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
+        try {
+            Context.current.set(new Context(requestBuilder, contextComponents));
+            return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            Context.current.remove();
+        }
     }
 
     /**
-     * Call an action method while decorating it with the right @With interceptors.
+     * Builds a new "GET /" fake request.
+     * @return the request builder.
      */
-    public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest) {
-        return callAction(actionReference, fakeRequest, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest, long timeout) {
-        play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
-        return invokeHandler(handlerRef.handler(), fakeRequest, timeout);
+    public static RequestBuilder fakeRequest() {
+        return fakeRequest("GET", "/");
     }
 
     /**
-     * Build a new GET / fake request.
+     * Builds a new fake request.
+     * @param method    the request method.
+     * @param uri the relative URL.
+     * @return the request builder.
      */
-    public static FakeRequest fakeRequest() {
-        return new FakeRequest();
+    public static RequestBuilder fakeRequest(String method, String uri) {
+        return new RequestBuilder().method(method).uri(uri);
     }
 
     /**
-     * Build a new fake request.
+     * Builds a new fake request corresponding to a given route call.
+     * @param call    the route call.
+     * @return the request builder.
      */
-    public static FakeRequest fakeRequest(String method, String uri) {
-        return new FakeRequest(method, uri);
-    }
-
-    /**
-     * Build a new fake request corresponding to a given route call
-     */
-    public static FakeRequest fakeRequest(Call call) {
+    public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
     }
 
     /**
-     * Build a new fake application.
+     * Builds a new Http.Context from a new request
+     * @return a new Http.Context using the default request
      */
-    public static FakeApplication fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), new ArrayList<String>(), null);
+    public static Http.Context httpContext() {
+        return httpContext(new Http.RequestBuilder().build());
     }
 
     /**
-     * Build a new fake application.
+     * Builds a new Http.Context for a specific request
+     * @param request the Request you want to use for this Context
+     * @return a new Http.Context for this request
      */
-    public static FakeApplication fakeApplication(GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), new ArrayList<String>(), global);
+    public static Http.Context httpContext(Http.Request request) {
+        return new Http.Context(request, contextComponents());
     }
 
     /**
-     * A fake Global
+     * Creates a new JavaContextComponents using Configuration.reference and Enviroment.simple as defaults
+     * @return the newly created JavaContextComponents
      */
-    public static GlobalSettings fakeGlobal() {
-        return new GlobalSettings();
+    public static JavaContextComponents contextComponents() {
+        return JavaHelpers$.MODULE$.createContextComponents();
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Builds a new fake application, using GuiceApplicationBuilder.
+     *
+     * @return an application from the current path with no additional configuration.
      */
-    public static Map<String,String> inMemoryDatabase() {
+    public static Application fakeApplication() {
+        return new GuiceApplicationBuilder().build();
+    }
+
+    /**
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @return a map of String containing database config info.
+     */
+    public static Map<String, String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @param name    the database name.
+     * @return a map of String containing database config info.
      */
-    public static Map<String,String> inMemoryDatabase(String name) {
+    public static Map<String, String> inMemoryDatabase(String name) {
         return inMemoryDatabase(name, Collections.<String, String>emptyMap());
     }
 
     /**
-     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     * Constructs a in-memory (h2) database configuration to add to a fake application.
+     *
+     * @param name       the database name.
+     * @param options the database options.
+     * @return a map of String containing database config info.
      */
-    public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
+    public static Map<String, String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
     }
 
     /**
-     * Build a new fake application.
+     * Build a new fake application.  Uses GuiceApplicationBuilder.
+     *
+     * @param additionalConfiguration map containing config info for the app.
+     * @return an application from the current path with additional configuration.
      */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>(), null);
+    public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
+        //noinspection unchecked
+        Map<String, Object> conf = (Map<String, Object>) additionalConfiguration;
+        return new GuiceApplicationBuilder().configure(conf).build();
     }
 
     /**
-     * Build a new fake application.
+     * Extracts the content as a {@link akka.util.ByteString}.
+     * <p>
+     * This method is only capable of extracting the content of results with strict entities. To extract the content of
+     * results with streamed entities, use {@link Helpers#contentAsBytes(Result, Materializer)}.
+     *
+     * @param result The result to extract the content from.
+     * @return The content of the result as a ByteString.
+     * @throws UnsupportedOperationException if the result does not have a strict entity.
      */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>(), global);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin, null);
-    }
-
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin, global);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, null);
-    }
-
-    /**
-     * Build a new fake application.
-     */
-    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins, GlobalSettings global) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, global);
-    }
-
-    /**
-     * Extracts the Status code of this Result value.
-     */
-    public static int status(Result result) {
-        return result.toScala().header().status();
-    }
-
-    /**
-     * Extracts the Location header of this Result value if this Result is a Redirect.
-     */
-    public static String redirectLocation(Result result) {
-        return header(LOCATION, result);
-    }
-
-    /**
-     * Extracts the Flash values of this Result value.
-     */
-    public static Flash flash(Result result) {
-        return JavaResultExtractor.getFlash(result);
-    }
-
-    /**
-     * Extracts the Session of this Result value.
-     */
-    public static Session session(Result result) {
-        return JavaResultExtractor.getSession(result);
-    }
-
-    /**
-     * Extracts a Cookie value from this Result value
-     */
-    public static Cookie cookie(String name, Result result) {
-        return JavaResultExtractor.getCookies(result).get(name);
-    }
-
-    /**
-     * Extracts the Cookies (an iterator) from this result value.
-     */
-    public static Cookies cookies(Result result) {
-        return play.core.j.JavaResultExtractor.getCookies(result);
-    }
-
-    /**
-     * Extracts an Header value of this Result value.
-     */
-    public static String header(String header, Result result) {
-        return JavaResultExtractor.getHeaders(result).get(header);
-    }
-
-    /**
-     * Extracts all Headers of this Result value.
-     */
-    public static Map<String, String> headers(Result result) {
-        return JavaResultExtractor.getHeaders(result);
-    }
-
-    /**
-     * Extracts the Content-Type of this Content value.
-     */
-    public static String contentType(Content content) {
-        return content.contentType();
-    }
-
-    /**
-     * Extracts the Content-Type of this Result value.
-     */
-    public static String contentType(Result result) {
-        String h = header(CONTENT_TYPE, result);
-        if(h == null) return null;
-        if(h.contains(";")) {
-            return h.substring(0, h.indexOf(";")).trim();
+    public static ByteString contentAsBytes(Result result) {
+        if (result.body() instanceof HttpEntity.Strict) {
+            return ((HttpEntity.Strict) result.body()).data();
         } else {
-            return h.trim();
+            throw new UnsupportedOperationException("Tried to extract body from a non strict HTTP entity without a materializer, use the version of this method that accepts a materializer instead");
         }
     }
 
     /**
-     * Extracts the Charset of this Result value.
+     * Extracts the content as a {@link akka.util.ByteString}.
+     *
+     * @param result The result to extract the content from.
+     * @param mat    The materializer to use to extract the body from the result stream.
+     * @return The content of the result as a ByteString.
      */
-    public static String charset(Result result) {
-        String h = header(CONTENT_TYPE, result);
-        if(h == null) return null;
-        if(h.contains("; charset=")) {
-            return h.substring(h.indexOf("; charset=") + 10, h.length()).trim();
-        } else {
-            return null;
+    public static ByteString contentAsBytes(Result result, Materializer mat) {
+        return contentAsBytes(result, mat, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Extracts the content as a {@link akka.util.ByteString}.
+     *
+     * @param result  The result to extract the content from.
+     * @param mat     The materializer to use to extract the body from the result stream.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return The content of the result as a ByteString.
+     */
+    public static ByteString contentAsBytes(Result result, Materializer mat, long timeout) {
+        try {
+            return result.body().consumeData(mat).thenApply(Function.identity()).toCompletableFuture().get(timeout, TimeUnit.MILLISECONDS);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * Extracts the content as bytes.
+     *
+     * @param content the content to be turned into bytes.
+     * @return the body of the content as a byte string.
      */
-    public static byte[] contentAsBytes(Result result) {
-        return contentAsBytes(result, DEFAULT_TIMEOUT);
-    }
-
-    public static byte[] contentAsBytes(Result result, long timeout) {
-        return JavaResultExtractor.getBody(result, timeout);
+    public static ByteString contentAsBytes(Content content) {
+        return ByteString.fromString(content.body());
     }
 
     /**
-     * Extracts the content as bytes.
-     */
-    public static byte[] contentAsBytes(Content content) {
-        return content.body().getBytes();
-    }
-
-    /**
-     * Extracts the content as String.
+     * Extracts the content as a String.
+     *
+     * @param content the content.
+     * @return the body of the content as a String.
      */
     public static String contentAsString(Content content) {
         return content.body();
     }
 
     /**
-     * Extracts the content as String.
+     * Extracts the content as a String.
+     * <p>
+     * This method is only capable of extracting the content of results with strict entities. To extract the content of
+     * results with streamed entities, use {@link Helpers#contentAsString(Result, Materializer)}.
+     *
+     * @param result The result to extract the content from.
+     * @return The content of the result as a String.
+     * @throws UnsupportedOperationException if the result does not have a strict entity.
      */
     public static String contentAsString(Result result) {
-        return contentAsString(result, DEFAULT_TIMEOUT);
+        return contentAsBytes(result)
+                .decodeString(result.charset().orElse("utf-8"));
     }
 
-    public static String contentAsString(Result result, long timeout) {
-        try {
-            String charset = charset(result);
-            if(charset == null) {
-                charset = "utf-8";
-            }
-            return new String(contentAsBytes(result, timeout), charset);
-        } catch(RuntimeException e) {
-            throw e;
-        } catch(Throwable t) {
-            throw new RuntimeException(t);
-        }
+    /**
+     * Extracts the content as a String.
+     *
+     * @param result The result to extract the content from.
+     * @param mat    The materializer to use to extract the body from the result stream.
+     * @return The content of the result as a String.
+     */
+    public static String contentAsString(Result result, Materializer mat) {
+        return contentAsBytes(result, mat, DEFAULT_TIMEOUT)
+                .decodeString(result.charset().orElse("utf-8"));
     }
 
+    /**
+     * Extracts the content as a String.
+     *
+     * @param result  The result to extract the content from.
+     * @param mat     The materializer to use to extract the body from the result stream.
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return The content of the result as a String.
+     */
+    public static String contentAsString(Result result, Materializer mat, long timeout) {
+        return contentAsBytes(result, mat, timeout)
+                .decodeString(result.charset().orElse("utf-8"));
+    }
+
+    /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
     @SuppressWarnings(value = "unchecked")
-    public static Result routeAndCall(FakeRequest fakeRequest, long timeout) {
+    public static Result routeAndCall(RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, requestBuilder, timeout);
+    }
+
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
         try {
-            return routeAndCall((Class<? extends Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
-        } catch(RuntimeException e) {
+            return routeAndCall(app, (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
 
-    public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest, long timeout) {
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, Class, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result routeAndCall(Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder, timeout);
+    }
+
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router type
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
-            Routes routes = (Routes) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
-            if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
-                return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
-            } else {
-                return null;
-            }
-        } catch(RuntimeException e) {
+            Request request = requestBuilder.build();
+            Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
+            return routes.route(request).map(handler ->
+                invokeHandler(app.getWrappedApplication(), handler, request, timeout)
+            ).orElse(null);
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
 
-    public static Result route(FakeRequest fakeRequest) {
-      return route(fakeRequest, DEFAULT_TIMEOUT);
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, Router, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result routeAndCall(Router router, RequestBuilder requestBuilder) {
+        Application app = Play.application();
+        return routeAndCall(app, router, requestBuilder);
     }
 
-    public static Result route(FakeRequest fakeRequest, long timeout) {
-      return route(play.Play.application(), fakeRequest, timeout);
+    /**
+     * Route and call the request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder) {
+        return routeAndCall(app, router, requestBuilder, DEFAULT_TIMEOUT);
     }
 
-    public static Result route(Application app, FakeRequest fakeRequest) {
-      return route(app, fakeRequest, DEFAULT_TIMEOUT);
+    /**
+     * @param router the router
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#routeAndCall(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return routeAndCall(application, router, requestBuilder, timeout);
     }
 
+    /**
+     * Route and call the request, respecting the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param router The router
+     * @param requestBuilder The request builder
+     * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
+    public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder, long timeout) {
+        try {
+            Request request = requestBuilder.build();
+            return router.route(request).map(handler ->
+                    invokeHandler(app.getWrappedApplication(), handler, request, timeout)
+            ).orElse(null);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     *
+     * @param call the call to route
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, Call)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(Call call) {
+        return route(fakeRequest(call));
+    }
+
+    /**
+     * Route a call using the given application.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    public static Result route(Application app, Call call) {
+        return route(app, fakeRequest(call));
+    }
+
+    /**
+     * @param call the call to route
+     * @param timeout the time out
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, Call, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(Call call, long timeout) {
+        return route(fakeRequest(call), timeout);
+    }
+
+    /**
+     * Route a call using the given application and timeout.
+     *
+     * @param app the application
+     * @param call the call to route
+     * @param timeout the time out
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    public static Result route(Application app, Call call, long timeout) {
+        return route(app, fakeRequest(call), timeout);
+    }
+
+    /**
+     * @param requestBuilder the request builder the request builder
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, RequestBuilder)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(RequestBuilder requestBuilder) {
+        return route(requestBuilder, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Route a request.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @return the result.
+     */
+    public static Result route(Application app, RequestBuilder requestBuilder) {
+        return route(app, requestBuilder, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * @param requestBuilder the request builder
+     * @param timeout the timeout
+     * @deprecated as of 2.6.0. Use {@link Helpers#route(Application, RequestBuilder, long)}.
+     * @see GuiceApplicationBuilder
+     * @return the result
+     */
+    @Deprecated
+    public static Result route(RequestBuilder requestBuilder, long timeout) {
+        Application application = Play.application();
+        return route(application, requestBuilder, timeout);
+    }
+
+    /**
+     * Route the request considering the given timeout.
+     *
+     * @param app The application used while routing and executing the request
+     * @param requestBuilder the request builder
+     * @param timeout the amount of time, in milliseconds, to wait for the body to be produced.
+     * @return the result
+     */
     @SuppressWarnings("unchecked")
-    public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
-      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
-      return wrapScalaResult(Scala.orNull(opt), timeout);
-    }
-
-    public static Result route(Application app, FakeRequest fakeRequest, byte[] body) {
-      return route(app, fakeRequest, body, DEFAULT_TIMEOUT);
-    }
-
-    public static Result route(Application app, FakeRequest fakeRequest, byte[] body, long timeout) {
-      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)), timeout);
-    }
-
-    public static Result route(FakeRequest fakeRequest, byte[] body) {
-      return route(fakeRequest, body, DEFAULT_TIMEOUT);
-    }
-
-    public static Result route(FakeRequest fakeRequest, byte[] body, long timeout) {
-      return route(play.Play.application(), fakeRequest, body, timeout);
+    public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
+        final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
+                app.getWrappedApplication(),
+                requestBuilder.build().asScala(),
+                requestBuilder.body()
+        );
+        return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
     /**
      * Starts a new application.
+     *
+     * @param application the application to start.
      */
-    public static void start(FakeApplication fakeApplication) {
-
-        play.api.Play.start(fakeApplication.getWrappedApplication());
+    public static void start(Application application) {
+        play.api.Play.start(application.getWrappedApplication());
     }
 
     /**
      * Stops an application.
+     *
+     * @param application the application to stop.
      */
-    public static void stop(FakeApplication fakeApplication) {
-        play.api.Play.stop(fakeApplication.getWrappedApplication());
+    public static void stop(Application application) {
+        play.api.Play.stop(application.getWrappedApplication());
     }
 
     /**
      * Executes a block of code in a running application.
+     *
+     * @param application the application context.
+     * @param block       the block to run after the Play app is started.
      */
-    public static void running(FakeApplication fakeApplication, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(fakeApplication);
-                block.run();
-            } finally {
-                stop(fakeApplication);
-            }
-        }
+    public static void running(Application application, final Runnable block) {
+        Helpers$.MODULE$.running(application.getWrappedApplication(), asScala(() -> { block.run(); return null; }));
     }
-
 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001).
+     *
+     * @return the test server.
      */
     public static TestServer testServer() {
         return testServer(play.api.test.Helpers.testServerPort());
     }
 
     /**
-     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given FakeApplication.
+     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given Application.
+     *
+     * @param app the application.
+     * @return the test server.
      */
-    public static TestServer testServer(FakeApplication app) {
+    public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);
     }
 
     /**
      * Creates a new Test server.
+     *
+     * @param port    the port to run the server on.
+     * @return the test server.
      */
     public static TestServer testServer(int port) {
         return new TestServer(port, fakeApplication());
@@ -456,13 +622,19 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a new Test server.
+     *
+     *
+     * @param port    the port to run the server on.
+     * @param app     the Play application.
+     * @return the test server.
      */
-    public static TestServer testServer(int port, FakeApplication app) {
+    public static TestServer testServer(int port, Application app) {
         return new TestServer(port, app);
     }
 
     /**
      * Starts a Test server.
+     * @param server    the test server to start.
      */
     public static void start(TestServer server) {
         server.start();
@@ -470,6 +642,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Stops a Test server.
+     * @param server    the test server to stop.a
      */
     public static void stop(TestServer server) {
         server.stop();
@@ -477,43 +650,40 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Executes a block of code in a running server.
+     * @param server    the server to start.
+     * @param block  the block of code to run after the server starts.
      */
     public static void running(TestServer server, final Runnable block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
-            try {
-                start(server);
-                block.run();
-            } finally {
-                stop(server);
-            }
-        }
+        Helpers$.MODULE$.running(server, asScala(() -> { block.run(); return null; }));
     }
 
     /**
      * Executes a block of code in a running server, with a test browser.
+     *
+     * @param server    the test server.
+     * @param webDriver the web driver class.
+     * @param block     the block of code to execute.
      */
-    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Consumer<TestBrowser> block) {
         running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
     }
 
     /**
      * Executes a block of code in a running server, with a test browser.
+     *
+     * @param server    the test server.
+     * @param webDriver the web driver instance.
+     * @param block     the block of code to execute.
      */
-    public static void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
-        synchronized (PlayRunners$.MODULE$.mutex()) {
+    public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
+        Helpers$.MODULE$.runSynchronized(server.application(), asScala(() -> {
             TestBrowser browser = null;
             TestServer startedServer = null;
             try {
                 start(server);
                 startedServer = server;
-                browser = testBrowser(webDriver);
-                block.invoke(browser);
-            } catch (Error e) {
-                throw e;
-            } catch (RuntimeException re) {
-                throw re;
-            } catch (Throwable t) {
-                throw new RuntimeException(t);
+                browser = testBrowser(webDriver, (Integer) OptionConverters.toJava(server.config().port()).get());
+                block.accept(browser);
             } finally {
                 if (browser != null) {
                     browser.quit();
@@ -522,11 +692,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                     stop(startedServer);
                 }
             }
-        }
+            return null;
+        }));
     }
 
     /**
      * Creates a Test Browser.
+     *
+     * @return the test browser.
      */
     public static TestBrowser testBrowser() {
         return testBrowser(HTMLUNIT);
@@ -534,6 +707,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *
+     * @param port    the local port.
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(int port) {
         return testBrowser(HTMLUNIT, port);
@@ -541,6 +717,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *
+     * @param webDriver    the class of webdriver.
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
         return testBrowser(webDriver, Helpers$.MODULE$.testServerPort());
@@ -548,19 +727,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *
+     * @param webDriver    the class of webdriver.
+     * @param port  the local port to test against.
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
         try {
             return new TestBrowser(webDriver, "http://localhost:" + port);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(t);
         }
     }
 
     /**
      * Creates a Test Browser.
+     *
+     * @param of      the web driver to run the browser with.
+     * @param port    the port to run against http://localhost
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of, int port) {
         return new TestBrowser(of, "http://localhost:" + port);
@@ -568,9 +755,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Creates a Test Browser.
+     *
+     * @param of      the web driver to run the browser with.
+     * @return the test browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
-
 }

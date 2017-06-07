@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.http
 
+import akka.util.ByteString
+import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.mvc.MultipartFormData.FilePart
 
 import scala.annotation._
-import play.api.libs.iteratee.Enumeratee
-import play.api.libs.concurrent.Execution
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import java.nio.file.{ Files => JFiles }
 
 /**
  * Transform a value of type A to a Byte Array.
@@ -20,9 +21,9 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 @implicitNotFound(
   "Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]"
 )
-case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String]) {
-  def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
-  def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] = Enumeratee.map[E](transform)
+class Writeable[-A](val transform: A => ByteString, val contentType: Option[String]) {
+  def toEntity(a: A): HttpEntity = HttpEntity.Strict(transform(a), contentType)
+  def map[B](f: B => A): Writeable[B] = new Writeable(b => transform(f(b)), contentType)
 }
 
 /**
@@ -30,16 +31,20 @@ case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[Stri
  */
 object Writeable extends DefaultWriteables {
 
+  def apply[A](transform: (A => ByteString), contentType: Option[String]): Writeable[A] =
+    new Writeable(transform, contentType)
+
   /**
    * Creates a `Writeable[A]` using a content type for `A` available in the implicit scope
    * @param transform Serializing function
    */
-  def apply[A](transform: A => Array[Byte])(implicit ct: ContentTypeOf[A]): Writeable[A] = Writeable(transform, ct.mimeType)
+  def apply[A](transform: A => ByteString)(implicit ct: ContentTypeOf[A]): Writeable[A] =
+    new Writeable(transform, ct.mimeType)
 
 }
 
 /**
- * Default Writeable with lowwe priority.
+ * Default Writeable with lower priority.
  */
 trait LowPriorityWriteables {
 
@@ -84,21 +89,81 @@ trait DefaultWriteables extends LowPriorityWriteables {
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
     import java.net.URLEncoder
     Writeable(formData =>
-      codec.encode(formData.map(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).flatten.mkString("&"))
+      codec.encode(formData.flatMap(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).mkString("&"))
     )
   }
 
   /**
-   * `Writeable` for `JsValue` values - Json
+   * `Writeable` for `JsValue` values that writes to UTF-8, so they can be sent with the application/json media type.
    */
-  implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[JsValue] = {
-    Writeable(jsval => codec.encode(jsval.toString))
+  implicit def writeableOf_JsValue: Writeable[JsValue] = {
+    Writeable(a => ByteString(Json.toBytes(a)))
+  }
+
+  /**
+   * `Writeable` for `JsValue` values using an arbitrary codec. Can be used to force a non-UTF-8 encoding for JSON.
+   */
+  def writeableOf_JsValue(codec: Codec, contentType: Option[String] = None): Writeable[JsValue] = {
+    Writeable(a => codec.encode(Json.stringify(a)), contentType)
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData` when using [[TemporaryFile]]s.
+   */
+  def writeableOf_MultipartFormData(codec: Codec, contentType: Option[String]): Writeable[MultipartFormData[TemporaryFile]] = {
+    writeableOf_MultipartFormData(
+      codec,
+      Writeable[FilePart[TemporaryFile]](
+        (f: FilePart[TemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
+        contentType
+      )
+    )
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData`.
+   */
+  def writeableOf_MultipartFormData[A](
+    codec: Codec,
+    aWriteable: Writeable[FilePart[A]]
+  ): Writeable[MultipartFormData[A]] = {
+
+    val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
+
+    def formatDataParts(data: Map[String, Seq[String]]) = {
+      val dataParts = data.flatMap {
+        case (name, values) =>
+          values.map { value =>
+            s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+          }
+      }.mkString("")
+      codec.encode(dataParts)
+    }
+
+    def filePartHeader(file: FilePart[A]) = {
+      val name = s""""${file.key}""""
+      val filename = s""""${file.filename}""""
+      val contentType = file.contentType.map { ct =>
+        s"${HeaderNames.CONTENT_TYPE}: $ct\r\n"
+      }.getOrElse("")
+      codec.encode(s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n")
+    }
+
+    Writeable[MultipartFormData[A]](
+      transform = { form: MultipartFormData[A] =>
+      formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
+        val fileBytes = aWriteable.transform(file)
+        filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
+      } ++ codec.encode(s"--$boundary--")
+    },
+      contentType = Some(s"multipart/form-data; boundary=$boundary")
+    )
   }
 
   /**
    * `Writeable` for empty responses.
    */
-  implicit val writeableOf_EmptyContent: Writeable[Results.EmptyContent] = Writeable(_ => Array.empty)
+  implicit val writeableOf_EmptyContent: Writeable[Results.EmptyContent] = new Writeable(_ => ByteString.empty, None)
 
   /**
    * Straightforward `Writeable` for String values.
@@ -108,7 +173,11 @@ trait DefaultWriteables extends LowPriorityWriteables {
   /**
    * Straightforward `Writeable` for Array[Byte] values.
    */
-  implicit val wBytes: Writeable[Array[Byte]] = Writeable(identity)
+  implicit val wByteArray: Writeable[Array[Byte]] = Writeable(bytes => ByteString(bytes))
+
+  /**
+   * Straightforward `Writeable` for ByteString values.
+   */
+  implicit val wBytes: Writeable[ByteString] = Writeable(identity)
 
 }
-

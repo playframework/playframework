@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Translating the Play Documentation
 
 Play 2.3+ provides infrastructure to aid documentation translators in translating the Play documentation and keeping it up to date.
@@ -8,12 +9,12 @@ In addition to this, Play also provides facilities for validating the integrity 
 
 ## Prerequisites
 
-You need to have `activator` or `sbt` installed.  It will also be very useful to have a clone of the Play repository, with the branch that you're translating checked out, so that you have something to copy to start with.
+You need to have [`sbt` installed](http://www.scala-sbt.org/download.html). It will also be very useful to have a clone of the Play repository, with the branch that you're translating checked out, so that you have something to copy to start with.
 
 If you're translating an unreleased version of the Play documentation, then you'll need to build that version of Play and publish it locally on your machine first.  This can be done by running:
 
-```
-./build publish-local
+```bash
+sbt publishLocal
 ```
 
 in the `framework` directory of the Play project.
@@ -38,7 +39,7 @@ translation-project
 `build.properties` should contain the SBT version, ie:
 
 ```
-sbt.version=0.13.5
+sbt.version=0.13.15
 ```
 
 `plugins.sbt` should include the Play docs sbt plugin, ie:
@@ -57,9 +58,9 @@ Now you're ready to start translating!
 
 ## Translating documentation
 
-First off, start the documentation server.  The documentation server will serve your documentation up for you so you can see what it looks like as you're going.  To do this you'll need `sbt` or `activator` installed, either one is fine, in the examples here we'll be using `sbt`:
+First off, start the documentation server.  The documentation server will serve your documentation up for you so you can see what it looks like as you're going.
 
-```
+```bash
 $ sbt run
 [info] Set current project to root (in build file:/Users/jroper/tmp/foo-translation/)
 [info] play - Application started (Dev)
@@ -74,7 +75,7 @@ Copy a markdown page from the Play repository into your project.  It is importan
 
 For example, if you choose to start with `manual/scalaGuide/main/http/ScalaActions.md`, then you need to ensure that it is in `manual/scalaGuide/main/http/ScalaActions.md` in your project.
 
-> **Note:** It may be tempting to start by copying the entire Play manual into your project.  If you do do this, make sure you only copy the markdown files, that you don't copy the code samples as well.  If you copy the code samples, they will override the code samples from Play, and you will lose the benefit of having those code samples automatically maintained for you.
+> **Note:** It may be tempting to start by copying the entire Play manual into your project.  If you do this, make sure you only copy the markdown files, that you don't copy the code samples as well.  If you copy the code samples, they will override the code samples from Play, and you will lose the benefit of having those code samples automatically maintained for you.
 
 Now you can start translating the file.
 
@@ -94,14 +95,14 @@ In some situations, it may make sense to override them.  You can either do this 
 
 The Play docs sbt plugin provides a documentation validation task that runs some simple tests over the documentation, to ensure the integrity of links and code sample references.  You can run this by running:
 
-```
-sbt validate-docs
+```bash
+sbt validateDocs
 ```
 
 You can also validate the links to external sites in Play's documentation.  This is a separate task because it's dependent on many sites on the internet that Play's documentation links to, and the validation task in fact actually triggers DDoS filters on some sites.  To run it, run:
 
-```
-sbt validate-external-links
+```bash
+sbt validateExternalLinks
 ```
 
 ## Translation report
@@ -112,7 +113,7 @@ To view the translation report, run the documentation server (like normal), and 
 
 ## Deploying documentation to playframework.com
 
-[playframework.com](http://playframework.com) serves documentation out of git repositories.  If you want your translation to be served from playframework.com, you'll need to put your documentation into a GitHub repository, and contact the Play team to have them add it to playframework.com.
+[playframework.com](https://playframework.com) serves documentation out of git repositories.  If you want your translation to be served from playframework.com, you'll need to put your documentation into a GitHub repository, and contact the Play team to have them add it to playframework.com.
 
 The git repository needs to be in a very particular format.  The current master branch is for the documentation of the latest development version of Play.  Documentation for stable versions of Play must be in branches such as 2.3.x.  Documentation specific to a particular release of Play will be served from a tag of the repository with that name, for example, 2.3.1.
 

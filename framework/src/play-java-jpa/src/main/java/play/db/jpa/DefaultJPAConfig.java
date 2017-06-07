@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import play.Configuration;
+import com.typesafe.config.Config;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -39,14 +39,14 @@ public class DefaultJPAConfig implements JPAConfig {
         private final JPAConfig jpaConfig;
 
         @Inject
-        public JPAConfigProvider(Configuration configuration) {
+        public JPAConfigProvider(Config configuration) {
             ImmutableSet.Builder<JPAConfig.PersistenceUnit> persistenceUnits = new ImmutableSet.Builder<JPAConfig.PersistenceUnit>();
-            Configuration jpa = configuration.getConfig("jpa");
+            Config jpa = configuration.getConfig("jpa");
             if (jpa != null) {
-                for (String name : jpa.keys()) {
-                    String unitName = jpa.getString(name);
-                    persistenceUnits.add(new JPAConfig.PersistenceUnit(name, unitName));
-                }
+                jpa.entrySet().forEach(entry -> {
+                    String key = entry.getKey();
+                    persistenceUnits.add(new JPAConfig.PersistenceUnit(key, jpa.getString(key)));
+                });
             }
             jpaConfig = new DefaultJPAConfig(persistenceUnits.build());
         }
@@ -59,7 +59,7 @@ public class DefaultJPAConfig implements JPAConfig {
 
     /**
      * Create a default JPA configuration with the given name and unit name.
-     * @param  name     the name for the enitity manager factory
+     * @param  name     the name for the entity manager factory
      * @param  unitName the persistence unit name as used in `persistence.xml`
      * @return          a default JPA configuration
      */
@@ -69,6 +69,12 @@ public class DefaultJPAConfig implements JPAConfig {
 
     /**
      * Create a default JPA configuration with the given names and unit names.
+     *
+     * @param n1 Name of the first entity manager factory
+     * @param u1 Name of the first unit
+     * @param n2 Name of the second entity manager factory
+     * @param u2 Name of the second unit
+     * @return a default JPA configuration with the provided persistence units.
      */
     public static JPAConfig of(String n1, String u1, String n2, String u2) {
         return new DefaultJPAConfig(
@@ -79,6 +85,13 @@ public class DefaultJPAConfig implements JPAConfig {
 
     /**
      * Create a default JPA configuration with the given names and unit names.
+     * @param n1 Name of the first entity manager factory
+     * @param u1 Name of the first unit
+     * @param n2 Name of the second entity manager factory
+     * @param u2 Name of the second unit
+     * @param n3 Name of the third entity manager factory
+     * @param u3 Name of the third unit
+     * @return a default JPA configuration with the provided persistence units.
      */
     public static JPAConfig of(String n1, String u1, String n2, String u2, String n3, String u3) {
         return new DefaultJPAConfig(
@@ -90,6 +103,9 @@ public class DefaultJPAConfig implements JPAConfig {
 
     /**
      * Create a default JPA configuration from a map of names to unit names.
+     *
+     * @param map Map of entity manager factory names to unit names
+     * @return a JPAConfig configured with the provided mapping
      */
     public static JPAConfig from(Map<String, String> map) {
         ImmutableSet.Builder<JPAConfig.PersistenceUnit> persistenceUnits = new ImmutableSet.Builder<JPAConfig.PersistenceUnit>();

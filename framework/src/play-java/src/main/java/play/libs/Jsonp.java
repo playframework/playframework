@@ -1,11 +1,9 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import play.libs.Json;
 import play.twirl.api.Content;
 
 /**

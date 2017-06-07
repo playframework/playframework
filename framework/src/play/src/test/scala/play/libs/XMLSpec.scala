@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.libs
 
-import java.io.{ FileOutputStream, File }
+import java.io.File
 
 import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
 
-object XMLSpec extends Specification {
+class XMLSpec extends Specification {
 
   "The Java XML support" should {
 
@@ -17,7 +17,7 @@ object XMLSpec extends Specification {
     }
 
     def writeStringToFile(file: File, text: String) = {
-      val out = new FileOutputStream(file)
+      val out = java.nio.file.Files.newOutputStream(file.toPath)
       try {
         out.write(text.getBytes("utf-8"))
       } finally {
@@ -46,7 +46,8 @@ object XMLSpec extends Specification {
     "parse XML bodies without loading in a related schema from a parameter" in {
       val externalParameterEntity = File.createTempFile("xep", ".dtd")
       val externalGeneralEntity = File.createTempFile("xxe", ".txt")
-      writeStringToFile(externalParameterEntity,
+      writeStringToFile(
+        externalParameterEntity,
         s"""
           |<!ENTITY % xge SYSTEM "${externalGeneralEntity.toURI}">
           |<!ENTITY % pe "<!ENTITY xxe '%xge;'>">

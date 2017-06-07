@@ -1,13 +1,13 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 ## Overview
 
 Form handling and submission is an important part of any web application.  Play comes with features that make handling simple forms easy and complex forms possible.
 
-Play's form handling approach is based around the concept of binding data.  When data comes in from a POST request, Play will look for formatted values and bind them to a [`Form`](api/scala/index.html#play.api.data.Form) object.  From there, Play can use the bound form to value a case class with data, call custom validations, and so on.
+Play's form handling approach is based around the concept of binding data.  When data comes in from a POST request, Play will look for formatted values and bind them to a [`Form`](api/scala/play/api/data/Form.html) object.  From there, Play can use the bound form to value a case class with data, call custom validations, and so on.
 
-Typically forms are used directly from a `Controller` instance.  However, [`Form`](api/scala/index.html#play.api.data.Form) definitions do not have to match up exactly with case classes or models: they are purely for handling input and it is reasonable to use a distinct `Form` for a distinct POST.
+Typically forms are used directly from a `Controller` instance.  However, [`Form`](api/scala/play/api/data/Form.html) definitions do not have to match up exactly with case classes or models: they are purely for handling input and it is reasonable to use a distinct `Form` for a distinct POST.
 
 ## Imports
 
@@ -31,33 +31,32 @@ The end result will look something like this:
 
 ### Defining a form
 
-First, define a case class which contains the elements you want in the form.  Here we want to capture the name and age of a user, so we create a UserData object:
+First, define a case class which contains the elements you want in the form.  Here we want to capture the name and age of a user, so we create a `UserData` object:
 
 @[userData-define](code/ScalaForms.scala)
 
-Now that we have a case class, the next step is to define a [`Form`](api/scala/index.html#play.api.data.Form) structure.
-The function of a Form is to transform form data into a bound instance of a case class, and we define it like follows:
+Now that we have a case class, the next step is to define a [`Form`](api/scala/play/api/data/Form.html) structure. The function of a `Form is to transform form data into a bound instance of a case class, and we define it like follows:
 
 @[userForm-define](code/ScalaForms.scala)
 
-The [Forms](api/scala/index.html#play.api.data.Forms$) object defines the [`mapping`](api/scala/index.html#play.api.data.Forms$@mapping%5BR%2CA1%5D\(\(String%2CMapping%5BA1%5D\)\)\(\(A1\)%E2%87%92R\)\(\(R\)%E2%87%92Option%5BA1%5D\)%3AMapping%5BR%5D) method. This method takes the names and constraints of the form, and also takes two functions: an `apply` function and an `unapply` function.  Because UserData is a case class, we can plug its apply and unapply methods directly into the mapping method.
+The [Forms](api/scala/play/api/data/Forms$.html) object defines the [`mapping`](api/scala/play/api/data/Forms$.html#mapping%5BR%2CA1%5D\(\(String%2CMapping%5BA1%5D\)\)\(\(A1\)%E2%87%92R\)\(\(R\)%E2%87%92Option%5BA1%5D\)%3AMapping%5BR%5D) method. This method takes the names and constraints of the form, and also takes two functions: an `apply` function and an `unapply` function.  Because UserData is a case class, we can plug its `apply` and `unapply` methods directly into the mapping method.
 
 > **Note:** Maximum number of fields for a single tuple or mapping is 22 due to the way form handling is implemented. If you have more than 22 fields in your form, you should break down your forms using lists or nested values.
 
-A form will create UserData instance with the bound values when given a Map:
+A form will create `UserData` instance with the bound values when given a Map:
 
 @[userForm-generate-map](code/ScalaForms.scala)
 
-But most of the time you'll use forms from within an Action, with data provided from the request. [`Form`](api/scala/index.html#play.api.data.Form) contains [`bindFromRequest`](api/scala/index.html#play.api.data.Form@bindFromRequest\(\)\(Request%5B_%5D\)%3AForm%5BT%5D), which will take a request as an implicit parameter.  If you define an implicit request, then `bindFromRequest` will find it.
+But most of the time you'll use forms from within an Action, with data provided from the request. [`Form`](api/scala/play/api/data/Form.html) contains [`bindFromRequest`](api/scala/play/api/data/Form.html#bindFromRequest\(\)\(Request%5B_%5D\)%3AForm%5BT%5D), which will take a request as an implicit parameter.  If you define an implicit request, then `bindFromRequest` will find it.
 
 @[userForm-generate-request](code/ScalaForms.scala)
 
 > **Note:** There is a catch to using `get` here.  If the form cannot bind to the data, then `get` will throw an exception.  We'll show a safer way of dealing with input in the next few sections.
 
-You are not limited to using case classes in your form mapping.  As long as the apply and unapply methods are properly mapped, you can pass in anything you like, such as tuples using the [`Forms.tuple`](api/scala/index.html#play.api.data.Forms$) mapping or model case classes.  However, there are several advantages to defining a case class specifically for a form:
+You are not limited to using case classes in your form mapping.  As long as the apply and unapply methods are properly mapped, you can pass in anything you like, such as tuples using the [`Forms.tuple`](api/scala/play/api/data/Forms$.html) mapping or model case classes.  However, there are several advantages to defining a case class specifically for a form:
 
-* **Form specific case classes are convenient.**  Case classes are designed to be simple containers of data, and provide out of the box features that are a natural match with Form functionality.
-* **Form specific case classes are powerful.**  Tuples are convenient to use, but do not allow for custom apply or unapply methods, and can only reference contained data by arity (_1, _2, etc.)
+* **Form specific case classes are convenient.**  Case classes are designed to be simple containers of data, and provide out of the box features that are a natural match with `Form` functionality.
+* **Form specific case classes are powerful.**  Tuples are convenient to use, but do not allow for custom apply or unapply methods, and can only reference contained data by arity (`_1`, `_2`, etc.)
 * **Form specific case classes are targeted specifically to the Form.**  Reusing model case classes can be convenient, but often models will contain additional domain logic and even persistence details that can lead to tight coupling.  In addition, if there is not a direct 1:1 mapping between the form and the model, then sensitive fields must be explicitly ignored to prevent a [parameter tampering](https://www.owasp.org/index.php/Web_Parameter_Tampering) attack.
 
 ### Defining constraints on the form
@@ -68,28 +67,24 @@ The `text` constraint considers empty strings to be valid.  This means that `nam
 
 Using this form will result in a form with errors if the input to the form does not match the constraints:
 
-```scala
-val boundForm = userFormConstraints2.bind(Map("bob" -> "", "age" -> "25"))
-boundForm.hasErrors must beTrue
-```
+@[userForm-constraints-2-with-errors](code/ScalaForms.scala)
 
-The out of the box constraints are defined on the [Forms object](api/scala/index.html#play.api.data.Forms$):
+The out of the box constraints are defined on the [Forms object](api/scala/play/api/data/Forms$.html):
 
-* [`text`](api/scala/index.html#play.api.data.Forms$@text%3AMapping%5BString%5D): maps to `scala.String`, optionally takes `minLength` and `maxLength`.
-* [`nonEmptyText`](api/scala/index.html#play.api.data.Forms$@nonEmptyText%3AMapping%5BString%5D): maps to `scala.String`, optionally takes `minLength` and `maxLength`.
-* [`number`](api/scala/index.html#play.api.data.Forms$@number%3AMapping%5BInt%5D): maps to `scala.Int`, optionally takes `min`, `max`, and `strict`.
-* [`longNumber`](api/scala/index.html#play.api.data.Forms$@longNumber%3AMapping%5BLong%5D): maps to `scala.Long`, optionally takes `min`, `max`, and `strict`.
-* [`bigDecimal`](api/scala/index.html#play.api.data.Forms$@bigDecimal%3AMapping%5BBigDecimal%5D): takes `precision` and `scale`.
-* [`date`](api/scala/index.html#play.api.data.Forms$@date%3AMapping%5BDate%5D), [`sqlDate`](api/scala/index.html#play.api.data.Forms$@sqlDate%3AMapping%5BDate%5D), [`jodaDate`](api/scala/index.html#play.api.data.Forms$@jodaDate%3AMapping%5BDateTime%5D): maps to `java.util.Date`, `java.sql.Date` and `org.joda.time.DateTime`, optionally takes `pattern` and `timeZone`.
-* [`jodaLocalDate`](api/scala/index.html#play.api.data.Forms$@jodaLocalDate%3AMapping%5BLocalDate%5D): maps to `org.joda.time.LocalDate`, optionally takes `pattern`.
-* [`email`](api/scala/index.html#play.api.data.Forms$@email%3AMapping%5BString%5D): maps to `scala.String`, using an email regular expression.
-* [`boolean`](api/scala/index.html#play.api.data.Forms$@boolean%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
-* [`checked`](api/scala/index.html#play.api.data.Forms$@checked%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
-* [`optional`](api/scala/index.html#play.api.data.Forms): maps to `scala.Option`.
+* [`text`](api/scala/play/api/data/Forms$.html#text%3AMapping%5BString%5D): maps to `scala.String`, optionally takes `minLength` and `maxLength`.
+* [`nonEmptyText`](api/scala/play/api/data/Forms$.html#nonEmptyText%3AMapping%5BString%5D): maps to `scala.String`, optionally takes `minLength` and `maxLength`.
+* [`number`](api/scala/play/api/data/Forms$.html#number%3AMapping%5BInt%5D): maps to `scala.Int`, optionally takes `min`, `max`, and `strict`.
+* [`longNumber`](api/scala/play/api/data/Forms$.html#longNumber%3AMapping%5BLong%5D): maps to `scala.Long`, optionally takes `min`, `max`, and `strict`.
+* [`bigDecimal`](api/scala/play/api/data/Forms$.html#bigDecimal%3AMapping%5BBigDecimal%5D): takes `precision` and `scale`.
+* [`date`](api/scala/play/api/data/Forms$.html#date%3AMapping%5BDate%5D), [`sqlDate`](api/scala/play/api/data/Forms$.html#sqlDate%3AMapping%5BDate%5D): maps to `java.util.Date`, `java.sql.Date`, optionally takes `pattern` and `timeZone`.
+* [`email`](api/scala/play/api/data/Forms$.html#email%3AMapping%5BString%5D): maps to `scala.String`, using an email regular expression.
+* [`boolean`](api/scala/play/api/data/Forms$.html#boolean%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
+* [`checked`](api/scala/play/api/data/Forms$.html#checked%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
+* [`optional`](api/scala/play/api/data/Forms$.html): maps to `scala.Option`.
 
 ### Defining ad-hoc constraints
 
-You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/index.html#play.api.data.validation.package).
+You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/).
 
 @[userForm-constraints](code/ScalaForms.scala)
 
@@ -109,7 +104,7 @@ We do this using the `fold` method, which takes two functions: the first is call
 
 In the failure case, we render the page with BadRequest, and pass in the form _with errors_ as a parameter to the page.  If we use the view helpers (discussed below), then any errors that are bound to a field will be rendered in the page next to the field.
 
-In the success case, we're sending a `Redirect` with a route to `routes.Application.home` here instead of rendering a view template.  This pattern is called  [Redirect after POST](http://en.wikipedia.org/wiki/Post/Redirect/Get), and is an excellent way to prevent duplicate form submissions.
+In the success case, we're sending a `Redirect` with a route to `routes.Application.home` here instead of rendering a view template.  This pattern is called  [Redirect after POST](https://en.wikipedia.org/wiki/Post/Redirect/Get), and is an excellent way to prevent duplicate form submissions.
 
 > **Note:** "Redirect after POST" is **required** when using `flashing` or other methods with [[flash scope|ScalaSessionFlash]], as new cookies will only be available after the redirected HTTP request.
 
@@ -131,26 +126,28 @@ Because `user.scala.html` needs a form passed in, you should pass the empty `use
 
 @[form-render](code/ScalaForms.scala)
 
-The first thing is to be able to create the [form tag](api/scala/index.html#views.html.helper.form$). It is a simple view helper that creates a [form tag](http://www.w3.org/TR/html5/forms.html#the-form-element) and sets the `action` and `method` tag parameters according to the reverse route you pass in:
+The first thing is to be able to create the [form tag](api/scala/views/html/helper/form$.html). It is a simple view helper that creates a [form tag](http://www.w3.org/TR/html5/forms.html#the-form-element) and sets the `action` and `method` tag parameters according to the reverse route you pass in:
 
 @[form-user](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
-You can find several input helpers in the [`views.html.helper`](api/scala/index.html#views.html.helper.package) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
+You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
 
 > **Note:** You can use `@import helper._` in the template to avoid prefixing helpers with `@helper.`
 
 There are several input helpers, but the most helpful are:
 
-* [`form`](api/scala/index.html#views.html.helper.form$): renders a [form](http://www.w3.org/TR/html-markup/form.html#form) element.
-* [`inputText`](api/scala/index.html#views.html.helper.inputText$): renders a [text input](http://www.w3.org/TR/html-markup/input.text.html) element.
-* [`inputPassword`](api/scala/index.html#views.html.helper.inputPassword$): renders a [password input](http://www.w3.org/TR/html-markup/input.password.html#input.password) element.
-* [`inputDate`](api/scala/index.html#views.html.helper.inputDate$): renders a [date input](http://www.w3.org/TR/html-markup/input.date.html) element.
-* [`inputFile`](api/scala/index.html#views.html.helper.inputFile$): renders a [file input](http://www.w3.org/TR/html-markup/input.file.html) element.
-* [`inputRadioGroup`](api/scala/index.html#views.html.helper.inputRadioGroup$): renders a [radio input](http://www.w3.org/TR/html-markup/input.radio.html#input.radio) element.
-* [`select`](api/scala/index.html#views.html.helper.select$): renders a [select](http://www.w3.org/TR/html-markup/select.html#select) element.
-* [`textarea`](api/scala/index.html#views.html.helper.textarea$): renders a [textarea](http://www.w3.org/TR/html-markup/textarea.html#textarea) element.
-* [`checkbox`](api/scala/index.html#views.html.helper.checkbox$): renders a [checkbox](http://www.w3.org/TR/html-markup/input.checkbox.html#input.checkbox) element.
-* [`input`](api/scala/index.html#views.html.helper.input): renders a generic input element (which requires explicit arguments).
+* [`form`](api/scala/views/html/helper/form$.html): renders a [form](https://www.w3.org/TR/html/sec-forms.html#the-form-element) element.
+* [`inputText`](api/scala/views/html/helper/inputText$.html): renders a [text input](https://www.w3.org/TR/html/sec-forms.html#elementdef-input) element.
+* [`inputPassword`](api/scala/views/html/helper/inputPassword$.html): renders a [password input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-password) element.
+* [`inputDate`](api/scala/views/html/helper/inputDate$.html): renders a [date input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-date) element.
+* [`inputFile`](api/scala/views/html/helper/inputFile$.html): renders a [file input](https://www.w3.org/TR/html/sec-forms.html#file-upload-state-typefile) element.
+* [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html): renders a [radio input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-radio-button) element.
+* [`select`](api/scala/views/html/helper/select$.html): renders a [select](https://www.w3.org/TR/html/sec-forms.html#the-select-element) element.
+* [`textarea`](api/scala/views/html/helper/textarea$.html): renders a [textarea](https://www.w3.org/TR/html/sec-forms.html#the-textarea-element) element.
+* [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
+* [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
+
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/framework/src/play/src/main/scala/views/helper) package on Github.
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
@@ -164,9 +161,41 @@ The generic `input` helper mentioned above will let you code the desired HTML re
 
 For complex form elements, you can also create your own custom view helpers (using scala classes in the `views` package) and [[custom field constructors|ScalaCustomFieldConstructors]].
 
+### Passing MessagesProvider to Form Helpers
+
+The form helpers above -- [`input`](api/scala/views/html/helper/input$.html), [`checkbox`](api/scala/views/html/helper/checkbox$.html), and so on -- all take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter.  The form handlers need to take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) because they need to provide error messages mapped to the language defined in the request.  You can see more about [`Messages`](api/scala/play/api/i18n/Messages.html) in the [[Internationalization with Messages|ScalaI18N]] page.
+
+There are two ways to pass in the [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) object required.
+
+#### Option One: Implicitly Convert Request to Messages
+
+The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), which makes use of an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html), and will implicitly convert an implicit request to an implicit [`Messages`](api/scala/play/api/i18n/Messages.html):
+
+@[messages-controller](code/ScalaForms.scala)
+
+This means that the following form template will be resolved:
+
+@[form-define](code/scalaguide/forms/scalaforms/views/implicitMessages.scala.html)
+
+#### Option Two: Use MessagesRequest
+
+The second way is to dependency inject a [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html), which provides a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html):
+
+@[messages-request-controller](code/ScalaForms.scala)
+
+This is useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a [`Messages`](api/scala/play/api/i18n/Messages.html) object must be available to the template.  By using a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates.
+
+Because you typically don't need the body of the request, you can pass [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html), rather than typing `MessagesRequest[_]`:
+
+@[form-define](code/scalaguide/forms/scalaforms/views/messages.scala.html)
+
+Rather than inject [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) into your controller, you can also make [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) be the default `Action` by extending [MessagesAbstractController](api/scala/play/api/mvc/MessagesAbstractController.html) to incorporate form processing into your controllers.
+
+@[messages-abstract-controller](code/ScalaForms.scala)
+
 ### Displaying errors in a view template
 
-The errors in a form take the form of `Map[String,FormError]` where [`FormError`](api/scala/index.html#play.api.data.FormError) has:
+The errors in a form take the form of `Map[String,FormError]` where [`FormError`](api/scala/play/api/data/FormError.html) has:
 
 * `key`: should be the same as the field.
 * `message`: a message or a message key.
@@ -182,6 +211,8 @@ The form errors are accessed on the bound form instance as follows:
 Errors attached to a field will render automatically using the form helpers, so `@helper.inputText` with errors can display as follows:
 
 @[form-user-generated](code/scalaguide/forms/scalaforms/views/user.scala.html)
+
+Errors that are not attached to a field can be converted to a string with `error.format`, which takes an implicit [play.api.i18n.Messages](api/scala/play/api/i18n/Messages.html) instance.
 
 Global errors that are not bound to a key do not have a helper and must be defined explicitly in the page:
 
@@ -201,17 +232,7 @@ Using a tuple can be more convenient than defining a case class, especially for 
 
 Tuples are only possible when there are multiple values.  If there is only one field in the form, use `Forms.single` to map to a single value without the overhead of a case class or tuple:
 
-```scala
-val singleForm = Form(
-  single(
-    "email" -> email
-  )
-)
-```
-
-```scala
-val email = singleForm.bind(Map("email", "bob@example.com")).get
-```
+@[form-single-value](code/ScalaForms.scala)
 
 ### Fill values
 
@@ -225,11 +246,28 @@ When you use this with a view helper, the value of the element will be filled wi
 @helper.inputText(filledForm("name")) @* will render value="Bob" *@
 ```
 
-Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/index.html#views.html.helper.select$) and [`inputRadioGroup`](api/scala/index.html#views.html.helper.inputRadioGroup$) helpers.  Use [`options`](api/scala/index.html#views.html.helper.options$) to value these helpers with lists, maps and pairs.
+Fill is especially helpful for helpers that need lists or maps of values, such as the [`select`](api/scala/views/html/helper/select$.html) and [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html) helpers.  Use [`options`](api/scala/views/html/helper/options$.html) to value these helpers with lists, maps and pairs:
+
+A single valued form mapping can set the selected options in a select
+dropdown:
+
+@[addressSelectForm-constraint](code/ScalaForms.scala)
+
+@[addressSelectForm-filled](code/ScalaForms.scala)
+
+And when this is used in a template that sets the options to a list of pairs
+
+@[select-form-define](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+@[addressSelectForm-options-usage](code/scalaguide/forms/scalaforms/views/select.scala.html)
+
+The filled value will be selected in the dropdown based on the first value of the pair.
+In this case, the U.K. Office will be displayed in the select and the option's value 
+will be London.
 
 ### Nested values
 
-A form mapping can define nested values by using [`Forms.mapping`](api/scala/index.html#play.api.data.Forms$) inside an existing mapping:
+A form mapping can define nested values by using [`Forms.mapping`](api/scala/play/api/data/Forms$.html) inside an existing mapping:
 
 @[userData-nested](code/ScalaForms.scala)
 
@@ -241,23 +279,27 @@ A form mapping can define nested values by using [`Forms.mapping`](api/scala/ind
 
 ### Repeated values
 
-A form mapping can define repeated values using [`Forms.list`](api/scala/index.html#play.api.data.Forms$) or [`Forms.seq`](api/scala/index.html#play.api.data.Forms$):
+A form mapping can define repeated values using [`Forms.list`](api/scala/play/api/data/Forms$.html) or [`Forms.seq`](api/scala/play/api/data/Forms$.html):
 
 @[userListData](code/ScalaForms.scala)
 
 @[userForm-repeated](code/ScalaForms.scala)
 
-When you are using repeated data like this, the form values sent by the browser must be named `emails[0]`, `emails[1]`, `emails[2]`, etc.
+When you are using repeated data like this, there are two alternatives for sending the form values in the HTTP request.  First, you can suffix the parameter with an empty bracket pair, as in "emails[]".  This parameter can then be repeated in the standard way, as in `http://foo.com/request?emails[]=a@b.com&emails[]=c@d.com`.  Alternatively, the client can explicitly name the parameters uniquely with array subscripts, as in `emails[0]`, `emails[1]`, `emails[2]`, and so on.  This approach also allows you to maintain the order of a sequence of inputs.  
 
-Now you have to generate as many inputs for the `emails` field as the form contains, using the [`repeat`](api/scala/index.html#views.html.helper.repeat$) helper:
+If you are using Play to generate your form HTML, you can generate as many inputs for the `emails` field as the form contains, using the [`repeat`](api/scala/views/html/helper/repeat$.html) helper:
 
 @[form-field-repeat](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
 
 The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
 
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[form-field-repeat-with-index](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
+
 ### Optional values
 
-A form mapping can also define optional values using [`Forms.optional`](api/scala/index.html#play.api.data.Forms$):
+A form mapping can also define optional values using [`Forms.optional`](api/scala/play/api/data/Forms$.html):
 
 @[userData-optional](code/ScalaForms.scala)
 
@@ -267,28 +309,35 @@ This maps to an `Option[A]` in output, which is `None` if no form value is found
 
 ### Default values
 
-You can populate a form with initial values using [`Form#fill`](api/scala/index.html#play.api.data.Form):
+You can populate a form with initial values using [`Form#fill`](api/scala/play/api/data/Form.html):
 
-```
-val filledForm = userForm.fill(User("Bob", 18))
-```
+@[userForm-filled](code/ScalaForms.scala)
 
-Or you can define a default mapping on the number using [`Forms.default`](api/scala/index.html#play.api.data.Forms$):
+Or you can define a default mapping on the number using [`Forms.default`](api/scala/play/api/data/Forms$.html):
 
-```
-Form(
-  mapping(
-    "name" -> default(text, "Bob")
-    "age" -> default(number, 18)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-default](code/ScalaForms.scala)
 
 ### Ignored values
 
-If you want a form to have a static value for a field, use [`Forms.ignored`](api/scala/index.html#play.api.data.Forms$):
+If you want a form to have a static value for a field, use [`Forms.ignored`](api/scala/play/api/data/Forms$.html):
 
 @[userForm-static-value](code/ScalaForms.scala)
+
+### Custom binders for form mappings
+
+Each form mapping uses an implicitly provided [`Formatter[T]`](api/scala/play/api/data/format/Formatter.html) binder object that performs the conversion of incoming `String` form data to/from the target data type.
+
+@[userData-custom-datatype](code/ScalaForms.scala)
+
+To bind to a custom type like java.net.URL in the example above, define a form mapping like this:
+
+@[userForm-custom-datatype](code/ScalaForms.scala)
+
+For this to work you will need to make an implicit `Formatter[java.net.URL]` available to perform the data binding/unbinding.
+
+@[userForm-custom-formatter](code/ScalaForms.scala)
+
+Note the [`Formats.parsing`](api/scala/play/api/data/format/Formats$.html) function is used to capture any exceptions thrown in the act of converting a `String` to target type `T` and registers a [`FormError`](api/scala/play/api/data/FormError.html) on the form field binding.
 
 ## Putting it all together
 

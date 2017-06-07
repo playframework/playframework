@@ -1,22 +1,30 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.specs2
 
+import org.specs2.mutable.Specification
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 
 import play.api.mvc._
+import play.api.routing._
+import play.api.routing.sird._
+
+// #scalafunctionaltest-imports
 import play.api.test._
+// ###replace: import play.api.test.Helpers._
+import play.api.test.Helpers.{GET => GET_REQUEST, _}
+// #scalafunctionaltest-imports
 
-import play.api.{GlobalSettings, Application}
-import play.api.test.Helpers._
-import scala.Some
-import play.api.test.FakeApplication
+import play.api.Application
 
-/**
- *
- */
-class ScalaFunctionalTestSpec extends PlaySpecification with Results {
+trait ExampleSpecification extends Specification
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with Results
+
+class ScalaFunctionalTestSpec extends ExampleSpecification {
 
   // lie and make this look like a DB model.
   case class Computer(name: String, introduced: Option[String])
@@ -27,22 +35,20 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
 
   "Scala Functional Test" should {
 
-    // #scalafunctionaltest-fakeApplication
-    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
-      override def onStart(app: Application) { println("Hello world!") }
-    }))
-    // #scalafunctionaltest-fakeApplication
+    // #scalafunctionaltest-application
+    val application: Application = GuiceApplicationBuilder().build()
+    // #scalafunctionaltest-application
 
-    val fakeApplication = FakeApplication(withRoutes = {
-      case ("GET", "/Bob") =>
-        Action {
-          Ok("Hello Bob") as "text/html; charset=utf-8"
-        }
-    })
+    val applicationWithRouter = GuiceApplicationBuilder().router(Router.from {
+      case GET(p"/Bob") => Action {
+        Ok("Hello Bob") as "text/html; charset=utf-8"
+      }
+    }).build()
 
     // #scalafunctionaltest-respondtoroute
-    "respond to the index Action" in new WithApplication(fakeApplication) {
-      val Some(result) = route(FakeRequest(GET, "/Bob"))
+    "respond to the index Action" in new WithApplication(applicationWithRouter) {
+      // ###replace: val Some(result) = route(app, FakeRequest(GET, "/Bob"))
+      val Some(result) = route(app, FakeRequest(GET_REQUEST, "/Bob"))
 
       status(result) must equalTo(OK)
       contentType(result) must beSome("text/html")
@@ -60,7 +66,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
-    val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
+    def appWithMemoryDatabase = new GuiceApplicationBuilder().configure(inMemoryDatabase("test")).build()
     "run an application" in new WithApplication(appWithMemoryDatabase) {
 
       val Some(macintosh) = Computer.findById(21)
@@ -71,8 +77,8 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testmodel
 
     // #scalafunctionaltest-testwithbrowser
-    val fakeApplicationWithBrowser = FakeApplication(withRoutes = {
-      case ("GET", "/") =>
+    def applicationWithBrowser = new GuiceApplicationBuilder().router(Router.from {
+      case GET(p"/") =>
         Action {
           Ok(
             """
@@ -84,7 +90,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
               |</html>
             """.stripMargin) as "text/html"
         }
-      case ("GET", "/login") =>
+      case GET(p"/login") =>
         Action {
           Ok(
             """
@@ -95,18 +101,18 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
               |</html>
             """.stripMargin) as "text/html"
         }
-    })
+    }).build()
 
-    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = fakeApplicationWithBrowser) {
+    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
       browser.goTo("/")
 
       // Check the page
-      browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")
+      browser.$("#title").text() must equalTo("Hello Guest")
 
       browser.$("a").click()
 
-      browser.url must equalTo("/login")
-      browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
+      browser.url must equalTo("login")
+      browser.$("#title").text() must equalTo("Hello Coco")
     }
     // #scalafunctionaltest-testwithbrowser
 
@@ -114,27 +120,29 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     val myPublicAddress =  s"localhost:$testPort"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new WithServer(app = fakeApplicationWithBrowser, port = testPort) {
+    "test server logic" in new WithServer(app = applicationWithBrowser, port = testPort) {
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
+      val ws = app.injector.instanceOf[WSClient]
+
       // await is from play.api.test.FutureAwaits
-      val response = await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
+      val response = await(ws.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
       response.status must equalTo(OK)
     }
     // #scalafunctionaltest-testpaymentgateway
 
     // #scalafunctionaltest-testws
-    val appWithRoutes = FakeApplication(withRoutes = {
-      case ("GET", "/") =>
-        Action {
-          Ok("ok")
-        }
-    })
+    val appWithRoutes = GuiceApplicationBuilder().router(Router.from {
+      case GET(p"/") => Action {
+        Ok("ok")
+      }
+    }).build()
 
     "test WS logic" in new WithServer(app = appWithRoutes, port = 3333) {
-      await(WS.url("http://localhost:3333").get()).status must equalTo(OK)
+      val ws = app.injector.instanceOf[WSClient]
+      await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
     }
     // #scalafunctionaltest-testws
 

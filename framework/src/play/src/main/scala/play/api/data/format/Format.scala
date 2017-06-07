@@ -1,8 +1,12 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data.format
 
+import java.text.{ DateFormat, SimpleDateFormat }
+import java.time.temporal.{ ChronoField, TemporalAccessor, TemporalField, TemporalQueries }
+import java.time._
+import java.time.format.{ DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle }
 import java.util.UUID
 
 import play.api.data._
@@ -63,13 +67,24 @@ object Formats {
   }
 
   /**
+   * Default formatter for the `Char` type.
+   */
+  implicit def charFormat: Formatter[Char] = new Formatter[Char] {
+    def bind(key: String, data: Map[String, String]) =
+      data.get(key).filter(s => s.length == 1 && s != " ").map(s => Right(s.charAt(0))).getOrElse(
+        Left(Seq(FormError(key, "error.required", Nil)))
+      )
+    def unbind(key: String, value: Char) = Map(key -> value.toString)
+  }
+
+  /**
    * Helper for formatters binders
    * @param parse Function parsing a String value into a T value, throwing an exception in case of failure
-   * @param error Error to set in case of parsing failure
+   * @param errArgs Error to set in case of parsing failure
    * @param key Key name of the field to parse
    * @param data Field data
    */
-  private def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
+  def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
     stringFormat.bind(key, data).right.flatMap { s =>
       scala.util.control.Exception.allCatch[T]
         .either(parse(s))
@@ -178,20 +193,23 @@ object Formats {
   /**
    * Formatter for the `java.util.Date` type.
    *
-   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern, as specified in `java.time.format.DateTimeFormatter`.
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
   def dateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[Date] = new Formatter[Date] {
+    val javaTimeZone = timeZone.toZoneId
+    val formatter = DateTimeFormatter.ofPattern(pattern)
 
-    val jodaTimeZone = org.joda.time.DateTimeZone.forTimeZone(timeZone)
-    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(jodaTimeZone)
-    def dateParse(data: String) = formatter.parseDateTime(data).toDate
+    def dateParse(data: String) = {
+      val instant = PlayDate.parse(data, formatter).toZonedDateTime(ZoneOffset.UTC)
+      Date.from(instant.withZoneSameLocal(javaTimeZone).toInstant)
+    }
 
     override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = parsing(dateParse, "error.date", Nil)(key, data)
 
-    def unbind(key: String, value: Date) = Map(key -> formatter.print(new org.joda.time.DateTime(value).withZone(jodaTimeZone)))
+    def unbind(key: String, value: Date) = Map(key -> formatter.format(value.toInstant.atZone(javaTimeZone)))
   }
 
   /**
@@ -202,7 +220,7 @@ object Formats {
   /**
    * Formatter for the `java.sql.Date` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `java.time.DateTimeFormatter`.
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
   def sqlDateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
@@ -224,52 +242,77 @@ object Formats {
   implicit val sqlDateFormat: Formatter[java.sql.Date] = sqlDateFormat("yyyy-MM-dd")
 
   /**
-   * Formatter for the `org.joda.time.DateTime` type.
+   * Formatter for the `java.time.LocalDate` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
-   * @param timeZone the `org.joda.time.DateTimeZone` to use for parsing and formatting
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
    */
-  def jodaDateTimeFormat(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
+  def localDateFormat(pattern: String): Formatter[java.time.LocalDate] = new Formatter[java.time.LocalDate] {
 
-    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(timeZone)
+    import java.time.LocalDate
+
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    def localDateParse(data: String) = LocalDate.parse(data, formatter)
 
     override val format = Some(("format.date", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = parsing(formatter.parseDateTime, "error.date", Nil)(key, data)
+    def bind(key: String, data: Map[String, String]) = parsing(localDateParse, "error.date", Nil)(key, data)
 
-    def unbind(key: String, value: org.joda.time.DateTime) = Map(key -> value.withZone(timeZone).toString(pattern))
+    def unbind(key: String, value: LocalDate) = Map(key -> value.format(formatter))
   }
 
   /**
-   * Default formatter for `org.joda.time.DateTime` type with pattern `yyyy-MM-dd`.
-   *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * Default formatter for `java.time.LocalDate` type with pattern `yyyy-MM-dd`.
    */
-  implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
+  implicit val localDateFormat: Formatter[java.time.LocalDate] = localDateFormat("yyyy-MM-dd")
 
   /**
-   * Formatter for the `org.joda.time.LocalDate` type.
+   * Formatter for the `java.time.LocalDateTime` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
+   * @param zoneId the `java.time.ZoneId` to use for parsing and formatting
    */
-  def jodaLocalDateFormat(pattern: String): Formatter[org.joda.time.LocalDate] = new Formatter[org.joda.time.LocalDate] {
+  def localDateTimeFormat(pattern: String, zoneId: java.time.ZoneId = java.time.ZoneId.systemDefault()): Formatter[java.time.LocalDateTime] = new Formatter[java.time.LocalDateTime] {
 
-    import org.joda.time.LocalDate
+    import java.time.LocalDateTime
 
-    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern)
-    def jodaLocalDateParse(data: String) = LocalDate.parse(data, formatter)
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
+    def localDateTimeParse(data: String) = LocalDateTime.parse(data, formatter)
 
-    override val format = Some(("format.date", Seq(pattern)))
+    override val format = Some(("format.localDateTime", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = parsing(jodaLocalDateParse, "error.date", Nil)(key, data)
+    def bind(key: String, data: Map[String, String]) = parsing(localDateTimeParse, "error.localDateTime", Nil)(key, data)
 
-    def unbind(key: String, value: LocalDate) = Map(key -> value.toString(pattern))
+    def unbind(key: String, value: LocalDateTime) = Map(key -> value.format(formatter))
   }
 
   /**
-   * Default formatter for `org.joda.time.LocalDate` type with pattern `yyyy-MM-dd`.
+   * Default formatter for `java.time.LocalDateTime` type with pattern `yyyy-MM-dd`.
    */
-  implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
+  implicit val localDateTimeFormat: Formatter[java.time.LocalDateTime] = localDateTimeFormat("yyyy-MM-dd HH:mm:ss")
+
+  /**
+   * Formatter for the `java.time.LocalTime` type.
+   *
+   * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
+   */
+  def localTimeFormat(pattern: String): Formatter[java.time.LocalTime] = new Formatter[java.time.LocalTime] {
+
+    import java.time.LocalTime
+
+    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    def localTimeParse(data: String) = LocalTime.parse(data, formatter)
+
+    override val format = Some(("format.localTime", Seq(pattern)))
+
+    def bind(key: String, data: Map[String, String]) = parsing(localTimeParse, "error.localTime", Nil)(key, data)
+
+    def unbind(key: String, value: LocalTime) = Map(key -> value.format(formatter))
+  }
+
+  /**
+   * Default formatter for `java.time.LocalTime` type with pattern `HH:mm:ss`.
+   */
+  implicit val localTimeFormat: Formatter[java.time.LocalTime] = localTimeFormat("HH:mm:ss")
 
   /**
    * Default formatter for the `java.util.UUID` type.

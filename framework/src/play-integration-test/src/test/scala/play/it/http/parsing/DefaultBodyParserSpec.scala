@@ -1,56 +1,62 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http.parsing
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.mvc._
-import play.api.libs.iteratee.Enumerator
 import play.api.test._
 
-object DefaultBodyParserSpec extends PlaySpecification {
+class DefaultBodyParserSpec extends PlaySpecification {
 
   "The default body parser" should {
 
-    def parse(method: String, contentType: Option[String], body: Array[Byte]) = {
-      val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
-      await(Enumerator(body) |>>> BodyParsers.parse.default(request))
+    def parse(method: String, contentType: Option[String], body: ByteString)(implicit mat: Materializer) = {
+      val request = FakeRequest(method, "/x").withHeaders(
+        contentType.map(CONTENT_TYPE -> _).toSeq :+ (CONTENT_LENGTH -> body.length.toString): _*)
+      await(BodyParsers.parse.default(request).run(Source.single(body)))
     }
 
-    "ignore text bodies for DELETE requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
+    "parse text bodies for DELETE requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
-    "ignore text bodies for GET requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
+    "parse text bodies for GET requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
-    "ignore text bodies for HEAD requests" in new WithApplication() {
-      parse("HEAD", None, "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
+    "parse text bodies for HEAD requests" in new WithApplication() {
+      parse("HEAD", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
-    "ignore text bodies for OPTIONS requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
+    "parse text bodies for OPTIONS requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
     "parse XML bodies for PATCH requests" in new WithApplication() {
-      parse("POST", Some("text/xml"), "<bar></bar>".getBytes("utf-8")) must beRight(AnyContentAsXml(<bar></bar>))
+      parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must beRight(AnyContentAsXml(<bar></bar>))
     }
 
     "parse text bodies for POST requests" in new WithApplication() {
-      parse("POST", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsText("bar"))
+      parse("POST", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
     }
 
     "parse JSON bodies for PUT requests" in new WithApplication() {
-      parse("PUT", Some("application/json"), """{"foo":"bar"}""".getBytes("utf-8")) must beRight.like {
+      parse("PUT", Some("application/json"), ByteString("""{"foo":"bar"}""")) must beRight.like {
         case AnyContentAsJson(json) => (json \ "foo").as[String] must_== "bar"
       }
     }
 
+    "parse unknown empty bodies as empty for PUT requests" in new WithApplication() {
+      parse("PUT", None, ByteString.empty) must_== Right(AnyContentAsEmpty)
+    }
+
     "parse unknown bodies as raw for PUT requests" in new WithApplication() {
-      val inBytes = Array[Byte](0)
-      parse("PUT", None, inBytes) must beRight.like {
+      parse("PUT", None, ByteString("abc")) must beRight.like {
         case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes.to[Vector] must_== inBytes.to[Vector]
+          case outBytes => outBytes must_== ByteString("abc")
         }
       }
     }

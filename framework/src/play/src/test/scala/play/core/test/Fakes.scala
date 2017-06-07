@@ -1,121 +1,117 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.test
 
-import com.google.inject.Guice
-import play.api.inject.guice.{ GuiceInjector, GuiceApplicationLoader }
-import play.api.inject.{ BindingKey, Binding, Injector }
-import play.api.libs.Files.TemporaryFile
+import java.net.URI
+import java.security.cert.X509Certificate
+
+import akka.util.ByteString
+import play.api.http.HttpConfiguration
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc._
+import play.api.mvc.request._
+import play.core.parsers.FormUrlEncodedParser
 
 import scala.concurrent.Future
 import scala.xml.NodeSeq
-
-/**
- * Utilities to help with testing
- */
-object Fakes {
-
-  /**
-   * Create an injector from the given bindings.
-   *
-   * @param bindings The bindings
-   * @return The injector
-   */
-  def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
-    Guice.createInjector(
-      GuiceApplicationLoader.guiced(bindings :+ BindingKey(classOf[Injector]).to[GuiceInjector])
-    ).getInstance(classOf[Injector])
-  }
-
-}
 
 /**
  * Fake HTTP headers implementation.
  *
  * @param data Headers data.
  */
-case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+/**
+ * A `Request` with a few extra methods that are useful for testing.
+ *
+ * @param request The original request that this `FakeRequest` wraps.
+ * @tparam A the body content type.
+ */
+class FakeRequest[A](request: Request[A]) extends Request[A] {
+  override def connection: RemoteConnection = request.connection
+  override def method: String = request.method
+  override def target: RequestTarget = request.target
+  override def version: String = request.version
+  override def headers: Headers = request.headers
+  override def body: A = request.body
+  override def attrs: TypedMap = request.attrs
 
-  private def _copy[B](
-    id: Long = this.id,
-    tags: Map[String, String] = this.tags,
-    uri: String = this.uri,
-    path: String = this.path,
-    method: String = this.method,
-    version: String = this.version,
-    headers: FakeHeaders = this.headers,
-    remoteAddress: String = this.remoteAddress,
-    secure: Boolean = this.secure,
-    body: B = this.body): FakeRequest[B] = {
+  override def withConnection(newConnection: RemoteConnection): FakeRequest[A] =
+    new FakeRequest(request.withConnection(newConnection))
+  override def withMethod(newMethod: String): FakeRequest[A] =
+    new FakeRequest(request.withMethod(newMethod))
+  override def withTarget(newTarget: RequestTarget): FakeRequest[A] =
+    new FakeRequest(request.withTarget(newTarget))
+  override def withVersion(newVersion: String): FakeRequest[A] =
+    new FakeRequest(request.withVersion(newVersion))
+  override def withHeaders(newHeaders: Headers): FakeRequest[A] =
+    new FakeRequest(request.withHeaders(newHeaders))
+  override def withAttrs(attrs: TypedMap): FakeRequest[A] =
+    new FakeRequest(request.withAttrs(attrs))
+  override def addAttr[B](key: TypedKey[B], value: B): FakeRequest[A] =
+    withAttrs(attrs.updated(key, value))
+  override def withBody[B](body: B): FakeRequest[B] =
+    new FakeRequest(request.withBody(body))
+
+  @deprecated("Use with* methods instead.", "2.6.0")
+  def copyFakeRequest[B](
+    id: java.lang.Long = null,
+    tags: Map[String, String] = null,
+    uri: String = null,
+    path: String = null,
+    method: String = null,
+    version: String = null,
+    headers: Headers = null,
+    remoteAddress: String = null,
+    secure: java.lang.Boolean = null,
+    clientCertificateChain: Option[Seq[X509Certificate]] = null,
+    body: B = body): FakeRequest[B] = {
+
     new FakeRequest[B](
-      method, uri, headers, body, remoteAddress, version, id, tags, secure
-    )
+      request.copy(id, tags, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
+        .withBody(body))
   }
-
-  /**
-   * The request path.
-   */
-  lazy val path = uri.split('?').take(1).mkString
-
-  /**
-   * The request query String
-   */
-  lazy val queryString: Map[String, Seq[String]] =
-    play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = FakeHeaders({
-      val newData = newHeaders.map {
-        case (k, v) => (k, Seq(v))
-      }
-      (Map() ++ (headers.data ++ newData)).toSeq
-    }))
+    withHeaders(headers.replace(newHeaders: _*))
   }
 
   /**
    * Constructs a new request with additional Flash.
    */
   def withFlash(data: (String, String)*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-        Seq(Flash.encodeAsCookie(new Flash(flash.data ++ data)))
-      )
-    )
+    val newFlash = new Flash(flash.data ++ data)
+    addAttr(RequestAttrKey.Flash, Cell(newFlash))
   }
 
   /**
    * Constructs a new request with additional Cookies.
    */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies)
-    )
+    val newCookies: Cookies = Cookies(CookieHeaderMerging.mergeCookieHeaderCookies(this.cookies ++ cookies))
+    addAttr(RequestAttrKey.Cookies, Cell(newCookies))
   }
 
   /**
    * Constructs a new request with additional session.
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
-    withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-        Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
-      )
-    )
+    val newSession = Session(this.session.data ++ newSessions)
+    addAttr(RequestAttrKey.Session, Cell(newSession))
   }
 
   /**
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
+    withBody(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   def certs = Future.successful(IndexedSeq.empty)
@@ -124,42 +120,36 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Adds a JSON body to the request.
    */
   def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
-    _copy(body = AnyContentAsJson(json))
+    withBody(body = AnyContentAsJson(json))
   }
 
   /**
    * Adds an XML body to the request.
    */
   def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
-    _copy(body = AnyContentAsXml(xml))
+    withBody(body = AnyContentAsXml(xml))
   }
 
   /**
    * Adds a text body to the request.
    */
   def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
-    _copy(body = AnyContentAsText(text))
+    withBody(body = AnyContentAsText(text))
   }
 
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+    val tempFileCreator = SingletonTemporaryFileCreator
+    withBody(body = AnyContentAsRaw(RawBuffer(bytes.size, tempFileCreator, bytes)))
   }
 
   /**
    * Adds a multipart form data body to the request
    */
   def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
-    _copy(body = AnyContentAsMultipartFormData(form))
-  }
-
-  /**
-   * Adds a body to the request.
-   */
-  def withBody[B](body: B): FakeRequest[B] = {
-    _copy(body = body)
+    withBody(body = AnyContentAsMultipartFormData(form))
   }
 
   /**
@@ -169,26 +159,66 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
 }
 
 /**
- * Helper utilities to build FakeRequest values.
+ * Object with helper methods for building [[play.core.test.FakeRequest]] values. This object uses a
+ * play.api.mvc.request.DefaultRequestFactory with default configuration to build
+ * the requests.
  */
-object FakeRequest {
+object FakeRequest extends FakeRequestFactory(new DefaultRequestFactory(HttpConfiguration()))
+
+/**
+ * Helper methods for building [[FakeRequest]] values.
+ *
+ * @param requestFactory Used to construct the wrapped requests.
+ */
+class FakeRequestFactory(requestFactory: RequestFactory) {
 
   /**
    * Constructs a new GET / fake request.
    */
   def apply(): FakeRequest[AnyContentAsEmpty.type] = {
-    FakeRequest("GET", "/", FakeHeaders(), AnyContentAsEmpty)
+    apply(method = "GET", uri = "/", headers = FakeHeaders(), body = AnyContentAsEmpty)
   }
 
   /**
    * Constructs a new request.
    */
   def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
-    FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
+    apply(method = method, uri = path, headers = FakeHeaders(), body = AnyContentAsEmpty)
   }
 
   def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(call.method, call.url)
+    apply(method = call.method, uri = call.url, headers = FakeHeaders(), body = AnyContentAsEmpty)
   }
-}
 
+  def apply[A](
+    method: String,
+    uri: String,
+    headers: Headers,
+    body: A,
+    remoteAddress: String = "127.0.0.1",
+    version: String = "HTTP/1.1",
+    id: Long = 666,
+    tags: Map[String, String] = Map.empty[String, String],
+    secure: Boolean = false,
+    clientCertificateChain: Option[Seq[X509Certificate]] = None,
+    attrs: TypedMap = TypedMap.empty): FakeRequest[A] = {
+
+    val _uri = uri
+    val request: Request[A] = requestFactory.createRequest(
+      RemoteConnection(remoteAddress, secure, clientCertificateChain),
+      method,
+      new RequestTarget {
+        override lazy val uri: URI = new URI(uriString)
+        override def uriString: String = _uri
+        override lazy val path = uriString.split('?').take(1).mkString
+        override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
+      },
+      version,
+      headers,
+      attrs + (RequestAttrKey.Id -> id, RequestAttrKey.Tags -> tags),
+      body
+    )
+    new FakeRequest(request)
+  }
+
+}

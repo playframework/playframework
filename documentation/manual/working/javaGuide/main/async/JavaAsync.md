@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling asynchronous results
 
 ## Make controllers asynchronous
@@ -13,46 +13,55 @@ Although it's possible to increase the number of threads in the default executio
 
 Because of the way Play works, action code must be as fast as possible, i.e., non-blocking. So what should we return from our action if we are not yet able to compute the result? We should return the *promise* of a result!
 
-A `Promise<Result>` will eventually be redeemed with a value of type `Result`. By using a `Promise<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything. Play will then serve the result as soon as the promise is redeemed.
+Java 8 provides a generic promise API called [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html).  A `CompletionStage<Result>` will eventually be redeemed with a value of type `Result`. By using a `CompletionStage<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything.  Play will then serve the result as soon as the promise is redeemed.
 
-The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
+## How to create a `CompletionStage<Result>`
 
-## How to create a `Promise<Result>`
+To create a `CompletionStage<Result>` we need another promise first: the promise that will give us the actual value we need to compute the result:
 
-To create a `Promise<Result>` we need another promise first: the promise that will give us the actual value we need to compute the result:
+@[promise-pi](code/javaguide/async/JavaAsync.java)
 
-Java
-: @[promise-pi](code/javaguide/async/JavaAsync.java)
-> **Note:** Writing functional composition in Java is verbose. See the Java 8 sample for a more readable version using lambdas.
+Play asynchronous API methods give you a `CompletionStage`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Akka to schedule asynchronous tasks or to communicate with Actors using `play.libs.Akka`.
 
-Java 8
-: @[promise-pi](java8code/java8guide/async/JavaAsync.java)
+In this case, using `CompletionStage.thenApply` will execute the completion stage in the same calling thread as the previous task.  This is fine when you have a small amount of CPU bound logic with no blocking.
 
-Play asynchronous API methods give you a `Promise`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Akka to schedule asynchronous tasks or to communicate with Actors using `play.libs.Akka`.
+A simple way to execute a block of code asynchronously and to get a `CompletionStage` is to use the `CompletionStage.supplyAsync()` method:
 
-A simple way to execute a block of code asynchronously and to get a `Promise` is to use the `promise()` helper:
+@[promise-async](code/javaguide/async/JavaAsync.java)
 
-Java
-: @[promise-async](code/javaguide/async/JavaAsync.java)
+Using `supplyAsync` creates a new task which will be placed on the fork join pool, and may be called from a different thread -- although, here it's using the default executor, and in practice you will specify an executor explicitly.
 
-Java 8
-: @[promise-async](java8code/java8guide/async/JavaAsync.java)
+> Only the "\*Async" methods from `CompletionStage` provide asynchronous execution.
 
-> **Note:** It's important to understand which thread code runs on with promises. Here, the intensive computation will just be run on another thread.
->
-> You can't magically turn synchronous IO into asynchronous by wrapping it in a `Promise`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `Promise`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
->
-> It can also be helpful to use Actors for blocking operations. Actors provide a clean model for handling timeouts and failures, setting up blocking execution contexts, and managing any state that may be associated with the service. Also Actors provide patterns like `ScatterGatherFirstCompletedRouter` to address simultaneous cache and database requests and allow remote execution on a cluster of backend servers. But an Actor may be overkill depending on what you need.
+## Using HttpExecutionContext
 
-## Async results
+You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the `HTTP.Context` remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
 
-We have been returning `Result` up until now. To send an asynchronous result our action needs to return a `Promise<Result>`:
+You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
 
-Java
-: @[async](code/javaguide/async/controllers/Application.java)
+@[http-execution-context](../../../commonGuide/configuration/code/detailedtopics/httpec/MyController.java)
 
-Java 8
-: @[async](java8code/java8guide/async/controllers/Application.java)
+Please see [[Java thread locals|ThreadPools#Java thread locals]] for more information on using Java thread locals and HttpExecutionContext.
+
+## Using CustomExecutionContext and HttpExecution
+
+Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html).
+
+Add the following imports:
+
+@[async-explicit-ec-imports](code/javaguide/async/controllers/Application.java)
+
+Define a custom execution context:
+
+@[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
+
+You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
+
+Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
+
+@[async-explicit-ec](code/javaguide/async/controllers/Application.java)
+
+> You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information, and download the [play example templates](https://playframework.com/download#examples) that show database integration.
 
 ## Actions are asynchronous by default
 
@@ -60,4 +69,13 @@ Play [[actions|JavaActions]] are asynchronous by default. For instance, in the c
 
 @[simple-action](../http/code/javaguide/http/JavaActions.java)
 
-> **Note:** Whether the action code returns a `Result` or a `Promise<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `Promise` is a technique for writing non-blocking code.
+> **Note:** Whether the action code returns a `Result` or a `CompletionStage<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `CompletionStage` is a technique for writing non-blocking code.
+
+## Handling time-outs
+
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use the [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) method to wrap a `CompletionStage` in a non-blocking timeout.
+
+@[timeout](code/javaguide/async/JavaAsync.java)
+
+> **Note:** Timeout is not the same as cancellation -- even in case of timeout, the given future will still complete, even though that completed value is not returned.
+

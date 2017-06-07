@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.db.jpa;
 
-import javax.inject.Singleton;
 import play.api.Configuration;
 import play.api.Environment;
 import play.api.inject.Binding;

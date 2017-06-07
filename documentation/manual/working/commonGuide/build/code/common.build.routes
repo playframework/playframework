@@ -1,0 +1,5 @@
+#assets-routes
+GET /index                  controllers.admin.HomeController.index()
+
+GET /assets/*file           controllers.Assets.at(path="/public/lib/myadmin", file)
+#assets-routes

@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers.module
 
 import play.api.mvc._
+import javax.inject.Inject
 
-class ModuleController extends Controller {
+class ModuleController @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }

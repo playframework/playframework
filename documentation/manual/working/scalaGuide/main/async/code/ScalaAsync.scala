@@ -1,43 +1,63 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.async.scalaasync
 
-import scala.concurrent.Future
-import play.api.mvc._
+import javax.inject.Inject
 
+import scala.concurrent._
+import akka.actor._
+import play.api._
+import play.api.mvc._
 import play.api.test._
 
-object ScalaAsyncSpec extends PlaySpecification {
+class ScalaAsyncSpec extends PlaySpecification {
+
+  def samples(implicit app: Application): ScalaAsyncSamples = app.injector.instanceOf[ScalaAsyncSamples]
 
   "scala async" should {
     "allow returning a future" in new WithApplication() {
-      contentAsString(ScalaAsyncSamples.futureResult) must startWith("PI value computed: 3.14")
+      contentAsString(samples.futureResult) must startWith("PI value computed: 3.14")
     }
 
     "allow dispatching an intensive computation" in new WithApplication() {
-      await(ScalaAsyncSamples.intensiveComp) must_== 10
+      await(samples.intensiveComp) must_== 10
     }
 
     "allow returning an async result" in new WithApplication() {
-      contentAsString(ScalaAsyncSamples.asyncResult()(FakeRequest())) must_== "Got result: 10"
+      contentAsString(samples.asyncResult()(FakeRequest())) must_== "Got result: 10"
     }
 
     "allow timing out a future" in new WithApplication() {
-      status(ScalaAsyncSamples.timeout(1200)(FakeRequest())) must_== INTERNAL_SERVER_ERROR
-      status(ScalaAsyncSamples.timeout(10)(FakeRequest())) must_== OK
+      status(samples.timeout(1200)(FakeRequest())) must_== INTERNAL_SERVER_ERROR
+      status(samples.timeout(10)(FakeRequest())) must_== OK
     }
   }
 }
 
-// If we want to show examples of importing the Play defaultContext, it can't be in a spec, since
-// Specification already defines a field called defaultContext, and this interferes with the implicits
-object ScalaAsyncSamples extends Controller {
+//#my-execution-context
+import play.api.libs.concurrent.CustomExecutionContext
+
+trait MyExecutionContext extends ExecutionContext
+
+class MyExecutionContextImpl @Inject()(system: ActorSystem)
+  extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
+
+class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends Controller {
+  def index = Action.async {
+    Future {
+      // Call some blocking API
+      Ok("result of blocking call")
+    }(myExecutionContext)
+  }
+}
+//#my-execution-context
+
+class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: ExecutionContext) extends Controller {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
     //#future-result
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
     val futureResult: Future[Result] = futurePIValue.map { pi =>
@@ -51,8 +71,6 @@ object ScalaAsyncSamples extends Controller {
 
   def intensiveComp = {
     //#intensive-computation
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
     val futureInt: Future[Int] = scala.concurrent.Future {
       intensiveComputation()
     }
@@ -63,8 +81,6 @@ object ScalaAsyncSamples extends Controller {
   def asyncResult = {
 
     //#async-result
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
     def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
       futureInt.map(i => Ok("Got result: " + i))
@@ -75,20 +91,22 @@ object ScalaAsyncSamples extends Controller {
   }
 
   def timeout(t: Long) = {
-    def intensiveComputation() = {
+    def intensiveComputation() = Future {
       Thread.sleep(t)
       10
     }
+
     //#timeout
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
     import scala.concurrent.duration._
+    import play.api.libs.concurrent.Futures._
 
     def index = Action.async {
-      val futureInt = scala.concurrent.Future { intensiveComputation() }
-      val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 1.second)
-      Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
-        case i: Int => Ok("Got result: " + i)
-        case t: String => InternalServerError(t)
+      // futures instance implicit here
+      intensiveComputation().withTimeout(1.seconds).map { i =>
+        Ok("Got result: " + i)
+      }.recover {
+        case e: TimeoutException =>
+          InternalServerError("timeout")
       }
     }
     //#timeout

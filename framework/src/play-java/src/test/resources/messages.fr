@@ -1,0 +1,4 @@
+customFormats.date=dd.MM.yyyy
+formats.date=MM_dd_yyyy
+error.invalid.dueDate=Date invalide
+patterns.zip=[5-8]{3}

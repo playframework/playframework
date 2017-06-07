@@ -1,28 +1,20 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.akka.async;
 
 //#async
-import play.libs.F.*;
 import play.mvc.*;
-import java.util.concurrent.Callable;
 
-import static play.libs.F.Promise.promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class Application extends Controller {
-    public Promise<Result> index() {
-        return promise(new Function0<Integer>() {
-            public Integer apply() {
-                return longComputation();
-            }
-        }).map(new Function<Integer,Result>() {
-            public Result apply(Integer i) {
-                return ok("Got " + i);
-            }
-        });
+    public CompletionStage<Result> index() {
+        return CompletableFuture.supplyAsync(this::longComputation)
+                .thenApply((Integer i) -> ok("Got " + i));
     }
     //###skip: 1
-    public int longComputation() { return 2;}
+    public int longComputation() { return 2; }
 }
 //#async

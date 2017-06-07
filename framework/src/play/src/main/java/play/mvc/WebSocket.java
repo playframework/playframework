@@ -1,181 +1,174 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.mvc;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import akka.stream.javadsl.Flow;
+import akka.util.ByteString;
+import com.fasterxml.jackson.databind.JsonNode;
+import play.api.http.websocket.CloseCodes;
+import play.http.websocket.Message;
+import play.libs.F;
+import play.libs.Scala;
+import play.libs.streams.AkkaStreams;
+import scala.PartialFunction;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import play.libs.F.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
- * A WebSocket result.
+ * A WebSocket handler.
  */
-public abstract class WebSocket<A> {
+public abstract class WebSocket {
 
     /**
-     * Called when the WebSocket is ready
+     * Invoke the WebSocket.
      *
-     * @param in The Socket in.
-     * @param out The Socket out.
+     * @param request The request for the WebSocket.
+     * @return A future of either a result to reject the WebSocket connection with, or a Flow to handle the WebSocket.
      */
-    public abstract void onReady(In<A> in, Out<A> out);
+    public abstract CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(Http.RequestHeader request);
 
     /**
-     * If this method returns a result, the WebSocket will be rejected with that result.
-     *
-     * This method will be invoked before onReady.
-     *
-     * @return The result to reject the WebSocket with, or null if the WebSocket shouldn't be rejected.
+     * Acceptor for text WebSockets.
      */
-    public Result rejectWith() {
-        return null;
-    }
-
-    /**
-     * If this method returns true, then the WebSocket should be handled by an actor.  The actor will be obtained by
-     * passing an ActorRef representing to the actor method, which should return the props for creating the actor.
-     */
-    public boolean isActor() {
-        return false;
-    }
-
-    /**
-     * The props to create the actor to handle this WebSocket.
-     *
-     * @param out The actor to send upstream messages to.
-     * @return The props of the actor to handle the WebSocket.  If isActor returns true, must not return null.
-     */
-    public Props actorProps(ActorRef out) {
-        return null;
-    }
-
-    /**
-     * A WebSocket out.
-     */
-    public static interface Out<A> {
-
-        /**
-         * Writes a frame.
-         */
-        public void write(A frame);
-
-        /**
-         * Close this channel.
-         */
-        public void close();
-    }
-
-    /**
-     * A WebSocket in.
-     */
-    public static class In<A> {
-
-        /**
-         * Callbacks to invoke at each frame.
-         */
-        public final List<Callback<A>> callbacks = new CopyOnWriteArrayList<Callback<A>>();
-
-        /**
-         * Callbacks to invoke on close.
-         */
-        public final List<Callback0> closeCallbacks = new CopyOnWriteArrayList<Callback0>();
-
-        /**
-         * Registers a message callback.
-         */
-        public void onMessage(Callback<A> callback) {
-            callbacks.add(callback);
+    public static final MappedWebSocketAcceptor<String, String> Text = new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
+        if (message instanceof Message.Text) {
+            return F.Either.Left(((Message.Text) message).data());
+        } else if (message instanceof Message.Binary) {
+            return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "This websocket only accepts text frames"));
+        } else {
+            throw Scala.noMatch();
         }
+    }), Message.Text::new);
 
-        /**
-         * Registers a close callback.
-         */
-        public void onClose(Callback0 callback) {
-            closeCallbacks.add(callback);
+    /**
+     * Acceptor for binary WebSockets.
+     */
+    public static final MappedWebSocketAcceptor<ByteString, ByteString> Binary = new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
+        if (message instanceof Message.Binary) {
+            return F.Either.Left(((Message.Binary) message).data());
+        } else if (message instanceof Message.Text) {
+            return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "This websocket only accepts binary frames"));
+        } else {
+            throw Scala.noMatch();
         }
-
-    }
-
-    /**
-     * Creates a WebSocket. The abstract {@code onReady} method is
-     * implemented using the specified {@code Callback2<In<A>, Out<A>>}
-     *
-     * @param callback the callback used to implement onReady
-     * @return a new WebSocket
-     * @throws NullPointerException if the specified callback is null
-     */
-    public static <A> WebSocket<A> whenReady(Callback2<In<A>, Out<A>> callback) {
-        return new WhenReadyWebSocket<A>(callback);
-    }
+    }), Message.Binary::new);
 
     /**
-     * Rejects a WebSocket.
-     *
-     * @param result The result that will be returned.
-     * @return A rejected WebSocket.
+     * Acceptor for JSON WebSockets.
      */
-    public static <A> WebSocket<A> reject(final Result result) {
-        return new WebSocket<A>() {
-            public void onReady(In<A> in, Out<A> out) {
+    public static final MappedWebSocketAcceptor<JsonNode, JsonNode> Json = new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
+        try {
+            if (message instanceof Message.Binary) {
+                return F.Either.Left(play.libs.Json.parse(((Message.Binary) message).data().iterator().asInputStream()));
+            } else if (message instanceof Message.Text) {
+                return F.Either.Left(play.libs.Json.parse(((Message.Text) message).data()));
             }
-            public Result rejectWith() {
-                return result;
-            }
-        };
-    }
-
-    /**
-     * Handles a WebSocket with an actor.
-     *
-     * @param props The function used to create the props for the actor.  The passed in argument is the upstream actor.
-     * @return An actor WebSocket.
-     */
-    public static <A> WebSocket<A> withActor(final Function<ActorRef, Props> props) {
-        return new WebSocket<A>() {
-            public void onReady(In<A> in, Out<A> out) {
-            }
-            public boolean isActor() {
-                return true;
-            }
-            public Props actorProps(ActorRef out) {
-                try {
-                    return props.apply(out);
-                } catch (RuntimeException e) {
-                    throw e;
-                } catch (Error e) {
-                    throw e;
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }
-        };
-    }
-
-    /**
-     * An extension of WebSocket that obtains its onReady from
-     * the specified {@code Callback2<In<A>, Out<A>>}.
-     */
-    static final class WhenReadyWebSocket<A> extends WebSocket<A> {
-
-        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyWebSocket.class);
-
-        private final Callback2<In<A>, Out<A>> callback;
-
-        WhenReadyWebSocket(Callback2<In<A>, Out<A>> callback) {
-            if (callback == null) throw new NullPointerException("WebSocket onReady callback cannot be null");
-            this.callback = callback;
+        } catch (RuntimeException e) {
+            return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
         }
+        throw Scala.noMatch();
+    }), json -> new Message.Text(play.libs.Json.stringify(json)));
 
-        @Override
-        public void onReady(In<A> in, Out<A> out) {
+    /**
+     * Acceptor for JSON WebSockets.
+     *
+     * @param in The class of the incoming messages, used to decode them from the JSON.
+     * @param <In> The websocket's input type (what it receives from clients)
+     * @param <Out> The websocket's output type (what it writes to clients)
+     * @return The WebSocket acceptor.
+     */
+    public static <In, Out> MappedWebSocketAcceptor<In, Out> json(Class<In> in) {
+        return new MappedWebSocketAcceptor<>(Scala.partialFunction(message -> {
             try {
-                callback.invoke(in, out);
-            } catch (Throwable e) {
-                logger.error("Exception in WebSocket.onReady", e);
+                if (message instanceof Message.Binary) {
+                    return F.Either.Left(play.libs.Json.mapper().readValue(((Message.Binary) message).data().iterator().asInputStream(), in));
+                } else if (message instanceof Message.Text) {
+                    return F.Either.Left(play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));
+                }
+            } catch (Exception e) {
+                return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), e.getMessage()));
             }
+            throw Scala.noMatch();
+        }), outMessage -> {
+            try {
+                return new Message.Text(play.libs.Json.mapper().writeValueAsString(outMessage));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    /**
+     * Utility class for creating WebSockets.
+     *
+     * @param <In> the type the websocket reads from clients (e.g. String, JsonNode)
+     * @param <Out> the type the websocket outputs back to remote clients (e.g. String, JsonNode)
+     */
+    public static class MappedWebSocketAcceptor<In, Out> {
+        private final PartialFunction<Message, F.Either<In, Message>> inMapper;
+        private final Function<Out, Message> outMapper;
+
+        public MappedWebSocketAcceptor(PartialFunction<Message, F.Either<In, Message>> inMapper, Function<Out, Message> outMapper) {
+            this.inMapper = inMapper;
+            this.outMapper = outMapper;
         }
+
+        /**
+         * Accept a WebSocket.
+         *
+         * @param f A function that takes the request header, and returns a future of either the result to reject the
+         *          WebSocket connection with, or a flow to handle the WebSocket messages.
+         * @return The WebSocket handler.
+         */
+        public WebSocket acceptOrResult(Function<Http.RequestHeader, CompletionStage<F.Either<Result, Flow<In, Out, ? >>>> f) {
+            return WebSocket.acceptOrResult(inMapper, f, outMapper);
+        }
+
+        /**
+         * Accept a WebSocket.
+         *
+         * @param f A function that takes the request header, and returns a flow to handle the WebSocket messages.
+         * @return The WebSocket handler.
+         */
+        public WebSocket accept(Function<Http.RequestHeader, Flow<In, Out, ? >> f) {
+            return acceptOrResult(request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
+        }
+    }
+
+    /**
+     * Helper to create handlers for WebSockets.
+     *
+     * @param inMapper Function to map input messages. If it produces left, the message will be passed to the WebSocket
+     *                 flow, if it produces right, the message will be sent back out to the client - this can be used
+     *                 to send errors directly to the client.
+     * @param f The function to handle the WebSocket.
+     * @param outMapper Function to map output messages.
+     * @return The WebSocket handler.
+     */
+    private static <In, Out> WebSocket acceptOrResult(
+            PartialFunction<Message, F.Either<In, Message>> inMapper,
+            Function<Http.RequestHeader, CompletionStage<F.Either<Result, Flow<In, Out, ?>>>> f,
+            Function<Out, Message> outMapper
+    ) {
+        return new WebSocket() {
+            @Override
+            public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(Http.RequestHeader request) {
+                return f.apply(request).thenApply(resultOrFlow -> {
+                    if (resultOrFlow.left.isPresent()) {
+                        return F.Either.Left(resultOrFlow.left.get());
+                    } else {
+                        Flow<Message, Message, ?> flow = AkkaStreams.bypassWith(
+                                Flow.<Message>create().collect(inMapper),
+                                play.api.libs.streams.AkkaStreams.onlyFirstCanFinishMerge(2),
+                                resultOrFlow.right.get().map(outMapper::apply)
+                        );
+                        return F.Either.Right(flow);
+                    }
+                });
+            }
+        };
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api
 
@@ -8,7 +8,7 @@ package play.api
  *
  * Example, retrieving a connection from the 'customers' datasource:
  * {{{
- * val conn = DB.getConnection("customers")
+ * val conn = db.getConnection("customers")
  * }}}
  */
 package object db {

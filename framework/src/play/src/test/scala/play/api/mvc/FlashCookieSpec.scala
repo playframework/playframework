@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.mvc
 
 import org.specs2.mutable._
 import java.net.URLEncoder
 
-object FlashCookieSpec extends Specification {
+import play.api.http.HttpConfiguration
+
+class FlashCookieSpec extends Specification {
 
   def oldEncoder(data: Map[String, String]): String = {
     URLEncoder.encode(
@@ -94,6 +96,9 @@ object FlashCookieSpec extends Specification {
     "put disallows null values" in {
       val c = Flash(Map("foo" -> "bar"))
       c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Cookie values cannot be null"))
+    }
+    "be insecure by default" in {
+      Flash.encodeAsCookie(Flash()).secure must beFalse
     }
   }
 }

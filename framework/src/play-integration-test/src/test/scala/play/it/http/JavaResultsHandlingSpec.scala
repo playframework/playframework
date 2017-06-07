@@ -1,28 +1,35 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.it.http
 
 import java.io.ByteArrayInputStream
+import java.util.Arrays
 
+import akka.NotUsed
+import akka.stream.javadsl.Source
+import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
-import play.libs.EventSource
-import play.libs.EventSource.Event
-import play.mvc.Results
-import play.mvc.Results.Chunks
+import play.it._
+import play.libs.{ Comet, EventSource, Json }
+import play.mvc.{ Http, Results }
 
-object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
+class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
+class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+
+trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+
+  sequential
 
   "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = FakeApplication(
-        withRoutes = {
-          case _ => JAction(app, controller)
-        }
-      )
+      lazy val app: Application = GuiceApplicationBuilder().routes {
+        case _ => JAction(app, controller)
+      }.build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").get())
@@ -32,92 +39,151 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
     "treat headers case insensitively" in makeRequest(new MockController {
       def action = {
-        response.setHeader("content-type", "text/plain")
-        response.setHeader("Content-type", "text/html")
-        Results.ok("Hello world")
+        response.setHeader("Server", "foo")
+        response.setHeader("server", "bar")
+        Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
       }
     }) { response =>
-      response.header(CONTENT_TYPE) must beSome("text/html")
+      response.header("Server") must beSome("bar")
+      response.header("Other") must beSome("bar")
       response.body must_== "Hello world"
     }
 
-    "buffer results with no content length" in makeRequest(new MockController {
+    "add cookies in Result" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
+      }
+    }) { response =>
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
+      response.body must_== "Hello world"
+    }
+
+    "handle duplicate withCookies in Result" in {
+      val result = Results.ok("Hello world")
+        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+
+      import scala.collection.JavaConverters._
+      val cookies = result.cookies().iterator().asScala.toList
+      val cookieValues = cookies.map(_.value)
+      cookieValues must not contain ("KitKat")
+      cookieValues must contain("Mars")
+    }
+
+    "handle duplicate cookies" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+      }
+    }) { response =>
+      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
+      response.body must_== "Hello world"
+    }
+
+    "add cookies in Response" in makeRequest(new MockController {
+      def action = {
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header("Set-Cookie").get must contain("foo=1;")
+      response.body must_== "Hello world"
+    }
+
+    "clear Session" in makeRequest(new MockController {
+      def action = {
+        session.clear()
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=-86400")
+      response.body must_== "Hello world"
+    }
+
+    "add cookies in both Response and Result" in makeRequest(new MockController {
+      def action = {
+        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
+        Results.ok("Hello world").withCookies(
+          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
+        )
+      }
+    }) { response =>
+      response.allHeaders.get("Set-Cookie").get(0) must contain("bar=KitKat")
+      response.allHeaders.get("Set-Cookie").get(1) must contain("foo=1")
+      response.body must_== "Hello world"
+    }
+
+    "send strict results" in makeRequest(new MockController {
       def action = Results.ok("Hello world")
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
     }
 
-    "send results as is with a content length" in makeRequest(new MockController {
+    "chunk comet results from string" in makeRequest(new MockController {
       def action = {
-        response.setHeader(CONTENT_LENGTH, "5")
-        Results.ok("Hello world")
-      }
-    }) { response =>
-      response.header(CONTENT_LENGTH) must beSome("5")
-      response.body must_== "Hello"
-    }
-
-    "chunk results that are streamed" in makeRequest(new MockController {
-      def action = {
-        Results.ok(new Results.StringChunks() {
-          def onReady(out: Chunks.Out[String]) {
-            out.write("a")
-            out.write("b")
-            out.write("c")
-            out.close()
-          }
-        })
+        import scala.collection.JavaConverters._
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
+        val cometSource = dataSource.via(Comet.string("callback"))
+        Results.ok().chunked(cometSource)
       }
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "abc"
+      response.body must contain("<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>")
+    }
+
+    "chunk comet results from json" in makeRequest(new MockController {
+      def action = {
+        val objectNode = Json.newObject
+        objectNode.put("foo", "bar")
+        val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
+        val cometSource = dataSource.via(Comet.json("callback"))
+        Results.ok().chunked(cometSource)
+      }
+    }) { response =>
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must contain("<html><body><script type=\"text/javascript\">callback({\"foo\":\"bar\"});</script>")
     }
 
     "chunk event source results" in makeRequest(new MockController {
       def action = {
-        Results.ok(new EventSource() {
-          def onConnected(): Unit = {
-            send(Event.event("a"))
-            send(Event.event("b"))
-            close()
+        import scala.collection.JavaConverters._
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map {
+          new akka.japi.function.Function[String, EventSource.Event] {
+            def apply(t: String) = EventSource.Event.event(t)
           }
-        })
+        }
+        val eventSource = dataSource.via(EventSource.flow())
+        Results.ok().chunked(eventSource).as("text/event-stream")
       }
     }) { response =>
-      response.header(CONTENT_TYPE) must beSome("text/event-stream; charset=utf-8")
+      response.header(CONTENT_TYPE) must beSome.like {
+        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
+      }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "data: a\n\ndata: b\n\n"
     }
 
-    "buffer input stream results of one chunk" in makeRequest(new MockController {
+    "stream input stream responses as chunked" in makeRequest(new MockController {
       def action = {
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")))
       }
     }) { response =>
-      response.header(CONTENT_LENGTH) must beSome("5")
-      response.header(TRANSFER_ENCODING) must beNone
-      response.body must_== "hello"
-    }
-
-    "chunk input stream results of more than one chunk" in makeRequest(new MockController {
-      def action = {
-        // chunk size 2 to force more than one chunk
-        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
-      }
-    }) { response =>
-      response.header(CONTENT_LENGTH) must beNone
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.body must_== "hello"
     }
 
     "not chunk input stream results if a content length is set" in makeRequest(new MockController {
       def action = {
-        response.setHeader(CONTENT_LENGTH, "5")
         // chunk size 2 to force more than one chunk
-        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
+        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 5)
       }
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("5")
@@ -125,29 +191,5 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       response.body must_== "hello"
     }
 
-    "not chunk input stream results if HTTP/1.0 is in use" in {
-      implicit val port = testServerPort
-
-      lazy val app: Application = FakeApplication(
-        withRoutes = {
-          case _ => JAction(app, new MockController {
-            def action = {
-              // chunk size 2 to force more than one chunk
-              Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
-            }
-          })
-        }
-      )
-
-      running(TestServer(port, app)) {
-        val response = BasicHttpClient.makeRequests(testServerPort, true)(
-          BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-        )(0)
-        response.headers.get(CONTENT_LENGTH) must beNone
-        response.headers.get(TRANSFER_ENCODING) must beNone
-        response.body must beLeft("hello")
-      }
-
-    }
   }
 }

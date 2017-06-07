@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.routes.compiler
 
 import java.io.File
 
 import org.specs2.mutable.Specification
+import org.specs2.matcher.FileMatchers
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
-import scala.io.Source
-
-object RoutesCompilerSpec extends Specification {
+class RoutesCompilerSpec extends Specification with FileMatchers {
 
   sequential
 
@@ -32,38 +32,30 @@ object RoutesCompilerSpec extends Specification {
       }
     }
 
-    "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
-      val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
-      RoutesCompiler.compile(f, StaticRoutesGenerator, tmp, Seq.empty, generateReverseRouter = true,
-        generateRefReverseRouter = false)
-
-      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
-      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
-      contents.contains("public static class ref") must beFalse
-    }
-
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
-      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq())
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp)
 
-      val generatedRoutes = new File(tmp, "generating/routes_routing.scala")
-      generatedRoutes.exists() must beTrue
-
-      val generatedReverseRoutes = new File(tmp, "generating/routes_reverseRouting.scala")
-      generatedReverseRoutes.exists() must beTrue
+      new File(tmp, "generating/Routes.scala") must exist
+      new File(tmp, "generating/RoutesPrefix.scala") must exist
+      new File(tmp, "controllers/ReverseRoutes.scala") must exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.scala") must exist
+      new File(tmp, "controllers/routes.java") must exist
     }
 
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
-      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq.empty) must beLeft
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beLeft
     }
 
     "check if routes with type projection are compiled" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("complexTypes.routes").toURI)
-      object A {
-        type B = Int
-      }
-      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq.empty) must beRight
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
+    }
+
+    "check if routes with complex names are compiled" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("complexNames.routes").toURI)
+      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp) must beRight
     }
   }
 }

@@ -1,3 +1,2 @@
-ScalaHome:Contents
-main:Main concepts
-advanced:Advanced topics
+!main:Main concepts
+!advanced:Advanced topics

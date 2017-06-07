@@ -1,41 +1,80 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Externalising messages and internationalization
+<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+# Internationalization with Messages
 
 ## Specifying languages supported by your application
 
-To specify your application’s languages, you need a valid language code, specified by a valid **ISO Language Code**, optionally followed by a valid **ISO Country Code**. For example, `fr` or `en-US`.
+You specify languages for your application using language tags, specially formatted strings that identify a specific language. Language tags can specify simple languages, such as "en" for English, a specific regional dialect of a language (such as "en-AU" for English as used in Australia), a language and a script (such as "az-Latn" for Azerbaijani written in Latin script), or a combination of several of these (such as "zh-cmn-Hans-CN" for Chinese, Mandarin, Simplified script, as used in China).
 
-To start, you need to specify the languages that your application supports in its `conf/application.conf` file:
+To start you need to specify the languages supported by your application in the `conf/application.conf` file:
 
 ```
-application.langs="en,en-US,fr"
+play.i18n.langs = [ "en", "en-US", "fr" ]
 ```
+
+These language tags will be validated used to create `Lang` instances. To access the languages supported by your application, you can inject a `Langs` instance into your component.
 
 ## Externalizing messages
 
-You can externalize messages in the `conf/messages.xxx` files. 
+You can externalize messages in the `conf/messages.xxx` files.
 
 The default `conf/messages` file matches all languages. You can specify additional language messages files, such as `conf/messages.fr` or `conf/messages.en-US`.
 
-You can retrieve messages for the current language using the `play.i18n.Messages` object:
+You can retrieve messages for the _current language_ using the [`play.i18n.Messages`](api/java/play/i18n/Messages.html) object:
+
+@[current-lang-render](code/javaguide/i18n/JavaI18N.java)
+
+The _current language_ is found by looking at the `lang` field in the current [`Context`](api/java/play/mvc/Http.Context.html). If there's no current `Context` then the default language is used. The `Context`'s `lang` value is determined by:
+
+1. Seeing if the `Context`'s `lang` field has been set explicitly.
+2. Looking for a `PLAY_LANG` cookie in the request.
+3. Looking at the `Accept-Language` headers of the request.
+4. Using the application's default language.
+
+You can change the `Context`'s `lang` field by calling `changeLang` or `setTransientLang`. The `changeLang` method will change the field and also set a `PLAY_LANG` cookie for future requests. The `setTransientLang` will set the field for the current request, but doesn't set a cookie. See [below](#Use-in-templates) for example usage.
+
+If you don't want to use the current language you can specify a message's language explicitly:
+
+@[specify-lang-render](code/javaguide/i18n/JavaI18N.java)
+
+Note that you should inject the [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) class, using [[dependency injection|JavaDependencyInjection]].  For example, using Guice you would do the following:
 
 ```
-String title = Messages.get("home.title")
+public MyClass {
+    @javax.inject.Inject 
+    public MyClass(play.i18n.MessagesApi messagesApi) { ... }
+}
 ```
 
-You can also specify the language explicitly:
+## Use in Controllers
 
-```
-String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
-```
+If you are in a Controller, you get the `Messages` instance through `Http.Context`, using `Http.Context.current().messages()`:
 
-> **Note:** If you have a `Request` in the scope, it will provide a default `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application’s supported languages. You should also add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.
+@[show-context-messages](code/javaguide/i18n/JavaI18N.java)
 
 ## Use in templates
-```
-@import play.i18n._
-@Messages.get("key")
-```
+
+Once you have the Messages object, you can pass it into the template:
+
+@[template](code/javaguide/i18n/explicitjavatemplate.scala.html)
+
+You can also use the Scala `Messages` object from within templates. The Scala `Messages` object has a shorter form that's equivalent to `messages.at` which many people find useful.
+
+If you use the Scala `Messages` object remember not to import the Java `play.i18n.Messages` class or they will conflict!
+
+@[template](code/javaguide/i18n/helloscalatemplate.scala.html)
+
+Localized templates that use `messages.at` or the Scala `Messages` object are invoked like normal:
+
+@[default-lang-render](code/javaguide/i18n/JavaI18N.java)
+
+If you want to change the language for the template you can call `changeLang` on the current [`Context`](api/java/play/mvc/Http.Context.html). This will change the language for the current request, and set the language into a cookie so that the language is changed for future requests:
+
+@[change-lang-render](code/javaguide/i18n/JavaI18N.java)
+
+If you just want to change the language, but only for the current request and not for future requests, call `setTransientLang`:
+
+@[set-transient-lang-render](code/javaguide/i18n/JavaI18N.java)
+
 ## Formatting messages
 
 Messages are formatted using the `java.text.MessageFormat` library. For example, if you have defined a message like this:

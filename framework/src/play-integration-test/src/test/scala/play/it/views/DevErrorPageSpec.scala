@@ -1,10 +1,13 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.it.views
 
-import play.api.{ Configuration, Mode, Environment }
+import play.api.{ Configuration, Environment, Mode }
 import play.api.http.DefaultHttpErrorHandler
 import play.api.test._
 
-object DevErrorPageSpec extends PlaySpecification {
+class DevErrorPageSpec extends PlaySpecification {
 
   "devError.scala.html" should {
 
@@ -15,18 +18,16 @@ object DevErrorPageSpec extends PlaySpecification {
       def sourceName = "someSourceFile"
     }
 
-    "link the error line if play.editor is configured" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.editor" -> "someEditorLinkWith %s:%s")
-    )) {
-      val result = app.errorHandler.onServerError(FakeRequest(), testExceptionSource)
+    "link the error line if play.editor is configured" in {
+      DefaultHttpErrorHandler.setPlayEditor("someEditorLinkWith %s:%s")
+      val result = DefaultHttpErrorHandler.onServerError(FakeRequest(), testExceptionSource)
       contentAsString(result) must contain("""href="someEditorLinkWith someSourceFile:100" """)
     }
 
     "show prod error page in prod mode" in {
-      val errorHandler = new DefaultHttpErrorHandler(Environment.simple(Mode.Prod), Configuration.empty)
+      val errorHandler = new DefaultHttpErrorHandler(Environment.simple(mode = Mode.Prod), Configuration.empty)
       val result = errorHandler.onServerError(FakeRequest(), testExceptionSource)
       Helpers.contentAsString(result) must contain("Oops, an error occurred")
     }
   }
-
 }

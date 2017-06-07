@@ -1,17 +1,19 @@
 /*
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.db
 
 import java.sql.{ DriverManager, SQLException }
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Mode }
+import play.api.Configuration
 import scala.util.Try
 
-object DriverRegistrationSpec extends Specification {
+class DriverRegistrationSpec extends Specification {
+
+  sequential
 
   "JDBC driver" should {
-    sequential
 
     "be registered for H2 before databases start" in {
       DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(beNull)
@@ -50,9 +52,11 @@ object DriverRegistrationSpec extends Specification {
     // Fake driver
     acolyte.jdbc.Driver.register("DriverRegistrationSpec", acolyte.jdbc.CompositeHandler.empty())
 
-    new DefaultDBApi(
+    new DefaultDBApi(Map("default" ->
       Configuration.from(Map(
-        "default.driver" -> "acolyte.jdbc.Driver",
-        "default.url" -> jdbcUrl)))
+        "driver" -> "acolyte.jdbc.Driver",
+        "url" -> jdbcUrl
+      )).underlying.withFallback(ConfigFactory.defaultReference.getConfig("play.db.prototype"))
+    ))
   }
 }
