@@ -131,3 +131,5 @@ Java
 
 Scala
 : @[remove-all-filters-compile-time-di](code/scalaguide/detailed/filters/FiltersComponents.scala)
+
+Both Scala `play.api.NoHttpFiltersComponents` and `play.filters.components.NoHttpFiltersComponents` of `httpFilters` method which returns an empty list of filters.
