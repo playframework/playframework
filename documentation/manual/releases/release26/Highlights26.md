@@ -97,7 +97,7 @@ First create a file `IndexTemplate.scala.html` using the `@this` syntax for the 
 
 ```scala
 @this(trc: TemplateRenderingComponent)
-@(item)
+@(item: Item)
 
 @{trc.render(item)}
 ```
