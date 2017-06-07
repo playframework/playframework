@@ -132,11 +132,11 @@ class CookiesSpec extends Specification {
 
     "handle __Host cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Host-ID=123; Secure; Path=/")
-      decoded must contain(Cookie("__Host-ID", "123", secure = true, httpOnly = false, path = "/"))
+      decoded must contain(Cookie("__Host-ID", "123", secure = true, httpOnly = false, path = "/", sameSite = None))
     }
     "handle __Secure cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure")
-      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false))
+      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = None))
     }
     "handle SameSite cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=strict")

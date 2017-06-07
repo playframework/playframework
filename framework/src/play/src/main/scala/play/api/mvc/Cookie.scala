@@ -29,9 +29,10 @@ import scala.util.control.NonFatal
  * @param value the cookie value
  * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value less than 0 to expire a cookie now
  * @param path the cookie path, defaulting to the root path `/`
- * @param domain the cookie domain
- * @param secure whether this cookie is secured, sent only for HTTPS requests
- * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
+ * @param domain the cookie domain, None by default.
+ * @param secure whether this cookie is secured, sent only for HTTPS requests, false by default.
+ * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code, true by default.
+ * @param sameSite whether this cookie should have sameSite enabled, Some(Cookie.SameSite.Lax) by default.
  */
 case class Cookie(
     name: String,
@@ -41,7 +42,7 @@ case class Cookie(
     domain: Option[String] = None,
     secure: Boolean = false,
     httpOnly: Boolean = true,
-    sameSite: Option[Cookie.SameSite] = None
+    sameSite: Option[Cookie.SameSite] = Some(Cookie.SameSite.Lax)
 ) {
   lazy val asJava = {
     new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull,
@@ -58,15 +59,35 @@ object Cookie {
 
     def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
   }
+
+  /**
+   * Same-Site enumeration,
+   *
+   * @see <a href="https://tools.ietf.org/html/draft-west-first-party-cookies-07">draft-west-first-party-cookies-07
+   * </a>
+   */
   object SameSite {
     def parse(value: String): Option[SameSite] = Seq(Strict, Lax).find(_ matches value)
+
+    /**
+     * In the strict mode, the cookie is withheld with any cross-site usage. Even when the user follows a link to
+     * another website the cookie is not sent.
+     */
     case object Strict extends SameSite("Strict")
+
+    /**
+     * In lax mode, some cross-site usage is allowed. Specifically if the request is a GET request and the
+     * request is top-level.
+     * Top-level means that the URL in the address bar changes because of this navigation. This is not the case for
+     * iframes, images or XMLHttpRequests.
+     */
     case object Lax extends SameSite("Lax")
   }
 
   /**
    * Check the prefix of this cookie and make sure it matches the rules.
    *
+   * @see <a href="https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00">Cookie Prefixes</a>
    * @return the original cookie if it is valid, else a new cookie that has the proper attributes set.
    */
   def validatePrefix(cookie: Cookie): Cookie = {

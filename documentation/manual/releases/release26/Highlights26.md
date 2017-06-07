@@ -172,11 +172,38 @@ Please see [[the Filters page|Filters]] for more details.
 
 > **NOTE**: If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests, from the CSRF filter.  To check this behavior, please add `<logger name="play.filters.csrf" value="TRACE"/>` to your `logback.xml`.  Likewise, if you are running a Play application on something other than localhost, you must configure the [[AllowedHostsFilter]] to specifically allow the hostname/ip you are connecting from.
 
-## JWT Cookies
+## Cookie Enhancements
+
+### JWT Encoding
 
 Play now uses [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) format for session and flash cookies.  This allows for a standardized signed cookie data format, cookie expiration (making replay attacks harder) and more flexibility in signing cookies.
 
 Please see [[Scala|ScalaSessionFlash]] or [[Java|JavaSessionFlash]] pages for more details.
+
+### SameSite attribute, enabled for session and flash
+
+Cookies now can have an additional [`SameSite` attribute](http://httpwg.org/http-extensions/draft-ietf-httpbis-cookie-same-site.html), which can be used to prevent CSRF. There are three possible states:
+
+ - No `SameSite`, meaning cookies will be sent for all requests to that domain.
+ - `SameSite=Strict`, meaning the cookie will only be sent for same-site requests (coming from another page on the site) not cross-site requests
+ - `SameSite=Lax`, meaning the cookie will be sent for cross-site requests as top-level navigation, but otherwise only for same-site requests. This will do the correct thing for most sites, but won't prevent certain types of attacks, such as those executed by launching popup windows.
+
+In addition, we have moved the session and flash cookies to use `SameSite=Lax` by default. You can tweak this using configuration. For example:
+
+```
+play.http.session.sameSite = null // no same-site for session
+play.http.flash.sameSite = "strict" // strict same-site for flash
+```
+
+*Note that this feature is currently not supported by many browsers, so you shouldn't rely on it. Chrome and Opera are the only major browsers to support SameSite right now.*
+
+### __Host and __Secure prefixes
+
+We've also added support for the [__Host and __Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
+
+This will only affect you if you happen to be using these prefixes for cookie names. If you are, Play will warn when serializing and deserializing those cookies if the proper attributes are not set, then set them for you automatically. To remove the warning, either cease using those prefixes for your cookies, or be sure to set the attributes as follows:
+ - Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
+ - Cookies named with `__Secure-` should set the `Secure` attribute.
 
 ## Logging Marker API
 
