@@ -93,22 +93,26 @@ Twirl templates can now be created with a constructor annotation using `@this`. 
 
 As an example, suppose a template has a dependency on a component `TemplateRenderingComponent`, which is not used by the controller.
 
-First, add the `@Inject` annotation to Twirl in `build.sbt`:
-
-```scala
-TwirlKeys.constructorAnnotations += "@javax.inject.Inject()"
-```
-
-Then create a file `IndexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
+First create a file `IndexTemplate.scala.html` using the `@this` syntax for the constructor. Note that the constructor must be placed **before** the `@()` syntax used for the template's parameters for the `apply` method:
 
 ```scala
 @this(trc: TemplateRenderingComponent)
-@()
+@(item: Item)
 
 @{trc.render(item)}
 ```
 
-And finally define the controller by injecting the template in the constructor:
+By default all generated Scala template classes Twirl creates with the `@this` syntax within Play will automatically be annotated with `@javax.inject.Inject()`. If desired you can change this behavior in `build.sbt`:
+
+```scala
+// Add one or more annotation(s):
+TwirlKeys.constructorAnnotations += "@java.lang.Deprecated()"
+
+// Or completely replace the default one with your own annotation(s):
+TwirlKeys.constructorAnnotations := Seq("@com.google.inject.Inject()")
+```
+
+Now define the controller by injecting the template in the constructor:
 
 ```scala
 public MyController @Inject()(indexTemplate: views.html.IndexTemplate,
