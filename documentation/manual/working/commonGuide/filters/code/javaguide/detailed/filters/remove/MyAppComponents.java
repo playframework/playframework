@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package javaguide.detailed.filters;
+package javaguide.detailed.filters.remove;
 
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // #removing-filters-compile-time-di
-public class RemoveHttpFilterComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
+public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
 
-    public RemoveHttpFilterComponents(ApplicationLoader.Context context) {
+    public MyAppComponents(ApplicationLoader.Context context) {
         super(context);
     }
 
@@ -34,8 +34,7 @@ public class RemoveHttpFilterComponents extends BuiltInComponentsFromContext imp
 
     @Override
     public Router router() {
-        // implement the router as needed
-        return Router.empty();
+        return Router.empty(); // implement the router as needed
     }
 }
 // #removing-filters-compile-time-di

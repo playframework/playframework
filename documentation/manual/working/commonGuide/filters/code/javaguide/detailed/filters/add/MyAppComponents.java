@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package javaguide.detailed.filters;
+package javaguide.detailed.filters.add;
 
 import javaguide.application.httpfilters.LoggingFilter;
 
@@ -15,9 +15,9 @@ import play.routing.Router;
 import java.util.Arrays;
 import java.util.List;
 
-public class AddHttpFiltersComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
+public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
 
-    public AddHttpFiltersComponents(ApplicationLoader.Context context) {
+    public MyAppComponents(ApplicationLoader.Context context) {
         super(context);
     }
 
@@ -32,8 +32,7 @@ public class AddHttpFiltersComponents extends BuiltInComponentsFromContext imple
 
     @Override
     public Router router() {
-        // implement the router as needed
-        return Router.empty();
+        return Router.empty(); // implement the router as needed
     }
 }
 // #appending-filters-compile-time-di

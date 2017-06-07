@@ -109,7 +109,7 @@ If you are using compile time dependency injection, then the default filters are
 This means that the [`play.api.BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) trait (for Scala) and [`play.BuiltInComponents`](api/java/play/BuiltInComponents.html) interface (for Java) now contains an `httpFilters` method which is left abstract. The default list of filters is defined in [`play.filters.HttpFiltersComponents`](api/scala/play/filters/HttpFiltersComponents.html) for Scala and [`play.filters.components.HttpFiltersComponents`](api/java/play/filters/components/HttpFiltersComponents.html) for Java. So, for most cases you will want to mixin `HttpFiltersComponents` and append your own filters:
 
 Java
-: @[appending-filters-compile-time-di](code/javaguide/detailed/filters/AddHttpFiltersComponents.java)
+: @[appending-filters-compile-time-di](code/javaguide/detailed/filters/add/MyAppComponents.java)
 
 Scala
 : @[appending-filters-compile-time-di](code/scalaguide/detailed/filters/FiltersComponents.scala)
@@ -117,7 +117,7 @@ Scala
 If you want to filter elements out of the list, you can do the following:
 
 Java
-: @[removing-filters-compile-time-di](code/javaguide/detailed/filters/RemoveHttpFilterComponents.java)
+: @[removing-filters-compile-time-di](code/javaguide/detailed/filters/remove/MyAppComponents.java)
 
 Scala
 : @[removing-filters-compile-time-di](code/scalaguide/detailed/filters/FiltersComponents.scala)
@@ -127,7 +127,7 @@ Scala
 To disable the default filters, mixin [`play.api.NoHttpFiltersComponents`](api/scala/play/api/NoHttpFiltersComponents.html) for Scala and [`play.filters.components.NoHttpFiltersComponents`](api/java/play/filters/components/NoHttpFiltersComponents.html) for Java:
 
 Java
-: @[remove-all-filters-compile-time-di](code/javaguide/detailed/filters/RemoveAllHttpFiltersComponents.java)
+: @[remove-all-filters-compile-time-di](code/javaguide/detailed/filters/removeAll/MyAppComponents.java)
 
 Scala
 : @[remove-all-filters-compile-time-di](code/scalaguide/detailed/filters/FiltersComponents.scala)

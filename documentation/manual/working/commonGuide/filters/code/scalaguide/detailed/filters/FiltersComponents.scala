@@ -11,6 +11,7 @@ import play.api.mvc.{EssentialAction, EssentialFilter, RequestHeader, Result}
 import play.api.routing.Router
 import play.filters.csrf.CSRFFilter
 
+// ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class AddHttpFiltersComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
@@ -26,6 +27,7 @@ class AddHttpFiltersComponents(context: ApplicationLoader.Context)
 // #appending-filters-compile-time-di
 
 // #removing-filters-compile-time-di
+// ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
@@ -39,6 +41,7 @@ class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
 // #removing-filters-compile-time-di
 
 // #remove-all-filters-compile-time-di
+// ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class RemoveAllHttpFiltersComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
