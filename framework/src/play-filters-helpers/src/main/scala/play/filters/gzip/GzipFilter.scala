@@ -204,22 +204,24 @@ object GzipFilterConfig {
 
   def fromConfiguration(conf: Configuration) = {
     val config = conf.get[Configuration]("play.filters.gzip")
+    val whiteList = MediaRange.parse(config.get[Seq[String]]("contentType.whiteList").mkString(", "))
+    val blackList = MediaRange.parse(config.get[Seq[String]]("contentType.blackList").mkString(", "))
 
     GzipFilterConfig(
       bufferSize = config.get[ConfigMemorySize]("bufferSize").toBytes.toInt,
       chunkedThreshold = config.get[ConfigMemorySize]("chunkedThreshold").toBytes.toInt,
       shouldGzip = (req, res) => {
-      res.body.contentType.flatMap(ct => MediaType.parse(ct.toLowerCase)).map(mt => mt.mediaType + "/" + mt.mediaSubType).map(mimeType => {
-
-        val whiteList = config.get[Seq[String]]("contentType.whiteList").toSet
-        val blackList = config.get[Seq[String]]("contentType.blackList").toSet
-
-        if (whiteList.nonEmpty) {
-          MediaRange.parse(whiteList.mkString(", ")).exists(_.accepts(mimeType))
-        } else {
-          !MediaRange.parse(blackList.mkString(", ")).exists(_.accepts(mimeType))
-        }
-      }).getOrElse(true)
+      res.body.contentType match {
+        case Some(ct) =>
+          MediaType.parse(ct.toLowerCase).map(mt => s"${mt.mediaType}/${mt.mediaSubType}").map(mimeType => {
+            if (whiteList.nonEmpty) {
+              whiteList.exists(_.accepts(mimeType))
+            } else {
+              blackList.forall(!_.accepts(mimeType))
+            }
+          }).getOrElse(true)
+        case None => whiteList.isEmpty
+      }
     })
   }
 }
