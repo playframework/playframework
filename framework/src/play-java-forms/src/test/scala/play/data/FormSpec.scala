@@ -646,6 +646,11 @@ trait FormSpec extends Specification {
       }
     }
 
+    "not process it's legacy validate method when the Validatable interface is implemented" in {
+      val myForm = formFactory.form(classOf[LegacyUser]).bind(Map("foo" -> "foo").asJava)
+      myForm.globalErrors().size() must beEqualTo(0)
+    }
+
     "keep the declared order of constraint annotations" in {
       "return the constraints in the same order we declared them" in {
         val myForm = formFactory.form(classOf[LoginUser])
