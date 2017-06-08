@@ -115,6 +115,10 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
 
+    "gzip content type which is on the whiteList ignoring case" in withApplication(Ok("hello").as("TeXt/CsS"), whiteList = List("TExT/HtMl", "tExT/cSs")) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
     "gzip uppercase content type which is on the whiteList" in withApplication(Ok("hello").as("TEXT/CSS"), whiteList = contentTypes) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
