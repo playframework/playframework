@@ -28,7 +28,9 @@ object PlaySettings {
 
   lazy val minimalJavaSettings = Seq[Setting[_]](
 
-    TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
+    TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala ++ {
+      if (includeDeprecatedTemplateImports.value) { TemplateImports.minimalJavaTemplateImportsDeprecated.asScala } else { Seq() }
+    },
 
     RoutesKeys.routesImport ++= Seq(
       "play.libs.F"
@@ -37,7 +39,9 @@ object PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
+    TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala ++ {
+      if (includeDeprecatedTemplateImports.value) { TemplateImports.defaultJavaTemplateImportsDeprecated.asScala } else { Seq() }
+    },
 
     RoutesKeys.routesImport ++= Seq(
       "play.libs.F"
@@ -61,6 +65,8 @@ object PlaySettings {
     externalizeResources := true,
 
     includeDocumentationInBinary := true,
+
+    includeDeprecatedTemplateImports := true,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 

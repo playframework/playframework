@@ -745,6 +745,20 @@ The `requireJs` template helper has an extra parameter `isProd` added to it that
 @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url, isProd = true)
 ```
 
+## Deprecated Template imports
+
+By default Play Java automatically adds `scala.collection.JavaConversions._` as an import to all templates.
+But this `JavaConversions` class has been deprecated as of Scala 2.12 and will be removed in future Scala versions, which means you might get warnings when compiling your template files.
+To not break existing Play apps and make migration smoother Play keeps the import for now.
+However we recommend to migrate away from the implicit conversions the `JavaConversions` class provides by using the `.asScala()` method on Java lists, etc. instead. This method is provided by `scala.collection.JavaConverters` - which also gets added automatically as an import by Play.
+You can remove the `JavaConversions` import now already by setting
+
+```
+PlayKeys.includeDeprecatedTemplateImports := false
+```
+
+in your `build.sbt`.
+
 ## Changes to File Extension to MIME Type Mapping
 
 The mapping of file extensions to MIME types has been moved to `reference.conf` so it is covered entirely through configuration, under `play.http.fileMimeTypes` setting.  Previously the list was hardcoded under `play.api.libs.MimeTypes`.
