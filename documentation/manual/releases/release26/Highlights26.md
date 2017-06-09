@@ -555,6 +555,22 @@ Finally, Play WS now supports [HTTP Caching](https://tools.ietf.org/html/rfc7234
 
 For more details, please see [[WsCache]] and the [[WS Migration Guide|WSMigration26]].
 
+## Play JSON improvements
+
+### Ability to serialize tuples
+
+Now, tuples are able to be serialized by play-json, and there are `Reads` and `Writes` implementations in the implicit scope. Tuples are serialized to arrays, so `("foo", 2, "bar")` will render as `["foo", 2, "bar"]` in the JSON.
+
+### Scala.js support
+
+Play JSON 2.6.0 now supports Scala.js. You can add the dependency with:
+
+```
+libraryDependencies += "com.typesafe.play" %%% "play-json" % version
+```
+
+where `version` is the version you wish to use. The library should effectively work the same as it does on the JVM, except without support for JVM types.
+
 ## Testing Improvements
 
 Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.
