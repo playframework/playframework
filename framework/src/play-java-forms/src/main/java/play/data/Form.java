@@ -478,7 +478,7 @@ public class Form<T> {
         Object globalError = null;
 
         // instances of Validatable have been validated already
-        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !result.getTarget().getClass().isInstance(Validatable.class);
+        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !(result.getTarget() instanceof Validatable);
         if (shouldTryLegacyValidateMethod) {
             try {
                 java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
