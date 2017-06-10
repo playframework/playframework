@@ -141,5 +141,7 @@ object PlayImport {
     val fileWatchService = SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
 
     val includeDocumentationInBinary = SettingKey[Boolean]("includeDocumentationInBinary", "Includes the Documentation inside the distribution binary.")
+
+    val includeDeprecatedTemplateImports = SettingKey[Boolean]("includeDeprecatedTemplateImports", "Includes deprecated imports in templates.")
   }
 }

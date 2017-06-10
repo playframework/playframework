@@ -123,7 +123,7 @@ object PlayDocsPlugin extends AutoPlugin {
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
     sourceGenerators in Test += Def.task {
-      compileTemplates(javaManualSourceDirectories.value, javaTwirlSourceManaged.value, TemplateImports.defaultJavaTemplateImports.asScala, streams.value.log)
+      compileTemplates(javaManualSourceDirectories.value, javaTwirlSourceManaged.value, TemplateImports.defaultJavaTemplateImports.asScala ++ TemplateImports.defaultJavaTemplateImportsDeprecated.asScala, streams.value.log)
     }.taskValue,
 
     sourceGenerators in Test += Def.task {

@@ -11,7 +11,9 @@ import java.util.List;
 public class TemplateImports {
 
   public static List<String> minimalJavaTemplateImports;
+  public static List<String> minimalJavaTemplateImportsDeprecated;
   public static List<String> defaultJavaTemplateImports;
+  public static List<String> defaultJavaTemplateImportsDeprecated;
   public static List<String> defaultScalaTemplateImports;
 
   private static List<String> defaultTemplateImports = Collections.unmodifiableList(
@@ -28,19 +30,24 @@ public class TemplateImports {
     minimalJavaImports.addAll(defaultTemplateImports);
     minimalJavaImports.add("java.lang._");
     minimalJavaImports.add("java.util._");
-    minimalJavaImports.add("scala.collection.JavaConversions._");
     minimalJavaImports.add("scala.collection.JavaConverters._");
     minimalJavaImports.add("play.core.j.PlayMagicForJava._");
     minimalJavaImports.add("play.mvc._");
     minimalJavaImports.add("play.api.data.Field");
     minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
     minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
+    List<String> minimalJavaImportsDeprecated = new ArrayList();
+    minimalJavaImportsDeprecated.add("scala.collection.JavaConversions._");
+    minimalJavaTemplateImportsDeprecated = Collections.unmodifiableList(minimalJavaImportsDeprecated);
 
     List<String> defaultJavaImports = new ArrayList();
     defaultJavaImports.addAll(minimalJavaTemplateImports);
     defaultJavaImports.add("play.data._");
     defaultJavaImports.add("play.core.j.PlayFormsMagicForJava._");
     defaultJavaTemplateImports = Collections.unmodifiableList(defaultJavaImports);
+    List<String> defaultJavaImportsDeprecated = new ArrayList();
+    defaultJavaImportsDeprecated.addAll(minimalJavaTemplateImportsDeprecated);
+    defaultJavaTemplateImportsDeprecated = Collections.unmodifiableList(defaultJavaImportsDeprecated);
 
     List<String> scalaImports = new ArrayList();
     scalaImports.addAll(defaultTemplateImports);
