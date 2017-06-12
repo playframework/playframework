@@ -6,7 +6,7 @@ package play.it.http
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.mvc._
-import play.api.routing.Router
+import play.api.routing._
 import play.api.test._
 import play.filters.HttpFiltersComponents
 import play.it._
@@ -25,8 +25,17 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       val port = testServerPort
 
       val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with HttpFiltersComponents {
-        def router = Router.from {
-          case _ => defaultActionBuilder(Results.Ok)
+        def Action = defaultActionBuilder
+        def router = {
+          import sird._
+          Router.from {
+            case sird.POST(p"/action" ? q_o"query=$query") => Action { request =>
+              Results.Ok(query.getOrElse("_"))
+            }
+            case _ => Action {
+              Results.Ok
+            }
+          }
         }
         override lazy val httpErrorHandler = errorHandler
       }.application
@@ -53,6 +62,15 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
 
       response.status must_== 400
       response.body must beLeft
+    }
+
+    "still serve requests if query string won't parse" in withServer() { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("POST", "/action?foo=query=bar=", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 200
+      response.body must beLeft("_")
     }
 
     "allow accessing the raw unparsed path from an error handler" in withServer(new HttpErrorHandler() {
