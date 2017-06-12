@@ -31,7 +31,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.8.8")
+  ).map(_ % "2.8.9")
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
