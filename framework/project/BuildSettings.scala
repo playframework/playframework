@@ -165,6 +165,9 @@ object BuildSettings {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
+    unmanagedSourceDirectories in Compile <+= (sourceDirectory in Compile, scalaBinaryVersion) {
+      (dir, version) => dir / s"scala-$version"
+    },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   )
