@@ -31,7 +31,8 @@ trait JavaHelpers {
   def cookieToScalaCookie(c: play.mvc.Http.Cookie): Cookie = {
     import scala.compat.java8.OptionConverters
     val optionalMaxAge = OptionConverters.toScala(Optional.ofNullable(c.maxAge))
-    Cookie(c.name, c.value, optionalMaxAge.map(_.toInt), c.path, Option(c.domain), c.secure, c.httpOnly)
+    val optionalSameSite = OptionConverters.toScala(c.sameSite()).map(_.asScala())
+    Cookie(c.name, c.value, optionalMaxAge.map(_.toInt), c.path, Option(c.domain), c.secure, c.httpOnly, optionalSameSite)
   }
 
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
