@@ -109,8 +109,7 @@ public class JavaResponse extends WithApplication {
         assertThat(cookie.domain(), equalTo(".example.com"));
         assertThat(cookie.secure(), equalTo(false));
         assertThat(cookie.httpOnly(), equalTo(true));
-        assertThat(cookie.sameSite(),
-            equalTo(Optional.of(Cookie.SameSite.STRICT)));
+        assertThat(cookie.sameSite(), equalTo(Optional.of(Cookie.SameSite.STRICT)));
         removeContext();
     }
 

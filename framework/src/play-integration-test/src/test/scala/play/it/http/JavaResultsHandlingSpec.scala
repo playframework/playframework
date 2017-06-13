@@ -56,8 +56,20 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
       }
     }) { response =>
-      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
-      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
+      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
+      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
+      response.body must_== "Hello world"
+    }
+
+    "add cookies with SameSite policy in Result" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+          .withCookies(Http.Cookie.builder("bar", "KitKat").withSameSite(Http.Cookie.SameSite.LAX).build())
+          .withCookies(Http.Cookie.builder("framework", "Play").withSameSite(Http.Cookie.SameSite.STRICT).build())
+      }
+    }) { response =>
+      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat; SameSite=Lax"))
+      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play; SameSite=Strict"))
       response.body must_== "Hello world"
     }
 
@@ -80,7 +92,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
       }
     }) { response =>
-      response.allHeaders("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
+      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
       response.body must_== "Hello world"
     }
 
@@ -112,8 +124,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         )
       }
     }) { response =>
-      response.allHeaders.get("Set-Cookie").get(0) must contain("bar=KitKat")
-      response.allHeaders.get("Set-Cookie").get(1) must contain("foo=1")
+      response.headers.get("Set-Cookie").get(0) must contain("bar=KitKat")
+      response.headers.get("Set-Cookie").get(1) must contain("foo=1")
       response.body must_== "Hello world"
     }
 
