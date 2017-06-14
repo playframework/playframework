@@ -1337,7 +1337,7 @@ public class Http {
         public RequestBuilder cookie(Cookie cookie) {
             play.api.mvc.Cookies newCookies = JavaHelpers$.MODULE$.mergeNewCookie(
                     req.cookies(),
-                    JavaHelpers$.MODULE$.cookieToScalaCookie(cookie)
+                    cookie.asScala()
             );
             attr(new TypedKey(RequestAttrKey.Cookies()), new AssignedCell(newCookies));
             return this;
@@ -2157,6 +2157,13 @@ public class Http {
                 }
                 return Optional.empty();
             }
+        }
+
+        public play.api.mvc.Cookie asScala() {
+            OptionalInt optMaxAge = OptionalInt.of(Optional.ofNullable(maxAge()).orElse(0));
+            Optional<String> optDomain = Optional.ofNullable(domain());
+            Optional<play.api.mvc.Cookie.SameSite> optSameSite = sameSite().map(SameSite::asScala);
+            return new play.api.mvc.Cookie(name(), value(), OptionConverters.toScala(optMaxAge), path(), OptionConverters.toScala(optDomain), secure(), httpOnly(), OptionConverters.toScala(optSameSite));
         }
     }
 
