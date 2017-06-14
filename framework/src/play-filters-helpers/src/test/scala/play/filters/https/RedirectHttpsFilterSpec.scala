@@ -6,10 +6,10 @@ package play.filters.https
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import play.api._
+import play.api.{ Configuration, Environment, _ }
 import play.api.http.HttpFilters
 import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceableModule }
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
@@ -100,13 +100,16 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
 
   private def buildApp(config: String = "", mode: Mode = Mode.Test) = GuiceApplicationBuilder(Environment.simple(mode = mode))
     .configure(Configuration(ConfigFactory.parseString(config)))
+    .load(
+      new play.api.inject.BuiltinModule,
+      new play.api.mvc.CookiesModule,
+      new play.api.i18n.I18nModule,
+      new play.filters.https.RedirectHttpsModule)
     .appRoutes(app => {
       case ("GET", "/") =>
         val action = app.injector.instanceOf[DefaultActionBuilder]
         action(Ok(""))
-    })
-    .overrides(
-      bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider],
+    }).overrides(
       bind[HttpFilters].to[TestFilters]
     ).build()
 
