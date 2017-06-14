@@ -13,9 +13,11 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
+import play.http.HttpEntity
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
-import play.mvc.{ Http, Results }
+import play.mvc.Http.{ Cookie, Flash, Session }
+import play.mvc.{ Http, ResponseHeader, Result, Results }
 
 class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -25,14 +27,14 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
   sequential
 
   "Java results handling" should {
-    def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
+    def makeRequest[T](controller: MockController, additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().routes {
+      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
         case _ => JAction(app, controller)
       }.build()
 
       running(TestServer(port, app)) {
-        val response = await(wsUrl("/").get())
+        val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
         block(response)
       }
     }
@@ -68,9 +70,50 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           .withCookies(Http.Cookie.builder("framework", "Play").withSameSite(Http.Cookie.SameSite.STRICT).build())
       }
     }) { response =>
-      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat; SameSite=Lax"))
-      response.headers("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play; SameSite=Strict"))
-      response.body must_== "Hello world"
+      val cookieHeader: Seq[String] = response.headers("Set-Cookie")
+      cookieHeader(0) must contain("bar=KitKat")
+      cookieHeader(0) must contain("SameSite=Lax")
+
+      cookieHeader(1) must contain("framework=Play")
+      cookieHeader(1) must contain("SameSite=Strict")
+    }
+
+    "honor configuration for play.http.session.sameSite" in {
+      "when configured to lax" in makeRequest(new MockController {
+        def action = {
+          import scala.collection.JavaConverters._
+
+          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+          val body = HttpEntity.fromString("Hello World", "utf-8")
+          val session = new Session(Map.empty[String, String].asJava)
+          val flash = new Flash(Map.empty[String, String].asJava)
+          val cookies = List.empty[Cookie].asJava
+
+          val result = new Result(responseHeader, body, session, flash, cookies)
+          result.session().put("bar", "KitKat")
+          result
+        }
+      }, Map("play.http.session.sameSite" -> "lax")) { response =>
+        response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax"))
+      }
+
+      "when configured to strict" in makeRequest(new MockController {
+        def action = {
+          import scala.collection.JavaConverters._
+
+          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+          val body = HttpEntity.fromString("Hello World", "utf-8")
+          val session = new Session(Map.empty[String, String].asJava)
+          val flash = new Flash(Map.empty[String, String].asJava)
+          val cookies = List.empty[Cookie].asJava
+
+          val result = new Result(responseHeader, body, session, flash, cookies)
+          result.session().put("bar", "KitKat")
+          result
+        }
+      }, Map("play.http.session.sameSite" -> "strict")) { response =>
+        response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict"))
+      }
     }
 
     "handle duplicate withCookies in Result" in {

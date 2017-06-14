@@ -411,7 +411,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
    */
   def encodeAsCookie(data: T): Cookie = {
     val cookie = encode(serialize(data))
-    Cookie(COOKIE_NAME, cookie, maxAge, path, domain, secure, httpOnly)
+    Cookie(COOKIE_NAME, cookie, maxAge, path, domain, secure, httpOnly, sameSite)
   }
 
   /**
