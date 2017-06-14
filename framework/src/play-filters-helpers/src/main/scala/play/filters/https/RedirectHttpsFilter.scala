@@ -3,11 +3,11 @@
  */
 package play.filters.https
 
-import javax.inject.{ Inject, Provider }
+import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.inject.SimpleModule
+import play.api.inject.{ SimpleModule, bind }
 import play.api.mvc._
 import play.api.{ Configuration, Environment, Mode }
 
@@ -20,6 +20,7 @@ import play.api.{ Configuration, Environment, Mode }
  * For documentation on configuring this filter, please see the Play documentation at
  * https://www.playframework.com/documentation/latest/RedirectHttpsFilter
  */
+@Singleton
 class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration)
     extends EssentialFilter {
 
@@ -58,6 +59,7 @@ case class RedirectHttpsConfiguration(
   hstsEnabled: Boolean = false
 )
 
+@Singleton
 class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
     extends Provider[RedirectHttpsConfiguration] {
   private val stsPath = "play.filters.https.strictTransportSecurity"
@@ -76,9 +78,10 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
   }
 }
 
-class RedirectHttpsModule extends SimpleModule {
-  bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider]
-}
+class RedirectHttpsModule extends SimpleModule(
+  bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider],
+  bind[RedirectHttpsFilter].toSelf
+)
 
 /**
  * The Redirect to HTTPS filter components for compile time dependency injection.
