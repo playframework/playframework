@@ -48,7 +48,7 @@ The Flash scope works exactly like the Session, but with two differences:
 
 > **Important:** The flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
 
-So for example, after saving an item, you might want to redirect the user back to the index page, and you might want to display an error on the index page saying that the save was successful.  In the save action, you would add the success message to the flash scope:
+So for example, after saving an item, you might want to redirect the user back to the index page, and you might want to display a message on the index page saying that the save was successful.  In the save action, you would add the success message to the flash scope:
 
 @[store-flash](code/javaguide/http/JavaSessionFlash.java)
 
