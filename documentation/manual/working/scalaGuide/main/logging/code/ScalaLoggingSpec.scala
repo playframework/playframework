@@ -130,12 +130,10 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import akka.stream.ActorMaterializer
       import play.api.http._
       import akka.stream.Materializer
-      implicit val system = ActorSystem();
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val controller = new Application(new AccessLoggingAction(
-        new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)))
+      implicit val system = ActorSystem()
+      implicit val mat = ActorMaterializer()
+      implicit val ec: ExecutionContext = system.dispatcher
+      val controller = new Application(new AccessLoggingAction(new BodyParsers.Default()))
 
       controller.accessLoggingAction.accessLogger.underlyingLogger.getName must equalTo("access")
       controller.logger.underlyingLogger.getName must contain("Application")
@@ -190,13 +188,13 @@ class ScalaLoggingSpec extends Specification with Mockito {
   }
 
   //#logging-default-marker-context
-  val someMarker: org.slf4j.Marker = MarkerFactory.getMarker("SOMEMARKER")      
+  val someMarker: org.slf4j.Marker = MarkerFactory.getMarker("SOMEMARKER")
   case object SomeMarkerContext extends play.api.DefaultMarkerContext(someMarker)
   //#logging-default-marker-context
 
   "MarkerContext" should {
     "return some marker" in {
-      import play.api.Logger      
+      import play.api.Logger
       val logger: Logger = Logger("access")
 
       //#logging-marker-context
@@ -207,15 +205,15 @@ class ScalaLoggingSpec extends Specification with Mockito {
     }
 
     "logger.info with explicit marker context" in {
-      import play.api.Logger      
+      import play.api.Logger
       val logger: Logger = Logger("access")
 
       //#logging-log-info-with-explicit-markercontext
       // use a typed marker as input
       logger.info("log message with explicit marker context with case object")(SomeMarkerContext)
-      
+
       // Use a specified marker.
-      val otherMarker: Marker = MarkerFactory.getMarker("OTHER")      
+      val otherMarker: Marker = MarkerFactory.getMarker("OTHER")
       val otherMarkerContext: MarkerContext = MarkerContext(otherMarker)
       logger.info("log message with explicit marker context")(otherMarkerContext)
       //#logging-log-info-with-explicit-markercontext
@@ -224,11 +222,11 @@ class ScalaLoggingSpec extends Specification with Mockito {
     }
 
     "logger.info with implicit marker context" in {
-      import play.api.Logger      
+      import play.api.Logger
       val logger: Logger = Logger("access")
 
       //#logging-log-info-with-implicit-markercontext
-      val marker: Marker = MarkerFactory.getMarker("SOMEMARKER")      
+      val marker: Marker = MarkerFactory.getMarker("SOMEMARKER")
       implicit val mc: MarkerContext = MarkerContext(marker)
 
       // Use the implicit MarkerContext in logger.info...
@@ -239,16 +237,16 @@ class ScalaLoggingSpec extends Specification with Mockito {
     }
 
     "implicitly convert a Marker to a MarkerContext" in {
-      import play.api.Logger      
+      import play.api.Logger
       val logger: Logger = Logger("access")
 
       //#logging-log-info-with-implicit-conversion
       val mc: MarkerContext = MarkerFactory.getMarker("SOMEMARKER")
-            
-      // Use the marker that has been implicitly converted to MarkerContext      
+
+      // Use the marker that has been implicitly converted to MarkerContext
       logger.info("log message with implicit marker context")(mc)
       //#logging-log-info-with-implicit-conversion
-      
+
       success
     }
 

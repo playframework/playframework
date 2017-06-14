@@ -474,9 +474,9 @@ trait StubPlayBodyParsersFactory {
    * @param mat the input materializer.
    * @return a minimal PlayBodyParsers for unit testing.
    */
-  def stubPlayBodyParsers(mat: Materializer): PlayBodyParsers = {
+  def stubPlayBodyParsers(implicit mat: Materializer): PlayBodyParsers = {
     val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
-    PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
+    PlayBodyParsers(NoTemporaryFileCreator, errorHandler)
   }
 
 }

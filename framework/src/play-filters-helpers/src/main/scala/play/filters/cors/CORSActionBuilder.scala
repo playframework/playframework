@@ -83,7 +83,7 @@ object CORSActionBuilder {
     tempFileCreator: TemporaryFileCreator = SingletonTemporaryFileCreator)(implicit materializer: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser = new BodyParsers.Default(parserConfig, eh, materializer, tempFileCreator)
+      override lazy val parser = new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
       override protected def mat: Materializer = materializer
       override protected def executionContext: ExecutionContext = ec
       override protected def corsConfig: CORSConfig = {
@@ -108,7 +108,7 @@ object CORSActionBuilder {
     tempFileCreator: TemporaryFileCreator)(implicit materializer: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser = new BodyParsers.Default(parserConfig, eh, materializer, tempFileCreator)
+      override lazy val parser = new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
       override protected def mat: Materializer = materializer
       override protected val executionContext: ExecutionContext = ec
       override protected val corsConfig: CORSConfig = config

@@ -60,7 +60,7 @@ object HttpErrorHandler {
   }
 }
 
-case class HttpErrorConfig(showDevErrors: Boolean, playEditor: Option[String])
+case class HttpErrorConfig(showDevErrors: Boolean = false, playEditor: Option[String] = None)
 
 /**
  * The default HTTP error handler.
@@ -74,9 +74,9 @@ case class HttpErrorConfig(showDevErrors: Boolean, playEditor: Option[String])
  */
 @Singleton
 class DefaultHttpErrorHandler(
-    config: HttpErrorConfig,
-    sourceMapper: Option[SourceMapper],
-    router: => Option[Router]) extends HttpErrorHandler {
+    config: HttpErrorConfig = HttpErrorConfig(),
+    sourceMapper: Option[SourceMapper] = None,
+    router: => Option[Router] = None) extends HttpErrorHandler {
 
   /**
    * @param environment The environment
@@ -85,9 +85,7 @@ class DefaultHttpErrorHandler(
    *               This is a lazy parameter, to avoid circular dependency issues, since the router may well depend on
    *               this.
    */
-  def this(environment: Environment, configuration: Configuration,
-    sourceMapper: Option[SourceMapper] = None,
-    router: => Option[Router] = None) =
+  def this(environment: Environment, configuration: Configuration, sourceMapper: Option[SourceMapper], router: => Option[Router]) =
     this(HttpErrorConfig(environment.mode != Mode.Prod, configuration.getOptional[String]("play.editor")), sourceMapper, router)
 
   @Inject
@@ -267,7 +265,10 @@ object HttpErrorHandlerExceptions {
 }
 
 /**
- * A default HTTP error handler that can be used when there's no application available
+ * A default HTTP error handler that can be used when there's no application available.
+ *
+ * Note: this HttpErrorHandler should ONLY be used in DEV or TEST. The way this displays errors to the user is
+ * generally not suitable for a production environment.
  */
 object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(
   HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {

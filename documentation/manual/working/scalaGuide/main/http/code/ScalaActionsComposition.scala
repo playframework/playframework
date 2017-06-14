@@ -44,10 +44,9 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       }
       //#basic-logging
       implicit val system = ActorSystem()
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      implicit val mat = ActorMaterializer()
+      implicit val ec: ExecutionContext = system.dispatcher
+      val parse = PlayBodyParsers()
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -98,10 +97,9 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#actions-wrapping-builder
 
       implicit val system = ActorSystem()
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      implicit val mat = ActorMaterializer()
+      implicit val ec: ExecutionContext = system.dispatcher
+      val parse = PlayBodyParsers()
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -213,10 +211,9 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       }
       //#authenticated-action-builder
       implicit val system = ActorSystem()
+      implicit val mat = ActorMaterializer()
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      val parser = new BodyParsers.Default()
       val userAction = new UserAction(parser)
 
       def currentUser = userAction { request =>

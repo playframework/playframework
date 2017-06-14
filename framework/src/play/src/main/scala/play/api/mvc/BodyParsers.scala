@@ -409,7 +409,14 @@ class DefaultPlayBodyParsers @Inject() (
   val temporaryFileCreator: TemporaryFileCreator) extends PlayBodyParsers
 
 object PlayBodyParsers {
-  def apply(conf: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer, tfc: TemporaryFileCreator): PlayBodyParsers = {
+  /**
+   * A helper method for creating PlayBodyParsers. The default values are mainly useful in testing, and default the
+   * TemporaryFileCreator and HttpErrorHandler to singleton versions.
+   */
+  def apply(
+    tfc: TemporaryFileCreator = SingletonTemporaryFileCreator,
+    eh: HttpErrorHandler = new DefaultHttpErrorHandler(),
+    conf: ParserConfiguration = ParserConfiguration())(implicit mat: Materializer): PlayBodyParsers = {
     new DefaultPlayBodyParsers(conf, eh, mat, tfc)
   }
 }
@@ -893,8 +900,15 @@ object BodyParsers extends BodyParsers {
    * The default body parser provided by Play
    */
   class Default @Inject() (parse: PlayBodyParsers) extends BodyParser[AnyContent] {
-    def this(config: ParserConfiguration, eh: HttpErrorHandler, mat: Materializer, tfc: TemporaryFileCreator) =
-      this(PlayBodyParsers(config, eh, mat, tfc))
+    /**
+     * An alternate constructor primarily designed for unit testing. Default values are set to empty or singleton
+     * implementations where appropriate.
+     */
+    def this(
+      tfc: TemporaryFileCreator = SingletonTemporaryFileCreator,
+      eh: HttpErrorHandler = new DefaultHttpErrorHandler(),
+      config: ParserConfiguration = ParserConfiguration()
+    )(implicit mat: Materializer) = this(PlayBodyParsers(tfc, eh, config))
     override def apply(rh: RequestHeader) = parse.default(None)(rh)
   }
 
