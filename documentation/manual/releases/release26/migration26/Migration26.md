@@ -51,7 +51,7 @@ Play JSON has been moved to a separate library hosted at https://github.com/play
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 ```
 
-Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
+Also, play-json has a separate release cycle from the core Play library, so the version no longer is in sync with the Play version.
 
 ### Play Iteratees moved to separate project
 
@@ -352,6 +352,22 @@ val myConfig: String = myConfigOption.getOrElse(computeDefaultValue())
 Also, there are several methods in the old `Configuration` that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
 
 The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of `play.api.Configuration`.
+
+## Play JSON API changes
+
+### JSON array index lookup
+
+If you are using the Scala play-json API, there was a small change in the way the `JsLookup` implicit class works. For example, if you have code like:
+
+```scala
+val bar = (jsarray(index) \ "bar").as[Bar]
+```
+where `index` is an array index and `jsarray` is a `JsArray`, now you should write:
+```scala
+val bar = (jsarray \ index \ "bar").as[Bar]
+```
+
+This was done to bring the behavior of indexing on `JsArray`s in line with that of other collections in Scala. Now the `jsarray(index)` method will return the value at the index, throwing an exception if it does not exist.
 
 ## Removed APIs
 
