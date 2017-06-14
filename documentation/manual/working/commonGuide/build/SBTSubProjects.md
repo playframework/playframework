@@ -193,42 +193,20 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
-`modules/admin/controllers/Assets.scala`:
+Java
+: @[assets-builder](code/javaguide/common/build/controllers/AssetsBuilder.java)
 
-@[assets-builder](code/SubProjectsAssetsBuilder.scala)
+Scala
+: @[assets-builder](code/scalaguide/common/build/controllers/SubProjectsAssetsBuilder.scala)
 
-> **Note:** Java users can do something very similar i.e.:
+And a controller:
 
-```java
-// Assets.java
-package controllers.admin;
-import play.api.mvc.*;
+Java
+: @[](code/javaguide/common/build/controllers/HomeController.java)
 
-public class Assets {
-  public static Action<AnyContent> at(String path, String file) {
-    return controllers.Assets.at(path, file);
-  }
-}
-```
+Scala
+: @[admin-home-controller](code/scalaguide/common/build/controllers/SubProjectsAssetsBuilder.scala)
 
-and a controller:
-
-`modules/admin/controllers/HomeController.scala`:
-
-```scala
-package controllers.admin
-
-import play.api._
-import play.api.mvc._
-import views.html._
-
-class HomeController extends Controller {
-
-  def index = Action { implicit request =>
-    Ok("admin")
-  }
-}
-```
 
 ### Reverse routing in ```admin```
 

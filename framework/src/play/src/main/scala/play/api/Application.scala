@@ -339,6 +339,8 @@ trait BuiltInComponents extends I18nComponents {
 
 /**
  * A component to mix in when no default filters should be mixed in to BuiltInComponents.
+ *
+ * @see [[BuiltInComponents.httpFilters]]
  */
 trait NoHttpFiltersComponents {
   val httpFilters: Seq[EssentialFilter] = Nil

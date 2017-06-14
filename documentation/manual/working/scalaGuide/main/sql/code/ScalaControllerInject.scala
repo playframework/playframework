@@ -3,13 +3,14 @@
  */
 package scalaguide.sql
 
+// #inject-controller
+// ###insert: package controllers
 import javax.inject.Inject
 
-import play.api.Play.current
-import play.api.mvc._
 import play.api.db._
+import play.api.mvc._
 
-class ScalaControllerInject @Inject()(db: Database) extends Controller {
+class ScalaControllerInject @Inject()(db: Database, val controllerComponents: ControllerComponents) extends BaseController {
 
   def index = Action {
     var outString = "Number is "
@@ -28,4 +29,21 @@ class ScalaControllerInject @Inject()(db: Database) extends Controller {
     Ok(outString)
   }
 
+}
+// #inject-controller
+
+class DatabaseOperations @Inject()(db: Database) {
+
+  // #access-default-database
+  // access "default" database
+  db.withConnection { conn =>
+    // do whatever you need with the connection
+  }
+  // #access-default-database
+
+  // #access-db-connection
+  db.withTransaction { conn =>
+    // do whatever you need with the connection
+  }
+  // #access-db-connection
 }

@@ -24,5 +24,5 @@ trait HttpFiltersComponents
     with SecurityHeadersComponents
     with AllowedHostsComponents {
 
-  lazy val httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+  def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }

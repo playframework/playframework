@@ -12,8 +12,7 @@ import play.mvc.EssentialFilter;
  * <p>Usage:</p>
  *
  * <pre>
- * public class MyComponents extends BuiltInComponentsFromContext
- *                           implements play.filters.components.NoHttpFiltersComponents {
+ * public class MyComponents extends BuiltInComponentsFromContext implements NoHttpFiltersComponents {
  *
  *    public MyComponents(ApplicationLoader.Context context) {
  *        super(context);
@@ -24,7 +23,7 @@ import play.mvc.EssentialFilter;
  * }
  * </pre>
  *
- * @see HttpFiltersComponents
+ * @see HttpFiltersComponents#httpFilters()
  */
 public interface NoHttpFiltersComponents extends HttpComponents {
 

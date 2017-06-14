@@ -59,24 +59,19 @@ All CSRF functionality assumes that a `RequestHeader` or a `Request` is availabl
 
 #### Defining an implicit Request in Actions
 
-For all the CSRF actions, the request must be exposed implicitly with `implicit request =>` as follows:
+For all the actions that need to access the CSRF token, the request must be exposed implicitly with `implicit request =>` as follows:
 
-``` scala
-def someMethod = SomeCSRFAction { implicit request =>
-  ... // methods that depend on an implicit request
-}
-```
+@[some-csrf-action](code/ScalaCsrfController.scala)
+
+That is because the helper methods like `CSRF.getToken` access receives the request as an implicit parameter to retrieve CSRF token, for example:
+
+@[implicit-access-to-token](code/ScalaCsrfController.scala)
 
 #### Passing an implicit Request between methods
 
 If you have broken up your code into methods that CSRF functionality is used in, then you can pass through the implicit request from the action:
 
-```scala
-def someMethod(...)(implicit request: Request[_]) = {
-  val token: Option[CSRF.Token] = CSRF.getToken
-  ... // do more things
-}
-```
+@[some-csrf-action-with-more-methods](code/ScalaCsrfController.scala)
 
 #### Defining an implicit Requests in Templates
 
@@ -167,20 +162,4 @@ You can use all the above features if your application is using compile time dep
 
 When rendering, you may need to add the CSRF token to a template.  You can do this with `import play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
 
-```scala
-import play.api.test.CSRFTokenHelper._
-
-class UserControllerSpec extends PlaySpec with GuiceOneAppPerTest {
-  "UserController GET" should {
-
-    "render the index page from the application" in {
-      val controller = app.injector.instanceOf[UserController]
-      val request = FakeRequest().withCSRFToken
-      val result = controller.userGet().apply(request)
-
-      status(result) mustBe OK
-      contentType(result) mustBe Some("text/html")
-    }
-  }
-}
-```
+@[testing-csrf](code/scalaguide/forms/csrf/UserControllerSpec.scala)
