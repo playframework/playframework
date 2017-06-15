@@ -127,15 +127,15 @@ The easiest way to post XML data is to use XML literals.  XML literals are conve
 
 @[scalaws-post-xml](code/ScalaWSSpec.scala)
 
-### Streaming data
+### Submitting Streaming data
 
-It's also possible to stream data.
+It's also possible to stream data in the request body using [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html).
 
 For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](http://slick.typesafe.com/) does), here is an example showing how you could implement the described behavior:
 
 @[scalaws-stream-request](code/ScalaWSSpec.scala)
 
-The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[ByteString, _]`.
+The `largeImageFromDB` in the code snippet above is a `Source[ByteString, _]`.
 
 ### Request Filters
 
@@ -190,9 +190,9 @@ You can process the response as an [XML literal](http://www.scala-lang.org/api/c
 
 ### Processing large responses
 
-Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a streaming `WSResponse` which contains a `bodyAsSource` method that returns a `Source[ByteString, _]`  
+`WS` lets you consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The `stream()` method on `WSRequest` returns a streaming `WSResponse` which contains a `bodyAsSource` method that returns a `Source[ByteString, _]`  
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
@@ -280,10 +280,6 @@ You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/
 
 @[underlying](code/ScalaWSSpec.scala)
 
-This is important in a couple of cases.  WSClient has a couple of limitations that require access to the underlying client:
-
-* `WSClient` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
-
 ## Configuring WSClient
 
 Use the following properties in `application.conf` to configure the WSClient:
@@ -316,8 +312,6 @@ The request timeout can be overridden for a specific connection with `withReques
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
 Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
-
-> **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

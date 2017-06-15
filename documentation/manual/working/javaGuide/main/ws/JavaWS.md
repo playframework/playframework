@@ -96,14 +96,6 @@ To post url-form-encoded data you can set the proper header and formatted data.
 
 @[ws-post-form-data](code/javaguide/ws/JavaWS.java)
 
-### Submitting JSON data
-
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]] with the WSBodyWritables `body(JsonNode)` method.
-
-@[json-imports](code/javaguide/ws/JavaWS.java)
-
-@[ws-post-json](code/javaguide/ws/JavaWS.java)
-
 ### Submitting multipart/form data
 
 The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>` using `multipartBody()`
@@ -116,15 +108,29 @@ To upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<Byte
 
 @[ws-post-multipart2](code/javaguide/ws/JavaWS.java)
 
-### Streaming data
+### Submitting JSON data
 
-It's also possible to stream data.
+The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]] with the WSBodyWritables `body(JsonNode)` method.
+
+@[json-imports](code/javaguide/ws/JavaWS.java)
+
+@[ws-post-json](code/javaguide/ws/JavaWS.java)
+
+### Submitting XML data
+
+The easiest way to post XML data is to use Play's XML support:
+
+@[ws-post-xml](code/javaguide/ws/JavaWS.java)
+
+### Submitting Streaming data
+
+It's also possible to stream data in the request body using [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html).
 
 Here is an example showing how you could stream a large image to a different endpoint for further processing:
 
 @[ws-stream-request](code/javaguide/ws/JavaWS.java)
 
-The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString, ?>`.
+The `largeImage` in the code snippet above is a `Source<ByteString, ?>`.
 
 ### Request Filters
 
@@ -150,9 +156,9 @@ Similarly, you can process the response as XML by calling `response.getBody(xml(
 
 ### Processing large responses
 
-Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a `bodyAsSource` method that provides a source of `ByteStream`.
+You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html) `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a `bodyAsSource` method that provides a `Source<ByteString, ?>`.
 
 Any controller or component that wants to leverage the WS streaming functionality will have to add the following imports and dependencies:
 
@@ -251,10 +257,6 @@ You can get access to the underlying shaded [AsyncHttpClient](http://static.java
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
-This is important in a couple of cases. The WS library has a couple of limitations that require access to the underlying client:
-
-* `WS` does not support streaming body upload.  In this case, you should use the [`FeedableBodyGenerator`](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/request/body/generator/FeedableBodyGenerator.html) provided by AsyncHttpClient.
-
 ## Configuring WS
 
 Use the following properties in `application.conf` to configure the WS client:
@@ -287,8 +289,6 @@ To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsC
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
 Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
-
-> **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

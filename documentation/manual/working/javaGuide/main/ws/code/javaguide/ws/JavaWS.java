@@ -122,6 +122,11 @@ public class JavaWS {
             ws.url(url).post(body(json));
             // #ws-post-json
 
+            // #ws-post-xml
+            Document xml = play.libs.XML.fromString("<document></document>");
+            ws.url(url).post(body(xml));
+            // #ws-post-xml
+
             // #ws-post-multipart
             ws.url(url).post(multipartBody(Source.single(new DataPart("hello", "world"))));
             // #ws-post-multipart
