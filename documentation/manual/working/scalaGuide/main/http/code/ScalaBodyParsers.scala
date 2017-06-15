@@ -26,7 +26,7 @@ import org.specs2.execute.AsResult
       "parse request as json" in {
         import scala.concurrent.ExecutionContext.Implicits.global
         //#access-json-body
-        def save = Action { request =>
+        def save = Action { request: Request[AnyContent] =>
           val body: AnyContent = request.body
           val jsonBody: Option[JsValue] = body.asJson
 
@@ -43,7 +43,7 @@ import org.specs2.execute.AsResult
 
       "body parser json" in {
         //#body-parser-json
-        def save = Action(parse.json) { request =>
+        def save = Action(parse.json) { request: Request[JsValue]  =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         //#body-parser-json
@@ -52,7 +52,7 @@ import org.specs2.execute.AsResult
 
       "body parser tolerantJson" in {
         //#body-parser-tolerantJson
-        def save = Action(parse.tolerantJson) { request =>
+        def save = Action(parse.tolerantJson) { request: Request[JsValue]  =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         //#body-parser-tolerantJson
@@ -61,7 +61,7 @@ import org.specs2.execute.AsResult
 
       "body parser file" in {
         //#body-parser-file
-        def save = Action(parse.file(to = new File("/tmp/upload"))) { request =>
+        def save = Action(parse.file(to = new File("/tmp/upload"))) { request: Request[File]  =>
           Ok("Saved the request content to " + request.body)
         }
         //#body-parser-file
@@ -77,7 +77,7 @@ import org.specs2.execute.AsResult
         val text = "hello"
         //#body-parser-limit-text
         // Accept only 10KB of data.
-        def save = Action(parse.text(maxLength = 1024 * 10)) { request =>
+        def save = Action(parse.text(maxLength = 1024 * 10)) { request: Request[String]  =>
           Ok("Got: " + text)
         }
         //#body-parser-limit-text
@@ -115,7 +115,7 @@ import org.specs2.execute.AsResult
           def forward(request: WSRequest): BodyParser[WSResponse] = BodyParser { req =>
             Accumulator.source[ByteString].mapFuture { source =>
               request
-                .withBody(StreamedBody(source))
+                .withBody(source)
                 .execute()
                 .map(Right.apply)
             }

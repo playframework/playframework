@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
-# The Play WS API
+# Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
 
@@ -32,7 +32,7 @@ Using an HTTP cache means savings on repeated requests to backend REST services,
 
 Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
 
-@[ws-controller](code/javaguide/ws/Application.java)
+@[ws-controller](code/javaguide/ws/MyClient.java)
 
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
@@ -78,9 +78,15 @@ For example, if you are sending plain text in a particular format, you may want 
 
 @[ws-header-content-type](code/javaguide/ws/JavaWS.java)
 
+### Request with cookie
+
+You can specify cookies for a request.
+
+@[ws-cookie](code/javaguide/ws/JavaWS.java)
+
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout.
+If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `Duration.ofMillis(Long.MAX_VALUE)` can be used to set an infinite timeout.
 
 @[ws-timeout](code/javaguide/ws/JavaWS.java)
 
@@ -92,7 +98,7 @@ To post url-form-encoded data you can set the proper header and formatted data.
 
 ### Submitting JSON data
 
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]].
+The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]] with the WSBodyWritables `body(JsonNode)` method.
 
 @[json-imports](code/javaguide/ws/JavaWS.java)
 
@@ -100,13 +106,13 @@ The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]]
 
 ### Submitting multipart/form data
 
-The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`
+The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>` using `multipartBody()`
 
 @[multipart-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-post-multipart](code/javaguide/ws/JavaWS.java)
 
-To Upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<ByteString>, ?>` to the `Source`:
+To upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<ByteString>, ?>` to the `Source`:
 
 @[ws-post-multipart2](code/javaguide/ws/JavaWS.java)
 
@@ -132,14 +138,13 @@ Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done b
 
 ### Processing a response as JSON
 
-You can process the response as a `JsonNode` by calling `response.asJson()`.
+You can process the response as a `JsonNode` by calling `response.getBody(json())`, with the `json()` method provided by `WSBodyReadables`.
 
 @[ws-response-json](code/javaguide/ws/JavaWS.java)
 
-
 ### Processing a response as XML
 
-Similarly, you can process the response as XML by calling `response.asXml()`.
+Similarly, you can process the response as XML by calling `response.getBody(xml())` with the `xml()` method provided by `WSBodyReadables`.
 
 @[ws-response-xml](code/javaguide/ws/JavaWS.java)
 
@@ -147,7 +152,7 @@ Similarly, you can process the response as XML by calling `response.asXml()`.
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<StreamedResponse>`. A `StreamedResponse` is a simple container holding together the response's headers and body.
+You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a `bodyAsSource` method that provides a source of `ByteStream`.
 
 Any controller or component that wants to leverage the WS streaming functionality will have to add the following imports and dependencies:
 

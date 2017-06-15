@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
-# The Play WS API
+# Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/), which provides a way to make asynchronous HTTP calls through a WSClient instance.
 
@@ -51,6 +51,8 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs/ws/WSResponse.html) contains the data returned from the server.
 
+WSRequest extends [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting body input into a `ByteString`.  You can create your own type classes if you would like to post, patch or put a custom type into the request.
+
 ### Request with authentication
 
 If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `AuthScheme`.  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
@@ -65,19 +67,25 @@ If an HTTP call results in a 302 or a 301 redirect, you can automatically follow
 
 ### Request with query parameters
 
-Parameters can be specified as a series of key/value tuples.
+Parameters can be specified as a series of key/value tuples.  Use `addQueryStringParameters` to add parameters, and `withQueryStringParameters` to overwrite all query string parameters.
 
 @[query-string](code/ScalaWSSpec.scala)
 
 ### Request with additional headers
 
-Headers can be specified as a series of key/value tuples.
+Headers can be specified as a series of key/value tuples.  Use `addHttpHeaders` to append additional headers, and `withHttpHeaders` to overwrite all headers.
 
 @[headers](code/ScalaWSSpec.scala)
 
 If you are sending plain text in a particular format, you may want to define the content type explicitly.
 
 @[content-type](code/ScalaWSSpec.scala)
+
+### Request with cookies
+
+Cookies can be added to the request by using `DefaultWSCookie` or by passing through [`play.api.mvc.Cookie`](api/scala/play/api/mvc/Cookie.html).
+
+@[cookie](code/ScalaWSSpec.scala)
 
 ### Request with virtual host
 
@@ -133,7 +141,7 @@ The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[Byte
 
 You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.api.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
-A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
+A sample request filter that logs the request in cURL format to SLF4J has been added in `play.api.libs.ws.ahc.AhcCurlRequestLogger`.
 
 @[curl-logger-filter](code/ScalaWSSpec.scala)
 
@@ -158,17 +166,15 @@ Whenever an operation is done on a `Future`, an implicit execution context must 
 
 @[scalaws-context-injected](code/ScalaWSSpec.scala)
 
-If you are not using DI, you can still access the default Play execution context:
-
-@[scalaws-context](code/ScalaWSSpec.scala)
-
 The examples also use the following case class for serialization/deserialization:
 
 @[scalaws-person](code/ScalaWSSpec.scala)
 
+The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html) trait, which contains type classes for Play JSON and Scala XML conversion.  You can also create your own custom type classes if you would like to convert the response to your own types, or use a different JSON or XML encoding. 
+
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.body[JsValue]`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
@@ -178,7 +184,7 @@ The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an 
 
 ### Processing a response as XML
 
-You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
+You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.body[Elem]`.
 
 @[scalaws-process-xml](code/ScalaWSSpec.scala)
 
@@ -186,7 +192,7 @@ You can process the response as an [XML literal](http://www.scala-lang.org/api/c
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `Future[StreamedResponse]`. A `StreamedResponse` is a simple container holding together the response's headers and body.
+`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a streaming `WSResponse` which contains a `bodyAsSource` method that returns a `Source[ByteString, _]`  
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
@@ -222,7 +228,7 @@ When making a request from a controller, you can map the response to a `Future[R
 
 ### Using WSClient with unreliable networks
 
-If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
+If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 ### Using WSClient with Future Timeout
 

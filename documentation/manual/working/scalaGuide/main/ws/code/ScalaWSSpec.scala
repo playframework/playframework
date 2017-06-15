@@ -12,6 +12,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
 import play.api.libs.concurrent.Futures
+import play.api.libs.json.JsValue
 
 //#dependency
 import javax.inject.Inject
@@ -47,9 +48,7 @@ case class Person(name: String, age: Int)
 class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   // #scalaws-context-injected
-  // Configure with a custom execution context from akka.dispatchers.lookup()
-  class MyExecutionContext(ec: ExecutionContext)
-  class PersonService @Inject()(ec: MyExecutionContext) {
+  class PersonService @Inject()(ec: ExecutionContext) {
     // ...
   }
   // #scalaws-context-injected
@@ -101,9 +100,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
       //#complex-holder
       val complexRequest: WSRequest =
-        request.withHeaders("Accept" -> "application/json")
+        request.addHttpHeaders("Accept" -> "application/json")
+          .addQueryStringParameters("search" -> "play")
           .withRequestTimeout(10000.millis)
-          .withQueryString("search" -> "play")
       //#complex-holder
 
       //#holder-get
@@ -137,7 +136,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "allow setting a query string" in withSimpleServer { ws =>
       val response =
         //#query-string
-        ws.url(url).withQueryString("paramKey" -> "paramValue").get()
+        ws.url(url).addQueryStringParameters("paramKey" -> "paramValue").get()
         //#query-string
 
       await(response).status must_== 200
@@ -146,7 +145,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "allow setting headers" in withSimpleServer { ws =>
       val response =
         //#headers
-        ws.url(url).withHeaders("headerKey" -> "headerValue").get()
+        ws.url(url).addHttpHeaders("headerKey" -> "headerValue").get()
         //#headers
 
       await(response).status must_== 200
@@ -156,8 +155,19 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val xmlString = "<foo></foo>"
       val response =
         //#content-type
-        ws.url(url).withHeaders("Content-Type" -> "application/xml").post(xmlString)
+        ws.url(url)
+          .addHttpHeaders("Content-Type" -> "application/xml")
+          .post(xmlString)
         //#content-type
+
+      await(response).status must_== 200
+    }
+
+    "allow setting the cookie"  in withSimpleServer { ws =>
+      val response =
+      //#cookie
+        ws.url(url).addCookies(DefaultWSCookie("cookieName", "cookieValue")).get()
+      //#cookie
 
       await(response).status must_== 200
     }
@@ -239,7 +249,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         val futureResponse: Future[WSResponse] = ws.url(url).post(data)
         // #scalaws-post-json
 
-        await(futureResponse).json must_== data
+        await(futureResponse).body[JsValue] must_== data
       }
 
       "post with XML data" in withServer {
@@ -271,7 +281,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         // #scalaws-process-json
         val futureResult: Future[String] = ws.url(url).get().map {
           response =>
-            (response.json \ "person" \ "name").as[String]
+            (response.body[JsValue] \ "person" \ "name").as[String]
         }
         // #scalaws-process-json
 
@@ -292,7 +302,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         implicit val personReads = Json.reads[Person]
 
         val futureResult: Future[JsResult[Person]] = ws.url(url).get().map {
-          response => (response.json \ "person").validate[Person]
+          response => (response.body[JsValue] \ "person").validate[Person]
         }
         // #scalaws-process-json-with-implicit
 
@@ -317,7 +327,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         // #scalaws-process-xml
         val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map {
           response =>
-            response.xml \ "message"
+            response.body[scala.xml.Elem] \ "message"
         }
         // #scalaws-process-xml
         await(futureResult).text must_== "Hello"
@@ -329,13 +339,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         //#stream-count-bytes
         // Make the request
-        val futureResponse: Future[StreamedResponse] =
+        val futureResponse: Future[WSResponse] =
           ws.url(url).withMethod("GET").stream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           res =>
             // Count the number of bytes returned
-            res.body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
+            res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }
@@ -351,7 +361,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         try {
           //#stream-to-file
           // Make the request
-          val futureResponse: Future[StreamedResponse] =
+          val futureResponse: Future[WSResponse] =
             ws.url(url).withMethod("GET").stream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
@@ -364,7 +374,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
               }
 
               // materialize and run the stream
-              res.body.runWith(sink).andThen {
+              res.bodyAsSource.runWith(sink).andThen {
                 case result =>
                   // Close the output stream whether there was an error or not
                   outputStream.close()
@@ -388,9 +398,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           def downloadFile = Action.async {
 
             // Make the request
-            ws.url(url).withMethod("GET").stream().map {
-              case StreamedResponse(response, body) =>
-
+            ws.url(url).withMethod("GET").stream().map { response =>
                 // Check that the response was successful
                 if (response.status == 200) {
 
@@ -401,9 +409,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
                   // If there's a content length, send that, otherwise return the body chunked
                   response.headers.get("Content-Length") match {
                     case Some(Seq(length)) =>
-                      Ok.sendEntity(HttpEntity.Streamed(body, Some(length.toLong), Some(contentType)))
+                      Ok.sendEntity(HttpEntity.Streamed(response.bodyAsSource, Some(length.toLong), Some(contentType)))
                     case _ =>
-                      Ok.chunked(body).as(contentType)
+                      Ok.chunked(response.bodyAsSource).as(contentType)
                   }
                 } else {
                   BadGateway
@@ -424,13 +432,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other => Action { NotFound }
       } { ws =>
         //#stream-put
-        val futureResponse: Future[StreamedResponse] =
+        val futureResponse: Future[WSResponse] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           res =>
-            res.body.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
+            res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L){ (total, bytes) =>
               total + bytes.length
             })
         }
@@ -446,7 +454,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         def largeImageFromDB: Source[ByteString, _] = largeSource
         //#scalaws-stream-request
         val wsResponse: Future[WSResponse] = ws.url(url)
-          .withBody(StreamedBody(largeImageFromDB)).execute("PUT")
+          .withBody(largeImageFromDB).execute("PUT")
         //#scalaws-stream-request
         await(wsResponse).status must_== 200
       }
@@ -502,10 +510,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "allow timeout across futures" in new WithServer() with Injecting {
       val url2 = url
-      //#ws-futures-timeout
       implicit val futures = inject[Futures]
       val ws = inject[WSClient]
-
+      //#ws-futures-timeout
       // Adds withTimeout as type enrichment on Future[WSResponse]
       import play.api.libs.concurrent.Futures._
 
