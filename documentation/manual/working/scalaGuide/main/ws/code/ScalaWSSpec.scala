@@ -282,7 +282,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         // #scalaws-process-json
         val futureResult: Future[String] = ws.url(url).get().map {
           response =>
-            (response.body[JsValue] \ "person" \ "name").as[String]
+            (response.json \ "person" \ "name").as[String]
         }
         // #scalaws-process-json
 
@@ -303,7 +303,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         implicit val personReads = Json.reads[Person]
 
         val futureResult: Future[JsResult[Person]] = ws.url(url).get().map {
-          response => (response.body[JsValue] \ "person").validate[Person]
+          response => (response.json \ "person").validate[Person]
         }
         // #scalaws-process-json-with-implicit
 
@@ -328,7 +328,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         // #scalaws-process-xml
         val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map {
           response =>
-            response.body[scala.xml.Elem] \ "message"
+            response.xml \ "message"
         }
         // #scalaws-process-xml
         await(futureResult).text must_== "Hello"

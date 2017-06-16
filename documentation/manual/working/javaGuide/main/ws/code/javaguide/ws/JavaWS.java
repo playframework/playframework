@@ -106,9 +106,9 @@ public class JavaWS {
 
             String jsonString = "{\"key1\":\"value1\"}";
             // #ws-header-content-type
-            ws.url(url).addHeader("Content-Type", "application/json").post(body(jsonString));
+            ws.url(url).addHeader("Content-Type", "application/json").post(jsonString);
             // OR
-            ws.url(url).setContentType("application/json").post(body(jsonString));
+            ws.url(url).setContentType("application/json").post(jsonString);
             // #ws-header-content-type
 
             // #ws-timeout
@@ -117,7 +117,7 @@ public class JavaWS {
 
             // #ws-post-form-data
             ws.url(url).setContentType("application/x-www-form-urlencoded")
-                       .post(body("key1=value1&key2=value2"));
+                       .post("key1=value1&key2=value2");
             // #ws-post-form-data
 
             // #ws-post-json
@@ -125,7 +125,7 @@ public class JavaWS {
                                 .put("key1", "value1")
                                 .put("key2", "value2");
 
-            ws.url(url).post(body(json));
+            ws.url(url).post(json);
             // #ws-post-json
 
             // #ws-post-json-objectmapper
@@ -135,11 +135,11 @@ public class JavaWS {
 
             // #ws-post-xml
             Document xml = play.libs.XML.fromString("<document></document>");
-            ws.url(url).post(body(xml));
+            ws.url(url).post(xml);
             // #ws-post-xml
 
             // #ws-post-multipart
-            ws.url(url).post(multipartBody(Source.single(new DataPart("hello", "world"))));
+            ws.url(url).post(Source.single(new DataPart("hello", "world")));
             // #ws-post-multipart
 
             // #ws-post-multipart2
@@ -147,7 +147,7 @@ public class JavaWS {
             FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
             DataPart dp = new DataPart("key", "value");
 
-            ws.url(url).post(multipartBody(Source.from(Arrays.asList(fp, dp))));
+            ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
             // #ws-post-multipart2
 
             String value = IntStream.range(0,100).boxed().
@@ -339,7 +339,7 @@ public class JavaWS {
         // #ws-action
         public CompletionStage<Result> index() {
             return ws.url(feedUrl).get().thenApply(response ->
-                ok("Feed title: " + response.getBody(WSBodyReadables.instance.json()).findPath("title").asText())
+                ok("Feed title: " + response.asJson().findPath("title").asText())
             );
         }
         // #ws-action
@@ -358,8 +358,8 @@ public class JavaWS {
         // #composed-call
         public CompletionStage<Result> index() {
             return ws.url(feedUrl).get()
-                    .thenCompose(response -> ws.url(response.getBody(json()).findPath("commentsUrl").asText()).get())
-                    .thenApply(response -> ok("Number of comments: " + response.getBody(json()).findPath("count").asInt()));
+                    .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
+                    .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call
     }
@@ -402,10 +402,8 @@ public class JavaWS {
     public interface URLBodyReadables {
         default BodyReadable<java.net.URL> url() {
             return response -> {
-                play.shaded.ahc.org.asynchttpclient.Response ahcResponse =
-                        (play.shaded.ahc.org.asynchttpclient.Response) response.getUnderlying();
                 try {
-                    String s = ahcResponse.getResponseBody();
+                    String s = response.getBody();
                     return java.net.URI.create(s).toURL();
                 } catch (MalformedURLException e) {
                     throw new RuntimeException(e);

@@ -6,6 +6,7 @@ package play.libs.ws.ahc;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Document;
 import play.libs.ws.*;
 import play.libs.ws.StandaloneWSRequest;
 import play.libs.ws.StandaloneWSResponse;
@@ -13,6 +14,7 @@ import play.mvc.Http;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.annotation.Documented;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -62,6 +64,11 @@ public class AhcWSRequest implements WSRequest {
         return request.patch(writables.body(jsonNode)).thenApply(responseFunction);
     }
 
+    @Override
+    public CompletionStage<WSResponse> patch(Document doc) {
+        return request.patch(writables.body(doc)).thenApply(responseFunction);
+    }
+
     @Deprecated
     @Override
     public CompletionStage<WSResponse> patch(InputStream inputStream) {
@@ -94,6 +101,11 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public CompletionStage<WSResponse> post(Document doc) {
+        return request.post(writables.body(doc)).thenApply(responseFunction);
+    }
+
+    @Override
     public CompletionStage<WSResponse> post(InputStream is) {
         return request.post(writables.body(() -> is)).thenApply(responseFunction);
     }
@@ -121,6 +133,11 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public CompletionStage<WSResponse> put(JsonNode json) {
         return request.put(writables.body(json)).thenApply(responseFunction);
+    }
+
+    @Override
+    public CompletionStage<WSResponse> put(Document doc) {
+        return request.put(writables.body(doc)).thenApply(responseFunction);
     }
 
     @Override

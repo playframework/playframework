@@ -51,8 +51,6 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs/ws/WSResponse.html) contains the data returned from the server.
 
-Play WS comes with rich type support for bodies in the form of [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting input such as `JsValue` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source[ByteString, _]`, and  [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html), which aggregates type classes that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  These type classes are automatically in scope when you import the ws package, but you can also specify them explicitly.
-
 ### Request with authentication
 
 If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `AuthScheme`.  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
@@ -174,7 +172,7 @@ The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/l
 
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.body[JsValue]`.
+You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
@@ -184,7 +182,7 @@ The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an 
 
 ### Processing a response as XML
 
-You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.body[Elem]`.
+You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
 
 @[scalaws-process-xml](code/ScalaWSSpec.scala)
 
@@ -275,6 +273,8 @@ libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSS
 Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
 
 ## Custom BodyReadables and BodyWritables
+
+Play WS comes with rich type support for bodies in the form of [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting input such as `JsValue` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source[ByteString, _]`, and  [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html), which aggregates type classes that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  These type classes are automatically in scope when you import the ws package, but you can also create custom types.  This is especially useful if you want to use a custom library, i.e. you would like to stream XML through STaX API or use another JSON library such as Argonaut or Circe.
 
 ### Creating a Custom Readable
 

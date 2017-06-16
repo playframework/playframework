@@ -6,6 +6,7 @@ package play.libs.ws;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Document;
 import play.mvc.Http;
 
 import java.io.File;
@@ -67,6 +68,14 @@ public interface WSRequest extends StandaloneWSRequest {
     CompletionStage<WSResponse> patch(JsonNode body);
 
     /**
+     *  Perform a PATCH on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> patch(Document body);
+
+    /**
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as an InputStream
@@ -117,6 +126,14 @@ public interface WSRequest extends StandaloneWSRequest {
      * @return a promise to the response
      */
     CompletionStage<WSResponse> post(JsonNode body);
+
+    /**
+     *  Perform a POST on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> post(Document body);
 
     /**
      * Perform a POST on the request asynchronously.
@@ -172,6 +189,14 @@ public interface WSRequest extends StandaloneWSRequest {
      * @return a promise to the response
      */
     CompletionStage<WSResponse> put(JsonNode body);
+
+    /**
+     *  Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> put(Document body);
 
     /**
      * Perform a PUT on the request asynchronously.

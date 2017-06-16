@@ -98,7 +98,7 @@ To post url-form-encoded data you can set the proper header and formatted data w
 
 ### Submitting multipart/form data
 
-The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>` using `multipartBody()` from [`WSBodyWritables`](api/java/play/libs/ws/WSBodyWritables.html):
+The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`:
 
 @[multipart-imports](code/javaguide/ws/JavaWS.java)
 
@@ -110,7 +110,7 @@ To upload a File as part of multipart form data, you need to pass a `Http.Multip
 
 ### Submitting JSON data
 
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]] with the `body(JsonNode)` method from [`WSBodyWritables`](api/java/play/libs/ws/WSBodyWritables.html):
+The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]:
 
 @[json-imports](code/javaguide/ws/JavaWS.java)
 
@@ -148,13 +148,13 @@ Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done b
 
 ### Processing a response as JSON
 
-You can process the response as a `JsonNode` by calling `response.getBody(json())`, with the `json()` method provided by [`WSBodyReadables`](api/java/play/libs/ws/WSBodyReadables.html).
+You can process the response as a `JsonNode` by calling `response.asJson()`.
 
 @[ws-response-json](code/javaguide/ws/JavaWS.java)
 
 ### Processing a response as XML
 
-Similarly, you can process the response as XML by calling `response.getBody(xml())` with the `xml()` method provided by [`WSBodyReadables`](api/java/play/libs/ws/WSBodyReadables.html).
+Similarly, you can process the response as XML by calling `response.asXml()`.
 
 @[ws-response-xml](code/javaguide/ws/JavaWS.java)
 
@@ -164,7 +164,7 @@ Calling `get()`, `post()` or `execute()` will cause the body of the response to 
 
 You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
 
-> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method should be used to return the Source.
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 
 Any controller or component that wants to leverage the WS streaming functionality will have to add the following imports and dependencies:
 
@@ -249,9 +249,11 @@ Ideally, you should only close a client after you know all requests have been co
 
 ## Custom BodyReadables and BodyWritables
 
+Play WS comes with rich type support for bodies in the form of [`play.libs.ws.WSBodyWritables`](api/java/play/libs/ws/WSBodyWritables.html), which contains methods for converting input such as `JsonNode` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source<ByteString, ?>`, and  [`play.libs.ws.WSBodyReadables`](api/java/play/libs/ws/WSBodyReadables.html), which contains methods that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  The default methods are available to you through the WSRequest and WSResponse, but you can also use custom types with `response.getBody(myReadable())` and `request.post(myWritable(data))`.   This is especially useful if you want to use a custom library, i.e. you would like to stream XML through STaX API.
+
 ### Creating a Custom Readable
 
-You can create a custom readable by accessing the AHC response and mapping through the byte string:
+You can create a custom readable by parsing the response:
 
 @[ws-custom-body-readable](code/javaguide/ws/JavaWS.java)
 
