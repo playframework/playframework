@@ -53,51 +53,40 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Perform a PATCH on the request asynchronously.
      *
-     * @deprecated use patch(BodyWritable)
      * @param body represented as String
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> patch(String body);
 
     /**
      * Perform a PATCH on the request asynchronously.
      *
-     * @deprecated use patch(BodyWritable)
      * @param body represented as JSON
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> patch(JsonNode body);
 
     /**
      * Perform a PATCH on the request asynchronously.
      *
-     * @deprecated use patch(BodyWritable)
      * @param body represented as an InputStream
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> patch(InputStream body);
 
     /**
      * Perform a PATCH on the request asynchronously.
      *
-     * @deprecated use patch(BodyWritable)
      * @param body represented as a File
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> patch(File body);
 
     /**
      * Perform a PATCH on the request asynchronously.
-     *
-     * @deprecated use patch(BodyWritable)
      * @param body represented as a MultipartFormData.Part
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
@@ -116,22 +105,17 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Perform a POST on the request asynchronously.
      *
-     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as String
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> post(String body);
 
     /**
      * Perform a POST on the request asynchronously.
      *
-     *
-     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as JSON
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> post(JsonNode body);
 
     /**
@@ -147,21 +131,17 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Perform a POST on the request asynchronously.
      *
-     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as a File
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> post(File body);
 
     /**
      * Perform a POST on the request asynchronously.
      *
-     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as a MultipartFormData.Part
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
@@ -180,51 +160,41 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Perform a PUT on the request asynchronously.
      *
-     * @deprecated use {@link #put(BodyWritable)}
      * @param body represented as String
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> put(String body);
 
     /**
      * Perform a PUT on the request asynchronously.
      *
-     * @deprecated use {@link #put(BodyWritable)}
      * @param body represented as JSON
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> put(JsonNode body);
 
     /**
      * Perform a PUT on the request asynchronously.
      *
-     * @deprecated use {@link #put(BodyWritable)}
      * @param body represented as an InputStream
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> put(InputStream body);
 
     /**
      * Perform a PUT on the request asynchronously.
      *
-     * @deprecated use {@link #put(BodyWritable)}
      * @param body represented as a File
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> put(File body);
 
     /**
      * Perform a PUT on the request asynchronously.
      *
-     * @deprecated use {@link #put(BodyWritable)}
      * @param body represented as a MultipartFormData.Part
      * @return a promise to the response
      */
-    @Deprecated
     CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
@@ -305,21 +275,17 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(BodyWritable)}
      * @param body the body of the request.
      * @return the modified WSRequest.
      */
-    @Deprecated
     WSRequest setBody(String body);
 
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(BodyWritable)}
      * @param body the body of the request.
      * @return the modified WSRequest.
      */
-    @Deprecated
     WSRequest setBody(JsonNode body);
 
     /**
@@ -335,21 +301,17 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(BodyWritable)}
      * @param body the body of the request.
      * @return the modified WSRequest.
      */
-    @Deprecated
     WSRequest setBody(File body);
 
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(BodyWritable)}
      * @param body the body of the request.
      * @return the modified WSRequest.
      */
-    @Deprecated
     <U> WSRequest setBody(Source<ByteString, U> body);
 
     /**

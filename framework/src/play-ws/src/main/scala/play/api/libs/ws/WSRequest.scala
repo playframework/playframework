@@ -219,13 +219,11 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Perform a POST on the request asynchronously.
    * Request body won't be chunked
    */
-  @deprecated("Use post(BodyWritable)", "2.6.0")
   def post(body: File): Future[Response]
 
   /**
    * Perform a POST on the request asynchronously.
    */
-  @deprecated("Use post(BodyWritable)", "2.6.0")
   def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
 
   //------------------------------------------------
@@ -244,13 +242,11 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Perform a PATCH on the request asynchronously.
    * Request body won't be chunked
    */
-  @deprecated("Use patch(BodyWritable)", "2.6.0")
   def patch(body: File): Future[Response]
 
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  @deprecated("Use patch(BodyWritable)", "2.6.0")
   def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
 
   //------------------------------------------------
@@ -269,13 +265,11 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Perform a PUT on the request asynchronously.
    * Request body won't be chunked
    */
-  @deprecated("Use put(BodyWritable)", "2.6.0")
   def put(body: File): Future[Response]
 
   /**
    * Perform a PUT on the request asynchronously.
    */
-  @deprecated("Use put(BodyWritable)", "2.6.0")
   def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
 
   //------------------------------------------------

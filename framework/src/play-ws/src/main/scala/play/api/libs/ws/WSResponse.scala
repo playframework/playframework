@@ -97,10 +97,8 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
   @deprecated("Use response.headers", "2.6.0")
   def allHeaders: Map[String, Seq[String]]
 
-  @deprecated("Use response.body[Elem]", "2.6.0")
   def xml: Elem
 
-  @deprecated("Use response.body[JsValue]", "2.6.0")
   def json: JsValue
 
 }

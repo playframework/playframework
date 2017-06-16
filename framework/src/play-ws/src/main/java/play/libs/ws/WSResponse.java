@@ -4,6 +4,7 @@
 package play.libs.ws;
 
 import akka.util.ByteString;
+import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
 
@@ -27,6 +28,7 @@ public interface WSResponse extends StandaloneWSResponse {
 
     @Override
     Optional<String> getSingleHeader(String name);
+
     /**
      * Gets all the headers from the response.
      */
@@ -76,8 +78,15 @@ public interface WSResponse extends StandaloneWSResponse {
     @Override
     String getBody();
 
+    /** @return the body as a ByteString */
     @Override
     ByteString getBodyAsBytes();
+
+    /**
+     * @return the body as a Source
+     */
+    @Override
+    Source<ByteString, ?> getBodyAsSource();
 
     /**
      * Gets the body of the response as a T, using a {@link BodyReadable}.
@@ -92,18 +101,14 @@ public interface WSResponse extends StandaloneWSResponse {
     <T> T getBody(BodyReadable<T> readable);
 
     /**
-     * Gets the body as XML.
-     * @deprecated use {@link #getBody(BodyReadable)} with {@code xml()}.
+     * return the body as XML.
      */
-    @Deprecated
     Document asXml();
 
     /**
      * Gets the body as JSON node.
-     * @deprecated use {@link #getBody(BodyReadable)} with {@code WSBodyWritables.json()}.
      * @return json node.
      */
-    @Deprecated
     JsonNode asJson();
 
     /**
@@ -117,8 +122,6 @@ public interface WSResponse extends StandaloneWSResponse {
     /**
      * Gets the body as an array of bytes.
      */
-    @Deprecated
     byte[] asByteArray();
-
 
 }
